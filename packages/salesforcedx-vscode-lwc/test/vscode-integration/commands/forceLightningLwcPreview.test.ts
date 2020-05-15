@@ -24,14 +24,8 @@ import * as vscode from 'vscode';
 import { DEV_SERVER_PREVIEW_ROUTE } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
-  androidSuccessString,
-  defaultLogLevel,
   forceLightningLwcPreview,
-  logLevelKey,
-  platformOptions,
-  mobileEnabledKey,
-  rememberDeviceKey,
-  sfdxMobilePreviewCommand
+  platformOptions
 } from '../../../src/commands/forceLightningLwcPreview';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
@@ -41,6 +35,12 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const { channelService, SfdxCommandlet, notificationService } = sfdxCoreExports;
+const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
+const rememberDeviceKey = 'rememberDevice';
+const mobileEnabledKey = 'enablePreviewOnMobile';
+const logLevelKey = 'logLevel';
+const defaultLogLevel = 'warn';
+const androidSuccessString = 'Launching... Opening Browser';
 
 describe('forceLightningLwcPreview', () => {
   let sandbox: SinonSandbox;
@@ -88,7 +88,17 @@ describe('forceLightningLwcPreview', () => {
     'foo',
     'foo.js'
   );
+  const validDirectory = path.join(
+    'dev',
+    'project',
+    'force-app',
+    'main',
+    'default',
+    'lwc',
+    'foo'
+  );
   const validSourceUri = { path: validSourcePath } as vscode.Uri;
+  const validDirectoryUri = { path: validDirectory } as vscode.Uri;
   const desktopQuickPick = platformOptions[0];
   const androidQuickPick = platformOptions[1];
   const iOSQuickPick = platformOptions[2];
@@ -237,21 +247,9 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('calls openBrowser with the correct url for files', async () => {
+    // Returns false for enabling mobile, false for remembered device settings.
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(true);
-
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo',
-      'foo.js'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -259,7 +257,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(validSourceUri);
 
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
@@ -271,18 +269,6 @@ describe('forceLightningLwcPreview', () => {
   it('calls openBrowser with the correct url for directories', async () => {
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(true);
-
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -290,7 +276,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(validDirectoryUri);
 
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
@@ -302,18 +288,6 @@ describe('forceLightningLwcPreview', () => {
   it('starts the server if it is not running yet', async () => {
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(false);
-
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -322,7 +296,7 @@ describe('forceLightningLwcPreview', () => {
     } as fs.Stats);
 
     const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(validDirectoryUri);
 
     sinon.assert.calledOnce(commandletStub);
   });
@@ -373,18 +347,6 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error message when open browser throws an error', async () => {
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(true);
-
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -394,7 +356,7 @@ describe('forceLightningLwcPreview', () => {
 
     openBrowserStub.throws('test error');
 
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(validDirectoryUri);
 
     const commandName = nls.localize(`force_lightning_lwc_preview_text`);
     sinon.assert.calledTwice(showErrorMessageStub);
@@ -404,7 +366,221 @@ describe('forceLightningLwcPreview', () => {
     );
   });
 
-  // Tests for new picklist UI that includes Desktop, Android and iOS.
+  // Tests for new Quick Pick UI that includes Desktop, Android and iOS.
+  // TODO: Remove tests above this line when enable mobile configuration setting is removed.
+  it('calls openBrowser from quick pick with the correct url for files', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    // Returns true for enabling mobile, false for remembered device settings.
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.resolves(desktopQuickPick);
+    await forceLightningLwcPreview(validSourceUri);
+
+    sinon.assert.calledOnce(openBrowserStub);
+    sinon.assert.calledWith(
+      openBrowserStub,
+      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+    );
+  });
+
+  it('calls openBrowser from quick pick with the correct url for directories', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return true;
+      }
+    } as fs.Stats);
+    showQuickPickStub.resolves(desktopQuickPick);
+    await forceLightningLwcPreview(validDirectoryUri);
+
+    sinon.assert.calledOnce(openBrowserStub);
+    sinon.assert.calledWith(
+      openBrowserStub,
+      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+    );
+  });
+
+  it('starts the server if it is not running when desktop selected', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(false);
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+
+    const testPath = path.join('force-app', 'main', 'default', 'lwc', 'hello');
+    const sourceUri = { path: testPath } as vscode.Uri;
+
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return true;
+      }
+    } as fs.Stats);
+    showQuickPickStub.resolves(desktopQuickPick);
+    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
+    await forceLightningLwcPreview(validSourceUri);
+
+    sinon.assert.calledOnce(commandletStub);
+  });
+
+  it('starts the server if it is not running when Android selected', async () => {
+    const testPath = path.join('force-app', 'main', 'default', 'lwc', 'hello');
+    const sourceUri = { path: testPath } as vscode.Uri;
+
+    devServiceStub.isServerHandlerRegistered.returns(false);
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getGlobalStoreStub.returns(new MockMemento());
+    showQuickPickStub.resolves(androidQuickPick);
+    showInputBoxStub.resolves('');
+    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
+    await forceLightningLwcPreview(validSourceUri);
+    mockExecution.stdoutSubject.next(androidSuccessString);
+
+    sinon.assert.calledOnce(showQuickPickStub);
+    sinon.assert.calledOnce(showInputBoxStub);
+    sinon.assert.calledOnce(commandletStub);
+    expect(cmdWithArgSpy.callCount).to.equal(1);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithFlagSpy.callCount).to.equal(4);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      'Android'
+    ]);
+    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-t',
+      'SFDXEmulator'
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+      '-n',
+      'c/foo'
+    ]);
+    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
+      '--loglevel',
+      'warn'
+    ]);
+    sinon.assert.calledOnce(mobileExecutorStub);
+    expect(successInfoMessageSpy.callCount).to.equal(1);
+  });
+
+  it('starts the server if it is not running when iOS selected', async () => {
+    const testPath = path.join('force-app', 'main', 'default', 'lwc', 'hello');
+    const sourceUri = { path: testPath } as vscode.Uri;
+
+    devServiceStub.isServerHandlerRegistered.returns(false);
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getGlobalStoreStub.returns(new MockMemento());
+    showQuickPickStub.resolves(iOSQuickPick);
+    showInputBoxStub.resolves('');
+    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
+    await forceLightningLwcPreview(validSourceUri);
+    mockExecution.processExitSubject.next(0);
+
+    sinon.assert.calledOnce(showQuickPickStub);
+    sinon.assert.calledOnce(showInputBoxStub);
+    sinon.assert.calledOnce(commandletStub);
+    expect(cmdWithArgSpy.callCount).to.equal(1);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithFlagSpy.callCount).to.equal(4);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-t',
+      'SFDXSimulator'
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+      '-n',
+      'c/foo'
+    ]);
+    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
+      '--loglevel',
+      'warn'
+    ]);
+    sinon.assert.calledOnce(mobileExecutorStub);
+    expect(successInfoMessageSpy.callCount).to.equal(1);
+  });
+
+  it('shows an error when source path is not recognized as an lwc module file', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+
+    const testPath = path.join('foo');
+    const sourceUri = { path: testPath } as vscode.Uri;
+
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.resolves(desktopQuickPick);
+
+    await forceLightningLwcPreview(sourceUri);
+
+    sinon.assert.calledWith(
+      showErrorMessageStub,
+      sinon.match(
+        nls.localize(`force_lightning_lwc_preview_unsupported`, 'foo')
+      )
+    );
+  });
+
+  it('shows an error when source path does not exist', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+    const testPath = path.join('foo');
+    const sourceUri = { path: testPath } as vscode.Uri;
+    existsSyncStub.returns(false);
+    showQuickPickStub.resolves(desktopQuickPick);
+
+    await forceLightningLwcPreview(sourceUri);
+
+    sinon.assert.calledWith(
+      showErrorMessageStub,
+      sinon.match(
+        nls.localize(`force_lightning_lwc_preview_file_nonexist`, 'foo')
+      )
+    );
+  });
+
+  it('shows an error message when open browser throws an error', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    getConfigurationStub.returns(new MockWorkspace(true, false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return true;
+      }
+    } as fs.Stats);
+
+    showQuickPickStub.resolves(desktopQuickPick);
+    openBrowserStub.throws('test error');
+
+    await forceLightningLwcPreview(validDirectoryUri);
+
+    const commandName = nls.localize(`force_lightning_lwc_preview_text`);
+    sinon.assert.calledTwice(showErrorMessageStub);
+    sinon.assert.calledWith(
+      showErrorMessageStub,
+      sinon.match(nls.localize('command_failure', commandName))
+    );
+  });
+
   it('calls SFDX preview with the correct url for files', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
     existsSyncStub.returns(true);
@@ -447,17 +623,6 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('calls SFDX preview with the correct url for directories', async () => {
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
     devServiceStub.isServerHandlerRegistered.returns(true);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -470,7 +635,7 @@ describe('forceLightningLwcPreview', () => {
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(iOSQuickPick);
     showInputBoxStub.resolves('');
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(validDirectoryUri);
     mockExecution.processExitSubject.next(0);
 
     sinon.assert.calledOnce(showQuickPickStub);
@@ -545,17 +710,6 @@ describe('forceLightningLwcPreview', () => {
 
   it('calls SFDX preview with specified Android device name', async () => {
     const deviceName = 'androidtestname';
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
     devServiceStub.isServerHandlerRegistered.returns(true);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -564,12 +718,11 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    devServiceStub.isServerHandlerRegistered.returns(true);
     getConfigurationStub.returns(new MockWorkspace(true, false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves(deviceName);
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(validDirectoryUri);
     mockExecution.stdoutSubject.next(androidSuccessString);
 
     sinon.assert.calledOnce(showQuickPickStub);
@@ -586,7 +739,7 @@ describe('forceLightningLwcPreview', () => {
     expect(successInfoMessageSpy.callCount).to.equal(1);
     expect(
       successInfoMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_mobile_android_start', deviceName)
+        nls.localize('force_lightning_lwc_android_start', deviceName)
       )
     );
   });
@@ -655,7 +808,7 @@ describe('forceLightningLwcPreview', () => {
     expect(
       successInfoMessageSpy.calledWith(
         nls.localize(
-          'force_lightning_lwc_mobile_android_start',
+          'force_lightning_lwc_android_start',
           rememberedAndroidDevice
         )
       )
@@ -689,10 +842,7 @@ describe('forceLightningLwcPreview', () => {
     expect(successInfoMessageSpy.callCount).to.equal(1);
     expect(
       successInfoMessageSpy.calledWith(
-        nls.localize(
-          'force_lightning_lwc_mobile_android_start',
-          rememberediOSDevice
-        )
+        nls.localize('force_lightning_lwc_android_start', rememberediOSDevice)
       )
     );
   });
@@ -847,7 +997,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledTwice(appendLineSpy);
     expect(
       appendLineSpy.calledWith(
-        nls.localize('force_lightning_lwc_mobile_no_plugin')
+        nls.localize('force_lightning_lwc_no_mobile_plugin')
       )
     );
   });
