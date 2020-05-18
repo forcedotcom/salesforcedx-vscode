@@ -5,12 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { assert, SinonStub, stub } from 'sinon';
+import { assert, match, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import {
   SfdxTask,
   taskService
 } from '../../../../src/testSupport/testRunner/taskService';
+import { nls } from '../../../../src/messages';
+
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const { channelService } = sfdxCoreExports;
 
 describe('Task Service Unit Tests', () => {
   let executeTaskStub: SinonStub<
@@ -31,6 +37,7 @@ describe('Task Service Unit Tests', () => {
   >;
   let onDidStartTaskEmitter: vscode.EventEmitter<vscode.TaskStartEvent>;
   let onDidEndTaskEmitter: vscode.EventEmitter<vscode.TaskEndEvent>;
+  let channelServiceAppendLineStub: SinonStub<any[], any>;
   let taskServiceRegistration: vscode.Disposable;
   beforeEach(() => {
     executeTaskStub = stub(vscode.tasks, 'executeTask');
@@ -41,6 +48,9 @@ describe('Task Service Unit Tests', () => {
     onDidStartTaskStub.callsFake(onDidStartTaskEmitter.event);
     onDidEndTaskStub = stub(vscode.tasks, 'onDidEndTask');
     onDidEndTaskStub.callsFake(onDidEndTaskEmitter.event);
+    channelServiceAppendLineStub = <SinonStub<any[], any>>(
+      stub(channelService, 'appendLine')
+    );
     taskServiceRegistration = taskService.registerTaskService({} as any);
   });
   afterEach(() => {
@@ -49,6 +59,7 @@ describe('Task Service Unit Tests', () => {
     onDidEndTaskEmitter.dispose();
     onDidStartTaskStub.restore();
     onDidEndTaskStub.restore();
+    channelServiceAppendLineStub.restore();
     taskServiceRegistration.dispose();
   });
 
@@ -65,6 +76,30 @@ describe('Task Service Unit Tests', () => {
       type: 'sfdxLwcTest'
     }
   };
+
+  describe('Create Tasks', () => {
+    it('Should output a message about default shell is cmd.exe in Windows', () => {
+      const isWin32 = /^win32/.test(process.platform);
+      const mockTaskId = 'mockTask1';
+      const mockTaskName = 'mockTaskName';
+      taskService.createTask(
+        mockTaskId,
+        mockTaskName,
+        vscode.workspace.workspaceFolders![0],
+        'mockCommand',
+        []
+      );
+      if (isWin32) {
+        assert.calledOnce(channelServiceAppendLineStub);
+        assert.calledWith(
+          channelServiceAppendLineStub,
+          nls.localize('task_windows_command_prompt_messaging')
+        );
+      } else {
+        assert.notCalled(channelServiceAppendLineStub);
+      }
+    });
+  });
 
   describe('Notifies starts and end task events', () => {
     it('Should notify start task', async () => {
