@@ -55,7 +55,7 @@ describe('Telemetry', () => {
 
       const telemetryReporter = telemetryService.getReporter();
       expect(typeof telemetryReporter).to.be.eql('undefined');
-      expect(teleStub.firstCall.args).to.eql([false]);
+      expect(teleStub.firstCall.args).to.eql([true]);
     });
 
     it('Should show telemetry info message', async () => {
@@ -72,7 +72,7 @@ describe('Telemetry', () => {
 
       telemetryService.showTelemetryMessage();
       assert.calledOnce(mShowInformation);
-      expect(teleStub.firstCall.args).to.eql([false]);
+      expect(teleStub.firstCall.args).to.eql([true]);
     });
 
     it('Should not show telemetry info message', async () => {
@@ -89,7 +89,7 @@ describe('Telemetry', () => {
 
       telemetryService.showTelemetryMessage();
       assert.notCalled(mShowInformation);
-      expect(teleStub.firstCall.args).to.eql([false]);
+      expect(teleStub.firstCall.args).to.eql([true]);
     });
 
     it('Should disable CLI telemetry', async () => {

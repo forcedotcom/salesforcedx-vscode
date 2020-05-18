@@ -70,7 +70,7 @@ export class TelemetryService {
       this.context.subscriptions.push(this.reporter);
     }
 
-    this.setCliTelemetryEnabled(this.isTelemetryEnabled() && !isDevMode);
+    this.setCliTelemetryEnabled(this.isTelemetryEnabled());
   }
 
   public getReporter(): TelemetryReporter | undefined {
