@@ -77,8 +77,10 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 import {
+  getRootWorkspacePath,
   hasRootWorkspace,
   isCLIInstalled,
+  isCLITelemetryAllowed,
   showCLINotInstalledMessage
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
@@ -440,10 +442,9 @@ async function setupOrgBrowser(
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  // Telemetry
   const machineId =
     vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
-  telemetryService.initializeService(context, machineId);
+  await telemetryService.initializeService(context, machineId);
   telemetryService.showTelemetryMessage();
 
   // Task View
