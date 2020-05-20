@@ -1,3 +1,11 @@
+# 48.16.0 - May 19, 2020
+
+## Added
+
+#### salesforcedx-vscode-code
+
+- Disabling telemetry in the extensions also disables telemetry collected in the CLI, and vice versa ([PR #2193](https://github.com/forcedotcom/salesforcedx-vscode/pull/2193))
+
 # 48.15.0 - May 14, 2020
 
 - We fixed some minor under-the-hood bugs.
