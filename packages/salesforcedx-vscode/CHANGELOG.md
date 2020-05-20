@@ -1,5 +1,11 @@
 # 48.16.0 - May 20, 2020
 
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Fix LWC tests failing when default shell is set to Git Bash ([PR #2103](https://github.com/forcedotcom/salesforcedx-vscode/pull/2103), [Issue #2097](https://github.com/forcedotcom/salesforcedx-vscode/issues/2097))
+
 ## Added
 
 #### salesforcedx-vscode-code
