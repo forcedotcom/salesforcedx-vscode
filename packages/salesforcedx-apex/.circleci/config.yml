@@ -1,58 +1,86 @@
 ---
-version: 2
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.2.0
+
+_refs:
+  defaults: &defaults
+    working_directory: ~/cli
+    docker:
+      - image: node:12
+  restore_cache: &restore_cache
+    keys:
+      - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+      - v1-npm-{{checksum ".circleci/config.yml"}}
+  install: &install
+    name: Install dependencies
+    command: |
+      yarn --version
+      node --version
+      yarn
+  build: &build
+    name: Build project
+    command: yarn build
+  test: &test
+    name: Run tests
+    command: yarn test
+
 jobs:
-  node-latest: &test
+  node-latest: &node-test
     docker:
       - image: node:latest
     working_directory: ~/cli
     steps:
       - checkout
-      - restore_cache: &restore_cache
-          keys:
-            - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
-            - v1-npm-{{checksum ".circleci/config.yml"}}
-      - run:
-          name: Install dependencies
-          command: yarn
-      - run:
-          name: Build plugin
-          command: yarn prepack
-      - run:
-          name: Testing
-          command: yarn test
-      - run:
-          name: Submitting code coverage to codecov
-          command: |
-            ./node_modules/.bin/nyc report --reporter text-lcov > coverage.lcov
-            curl -s https://codecov.io/bash | bash
-  node-8:
-    <<: *test
+      - restore_cache: *restore_cache
+      - run: *install
+      - run: *build
+      - run: *test
+  node-12:
+    <<: *node-test
     docker:
-      - image: node:8
+      - image: node:12
   node-10:
-    <<: *test
+    <<: *node-test
     docker:
       - image: node:10
   cache:
-    <<: *test
+    <<: *node-test
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: yarn
+      - run: *install
       - save_cache:
           key: v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
           paths:
             - ~/cli/node_modules
             - /usr/local/share/.cache/yarn
             - /usr/local/share/.config/yarn
+  run-win-tests:
+    description: 'Run tests on Windows'
+    executor: win/default
+    steps:
+      - run: git config --global core.autocrlf false
+      - checkout
+      - restore_cache:
+          keys:
+            - dependency-cache-win1-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+            # if cache for exact version of 'package.json' is not present, then load the most recent cache
+            - dependency-cache-win1-
+      - run: *install
+      - save_cache:
+          key: dependency-cache-win1-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
+          paths:
+            - node_modules
+      - run: *build
+      - run: *test
 
 workflows:
   version: 2
-  "salesforcedx-apex":
+  'salesforcedx-apex':
     jobs:
       - node-latest
-      - node-8
+      - node-12
       - node-10
       - cache:
           filters:
@@ -60,3 +88,4 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+      - run-win-tests

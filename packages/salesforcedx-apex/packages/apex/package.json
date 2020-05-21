@@ -1,0 +1,46 @@
+{
+  "name": "@salesforce/apex",
+  "description": "Salesforce js library for Apex",
+  "version": "0.0.1",
+  "author": "Salesforce",
+  "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
+  "dependencies": {
+    "@salesforce/core": "2.4.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4",
+    "@types/mocha": "^5",
+    "@types/node": "^10",
+    "@types/sinon": "^7.5.2",
+    "@typescript-eslint/eslint-plugin": "^2.22.0",
+    "@typescript-eslint/parser": "^2.22.0",
+    "chai": "^4",
+    "eslint": "^6.8.0",
+    "eslint-plugin-jsdoc": "^19.1.0",
+    "mocha": "^5",
+    "nyc": "^14.1.1",
+    "prettier": "1.16.4",
+    "shx": "0.2.2",
+    "sinon": "^7.3.1",
+    "ts-node": "^8.7.0",
+    "typescript": "~3.3"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
+  "keywords": [
+    "apex",
+    "force",
+    "salesforce",
+    "sfdx",
+    "salesforcedx"
+  ],
+  "scripts": {
+    "build": "shx rm -rf lib && tsc -b",
+    "format": "prettier --config ../../.prettierrc --write './**/*.{ts,js,json}'",
+    "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
+    "test": "mocha --recursive \"./test/**/*.test.ts\" --full-trace"
+  },
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=10.17.0"
+  }
+}

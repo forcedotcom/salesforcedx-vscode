@@ -9,5 +9,6 @@
   "search.exclude": {
     "**/lib": true,
     "**/bin": true
-  }
+  },
+  "editor.formatOnSave": true
 }
