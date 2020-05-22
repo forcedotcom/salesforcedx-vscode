@@ -60,7 +60,10 @@ describe('forceLightningLwcPreview', () => {
 
   function mockFileExists(mockPath: string) {
     existsSyncStub.callsFake(fsPath => {
-      if (path.normalize(fsPath.toString()) === path.normalize(mockPath)) {
+      if (
+        path.normalize(fsPath.toString()).toLowerCase() ===
+        path.normalize(mockPath).toLowerCase()
+      ) {
         return true;
       } else {
         return false;
@@ -85,7 +88,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledWith(
       existsSyncStub,
       /^win32/.test(process.platform)
-        ? 'C:\\project\\force-app\\main\\default\\lwc\\foo\\foo.js'
+        ? 'c:\\project\\force-app\\main\\default\\lwc\\foo\\foo.js'
         : '/var/project/force-app/main/default/lwc/foo/foo.js'
     );
   });
@@ -168,7 +171,7 @@ describe('forceLightningLwcPreview', () => {
       sinon.match(
         nls.localize(
           `force_lightning_lwc_preview_unsupported`,
-          /^win32/.test(process.platform) ? 'C:\\foo' : '/var/foo'
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
     );
@@ -189,7 +192,7 @@ describe('forceLightningLwcPreview', () => {
       sinon.match(
         nls.localize(
           `force_lightning_lwc_preview_file_nonexist`,
-          /^win32/.test(process.platform) ? 'C:\\foo' : '/var/foo'
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
         )
       )
     );
