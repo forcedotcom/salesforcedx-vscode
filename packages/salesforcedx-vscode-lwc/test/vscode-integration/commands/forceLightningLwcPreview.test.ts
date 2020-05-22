@@ -68,6 +68,28 @@ describe('forceLightningLwcPreview', () => {
     });
   }
 
+  it('exists sync called with correct path', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    const sourceUri = URI.file(mockLwcFilePath);
+    mockFileExists(mockLwcFilePath);
+
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+
+    await forceLightningLwcPreview(sourceUri);
+
+    sinon.assert.calledOnce(existsSyncStub);
+    sinon.assert.calledWith(
+      existsSyncStub,
+      /^win32/.test(process.platform)
+        ? 'C:\\project\\force-app\\main\\default\\lwc\\foo\\foo.js'
+        : '/var/project/force-app/main/default/lwc/foo/foo.js'
+    );
+  });
+
   it('calls openBrowser with the correct url for files', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
     const sourceUri = URI.file(mockLwcFilePath);
@@ -129,7 +151,7 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path is not recognized as an lwc module file', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
 
-    const notLwcModulePath = path.join('/foo');
+    const notLwcModulePath = path.join(root, 'foo');
     const sourceUri = URI.file(notLwcModulePath);
     mockFileExists(notLwcModulePath);
 
@@ -144,7 +166,10 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_unsupported`, '/foo')
+        nls.localize(
+          `force_lightning_lwc_preview_unsupported`,
+          /^win32/.test(process.platform) ? 'C:\\foo' : '/var/foo'
+        )
       )
     );
   });
@@ -152,7 +177,7 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path does not exist', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
 
-    const nonExistentPath = path.join('/foo');
+    const nonExistentPath = path.join(root, 'foo');
     const sourceUri = URI.file(nonExistentPath);
 
     existsSyncStub.returns(false);
@@ -162,7 +187,10 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_file_nonexist`, '/foo')
+        nls.localize(
+          `force_lightning_lwc_preview_file_nonexist`,
+          /^win32/.test(process.platform) ? 'C:\\foo' : '/var/foo'
+        )
       )
     );
   });
