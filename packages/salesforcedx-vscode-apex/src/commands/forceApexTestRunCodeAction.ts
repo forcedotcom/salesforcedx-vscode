@@ -30,16 +30,19 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
   protected shouldGetCodeCoverage: boolean = false;
   protected builder: SfdxCommandBuilder = new SfdxCommandBuilder();
   private outputToJson: string;
+  protected waitTime: number = 10;
 
   public constructor(
     test: string,
     shouldGetCodeCoverage: boolean,
-    outputToJson: string
+    outputToJson: string,
+    waitTime: number
   ) {
     super();
     this.test = test || '';
     this.shouldGetCodeCoverage = shouldGetCodeCoverage;
     this.outputToJson = outputToJson;
+    this.waitTime = waitTime;
   }
 
   public build(data: {}): Command {
@@ -54,6 +57,10 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
       .withFlag('--loglevel', 'error')
       .withLogName('force_apex_test_run_code_action');
 
+    if (this.waitTime !== 0) {
+      this.builder = this.builder.withFlag('--wait', this.waitTime.toString());
+    }
+
     if (this.shouldGetCodeCoverage) {
       this.builder = this.builder.withArg('--codecoverage');
     }
@@ -65,10 +72,16 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
 async function forceApexTestRunCodeAction(test: string) {
   const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
   const outputToJson = getTempFolder();
+  const waitTime = sfdxCoreSettings.getRetrieveTestWaitTime();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
-    new ForceApexTestRunCodeActionExecutor(test, getCodeCoverage, outputToJson)
+    new ForceApexTestRunCodeActionExecutor(
+      test,
+      getCodeCoverage,
+      outputToJson,
+      waitTime
+    )
   );
   await commandlet.run();
 }

@@ -14,17 +14,25 @@ import { ForceApexTestRunCodeActionExecutor } from '../commands';
 import { nls } from '../messages';
 
 export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExecutor as {
-  new (test: string, shouldGetCodeCoverage: boolean): any;
+  new (
+    test: string,
+    shouldGetCodeCoverage: boolean,
+    outputToJson: string,
+    waitTime: number
+  ): any;
 }) {
   private outputToJson: string;
+  private waitTime: number;
 
   public constructor(
     tests: string[],
     shouldGetCodeCoverage: boolean,
-    outputToJson: string
+    outputToJson: string,
+    waitTime: number
   ) {
-    super(tests.join(','), shouldGetCodeCoverage);
+    super(tests.join(','), shouldGetCodeCoverage, outputToJson, waitTime);
     this.outputToJson = outputToJson;
+    this.waitTime = waitTime;
   }
 
   public build(data: {}): Command {
@@ -35,6 +43,10 @@ export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExec
       .withFlag('--resultformat', 'human')
       .withFlag('--outputdir', this.outputToJson)
       .withFlag('--loglevel', 'error');
+
+    if (this.waitTime !== 0) {
+      this.builder = this.builder.withFlag('--wait', this.waitTime.toString());
+    }
 
     if (this.shouldGetCodeCoverage) {
       this.builder = this.builder.withArg('--codecoverage');

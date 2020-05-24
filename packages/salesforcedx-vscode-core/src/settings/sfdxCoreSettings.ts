@@ -12,6 +12,7 @@ import {
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
+  RETRIEVE_TEST_WAIT_TIME,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -60,6 +61,14 @@ export class SfdxCoreSettings {
 
   public getRetrieveTestCodeCoverage(): boolean {
     return this.getConfigValue(RETRIEVE_TEST_CODE_COVERAGE, false);
+  }
+
+  public getRetrieveTestWaitTime(): number {
+    // value can't be less than 2, so change to 0 which uses CLI defaults
+    if (this.getConfigValue(RETRIEVE_TEST_WAIT_TIME, 0) < 2) {
+      return 0;
+    }
+    return this.getConfigValue(RETRIEVE_TEST_WAIT_TIME, 0);
   }
 
   public getInternalDev(): boolean {

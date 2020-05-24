@@ -41,6 +41,7 @@
   "isv_bootstrap_command_text": "SFDX: Create and Set Up Project for ISV Debugging",
   "force_apex_log_get_text": "SFDX: Get Apex Debug Logs...",
   "retrieve_test_code_coverage_text": "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
+  "retrieve_test_wait_time_text": "Sets the number of minutes to wait for the test execution to complete. (< 2 uses system default)",
   "telemetry_enabled_description": "Specifies whether to enable Salesforce telemetry. Even when enabled, still abides by the overall `telemetry.enableTelemetry` vscode setting.",
   "push_or_deploy_on_save_enabled_description": "Specifies whether or not to automatically run force:source:push (for source-tracked orgs) or force:source:deploy (for non-source-tracked orgs) when a local source file is saved.",
   "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for metadata operations (force:source:deploy with manifest, force:source:retrieve with manifest) for non source-tracked orgs.",

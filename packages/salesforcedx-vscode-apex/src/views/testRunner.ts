@@ -134,6 +134,7 @@ export class ApexTestRunner {
     }
 
     const tmpFolder = this.getTempFolder();
+    const waittime = 0;
     const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {
       await forceApexTestRunCacheService.setCachedClassTestParam(tests[0]);
@@ -143,7 +144,8 @@ export class ApexTestRunner {
     const builder = new ReadableApexTestRunExecutor(
       tests,
       getCodeCoverage,
-      tmpFolder
+      tmpFolder,
+      waittime
     );
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),

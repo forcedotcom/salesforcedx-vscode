@@ -766,6 +766,14 @@
           "default": false,
           "description": "%retrieve_test_code_coverage_text%"
         },
+        "salesforcedx-vscode-core.retrieve-test-wait-time": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": 0,
+          "description": "%retrieve_test_wait_time_text%"
+        },
         "salesforcedx-vscode-core.telemetry.enabled": {
           "type": "boolean",
           "default": true,

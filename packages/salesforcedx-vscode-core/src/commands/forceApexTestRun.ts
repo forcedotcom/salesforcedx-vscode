@@ -90,15 +90,18 @@ export class ForceApexTestRunCommandFactory {
   private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
   private testRunExecutorCommand!: Command;
   private outputToJson: string;
+  private waitTime: number;
 
   constructor(
     data: ApexTestQuickPickItem,
     getCodeCoverage: boolean,
-    outputToJson: string
+    outputToJson: string,
+    waitTime: number
   ) {
     this.data = data;
     this.getCodeCoverage = getCodeCoverage;
     this.outputToJson = outputToJson;
+    this.waitTime = waitTime;
   }
 
   public constructExecutorCommand(): Command {
@@ -133,6 +136,10 @@ export class ForceApexTestRunCommandFactory {
       .withFlag('--outputdir', this.outputToJson)
       .withFlag('--loglevel', 'error');
 
+    if (this.waitTime !== 0) {
+      this.builder = this.builder.withFlag('--wait', this.waitTime.toString());
+    }
+
     this.testRunExecutorCommand = this.builder.build();
     return this.testRunExecutorCommand;
   }
@@ -156,10 +163,12 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
   public build(data: ApexTestQuickPickItem): Command {
     const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
     const outputToJson = getTempFolder();
+    const waitTime = sfdxCoreSettings.getRetrieveTestWaitTime();
     const factory: ForceApexTestRunCommandFactory = new ForceApexTestRunCommandFactory(
       data,
       getCodeCoverage,
-      outputToJson
+      outputToJson,
+      waitTime
     );
     return factory.constructExecutorCommand();
   }

@@ -19,6 +19,7 @@ export const TELEMETRY_OPT_OUT_LINK =
   'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
+export const RETRIEVE_TEST_WAIT_TIME = 'retrieve-test-wait-time';
 export const SFDX_CLI_DOWNLOAD_LINK =
   'https://developer.salesforce.com/tools/sfdxcli';
 export const DEFAULT_USERNAME_KEY = 'defaultusername';

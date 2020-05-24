@@ -21,10 +21,12 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Class', () => {
     const testClass = 'MyTests';
     const outputToJson = 'outputToJson';
+    const waitTime = 0;
     const builder = new ForceApexTestRunCodeActionExecutor(
       testClass,
       false,
-      outputToJson
+      outputToJson,
+      waitTime
     );
 
     it('Should build command for single test class', () => {
@@ -39,10 +41,12 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Class with Coverage', () => {
     const testClass = 'MyTests';
     const outputToJson = 'outputToJson';
+    const waitTime = 0;
     const builder = new ForceApexTestRunCodeActionExecutor(
       testClass,
       true,
-      outputToJson
+      outputToJson,
+      waitTime
     );
 
     it('Should build command for single test class with code coverage', () => {
@@ -57,10 +61,12 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Method', () => {
     const testMethod = 'MyTests.testMe';
     const outputToJson = 'outputToJson';
+    const waitTime = 0;
     const builder = new ForceApexTestRunCodeActionExecutor(
       testMethod,
       false,
-      outputToJson
+      outputToJson,
+      waitTime
     );
 
     it('Should build command for single test method', () => {
@@ -75,10 +81,12 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Command builder - Test Method with Coverage', () => {
     const testMethod = 'MyTests.testMe';
     const outputToJson = 'outputToJson';
+    const waitTime = 0;
     const builder = new ForceApexTestRunCodeActionExecutor(
       testMethod,
       true,
-      outputToJson
+      outputToJson,
+      waitTime
     );
 
     it('Should build command for single test method with code coverage', () => {
@@ -86,6 +94,46 @@ describe('Force Apex Test Run - Code Action', () => {
 
       expect(command.toCommand()).to.equal(
         `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --outputdir outputToJson --loglevel error --codecoverage`
+      );
+    });
+  });
+
+  describe('Command builder - Test Method with WAit', () => {
+    const testMethod = 'MyTests.testMe';
+    const outputToJson = 'outputToJson';
+    const waitTime = 8;
+    const builder = new ForceApexTestRunCodeActionExecutor(
+      testMethod,
+      false,
+      outputToJson,
+      waitTime
+    );
+
+    it('Should build command for single test method with wait', () => {
+      const command = builder.build({});
+
+      expect(command.toCommand()).to.equal(
+        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --outputdir outputToJson --loglevel error --wait 8`
+      );
+    });
+  });
+
+  describe('Command builder - Test Method with Coverage with wait', () => {
+    const testMethod = 'MyTests.testMe';
+    const outputToJson = 'outputToJson';
+    const waitTime = 9;
+    const builder = new ForceApexTestRunCodeActionExecutor(
+      testMethod,
+      true,
+      outputToJson,
+      waitTime
+    );
+
+    it('Should build command for single test method with code coverage with wait', () => {
+      const command = builder.build({});
+
+      expect(command.toCommand()).to.equal(
+        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --outputdir outputToJson --loglevel error --wait 9 --codecoverage`
       );
     });
   });
