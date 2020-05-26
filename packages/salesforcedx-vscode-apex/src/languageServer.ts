@@ -38,12 +38,16 @@ async function createServer(
     const enableSemanticErrors: boolean = vscode.workspace
       .getConfiguration()
       .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
+    const enableCompletionStatistics: boolean = vscode.workspace
+      .getConfiguration()
+      .get<boolean>('salesforcedx-vscode-apex.enable-completion-statistics', false);
 
     const args: string[] = [
       '-cp',
       uberJar,
       '-Ddebug.internal.errors=true',
-      `-Ddebug.semantic.errors=${enableSemanticErrors}`
+      `-Ddebug.semantic.errors=${enableSemanticErrors}`,
+      `-Ddebug.completion.statistics=${enableCompletionStatistics}`
     ];
 
     if (jvmMaxHeap) {
