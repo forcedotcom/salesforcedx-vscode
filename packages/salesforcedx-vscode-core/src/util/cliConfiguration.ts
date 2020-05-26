@@ -53,13 +53,13 @@ export function disableCLITelemetry() {
 export async function isCLITelemetryAllowed(
   projectPath: string
 ): Promise<boolean> {
-  if (isCLIInstalled()) {
-    const forceConfig = await new ForceConfigGet().getConfig(
-      projectPath,
-      SFDX_CONFIG_DISABLE_TELEMETRY
-    );
-    const disabledConfig = forceConfig.get(SFDX_CONFIG_DISABLE_TELEMETRY) || '';
-    return disabledConfig !== 'true';
-  }
+  // if (isCLIInstalled()) {
+  //   const forceConfig = await new ForceConfigGet().getConfig(
+  //     projectPath,
+  //     SFDX_CONFIG_DISABLE_TELEMETRY
+  //   );
+  //   const disabledConfig = forceConfig.get(SFDX_CONFIG_DISABLE_TELEMETRY) || '';
+  //   return disabledConfig !== 'true';
+  // }
   return true;
 }
