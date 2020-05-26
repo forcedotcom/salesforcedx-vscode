@@ -30,7 +30,7 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
   protected shouldGetCodeCoverage: boolean = false;
   protected builder: SfdxCommandBuilder = new SfdxCommandBuilder();
   private outputToJson: string;
-  protected waitTime: number = 10;
+  protected waitTime: number = 0;
 
   public constructor(
     test: string,
