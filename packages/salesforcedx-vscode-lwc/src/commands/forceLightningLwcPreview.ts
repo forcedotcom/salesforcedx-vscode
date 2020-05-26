@@ -39,7 +39,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  const resourcePath = sourceUri.path;
+  const resourcePath = sourceUri.fsPath;
   if (!resourcePath) {
     const message = nls.localize(
       'force_lightning_lwc_preview_file_undefined',

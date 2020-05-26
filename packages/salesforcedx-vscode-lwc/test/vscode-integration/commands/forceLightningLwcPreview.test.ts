@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+import URI from 'vscode-uri';
 import { DEV_SERVER_PREVIEW_ROUTE } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import { forceLightningLwcPreview } from '../../../src/commands/forceLightningLwcPreview';
@@ -28,6 +29,17 @@ describe('forceLightningLwcPreview', () => {
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
   let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
   let showErrorMessageStub: sinon.SinonStub<any[], any>;
+  const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
+  const mockLwcFileDirectory = path.join(
+    root,
+    'project',
+    'force-app',
+    'main',
+    'default',
+    'lwc',
+    'foo'
+  );
+  const mockLwcFilePath = path.join(mockLwcFileDirectory, 'foo.js');
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -46,22 +58,46 @@ describe('forceLightningLwcPreview', () => {
     sandbox.restore();
   });
 
+  function mockFileExists(mockPath: string) {
+    existsSyncStub.callsFake(fsPath => {
+      if (
+        path.normalize(fsPath.toString()).toLowerCase() ===
+        path.normalize(mockPath).toLowerCase()
+      ) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+  }
+
+  it('exists sync called with correct path', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    const sourceUri = URI.file(mockLwcFilePath);
+    mockFileExists(mockLwcFilePath);
+
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+
+    await forceLightningLwcPreview(sourceUri);
+
+    sinon.assert.calledOnce(existsSyncStub);
+    sinon.assert.calledWith(
+      existsSyncStub,
+      /^win32/.test(process.platform)
+        ? 'c:\\project\\force-app\\main\\default\\lwc\\foo\\foo.js'
+        : '/var/project/force-app/main/default/lwc/foo/foo.js'
+    );
+  });
+
   it('calls openBrowser with the correct url for files', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    const sourceUri = URI.file(mockLwcFilePath);
+    mockFileExists(mockLwcFilePath);
 
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo',
-      'foo.js'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
-    existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
         return false;
@@ -79,19 +115,9 @@ describe('forceLightningLwcPreview', () => {
 
   it('calls openBrowser with the correct url for directories', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    const sourceUri = URI.file(mockLwcFileDirectory);
+    mockFileExists(mockLwcFileDirectory);
 
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
-
-    existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
         return true;
@@ -110,18 +136,9 @@ describe('forceLightningLwcPreview', () => {
   it('starts the server if it is not running yet', async () => {
     devServiceStub.isServerHandlerRegistered.returns(false);
 
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
+    const sourceUri = URI.file(mockLwcFilePath);
+    mockFileExists(mockLwcFilePath);
 
-    existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
         return true;
@@ -137,10 +154,10 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path is not recognized as an lwc module file', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
 
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
+    const notLwcModulePath = path.join(root, 'foo');
+    const sourceUri = URI.file(notLwcModulePath);
+    mockFileExists(notLwcModulePath);
 
-    existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
         return false;
@@ -152,7 +169,10 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_unsupported`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_unsupported`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
   });
@@ -160,8 +180,8 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path does not exist', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
 
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
+    const nonExistentPath = path.join(root, 'foo');
+    const sourceUri = URI.file(nonExistentPath);
 
     existsSyncStub.returns(false);
 
@@ -170,7 +190,10 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_file_nonexist`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_file_nonexist`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
   });
@@ -178,18 +201,9 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error message when open browser throws an error', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
 
-    const testPath = path.join(
-      'dev',
-      'project',
-      'force-app',
-      'main',
-      'default',
-      'lwc',
-      'foo'
-    );
-    const sourceUri = { path: testPath } as vscode.Uri;
+    const sourceUri = URI.file(mockLwcFilePath);
+    mockFileExists(mockLwcFilePath);
 
-    existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
         return true;
