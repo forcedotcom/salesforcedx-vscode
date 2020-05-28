@@ -135,7 +135,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Fetches the most recent debug log from the default org.
   - Executes the CLI command `force:apex:log:get`
   - See [View Apex Debug Logs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_view_apex_debug_logs.htm).
-- **SFDX: Run Apex Tests...**
+- **SFDX: Run Apex Tests**
   - Runs the Apex tests to test changes in your source code and displays the results in human-readable format.
   - Executes the CLI command `force:apex:test:run --resultformat human`
   - See [Testing](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_testing.htm).
