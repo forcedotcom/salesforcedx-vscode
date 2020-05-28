@@ -10,15 +10,14 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as path from 'path';
-import * as vscode from 'vscode';
-import { nls } from '../../messages';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
+import * as path from 'path';
+import { nls } from '../../messages';
+import { RegistryAccess, registryData } from '@salesforce/source-deploy-retrieve';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
 import glob = require('glob');
 import { SfdxPackageDirectories } from '../../sfdxProject';
-import { RegistryAccess, registryData } from '@salesforce/source-deploy-retrieve';
-import { Data } from 'applicationinsights/out/Declarations/Contracts';
+import * as vscode from 'vscode';
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: Array<ParametersGatherer<any>>;
@@ -163,9 +162,7 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
   }
 }
 
-
-
-export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: string, outputdir: string }>{
+export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: string, outputdir: string }> {
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
   public static readonly defaultOutput = path.join('main', 'default');
@@ -190,30 +187,29 @@ export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: str
       }
     }
 
-    let dirOptions = this.getDefaultOptions(packageDirs);
+    const dirOptions = this.getDefaultOptions(packageDirs);
     let outputdir = await this.showMenu(dirOptions);
-    let namePathMap = new Map()
+    const namePathMap = new Map();
     let filepath;
     let filename;
     let fileName;
 
     if (outputdir) {
-      const fullPath = path.join(getRootWorkspacePath(), outputdir)
+      const fullPath = path.join(getRootWorkspacePath(), outputdir);
       const registry = new RegistryAccess();
       const components = registry.getComponentsFromPath(fullPath);
-      const lwccomponents = components.filter(lwc => lwc.type.name == registryData.types.lightningcomponentbundle.name)
-      const lwcNames = lwccomponents.map(lwc => lwc.fullName)
-
+      const lwccomponents = components.filter(lwc => lwc.type.name === registryData.types.lightningcomponentbundle.name);
+      const lwcNames = lwccomponents.map(lwc => lwc.fullName);
 
       for (const component of lwccomponents) {
-        namePathMap.set(component.fullName, component.xml)
+        namePathMap.set(component.fullName, component.xml);
       }
 
-      filename = await this.showLwcMenu(lwcNames)
-      filepath = namePathMap.get(filename)
+      filename = await this.showLwcMenu(lwcNames);
+      filepath = namePathMap.get(filename);
       filepath = filepath.replace('-meta.xml', '');
-      fileName = path.basename(filepath, ".js")
-      outputdir = path.join(outputdir, fileName)
+      fileName = path.basename(filepath, '.js');
+      outputdir = path.join(outputdir, fileName);
     }
 
     return outputdir && fileName
@@ -244,7 +240,6 @@ export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: str
 
 }
 
-
 export class SelectOutputDir
   implements ParametersGatherer<{ outputdir: string }> {
   private typeDir: string;
@@ -274,10 +269,8 @@ export class SelectOutputDir
       }
     }
 
-
     let dirOptions = this.getDefaultOptions(packageDirs);
     let outputdir = await this.showMenu(dirOptions);
-
 
     if (outputdir === SelectOutputDir.customDirOption) {
       dirOptions = this.getCustomOptions(packageDirs, getRootWorkspacePath());
@@ -288,7 +281,6 @@ export class SelectOutputDir
       ? { type: 'CONTINUE', data: { outputdir } }
       : { type: 'CANCEL' };
   }
-
 
   public getDefaultOptions(packageDirectories: string[]): string[] {
     const options = packageDirectories.map(packageDir =>

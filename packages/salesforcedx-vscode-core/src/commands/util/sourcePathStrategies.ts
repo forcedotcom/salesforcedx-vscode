@@ -44,10 +44,9 @@ class LwcTestPathStrategy implements SourcePathStrategy {
     fileName: string,
     fileExt: string
   ): string {
-    return join(dirPath, "__tests__", `${fileName}.test${fileExt}`);
+    return join(dirPath, '__tests__', `${fileName}.test${fileExt}`);
   }
 }
-
 
 export interface SourcePathStrategy {
   getPathToSource(dirPath: string, fileName: string, fileExt: string): string;

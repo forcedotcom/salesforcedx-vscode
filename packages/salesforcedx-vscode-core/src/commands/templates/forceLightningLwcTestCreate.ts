@@ -1,34 +1,30 @@
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as path from 'path';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
-import { Uri } from 'vscode';
-import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
-  SelectFileName,
-  SelectOutputDir,
+  PathStrategyFactory,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
-  PathStrategyFactory,
   SourcePathStrategy
 } from '../util';
-import { MetadataTypeGatherer } from '../util';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import { BaseTemplateCommand } from './baseTemplateCommand';
+import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
+import { getRootWorkspacePath } from '../../util';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import { MetadataTypeGatherer } from '../util';
+import { nls } from '../../messages';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import * as path from 'path';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';
-import { stringify } from 'querystring';
-import { getRootWorkspace, getRootWorkspacePath } from '../../util';
+import { sfdxCoreSettings } from '../../settings';
+import { Uri } from 'vscode';
 
 export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -36,11 +32,10 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   }
 
   public build(data: DirFileNameSelection): Command {
-    const d = data.fileName
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
       .withArg('force:lightning:lwc:test:create')
-      .withFlag('--filepath', path.join(getRootWorkspacePath(), data.outputdir, data.fileName + ".js"))
+      .withFlag('--filepath', path.join(getRootWorkspacePath(), data.outputdir, data.fileName + '.js'))
       .withLogName('force_lightning_web_component_test_create');
 
     if (sfdxCoreSettings.getInternalDev()) {
@@ -50,11 +45,11 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   }
 
   public getSourcePathStrategy(): SourcePathStrategy {
-    return PathStrategyFactory.createLwcTestStrategy()
+    return PathStrategyFactory.createLwcTestStrategy();
   }
 }
 
-const filePathGatherer = new SelectLwcComponentDir(LWC_DIRECTORY, true)
+const filePathGatherer = new SelectLwcComponentDir(LWC_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 export async function forceLightningLwcTestCreate() {
   const commandlet = new SfdxCommandlet(
