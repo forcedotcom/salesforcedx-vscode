@@ -1,3 +1,15 @@
+# 48.18.0 - May 28, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Fix LWC preview on Windows when running `SFDX: Preview Component Locally` ([PR #2212](https://github.com/forcedotcom/salesforcedx-vscode/pull/2212), [Issue #1903](https://github.com/forcedotcom/salesforcedx-vscode/issues/1903))
+
+#### salesforcedx-utils-vscode
+
+- Correctly surface errors for failed CLI commands ([PR #2216](https://github.com/forcedotcom/salesforcedx-vscode/pull/2216), [Issue #2160](https://github.com/forcedotcom/salesforcedx-vscode/issues/2160), [Issue #2005](https://github.com/forcedotcom/salesforcedx-vscode/issues/2005))
+
 # 48.16.0 - May 20, 2020
 
 ## Fixed
