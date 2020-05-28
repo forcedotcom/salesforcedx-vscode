@@ -59,6 +59,7 @@
   },
   "license": "BSD-3-Clause",
   "dependencies": {
+    "@types/node": "^14.0.4",
     "node": "12.4.0",
     "npm": "^6.9.0"
   },

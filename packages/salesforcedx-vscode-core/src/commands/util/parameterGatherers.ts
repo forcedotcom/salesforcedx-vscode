@@ -17,6 +17,8 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
 import glob = require('glob');
 import { SfdxPackageDirectories } from '../../sfdxProject';
+import { RegistryAccess, registryData } from '@salesforce/source-deploy-retrieve';
+import { Data } from 'applicationinsights/out/Declarations/Contracts';
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: Array<ParametersGatherer<any>>;
@@ -161,6 +163,88 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
   }
 }
 
+
+
+export class SelectLwcComponentDir implements ParametersGatherer<{ fileName: string, outputdir: string }>{
+  private typeDir: string;
+  private typeDirRequired: boolean | undefined;
+  public static readonly defaultOutput = path.join('main', 'default');
+
+  public constructor(typeDir: string, typeDirRequired?: boolean) {
+    this.typeDir = typeDir;
+    this.typeDirRequired = typeDirRequired;
+  }
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ fileName: string, outputdir: string }>
+  > {
+    let packageDirs: string[] = [];
+    try {
+      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    } catch (e) {
+      if (
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
+      ) {
+        throw e;
+      }
+    }
+
+    let dirOptions = this.getDefaultOptions(packageDirs);
+    let outputdir = await this.showMenu(dirOptions);
+    let namePathMap = new Map()
+    let filepath;
+    let filename;
+    let fileName;
+
+    if (outputdir) {
+      const fullPath = path.join(getRootWorkspacePath(), outputdir)
+      const registry = new RegistryAccess();
+      const components = registry.getComponentsFromPath(fullPath);
+      const lwccomponents = components.filter(lwc => lwc.type.name == registryData.types.lightningcomponentbundle.name)
+      const lwcNames = lwccomponents.map(lwc => lwc.fullName)
+
+
+      for (const component of lwccomponents) {
+        namePathMap.set(component.fullName, component.xml)
+      }
+
+      filename = await this.showLwcMenu(lwcNames)
+      filepath = namePathMap.get(filename)
+      filepath = filepath.replace('-meta.xml', '');
+      fileName = path.basename(filepath, ".js")
+      outputdir = path.join(outputdir, fileName)
+    }
+
+    return outputdir && fileName
+      ? {
+        type: 'CONTINUE', data: { fileName, outputdir }
+      }
+      : { type: 'CANCEL' };
+  }
+
+  public getDefaultOptions(packageDirectories: string[]): string[] {
+    const options = packageDirectories.map(packageDir =>
+      path.join(packageDir, SelectLwcComponentDir.defaultOutput, this.typeDir)
+    );
+    return options;
+  }
+
+  public async showMenu(options: string[]): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
+    } as vscode.QuickPickOptions);
+  }
+
+  public async showLwcMenu(options: string[]): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize('parameter_gatherer_enter_lwc_name')
+    } as vscode.QuickPickOptions);
+  }
+
+}
+
+
 export class SelectOutputDir
   implements ParametersGatherer<{ outputdir: string }> {
   private typeDir: string;
@@ -189,8 +273,11 @@ export class SelectOutputDir
         throw e;
       }
     }
+
+
     let dirOptions = this.getDefaultOptions(packageDirs);
     let outputdir = await this.showMenu(dirOptions);
+
 
     if (outputdir === SelectOutputDir.customDirOption) {
       dirOptions = this.getCustomOptions(packageDirs, getRootWorkspacePath());
@@ -201,6 +288,7 @@ export class SelectOutputDir
       ? { type: 'CONTINUE', data: { outputdir } }
       : { type: 'CANCEL' };
   }
+
 
   public getDefaultOptions(packageDirectories: string[]): string[] {
     const options = packageDirectories.map(packageDir =>
