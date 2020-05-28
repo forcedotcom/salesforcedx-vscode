@@ -25,7 +25,7 @@
     "area:xml": "a1aB0000000BPyKIAW"
   },
   "issueTypeLabels": {
-    "type:feature": "USER STORY",
+    "type:feature": "",
     "type:bug": "BUG P3",
     "type:security": "BUG P2",
     "type:feedback": "",

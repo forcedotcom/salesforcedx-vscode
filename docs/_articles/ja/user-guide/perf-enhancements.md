@@ -20,3 +20,4 @@ lang: ja
 - Apex トリガ
 - Visualforce コンポーネント
 - Visualforce ページ
+- Lightning コンポーネント

@@ -161,11 +161,11 @@ VS Code 向け Salesforce 拡張機能からコマンドを実行するには、
 
 ### Lightning コンポーネント
 
-- **SFDX: Create Lightning App (SFDX: Lightning Aura アプリケーションを作成)**
-  - Lightning Aura アプリケーションバンドルを指定された名前でデフォルトのディレクトリ `force-app/main/default/aura` に作成します。
+- **SFDX: Create Aura App (SFDX: Aura アプリケーションを作成)**
+  - Aura アプリケーションバンドルを指定された名前でデフォルトのディレクトリ `force-app/main/default/aura` に作成します。
   - 実行される CLI コマンドは `force:lightning:app:create` です。
   - [「アプリケーションの作成」](https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/apps_intro.htm#)を参照してください。
-- **SFDX: Create Lightning Component (SFDX: Lightning Aura コンポーネントを作成)**
+- **SFDX: Create Aura Component (SFDX: Aura コンポーネントを作成)**
   - Aura コンポーネントを指定された名前でデフォルトのディレクトリ `force-app/main/default/aura` に作成します。
   - 実行される CLI コマンドは `force:lightning:component:create` です。
   - [『Lightning Aura コンポーネント開発者ガイド』](https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/intro_framework.htm) および [『Salesforce DX 開発者ガイド』](https://developer.salesforce.com/docs/atlas.ja-jp.224.0.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_create_lightning.htm)を参照してください。
@@ -173,11 +173,11 @@ VS Code 向け Salesforce 拡張機能からコマンドを実行するには、
   - Lightning Web コンポーネントを指定された名前でデフォルトのディレクトリ `force-app/main/default/lwc` に作成します。
   - 実行される CLI コマンドは `force:lightning:component:create --type lwc` です。
   - [「Lightning Web Components Dev Guide」](https://developer.salesforce.com/docs/component-library/documentation/ja-jp/lwc/lwc.create_components_introduction) を参照してください。
-- **SFDX: Create Lightning Event (SFDX: Lightning Aura イベントを作成)**
-  - Lightning Aura イベントを指定された名前でデフォルトのディレクトリ `force-app/main/default/aura` に作成します。
+- **SFDX: Create Aura Event (SFDX: Aura イベントを作成)**
+  - Aura イベントを指定された名前でデフォルトのディレクトリ `force-app/main/default/aura` に作成します。
   - 実行される CLI コマンドは `force:lightning:event:create` です。
-- **SFDX: Create Lightning Interface (SFDX: Lightning Aura インタフェースを作成)**
-  - Lightning Aura インタフェースを指定された名前でデフォルトのディレクトリ `force-app/main/default/aura` に作成します。
+- **SFDX: Create Aura Interface (SFDX: Aura インタフェースを作成)**
+  - Aura インタフェースを指定された名前でデフォルトのディレクトリ `force-app/main/default/aura` に作成します。
   - 実行される CLI コマンドは `force:lightning:interface:create` です。
 
 ### Visualforce

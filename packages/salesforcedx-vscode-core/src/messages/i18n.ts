@@ -124,10 +124,10 @@ export const messages = {
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
-  force_lightning_app_create_text: 'SFDX: Create Lightning App',
-  force_lightning_component_create_text: 'SFDX: Create Lightning Component',
-  force_lightning_event_create_text: 'SFDX: Create Lightning Event',
-  force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
+  force_lightning_app_create_text: 'SFDX: Create Aura App',
+  force_lightning_component_create_text: 'SFDX: Create Aura Component',
+  force_lightning_event_create_text: 'SFDX: Create Aura Event',
+  force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
@@ -517,5 +517,8 @@ export const messages = {
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',
-  beta_tapi_queue_status: 'The deploy is still in the Queue'
+  beta_tapi_queue_status: 'The deploy is still in the Queue',
+  lib_retrieve_result_title: 'Retrieved Source',
+  lib_retrieve_result_parse_error:
+    'Not able to parse current results. Raw result: %s'
 };

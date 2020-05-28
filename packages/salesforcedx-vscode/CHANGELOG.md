@@ -1,3 +1,51 @@
+# 48.16.0 - May 20, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lwc
+
+- Fix LWC tests failing when default shell is set to Git Bash ([PR #2103](https://github.com/forcedotcom/salesforcedx-vscode/pull/2103), [Issue #2097](https://github.com/forcedotcom/salesforcedx-vscode/issues/2097))
+
+## Added
+
+#### salesforcedx-vscode-code
+
+- Disabling telemetry in the extensions also disables telemetry collected in the CLI, and vice versa ([PR #2193](https://github.com/forcedotcom/salesforcedx-vscode/pull/2193))
+
+# 48.15.0 - May 14, 2020
+
+- We fixed some minor under-the-hood bugs.
+
+# 48.14.0 - May 7, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Removed Beta Lightning Explorer Feature ([PR #2148](https://github.com/forcedotcom/salesforcedx-vscode/pull/2148))
+
+#### docs
+
+- Removed documentation for Beta Lightning Explorer Feature ([PR #2148](https://github.com/forcedotcom/salesforcedx-vscode/pull/2148))
+
+## Added
+
+# 48.13.0 - April 30, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix displaying a success message when a Beta Deploy contains failures ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143), [Issue #2124](https://github.com/forcedotcom/salesforcedx-vscode/issues/2124))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Beta for source retrieve on Apex, Visualforce, Aura and LWC [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2102](https://github.com/forcedotcom/salesforcedx-vscode/pull/2102))
+
+- Add diagnostics for beta deploys ([PR #2143](https://github.com/forcedotcom/salesforcedx-vscode/pull/2143))
+
 # 48.11.0 - April 16, 2020
 
 ## Fixed

@@ -11,11 +11,5 @@
 # review when someone opens a pull request.
 *       @forcedotcom/pdt
 
-# If the change occurs within salesforcedx-vscode-lwc then add the Lightning Tooling team.
-/packages/salesforcedx-vscode-lwc @forcedotcom/lightning-tooling
-
-# If the change occurs within salesforcedx-vscode-lightning then add the Lightning Tooling team.
-/packages/salesforcedx-vscode-lightning @forcedotcom/lightning-tooling
-
 # If the change occurs within the docs directory, add the doc maintainers.
 /docs/ @forcedotcom/doc-maintainers
