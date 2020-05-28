@@ -10,7 +10,7 @@
   "force_source_push_default_scratch_org_text": "SFDX: デフォルトのスクラッチ組織へソースをプッシュ",
   "force_source_push_force_default_scratch_org_text": "SFDX: デフォルトのスクラッチ組織へソースをプッシュして競合を上書き",
   "force_source_status_text": "SFDX: すべての変更を表示 (ローカルとデフォルトのスクラッチ組織内)",
-  "force_apex_test_run_text": "SFDX: Apex テストを呼び出す...",
+  "force_apex_test_run_text": "SFDX: Apex テストを呼び出す",
   "cancel_sfdx_command_text": "SFDX: アクティブなコマンドをキャンセル",
   "force_apex_class_create_text": "SFDX: Apex クラスを作成",
   "force_visualforce_component_create_text": "SFDX: Visualforce コンポーネントを作成",

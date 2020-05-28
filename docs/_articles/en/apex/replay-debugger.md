@@ -57,7 +57,7 @@ If you’re debugging an issue in a scratch org, or in a sandbox or DE org that 
 
 1. To enable logging, from VS Code, open the command palette (Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS) and run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
 1. Reproduce the scenario you want to debug. You can do this by:
-   - Running **SFDX: Invoke Apex Tests**
+   - Running **SFDX: Run Apex Tests**
    - Running **SFDX: Execute Anonymous Apex with Currently Selected Text**
    - Running **SFDX: Execute Anonymous Apex with Editor Contents**
    - Executing manual steps in your org in a web browser

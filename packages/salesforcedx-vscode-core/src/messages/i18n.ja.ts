@@ -111,7 +111,7 @@ export const messages = {
   force_source_status_text:
     'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
-  force_apex_test_run_text: 'SFDX: Apex テストを呼び出す...',
+  force_apex_test_run_text: 'SFDX: Apex テストを呼び出す',
   force_apex_test_run_all_test_label: 'すべてのテスト',
   force_apex_test_run_all_tests_description_text:
     '現在のプロジェクトのすべてのテストを実行',
