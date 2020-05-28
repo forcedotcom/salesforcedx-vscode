@@ -1,8 +1,13 @@
-import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as path from 'path';
+import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { Uri } from 'vscode';
+import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   PathStrategyFactory,
@@ -10,21 +15,16 @@ import {
   SfdxWorkspaceChecker,
   SourcePathStrategy
 } from '../util';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { MetadataTypeGatherer } from '../util';
+import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
-import { getRootWorkspacePath } from '../../util';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
-import { MetadataTypeGatherer } from '../util';
-import { nls } from '../../messages';
-import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import * as path from 'path';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';
-import { sfdxCoreSettings } from '../../settings';
-import { Uri } from 'vscode';
+import { getRootWorkspacePath } from '../../util';
 
 export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   constructor() {
