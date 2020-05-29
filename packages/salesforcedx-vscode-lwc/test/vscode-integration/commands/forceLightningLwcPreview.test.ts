@@ -67,6 +67,10 @@ describe('forceLightningLwcPreview', () => {
   const mockLwcFileDirectoryUri = URI.file(mockLwcFileDirectory);
   const mockLwcFilePath = path.join(mockLwcFileDirectory, 'foo.js');
   const mockLwcFilePathUri = URI.file(mockLwcFilePath);
+  const notLwcModulePath = path.join(root, 'foo');
+  const notLwcModulePathUri = URI.file(notLwcModulePath);
+  const nonExistentPath = path.join(root, 'foo');
+  const nonExistentPathUri = URI.file(nonExistentPath);
   let showQuickPickStub: sinon.SinonStub<
     [
       vscode.QuickPickItem[] | Thenable<vscode.QuickPickItem[]>,
@@ -336,9 +340,7 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path is not recognized as an lwc module file', async () => {
     getConfigurationStub.returns(new MockWorkspace(false));
     devServiceStub.isServerHandlerRegistered.returns(true);
-
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
+    mockFileExists(notLwcModulePath);
 
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -347,12 +349,15 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(notLwcModulePathUri);
 
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_unsupported`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_unsupported`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
   });
@@ -360,18 +365,18 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path does not exist', async () => {
     getConfigurationStub.returns(new MockWorkspace(false));
     devServiceStub.isServerHandlerRegistered.returns(true);
-
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
-
+    mockFileExists(nonExistentPath);
     existsSyncStub.returns(false);
 
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(nonExistentPathUri);
 
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_file_nonexist`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_file_nonexist`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
   });
@@ -545,12 +550,10 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('shows an error when source path is not recognized as an lwc module file', async () => {
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
-
     devServiceStub.isServerHandlerRegistered.returns(true);
     mobileEnabledStub.returns(true);
     getConfigurationStub.returns(new MockWorkspace(false));
+    mockFileExists(notLwcModulePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -559,31 +562,35 @@ describe('forceLightningLwcPreview', () => {
     } as fs.Stats);
     showQuickPickStub.resolves(desktopQuickPick);
 
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(notLwcModulePathUri);
 
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_unsupported`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_unsupported`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
   });
 
   it('shows an error when source path does not exist', async () => {
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
-
+    mockFileExists(nonExistentPath);
     devServiceStub.isServerHandlerRegistered.returns(true);
     mobileEnabledStub.returns(true);
     getConfigurationStub.returns(new MockWorkspace(false));
     existsSyncStub.returns(false);
     showQuickPickStub.resolves(desktopQuickPick);
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(nonExistentPathUri);
 
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_file_nonexist`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_file_nonexist`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
   });
@@ -695,8 +702,7 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('shows an error when source path is not recognized as an lwc module file', async () => {
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
+    mockFileExists(notLwcModulePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -709,12 +715,15 @@ describe('forceLightningLwcPreview', () => {
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('test');
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(notLwcModulePathUri);
 
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_unsupported`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_unsupported`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
     sinon.assert.notCalled(mobileExecutorStub);
@@ -722,21 +731,22 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('shows an error when source path does not exist', async () => {
-    const testPath = path.join('foo');
-    const sourceUri = { path: testPath } as vscode.Uri;
-
+    mockFileExists(nonExistentPath);
     existsSyncStub.returns(false);
     getConfigurationStub.returns(new MockWorkspace(false));
     mobileEnabledStub.returns(true);
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves(undefined);
-    await forceLightningLwcPreview(sourceUri);
+    await forceLightningLwcPreview(nonExistentPathUri);
 
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(`force_lightning_lwc_preview_file_nonexist`, 'foo')
+        nls.localize(
+          `force_lightning_lwc_preview_file_nonexist`,
+          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
+        )
       )
     );
     sinon.assert.notCalled(mobileExecutorStub);
