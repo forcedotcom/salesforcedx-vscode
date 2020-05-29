@@ -6,9 +6,9 @@
  */
 
 import { expect } from 'chai';
+import childProcess = require('child_process');
 import * as sinon from 'sinon';
 import { ForceConfigGet, SfdxCommandBuilder } from '../../../src/cli';
-import childProcess = require('child_process');
 
 describe('force:config:get', () => {
   const mockSpawn = require('mock-spawn');
