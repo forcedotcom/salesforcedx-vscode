@@ -32,6 +32,8 @@ import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport } from './testSupport';
 
+let extensionContext: vscode.ExtensionContext;
+
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri) {
   if (/^win32/.test(process.platform)) {
@@ -48,6 +50,7 @@ function protocol2CodeConverter(value: string) {
 }
 
 export async function activate(context: ExtensionContext) {
+  extensionContext = context;
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -139,7 +142,7 @@ function getActivationMode(): string {
 }
 
 function registerCommands(
-  extensionContext: vscode.ExtensionContext
+  _extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   return vscode.Disposable.from(
     vscode.commands.registerCommand(
@@ -222,4 +225,12 @@ function startLWCLanguageServer(context: ExtensionContext) {
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
   context.subscriptions.push(client);
+}
+
+export function getGlobalStore(): vscode.Memento {
+  return extensionContext.globalState;
+}
+
+export function getWorkspaceSettings(): vscode.WorkspaceConfiguration {
+  return workspace.getConfiguration('salesforcedx-vscode-lwc');
 }
