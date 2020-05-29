@@ -10,6 +10,7 @@ import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
+  LWC_MOBILE_PREVIEW_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -72,6 +73,10 @@ export class SfdxCoreSettings {
 
   public getBetaDeployRetrieve(): boolean {
     return this.getConfigValue(BETA_DEPLOY_RETRIEVE, false);
+  }
+
+  public getLwcPreviewOnMobileEnabled(): boolean {
+    return this.getConfigValue(LWC_MOBILE_PREVIEW_ENABLED, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

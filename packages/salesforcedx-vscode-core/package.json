@@ -787,6 +787,11 @@
           "default": false,
           "description": "%experimental_deploy_retrieve_description%"
         }
+      },
+      "salesforcedx-vscode-core.previewOnMobile": {
+        "type": "boolean",
+        "default": false,
+        "description": "%force_lightning_lwc_enable_mobile%"
       }
     },
     "jsonValidation": [

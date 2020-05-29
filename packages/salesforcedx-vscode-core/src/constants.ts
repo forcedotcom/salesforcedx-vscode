@@ -27,3 +27,4 @@ export const DEFAULT_USERNAME_KEY = 'defaultusername';
 export const DEFAULT_DEV_HUB_USERNAME_KEY = 'defaultdevhubusername';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
+export const LWC_MOBILE_PREVIEW_ENABLED = 'previewOnMobile';
