@@ -195,7 +195,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "false"
+          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",
@@ -344,6 +344,30 @@
           "dark": "resources/dark/stopWatching.svg"
         }
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%force_lightning_lwc_preferences%",
+      "properties": {
+        "salesforcedx-vscode-lwc.rememberDevice": {
+          "type": "boolean",
+          "default": true,
+          "description": "%force_lightning_lwc_remember_device_description%"
+        },
+        "salesforcedx-vscode-lwc.logLevel": {
+          "type": "string",
+          "description": "%force_lightning_lwc_mobile_log_level%",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal"
+          ],
+          "default": "warn"
+        }
+      }
+    }
   }
 }
