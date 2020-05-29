@@ -28,7 +28,8 @@ const {
   telemetryService,
   SfdxCommandlet,
   EmptyParametersGatherer,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  sfdxCoreSettings
 } = sfdxCoreExports;
 
 enum PreviewPlatformType {
@@ -81,7 +82,6 @@ const logName = 'force_lightning_lwc_preview';
 const commandName = nls.localize('force_lightning_lwc_preview_text');
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'rememberDevice';
-const mobileEnabledKey = 'enablePreviewOnMobile';
 const logLevelKey = 'logLevel';
 const defaultLogLevel = 'warn';
 const androidSuccessString = 'Launching... Opening Browser';
@@ -136,8 +136,8 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   }
 
   const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
-  const isMobileEnabled = getWorkspaceSettings().get(mobileEnabledKey) || false;
-  if (!isMobileEnabled) {
+  // Preform existing desktop behavior if mobile is not enabled.
+  if (!sfdxCoreSettings.getLwcPreviewOnMobileEnabled()) {
     await startServer(true, fullUrl, startTime);
     return;
   }
