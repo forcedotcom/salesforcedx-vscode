@@ -2,12 +2,13 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as path from 'path';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import * as path from 'path';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
+import { getRootWorkspacePath } from '../../util';
 import {
   CompositeParametersGatherer,
   PathStrategyFactory,
@@ -16,6 +17,7 @@ import {
   SourcePathStrategy
 } from '../util';
 import { MetadataTypeGatherer } from '../util';
+import { SelectLwcComponentDir } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
@@ -23,8 +25,6 @@ import {
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
-import { SelectLwcComponentDir } from '../util/parameterGatherers';
-import { getRootWorkspacePath } from '../../util';
 
 export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -35,7 +35,10 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
       .withArg('force:lightning:lwc:test:create')
-      .withFlag('--filepath', path.join(getRootWorkspacePath(), data.outputdir, data.fileName + '.js'))
+      .withFlag(
+        '--filepath',
+        path.join(getRootWorkspacePath(), data.outputdir, data.fileName + '.js')
+      )
       .withLogName('force_lightning_web_component_test_create');
 
     if (sfdxCoreSettings.getInternalDev()) {
