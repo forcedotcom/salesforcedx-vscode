@@ -40,7 +40,10 @@ async function createServer(
       .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
     const enableCompletionStatistics: boolean = vscode.workspace
       .getConfiguration()
-      .get<boolean>('salesforcedx-vscode-apex.enable-completion-statistics', false);
+      .get<boolean>(
+        'salesforcedx-vscode-apex.advanced.enable-completion-statistics',
+        false
+      );
 
     const args: string[] = [
       '-cp',
