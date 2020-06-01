@@ -61,6 +61,5 @@
   "force_source_retrieve_display_text": "Retrieve Source from Org",
   "force_diff_against_org": "SFDX: Diff File Against Org",
   "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template",
-  "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience.",
-  "force_lightning_lwc_enable_mobile": "Preview Lightning Web Components on Mobile. \nNote: This feature is currently in pilot release and is not generally available."
+  "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience."
 }

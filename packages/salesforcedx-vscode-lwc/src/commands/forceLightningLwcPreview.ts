@@ -84,6 +84,7 @@ const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'rememberDevice';
 const logLevelKey = 'logLevel';
 const defaultLogLevel = 'warn';
+const previewOnMobileKey = 'previewOnMobile';
 const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
@@ -137,7 +138,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
 
   const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
   // Preform existing desktop behavior if mobile is not enabled.
-  if (!sfdxCoreSettings.getLwcPreviewOnMobileEnabled()) {
+  if (!isMobileEnabled()) {
     await startServer(true, fullUrl, startTime);
     return;
   }
@@ -318,4 +319,10 @@ function updateRememberedDevice(
   if (store !== undefined) {
     store.update(`last${platform.platformName}Device`, deviceName);
   }
+}
+
+function isMobileEnabled(): boolean {
+  return WorkspaceUtils.getInstance()
+    .getWorkspaceSettings()
+    .get(previewOnMobileKey, false);
 }
