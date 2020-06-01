@@ -7,6 +7,7 @@
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import childProcess = require('child_process');
 import * as sinon from 'sinon';
 import {
   DebuggerSessionDetachExecutor,
@@ -20,7 +21,6 @@ import {
 } from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import childProcess = require('child_process');
 
 describe('Debugger stop command', () => {
   const mockSpawn = require('mock-spawn');

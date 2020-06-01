@@ -14,6 +14,7 @@ import { ForceApexTestRunCodeActionExecutor } from '../commands';
 import { nls } from '../messages';
 
 export class ReadableApexTestRunExecutor extends (ForceApexTestRunCodeActionExecutor as {
+  // tslint:disable-next-line:callable-types
   new (test: string, shouldGetCodeCoverage: boolean): any;
 }) {
   private outputToJson: string;

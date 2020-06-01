@@ -36,7 +36,6 @@ export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
   }
 
   public build(data: DirFileNameSelection): Command {
-    const d = data.fileName
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_create_text'))
       .withArg('force:lightning:component:create')

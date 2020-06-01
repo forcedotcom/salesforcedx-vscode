@@ -2,7 +2,23 @@
     "compilerOptions": {
         "experimentalDecorators": true,
         "baseUrl": ".",
-        "paths": {}
+        "paths": {
+            "c/contactList": [
+                "contactList/contactList.js"
+            ],
+            "c/demoLwcComponent": [
+                "demoLwcComponent/demoLwcComponent.js"
+            ],
+            "c/hello": [
+                "hello/hello.js"
+            ],
+            "c/helloBinding": [
+                "helloBinding/helloBinding.js"
+            ],
+            "c/viewSource": [
+                "viewSource/viewSource.js"
+            ]
+        }
     },
     "include": [
         "**/*",

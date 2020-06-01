@@ -14,7 +14,6 @@ import { nls } from '../../../../src/messages';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { getRootWorkspacePath } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Force Lightning Web Component Test Create', () => {
   let settings: SinonStub;
 
@@ -33,25 +32,36 @@ describe('Force Lightning Web Component Test Create', () => {
     const fileName = 'testing';
     const lwcCreateTestCommand = lightningLWCTestCreate.build({
       fileName,
-      outputdir: outputDirPath
+      outputdir: path.join(outputDirPath, 'testing')
     });
     const fullFilepath = path.join(
       getRootWorkspacePath(),
       outputDirPath,
+      'testing',
       fileName + '.js'
     );
-    expect(lwcCreateTestCommand.toCommand()).to.equal(
-      `sfdx force:lightning:lwc:test:create --filename ${fullFilepath}`
-    );
-    expect(lwcCreateTestCommand.description).to.equal(
-      nls.localize('force_lightning_lwc_create_text')
-    );
-    expect(lightningLWCTestCreate.getDefaultDirectory()).to.equal('lwc');
-    expect(lightningLWCTestCreate.getFileExtension()).to.equal('.js');
-    expect(
-      lightningLWCTestCreate
-        .getSourcePathStrategy()
-        .getPathToSource(outputDirPath, fileName, '.js')
-    ).to.equal(path.join(outputDirPath, fileName, `${fileName}.js`));
+
+    if (fullFilepath) {
+      expect(lwcCreateTestCommand.toCommand()).to.equal(
+        `sfdx force:lightning:lwc:test:create --filepath ${fullFilepath}`
+      );
+      expect(lwcCreateTestCommand.description).to.equal(
+        nls.localize('force_lightning_lwc_test_create_text')
+      );
+      expect(lightningLWCTestCreate.getDefaultDirectory()).to.equal('lwc');
+      expect(lightningLWCTestCreate.getFileExtension()).to.equal('.js');
+      expect(
+        lightningLWCTestCreate
+          .getSourcePathStrategy()
+          .getPathToSource(path.join(outputDirPath, 'testing'), fileName, '.js')
+      ).to.equal(
+        path.join(
+          outputDirPath,
+          fileName,
+          '__tests__',
+          `${fileName}.test.js`
+        )
+      );
+    }
   });
 });

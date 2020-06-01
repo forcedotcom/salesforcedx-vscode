@@ -8,6 +8,7 @@
 import { OrgInfo } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { expect } from 'chai';
+import childProcess = require('child_process');
 import * as sinon from 'sinon';
 import {
   ApexDebuggerEventType,
@@ -15,7 +16,6 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../../../src/core';
-import childProcess = require('child_process');
 
 describe('Debugger streaming service', () => {
   const mockSpawn = require('mock-spawn');
