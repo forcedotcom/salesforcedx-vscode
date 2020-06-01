@@ -1054,7 +1054,6 @@ describe('forceLightningLwcPreview', () => {
     mockExecution.processExitSubject.next(127);
 
     sinon.assert.calledOnce(mobileExecutorStub);
-    sinon.assert.calledTwice(showErrorMessageStub);
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
@@ -1063,6 +1062,10 @@ describe('forceLightningLwcPreview', () => {
           androidQuickPick.defaultTargetName
         )
       )
+    );
+    sinon.assert.calledWith(
+      showErrorMessageStub,
+      sinon.match(nls.localize('force_lightning_lwc_no_mobile_plugin'))
     );
     sinon.assert.calledOnce(streamCommandOutputSpy);
     expect(successInfoMessageSpy.callCount).to.equal(0);

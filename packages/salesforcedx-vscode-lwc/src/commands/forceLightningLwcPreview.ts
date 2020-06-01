@@ -274,8 +274,10 @@ async function selectPlatformAndExecute(
 
       // Error code 127 means the lwc on mobile sfdx plugin is not installed.
       if (exitCode === 127) {
-        channelService.appendLine(
-          nls.localize('force_lightning_lwc_no_mobile_plugin')
+        showError(
+          new Error(nls.localize('force_lightning_lwc_no_mobile_plugin')),
+          logName,
+          commandName
         );
       }
     } else if (platformSelection.id === PreviewPlatformType.iOS) {
