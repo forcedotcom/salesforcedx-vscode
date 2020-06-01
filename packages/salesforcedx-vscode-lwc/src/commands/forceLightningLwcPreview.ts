@@ -12,9 +12,9 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import { getGlobalStore, getWorkspaceSettings } from '../index';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
+import { WorkspaceUtils } from '../util/workspaceUtils';
 import { DEV_SERVER_PREVIEW_ROUTE } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
@@ -204,7 +204,9 @@ async function selectPlatformAndExecute(
       ? nls.localize('force_lightning_lwc_android_target_default')
       : nls.localize('force_lightning_lwc_ios_target_default');
   const rememberDeviceConfigured =
-    getWorkspaceSettings().get(rememberDeviceKey) || false;
+    WorkspaceUtils.getInstance()
+      .getWorkspaceSettings()
+      .get(rememberDeviceKey) || false;
   const lastTarget = getRememberedDevice(platformSelection);
 
   // Remember device setting enabled and previous device retrieved.
@@ -247,7 +249,9 @@ async function selectPlatformAndExecute(
     .withFlag('-n', componentName)
     .withFlag(
       '--loglevel',
-      getWorkspaceSettings().get(logLevelKey) || defaultLogLevel
+      WorkspaceUtils.getInstance()
+        .getWorkspaceSettings()
+        .get(logLevelKey) || defaultLogLevel
     )
     .build();
 
@@ -298,12 +302,20 @@ async function selectPlatformAndExecute(
 }
 
 function getRememberedDevice(platform: PreviewQuickPickItem): string {
-  return getGlobalStore().get(`last${platform.platformName}Device`, '');
+  const store = WorkspaceUtils.getInstance().getGlobalStore();
+  if (store === undefined) {
+    return '';
+  }
+
+  return store.get(`last${platform.platformName}Device`) || '';
 }
 
 function updateRememberedDevice(
   platform: PreviewQuickPickItem,
   deviceName: string
 ) {
-  getGlobalStore().update(`last${platform.platformName}Device`, deviceName);
+  const store = WorkspaceUtils.getInstance().getGlobalStore();
+  if (store !== undefined) {
+    store.update(`last${platform.platformName}Device`, deviceName);
+  }
 }

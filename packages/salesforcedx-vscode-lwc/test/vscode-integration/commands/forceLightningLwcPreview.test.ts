@@ -30,7 +30,7 @@ import {
 } from '../../../src/commands/forceLightningLwcPreview';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
-import * as utils from '../../../src/';
+import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -87,7 +87,7 @@ describe('forceLightningLwcPreview', () => {
     Thenable<string | undefined>
   >;
   let getConfigurationStub: sinon.SinonStub<any, vscode.WorkspaceConfiguration>;
-  let getGlobalStoreStub: sinon.SinonStub<any, vscode.Memento>;
+  let getGlobalStoreStub: sinon.SinonStub<any, vscode.Memento | undefined>;
   let cmdWithArgSpy: sinon.SinonSpy<[string], CommandBuilder>;
   let cmdWithFlagSpy: sinon.SinonSpy<[string, string], CommandBuilder>;
   let mobileExecutorStub: sinon.SinonStub<
@@ -208,8 +208,14 @@ describe('forceLightningLwcPreview', () => {
     );
     showQuickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
     showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
-    getConfigurationStub = sandbox.stub(utils, 'getWorkspaceSettings');
-    getGlobalStoreStub = sandbox.stub(utils, 'getGlobalStore');
+    getConfigurationStub = sandbox.stub(
+      WorkspaceUtils.prototype,
+      'getWorkspaceSettings'
+    );
+    getGlobalStoreStub = sandbox.stub(
+      WorkspaceUtils.prototype,
+      'getGlobalStore'
+    );
     cmdWithArgSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withArg');
     cmdWithFlagSpy = sandbox.spy(SfdxCommandBuilder.prototype, 'withFlag');
     mockExecution = new MockExecution(new SfdxCommandBuilder().build());
