@@ -117,6 +117,9 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         progress.complete();
         taskViewService.removeTask(task);
         notificationService.showSuccessfulExecution(executionName);
+        const urlFromResponse = data!
+          .toString()!
+          .match('(https?://localhost):(d*)/?(.*)')![0];
 
         if (this.options.openBrowser) {
           await openBrowser(this.options.fullUrl || DEV_SERVER_BASE_URL);

@@ -238,6 +238,23 @@ describe('forceLightningLwcStart', () => {
         );
       });
 
+      it('opens the browser at the correct port once server is started', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.stdoutSubject.next(
+          'Some details here\n Server up on http://localhost:3332 something\n More details here'
+        );
+
+        sinon.assert.calledOnce(openBrowserStub);
+        sinon.assert.calledWith(
+          openBrowserStub,
+          sinon.match('http://localhost:3332')
+        );
+      });
+
       it('shows an error when the plugin is not installed', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
