@@ -101,6 +101,26 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   await commandlet.run();
 }
 
+// this supported types logic is temporary until we have a way of generating the metadata type from the path
+// once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
+export function useBetaRetrieve(explorerPath: vscode.Uri[]): boolean {
+  if (explorerPath.length > 1) {
+    return false;
+  }
+  const filePath = explorerPath[0].fsPath;
+  const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
+  const supportedType = true;
+  /*path.extname(filePath) === APEX_CLASS_EXTENSION ||
+    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`) ||
+    (path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
+      filePath.includes(`${APEX_TRIGGER_EXTENSION}-meta.xml`)) ||
+    (path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
+      filePath.includes(`${VISUALFORCE_COMPONENT_EXTENSION}-meta.xml`)) ||
+    (path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION ||
+      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`));*/
+  return betaDeployRetrieve && supportedType;
+}
+
 export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
   string
 > {
