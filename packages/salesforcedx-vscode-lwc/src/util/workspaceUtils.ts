@@ -25,11 +25,7 @@ export class WorkspaceUtils {
   }
 
   public getGlobalStore(): vscode.Memento | undefined {
-    if (this.context === undefined) {
-      return undefined;
-    }
-
-    return this.context.globalState;
+    return this.context && this.context.globalState;
   }
 
   public getWorkspaceSettings(): vscode.WorkspaceConfiguration {
