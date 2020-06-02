@@ -59,20 +59,22 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
-        const deployParser = new ForceDeployResultParser(stdOut);
-        const errors = deployParser.getErrors();
-        if (errors && !deployParser.hasConflicts()) {
-          channelService.showChannelOutput();
-          handleDiagnosticErrors(
-            errors,
-            workspacePath,
-            execFilePathOrPaths,
-            BaseDeployExecutor.errorCollection
-          );
-        } else {
-          BaseDeployExecutor.errorCollection.clear();
+        if (stdOut !== '') {
+          const deployParser = new ForceDeployResultParser(stdOut);
+          const errors = deployParser.getErrors();
+          if (errors && !deployParser.hasConflicts()) {
+            channelService.showChannelOutput();
+            handleDiagnosticErrors(
+              errors,
+              workspacePath,
+              execFilePathOrPaths,
+              BaseDeployExecutor.errorCollection
+            );
+          } else {
+            BaseDeployExecutor.errorCollection.clear();
+          }
+          this.outputResult(deployParser);
         }
-        this.outputResult(deployParser);
       } catch (e) {
         if (e.name !== 'DeployParserFail') {
           e.message =
