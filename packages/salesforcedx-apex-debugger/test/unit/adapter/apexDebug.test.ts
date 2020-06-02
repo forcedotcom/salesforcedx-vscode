@@ -15,7 +15,6 @@ import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vs
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
-import os = require('os');
 import * as sinon from 'sinon';
 import {
   OutputEvent,
@@ -78,6 +77,7 @@ import {
   DummyContainer,
   newStringValue
 } from './apexDebugVariablesHandling.test';
+import os = require('os');
 
 describe('Interactive debugger adapter - unit', () => {
   let adapter: ApexDebugForTest;

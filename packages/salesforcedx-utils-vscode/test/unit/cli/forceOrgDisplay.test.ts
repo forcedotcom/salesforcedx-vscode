@@ -6,9 +6,9 @@
  */
 
 import { expect } from 'chai';
-import childProcess = require('child_process');
 import * as sinon from 'sinon';
 import { ForceOrgDisplay, OrgInfo, SfdxCommandBuilder } from '../../../src/cli';
+import childProcess = require('child_process');
 
 describe('force:org:display', () => {
   const mockSpawn = require('mock-spawn');

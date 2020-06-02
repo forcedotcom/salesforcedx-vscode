@@ -8,7 +8,6 @@ export function isInteger(value: string | undefined): boolean {
   return (
     value !== undefined &&
     !/\D/.test(value) &&
-    // tslint:disable-next-line:radix
     Number.isSafeInteger(Number.parseInt(value))
   );
 }
@@ -20,9 +19,7 @@ export function isIntegerInRange(
   return (
     value !== undefined &&
     isInteger(value) &&
-    // tslint:disable-next-line:radix
     Number.parseInt(value) >= range[0] &&
-    // tslint:disable-next-line:radix
     Number.parseInt(value) <= range[1]
   );
 }

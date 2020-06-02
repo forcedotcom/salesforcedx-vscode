@@ -6,7 +6,6 @@
  */
 
 import * as util from 'util';
-import vscode = require('vscode');
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
@@ -16,6 +15,7 @@ import {
   isCLITelemetryAllowed
 } from '../util';
 import TelemetryReporter from './telemetryReporter';
+import vscode = require('vscode');
 
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
