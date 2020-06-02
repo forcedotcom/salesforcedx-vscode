@@ -38,6 +38,12 @@ enum PreviewPlatformType {
   iOS
 }
 
+const enum PlatformName {
+  desktop = 'Desktop',
+  android = 'Android',
+  ios = 'iOS'
+}
+
 interface PreviewQuickPickItem extends vscode.QuickPickItem {
   label: string;
   detail: string;
@@ -55,7 +61,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: true,
     id: PreviewPlatformType.Desktop,
-    platformName: '',
+    platformName: PlatformName.desktop,
     defaultTargetName: ''
   },
   {
@@ -64,7 +70,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.Android,
-    platformName: 'Android',
+    platformName: PlatformName.android,
     defaultTargetName: 'SFDXEmulator'
   },
   {
@@ -73,7 +79,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.iOS,
-    platformName: 'iOS',
+    platformName: PlatformName.ios,
     defaultTargetName: 'SFDXSimulator'
   }
 ];
@@ -146,8 +152,15 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
   await selectPlatformAndExecute(fullUrl, startTime, componentName);
 }
 
+/**
+ * Starts the lwc server if it is not already running.
+ *
+ * @param isDesktop if desktop browser is selected
+ * @param fullUrl lwc url
+ * @param startTime start time of the preview command
+ */
 async function startServer(
-  desktopSelected: boolean,
+  isDesktop: boolean,
   fullUrl: string,
   startTime: [number, number]
 ) {
@@ -156,7 +169,7 @@ async function startServer(
     const preconditionChecker = new SfdxWorkspaceChecker();
     const parameterGatherer = new EmptyParametersGatherer();
     const executor = new ForceLightningLwcStartExecutor({
-      openBrowser: desktopSelected,
+      openBrowser: isDesktop,
       fullUrl
     });
 
@@ -168,7 +181,7 @@ async function startServer(
 
     await commandlet.run();
     telemetryService.sendCommandEvent(logName, startTime);
-  } else if (desktopSelected) {
+  } else if (isDesktop) {
     try {
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
@@ -178,6 +191,14 @@ async function startServer(
   }
 }
 
+/**
+ * Prompts the user to select a platform to preview the LWC on. Android and iOS
+ * are handled by the @salesforce/lwc-dev-mobile sfdx package.
+ *
+ * @param fullUrl lwc url
+ * @param startTime start time of the preview command
+ * @param componentName name of the lwc
+ */
 async function selectPlatformAndExecute(
   fullUrl: string,
   startTime: [number, number],
@@ -193,17 +214,17 @@ async function selectPlatformAndExecute(
     return;
   }
 
-  const desktopSelected = platformSelection.id === PreviewPlatformType.Desktop;
-  if (desktopSelected) {
+  const isDesktop = platformSelection.id === PreviewPlatformType.Desktop;
+  if (isDesktop) {
     await startServer(true, fullUrl, startTime);
     return;
   }
 
+  const isAndroid = platformSelection.id === PreviewPlatformType.Android;
   let target: string = platformSelection.defaultTargetName;
-  let placeholderText =
-    platformSelection.id === PreviewPlatformType.Android
-      ? nls.localize('force_lightning_lwc_android_target_default')
-      : nls.localize('force_lightning_lwc_ios_target_default');
+  let placeholderText = isAndroid
+    ? nls.localize('force_lightning_lwc_android_target_default')
+    : nls.localize('force_lightning_lwc_ios_target_default');
   const rememberDeviceConfigured =
     WorkspaceUtils.getInstance()
       .getWorkspaceSettings()
@@ -212,10 +233,9 @@ async function selectPlatformAndExecute(
 
   // Remember device setting enabled and previous device retrieved.
   if (rememberDeviceConfigured && lastTarget) {
-    const message =
-      platformSelection.id === PreviewPlatformType.Android
-        ? 'force_lightning_lwc_android_target_remembered'
-        : 'force_lightning_lwc_ios_target_remembered';
+    const message = isAndroid
+      ? 'force_lightning_lwc_android_target_remembered'
+      : 'force_lightning_lwc_ios_target_remembered';
     placeholderText = nls.localize(message, lastTarget);
     target = lastTarget;
   }
@@ -225,7 +245,7 @@ async function selectPlatformAndExecute(
 
   if (targetName === undefined) {
     vscode.window.showInformationMessage(
-      platformSelection.id === PreviewPlatformType.Android
+      isAndroid
         ? nls.localize('force_lightning_lwc_android_device_cancelled')
         : nls.localize('force_lightning_lwc_ios_device_cancelled')
     );
@@ -266,10 +286,9 @@ async function selectPlatformAndExecute(
 
   execution.processExitSubject.subscribe(async exitCode => {
     if (exitCode !== 0) {
-      const message =
-        platformSelection.id === PreviewPlatformType.Android
-          ? nls.localize('force_lightning_lwc_android_failure', targetUsed)
-          : nls.localize('force_lightning_lwc_ios_failure', targetUsed);
+      const message = isAndroid
+        ? nls.localize('force_lightning_lwc_android_failure', targetUsed)
+        : nls.localize('force_lightning_lwc_ios_failure', targetUsed);
       showError(new Error(message), logName, commandName);
 
       // Error code 127 means the lwc on mobile sfdx plugin is not installed.
@@ -280,7 +299,7 @@ async function selectPlatformAndExecute(
           commandName
         );
       }
-    } else if (platformSelection.id === PreviewPlatformType.iOS) {
+    } else if (!isAndroid) {
       notificationService.showSuccessfulExecution(execution.command.toString());
       vscode.window.showInformationMessage(
         nls.localize('force_lightning_lwc_ios_start', targetUsed)
@@ -290,7 +309,7 @@ async function selectPlatformAndExecute(
 
   // TODO: Remove this when SFDX Plugin launches Android Emulator as separate process.
   // listen for Android Emulator finished
-  if (platformSelection.id === PreviewPlatformType.Android) {
+  if (isAndroid) {
     execution.stdoutSubject.subscribe(async data => {
       if (data && data.toString().includes(androidSuccessString)) {
         notificationService.showSuccessfulExecution(
