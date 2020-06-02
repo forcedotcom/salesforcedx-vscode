@@ -192,29 +192,32 @@ export class SelectLwcComponentDir
     }
 
     const dirOptions = this.getDefaultOptions(packageDirs);
-    let outputdir = await this.showMenu(dirOptions);
+    let outputdir = await this.showMenu(
+      dirOptions,
+      'parameter_gatherer_enter_dir_name'
+    );
     const namePathMap = new Map();
-    let filepath;
-    let filename;
     let fileName;
-
     if (outputdir) {
-      const fullPath = path.join(getRootWorkspacePath(), outputdir);
+      const pathToLwc = path.join(getRootWorkspacePath(), outputdir);
       const registry = new RegistryAccess();
-      const components = registry.getComponentsFromPath(fullPath);
-      const lwccomponents = components.filter(
-        lwc =>
-          lwc.type.name === registryData.types.lightningcomponentbundle.name
-      );
-      const lwcNames = lwccomponents.map(lwc => lwc.fullName);
+      const components = registry.getComponentsFromPath(pathToLwc);
 
-      for (const component of lwccomponents) {
-        namePathMap.set(component.fullName, component.xml);
+      const lwcNames = [];
+      for (const component of components) {
+        const { fullName, type } = component;
+        if (type.name === registryData.types.lightningcomponentbundle.name) {
+          namePathMap.set(fullName, component.xml);
+          lwcNames.push(fullName);
+        }
       }
 
-      filename = await this.showLwcMenu(lwcNames);
-      filepath = namePathMap.get(filename);
-      filepath = filepath.replace('-meta.xml', '');
+      const chosenLwcName = await this.showMenu(
+        lwcNames,
+        'parameter_gatherer_enter_lwc_name'
+      );
+      const filePathToXml = namePathMap.get(chosenLwcName);
+      const filepath = filePathToXml.replace('-meta.xml', '');
       fileName = path.basename(filepath, '.js');
       outputdir = path.join(outputdir, fileName);
     }
@@ -234,15 +237,12 @@ export class SelectLwcComponentDir
     return options;
   }
 
-  public async showMenu(options: string[]): Promise<string | undefined> {
+  public async showMenu(
+    options: string[],
+    message: string
+  ): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize('parameter_gatherer_enter_dir_name')
-    } as vscode.QuickPickOptions);
-  }
-
-  public async showLwcMenu(options: string[]): Promise<string | undefined> {
-    return await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize('parameter_gatherer_enter_lwc_name')
+      placeHolder: nls.localize(message)
     } as vscode.QuickPickOptions);
   }
 }

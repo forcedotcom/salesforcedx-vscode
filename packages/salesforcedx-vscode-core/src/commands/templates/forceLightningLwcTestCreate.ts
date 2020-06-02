@@ -5,9 +5,7 @@ import {
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import * as path from 'path';
-import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
 import { getRootWorkspacePath } from '../../util';
 import {
   CompositeParametersGatherer,
@@ -20,10 +18,6 @@ import { MetadataTypeGatherer } from '../util';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
-import {
-  FileInternalPathGatherer,
-  InternalDevWorkspaceChecker
-} from './internalCommandUtils';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
 export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
@@ -40,10 +34,6 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
         path.join(getRootWorkspacePath(), data.outputdir, data.fileName + '.js')
       )
       .withLogName('force_lightning_web_component_test_create');
-
-    if (sfdxCoreSettings.getInternalDev()) {
-      builder.withArg('--internal');
-    }
     return builder.build();
   }
 
@@ -63,18 +53,6 @@ export async function forceLightningLwcTestCreate() {
     ),
     new ForceLightningLwcTestCreateExecutor(),
     new OverwriteComponentPrompt()
-  );
-  await commandlet.run();
-}
-
-export async function forceInternalLightningLwcTestCreate(sourceUri: Uri) {
-  const commandlet = new SfdxCommandlet(
-    new InternalDevWorkspaceChecker(),
-    new CompositeParametersGatherer(
-      filePathGatherer,
-      new FileInternalPathGatherer(sourceUri)
-    ),
-    new ForceLightningLwcTestCreateExecutor()
   );
   await commandlet.run();
 }
