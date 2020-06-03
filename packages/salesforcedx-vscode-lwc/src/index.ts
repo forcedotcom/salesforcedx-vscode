@@ -31,6 +31,7 @@ import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport } from './testSupport';
+import { WorkspaceUtils } from './util/workspaceUtils';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri) {
@@ -121,6 +122,9 @@ export async function activate(context: ExtensionContext) {
     activateLwcTestSupport(context);
   }
 
+  // Initialize utils for user settings
+  WorkspaceUtils.getInstance().init(context);
+
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
@@ -139,7 +143,7 @@ function getActivationMode(): string {
 }
 
 function registerCommands(
-  extensionContext: vscode.ExtensionContext
+  _extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   return vscode.Disposable.from(
     vscode.commands.registerCommand(
