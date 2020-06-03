@@ -59,7 +59,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       this.logMetric(execution.command.logName, startTime);
       try {
-        if (stdOut !== '') {
+        if (stdOut) {
           const deployParser = new ForceDeployResultParser(stdOut);
           const errors = deployParser.getErrors();
           if (errors && !deployParser.hasConflicts()) {
