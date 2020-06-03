@@ -122,7 +122,9 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
           .match('(https?://localhost):(d*)/?(.*)')![0];
 
         if (this.options.openBrowser) {
-          await openBrowser(this.options.fullUrl || DEV_SERVER_BASE_URL);
+          await openBrowser(
+            urlFromResponse || this.options.fullUrl || DEV_SERVER_BASE_URL
+          );
         }
 
         this.logMetric(execution.command.logName, startTime);
