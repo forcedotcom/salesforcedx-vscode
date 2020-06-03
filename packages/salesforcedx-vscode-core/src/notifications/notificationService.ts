@@ -12,7 +12,6 @@ import { DEFAULT_SFDX_CHANNEL } from '../channels';
 import { STATUS_BAR_MSG_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
-// import { stringify } from 'querystring';
 
 /**
  * A centralized location for all notification functionalities.
