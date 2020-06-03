@@ -8,25 +8,13 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
-import { ForceLightningLwcCreateExecutor } from '../../../../src/commands/templates/forceLightningLwcCreate';
 import { ForceLightningLwcTestCreateExecutor } from '../../../../src/commands/templates/forceLightningLwcTestCreate';
 import { nls } from '../../../../src/messages';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { getRootWorkspacePath } from '../../../../src/util';
 
 describe('Force Lightning Web Component Test Create', () => {
-  let settings: SinonStub;
-
-  beforeEach(() => {
-    settings = stub(SfdxCoreSettings.prototype, 'getInternalDev');
-  });
-
-  afterEach(() => {
-    settings.restore();
-  });
-
   it('Should build the Lightning Web Component Test create command', async () => {
-    settings.returns(false);
     const lightningLWCTestCreate = new ForceLightningLwcTestCreateExecutor();
     const outputDirPath = path.join('force-app', 'main', 'default', 'lwc');
     const fileName = 'testing';
@@ -55,12 +43,7 @@ describe('Force Lightning Web Component Test Create', () => {
           .getSourcePathStrategy()
           .getPathToSource(path.join(outputDirPath, 'testing'), fileName, '.js')
       ).to.equal(
-        path.join(
-          outputDirPath,
-          fileName,
-          '__tests__',
-          `${fileName}.test.js`
-        )
+        path.join(outputDirPath, fileName, '__tests__', `${fileName}.test.js`)
       );
     }
   });

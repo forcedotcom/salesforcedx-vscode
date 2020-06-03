@@ -167,15 +167,6 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
 
 export class SelectLwcComponentDir
   implements ParametersGatherer<{ fileName: string; outputdir: string }> {
-  private typeDir: string;
-  private typeDirRequired: boolean | undefined;
-  public static readonly defaultOutput = path.join('main', 'default');
-
-  public constructor(typeDir: string, typeDirRequired?: boolean) {
-    this.typeDir = typeDir;
-    this.typeDirRequired = typeDirRequired;
-  }
-
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>
   > {
@@ -190,18 +181,17 @@ export class SelectLwcComponentDir
         throw e;
       }
     }
-
-    const dirOptions = this.getDefaultOptions(packageDirs);
-    let outputdir = await this.showMenu(
-      dirOptions,
+    const packageDir = await this.showMenu(
+      packageDirs,
       'parameter_gatherer_enter_dir_name'
     );
+    let outputdir;
     const namePathMap = new Map();
     let fileName;
-    if (outputdir) {
-      const pathToLwc = path.join(getRootWorkspacePath(), outputdir);
+    if (packageDir) {
+      const pathToPkg = path.join(getRootWorkspacePath(), packageDir);
       const registry = new RegistryAccess();
-      const components = registry.getComponentsFromPath(pathToLwc);
+      const components = registry.getComponentsFromPath(pathToPkg);
 
       const lwcNames = [];
       for (const component of components) {
@@ -217,9 +207,9 @@ export class SelectLwcComponentDir
         'parameter_gatherer_enter_lwc_name'
       );
       const filePathToXml = namePathMap.get(chosenLwcName);
-      const shortenedfilepath = filePathToXml.replace('-meta.xml', '');
-      fileName = path.basename(shortenedfilepath, '.js');
-      outputdir = path.join(outputdir, fileName);
+      fileName = path.basename(filePathToXml, '.js-meta.xml');
+      // Path strategy expects a relative path to the output folder
+      outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
     }
 
     return outputdir && fileName
@@ -228,13 +218,6 @@ export class SelectLwcComponentDir
           data: { fileName, outputdir }
         }
       : { type: 'CANCEL' };
-  }
-
-  public getDefaultOptions(packageDirectories: string[]): string[] {
-    const options = packageDirectories.map(packageDir =>
-      path.join(packageDir, SelectLwcComponentDir.defaultOutput, this.typeDir)
-    );
-    return options;
   }
 
   public async showMenu(

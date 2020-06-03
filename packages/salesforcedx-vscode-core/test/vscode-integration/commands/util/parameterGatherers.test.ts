@@ -168,12 +168,13 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should return continue if file has been selected', async () => {
-      fileFinderStub.returns(
-        [vscode.Uri.file('/somepath/project-scratch-def.json')]
-      );
-      showQuickPickStub.returns(
-        { label: 'project-scratch-def.json', description: '/somepath/project-scratch-def.json' }
-      );
+      fileFinderStub.returns([
+        vscode.Uri.file('/somepath/project-scratch-def.json')
+      ]);
+      showQuickPickStub.returns({
+        label: 'project-scratch-def.json',
+        description: '/somepath/project-scratch-def.json'
+      });
 
       const response = (await gatherer.gather()) as ContinueResponse<
         FileSelection
@@ -185,9 +186,9 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should return cancel if no file was selected', async () => {
-      fileFinderStub.returns(
-        [vscode.Uri.file('/somepath/project-scratch-def.json')]
-      );
+      fileFinderStub.returns([
+        vscode.Uri.file('/somepath/project-scratch-def.json')
+      ]);
       showQuickPickStub.returns(undefined);
 
       const response = await gatherer.gather();
