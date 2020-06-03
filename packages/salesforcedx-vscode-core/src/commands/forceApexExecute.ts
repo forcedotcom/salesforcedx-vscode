@@ -181,11 +181,39 @@ const soapHeader = 'soapenv:Header';
 
 interface SoapResponse {
   [soapEnv]: {
-    [soapHeader]: {};
-    [soapBody]: {};
+    [soapHeader]: { DebuggingInfo: DebuggingInfo };
+    [soapBody]: { executeAnonymousResponse: ExecuteAnonymousResponse };
   };
 }
 
-async function formatResult(execAnonResponse: {}) {
-  const formattedResponse = {};
+interface ExecuteAnonymousResponse {
+  result: {
+    column: number;
+    compileProblem: { compiled: boolean };
+    exceptionMessage: {};
+    exceptionStackTrace: { line: number; success: boolean };
+  };
+}
+
+interface DebuggingInfo {
+  debugLog: string;
+}
+
+interface FormattedExecAnonResponse {
+  result: {
+    compiled: boolean;
+    compileProblem: string;
+    success: boolean;
+    line: number;
+    column: number;
+    exceptionMessage: string;
+    exceptionStackTrace: string;
+    logs: string;
+  };
+}
+
+async function formatResult(execAnonResponse: ExecuteAnonymousResponse) {
+  const formattedResponse = {
+    result: {}
+  };
 }
