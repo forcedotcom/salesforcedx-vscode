@@ -217,8 +217,8 @@ export class SelectLwcComponentDir
         'parameter_gatherer_enter_lwc_name'
       );
       const filePathToXml = namePathMap.get(chosenLwcName);
-      const filepath = filePathToXml.replace('-meta.xml', '');
-      fileName = path.basename(filepath, '.js');
+      const shortenedfilepath = filePathToXml.replace('-meta.xml', '');
+      fileName = path.basename(shortenedfilepath, '.js');
       outputdir = path.join(outputdir, fileName);
     }
 
