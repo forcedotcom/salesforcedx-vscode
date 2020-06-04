@@ -21,13 +21,13 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
+import { getRootWorkspacePath } from '../util';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from './util';
-import { getRootWorkspacePath } from '../util';
 
 type forcePackageInstallOptions = {
   packageId: string;
