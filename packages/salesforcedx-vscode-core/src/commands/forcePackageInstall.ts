@@ -8,13 +8,12 @@
 import {
   CliCommandExecutor,
   Command,
-  SfdxCommandBuilder,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer,
-  PostconditionChecker,
+  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -26,8 +25,9 @@ import {
   CompositeParametersGatherer,
   EmptyPreChecker,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
+  SfdxCommandletExecutor
 } from './util';
+import { getRootWorkspacePath } from '../util';
 
 type forcePackageInstallOptions = {
   packageId: string;
@@ -65,22 +65,9 @@ export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
-    const execution = new CliCommandExecutor(
-      this.build(response.data),
-      {}
-    ).execute(cancellationToken);
-
-    // execution.processExitSubject.subscribe(async data => {
-    //   this.logMetric(execution.command.logName, startTime);
-    //   if (data !== undefined && data.toString() === '0') {
-    //     await vscode.commands.executeCommand(
-    //       'vscode.openFolder',
-    //       vscode.Uri.file(
-    //         path.join(response.data.projectUri, response.data.projectName)
-    //       )
-    //     );
-    //   }
-    // });
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: getRootWorkspacePath()
+    }).execute(cancellationToken);
 
     notificationService.reportExecutionError(
       execution.command.toString(),
@@ -111,7 +98,7 @@ export class SelectPackageID implements ParametersGatherer<PackageID> {
 
   public async gather(): Promise<CancelResponse | ContinueResponse<PackageID>> {
     const packageIdInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_package_id'),
+      prompt: nls.localize('parameter_gatherer_enter_package_id')
     } as vscode.InputBoxOptions;
     if (this.prefillValueProvider) {
       packageIdInputOptions.value = this.prefillValueProvider();
@@ -137,7 +124,7 @@ export class SelectInstallationKey
     const installationKeyInputOptions = {
       prompt: nls.localize(
         'parameter_gatherer_enter_installation_key_if_necessary'
-      ),
+      )
     } as vscode.InputBoxOptions;
     if (this.prefillValueProvider) {
       installationKeyInputOptions.value = this.prefillValueProvider();
