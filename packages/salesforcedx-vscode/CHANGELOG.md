@@ -1,3 +1,15 @@
+# 48.19.0 - June 4, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Performance improvements for Apex autocompletion ([PR #2230](https://github.com/forcedotcom/salesforcedx-vscode/pull/2230), [Issue #2095](https://github.com/forcedotcom/salesforcedx-vscode/issues/2095))
+
+#### salesforcedx-vscode-core
+
+- Update command label `SFDX: Invoke Apex Test` to `SFDX: Run Apex Test` ([PR #2220](https://github.com/forcedotcom/salesforcedx-vscode/pull/2220))
+
 # 48.18.0 - May 28, 2020
 
 ## Fixed
