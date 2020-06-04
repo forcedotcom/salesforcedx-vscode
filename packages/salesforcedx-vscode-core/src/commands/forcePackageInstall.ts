@@ -66,7 +66,8 @@ export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
     notificationService.reportExecutionError(
