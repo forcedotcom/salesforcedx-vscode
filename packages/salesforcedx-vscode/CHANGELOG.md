@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Updated the `SFDX: Invoke Apex Test` to `SFDX: Run Apex Test` ([PR #2220](https://github.com/forcedotcom/salesforcedx-vscode/pull/2220))
+- Update command label `SFDX: Invoke Apex Test` to `SFDX: Run Apex Test` ([PR #2220](https://github.com/forcedotcom/salesforcedx-vscode/pull/2220))
 
 # 48.18.0 - May 28, 2020
 
