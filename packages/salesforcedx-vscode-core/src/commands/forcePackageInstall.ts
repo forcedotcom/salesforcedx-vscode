@@ -51,7 +51,7 @@ export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<
       .withFlag('--package', data.packageId)
       .withLogName('force_package_install');
 
-    if (this.options.installationKey) {
+    if (data.installationKey) {
       builder.withFlag('--installationkey', data.installationKey);
     }
 
