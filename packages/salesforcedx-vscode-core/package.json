@@ -282,6 +282,10 @@
       ],
       "commandPalette": [
         {
+          "command": "sfdx.force.package.install",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.auth.dev.hub",
           "when": "sfdx:project_opened"
         },
@@ -504,6 +508,10 @@
       ]
     },
     "commands": [
+      {
+        "command": "sfdx.force.package.install",
+        "title": "%force_package_install_text%"
+      },
       {
         "command": "sfdx.force.auth.dev.hub",
         "title": "%force_auth_web_login_authorize_dev_hub_text%"

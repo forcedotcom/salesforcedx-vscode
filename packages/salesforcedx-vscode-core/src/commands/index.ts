@@ -15,7 +15,7 @@ export { forceSourceDelete } from './forceSourceDelete';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath
+  forceSourceDeploySourcePath,
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull } from './forceSourcePull';
 export { forceSourcePush } from './forceSourcePush';
@@ -38,20 +38,21 @@ export {
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
   forceVisualforceComponentCreate,
-  forceVisualforcePageCreate
+  forceVisualforcePageCreate,
 } from './templates';
 export { forceDebuggerStop } from './forceDebuggerStop';
 export { forceConfigList } from './forceConfigList';
 export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
+export { forcePackageInstall } from './forcePackageInstall';
 export {
   forceSfdxProjectCreate,
-  forceProjectWithManifestCreate
+  forceProjectWithManifestCreate,
 } from './forceProjectCreate';
 export { forceStartApexDebugLogging } from './forceStartApexDebugLogging';
 export {
   forceStopApexDebugLogging,
-  turnOffLogging
+  turnOffLogging,
 } from './forceStopApexDebugLogging';
 export { forceApexLogGet } from './forceApexLogGet';
 export { forceAuthLogoutAll } from './forceAuthLogout';
@@ -60,15 +61,15 @@ export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet } from './forceConfigSet';
 export {
   forceDescribeMetadata,
-  ForceDescribeMetadataExecutor
+  ForceDescribeMetadataExecutor,
 } from './forceDescribeMetadata';
 export {
   forceListMetadata,
-  ForceListMetadataExecutor
+  ForceListMetadataExecutor,
 } from './forceListMetadata';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,
   ForceSourceDiffExecutor,
-  handleDiffResponse
+  handleDiffResponse,
 } from './forceSourceDiff';

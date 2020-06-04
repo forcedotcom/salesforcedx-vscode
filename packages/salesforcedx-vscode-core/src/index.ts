@@ -34,6 +34,7 @@ import {
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
+  forcePackageInstall,
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
@@ -52,7 +53,7 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
-  turnOffLogging
+  turnOffLogging,
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
@@ -64,7 +65,7 @@ import {
   SelectOutputDir,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
@@ -81,7 +82,7 @@ import {
   hasRootWorkspace,
   isCLIInstalled,
   isCLITelemetryAllowed,
-  showCLINotInstalledMessage
+  showCLINotInstalledMessage,
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
@@ -274,6 +275,11 @@ function registerCommands(
     forceSfdxProjectCreate
   );
 
+  const forcePackageInstallCmd = vscode.commands.registerCommand(
+    'sfdx.force.package.install',
+    forcePackageInstall
+  );
+
   const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.with.manifest.create',
     forceProjectWithManifestCreate
@@ -358,6 +364,7 @@ function registerCommands(
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
     forceProjectCreateCmd,
+    forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
@@ -420,14 +427,14 @@ async function setupOrgBrowser(
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.type.refresh',
-    async node => {
+    async (node) => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
 
   vscode.commands.registerCommand(
     'sfdx.force.metadata.view.component.refresh',
-    async node => {
+    async (node) => {
       await orgBrowser.refreshAndExpand(node);
     }
   );
@@ -480,7 +487,7 @@ export async function activate(context: vscode.ExtensionContext) {
       SfdxCommandletExecutor,
       sfdxCoreSettings,
       SfdxWorkspaceChecker,
-      telemetryService
+      telemetryService,
     };
 
     if (!isCLIInstalled()) {
@@ -582,7 +589,7 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxCoreSettings,
     SfdxWorkspaceChecker,
     taskViewService,
-    telemetryService
+    telemetryService,
   };
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
