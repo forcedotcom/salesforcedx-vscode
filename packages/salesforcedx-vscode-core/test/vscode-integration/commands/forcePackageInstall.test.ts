@@ -21,7 +21,6 @@ describe('Force Package Install', () => {
     const EVENT_CANCEL = 'CANCEL';
     const EVENT_CONTINUE = 'CONTINUE';
     const TEST_PACKAGE_ID = 'testPackageID';
-    const TEST_INSTALLATION_KEY = 'testInstallationKey';
     let inputBoxSpy: sinon.SinonStub;
 
     beforeEach(() => {
@@ -62,7 +61,6 @@ describe('Force Package Install', () => {
   describe('SelectInstallationKey Gatherer', () => {
     const EVENT_CANCEL = 'CANCEL';
     const EVENT_CONTINUE = 'CONTINUE';
-    const TEST_PACKAGE_ID = 'testPackageID';
     const TEST_INSTALLATION_KEY = 'testInstallationKey';
     let inputBoxSpy: sinon.SinonStub;
 
@@ -72,6 +70,17 @@ describe('Force Package Install', () => {
 
     afterEach(() => {
       inputBoxSpy.restore();
+    });
+
+    it('Should return Continue with installation key if user input is string', async () => {
+      inputBoxSpy.onCall(0).returns(TEST_INSTALLATION_KEY);
+      const gatherer = new SelectInstallationKey();
+      const response = await gatherer.gather();
+      if (response.type === EVENT_CONTINUE) {
+        expect(response.data.installationKey).to.equal(TEST_INSTALLATION_KEY);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
     });
 
     it('Should return cancel if installation key is undefined', async () => {
