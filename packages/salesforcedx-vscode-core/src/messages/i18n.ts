@@ -529,5 +529,5 @@ export const messages = {
   beta_tapi_queue_status: 'The deploy is still in the Queue',
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error:
-    'Not able to parse current results. Raw result: %s',
+    'Not able to parse current results. Raw result: %s'
 };
