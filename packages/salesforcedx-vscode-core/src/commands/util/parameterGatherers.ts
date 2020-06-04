@@ -192,7 +192,6 @@ export class SelectLwcComponentDir
       const pathToPkg = path.join(getRootWorkspacePath(), packageDir);
       const registry = new RegistryAccess();
       const components = registry.getComponentsFromPath(pathToPkg);
-
       const lwcNames = [];
       for (const component of components) {
         const { fullName, type } = component;
@@ -201,7 +200,6 @@ export class SelectLwcComponentDir
           lwcNames.push(fullName);
         }
       }
-
       const chosenLwcName = await this.showMenu(
         lwcNames,
         'parameter_gatherer_enter_lwc_name'

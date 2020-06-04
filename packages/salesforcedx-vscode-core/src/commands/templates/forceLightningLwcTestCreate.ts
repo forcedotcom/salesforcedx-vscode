@@ -42,7 +42,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   }
 }
 
-const filePathGatherer = new SelectLwcComponentDir(LWC_DIRECTORY, true);
+const filePathGatherer = new SelectLwcComponentDir();
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 export async function forceLightningLwcTestCreate() {
   const commandlet = new SfdxCommandlet(
