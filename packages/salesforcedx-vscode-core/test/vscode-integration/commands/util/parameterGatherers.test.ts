@@ -13,6 +13,7 @@ import {
   RegistryAccess,
   registryData
 } from '@salesforce/source-deploy-retrieve';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import { join } from 'path';
@@ -33,7 +34,6 @@ import {
 import { SelectLwcComponentDir } from '../../../../src/commands/util/parameterGatherers';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';
-import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 
 const SFDX_SIMPLE_NUM_OF_DIRS = 16;
 
