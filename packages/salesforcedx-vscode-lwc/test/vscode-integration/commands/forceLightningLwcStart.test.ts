@@ -227,14 +227,63 @@ describe('forceLightningLwcStart', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
+        devServiceStub.getBaseUrl.returns('http://localhost:3333');
 
         executor.execute({ type: 'CONTINUE', data: {} });
-        fakeExecution.stdoutSubject.next('Server up');
+        fakeExecution.stdoutSubject.next('Server up http://localhost:3333');
 
+        sinon.assert.calledWith(
+          devServiceStub.setBaseUrl,
+          sinon.match('http://localhost:3333')
+        );
         sinon.assert.calledOnce(openBrowserStub);
         sinon.assert.calledWith(
           openBrowserStub,
           sinon.match(DEV_SERVER_BASE_URL)
+        );
+      });
+
+      it('opens the browser at the correct port once server is started', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+        devServiceStub.getBaseUrl.returns('http://localhost:3332');
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.stdoutSubject.next(
+          'Some details here\n Server up on http://localhost:3332 something\n More details here'
+        );
+
+        sinon.assert.calledWith(
+          devServiceStub.setBaseUrl,
+          sinon.match('http://localhost:3332')
+        );
+        sinon.assert.calledOnce(openBrowserStub);
+        sinon.assert.calledWith(
+          openBrowserStub,
+          sinon.match('http://localhost:3332')
+        );
+      });
+
+      it('opens the browser with default url when Server up message contains no url', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+        devServiceStub.getBaseUrl.returns(DEV_SERVER_BASE_URL);
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.stdoutSubject.next(
+          'Some details here\n Server up on -no valid url here- \n More details here'
+        );
+
+        sinon.assert.neverCalledWith(
+          devServiceStub.setBaseUrl,
+          sinon.match('http://localhost:3333')
+        );
+        sinon.assert.calledOnce(openBrowserStub);
+        sinon.assert.calledWith(
+          openBrowserStub,
+          sinon.match('http://localhost:3333')
         );
       });
 
