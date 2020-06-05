@@ -9,7 +9,13 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  RegistryAccess,
+  registryData
+} from '@salesforce/source-deploy-retrieve';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
+import * as path from 'path';
 import { join } from 'path';
 import * as sinon from 'sinon';
 import { window } from 'vscode';
@@ -25,6 +31,7 @@ import {
   SfdxCommandlet,
   SimpleGatherer
 } from '../../../../src/commands/util';
+import { SelectLwcComponentDir } from '../../../../src/commands/util/parameterGatherers';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';
 
@@ -168,12 +175,13 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should return continue if file has been selected', async () => {
-      fileFinderStub.returns(
-        [vscode.Uri.file('/somepath/project-scratch-def.json')]
-      );
-      showQuickPickStub.returns(
-        { label: 'project-scratch-def.json', description: '/somepath/project-scratch-def.json' }
-      );
+      fileFinderStub.returns([
+        vscode.Uri.file('/somepath/project-scratch-def.json')
+      ]);
+      showQuickPickStub.returns({
+        label: 'project-scratch-def.json',
+        description: '/somepath/project-scratch-def.json'
+      });
 
       const response = (await gatherer.gather()) as ContinueResponse<
         FileSelection
@@ -185,9 +193,9 @@ describe('Parameter Gatherers', () => {
     });
 
     it('Should return cancel if no file was selected', async () => {
-      fileFinderStub.returns(
-        [vscode.Uri.file('/somepath/project-scratch-def.json')]
-      );
+      fileFinderStub.returns([
+        vscode.Uri.file('/somepath/project-scratch-def.json')
+      ]);
       showQuickPickStub.returns(undefined);
 
       const response = await gatherer.gather();
@@ -304,6 +312,57 @@ describe('Parameter Gatherers', () => {
       } finally {
         getPackageDirPathsStub.restore();
         showMenuStub.restore();
+      }
+    });
+  });
+  describe('SelectLwcComponentDir', async () => {
+    it('Should gather filepath and Lightning web component options', async () => {
+      const selector = new SelectLwcComponentDir();
+      const packageDirs = ['force-app'];
+      const filePath = path.join(
+        'force-app',
+        'main',
+        'default',
+        'lwc',
+        'propertyMap'
+      );
+      const components: MetadataComponent[] = [
+        {
+          fullName: 'propertyMap',
+          type: registryData.types.lightningcomponentbundle,
+          xml: path.join(filePath, 'propertyMap.js-meta.xml'),
+          sources: []
+        }
+      ];
+      const getPackageDirPathsStub = sinon.stub(
+        SfdxPackageDirectories,
+        'getPackageDirectoryPaths'
+      );
+      const getLwcsStub = sinon.stub(
+        RegistryAccess.prototype,
+        'getComponentsFromPath'
+      );
+      const showMenuStub = sinon.stub(selector, 'showMenu');
+      getPackageDirPathsStub.returns(packageDirs);
+      getLwcsStub
+        .withArgs(path.join(getRootWorkspacePath(), packageDirs[0]))
+        .returns(components);
+      const dirChoice = packageDirs[0];
+      const componentChoice = components[0].fullName;
+      showMenuStub.onFirstCall().returns(dirChoice);
+      showMenuStub.onSecondCall().returns(componentChoice);
+
+      const response = await selector.gather();
+      try {
+        expect(showMenuStub.getCall(0).calledWith(packageDirs)).to.be.true;
+        expect(response).to.eql({
+          type: 'CONTINUE',
+          data: { outputdir: filePath, fileName: componentChoice }
+        });
+      } finally {
+        getPackageDirPathsStub.restore();
+        showMenuStub.restore();
+        getLwcsStub.restore();
       }
     });
   });
