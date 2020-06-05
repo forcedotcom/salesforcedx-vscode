@@ -52,6 +52,8 @@ export const messages = {
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_enter_lwc_name:
+    'Enter desired Lightning Web Component (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
     'Enter an org alias or use the default alias',
@@ -278,6 +280,8 @@ export const messages = {
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
   force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component',
+  force_lightning_lwc_test_create_text:
+    'SFDX: Create Lightning Web Component Test',
   empty_components: 'No components available',
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',

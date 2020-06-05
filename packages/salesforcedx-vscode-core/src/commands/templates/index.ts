@@ -2,6 +2,7 @@ export {
   forceLightningLwcCreate,
   forceInternalLightningLwcCreate
 } from './forceLightningLwcCreate';
+export { forceLightningLwcTestCreate } from './forceLightningLwcTestCreate';
 export {
   forceLightningAppCreate,
   forceInternalLightningAppCreate

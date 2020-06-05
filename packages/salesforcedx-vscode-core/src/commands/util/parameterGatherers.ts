@@ -10,13 +10,17 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  RegistryAccess,
+  registryData
+} from '@salesforce/source-deploy-retrieve';
+import glob = require('glob');
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { SfdxPackageDirectories } from '../../sfdxProject';
 import { getRootWorkspacePath, hasRootWorkspace } from '../../util';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
-import glob = require('glob');
-import { SfdxPackageDirectories } from '../../sfdxProject';
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: Array<ParametersGatherer<any>>;
@@ -161,6 +165,69 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
   }
 }
 
+export class SelectLwcComponentDir
+  implements ParametersGatherer<{ fileName: string; outputdir: string }> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>
+  > {
+    let packageDirs: string[] = [];
+    try {
+      packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    } catch (e) {
+      if (
+        e.name !== 'NoPackageDirectoryPathsFound' &&
+        e.name !== 'NoPackageDirectoriesFound'
+      ) {
+        throw e;
+      }
+    }
+    const packageDir = await this.showMenu(
+      packageDirs,
+      'parameter_gatherer_enter_dir_name'
+    );
+    let outputdir;
+    const namePathMap = new Map();
+    let fileName;
+    if (packageDir) {
+      const pathToPkg = path.join(getRootWorkspacePath(), packageDir);
+      const registry = new RegistryAccess();
+      const components = registry.getComponentsFromPath(pathToPkg);
+      const lwcNames = [];
+      for (const component of components) {
+        const { fullName, type } = component;
+        if (type.name === registryData.types.lightningcomponentbundle.name) {
+          namePathMap.set(fullName, component.xml);
+          lwcNames.push(fullName);
+        }
+      }
+      const chosenLwcName = await this.showMenu(
+        lwcNames,
+        'parameter_gatherer_enter_lwc_name'
+      );
+      const filePathToXml = namePathMap.get(chosenLwcName);
+      fileName = path.basename(filePathToXml, '.js-meta.xml');
+      // Path strategy expects a relative path to the output folder
+      outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
+    }
+
+    return outputdir && fileName
+      ? {
+          type: 'CONTINUE',
+          data: { fileName, outputdir }
+        }
+      : { type: 'CANCEL' };
+  }
+
+  public async showMenu(
+    options: string[],
+    message: string
+  ): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: nls.localize(message)
+    } as vscode.QuickPickOptions);
+  }
+}
+
 export class SelectOutputDir
   implements ParametersGatherer<{ outputdir: string }> {
   private typeDir: string;
@@ -189,6 +256,7 @@ export class SelectOutputDir
         throw e;
       }
     }
+
     let dirOptions = this.getDefaultOptions(packageDirs);
     let outputdir = await this.showMenu(dirOptions);
 

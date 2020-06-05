@@ -37,6 +37,7 @@ export {
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
+  forceLightningLwcTestCreate,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate
 } from './templates';
