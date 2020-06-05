@@ -149,7 +149,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  await selectPlatformAndExecute(fullUrl, startTime, componentName);
+  await selectPlatformAndExecute(startTime, componentName);
 }
 
 /**
