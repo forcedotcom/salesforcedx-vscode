@@ -180,7 +180,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Creates an Aura interface with the specified name in the default directory `force-app/main/default/aura`.
   - Executes the CLI command `force:lightning:interface:create`
 - **SFDX: Create Lightning Web Component Test**
-  - Creates a test for a Lightning web component with the specified filepath
+  - Creates a test for the specified Lightning web component.
   - Executes the CLI command `force:lightning:lwc:test:create`
 
 ### Visualforce
