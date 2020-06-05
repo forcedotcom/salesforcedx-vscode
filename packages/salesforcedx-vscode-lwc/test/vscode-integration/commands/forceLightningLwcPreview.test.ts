@@ -37,9 +37,9 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 )!.exports;
 const { channelService, SfdxCommandlet, notificationService } = sfdxCoreExports;
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
-const rememberDeviceKey = 'rememberDevice';
-const mobileEnabledKey = 'previewOnMobile';
-const logLevelKey = 'logLevel';
+const rememberDeviceKey = 'preview.rememberDevice';
+const mobileEnabledKey = 'preview.enableMobile';
+const logLevelKey = 'preview.logLevel';
 const defaultLogLevel = 'warn';
 const androidSuccessString = 'Launching... Opening Browser';
 

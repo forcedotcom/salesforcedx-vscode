@@ -14,7 +14,7 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import { WorkspaceUtils } from '../util/workspaceUtils';
+import { PreviewService } from '../service/previewService';
 import { DEV_SERVER_PREVIEW_ROUTE } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
@@ -44,7 +44,7 @@ const enum PlatformName {
   ios = 'iOS'
 }
 
-interface PreviewQuickPickItem extends vscode.QuickPickItem {
+export interface PreviewQuickPickItem extends vscode.QuickPickItem {
   label: string;
   detail: string;
   alwaysShow: boolean;
@@ -87,10 +87,6 @@ export const platformOptions: PreviewQuickPickItem[] = [
 const logName = 'force_lightning_lwc_preview';
 const commandName = nls.localize('force_lightning_lwc_preview_text');
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
-const rememberDeviceKey = 'rememberDevice';
-const logLevelKey = 'logLevel';
-const defaultLogLevel = 'warn';
-const previewOnMobileKey = 'previewOnMobile';
 const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
@@ -144,7 +140,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
 
   const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
   // Preform existing desktop behavior if mobile is not enabled.
-  if (!isMobileEnabled()) {
+  if (!PreviewService.instance.isMobileEnabled()) {
     await startServer(true, fullUrl, startTime);
     return;
   }
@@ -225,14 +221,12 @@ async function selectPlatformAndExecute(
   let placeholderText = isAndroid
     ? nls.localize('force_lightning_lwc_android_target_default')
     : nls.localize('force_lightning_lwc_ios_target_default');
-  const rememberDeviceConfigured =
-    WorkspaceUtils.getInstance()
-      .getWorkspaceSettings()
-      .get(rememberDeviceKey) || false;
-  const lastTarget = getRememberedDevice(platformSelection);
+  const lastTarget = PreviewService.instance.getRememberedDevice(
+    platformSelection
+  );
 
   // Remember device setting enabled and previous device retrieved.
-  if (rememberDeviceConfigured && lastTarget) {
+  if (PreviewService.instance.isRememberedDeviceEnabled() && lastTarget) {
     const message = isAndroid
       ? 'force_lightning_lwc_android_target_remembered'
       : 'force_lightning_lwc_ios_target_remembered';
@@ -255,7 +249,10 @@ async function selectPlatformAndExecute(
 
   // New target device entered
   if (targetName !== '') {
-    updateRememberedDevice(platformSelection, targetName);
+    PreviewService.instance.updateRememberedDevice(
+      platformSelection,
+      targetName
+    );
     target = targetName;
   }
 
@@ -268,12 +265,7 @@ async function selectPlatformAndExecute(
     .withFlag('-p', platformSelection.platformName)
     .withFlag('-t', targetUsed)
     .withFlag('-n', componentName)
-    .withFlag(
-      '--loglevel',
-      WorkspaceUtils.getInstance()
-        .getWorkspaceSettings()
-        .get(logLevelKey) || defaultLogLevel
-    )
+    .withFlag('--loglevel', PreviewService.instance.getLogLevel())
     .build();
 
   const mobileExecutor = new CliCommandExecutor(command, {
@@ -321,29 +313,4 @@ async function selectPlatformAndExecute(
       }
     });
   }
-}
-
-function getRememberedDevice(platform: PreviewQuickPickItem): string {
-  const store = WorkspaceUtils.getInstance().getGlobalStore();
-  if (store === undefined) {
-    return '';
-  }
-
-  return store.get(`last${platform.platformName}Device`) || '';
-}
-
-function updateRememberedDevice(
-  platform: PreviewQuickPickItem,
-  deviceName: string
-) {
-  const store = WorkspaceUtils.getInstance().getGlobalStore();
-  if (store !== undefined) {
-    store.update(`last${platform.platformName}Device`, deviceName);
-  }
-}
-
-function isMobileEnabled(): boolean {
-  return WorkspaceUtils.getInstance()
-    .getWorkspaceSettings()
-    .get(previewOnMobileKey, false);
 }
