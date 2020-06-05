@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { DEV_SERVER_BASE_URL } from '../commands/commandConstants';
 export interface ServerHandler {
   stop(): Promise<void>;
 }
@@ -20,6 +20,7 @@ export class DevServerService {
   }
 
   private handlers: Set<ServerHandler> = new Set();
+  private baseUrl: string = DEV_SERVER_BASE_URL;
 
   public isServerHandlerRegistered() {
     return this.handlers.size > 0;
@@ -48,5 +49,13 @@ export class DevServerService {
     } else {
       console.log('lwc dev server was not running');
     }
+  }
+
+  public getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
+  public setBaseUrl(url: string) {
+    this.baseUrl = url;
   }
 }

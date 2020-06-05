@@ -72,10 +72,9 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
-
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {
+      const fullUrl = `${DevServerService.instance.getBaseUrl()}/${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
@@ -87,7 +86,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     const parameterGatherer = new EmptyParametersGatherer();
     const executor = new ForceLightningLwcStartExecutor({
       openBrowser: true,
-      fullUrl
+      componentName
     });
 
     const commandlet = new SfdxCommandlet(

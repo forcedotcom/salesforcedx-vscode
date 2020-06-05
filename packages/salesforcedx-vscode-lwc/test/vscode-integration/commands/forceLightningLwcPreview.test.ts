@@ -11,7 +11,10 @@ import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
-import { DEV_SERVER_PREVIEW_ROUTE } from '../../../src/commands/commandConstants';
+import {
+  DEV_SERVER_PREVIEW_ROUTE,
+  DEV_SERVER_BASE_URL
+} from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import { forceLightningLwcPreview } from '../../../src/commands/forceLightningLwcPreview';
 import { nls } from '../../../src/messages';
@@ -95,6 +98,7 @@ describe('forceLightningLwcPreview', () => {
 
   it('calls openBrowser with the correct url for files', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_BASE_URL);
     const sourceUri = URI.file(mockLwcFilePath);
     mockFileExists(mockLwcFilePath);
 
@@ -109,7 +113,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match(`${DEV_SERVER_BASE_URL}/${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
     );
   });
 
