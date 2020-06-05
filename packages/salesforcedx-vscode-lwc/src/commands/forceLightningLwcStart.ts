@@ -15,7 +15,10 @@ import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService, ServerHandler } from '../service/devServerService';
-import { DEV_SERVER_BASE_URL } from './commandConstants';
+import {
+  DEV_SERVER_PREVIEW_ROUTE,
+  SERVER_INFO_REGEX
+} from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -49,7 +52,7 @@ export interface ForceLightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
   /** complete url of the page to open in the browser */
-  fullUrl?: string;
+  componentName?: string;
 }
 
 export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
@@ -117,13 +120,20 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         progress.complete();
         taskViewService.removeTask(task);
         notificationService.showSuccessfulExecution(executionName);
-        const urlFromResponse = data!
-          .toString()!
-          .match('(https?://localhost):(d*)/?(.*)')![0];
+
+        if (data!.toString()!.match(SERVER_INFO_REGEX)) {
+          DevServerService.instance.setBaseUrl(
+            data!.toString()!.match(SERVER_INFO_REGEX)![0]
+          );
+        }
 
         if (this.options.openBrowser) {
           await openBrowser(
-            urlFromResponse || this.options.fullUrl || DEV_SERVER_BASE_URL
+            this.options.componentName
+              ? `${DevServerService.instance.getBaseUrl()}/${DEV_SERVER_PREVIEW_ROUTE}/${
+                  this.options.componentName
+                }`
+              : DevServerService.instance.getBaseUrl()
           );
         }
 
@@ -228,7 +238,7 @@ export async function forceLightningLwcStart() {
       restartOption
     );
     if (response === openBrowserOption) {
-      await openBrowser(DEV_SERVER_BASE_URL);
+      await openBrowser(DevServerService.instance.getBaseUrl());
       return;
     } else if (response === restartOption) {
       channelService.appendLine(

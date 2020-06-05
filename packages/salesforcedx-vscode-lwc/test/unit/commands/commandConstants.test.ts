@@ -10,10 +10,4 @@ describe('force:lightning:lwc:start constants', () => {
       expect(DEV_SERVER_BASE_URL).to.include('localhost');
     });
   });
-
-  describe('preview route', () => {
-    it('should include the base url', async () => {
-      expect(DEV_SERVER_PREVIEW_ROUTE).to.include(DEV_SERVER_BASE_URL);
-    });
-  });
 });

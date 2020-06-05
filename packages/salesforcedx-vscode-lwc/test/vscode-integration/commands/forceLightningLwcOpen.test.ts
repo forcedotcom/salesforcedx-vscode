@@ -31,6 +31,7 @@ describe('forceLightningLwcOpen', () => {
 
   it('calls openBrowser when a server is already running', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_BASE_URL);
 
     await forceLightningLwcOpen();
 
