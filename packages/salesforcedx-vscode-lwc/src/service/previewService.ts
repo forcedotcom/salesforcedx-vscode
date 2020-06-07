@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { PreviewQuickPickItem } from '../commands/forceLightningLwcPreview';
+import { PlatformName } from '../commands/forceLightningLwcPreview';
 import { WorkspaceUtils } from '../util/workspaceUtils';
 
 export class PreviewService {
@@ -22,44 +22,41 @@ export class PreviewService {
     return PreviewService._instance;
   }
 
-  public getRememberedDevice(platform: PreviewQuickPickItem): string {
-    const store = WorkspaceUtils.getInstance().getGlobalStore();
+  public getRememberedDevice(platform: keyof typeof PlatformName): string {
+    const store = WorkspaceUtils.instance.getGlobalStore();
     if (store === undefined) {
       return '';
     }
 
-    return store.get(`last${platform.platformName}Device`) || '';
+    return store.get(`last${platform}Device`) || '';
   }
 
   public updateRememberedDevice(
-    platform: PreviewQuickPickItem,
+    platform: keyof typeof PlatformName,
     deviceName: string
-  ) {
-    const store = WorkspaceUtils.getInstance().getGlobalStore();
+  ): void {
+    const store = WorkspaceUtils.instance.getGlobalStore();
     if (store !== undefined) {
-      store.update(`last${platform.platformName}Device`, deviceName);
+      store.update(`last${platform}Device`, deviceName);
     }
   }
 
   public isMobileEnabled(): boolean {
-    return WorkspaceUtils.getInstance()
+    return WorkspaceUtils.instance
       .getWorkspaceSettings()
       .get(this.previewOnMobileKey, false);
   }
 
   public isRememberedDeviceEnabled(): boolean {
-    return (
-      WorkspaceUtils.getInstance()
-        .getWorkspaceSettings()
-        .get(this.rememberDeviceKey) || false
-    );
+    return WorkspaceUtils.instance
+      .getWorkspaceSettings()
+      .get(this.rememberDeviceKey, false);
   }
 
   public getLogLevel(): string {
     return (
-      WorkspaceUtils.getInstance()
-        .getWorkspaceSettings()
-        .get(this.logLevelKey) || this.defaultLogLevel
+      WorkspaceUtils.instance.getWorkspaceSettings().get(this.logLevelKey) ||
+      this.defaultLogLevel
     );
   }
 }

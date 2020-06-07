@@ -38,20 +38,20 @@ enum PreviewPlatformType {
   iOS
 }
 
-const enum PlatformName {
-  desktop = 'Desktop',
-  android = 'Android',
-  ios = 'iOS'
+export const enum PlatformName {
+  Desktop = 'Desktop',
+  Android = 'Android',
+  iOS = 'iOS'
 }
 
-export interface PreviewQuickPickItem extends vscode.QuickPickItem {
+interface PreviewQuickPickItem extends vscode.QuickPickItem {
   label: string;
   detail: string;
   alwaysShow: boolean;
   picked: boolean;
   id: PreviewPlatformType;
   defaultTargetName: string;
-  platformName: string;
+  platformName: keyof typeof PlatformName;
 }
 
 export const platformOptions: PreviewQuickPickItem[] = [
@@ -61,7 +61,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: true,
     id: PreviewPlatformType.Desktop,
-    platformName: PlatformName.desktop,
+    platformName: PlatformName.Desktop,
     defaultTargetName: ''
   },
   {
@@ -70,7 +70,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.Android,
-    platformName: PlatformName.android,
+    platformName: PlatformName.Android,
     defaultTargetName: 'SFDXEmulator'
   },
   {
@@ -79,7 +79,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.iOS,
-    platformName: PlatformName.ios,
+    platformName: PlatformName.iOS,
     defaultTargetName: 'SFDXSimulator'
   }
 ];
@@ -222,7 +222,7 @@ async function selectPlatformAndExecute(
     ? nls.localize('force_lightning_lwc_android_target_default')
     : nls.localize('force_lightning_lwc_ios_target_default');
   const lastTarget = PreviewService.instance.getRememberedDevice(
-    platformSelection
+    platformSelection.platformName
   );
 
   // Remember device setting enabled and previous device retrieved.
@@ -250,7 +250,7 @@ async function selectPlatformAndExecute(
   // New target device entered
   if (targetName !== '') {
     PreviewService.instance.updateRememberedDevice(
-      platformSelection,
+      platformSelection.platformName,
       targetName
     );
     target = targetName;

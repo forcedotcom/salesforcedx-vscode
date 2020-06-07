@@ -26,6 +26,7 @@ import { DEV_SERVER_PREVIEW_ROUTE } from '../../../src/commands/commandConstants
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   forceLightningLwcPreview,
+  PlatformName,
   platformOptions
 } from '../../../src/commands/forceLightningLwcPreview';
 import { nls } from '../../../src/messages';
@@ -105,9 +106,9 @@ describe('forceLightningLwcPreview', () => {
   class MockMemento implements vscode.Memento {
     public get<T>(key: string): T | undefined {
       switch (key) {
-        case 'lastAndroidDevice':
+        case `last${PlatformName.Android}Device`:
           return (rememberedAndroidDevice as unknown) as T;
-        case 'lastiOSDevice':
+        case `last${PlatformName.iOS}Device`:
           return (rememberediOSDevice as unknown) as T;
         default:
           return undefined;
@@ -517,7 +518,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithFlagSpy.callCount).to.equal(4);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -558,7 +559,10 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(1);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(4);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       'SFDXSimulator'
@@ -666,7 +670,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithFlagSpy.callCount).to.equal(4);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -705,7 +709,10 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(1);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(4);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       'SFDXSimulator'
@@ -794,7 +801,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -829,7 +836,10 @@ describe('forceLightningLwcPreview', () => {
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       deviceName
@@ -864,7 +874,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -901,7 +911,10 @@ describe('forceLightningLwcPreview', () => {
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       rememberediOSDevice
@@ -1102,7 +1115,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithFlagSpy.callCount).to.equal(4);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
