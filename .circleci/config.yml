@@ -285,6 +285,9 @@ jobs:
       - run: *gh-config
       - run: *install
       - run:
+          name: Install Lerna
+          command: sudo npm install -g lerna@3.13.1
+      - run:
           name: Create release branch
           command: |
             git branch
@@ -327,7 +330,7 @@ workflows:
   cut-release:
     triggers:
       - schedule:
-          cron: '0 19 * * 1'
+          cron: '0 2 * * 2'
           filters:
             branches:
               only:
