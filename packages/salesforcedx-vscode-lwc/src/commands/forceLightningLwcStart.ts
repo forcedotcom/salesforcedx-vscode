@@ -15,10 +15,6 @@ import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService, ServerHandler } from '../service/devServerService';
-import {
-  DEV_SERVER_PREVIEW_ROUTE,
-  SERVER_INFO_REGEX
-} from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -51,7 +47,7 @@ export const enum errorHints {
 export interface ForceLightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
-  /** complete url of the page to open in the browser */
+  /** component name to preview in the browser */
   componentName?: string;
 }
 
@@ -121,18 +117,16 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         taskViewService.removeTask(task);
         notificationService.showSuccessfulExecution(executionName);
 
-        if (data!.toString()!.match(SERVER_INFO_REGEX)) {
-          DevServerService.instance.setBaseUrl(
-            data!.toString()!.match(SERVER_INFO_REGEX)![0]
-          );
-        }
+        DevServerService.instance.setBaseUrlFromDevServerUpMessage(
+          data.toString()
+        );
 
         if (this.options.openBrowser) {
           await openBrowser(
             this.options.componentName
-              ? `${DevServerService.instance.getBaseUrl()}/${DEV_SERVER_PREVIEW_ROUTE}/${
+              ? DevServerService.instance.getComponentPreviewUrl(
                   this.options.componentName
-                }`
+                )
               : DevServerService.instance.getBaseUrl()
           );
         }

@@ -15,7 +15,6 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { WorkspaceUtils } from '../util/workspaceUtils';
-import { DEV_SERVER_PREVIEW_ROUTE } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
@@ -142,8 +141,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
-  // Preform existing desktop behavior if mobile is not enabled.
+  // Perform existing desktop behavior if mobile is not enabled.
   if (!isMobileEnabled()) {
     await startServer(true, componentName, startTime);
     return;
@@ -156,7 +154,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
  * Starts the lwc server if it is not already running.
  *
  * @param isDesktop if desktop browser is selected
- * @param fullUrl lwc url
+ * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
 async function startServer(
@@ -183,7 +181,9 @@ async function startServer(
     telemetryService.sendCommandEvent(logName, startTime);
   } else if (isDesktop) {
     try {
-      const fullUrl = `${DevServerService.instance.getBaseUrl()}/${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
+      const fullUrl = DevServerService.instance.getComponentPreviewUrl(
+        componentName
+      );
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {

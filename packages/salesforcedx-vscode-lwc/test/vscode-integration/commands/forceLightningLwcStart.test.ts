@@ -15,7 +15,7 @@ import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { DEV_SERVER_BASE_URL } from '../../../src/commands/commandConstants';
+import { DEV_SERVER_DEFAULT_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   errorHints,
@@ -233,13 +233,13 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.stdoutSubject.next('Server up http://localhost:3333');
 
         sinon.assert.calledWith(
-          devServiceStub.setBaseUrl,
-          sinon.match('http://localhost:3333')
+          devServiceStub.setBaseUrlFromDevServerUpMessage,
+          sinon.match('Server up http://localhost:3333')
         );
         sinon.assert.calledOnce(openBrowserStub);
         sinon.assert.calledWith(
           openBrowserStub,
-          sinon.match(DEV_SERVER_BASE_URL)
+          sinon.match(DEV_SERVER_DEFAULT_BASE_URL)
         );
       });
 
@@ -255,8 +255,10 @@ describe('forceLightningLwcStart', () => {
         );
 
         sinon.assert.calledWith(
-          devServiceStub.setBaseUrl,
-          sinon.match('http://localhost:3332')
+          devServiceStub.setBaseUrlFromDevServerUpMessage,
+          sinon.match(
+            'Some details here\n Server up on http://localhost:3332 something\n More details here'
+          )
         );
         sinon.assert.calledOnce(openBrowserStub);
         sinon.assert.calledWith(
@@ -269,7 +271,7 @@ describe('forceLightningLwcStart', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
-        devServiceStub.getBaseUrl.returns(DEV_SERVER_BASE_URL);
+        devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
 
         executor.execute({ type: 'CONTINUE', data: {} });
         fakeExecution.stdoutSubject.next(
