@@ -234,7 +234,7 @@ describe('forceLightningLwcStart', () => {
 
         sinon.assert.calledWith(
           devServiceStub.setBaseUrlFromDevServerUpMessage,
-          sinon.match('Server up http://localhost:3333')
+          sinon.match('Server up on http://localhost:3333')
         );
         sinon.assert.calledOnce(openBrowserStub);
         sinon.assert.calledWith(
