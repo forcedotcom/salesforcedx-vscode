@@ -8,7 +8,6 @@
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import { DEV_SERVER_BASE_URL } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -24,7 +23,7 @@ export async function forceLightningLwcOpen() {
 
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {
-      await openBrowser(DEV_SERVER_BASE_URL);
+      await openBrowser(DevServerService.instance.getBaseUrl());
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
       showError(e, logName, commandName);
