@@ -123,7 +123,7 @@ export async function activate(context: ExtensionContext) {
   }
 
   // Initialize utils for user settings
-  WorkspaceUtils.getInstance().init(context);
+  WorkspaceUtils.instance.init(context);
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();

@@ -9,15 +9,13 @@ import { workspace } from 'vscode';
 
 export class WorkspaceUtils {
   private context: vscode.ExtensionContext | undefined;
-  private static instance: WorkspaceUtils;
+  private static _instance: WorkspaceUtils;
 
-  private constructor() {}
-
-  public static getInstance(): WorkspaceUtils {
-    if (!this.instance) {
-      this.instance = new WorkspaceUtils();
+  public static get instance() {
+    if (WorkspaceUtils._instance === undefined) {
+      WorkspaceUtils._instance = new WorkspaceUtils();
     }
-    return this.instance;
+    return WorkspaceUtils._instance;
   }
 
   public init(extensionContext: vscode.ExtensionContext) {
