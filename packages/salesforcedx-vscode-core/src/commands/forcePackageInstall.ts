@@ -10,6 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { isRecordId } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse,
@@ -28,6 +29,7 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor
 } from './util';
+import { PKG_ID_PREFIX } from '../constants';
 
 type forcePackageInstallOptions = {
   packageId: string;
@@ -91,19 +93,17 @@ export interface InstallationKey {
 }
 
 export class SelectPackageID implements ParametersGatherer<PackageID> {
-  private readonly prefillValueProvider?: () => string;
-
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
-  }
-
   public async gather(): Promise<CancelResponse | ContinueResponse<PackageID>> {
     const packageIdInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_package_id')
+      prompt: nls.localize('parameter_gatherer_enter_package_id'),
+      placeHolder: nls.localize('package_id_gatherer_placeholder'),
+      validateInput: value => {
+        return isRecordId(value, PKG_ID_PREFIX) || value === ''
+          ? null
+          : nls.localize('package_id_validation_error');
+      }
     } as vscode.InputBoxOptions;
-    if (this.prefillValueProvider) {
-      packageIdInputOptions.value = this.prefillValueProvider();
-    }
+
     const packageId = await vscode.window.showInputBox(packageIdInputOptions);
     return packageId
       ? { type: 'CONTINUE', data: { packageId } }
