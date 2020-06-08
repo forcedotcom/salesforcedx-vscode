@@ -230,7 +230,7 @@ describe('forceLightningLwcStart', () => {
         devServiceStub.getBaseUrl.returns('http://localhost:3333');
 
         executor.execute({ type: 'CONTINUE', data: {} });
-        fakeExecution.stdoutSubject.next('Server up http://localhost:3333');
+        fakeExecution.stdoutSubject.next('Server up on http://localhost:3333');
 
         sinon.assert.calledWith(
           devServiceStub.setBaseUrlFromDevServerUpMessage,
