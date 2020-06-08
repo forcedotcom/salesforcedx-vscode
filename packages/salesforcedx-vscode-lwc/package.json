@@ -349,12 +349,12 @@
       "type": "object",
       "title": "%force_lightning_lwc_preferences%",
       "properties": {
-        "salesforcedx-vscode-lwc.rememberDevice": {
+        "salesforcedx-vscode-lwc.preview.rememberDevice": {
           "type": "boolean",
           "default": true,
           "description": "%force_lightning_lwc_remember_device_description%"
         },
-        "salesforcedx-vscode-lwc.logLevel": {
+        "salesforcedx-vscode-lwc.preview.logLevel": {
           "type": "string",
           "description": "%force_lightning_lwc_mobile_log_level%",
           "enum": [
@@ -367,7 +367,7 @@
           ],
           "default": "warn"
         },
-        "salesforcedx-vscode-lwc.previewOnMobile": {
+        "salesforcedx-vscode-lwc.preview.enableMobilePreviews": {
           "type": "boolean",
           "default": false,
           "description": "%force_lightning_lwc_enable_mobile%"
