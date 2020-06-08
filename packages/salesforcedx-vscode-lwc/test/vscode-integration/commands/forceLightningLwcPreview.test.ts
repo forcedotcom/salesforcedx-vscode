@@ -22,7 +22,10 @@ import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
-import { DEV_SERVER_PREVIEW_ROUTE } from '../../../src/commands/commandConstants';
+import {
+  DEV_SERVER_PREVIEW_ROUTE,
+  DEV_SERVER_DEFAULT_BASE_URL
+} from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   forceLightningLwcPreview,
@@ -289,6 +292,11 @@ describe('forceLightningLwcPreview', () => {
   it('calls openBrowser with the correct url for files', async () => {
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    const sourceUri = URI.file(mockLwcFilePath);
     mockFileExists(mockLwcFilePath);
 
     existsSyncStub.returns(true);
@@ -300,16 +308,25 @@ describe('forceLightningLwcPreview', () => {
 
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match(
+        `${DEV_SERVER_DEFAULT_BASE_URL}/${DEV_SERVER_PREVIEW_ROUTE}/c/foo`
+      )
     );
   });
 
   it('calls openBrowser with the correct url for directories', async () => {
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
     mockFileExists(mockLwcFileDirectory);
 
     existsSyncStub.returns(true);
@@ -321,10 +338,14 @@ describe('forceLightningLwcPreview', () => {
 
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match(`http://localhost:3333/preview/c/foo`)
     );
   });
 
@@ -440,6 +461,9 @@ describe('forceLightningLwcPreview', () => {
 
   it('calls openBrowser from quick pick with the correct url for files', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
     getConfigurationStub.returns(new MockWorkspace(true, false));
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -450,15 +474,22 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(desktopQuickPick);
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match('http://localhost:3333/preview/c/foo')
     );
   });
 
   it('calls openBrowser from quick pick with the correct url for directories', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
     getConfigurationStub.returns(new MockWorkspace(true, false));
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -469,10 +500,14 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(desktopQuickPick);
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match('http://localhost:3333/preview/c/foo')
     );
   });
 

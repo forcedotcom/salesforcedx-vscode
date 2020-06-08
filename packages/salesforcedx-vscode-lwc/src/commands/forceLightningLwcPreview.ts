@@ -15,7 +15,6 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { PreviewService } from '../service/previewService';
-import { DEV_SERVER_PREVIEW_ROUTE } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
@@ -138,26 +137,25 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
   // Preform existing desktop behavior if mobile is not enabled.
   if (!PreviewService.instance.isMobileEnabled()) {
-    await startServer(true, fullUrl, startTime);
+    await startServer(true, componentName, startTime);
     return;
   }
 
-  await selectPlatformAndExecute(fullUrl, startTime, componentName);
+  await selectPlatformAndExecute(startTime, componentName);
 }
 
 /**
  * Starts the lwc server if it is not already running.
  *
  * @param isDesktop if desktop browser is selected
- * @param fullUrl lwc url
+ * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
 async function startServer(
   isDesktop: boolean,
-  fullUrl: string,
+  componentName: string,
   startTime: [number, number]
 ) {
   if (!DevServerService.instance.isServerHandlerRegistered()) {
@@ -166,7 +164,7 @@ async function startServer(
     const parameterGatherer = new EmptyParametersGatherer();
     const executor = new ForceLightningLwcStartExecutor({
       openBrowser: isDesktop,
-      fullUrl
+      componentName
     });
 
     const commandlet = new SfdxCommandlet(
@@ -179,6 +177,9 @@ async function startServer(
     telemetryService.sendCommandEvent(logName, startTime);
   } else if (isDesktop) {
     try {
+      const fullUrl = DevServerService.instance.getComponentPreviewUrl(
+        componentName
+      );
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
@@ -191,12 +192,10 @@ async function startServer(
  * Prompts the user to select a platform to preview the LWC on. Android and iOS
  * are handled by the @salesforce/lwc-dev-mobile sfdx package.
  *
- * @param fullUrl lwc url
  * @param startTime start time of the preview command
  * @param componentName name of the lwc
  */
 async function selectPlatformAndExecute(
-  fullUrl: string,
   startTime: [number, number],
   componentName: string
 ) {
@@ -212,7 +211,7 @@ async function selectPlatformAndExecute(
 
   const isDesktop = platformSelection.id === PreviewPlatformType.Desktop;
   if (isDesktop) {
-    await startServer(true, fullUrl, startTime);
+    await startServer(true, componentName, startTime);
     return;
   }
 
@@ -245,7 +244,7 @@ async function selectPlatformAndExecute(
     );
     return;
   }
-  await startServer(false, fullUrl, startTime);
+  await startServer(false, componentName, startTime);
 
   // New target device entered
   if (targetName !== '') {
