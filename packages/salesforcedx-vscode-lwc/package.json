@@ -367,7 +367,7 @@
           ],
           "default": "warn"
         },
-        "salesforcedx-vscode-lwc.preview.enableMobile": {
+        "salesforcedx-vscode-lwc.preview.enableMobilePreviews": {
           "type": "boolean",
           "default": false,
           "description": "%force_lightning_lwc_enable_mobile%"

@@ -11,7 +11,7 @@ export class PreviewService {
   private rememberDeviceKey = 'preview.rememberDevice';
   private logLevelKey = 'preview.logLevel';
   private defaultLogLevel = 'warn';
-  private previewOnMobileKey = 'preview.enableMobile';
+  private previewOnMobileKey = 'preview.enableMobilePreviews';
 
   private static _instance: PreviewService;
 
