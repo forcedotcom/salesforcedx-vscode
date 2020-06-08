@@ -15,7 +15,7 @@ import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { DEV_SERVER_BASE_URL } from '../../../src/commands/commandConstants';
+import { DEV_SERVER_DEFAULT_BASE_URL } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   errorHints,
@@ -227,14 +227,65 @@ describe('forceLightningLwcStart', () => {
         const executor = new ForceLightningLwcStartExecutor();
         const fakeExecution = new FakeExecution(executor.build());
         cliCommandExecutorStub.returns(fakeExecution);
+        devServiceStub.getBaseUrl.returns('http://localhost:3333');
 
         executor.execute({ type: 'CONTINUE', data: {} });
-        fakeExecution.stdoutSubject.next('Server up');
+        fakeExecution.stdoutSubject.next('Server up on http://localhost:3333');
 
+        sinon.assert.calledWith(
+          devServiceStub.setBaseUrlFromDevServerUpMessage,
+          sinon.match('Server up on http://localhost:3333')
+        );
         sinon.assert.calledOnce(openBrowserStub);
         sinon.assert.calledWith(
           openBrowserStub,
-          sinon.match(DEV_SERVER_BASE_URL)
+          sinon.match(DEV_SERVER_DEFAULT_BASE_URL)
+        );
+      });
+
+      it('opens the browser at the correct port once server is started', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+        devServiceStub.getBaseUrl.returns('http://localhost:3332');
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.stdoutSubject.next(
+          'Some details here\n Server up on http://localhost:3332 something\n More details here'
+        );
+
+        sinon.assert.calledWith(
+          devServiceStub.setBaseUrlFromDevServerUpMessage,
+          sinon.match(
+            'Some details here\n Server up on http://localhost:3332 something\n More details here'
+          )
+        );
+        sinon.assert.calledOnce(openBrowserStub);
+        sinon.assert.calledWith(
+          openBrowserStub,
+          sinon.match('http://localhost:3332')
+        );
+      });
+
+      it('opens the browser with default url when Server up message contains no url', () => {
+        const executor = new ForceLightningLwcStartExecutor();
+        const fakeExecution = new FakeExecution(executor.build());
+        cliCommandExecutorStub.returns(fakeExecution);
+        devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+
+        executor.execute({ type: 'CONTINUE', data: {} });
+        fakeExecution.stdoutSubject.next(
+          'Some details here\n Server up on -no valid url here- \n More details here'
+        );
+
+        sinon.assert.neverCalledWith(
+          devServiceStub.setBaseUrl,
+          sinon.match('http://localhost:3333')
+        );
+        sinon.assert.calledOnce(openBrowserStub);
+        sinon.assert.calledWith(
+          openBrowserStub,
+          sinon.match('http://localhost:3333')
         );
       });
 
