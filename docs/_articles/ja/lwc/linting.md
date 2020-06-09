@@ -1,81 +1,81 @@
 ---
-title: Linting 
+title: リンティング
 lang: ja
 ---
 
-Linting provides errors about malformed code while you edit. VS Code enforces Salesforce’s ESLint rules.
+リンティングは、不正な形式コードに関するエラーを編集中に提供します。VS Code は Salesforce の ESLint ルールを適用します。
 
-## Prerequisites
+## 前提条件
 
-[The active LTS release](https://nodejs.org/en/about/releases/) of Node.js built with SSL support.
+SSL のサポートを含めてビルドされた Node.js の [Active LTS リリース](https://nodejs.org/en/about/releases/)がインストールされていること。
 
-## Installation
+## インストール
 
-### For a New Project
+### 新しいプロジェクト
 
-If you create an SFDX project using the `sfdx force:project:create` command, your project contains a `package.json` file with the ESLint plugin already included.
+SFDX プロジェクトを、`sfdx force:project:create (SFDX: プロジェクトを作成)` コマンドで作成した場合、そのプロジェクトに含まれる `package.json` ファイルにはすでに ESLint のプラグインが含まれています。
 
-1. To install the ESLint plugin and other dependencies, run `npm install` in your project directory.
+1. ESLint プラグインと他の依存関係をインストールするには、プロジェクトのディレクトリで `npm install` を実行します。
 
-2. Configure the [ESLint plugin rules](./en/lwc/linting#configure-linting-rules) (optional).
+2. [ESLint プラグインのルール](./en/lwc/linting#configure-linting-rules)を設定します。(任意)
 
-3. To run linting, you must have components in your project. To start linting, run `npm run lint:lwc`.
+3. リンティングを実行するには、プロジェクトにコンポーネントが必要です。リンティングを開始するには、 `npm run lint:lwc` を実行します。
 
-### For an Existing Project
+### 既存のプロジェクト
 
-1. Verify that your project has a `package.json` with these configurations. If your `package.json` doesn't have the configurations, run `npm install eslint @salesforce/eslint-config-lwc --save-dev`.  
+1. プロジェクトに以下の構成の `package.json` があることを確認します。 `package.json` に設定がない場合は、`npm install eslint @salesforce/eslint-config-lwc --save-dev` を実行します。
 
-    ```json
-    "scripts": {
-        "lint": "npm run lint:lwc",
-        "lint:lwc": "eslint force-app/main/default/lwc"
-    }
+   ```json
+   "scripts": {
+       "lint": "npm run lint:lwc",
+       "lint:lwc": "eslint force-app/main/default/lwc"
+   }
 
-    "devDependencies" {
-        "@salesforce/eslint-config-lwc": "0.4.0",
-        "eslint": "^5.16.0"
-    }
-    ```
+   "devDependencies" {
+       "@salesforce/eslint-config-lwc": "0.4.0",
+       "eslint": "^5.16.0"
+   }
+   ```
 
-2. If your project doesn't have the [`package.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) file, copy it and add it to your project directory.
+2. プロジェクトに [`package.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/package.json) ファイルがない場合は、リンク先のファイルをコピーして、プロジェクトディレクトリに追加します。
 
-3. Verify that your project has this [`.eslintignore`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintignore) file. This file specifies which files not to lint. If your project doesn't have it, add it to your project directory.
+3. プロジェクトにこの [`.eslintignore`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintignore) ファイルがあることを確認してください。このファイルは、リントしないファイルを指定します。プロジェクトにこのファイルがない場合は、プロジェクトディレクトリに追加してください。
 
-4. Verify that your project has this [`.eslintrc.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintrc.json) file. This file specifies your [linting configuration level](./en/lwc/linting#configure-linting-rules). If your project doesn't have it, add it to your project directory.
+4. プロジェクトにこの [`.eslintrc.json`](https://github.com/forcedotcom/salesforcedx-templates/blob/master/src/templates/project/.eslintrc.json) ファイルがあることを確認してください。このファイルは、[リンティング設定レベル](./ja/lwc/linting#リンティングルールの設定)を指定します。プロジェクトにこのファイルがない場合は、プロジェクトディレクトリに追加してください。
 
-5. To install the ESLint plugin and other dependencies, run `npm install` on your project directory.
+5. ESLint プラグインと他の依存関係をインストールするには、プロジェクトディレクトリで `npm install` を実行します。
 
-6. To run linting, you must have components in your project. To start linting, run `npm run lint:lwc`.
+6. リンティングを実行するには、プロジェクトにコンポーネントが必要です。リンティングを開始するには、`npm run lint:lwc` を実行してください。
 
-## Configure Linting Rules
+## リンティングルールの設定
 
-ESLint includes three configuration levels. The default level is `@salesforce/eslint-config-lwc/recommended`.
+ESLint には 3 つの設定レベルが含まれます。デフォルトのレベルは `@salesforce/eslint-config-lwc/recommended` です。
 
-To change the configuration level, edit this line in the  `.eslintrc.json`
+設定レベルを変更するには、`.eslintrc.json` のこの行を編集します。
 
 ```json
 {
- "extends": ["@salesforce/eslint-config-lwc/recommended"]
+  "extends": ["@salesforce/eslint-config-lwc/recommended"]
 }
 ```
 
 - `@salesforce/eslint-config-lwc/base`
-This configuration prevents common pitfalls with Lightning Web Components and enforces other Salesforce platform restrictions.
+  この設定により、Lightning Web コンポーネントでよくある落とし穴を防ぎ、その他の Salesforce プラットフォームの制限を適用することができます。
 
 - `@salesforce/eslint-config-lwc/recommended`
-This configuration prevents common Javascript pitfalls and enforces all best practices.
+  この設定により、JavaScript でよくある落とし穴を防ぎ、すべてのベストプラクティスに従うことができます。
 
 - `@salesforce/eslint-config-lwc/extended`
-This configuration restricts the use of some Javascript language features that are sometimes slow in older browsers, such as IE11. To support new Javascript syntax and language features on an older browser, the Lightning Web Components compiler transforms the Lightning Web Components modules.
+  この設定により、IE 11 などの古いブラウザでは動作が遅くなることがある一部の JavaScript 言語機能の使用が制限されます。古いブラウザで新しい JavaScript 構文と言語機能をサポートするために、Lightning Web コンポーネントのコンパイラは、Lightning Web コンポーネントモジュールを変換します。
 
-For more details on the linting rules and using them individually, see the [ESLint Plugin](https://github.com/salesforce/eslint-plugin-lwc) Github repository.
+リンティングルールの詳細や個別の使用方法については、[ESLint プラグイン](https://github.com/salesforce/eslint-plugin-lwc)の Github リポジトリを参照してください。
 
-## Add Additional Scripts
+## スクリプトの追加
 
-The `"scripts"` section of `package.json` includes some scripts already pre-configured to run ESLint. To add your own, see the [npm documentation](https://docs.npmjs.com/misc/scripts).
+`package.json` の `"scripts"` セクションには、ESLint を実行するためのスクリプトがあらかじめ設定されています。独自のスクリプトを追加するには、[npm のドキュメント](https://docs.npmjs.com/misc/scripts)を参照してください。
 
-## See Also
+## 参考
 
-- For more information about configuring ESLint, see the [ESLint User Guide](https://eslint.org/docs/user-guide/configuring).
+- ESLint の設定に関する詳しい情報については、 [ESLint User Guide](https://eslint.org/docs/user-guide/configuring) を参照してください。
 - [github.com/salesforce/eslint-plugin-lwc](https://github.com/salesforce/eslint-plugin-lwc)
 - [github.com/salesforce/eslint-config-lwc](https://github.com/salesforce/eslint-config-lwc)

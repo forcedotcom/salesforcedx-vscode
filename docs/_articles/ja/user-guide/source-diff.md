@@ -1,32 +1,32 @@
 ---
-title: Source Diff
+title: ソースの差分
 lang: ja
 ---
 
-The Source Diff command allows you to diff metadata types against your default org. This feature makes it easier to visualize the changes between your local project and the metadata in your org.
+ソースの差分コマンドを使用すると、デフォルトの組織に対してメタデータ型の差分をとることができます。この機能を使用することで、ローカルのプロジェクトと自身の組織内のメタデータとの間の変更をより簡単に視覚化することができます。
 
-> NOTICE: The Source Diff feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./ja/bugs-and-feedback).
+> 注意: ソースの差分機能は現在ベータ版です。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。
 
-## Setup
+## 設定
 
-Because the Source Diff feature is in beta, you must install a Salesforce CLI plugin. From the terminal, run `sfdx plugins:install @salesforce/sfdx-diff`.
-After the installation is complete, `@salesforce/sfdx-diff` appears in the list of installed plugins when running `sfdx plugins`.
+ソースの差分機能はベータ版のため、Salesforce CLI プラグインをインストールする必要があります。ターミナルから、`sfdx plugins:install @salesforce/sfdx-diff` を実行してください。
+インストールの完了後、`sfdx plugins` を実行するとインストールされたプラグインの一覧に `@salesforce/sfdx-diff` が表示されます。
 
-## Usage
+## 使用
 
-Starting in version `46.11.0`, a new menu option `SFDX: Diff File Against Org` appears when you right-click an open metadata file.
+バージョン `46.11.0` より、開いているメタデータファイルを右クリックしたときに、新しいメニューオプション `SFDX: Diff File Against Org (SFDX: 組織のファイルとの差分を表示)` が表示されるようになりました。
 
-![Source Diff command](./images/source_diff.png)
+![ソースの差分コマンド](./images/source_diff.png)
 
-Source Diff currently supports the following metadata:
+ソースの差分機能は現在以下のメタデータをサポートしています。
 
-- Apex Class
-- Apex Trigger
-- Aura Application
-- Aura Component
-- Aura Event
-- Aura Interface
-- Aura Token
-- Lightning Web Component
-- Visualforce Page
-- Visualforce Component
+- Apex クラス
+- Apex トリガ
+- Aura アプリケーション
+- Aura コンポーネント
+- Aura イベント
+- Aura インタフェース
+- Aura トークン
+- Lightning Web コンポーネント
+- Visualforce ページ
+- Visualforce コンポーネント
