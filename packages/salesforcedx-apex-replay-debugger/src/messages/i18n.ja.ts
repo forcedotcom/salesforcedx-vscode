@@ -18,7 +18,8 @@
 export const messages = {
   session_language_server_error_text:
     'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
-  session_started_text: 'Apex Replay Debugger セッションをログファイル %s で開始しました。',
+  session_started_text:
+    'Apex Replay Debugger セッションをログファイル %s で開始しました。',
   session_terminated_text: 'Apex Replay Debugger セッションを終了しました。',
   no_log_file_text:
     'ログファイルが見つからないか、ファイルにログの行が含まれていません。',
