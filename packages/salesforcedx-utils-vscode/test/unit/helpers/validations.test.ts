@@ -10,7 +10,7 @@ import {
   isAlphaNumString,
   isInteger,
   isIntegerInRange,
-  isRecordId
+  isRecordIdFormat
 } from '../../../src/helpers/validations';
 
 describe('Input Box Validations', () => {
@@ -142,24 +142,29 @@ describe('Input Box Validations', () => {
     });
   });
 
-  describe('isRecordId', () => {
+  describe('isRecordIdFormat', () => {
     it('Should return false if value is undefined', async () => {
-      const res = isRecordId(undefined, '123');
+      const res = isRecordIdFormat(undefined, '123');
       expect(res).to.equal(false);
     });
 
     it('Should return false if value has incorrect prefix', async () => {
-      const res = isRecordId('153xx0000000123', '123');
+      const res = isRecordIdFormat('153xx0000000123', '123');
       expect(res).to.equal(false);
     });
 
     it('Should return false if value has incorrect length', async () => {
-      const res = isRecordId('123xx0000000', '123');
+      const res = isRecordIdFormat('123xx0000000', '123');
       expect(res).to.equal(false);
     });
 
-    it('Should return true if value is a valid record id', async () => {
-      const res = isRecordId('123xx0000000123', '123');
+    it('Should return true if value is a valid record id is 15 chars', async () => {
+      const res = isRecordIdFormat('123xx0000000123', '123');
+      expect(res).to.equal(true);
+    });
+
+    it('Should return true if value is a valid record id is 18 chars', async () => {
+      const res = isRecordIdFormat('123xx0000000123Abt', '123');
       expect(res).to.equal(true);
     });
   });

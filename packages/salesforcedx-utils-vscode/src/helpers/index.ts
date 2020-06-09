@@ -11,5 +11,5 @@ export {
   isInteger,
   isIntegerInRange,
   isAlphaNumSpaceString,
-  isRecordId
+  isRecordIdFormat
 } from './validations';

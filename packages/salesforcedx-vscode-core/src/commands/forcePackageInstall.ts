@@ -10,7 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { isRecordId } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { isRecordIdFormat } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse,
@@ -59,27 +59,6 @@ export class ForcePackageInstallExecutor extends SfdxCommandletExecutor<
 
     return builder.build();
   }
-
-  public execute(
-    response: ContinueResponse<PackageIdAndInstallationKey>
-  ): void {
-    const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath(),
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
-
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
-    );
-    channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
-  }
 }
 
 export type PackageIdAndInstallationKey = PackageID & InstallationKey;
@@ -98,7 +77,7 @@ export class SelectPackageID implements ParametersGatherer<PackageID> {
       prompt: nls.localize('parameter_gatherer_enter_package_id'),
       placeHolder: nls.localize('package_id_gatherer_placeholder'),
       validateInput: value => {
-        return isRecordId(value, PKG_ID_PREFIX) || value === ''
+        return isRecordIdFormat(value, PKG_ID_PREFIX) || value === ''
           ? null
           : nls.localize('package_id_validation_error');
       }
