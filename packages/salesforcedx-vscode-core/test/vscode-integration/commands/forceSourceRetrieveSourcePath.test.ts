@@ -18,9 +18,9 @@ import { Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
   ForceSourceRetrieveSourcePathExecutor,
-  SourcePathChecker
+  SourcePathChecker,
+  useBetaRetrieve
 } from '../../../src/commands/forceSourceRetrieveSourcePath';
-import { useBetaDeployRetrieve } from '../../../src/commands/util/useBetaDeployRetrieve';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
@@ -214,7 +214,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       }
     ]);
     const uriOne = Uri.parse('file:///bar.html');
-    const fileProcessing = useBetaDeployRetrieve(uriOne);
+    const fileProcessing = useBetaRetrieve(uriOne);
     expect(fileProcessing).to.equal(false);
   });
 
@@ -224,7 +224,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(true);
     mockRegistry.returns([apexClassMDComponent]);
     const uriOne = Uri.parse('file:///file/path/classes/myTestClass.cls');
-    const apexClassProcessing = useBetaDeployRetrieve(uriOne);
+    const apexClassProcessing = useBetaRetrieve(uriOne);
     expect(apexClassProcessing).to.equal(true);
   });
 
@@ -234,7 +234,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(false);
     mockRegistry.returns([apexClassMDComponent]);
     const uriOne = Uri.parse('file:///file/path/classes/myTestClass.cls');
-    const apexClassProcessing = useBetaDeployRetrieve(uriOne);
+    const apexClassProcessing = useBetaRetrieve(uriOne);
     expect(apexClassProcessing).to.equal(false);
   });
 
@@ -244,7 +244,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(true);
     mockRegistry.returns([apexTriggerMDComponent]);
     const uriOne = Uri.parse('file:///file/path/triggers/accTrigger.trigger');
-    const triggerProcessing = useBetaDeployRetrieve(uriOne);
+    const triggerProcessing = useBetaRetrieve(uriOne);
     expect(triggerProcessing).to.equal(true);
   });
 
@@ -254,7 +254,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(false);
     mockRegistry.returns([apexTriggerMDComponent]);
     const uriOne = Uri.parse('file:///file/path/triggers/accTrigger.trigger');
-    const triggerProcessing = useBetaDeployRetrieve(uriOne);
+    const triggerProcessing = useBetaRetrieve(uriOne);
     expect(triggerProcessing).to.equal(false);
   });
 
@@ -264,7 +264,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(true);
     mockRegistry.returns([pageMDComponent]);
     const uriOne = Uri.parse('file:///file/path/pages/myPage.page');
-    const pageProcessing = useBetaDeployRetrieve(uriOne);
+    const pageProcessing = useBetaRetrieve(uriOne);
     expect(pageProcessing).to.equal(true);
   });
 
@@ -274,7 +274,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(false);
     mockRegistry.returns([pageMDComponent]);
     const uriOne = Uri.parse('file:///file/path/pages/myPage.page');
-    const pageProcessing = useBetaDeployRetrieve(uriOne);
+    const pageProcessing = useBetaRetrieve(uriOne);
     expect(pageProcessing).to.equal(false);
   });
 
@@ -284,7 +284,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(true);
     mockRegistry.returns([vfComponentMDComponent]);
     const uriOne = Uri.parse('file:///file/path/components/VFCmp.component');
-    const cmpProcessing = useBetaDeployRetrieve(uriOne);
+    const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(true);
   });
 
@@ -294,7 +294,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(false);
     mockRegistry.returns([vfComponentMDComponent]);
     const uriOne = Uri.parse('file:///file/path/components/VFCmp.component');
-    const cmpProcessing = useBetaDeployRetrieve(uriOne);
+    const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(false);
   });
 
@@ -304,7 +304,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(true);
     mockRegistry.returns([auraMDComponent]);
     const uriOne = Uri.parse('file:///file/path/aura/testApp.app');
-    const cmpProcessing = useBetaDeployRetrieve(uriOne);
+    const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(true);
   });
 
@@ -314,7 +314,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(false);
     mockRegistry.returns([auraMDComponent]);
     const uriOne = Uri.parse('file:///file/path/aura/testApp.app');
-    const cmpProcessing = useBetaDeployRetrieve(uriOne);
+    const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(false);
   });
 
@@ -324,7 +324,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(true);
     mockRegistry.returns([lwcMDComponent]);
     const uriOne = Uri.parse('file:///file/path/lwc/testCmp/testCmp.js');
-    const cmpProcessing = useBetaDeployRetrieve(uriOne);
+    const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(true);
   });
 
@@ -334,7 +334,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
       .returns(false);
     mockRegistry.returns([lwcMDComponent]);
     const uriOne = Uri.parse('file:///file/path/lwc/testCmp/testCmp.js');
-    const cmpProcessing = useBetaDeployRetrieve(uriOne);
+    const cmpProcessing = useBetaRetrieve(uriOne);
     expect(cmpProcessing).to.equal(false);
   });
 });

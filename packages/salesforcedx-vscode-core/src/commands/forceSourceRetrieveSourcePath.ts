@@ -32,7 +32,6 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 import { LibraryCommandletExecutor } from './util/libraryCommandlet';
-import { useBetaDeployRetrieve } from './util/useBetaDeployRetrieve';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -105,12 +104,39 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    useBetaDeployRetrieve(explorerPath)
+    useBetaRetrieve(explorerPath)
       ? new LibraryRetrieveSourcePathExecutor()
       : new ForceSourceRetrieveSourcePathExecutor(),
     new SourcePathChecker()
   );
   await commandlet.run();
+}
+
+// this supported types logic is temporary until we have a way of generating the metadata type from the path
+// once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
+export function useBetaRetrieve(explorerPath: vscode.Uri): boolean {
+  const filePath = explorerPath.fsPath;
+  const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
+  const registry = new RegistryAccess();
+  const component = registry.getComponentsFromPath(filePath)[0];
+  const typeName = component.type.name;
+  const {
+    auradefinitionbundle,
+    lightningcomponentbundle,
+    apexclass,
+    apexcomponent,
+    apexpage,
+    apextrigger
+  } = registryData.types;
+
+  const supportedType =
+    typeName === auradefinitionbundle.name ||
+    typeName === lightningcomponentbundle.name ||
+    typeName === apexclass.name ||
+    typeName === apexcomponent.name ||
+    typeName === apexpage.name ||
+    typeName === apextrigger.name;
+  return betaDeployRetrieve && supportedType;
 }
 
 export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
