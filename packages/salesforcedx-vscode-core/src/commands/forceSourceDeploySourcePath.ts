@@ -13,6 +13,10 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  RegistryAccess,
+  registryData
+} from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -110,15 +114,25 @@ export function useBetaRetrieve(explorerPath: vscode.Uri[]): boolean {
   }
   const filePath = explorerPath[0].fsPath;
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
+  const registry = new RegistryAccess();
+  const component = registry.getComponentsFromPath(filePath)[0];
+  const typeName = component.type.name;
+  const {
+    auradefinitionbundle,
+    lightningcomponentbundle,
+    apexclass,
+    apexcomponent,
+    apexpage,
+    apextrigger
+  } = registryData.types;
+
   const supportedType =
-    path.extname(filePath) === APEX_CLASS_EXTENSION ||
-    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`) ||
-    (path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
-      filePath.includes(`${APEX_TRIGGER_EXTENSION}-meta.xml`)) ||
-    (path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
-      filePath.includes(`${VISUALFORCE_COMPONENT_EXTENSION}-meta.xml`)) ||
-    (path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION ||
-      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`));
+    typeName === auradefinitionbundle.name ||
+    typeName === lightningcomponentbundle.name ||
+    typeName === apexclass.name ||
+    typeName === apexcomponent.name ||
+    typeName === apexpage.name ||
+    typeName === apextrigger.name;
   return betaDeployRetrieve && supportedType;
 }
 

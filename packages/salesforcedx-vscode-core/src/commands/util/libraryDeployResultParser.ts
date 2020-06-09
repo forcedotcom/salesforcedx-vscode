@@ -11,9 +11,12 @@ import {
 import {
   DeployResult,
   DeployStatusEnum,
+  RegistryAccess,
   SourceResult
 } from '@salesforce/source-deploy-retrieve';
+import * as path from 'path';
 import { nls } from '../../messages';
+import { getRootWorkspace, getRootWorkspacePath } from '../../util';
 
 export class LibraryDeployResultParser {
   public result: DeployResult;
@@ -27,20 +30,19 @@ export class LibraryDeployResultParser {
       componentSuccess.changed && !componentSuccess.created
         ? 'Updated'
         : 'Created';
-    const success = [
-      {
-        state: mdState,
-        fullName: componentSuccess.fullName,
-        type: componentSuccess.componentType,
-        filePath: componentSuccess.fileName
-      },
-      {
-        state: mdState,
-        fullName: componentSuccess.fullName,
-        type: componentSuccess.componentType,
-        filePath: `${componentSuccess.fileName}-meta.xml`
+
+    const listOfFiles = this.result.outboundFiles;
+    const success = [];
+    if (listOfFiles) {
+      for (const file of listOfFiles) {
+        success.push({
+          state: mdState,
+          fullName: componentSuccess.fullName,
+          type: componentSuccess.componentType,
+          filePath: file
+        });
       }
-    ];
+    }
     return success;
   }
 

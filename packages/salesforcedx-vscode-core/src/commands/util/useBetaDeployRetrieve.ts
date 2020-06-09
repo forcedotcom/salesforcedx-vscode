@@ -6,8 +6,11 @@ import * as vscode from 'vscode';
 
 import { sfdxCoreSettings } from '../../settings';
 
-export function useBetaDeployRetrieve(explorerPath: vscode.Uri): boolean {
-  const filePath = explorerPath.fsPath;
+export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
+  if (explorerPath.length > 1) {
+    return false;
+  }
+  const filePath = explorerPath[0].fsPath;
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
   const registry = new RegistryAccess();
   const component = registry.getComponentsFromPath(filePath)[0];
