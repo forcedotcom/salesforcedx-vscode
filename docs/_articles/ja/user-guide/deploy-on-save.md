@@ -1,33 +1,33 @@
 ---
-title: Deploy On Save
+title: 保存時のデプロイ
 lang: ja
 ---
 
-## Overview
+## 概要
 
-Whenever you save a local source file, you can enable immediate deployment of the changes to your default org. You might find this feature useful while trying various user interface and functional behavior or while trying to debug some behavior in an Apex class.
+ローカルのソースファイルを保存するときはいつでも、変更した内容をデフォルトの組織にすぐにデプロイできるようにすることができます。この機能は、さまざまなユーザインターフェースや機能的な動作を試しているとき、または Apex クラスの動作をデバッグしているときに便利です。
 
-To enable deploy on save, you can:
+保存時のデプロイを有効にするには、以下のようにします。
 
-- Add `"salesforcedx-vscode-core.push-or-deploy-on-save.enabled": true` to the `.vscode/settings.json` file.
-- Or update Workspace settings:
-  - Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-  - Under Salesforce Feature Previews, select `Push-or-deploy-on-save: Enabled`.
+- `.vscode/settings.json` ファイルに `"salesforcedx-vcode-core.push-or-deploy-on-save.enabled": true` を追加します。
+- または、ワークスペースの設定を更新します。
+  - **[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** \(Windows、Linux\) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** \(macOS\) を選択します。
+  - Salesforce Feature Previews で、`Push-or-deploy-on-save: Enabled` をチェックします。
 
-![Deploy on save feature](./images/deploy-on-save.png)
+![保存時デプロイの設定](./images/deploy-on-save.png)
 
-> We recommend that you enable deploy on save at a project level (Workspace settings) rather than globally on all Salesforce projects you work on (User settings). While working on large sandboxes, be mindful of enabling deploy on save to avoid inadvertently overwriting changes by other developers.
+> 保存時のデプロイを有効にする際は、作業中のすべての Salesforce プロジェクト (ユーザ設定) でグローバルに有効にするのではなく、プロジェクトレベル (ワークスペース設定) で有効にすることをお勧めします。大規模なサンドボックスで作業している間は、他の開発者による変更を誤って上書きしてしまわないように、注意して保存時のデプロイを有効にしてください。
 
-## How it Works
+## 仕組み
 
-When you enable deploy on save for your project:
+プロジェクトで保存時のデプロイを有効にした場合:
 
-- At a given time, only one deployment runs.
+- 1 度につき、1 回のデプロイが実行されます。
 
-- Any files that are saved while a deployment is running are added to a deployment queue.
+- デプロイ中に保存されたファイルは、デプロイキューに追加されます。
 
-- When the current deployment completes, a new one that contains the queued files starts. This minimizes the number of deployments and improves performance.
+- 現在のデプロイが完了すると、キューに入っているファイルを含む新しいデプロイが開始されます。これにより、デプロイの数を最小限に抑え、パフォーマンスを向上させることができます。
 
-- If there isn’t an active deployment and no files are queued for deployment, a file save triggers an immediate deployment.
+- アクティブなデプロイがなく、デプロイのためにファイルがキューに入っていない場合、ファイルの保存するとただちにデプロイが開始されます。
 
-If you enable deploy on save while working against a scratch org, the context of the extension is package development model. This means that every time you save a file, **SFDX: Push Source to Default Scratch Org** is initiated and runs `force:source:push` under the hood. In org development model that works with non-source-tracked-orgs, every file save initiates **SFDX: Deploy Source to Org**, which runs `force:source:deploy`.
+スクラッチ組織で作業しているときに保存時のデプロイを有効にすると、拡張機能のコンテキストはパッケージ開発モデルになります。つまり、ファイルを保存するたびに **SFDX: デフォルトのスクラッチ組織にソースをプッシュ (SFDX: Push Source to Default Scratch Org)** が起動し、`force:source:push` が実行されます。ソース追跡されていない組織で動作する、組織開発モデルでは、ファイルを保存するたびに **SFDX: 組織へソースをデプロイ (SFDX: Deploy Source to Org)** が起動し、`force:source:deploy` が実行されます。

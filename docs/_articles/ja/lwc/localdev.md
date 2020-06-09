@@ -1,37 +1,37 @@
 ---
-title: Local Development (Beta)
+title: ローカル開発 (ベータ)
 lang: ja
 ---
 
-> View the full documentation in the [Lightning Web Components Developer Guide](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).
+> [Lightning Web Components Developer Guide](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev) のドキュメント全文を参照してください。
 
-The Local Development Server is a Salesforce CLI plug-in that configures and runs a Lightning Web Components-enabled server on your computer. You can develop Lightning web components and see live changes without publishing the components to an org.
+ローカル開発サーバは、お使いのコンピュータ上で Lightning Web コンポーネントに対応したサーバを設定して実行する Salesforce CLI プラグインです。Lightning Web コンポーネントを開発して、コンポーネントを組織に公開することなく、ライブで変更を確認することができます。
 
-## Run Local Development SFDX Commands in VS Code
+## VS Code でローカル開発の SFDX コマンドを実行
 
-The local development server uses the following SFDX commands.
+ローカル開発サーバは以下の SFDX コマンドを使用します。
 
-View the local development server's SFDX commands from VS Code's command palette by pressing `command` + `shift` + `p`. By typing in "local development," all three commands are visible.
+ローカル開発サーバの SFDX コマンドを確認するには、VS Code で、`Ctrl + Shift + P` キー (Windows、Linux) または `Cmd + Shift + P` キー (macOS) を押してコマンドパレットを開きます。"local development (ローカル開発)" と入力することで、3 つのコマンドがすべて表示されます。
 
-![VS Code Commands](./images/vscode_localdev_sfdx_commands.png)
+![VS Code のコマンド](./images/vscode_localdev_sfdx_commands.png)
 
-**SFDX: Open Local Development Server**  
-If the local development server isn't currently running, this command starts the server and opens localhost:333 in your web browser. If the server is already running, then the command only opens localhost:3333 in your browser.
+**SFDX: Open Local Development Server (SFDX: ローカル開発サーバを開く)**  
+ローカル開発サーバが現在実行されていない場合、このコマンドはサーバを起動し、Web ブラウザで localhost:3333 を開きます。サーバが既に起動している場合は、ブラウザで localhost:3333 を開きます。
 
-**SFDX: Start Local Development Server**  
-This command starts the local development server. If you already started the server from VS Code, then VS Code gives the option to open it in the browser or restart it. If you already started the server from the command line, then VS code shows an error in the output console.
+**SFDX: Start Local Development Server (SFDX: ローカル開発サーバを開始)**  
+このコマンドは、ローカル開発サーバを起動します。VS Code から既にサーバを起動している場合、VS Code はそれをブラウザで開くか、再起動するかを選択肢を表示します。コマンドラインから既にサーバを起動している場合、VS Code は出力コンソールにエラーを表示します。
 
-**SFDX: Stop Local Development Server**  
-This command stops the local development server.
+**SFDX: Stop Local Development Server (SFDX: ローカル開発サーバを停止)**  
+このコマンドはローカル開発サーバを停止します。
 
-**Preview Lightning Web Components in VS Code**  
-To preview Lightning web components, right-click any line of code in the component's HTML, CSS, or JavaScript files. You can also right-click any of the HTML, CSS, or JavaScript filenames or the component folder.
+**VS Code で Lightning Web コンポーネントのプレビュー**  
+Lightning Web コンポーネントをプレビューするには、コンポーネントの HTML、CSS、または JavaScript ファイル内の任意のコード行を右クリックします。また、HTML、CSS、JavaScript のファイル名やコンポーネントフォルダを右クリックすることもできます。
 
-Preview `c-hello` from the HTML code.
-![Preview component from HTML.](./images/vscode_localdev_preview_html.png)
+HTML コードから `c-hello` をプレビューする
+![HTMLからコンポーネントをプレビューする](./images/vscode_localdev_preview_html.png)
 
-Preview `c-hello` from the HTML file.
-![Preview component from file.](./images/vscode_localdev_file_preview.png)
+HTML ファイルから `c-hello` をプレビューする
+![ファイルからコンポーネントをプレビューする](./images/vscode_localdev_file_preview.png)
 
-Here's the previewed component on the local development server.
-![Previewed component in local development.](./images/vscode_localdev_preview.png)
+ローカル開発サーバ上でプレビューされたコンポーネントは以下の通りです。
+![ローカル開発でプレビューされたコンポーネント](./images/vscode_localdev_preview.png)
