@@ -9,7 +9,8 @@ import {
   isAlphaNumSpaceString,
   isAlphaNumString,
   isInteger,
-  isIntegerInRange
+  isIntegerInRange,
+  isRecordIdFormat
 } from '../../../src/helpers/validations';
 
 describe('Input Box Validations', () => {
@@ -137,6 +138,33 @@ describe('Input Box Validations', () => {
 
     it('Should return true if value has only underscores, spaces, and alphanumeric characters', async () => {
       const res = isAlphaNumSpaceString('scratch_123 4 5 6');
+      expect(res).to.equal(true);
+    });
+  });
+
+  describe('isRecordIdFormat', () => {
+    it('Should return false if value is undefined', async () => {
+      const res = isRecordIdFormat(undefined, '123');
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value has incorrect prefix', async () => {
+      const res = isRecordIdFormat('153xx0000000123', '123');
+      expect(res).to.equal(false);
+    });
+
+    it('Should return false if value has incorrect length', async () => {
+      const res = isRecordIdFormat('123xx0000000', '123');
+      expect(res).to.equal(false);
+    });
+
+    it('Should return true if value is a valid record id is 15 chars', async () => {
+      const res = isRecordIdFormat('123xx0000000123', '123');
+      expect(res).to.equal(true);
+    });
+
+    it('Should return true if value is a valid record id is 18 chars', async () => {
+      const res = isRecordIdFormat('123xx0000000123Abt', '123');
       expect(res).to.equal(true);
     });
   });
