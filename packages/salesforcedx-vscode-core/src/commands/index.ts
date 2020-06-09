@@ -45,6 +45,7 @@ export { forceDebuggerStop } from './forceDebuggerStop';
 export { forceConfigList } from './forceConfigList';
 export { forceAliasList } from './forceAliasList';
 export { forceOrgDisplay } from './forceOrgDisplay';
+export { forcePackageInstall } from './forcePackageInstall';
 export {
   forceSfdxProjectCreate,
   forceProjectWithManifestCreate

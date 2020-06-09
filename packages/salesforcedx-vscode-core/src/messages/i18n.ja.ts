@@ -286,7 +286,8 @@ export const messages = {
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
-  error_invalid_org_alias: '別名にはアンダースコア、スペースと英数字のみを使用できます。',
+  error_invalid_org_alias:
+    '別名にはアンダースコア、スペースと英数字のみを使用できます。',
   error_invalid_expiration_days:
     '日数には 1 から 30 までの数値を指定してください。',
   error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
@@ -488,5 +489,8 @@ export const messages = {
     'このメタデータ型に対する差分は現在サポートされていません。',
   force_source_diff_title: '%s//%s ↔ ローカル //%s',
   force_source_diff_command_not_found:
-    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、[https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/](https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/) を参照してください。'
+    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、[https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/](https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/) を参照してください。',
+  package_id_validation_error:
+    'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_id_gatherer_placeholder: '04t...'
 };

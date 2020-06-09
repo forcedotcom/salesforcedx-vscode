@@ -35,6 +35,7 @@ import {
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
+  forcePackageInstall,
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
@@ -280,6 +281,11 @@ function registerCommands(
     forceSfdxProjectCreate
   );
 
+  const forcePackageInstallCmd = vscode.commands.registerCommand(
+    'sfdx.force.package.install',
+    forcePackageInstall
+  );
+
   const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.with.manifest.create',
     forceProjectWithManifestCreate
@@ -365,6 +371,7 @@ function registerCommands(
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
     forceProjectCreateCmd,
+    forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
