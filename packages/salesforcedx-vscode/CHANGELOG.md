@@ -8,19 +8,15 @@
 
 #### salesforcedx-vscode-lwc
 
-- Update LWC Preview UI strings and Add Preview Service ([PR #2240](https://github.com/forcedotcom/salesforcedx-vscode/pull/2240))
-
-- VSCode open preview component using the new path and correct port ([PR #2239](https://github.com/forcedotcom/salesforcedx-vscode/pull/2239))
+- 'sfdx force:lightning:lwc:start' and preview LWC component use the new url path and correct port ([PR #2239](https://github.com/forcedotcom/salesforcedx-vscode/pull/2239))
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Add Package Install command ([PR #2244](https://github.com/forcedotcom/salesforcedx-vscode/pull/2244))
+- Add Package Install command - 'sfdx force:package:install' ([PR #2244](https://github.com/forcedotcom/salesforcedx-vscode/pull/2244)) - Contribution by [gabrielbarker](https://github.com/gabrielbarker)
 
-- Add Lightning web component test command ([PR #2228](https://github.com/forcedotcom/salesforcedx-vscode/pull/2228))
-
-- LWC Preview on Mobile ([PR #2229](https://github.com/forcedotcom/salesforcedx-vscode/pull/2229))
+- Add Lightning web component test command - 'sfdx force:lightning:lwc:test:create' ([PR #2228](https://github.com/forcedotcom/salesforcedx-vscode/pull/2228))
 
 # 48.19.0 - June 4, 2020
 
