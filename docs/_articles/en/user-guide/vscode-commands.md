@@ -181,7 +181,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Executes the CLI command `force:lightning:interface:create`
 - **SFDX: Create Lightning Web Component Test**
   - Creates a test for the specified Lightning web component.
-  - Executes the CLI command `force:lightning:lwc:test:create`
+  - Runs the CLI command `force:lightning:lwc:test:create`
 
 ### Visualforce
 
