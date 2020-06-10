@@ -1,3 +1,27 @@
+# 48.20.0 - June 11, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Cancelling a command execution should not throw errors ([PR #2232](https://github.com/forcedotcom/salesforcedx-vscode/pull/2232))
+
+#### salesforcedx-vscode-lwc
+
+- Update LWC Preview UI strings and Add Preview Service ([PR #2240](https://github.com/forcedotcom/salesforcedx-vscode/pull/2240))
+
+- VSCode open preview component using the new path and correct port ([PR #2239](https://github.com/forcedotcom/salesforcedx-vscode/pull/2239))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add Package Install command ([PR #2244](https://github.com/forcedotcom/salesforcedx-vscode/pull/2244))
+
+- Add Lightning web component test command ([PR #2228](https://github.com/forcedotcom/salesforcedx-vscode/pull/2228))
+
+- LWC Preview on Mobile ([PR #2229](https://github.com/forcedotcom/salesforcedx-vscode/pull/2229))
+
 # 48.19.0 - June 4, 2020
 
 ## Fixed
