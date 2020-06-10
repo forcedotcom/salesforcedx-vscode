@@ -8,15 +8,15 @@
 
 #### salesforcedx-vscode-lwc
 
-- 'sfdx force:lightning:lwc:start' and preview LWC component use the new url path and correct port ([PR #2239](https://github.com/forcedotcom/salesforcedx-vscode/pull/2239))
+- -`SFDX: Start Local Development Server` and `SFDX: Preview Component Locally` use the new url path and correct port ([PR #2239](https://github.com/forcedotcom/salesforcedx-vscode/pull/2239))
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Add Package Install command - 'sfdx force:package:install' ([PR #2244](https://github.com/forcedotcom/salesforcedx-vscode/pull/2244)) - Contribution by [gabrielbarker](https://github.com/gabrielbarker)
+- Add `SFDX: Install Package` command ([PR #2244](https://github.com/forcedotcom/salesforcedx-vscode/pull/2244), [Issue #2140](https://github.com/forcedotcom/salesforcedx-vscode/issues/2140)) - Contribution by [gabrielbarker](https://github.com/gabrielbarker)
 
-- Add Lightning web component test command - 'sfdx force:lightning:lwc:test:create' ([PR #2228](https://github.com/forcedotcom/salesforcedx-vscode/pull/2228))
+- - Add `SFDX: Create Lightning Web Component Test` command ([PR #2228](https://github.com/forcedotcom/salesforcedx-vscode/pull/2228))
 
 # 48.19.0 - June 4, 2020
 
