@@ -1,11 +1,7 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
-const {
-  checkVSCodeVersion,
-  checkLernaInstall,
-  checkBaseBranch
-} = require('./validation-utils');
+const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
 const logger = require('./logger-util');
 
 shell.set('-e');
@@ -20,7 +16,6 @@ const bumpMinor = parseInt(minor) + 1;
 shell.env['SALESFORCEDX_VSCODE_VERSION'] = `${major}.${bumpMinor}.${patch}`;
 
 checkVSCodeVersion();
-checkLernaInstall();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
