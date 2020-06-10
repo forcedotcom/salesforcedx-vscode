@@ -113,7 +113,7 @@ export const messages = {
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
 
-  force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
+  force_apex_test_run_text: 'SFDX: Run Apex Tests',
   force_apex_test_run_all_test_label: 'All tests',
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
@@ -124,10 +124,10 @@ export const messages = {
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
-  force_lightning_app_create_text: 'SFDX: Create Lightning App',
-  force_lightning_component_create_text: 'SFDX: Create Lightning Component',
-  force_lightning_event_create_text: 'SFDX: Create Lightning Event',
-  force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
+  force_lightning_app_create_text: 'SFDX: Create Aura App',
+  force_lightning_component_create_text: 'SFDX: Create Aura Component',
+  force_lightning_event_create_text: 'SFDX: Create Aura Event',
+  force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:

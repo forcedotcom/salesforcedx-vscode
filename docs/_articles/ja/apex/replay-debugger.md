@@ -55,7 +55,7 @@ Apex Replay Debugger の起動設定を作成するには、プロジェクト�
 
 1. ログを有効にするには、VS Code から、コマンドパレットを開き \(Windows、Linux は Ctrl+Shift+P キー、macOS は Cmd+Shift+P キー\)、**[SFDX: Turn On Apex Debug Log for Replay Debugger \(SFDX: Replay Debugger の Apex デバッグログをオン\)]** を実行します。
 1. デバッグするシナリオを再現します。次の手順を実行します。
-   - **[SFDX: Invoke Apex Tests \(SFDX: Apex テストを呼び出し\)]** を実行します。
+   - **[SFDX: Run Apex Tests \(SFDX: Apex テストを呼び出し\)]** を実行します。
    - **[SFDX: Execute Anonymous Apex with Currently Selected Text \(SFDX: 現在選択されているテキストを使用して匿名 Apex を実行\)]** を実行します。
    - **[SFDX: Execute Anonymous Apex with Editor Contents \(SFDX: エディタのコンテンツを使用して匿名 Apex を実行\)]** を実行します。
    - Web ブラウザの組織で手動の手順を実行します。

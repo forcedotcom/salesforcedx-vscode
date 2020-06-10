@@ -135,7 +135,7 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Fetches the most recent debug log from the default org.
   - Executes the CLI command `force:apex:log:get`
   - See [View Apex Debug Logs](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_view_apex_debug_logs.htm).
-- **SFDX: Invoke Apex Tests...**
+- **SFDX: Run Apex Tests**
   - Runs the Apex tests to test changes in your source code and displays the results in human-readable format.
   - Executes the CLI command `force:apex:test:run --resultformat human`
   - See [Testing](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_testing.htm).
@@ -161,11 +161,11 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
 
 ### Lightning Aura Components
 
-- **SFDX: Create Lightning App**
-  - Creates a Lightning app bundle with the specified name in the default directory `force-app/main/default/aura`.
+- **SFDX: Create Aura App**
+  - Creates an Aura app bundle with the specified name in the default directory `force-app/main/default/aura`.
   - Executes the CLI command `force:lightning:app:create`
   - See [Creating Apps](https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/apps_intro.htm#!).
-- **SFDX: Create Lightning Component**
+- **SFDX: Create Aura Component**
   - Creates an Aura component with the specified name in the default directory `force-app/main/default/aura`.
   - Executes the CLI command `force:lightning:component:create`
   - Read more in [Lightning Aura Components Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/intro_framework.htm) and [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_develop_create_lightning.htm).
@@ -173,11 +173,11 @@ Read on to learn about the commands available in Salesforce Extension for VS Cod
   - Creates a Lightning web component with the specified name in the default directory `force-app/main/default/lwc`.
   - Executes the CLI command `force:lightning:component:create --type lwc`
   - See [Lightning Web Components Dev Guide](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.create_components_introduction).
-- **SFDX: Create Lightning Event**
-  - Creates a Lightning event with the specified name in the default directory `force-app/main/default/aura`.
+- **SFDX: Create Aura Event**
+  - Creates an Aura event with the specified name in the default directory `force-app/main/default/aura`.
   - Executes the CLI command `force:lightning:event:create`
-- **SFDX: Create Lightning Interface**
-  - Creates a Lightning interface with the specified name in the default directory `force-app/main/default/aura`.
+- **SFDX: Create Aura Interface**
+  - Creates an Aura interface with the specified name in the default directory `force-app/main/default/aura`.
   - Executes the CLI command `force:lightning:interface:create`
 
 ### Visualforce
