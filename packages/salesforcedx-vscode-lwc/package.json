@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "48.19.0",
+  "version": "48.20.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,7 @@
     "@salesforce/eslint-config-lwc": "0.3.0",
     "@salesforce/lightning-lsp-common": "2.3.6",
     "@salesforce/lwc-language-server": "2.3.6",
-    "@salesforce/salesforcedx-utils-vscode": "48.19.0",
+    "@salesforce/salesforcedx-utils-vscode": "48.20.0",
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
     "jest-editor-support": "^26.0.0-beta",
@@ -39,7 +39,7 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "48.19.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "48.20.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
     "@types/node": "8.9.3",
@@ -195,7 +195,7 @@
         },
         {
           "command": "sfdx.force.lightning.lwc.preview",
-          "when": "false"
+          "when": "sfdx:project_opened && resource =~ /.*/lwc/[^/]+(/[^/]+\\.(html|css|js))?$/"
         },
         {
           "command": "sfdx.force.lightning.lwc.test.file.run",
@@ -344,6 +344,35 @@
           "dark": "resources/dark/stopWatching.svg"
         }
       }
-    ]
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "%force_lightning_lwc_preferences%",
+      "properties": {
+        "salesforcedx-vscode-lwc.preview.rememberDevice": {
+          "type": "boolean",
+          "default": true,
+          "description": "%force_lightning_lwc_remember_device_description%"
+        },
+        "salesforcedx-vscode-lwc.preview.logLevel": {
+          "type": "string",
+          "description": "%force_lightning_lwc_mobile_log_level%",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error",
+            "fatal"
+          ],
+          "default": "warn"
+        },
+        "salesforcedx-vscode-lwc.preview.enableMobilePreviews": {
+          "type": "boolean",
+          "default": false,
+          "description": "%force_lightning_lwc_enable_mobile%"
+        }
+      }
+    }
   }
 }

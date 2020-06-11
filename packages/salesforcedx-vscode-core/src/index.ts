@@ -31,9 +31,11 @@ import {
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
+  forceLightningLwcTestCreate,
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
+  forcePackageInstall,
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
@@ -228,6 +230,11 @@ function registerCommands(
     forceLightningLwcCreate
   );
 
+  const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.create',
+    forceLightningLwcTestCreate
+  );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -272,6 +279,11 @@ function registerCommands(
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
     forceSfdxProjectCreate
+  );
+
+  const forcePackageInstallCmd = vscode.commands.registerCommand(
+    'sfdx.force.package.install',
+    forcePackageInstall
   );
 
   const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
@@ -350,6 +362,7 @@ function registerCommands(
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
+    forceLightningLwcTestCreateCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
@@ -358,6 +371,7 @@ function registerCommands(
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
     forceProjectCreateCmd,
+    forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
