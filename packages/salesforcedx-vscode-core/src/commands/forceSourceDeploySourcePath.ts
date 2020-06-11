@@ -14,6 +14,11 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  RegistryAccess,
+  registryData, SourceClient
+} from '@salesforce/source-deploy-retrieve';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -25,10 +30,17 @@ import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 import {
+  DeployRetrieveLibraryExecutor,
+  FilePathGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from './util';
+import {
   createComponentCount,
   useBetaDeployRetrieve
 } from './util/betaDeployRetrieve';
 import { LibraryCommandletExecutor } from './util/libraryCommandlet';
+import { useBetaDeployRetrieve } from './util/useBetaDeployRetrieve';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -121,9 +133,9 @@ export function useBetaRetrieve(explorerPath: vscode.Uri[]): boolean {
   return betaDeployRetrieve && supportedType;
 }
 
-export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
-  string
-> {
+export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
+  protected sourceClient: SourceClient | undefined;
+
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
 

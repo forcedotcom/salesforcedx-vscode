@@ -22,6 +22,7 @@ import { notificationService } from '../notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
+  DeployRetrieveLibraryExecutor,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,

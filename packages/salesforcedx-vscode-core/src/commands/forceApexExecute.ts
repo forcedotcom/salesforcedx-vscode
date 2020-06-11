@@ -93,45 +93,26 @@ export function writeFileAsync(fileName: string, inputText: string) {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new CreateApexTempFile();
 
-const soapTemplate = `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
-		xmlns:cmd="http://soap.sforce.com/2006/08/apex"
-		xmlns:apex="http://soap.sforce.com/2006/08/apex">
-			<env:Header>
-				<cmd:SessionHeader>
-					<cmd:sessionId>%s</cmd:sessionId>
-				</cmd:SessionHeader>
-				%s
-			</env:Header>
-			<env:Body>
-				<%s xmlns="http://soap.sforce.com/2006/08/apex">
-				    %s
-				</%s>
-			</env:Body>
-    </env:Envelope>`;
-
-interface ExecAnonResponse {
-  result: { column: string };
-}
-
-interface CompileProblem {
-  compiled: boolean;
-  exceptionMessage: {};
-  exceptionStackTrace: { line: string; success: boolean };
-}
-
 export async function forceApexExecute(filePath: string, withSelection?: any) {
   const gatherer = new CreateApexTempFile();
   const inputs = (await gatherer.gather()) as ContinueResponse<{
     fileName: string;
   }>;
+
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    fileNameGatherer,
+    new ForceApexExecuteExecutor()
+  );
+  await commandlet.run();
+  /*
   const fileName = inputs.data.fileName;
   const data = fs.readFileSync(fileName, 'utf8');
   // await commandlet.run();
 
   /*const editor = await vscode.window.activeTextEditor;
   const document = editor!.document;
-  const data = document.getText(editor!.selection);*/
+  const data = document.getText(editor!.selection);
 
   const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
   if (!usernameOrAlias) {
@@ -172,48 +153,5 @@ export async function forceApexExecute(filePath: string, withSelection?: any) {
     return formattedResult;
   } catch (e) {
     const message = e.message;
-  }
-}
-
-const soapEnv = 'soapenv:Envelope';
-const soapBody = 'soapenv:Body';
-const soapHeader = 'soapenv:Header';
-
-interface SoapResponse {
-  [soapEnv]: {
-    [soapHeader]: { DebuggingInfo: DebuggingInfo };
-    [soapBody]: { executeAnonymousResponse: ExecuteAnonymousResponse };
-  };
-}
-
-interface ExecuteAnonymousResponse {
-  result: {
-    column: number;
-    compileProblem: { compiled: boolean };
-    exceptionMessage: {};
-    exceptionStackTrace: { line: number; success: boolean };
-  };
-}
-
-interface DebuggingInfo {
-  debugLog: string;
-}
-
-interface FormattedExecAnonResponse {
-  result: {
-    compiled: boolean;
-    compileProblem: string;
-    success: boolean;
-    line: number;
-    column: number;
-    exceptionMessage: string;
-    exceptionStackTrace: string;
-    logs: string;
-  };
-}
-
-async function formatResult(execAnonResponse: ExecuteAnonymousResponse) {
-  const formattedResponse = {
-    result: {}
-  };
+  }*/
 }

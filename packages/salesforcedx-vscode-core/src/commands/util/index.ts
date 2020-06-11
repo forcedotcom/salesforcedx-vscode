@@ -39,3 +39,4 @@ export {
   DevUsernameChecker,
   EmptyPreChecker
 } from './preconditionCheckers';
+export { DeployRetrieveLibraryExecutor } from './deployRetrieveCommandlet';
