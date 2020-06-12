@@ -33,6 +33,41 @@
         ],
         "description": "System.debug"
     },
+    "System Assert False": {
+        "prefix": "sysassf",
+        "body": [
+            "System.assert(false, ${1:message});"
+        ],
+        "description": "System.assert(false, message);"
+    },
+    "System Assert Equal": {
+        "prefix": "sysasseq",
+        "body": [
+            "System.assertEqual(${1:expected}, ${2:actual});"
+        ],
+        "description": "System.assertEqual(expected, actual);"
+    },
+    "System Assert not Equal": {
+        "prefix": "sysassnoteq",
+        "body": [
+            "System.assertNotEqual(${1:expected}, ${2:actual});"
+        ],
+        "description": "System.assertNotEqual(expected, actual);"
+    },
+    "System Assert null": {
+        "prefix": "sysassnull",
+        "body": [
+            "System.assertEqual(null, ${1:actual});"
+        ],
+        "description": "System.assertEqual(null, actual);"
+    },
+    "System Assert Not Null": {
+        "prefix": "sysassnotnull",
+        "body": [
+            "System.assertNotEqual(null, ${1:actual});"
+        ],
+        "description": "System.assertNotEqual(null, actual);"
+    },
     "DescribeFieldResult": {
         "prefix": "dfr",
         "body": [
