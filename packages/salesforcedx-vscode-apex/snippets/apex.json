@@ -143,6 +143,16 @@
         ],
         "description": "indexed for loop"
     },
+    "for map": {
+        "prefix": "formap",
+        "body": [
+            "for(${1:Object} ${2:key} : ${3:map}.keySet()){ {",
+            "\t${1:Object} ${4:item} = ${3}.get(${1});",
+            "\t$0",
+            "}"
+        ],
+        "description": "For loop to iterate over a map"
+    },
     "if statement": {
         "prefix": "if",
         "body": [
