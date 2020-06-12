@@ -5,16 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  RegistryAccess,
+  registryData
+} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  ForceSourceDeploySourcePathExecutor
-} from '../../../src/commands/forceSourceDeploySourcePath';
+import { ForceSourceDeploySourcePathExecutor } from '../../../src/commands/forceSourceDeploySourcePath';
 import { nls } from '../../../src/messages';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
-import { RegistryAccess, registryData } from '@salesforce/source-deploy-retrieve';
 import sinon = require('sinon');
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { useBetaDeployRetrieve } from '../../../src/commands/util/useBetaDeployRetrieve';
@@ -57,7 +58,10 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const getFilesStub = sandboxStub.stub(RegistryAccess.prototype, 'getComponentsFromPath');
+    const getFilesStub = sandboxStub.stub(
+      RegistryAccess.prototype,
+      'getComponentsFromPath'
+    );
     const components: MetadataComponent[] = [
       {
         fullName: 'bar',
@@ -66,12 +70,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         sources: ['bar.js', 'bar.html', 'bar.js-meta.xml']
       }
     ];
-    ;
     getFilesStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.html');
     const fileProcessing = useBetaDeployRetrieve([uriOne]);
     expect(fileProcessing).to.equal(true);
-    getFilesStub.restore()
+    getFilesStub.restore();
   });
 
   it('Should return true for ApexClass URI when beta configuration is enabled', () => {
