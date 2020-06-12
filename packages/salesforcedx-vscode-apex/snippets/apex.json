@@ -197,6 +197,47 @@
         ],
         "description": "x ? y : z;"
     },
+    "constructor": {
+        "prefix": "constructor",
+        "body": [
+            "${1:|private,public,global|} ${2:${TM_FILENAME_BASE}}($3) {",
+            "\t${0:super();}",
+            "}"
+        ],
+        "description": "New constructor"
+    },
+    "new object": {
+        "prefix": "newobj",
+        "body": [
+            "${1:Object} ${2:var} = new ${1:Object}();"
+        ],
+        "description": "New Object"
+    },
+    "Field": {
+        "prefix": "field",
+        "body": [
+            "${1:|private,public,global|} ${2:String} ${3:name};"
+        ],
+        "description": "Field"
+    },
+    "method": {
+        "prefix": "method",
+        "body": [
+            "${1:|private,public,global|} ${2:void} ${3:name}($4) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "New method"
+    },
+    "static method": {
+        "prefix": "staticmethod",
+        "body": [
+            "${1:|private,public,global|} static ${2:void} ${3:name}($4) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "New static method"
+    },
     "Try finally": {
         "prefix": "tryf",
         "body": [
