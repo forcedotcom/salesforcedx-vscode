@@ -332,6 +332,13 @@
         ],
         "description": "Set constructor"
     },
+    "Set Ids from list of records": {
+        "prefix": "setidsfromrecordlist",
+        "body": [
+            "Set<Id> ${1:variable} = new Map<Id, SObject>(${2:recordList}).keySet();"
+        ],
+        "description": "Set of Ids from List of records"
+    },
     "@AuraEnabled": {
         "prefix": "@AuraEnabled",
         "body": [
