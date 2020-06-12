@@ -10,11 +10,14 @@ import * as path from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
-  ForceSourceDeploySourcePathExecutor,
-  useBetaRetrieve
+  ForceSourceDeploySourcePathExecutor
 } from '../../../src/commands/forceSourceDeploySourcePath';
 import { nls } from '../../../src/messages';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { RegistryAccess, registryData } from '@salesforce/source-deploy-retrieve';
+import sinon = require('sinon');
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
+import { useBetaDeployRetrieve } from '../../../src/commands/util/useBetaDeployRetrieve';
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
   let sandboxStub: SinonSandbox;
@@ -46,7 +49,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .returns(true);
     const uriOne = vscode.Uri.parse('file:///bar.cls');
     const uriTwo = vscode.Uri.parse('file:///bar.trigger');
-    const multipleFileProcessing = useBetaRetrieve([uriOne, uriTwo]);
+    const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
     expect(multipleFileProcessing).to.equal(false);
   });
 
@@ -54,9 +57,21 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
+    const getFilesStub = sandboxStub.stub(RegistryAccess.prototype, 'getComponentsFromPath');
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.lightningcomponentbundle,
+        xml: 'bar.js-meta.xml',
+        sources: ['bar.js', 'bar.html', 'bar.js-meta.xml']
+      }
+    ];
+    ;
+    getFilesStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.html');
-    const fileProcessing = useBetaRetrieve([uriOne]);
-    expect(fileProcessing).to.equal(false);
+    const fileProcessing = useBetaDeployRetrieve([uriOne]);
+    expect(fileProcessing).to.equal(true);
+    getFilesStub.restore()
   });
 
   it('Should return true for ApexClass URI when beta configuration is enabled', () => {
@@ -64,11 +79,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
     const uriOne = vscode.Uri.parse('file:///bar.cls');
-    const apexClassProcessing = useBetaRetrieve([uriOne]);
+    const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
     expect(apexClassProcessing).to.equal(true);
 
     const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
-    const apexClassMetaProcessing = useBetaRetrieve([uriTwo]);
+    const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(apexClassMetaProcessing).to.equal(true);
   });
 
@@ -77,11 +92,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
     const uriOne = vscode.Uri.parse('file:///bar.cls');
-    const apexClassProcessing = useBetaRetrieve([uriOne]);
+    const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
     expect(apexClassProcessing).to.equal(false);
 
     const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
-    const apexClassMetaProcessing = useBetaRetrieve([uriTwo]);
+    const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(apexClassMetaProcessing).to.equal(false);
   });
 
@@ -90,11 +105,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
     const uriOne = vscode.Uri.parse('file:///bar.trigger');
-    const triggerProcessing = useBetaRetrieve([uriOne]);
+    const triggerProcessing = useBetaDeployRetrieve([uriOne]);
     expect(triggerProcessing).to.equal(true);
 
     const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
-    const triggerMetaProcessing = useBetaRetrieve([uriTwo]);
+    const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(triggerMetaProcessing).to.equal(true);
   });
 
@@ -103,11 +118,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
     const uriOne = vscode.Uri.parse('file:///bar.trigger');
-    const triggerProcessing = useBetaRetrieve([uriOne]);
+    const triggerProcessing = useBetaDeployRetrieve([uriOne]);
     expect(triggerProcessing).to.equal(false);
 
     const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
-    const triggerMetaProcessing = useBetaRetrieve([uriTwo]);
+    const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(triggerMetaProcessing).to.equal(false);
   });
 
@@ -116,11 +131,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
     const uriOne = vscode.Uri.parse('file:///bar.page');
-    const pageProcessing = useBetaRetrieve([uriOne]);
+    const pageProcessing = useBetaDeployRetrieve([uriOne]);
     expect(pageProcessing).to.equal(true);
 
     const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
-    const pageMetaProcessing = useBetaRetrieve([uriTwo]);
+    const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(pageMetaProcessing).to.equal(true);
   });
 
@@ -129,11 +144,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
     const uriOne = vscode.Uri.parse('file:///bar.page');
-    const pageProcessing = useBetaRetrieve([uriOne]);
+    const pageProcessing = useBetaDeployRetrieve([uriOne]);
     expect(pageProcessing).to.equal(false);
 
     const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
-    const pageMetaProcessing = useBetaRetrieve([uriTwo]);
+    const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(pageMetaProcessing).to.equal(false);
   });
 
@@ -142,11 +157,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
     const uriOne = vscode.Uri.parse('file:///bar.component');
-    const cmpProcessing = useBetaRetrieve([uriOne]);
+    const cmpProcessing = useBetaDeployRetrieve([uriOne]);
     expect(cmpProcessing).to.equal(true);
 
     const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-    const cmpMetaProcessing = useBetaRetrieve([uriTwo]);
+    const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(cmpMetaProcessing).to.equal(true);
   });
 
@@ -155,11 +170,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
     const uriOne = vscode.Uri.parse('file:///bar.component');
-    const cmpProcessing = useBetaRetrieve([uriOne]);
+    const cmpProcessing = useBetaDeployRetrieve([uriOne]);
     expect(cmpProcessing).to.equal(false);
 
     const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-    const cmpMetaProcessing = useBetaRetrieve([uriTwo]);
+    const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
     expect(cmpMetaProcessing).to.equal(false);
   });
 });

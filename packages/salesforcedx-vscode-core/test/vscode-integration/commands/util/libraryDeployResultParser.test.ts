@@ -19,6 +19,7 @@ describe('Tooling Deploy Parser', () => {
     State: DeployStatusEnum.Completed,
     ErrorMsg: null,
     isDeleted: false,
+    outboundFiles: ['classes/testApi.cls', 'classes/testApi.cls-meta.xml'],
     DeployDetails: {
       componentFailures: [],
       componentSuccesses: [
