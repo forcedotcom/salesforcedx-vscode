@@ -59,14 +59,14 @@
         "body": [
             "do {",
             "\t$0",
-            "} while (${1:true});"
+            "} while (${1:condition});"
         ],
         "description": "do...while loop"
     },
     "while loop": {
         "prefix": "while",
         "body": [
-            "while (${1:true}) {",
+            "while (${1:condition}) {",
             "\t$0",
             "}"
         ],
@@ -111,7 +111,7 @@
     "if statement": {
         "prefix": "if",
         "body": [
-            "if (${1:true}) {",
+            "if (${1:condition}) {",
             "\t$0",
             "}"
         ],
