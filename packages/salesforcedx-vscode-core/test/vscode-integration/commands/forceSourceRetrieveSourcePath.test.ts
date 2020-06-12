@@ -18,14 +18,14 @@ import { Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
   ForceSourceRetrieveSourcePathExecutor,
-  SourcePathChecker,
+  SourcePathChecker
 } from '../../../src/commands/forceSourceRetrieveSourcePath';
+import { useBetaDeployRetrieve } from '../../../src/commands/util/useBetaDeployRetrieve';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
-import { useBetaDeployRetrieve } from '../../../src/commands/util/useBetaDeployRetrieve';
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
   it('Should build the source retrieve command', () => {
