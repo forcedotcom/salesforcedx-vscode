@@ -75,7 +75,7 @@
     "for": {
         "prefix": "for",
         "body": [
-            "for (${1:variable} : ${2:List_or_set}) {",
+            "for (${1:type} ${2:variable} : ${3:List_or_set}) {",
             "\t$0",
             "}"
         ],
@@ -84,7 +84,7 @@
     "for soql": {
         "prefix": "fors",
         "body": [
-            "for (${1:variable} : [${2:SOQL}]) {",
+            "for (${1:SObject} ${2:variable} : [${3:SOQL}]) {",
             "\t$0",
             "}"
         ],
