@@ -117,6 +117,17 @@
         ],
         "description": "if statement"
     },
+    "if else statement": {
+        "prefix": "ifelse",
+        "body": [
+            "if (${1:condition}) {",
+            "\t$2",
+            "} else {",
+            "\t$0",
+            "}"
+        ],
+        "description": "if/else statement"
+    },
     "Else statement": {
         "prefix": "else",
         "body": [
@@ -125,6 +136,31 @@
             "}"
         ],
         "description": "Else statement"
+    },
+    "if null statement": {
+        "prefix": "ifnull",
+        "body": [
+            "if (${1:condition} == null) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "if null statement"
+    },
+    "if not null statement": {
+        "prefix": "ifnotnull",
+        "body": [
+            "if (${1:condition} != null) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "if not null statement"
+    },
+    "ternary": {
+        "prefix": "ter",
+        "body": [
+            "${1:condition} ? ${2:exprIfTrue} : ${3:exprIfFalse};"
+        ],
+        "description": "x ? y : z;"
     },
     "Try finally": {
         "prefix": "tryf",
