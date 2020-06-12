@@ -318,6 +318,13 @@
         ],
         "description": "Map constructor"
     },
+    "Map from list of records": {
+        "prefix": "mapfromrecordlist",
+        "body": [
+            "Map<Id, ${1:SObject}> ${2:variable} = new Map<Id, ${1}>(${3:recordList});"
+        ],
+        "description": "Map from List of records"
+    },
     "set": {
         "prefix": "Set",
         "body": [
