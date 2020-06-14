@@ -124,18 +124,11 @@ describe('forceLightningLwcPreview', () => {
 
   class MockWorkspace implements vscode.WorkspaceConfiguration {
     // tslint:disable-next-line:member-access
-    mobileEnabled = false;
-    // tslint:disable-next-line:member-access
     shouldRemember = false;
     // tslint:disable-next-line:member-access
     loglevel = defaultLogLevel;
 
-    constructor(
-      mobileEnabled: boolean,
-      shouldRemember: boolean,
-      loglevel?: string
-    ) {
-      this.mobileEnabled = mobileEnabled;
+    constructor(shouldRemember: boolean, loglevel?: string) {
       this.shouldRemember = shouldRemember;
       if (loglevel !== undefined) {
         this.loglevel = loglevel;
@@ -151,8 +144,6 @@ describe('forceLightningLwcPreview', () => {
           return this.loglevel;
         case rememberDeviceKey:
           return this.shouldRemember;
-        case mobileEnabledKey:
-          return this.mobileEnabled;
         default:
           return undefined;
       }
@@ -267,177 +258,8 @@ describe('forceLightningLwcPreview', () => {
   }
 
   it('exists sync called with correct path', async () => {
-    // Returns false for enabling mobile, false for remembered device settings.
-    getConfigurationStub.returns(new MockWorkspace(false, false));
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    mockFileExists(mockLwcFilePath);
-
-    lstatSyncStub.returns({
-      isDirectory() {
-        return false;
-      }
-    } as fs.Stats);
-
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-
-    sinon.assert.calledOnce(existsSyncStub);
-    sinon.assert.calledWith(
-      existsSyncStub,
-      /^win32/.test(process.platform)
-        ? 'c:\\project\\force-app\\main\\default\\lwc\\foo\\foo.js'
-        : '/var/project/force-app/main/default/lwc/foo/foo.js'
-    );
-  });
-
-  it('calls openBrowser with the correct url for files', async () => {
-    getConfigurationStub.returns(new MockWorkspace(false, false));
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
-    devServiceStub.getComponentPreviewUrl.returns(
-      'http://localhost:3333/preview/c/foo'
-    );
-    const sourceUri = URI.file(mockLwcFilePath);
-    mockFileExists(mockLwcFilePath);
-
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return false;
-      }
-    } as fs.Stats);
-
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-
-    sinon.assert.calledWith(
-      devServiceStub.getComponentPreviewUrl,
-      sinon.match('c/foo')
-    );
-    sinon.assert.calledOnce(openBrowserStub);
-    sinon.assert.calledWith(
-      openBrowserStub,
-      sinon.match(
-        `${DEV_SERVER_DEFAULT_BASE_URL}/${DEV_SERVER_PREVIEW_ROUTE}/c/foo`
-      )
-    );
-  });
-
-  it('calls openBrowser with the correct url for directories', async () => {
-    getConfigurationStub.returns(new MockWorkspace(false, false));
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    devServiceStub.getComponentPreviewUrl.returns(
-      'http://localhost:3333/preview/c/foo'
-    );
-    mockFileExists(mockLwcFileDirectory);
-
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return true;
-      }
-    } as fs.Stats);
-
-    await forceLightningLwcPreview(mockLwcFileDirectoryUri);
-
-    sinon.assert.calledWith(
-      devServiceStub.getComponentPreviewUrl,
-      sinon.match('c/foo')
-    );
-    sinon.assert.calledOnce(openBrowserStub);
-    sinon.assert.calledWith(
-      openBrowserStub,
-      sinon.match(`http://localhost:3333/preview/c/foo`)
-    );
-  });
-
-  it('starts the server if it is not running yet', async () => {
-    getConfigurationStub.returns(new MockWorkspace(false, false));
-    devServiceStub.isServerHandlerRegistered.returns(false);
-    mockFileExists(mockLwcFileDirectory);
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return true;
-      }
-    } as fs.Stats);
-
-    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
-    await forceLightningLwcPreview(mockLwcFileDirectoryUri);
-
-    sinon.assert.calledOnce(commandletStub);
-  });
-
-  it('shows an error when source path is not recognized as an lwc module file', async () => {
-    getConfigurationStub.returns(new MockWorkspace(false, false));
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    mockFileExists(notLwcModulePath);
-
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return false;
-      }
-    } as fs.Stats);
-
-    await forceLightningLwcPreview(notLwcModulePathUri);
-
-    sinon.assert.calledWith(
-      showErrorMessageStub,
-      sinon.match(
-        nls.localize(
-          `force_lightning_lwc_preview_unsupported`,
-          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
-        )
-      )
-    );
-  });
-
-  it('shows an error when source path does not exist', async () => {
-    getConfigurationStub.returns(new MockWorkspace(false, false));
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    mockFileExists(nonExistentPath);
-    existsSyncStub.returns(false);
-
-    await forceLightningLwcPreview(nonExistentPathUri);
-
-    sinon.assert.calledWith(
-      showErrorMessageStub,
-      sinon.match(
-        nls.localize(
-          `force_lightning_lwc_preview_file_nonexist`,
-          /^win32/.test(process.platform) ? 'c:\\foo' : '/var/foo'
-        )
-      )
-    );
-  });
-
-  it('shows an error message when open browser throws an error', async () => {
-    getConfigurationStub.returns(new MockWorkspace(false, false));
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    mockFileExists(mockLwcFileDirectory);
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return true;
-      }
-    } as fs.Stats);
-
-    openBrowserStub.throws('test error');
-
-    await forceLightningLwcPreview(mockLwcFileDirectoryUri);
-
-    const commandName = nls.localize(`force_lightning_lwc_preview_text`);
-    sinon.assert.calledTwice(showErrorMessageStub);
-    sinon.assert.calledWith(
-      showErrorMessageStub,
-      sinon.match(nls.localize('command_failure', commandName))
-    );
-  });
-
-  // Tests for new Quick Pick UI that includes Desktop, Android and iOS.
-  // TODO: Remove tests above this line when enable mobile configuration setting is removed.
-  it('exists sync called with correct path', async () => {
     // Returns true for enabling mobile, false for remembered device settings.
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     devServiceStub.isServerHandlerRegistered.returns(true);
     mockFileExists(mockLwcFilePath);
 
@@ -464,7 +286,7 @@ describe('forceLightningLwcPreview', () => {
     devServiceStub.getComponentPreviewUrl.returns(
       'http://localhost:3333/preview/c/foo'
     );
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -490,7 +312,7 @@ describe('forceLightningLwcPreview', () => {
     devServiceStub.getComponentPreviewUrl.returns(
       'http://localhost:3333/preview/c/foo'
     );
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
@@ -513,7 +335,7 @@ describe('forceLightningLwcPreview', () => {
 
   it('starts the server if it is not running when desktop selected', async () => {
     devServiceStub.isServerHandlerRegistered.returns(false);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     mockFileExists(mockLwcFilePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -538,7 +360,7 @@ describe('forceLightningLwcPreview', () => {
         return false;
       }
     } as fs.Stats);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('');
@@ -580,7 +402,7 @@ describe('forceLightningLwcPreview', () => {
         return false;
       }
     } as fs.Stats);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(iOSQuickPick);
     showInputBoxStub.resolves('');
@@ -616,7 +438,7 @@ describe('forceLightningLwcPreview', () => {
 
   it('shows an error when source path is not recognized as an lwc module file', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     mockFileExists(notLwcModulePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -642,7 +464,7 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path does not exist', async () => {
     mockFileExists(nonExistentPath);
     devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     existsSyncStub.returns(false);
     showQuickPickStub.resolves(desktopQuickPick);
     await forceLightningLwcPreview(nonExistentPathUri);
@@ -660,7 +482,7 @@ describe('forceLightningLwcPreview', () => {
 
   it('shows an error message when open browser throws an error', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     mockFileExists(mockLwcFileDirectory);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -691,7 +513,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('');
@@ -732,7 +554,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(iOSQuickPick);
     showInputBoxStub.resolves('');
@@ -773,7 +595,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('test');
@@ -795,7 +617,7 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path does not exist', async () => {
     mockFileExists(nonExistentPath);
     existsSyncStub.returns(false);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves(undefined);
@@ -825,7 +647,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves(deviceName);
@@ -862,7 +684,7 @@ describe('forceLightningLwcPreview', () => {
     } as fs.Stats);
 
     devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(iOSQuickPick);
     showInputBoxStub.resolves(deviceName);
@@ -898,7 +720,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, true));
+    getConfigurationStub.returns(new MockWorkspace(true));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('');
@@ -937,7 +759,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, true));
+    getConfigurationStub.returns(new MockWorkspace(true));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(iOSQuickPick);
     showInputBoxStub.resolves('');
@@ -972,7 +794,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, true));
+    getConfigurationStub.returns(new MockWorkspace(true));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     // This simulates the user hitting the escape key to cancel input.
@@ -1000,7 +822,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, true));
+    getConfigurationStub.returns(new MockWorkspace(true));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(iOSQuickPick);
     // This simulates the user hitting the escape key to cancel input.
@@ -1029,7 +851,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('');
@@ -1061,7 +883,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(iOSQuickPick);
     showInputBoxStub.resolves('');
@@ -1093,7 +915,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false));
+    getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('');
@@ -1136,7 +958,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
 
-    getConfigurationStub.returns(new MockWorkspace(true, false, 'debug'));
+    getConfigurationStub.returns(new MockWorkspace(false, 'debug'));
     getGlobalStoreStub.returns(new MockMemento());
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('');
