@@ -137,12 +137,6 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  // Preform existing desktop behavior if mobile is not enabled.
-  if (!PreviewService.instance.isMobileEnabled()) {
-    await startServer(true, componentName, startTime);
-    return;
-  }
-
   await selectPlatformAndExecute(startTime, componentName);
 }
 
