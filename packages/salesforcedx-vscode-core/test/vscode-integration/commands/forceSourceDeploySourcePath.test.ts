@@ -22,9 +22,13 @@ import { useBetaDeployRetrieve } from '../../../src/commands/util/useBetaDeployR
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
   let sandboxStub: SinonSandbox;
-
+  let registryStub: sinon.SinonStub;
   beforeEach(() => {
     sandboxStub = createSandbox();
+    registryStub = sandboxStub.stub(
+      RegistryAccess.prototype,
+      'getComponentsFromPath'
+    );
   });
 
   afterEach(() => {
@@ -48,6 +52,21 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apextrigger,
+        xml: 'bar.trigger-meta.xml',
+        sources: ['bar.trigger', 'bar.trigger-meta.xml']
+      },
+      {
+        fullName: 'bar',
+        type: registryData.types.apexclass,
+        xml: 'bar.cls-meta.xml',
+        sources: ['bar.cls', 'bar.cls-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.cls');
     const uriTwo = vscode.Uri.parse('file:///bar.trigger');
     const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
@@ -58,10 +77,6 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
-    const getFilesStub = sandboxStub.stub(
-      RegistryAccess.prototype,
-      'getComponentsFromPath'
-    );
     const components: MetadataComponent[] = [
       {
         fullName: 'bar',
@@ -70,17 +85,25 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         sources: ['bar.js', 'bar.html', 'bar.js-meta.xml']
       }
     ];
-    getFilesStub.returns(components);
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.html');
     const fileProcessing = useBetaDeployRetrieve([uriOne]);
     expect(fileProcessing).to.equal(true);
-    getFilesStub.restore();
   });
 
   it('Should return true for ApexClass URI when beta configuration is enabled', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apexclass,
+        xml: 'bar.cls-meta.xml',
+        sources: ['bar.cls', 'bar.cls-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.cls');
     const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
     expect(apexClassProcessing).to.equal(true);
@@ -94,6 +117,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apexclass,
+        xml: 'bar.cls-meta.xml',
+        sources: ['bar.cls', 'bar.cls-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.cls');
     const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
     expect(apexClassProcessing).to.equal(false);
@@ -107,6 +139,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apextrigger,
+        xml: 'bar.trigger-meta.xml',
+        sources: ['bar.trigger', 'bar.trigger-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.trigger');
     const triggerProcessing = useBetaDeployRetrieve([uriOne]);
     expect(triggerProcessing).to.equal(true);
@@ -120,6 +161,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apextrigger,
+        xml: 'bar.trigger-meta.xml',
+        sources: ['bar.trigger', 'bar.trigger-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.trigger');
     const triggerProcessing = useBetaDeployRetrieve([uriOne]);
     expect(triggerProcessing).to.equal(false);
@@ -133,6 +183,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apexpage,
+        xml: 'bar.page-meta.xml',
+        sources: ['bar.page', 'bar.page-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.page');
     const pageProcessing = useBetaDeployRetrieve([uriOne]);
     expect(pageProcessing).to.equal(true);
@@ -146,6 +205,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apexpage,
+        xml: 'bar.page-meta.xml',
+        sources: ['bar.page', 'bar.page-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.page');
     const pageProcessing = useBetaDeployRetrieve([uriOne]);
     expect(pageProcessing).to.equal(false);
@@ -159,6 +227,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(true);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apexcomponent,
+        xml: 'bar.component-meta.xml',
+        sources: ['bar.component', 'bar.component-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.component');
     const cmpProcessing = useBetaDeployRetrieve([uriOne]);
     expect(cmpProcessing).to.equal(true);
@@ -172,6 +249,59 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     sandboxStub
       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
       .returns(false);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.apexcomponent,
+        xml: 'bar.component-meta.xml',
+        sources: ['bar.component', 'bar.component-meta.xml']
+      }
+    ];
+    registryStub.returns(components);
+    const uriOne = vscode.Uri.parse('file:///bar.component');
+    const cmpProcessing = useBetaDeployRetrieve([uriOne]);
+    expect(cmpProcessing).to.equal(false);
+
+    const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
+    const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+    expect(cmpMetaProcessing).to.equal(false);
+  });
+
+  it('Should return true for LWC URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(true);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.lightningcomponentbundle,
+        xml: 'bar.js-meta.xml',
+        sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
+      }
+    ];
+    registryStub.returns(components);
+    const uriOne = vscode.Uri.parse('file:///bar.component');
+    const cmpProcessing = useBetaDeployRetrieve([uriOne]);
+    expect(cmpProcessing).to.equal(true);
+
+    const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
+    const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+    expect(cmpMetaProcessing).to.equal(true);
+  });
+
+  it('Should return false for LWC URI when beta configuration is enabled', () => {
+    sandboxStub
+      .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+      .returns(false);
+    const components: MetadataComponent[] = [
+      {
+        fullName: 'bar',
+        type: registryData.types.lightningcomponentbundle,
+        xml: 'bar.js-meta.xml',
+        sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
+      }
+    ];
+    registryStub.returns(components);
     const uriOne = vscode.Uri.parse('file:///bar.component');
     const cmpProcessing = useBetaDeployRetrieve([uriOne]);
     expect(cmpProcessing).to.equal(false);

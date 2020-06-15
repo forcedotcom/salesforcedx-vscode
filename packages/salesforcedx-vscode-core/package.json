@@ -88,7 +88,8 @@
   "main": "./out/src",
   "contributes": {
     "viewsContainers": {
-      "activitybar": [{
+      "activitybar": [
+        {
           "id": "metadata",
           "title": "Org Browser",
           "icon": "resources/dep.svg"
@@ -101,28 +102,37 @@
       ]
     },
     "views": {
-      "explorer": [{
-        "id": "sfdx.force.tasks.view",
-        "name": "%running_tasks_title_text%"
-      }],
-      "metadata": [{
-        "id": "metadata",
-        "name": "Metadata",
-        "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
-      }],
-      "conflicts": [{
-        "id": "conflicts",
-        "name": "Conflicts",
-        "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
-      }]
+      "explorer": [
+        {
+          "id": "sfdx.force.tasks.view",
+          "name": "%running_tasks_title_text%"
+        }
+      ],
+      "metadata": [
+        {
+          "id": "metadata",
+          "name": "Metadata",
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+        }
+      ],
+      "conflicts": [
+        {
+          "id": "conflicts",
+          "name": "Conflicts",
+          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+        }
+      ]
     },
     "menus": {
-      "view/title": [{
-        "command": "sfdx.force.metadata.view.type.refresh",
-        "when": "view == metadata",
-        "group": "navigation"
-      }],
-      "view/item/context": [{
+      "view/title": [
+        {
+          "command": "sfdx.force.metadata.view.type.refresh",
+          "when": "view == metadata",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
           "command": "sfdx.force.task.stop",
           "when": "view == sfdx.force.tasks.view"
         },
@@ -142,7 +152,8 @@
           "group": "inline"
         }
       ],
-      "editor/context": [{
+      "editor/context": [
+        {
           "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
@@ -175,7 +186,8 @@
           "when": "sfdx:project_opened && resourceLangId == visualforce"
         }
       ],
-      "explorer/context": [{
+      "explorer/context": [
+        {
           "command": "sfdx.force.lightning.lwc.create",
           "when": "explorerResourceIsFolder && resourceFilename == lwc && sfdx:project_opened"
         },
@@ -268,7 +280,8 @@
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         }
       ],
-      "commandPalette": [{
+      "commandPalette": [
+        {
           "command": "sfdx.force.package.install",
           "when": "sfdx:project_opened"
         },
@@ -498,7 +511,8 @@
         }
       ]
     },
-    "commands": [{
+    "commands": [
+      {
         "command": "sfdx.force.package.install",
         "title": "%force_package_install_text%"
       },
@@ -791,7 +805,8 @@
         }
       }
     },
-    "jsonValidation": [{
+    "jsonValidation": [
+      {
         "fileMatch": "sfdx-project.json",
         "url": "https://forcedotcom.github.io/schemas/sfdx-project.json/sfdx-project.schema.json"
       },
@@ -800,7 +815,8 @@
         "url": "https://forcedotcom.github.io/schemas/project-scratch-def.json/project-scratch-def.schema.json"
       }
     ],
-    "languages": [{
+    "languages": [
+      {
         "id": "ignore",
         "filenames": [
           ".forceignore"
@@ -827,10 +843,12 @@
         ]
       }
     ],
-    "grammars": [{
-      "language": "forcesourcemanifest",
-      "scopeName": "manifest.text.xml",
-      "path": "./syntaxes/manifestXML.tmLanguage.json"
-    }]
+    "grammars": [
+      {
+        "language": "forcesourcemanifest",
+        "scopeName": "manifest.text.xml",
+        "path": "./syntaxes/manifestXML.tmLanguage.json"
+      }
+    ]
   }
 }

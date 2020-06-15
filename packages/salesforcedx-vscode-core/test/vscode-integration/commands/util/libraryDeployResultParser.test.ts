@@ -19,7 +19,7 @@ describe('Tooling Deploy Parser', () => {
     State: DeployStatusEnum.Completed,
     ErrorMsg: null,
     isDeleted: false,
-    outboundFiles: ['classes/testApi.cls', 'classes/testApi.cls-meta.xml'],
+    outboundFiles: ['classes/testAPI.cls', 'classes/testAPI.cls-meta.xml'],
     DeployDetails: {
       componentFailures: [],
       componentSuccesses: [
@@ -37,6 +37,34 @@ describe('Tooling Deploy Parser', () => {
       ]
     },
     metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
+  };
+
+  const lwcCompleteDeployResult: DeployResult = {
+    State: DeployStatusEnum.Completed,
+    ErrorMsg: null,
+    isDeleted: false,
+    outboundFiles: [
+      'classes/testAPI.js',
+      'classes/testAPI.js-meta.xml',
+      'classes/testAPI.html'
+    ],
+    DeployDetails: {
+      componentFailures: [],
+      componentSuccesses: [
+        {
+          problem: 'null',
+          problemType: 'null',
+          fileName: 'classes/testAPI.js',
+          fullName: 'testAPI',
+          componentType: 'LightningComponentBundle',
+          success: true,
+          changed: true,
+          created: false,
+          deleted: false
+        }
+      ]
+    },
+    metadataFile: path.join('file', 'path', 'classes', 'testAPI.js-meta.xml')
   };
 
   const failedDeployResult: DeployResult = {
@@ -169,6 +197,25 @@ describe('Tooling Deploy Parser', () => {
       'Updated  testAPI    ApexClass  classes/testAPI.cls         \n';
     mockResult +=
       'Updated  testAPI    ApexClass  classes/testAPI.cls-meta.xml\n';
+
+    const results = await parser.outputResult();
+    expect(results).to.equal(mockResult);
+  });
+
+  it('should create a table with successful results for LWC', async () => {
+    const parser = new LibraryDeployResultParser(lwcCompleteDeployResult);
+
+    let mockResult = '=== Deployed Source\n';
+    mockResult +=
+      'STATE    FULL NAME  TYPE                      PROJECT PATH               \n';
+    mockResult +=
+      '───────  ─────────  ────────────────────────  ───────────────────────────\n';
+    mockResult +=
+      'Updated  testAPI    LightningComponentBundle  classes/testAPI.js         \n';
+    mockResult +=
+      'Updated  testAPI    LightningComponentBundle  classes/testAPI.js-meta.xml\n';
+    mockResult +=
+      'Updated  testAPI    LightningComponentBundle  classes/testAPI.html       \n';
 
     const results = await parser.outputResult();
     expect(results).to.equal(mockResult);
