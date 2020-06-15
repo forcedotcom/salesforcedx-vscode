@@ -33,7 +33,7 @@ import { ConfigSource, OrgAuthInfo } from '../util/index';
 import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
-  protected showChannelOutput = false;
+  protected showChannelOutput = isSFDXContainerMode();
 
   public build(data: {}): Command {
     const command = new SfdxCommandBuilder().withDescription(

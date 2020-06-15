@@ -25,7 +25,7 @@ export class CommandOutput {
           if (data !== undefined && data.toString() === '0') {
             return resolve(this.stdoutBuffer);
           } else {
-            reject(this.stderrBuffer);
+            return reject(this.stderrBuffer || this.stdoutBuffer);
           }
         });
       }

@@ -15,7 +15,6 @@ import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService, ServerHandler } from '../service/devServerService';
-import { DEV_SERVER_BASE_URL } from './commandConstants';
 import { openBrowser, showError } from './commandUtils';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
@@ -35,15 +34,26 @@ const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const logName = 'force_lightning_lwc_start';
 const commandName = nls.localize(`force_lightning_lwc_start_text`);
 
+/**
+ * Hints for providing a user-friendly error message / action.
+ * Hints come from the stderr output of lwc-dev-server. (We should move this to lwc-dev-server later)
+ */
+export const enum errorHints {
+  SERVER_STARTUP_FALIED = 'Server start up failed',
+  ADDRESS_IN_USE = 'EADDRINUSE',
+  INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
+}
+
 export interface ForceLightningLwcStartOptions {
   /** whether to automatically open the browser after server start */
   openBrowser: boolean;
-  /** complete url of the page to open in the browser */
-  fullUrl?: string;
+  /** component name to preview in the browser */
+  componentName?: string;
 }
 
 export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   private readonly options: ForceLightningLwcStartOptions;
+  private errorHint?: string;
 
   constructor(options: ForceLightningLwcStartOptions = { openBrowser: true }) {
     super();
@@ -84,6 +94,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     channelService.showChannelOutput();
 
     let serverStarted = false;
+    let printedError = false;
 
     const progress = new Subject();
     ProgressNotification.show(
@@ -106,8 +117,18 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         taskViewService.removeTask(task);
         notificationService.showSuccessfulExecution(executionName);
 
+        DevServerService.instance.setBaseUrlFromDevServerUpMessage(
+          data.toString()
+        );
+
         if (this.options.openBrowser) {
-          await openBrowser(this.options.fullUrl || DEV_SERVER_BASE_URL);
+          await openBrowser(
+            this.options.componentName
+              ? DevServerService.instance.getComponentPreviewUrl(
+                  this.options.componentName
+                )
+              : DevServerService.instance.getBaseUrl()
+          );
         }
 
         this.logMetric(execution.command.logName, startTime);
@@ -115,14 +136,40 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     });
 
     execution.stderrSubject.subscribe(async data => {
-      if (data && data.toString().includes('Server start up failed')) {
-        this.handleErrors(cancellationToken, serverHandler, 1);
-        progress.complete();
+      if (!printedError && data) {
+        let errorCode = -1;
+        if (data.toString().includes(errorHints.SERVER_STARTUP_FALIED)) {
+          errorCode = 1;
+        }
+        if (data.toString().includes(errorHints.ADDRESS_IN_USE)) {
+          errorCode = 98;
+        }
+        if (data.toString().includes(errorHints.INACTIVE_SCRATCH_ORG)) {
+          this.errorHint = errorHints.INACTIVE_SCRATCH_ORG;
+        }
+        if (errorCode !== -1) {
+          this.handleErrors(
+            cancellationToken,
+            serverHandler,
+            serverStarted,
+            errorCode
+          );
+          progress.complete();
+          printedError = true;
+        }
       }
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      this.handleErrors(cancellationToken, serverHandler, exitCode);
+      if (!printedError) {
+        this.handleErrors(
+          cancellationToken,
+          serverHandler,
+          serverStarted,
+          exitCode
+        );
+        printedError = true;
+      }
     });
 
     notificationService.reportExecutionError(
@@ -141,15 +188,24 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
   private handleErrors(
     cancellationToken: vscode.CancellationToken,
     serverHandler: ServerHandler,
+    serverStarted: boolean,
     exitCode: number | null | undefined
   ) {
     DevServerService.instance.clearServerHandler(serverHandler);
-    if (!this.serverStarted && !cancellationToken.isCancellationRequested) {
+    if (!serverStarted && !cancellationToken.isCancellationRequested) {
       let message = nls.localize('force_lightning_lwc_start_failed');
 
-      // TODO proper exit codes in lwc-dev-server for address in use, auth/org error, etc.
+      if (
+        exitCode === 1 &&
+        this.errorHint === errorHints.INACTIVE_SCRATCH_ORG
+      ) {
+        message = nls.localize('force_lightning_lwc_inactive_scratch_org');
+      }
       if (exitCode === 127) {
         message = nls.localize('force_lightning_lwc_start_not_found');
+      }
+      if (exitCode === 98) {
+        message = nls.localize('force_lightning_lwc_start_addr_in_use');
       }
 
       showError(new Error(message), logName, commandName);
@@ -176,7 +232,7 @@ export async function forceLightningLwcStart() {
       restartOption
     );
     if (response === openBrowserOption) {
-      await openBrowser(DEV_SERVER_BASE_URL);
+      await openBrowser(DevServerService.instance.getBaseUrl());
       return;
     } else if (response === restartOption) {
       channelService.appendLine(

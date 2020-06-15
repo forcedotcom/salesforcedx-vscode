@@ -31,9 +31,11 @@ import {
   forceLightningEventCreate,
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
+  forceLightningLwcTestCreate,
   forceOrgCreate,
   forceOrgDisplay,
   forceOrgOpen,
+  forcePackageInstall,
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
@@ -77,8 +79,10 @@ import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
 import {
+  getRootWorkspacePath,
   hasRootWorkspace,
   isCLIInstalled,
+  isCLITelemetryAllowed,
   showCLINotInstalledMessage
 } from './util';
 import { OrgAuthInfo } from './util/authInfo';
@@ -226,6 +230,11 @@ function registerCommands(
     forceLightningLwcCreate
   );
 
+  const forceLightningLwcTestCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.create',
+    forceLightningLwcTestCreate
+  );
+
   const forceDebuggerStopCmd = vscode.commands.registerCommand(
     'sfdx.force.debugger.stop',
     forceDebuggerStop
@@ -270,6 +279,11 @@ function registerCommands(
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
     forceSfdxProjectCreate
+  );
+
+  const forcePackageInstallCmd = vscode.commands.registerCommand(
+    'sfdx.force.package.install',
+    forcePackageInstall
   );
 
   const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
@@ -348,6 +362,7 @@ function registerCommands(
     forceLightningEventCreateCmd,
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
+    forceLightningLwcTestCreateCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
@@ -356,6 +371,7 @@ function registerCommands(
     forceOrgDisplayDefaultCmd,
     forceOrgDisplayUsernameCmd,
     forceProjectCreateCmd,
+    forcePackageInstallCmd,
     forceProjectWithManifestCreateCmd,
     forceApexTriggerCreateCmd,
     forceStartApexDebugLoggingCmd,
@@ -440,10 +456,9 @@ async function setupOrgBrowser(
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  // Telemetry
   const machineId =
     vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
-  telemetryService.initializeService(context, machineId);
+  await telemetryService.initializeService(context, machineId);
   telemetryService.showTelemetryMessage();
 
   // Task View

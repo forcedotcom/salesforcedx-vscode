@@ -52,6 +52,8 @@ export const messages = {
   parameter_gatherer_enter_file_name: 'Enter desired filename',
   parameter_gatherer_enter_dir_name:
     'Enter desired directory (Press Enter to confirm or Esc to cancel)',
+  parameter_gatherer_enter_lwc_name:
+    'Enter desired Lightning Web Component (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_enter_alias_name:
     'Enter an org alias or use the default alias',
@@ -61,6 +63,10 @@ export const messages = {
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
+  parameter_gatherer_enter_package_id:
+    'Enter the ID of the package you wish to install',
+  parameter_gatherer_enter_installation_key_if_necessary:
+    'Enter the installation key if one is needed or leave blank otherwise',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
   parameter_gatherer_paste_forceide_url_placeholder:
@@ -113,7 +119,7 @@ export const messages = {
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
 
-  force_apex_test_run_text: 'SFDX: Invoke Apex Tests...',
+  force_apex_test_run_text: 'SFDX: Run Apex Tests',
   force_apex_test_run_all_test_label: 'All tests',
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
@@ -124,10 +130,10 @@ export const messages = {
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
-  force_lightning_app_create_text: 'SFDX: Create Lightning App',
-  force_lightning_component_create_text: 'SFDX: Create Lightning Component',
-  force_lightning_event_create_text: 'SFDX: Create Lightning Event',
-  force_lightning_interface_create_text: 'SFDX: Create Lightning Interface',
+  force_lightning_app_create_text: 'SFDX: Create Aura App',
+  force_lightning_component_create_text: 'SFDX: Create Aura Component',
+  force_lightning_event_create_text: 'SFDX: Create Aura Event',
+  force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
@@ -159,6 +165,7 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
+  force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_project_create_standard_template: 'Standard project template (default)',
@@ -278,6 +285,8 @@ export const messages = {
   aura_bundle_message_name: 'Aura Bundle',
   lwc_message_name: 'Lightning Web Component',
   force_lightning_lwc_create_text: 'SFDX: Create Lightning Web Component',
+  force_lightning_lwc_test_create_text:
+    'SFDX: Create Lightning Web Component Test',
   empty_components: 'No components available',
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
@@ -520,5 +529,8 @@ export const messages = {
   beta_tapi_queue_status: 'The deploy is still in the Queue',
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error:
-    'Not able to parse current results. Raw result: %s'
+    'Not able to parse current results. Raw result: %s',
+  package_id_validation_error:
+    'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_id_gatherer_placeholder: '04t...'
 };

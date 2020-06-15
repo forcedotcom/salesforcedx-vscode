@@ -20,7 +20,11 @@ export const messages = {
   command_canceled: '%s was canceled.',
   force_lightning_lwc_start_text: 'SFDX: Start Local Development Server',
   force_lightning_lwc_start_not_found:
-    'To run this command, first install the @salesforce/lwc-dev-server plugin. For more info, see [https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).',
+    'To run this command, install the @salesforce/lwc-dev-server plugin. For more info, see [https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).',
+  force_lightning_lwc_start_addr_in_use:
+    "The local development server can't start because the address is already in use. To fix, try one of these options:\n 1) Stop the local dev server running on any another instance.\n or 2) Change the default port [Configuration for Projects (Optional)](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_local_dev_setup).\n 3) Kill the process running on the specified port.",
+  force_lightning_lwc_inactive_scratch_org:
+    'The local development server can\'t start because your scratch org is not active. Run "SFDX: Create a Default Scratch Org" to create a scratch org, or run "SFDX: Set a Default Org" to select an active scratch org.',
   force_lightning_lwc_start_failed:
     'The local development server was not able to start.',
   force_lightning_lwc_start_exited:
@@ -33,7 +37,7 @@ export const messages = {
   force_lightning_lwc_stop_in_progress: 'Stopping local development server',
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
   force_lightning_lwc_preview_file_undefined:
-    "Can't find the Lightning Web Components module. Check that %s is the correct filepath.",
+    "Can't find the Lightning Web Components module. Check that %s is the correct file path.",
   force_lightning_lwc_preview_file_nonexist:
     "Can't find the Lightning Web Components module in %s. Check that the module exists.",
   force_lightning_lwc_preview_unsupported:
@@ -55,5 +59,33 @@ export const messages = {
   debug_test_title: 'Debug Test',
   run_test_task_name: 'Run Test',
   watch_test_task_name: 'Watch Test',
-  default_task_name: 'LWC Test'
+  default_task_name: 'LWC Test',
+  task_windows_command_prompt_messaging:
+    'Default shell for running tasks is set to cmd.exe',
+  force_lightning_lwc_no_mobile_plugin:
+    'To run this command, install the @salesforce/lwc-dev-mobile plugin.',
+  force_lightning_lwc_platform_selection:
+    'Select the platform for previewing the component',
+  force_lightning_lwc_android_target_default:
+    'Enter a name for the Android emulator (leave blank for default)',
+  force_lightning_lwc_ios_target_default:
+    'Enter a name for the iOS simulator (leave blank for default)',
+  force_lightning_lwc_android_target_remembered:
+    "Enter a name for the Android emulator (leave blank for '%s')",
+  force_lightning_lwc_ios_target_remembered:
+    "Enter a name for the iOS simulator (leave blank for '%s')",
+  force_lightning_lwc_cancelled: 'Preview platform selection cancelled.',
+  force_lightning_lwc_android_device_cancelled: 'Emulator selection cancelled.',
+  force_lightning_lwc_ios_device_cancelled: 'Simulator selection cancelled.',
+  force_lightning_lwc_ios_label: 'Use iOS Simulator',
+  force_lightning_lwc_ios_description: 'Preview component on iOS',
+  force_lightning_lwc_android_label: 'Use Android Emulator',
+  force_lightning_lwc_android_description: 'Preview component on Android',
+  force_lightning_lwc_android_failure: "Failed to start Android Emulator '%s'.",
+  force_lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'.",
+  force_lightning_lwc_android_start: "Starting Android Emulator '%s'.",
+  force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
+  force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
+  force_lightning_lwc_preview_desktop_description:
+    'Preview component on desktop browser'
 };

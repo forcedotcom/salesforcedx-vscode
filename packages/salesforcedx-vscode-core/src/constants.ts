@@ -14,6 +14,8 @@ export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
+export const SFDX_CONFIG_DISABLE_TELEMETRY = 'disableTelemetry';
+export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const TELEMETRY_OPT_OUT_LINK =
   'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
@@ -25,3 +27,4 @@ export const DEFAULT_USERNAME_KEY = 'defaultusername';
 export const DEFAULT_DEV_HUB_USERNAME_KEY = 'defaultdevhubusername';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
+export const PKG_ID_PREFIX = '04t';

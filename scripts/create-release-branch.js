@@ -1,28 +1,33 @@
 #!/usr/bin/env node
 
 const shell = require('shelljs');
-const { checkVSCodeVersion, checkLernaInstall, checkBaseBranch } = require('./validation-utils');
+const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
 const logger = require('./logger-util');
 
 shell.set('-e');
 shell.set('+v');
 
+const currentVersion = require('../packages/salesforcedx-vscode/package.json')
+  .version;
+const [version, major, minor, patch] = currentVersion.match(
+  /^(\d+)\.?(\d+)\.?(\*|\d+)$/
+);
+const bumpMinor = parseInt(minor) + 1;
+shell.env['SALESFORCEDX_VSCODE_VERSION'] = `${major}.${bumpMinor}.${patch}`;
+
 checkVSCodeVersion();
-checkLernaInstall();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
+logger.info(`Release version: ${nextVersion}`);
 checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
 
 // Check if release branch has already been created
 const isRemoteReleaseBranchExist = shell
-  .exec(
-    `git ls-remote --heads origin ${releaseBranchName}`,
-    {
-      silent: true
-    }
-  )
+  .exec(`git ls-remote --heads origin ${releaseBranchName}`, {
+    silent: true
+  })
   .stdout.trim();
 
 if (isRemoteReleaseBranchExist) {
