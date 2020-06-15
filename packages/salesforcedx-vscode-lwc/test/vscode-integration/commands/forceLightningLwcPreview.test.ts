@@ -42,7 +42,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const { channelService, SfdxCommandlet, notificationService } = sfdxCoreExports;
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'preview.rememberDevice';
-const mobileEnabledKey = 'preview.enableMobilePreviews';
 const logLevelKey = 'preview.logLevel';
 const defaultLogLevel = 'warn';
 const androidSuccessString = 'Launching... Opening Browser';
@@ -179,7 +178,6 @@ describe('forceLightningLwcPreview', () => {
     public processErrorSubject: Subject<Error>;
     public stdoutSubject: Subject<string>;
     public stderrSubject: Subject<string>;
-    private readonly childProcessPid: any;
 
     constructor(command: Command) {
       this.command = command;
@@ -187,10 +185,9 @@ describe('forceLightningLwcPreview', () => {
       this.processErrorSubject = new Subject<Error>();
       this.stdoutSubject = new Subject<string>();
       this.stderrSubject = new Subject<string>();
-      this.childProcessPid = '';
     }
 
-    public killExecution(signal?: string): Promise<void> {
+    public killExecution(): Promise<void> {
       return Promise.resolve();
     }
   }
@@ -258,7 +255,7 @@ describe('forceLightningLwcPreview', () => {
   }
 
   it('exists sync called with correct path', async () => {
-    // Returns true for enabling mobile, false for remembered device settings.
+    // Returns false for remembered device settings.
     getConfigurationStub.returns(new MockWorkspace(false));
     devServiceStub.isServerHandlerRegistered.returns(true);
     mockFileExists(mockLwcFilePath);
@@ -281,8 +278,9 @@ describe('forceLightningLwcPreview', () => {
     );
   });
 
-  it('calls openBrowser from quick pick with the correct url for files', async () => {
+  it('calls openBrowser with the correct url for files', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
     devServiceStub.getComponentPreviewUrl.returns(
       'http://localhost:3333/preview/c/foo'
     );
@@ -294,6 +292,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
     showQuickPickStub.resolves(desktopQuickPick);
+
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
     sinon.assert.calledWith(
@@ -303,15 +302,18 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match('http://localhost:3333/preview/c/foo')
+      sinon.match(
+        `${DEV_SERVER_DEFAULT_BASE_URL}/${DEV_SERVER_PREVIEW_ROUTE}/c/foo`
+      )
     );
   });
 
-  it('calls openBrowser from quick pick with the correct url for directories', async () => {
+  it('calls openBrowser with the correct url for directories', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
     devServiceStub.getComponentPreviewUrl.returns(
       'http://localhost:3333/preview/c/foo'
     );
+    mockFileExists(mockLwcFileDirectory);
     getConfigurationStub.returns(new MockWorkspace(false));
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -320,6 +322,7 @@ describe('forceLightningLwcPreview', () => {
       }
     } as fs.Stats);
     showQuickPickStub.resolves(desktopQuickPick);
+
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
 
     sinon.assert.calledWith(
@@ -335,7 +338,6 @@ describe('forceLightningLwcPreview', () => {
 
   it('starts the server if it is not running when desktop selected', async () => {
     devServiceStub.isServerHandlerRegistered.returns(false);
-    getConfigurationStub.returns(new MockWorkspace(false));
     mockFileExists(mockLwcFilePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -352,7 +354,6 @@ describe('forceLightningLwcPreview', () => {
 
   it('starts the server if it is not running when Android selected', async () => {
     devServiceStub.isServerHandlerRegistered.returns(false);
-
     mockFileExists(mockLwcFilePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -438,7 +439,6 @@ describe('forceLightningLwcPreview', () => {
 
   it('shows an error when source path is not recognized as an lwc module file', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(false));
     mockFileExists(notLwcModulePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -464,9 +464,9 @@ describe('forceLightningLwcPreview', () => {
   it('shows an error when source path does not exist', async () => {
     mockFileExists(nonExistentPath);
     devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(false));
     existsSyncStub.returns(false);
     showQuickPickStub.resolves(desktopQuickPick);
+
     await forceLightningLwcPreview(nonExistentPathUri);
 
     sinon.assert.calledWith(
@@ -482,7 +482,6 @@ describe('forceLightningLwcPreview', () => {
 
   it('shows an error message when open browser throws an error', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(false));
     mockFileExists(mockLwcFileDirectory);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
