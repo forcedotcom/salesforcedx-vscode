@@ -22,10 +22,14 @@ import * as sinon from 'sinon';
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
-import { DEV_SERVER_PREVIEW_ROUTE } from '../../../src/commands/commandConstants';
+import {
+  DEV_SERVER_PREVIEW_ROUTE,
+  DEV_SERVER_DEFAULT_BASE_URL
+} from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
   forceLightningLwcPreview,
+  PlatformName,
   platformOptions
 } from '../../../src/commands/forceLightningLwcPreview';
 import { nls } from '../../../src/messages';
@@ -37,9 +41,9 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 )!.exports;
 const { channelService, SfdxCommandlet, notificationService } = sfdxCoreExports;
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
-const rememberDeviceKey = 'rememberDevice';
-const mobileEnabledKey = 'previewOnMobile';
-const logLevelKey = 'logLevel';
+const rememberDeviceKey = 'preview.rememberDevice';
+const mobileEnabledKey = 'preview.enableMobilePreviews';
+const logLevelKey = 'preview.logLevel';
 const defaultLogLevel = 'warn';
 const androidSuccessString = 'Launching... Opening Browser';
 
@@ -105,9 +109,9 @@ describe('forceLightningLwcPreview', () => {
   class MockMemento implements vscode.Memento {
     public get<T>(key: string): T | undefined {
       switch (key) {
-        case 'lastAndroidDevice':
+        case `last${PlatformName.Android}Device`:
           return (rememberedAndroidDevice as unknown) as T;
-        case 'lastiOSDevice':
+        case `last${PlatformName.iOS}Device`:
           return (rememberediOSDevice as unknown) as T;
         default:
           return undefined;
@@ -288,6 +292,11 @@ describe('forceLightningLwcPreview', () => {
   it('calls openBrowser with the correct url for files', async () => {
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    const sourceUri = URI.file(mockLwcFilePath);
     mockFileExists(mockLwcFilePath);
 
     existsSyncStub.returns(true);
@@ -299,16 +308,25 @@ describe('forceLightningLwcPreview', () => {
 
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match(
+        `${DEV_SERVER_DEFAULT_BASE_URL}/${DEV_SERVER_PREVIEW_ROUTE}/c/foo`
+      )
     );
   });
 
   it('calls openBrowser with the correct url for directories', async () => {
     getConfigurationStub.returns(new MockWorkspace(false, false));
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
     mockFileExists(mockLwcFileDirectory);
 
     existsSyncStub.returns(true);
@@ -320,10 +338,14 @@ describe('forceLightningLwcPreview', () => {
 
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match(`http://localhost:3333/preview/c/foo`)
     );
   });
 
@@ -439,6 +461,9 @@ describe('forceLightningLwcPreview', () => {
 
   it('calls openBrowser from quick pick with the correct url for files', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
     getConfigurationStub.returns(new MockWorkspace(true, false));
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -449,15 +474,22 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(desktopQuickPick);
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match('http://localhost:3333/preview/c/foo')
     );
   });
 
   it('calls openBrowser from quick pick with the correct url for directories', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
     getConfigurationStub.returns(new MockWorkspace(true, false));
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -468,10 +500,14 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(desktopQuickPick);
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
 
+    sinon.assert.calledWith(
+      devServiceStub.getComponentPreviewUrl,
+      sinon.match('c/foo')
+    );
     sinon.assert.calledOnce(openBrowserStub);
     sinon.assert.calledWith(
       openBrowserStub,
-      sinon.match(`${DEV_SERVER_PREVIEW_ROUTE}/c/foo`)
+      sinon.match('http://localhost:3333/preview/c/foo')
     );
   });
 
@@ -517,7 +553,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithFlagSpy.callCount).to.equal(4);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -558,7 +594,10 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(1);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(4);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       'SFDXSimulator'
@@ -666,7 +705,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithFlagSpy.callCount).to.equal(4);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -705,7 +744,10 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(1);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
     expect(cmdWithFlagSpy.callCount).to.equal(4);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       'SFDXSimulator'
@@ -794,7 +836,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -829,7 +871,10 @@ describe('forceLightningLwcPreview', () => {
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       deviceName
@@ -864,7 +909,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
@@ -901,7 +946,10 @@ describe('forceLightningLwcPreview', () => {
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members(['-p', 'iOS']);
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',
       rememberediOSDevice
@@ -1102,7 +1150,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithFlagSpy.callCount).to.equal(4);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      'Android'
+      PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
       '-t',

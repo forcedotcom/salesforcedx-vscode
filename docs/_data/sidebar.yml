@@ -38,27 +38,27 @@
   children:
     - title:
         en: Development Models
-        ja: Development Models
+        ja: 開発モデル
       url: /user-guide/development-models
     - title:
         en: Detect Conflicts
-        ja: Detect Conflicts
+        ja: 競合の検知
       url: /user-guide/detect-conflicts
     - title:
         en: Deploy on Save
-        ja: Deploy on Save
+        ja: 保存時のデプロイ
       url: /user-guide/deploy-on-save
     - title:
         en: Org Browser
-        ja: 組織のブラウザ
+        ja: 組織ブラウザ
       url: /user-guide/org-browser
     - title:
         en: Source Diff
-        ja: Source Diff
+        ja: ソースの差分
       url: /user-guide/source-diff
     - title:
         en: Performance Enhancements
-        ja: Performance Enhancements
+        ja: パフォーマンスの改善
       url: /user-guide/perf-enhancements
     - title:
         en: Prettier Code Formatter
@@ -66,7 +66,7 @@
       url: /user-guide/prettier
     - title:
         en: Command Reference
-        ja: Command Reference
+        ja: コマンドリファレンス
       url: /user-guide/vscode-commands
     - title:
         en: Source Format
@@ -74,11 +74,11 @@
       url: /user-guide/source-format
     - title:
         en: Default Org
-        ja: デフォルト組織
+        ja: デフォルトの組織
       url: /user-guide/default-org
     - title:
         en: Remote Containers
-        ja: Remote Containers
+        ja: リモートコンテナ
       url: /user-guide/remote-development
     - title:
         en: Demo Mode
@@ -133,15 +133,15 @@
       url: /lwc/writing
     - title:
         en: Testing
-        ja: 作成
+        ja: テスト
       url: /lwc/testing
     - title:
         en: Linting
-        ja: Linting
+        ja: リンティング
       url: /lwc/linting
     - title:
         en: Local Development
-        ja: Local Development
+        ja: ローカル開発
       url: /lwc/localdev
 - title:
     en: Visualforce

@@ -63,6 +63,10 @@ export const messages = {
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
+  parameter_gatherer_enter_package_id:
+    'Enter the ID of the package you wish to install',
+  parameter_gatherer_enter_installation_key_if_necessary:
+    'Enter the installation key if one is needed or leave blank otherwise',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
   parameter_gatherer_paste_forceide_url_placeholder:
@@ -161,6 +165,7 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
+  force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',
   force_project_create_open_dialog_create_label: 'Create Project',
   force_project_create_standard_template: 'Standard project template (default)',
@@ -524,5 +529,8 @@ export const messages = {
   beta_tapi_queue_status: 'The deploy is still in the Queue',
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error:
-    'Not able to parse current results. Raw result: %s'
+    'Not able to parse current results. Raw result: %s',
+  package_id_validation_error:
+    'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_id_gatherer_placeholder: '04t...'
 };

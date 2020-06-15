@@ -14,8 +14,7 @@ import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
-import { WorkspaceUtils } from '../util/workspaceUtils';
-import { DEV_SERVER_PREVIEW_ROUTE } from './commandConstants';
+import { PreviewService } from '../service/previewService';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
@@ -38,10 +37,10 @@ enum PreviewPlatformType {
   iOS
 }
 
-const enum PlatformName {
-  desktop = 'Desktop',
-  android = 'Android',
-  ios = 'iOS'
+export const enum PlatformName {
+  Desktop = 'Desktop',
+  Android = 'Android',
+  iOS = 'iOS'
 }
 
 interface PreviewQuickPickItem extends vscode.QuickPickItem {
@@ -51,7 +50,7 @@ interface PreviewQuickPickItem extends vscode.QuickPickItem {
   picked: boolean;
   id: PreviewPlatformType;
   defaultTargetName: string;
-  platformName: string;
+  platformName: keyof typeof PlatformName;
 }
 
 export const platformOptions: PreviewQuickPickItem[] = [
@@ -61,7 +60,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: true,
     id: PreviewPlatformType.Desktop,
-    platformName: PlatformName.desktop,
+    platformName: PlatformName.Desktop,
     defaultTargetName: ''
   },
   {
@@ -70,7 +69,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.Android,
-    platformName: PlatformName.android,
+    platformName: PlatformName.Android,
     defaultTargetName: 'SFDXEmulator'
   },
   {
@@ -79,7 +78,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
     alwaysShow: true,
     picked: false,
     id: PreviewPlatformType.iOS,
-    platformName: PlatformName.ios,
+    platformName: PlatformName.iOS,
     defaultTargetName: 'SFDXSimulator'
   }
 ];
@@ -87,10 +86,6 @@ export const platformOptions: PreviewQuickPickItem[] = [
 const logName = 'force_lightning_lwc_preview';
 const commandName = nls.localize('force_lightning_lwc_preview_text');
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
-const rememberDeviceKey = 'rememberDevice';
-const logLevelKey = 'logLevel';
-const defaultLogLevel = 'warn';
-const previewOnMobileKey = 'previewOnMobile';
 const androidSuccessString = 'Launching... Opening Browser';
 
 export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
@@ -142,26 +137,25 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     return;
   }
 
-  const fullUrl = `${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
   // Preform existing desktop behavior if mobile is not enabled.
-  if (!isMobileEnabled()) {
-    await startServer(true, fullUrl, startTime);
+  if (!PreviewService.instance.isMobileEnabled()) {
+    await startServer(true, componentName, startTime);
     return;
   }
 
-  await selectPlatformAndExecute(fullUrl, startTime, componentName);
+  await selectPlatformAndExecute(startTime, componentName);
 }
 
 /**
  * Starts the lwc server if it is not already running.
  *
  * @param isDesktop if desktop browser is selected
- * @param fullUrl lwc url
+ * @param componentName name of the component to preview
  * @param startTime start time of the preview command
  */
 async function startServer(
   isDesktop: boolean,
-  fullUrl: string,
+  componentName: string,
   startTime: [number, number]
 ) {
   if (!DevServerService.instance.isServerHandlerRegistered()) {
@@ -170,7 +164,7 @@ async function startServer(
     const parameterGatherer = new EmptyParametersGatherer();
     const executor = new ForceLightningLwcStartExecutor({
       openBrowser: isDesktop,
-      fullUrl
+      componentName
     });
 
     const commandlet = new SfdxCommandlet(
@@ -183,6 +177,9 @@ async function startServer(
     telemetryService.sendCommandEvent(logName, startTime);
   } else if (isDesktop) {
     try {
+      const fullUrl = DevServerService.instance.getComponentPreviewUrl(
+        componentName
+      );
       await openBrowser(fullUrl);
       telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
@@ -195,12 +192,10 @@ async function startServer(
  * Prompts the user to select a platform to preview the LWC on. Android and iOS
  * are handled by the @salesforce/lwc-dev-mobile sfdx package.
  *
- * @param fullUrl lwc url
  * @param startTime start time of the preview command
  * @param componentName name of the lwc
  */
 async function selectPlatformAndExecute(
-  fullUrl: string,
   startTime: [number, number],
   componentName: string
 ) {
@@ -216,7 +211,7 @@ async function selectPlatformAndExecute(
 
   const isDesktop = platformSelection.id === PreviewPlatformType.Desktop;
   if (isDesktop) {
-    await startServer(true, fullUrl, startTime);
+    await startServer(true, componentName, startTime);
     return;
   }
 
@@ -225,14 +220,12 @@ async function selectPlatformAndExecute(
   let placeholderText = isAndroid
     ? nls.localize('force_lightning_lwc_android_target_default')
     : nls.localize('force_lightning_lwc_ios_target_default');
-  const rememberDeviceConfigured =
-    WorkspaceUtils.getInstance()
-      .getWorkspaceSettings()
-      .get(rememberDeviceKey) || false;
-  const lastTarget = getRememberedDevice(platformSelection);
+  const lastTarget = PreviewService.instance.getRememberedDevice(
+    platformSelection.platformName
+  );
 
   // Remember device setting enabled and previous device retrieved.
-  if (rememberDeviceConfigured && lastTarget) {
+  if (PreviewService.instance.isRememberedDeviceEnabled() && lastTarget) {
     const message = isAndroid
       ? 'force_lightning_lwc_android_target_remembered'
       : 'force_lightning_lwc_ios_target_remembered';
@@ -251,11 +244,14 @@ async function selectPlatformAndExecute(
     );
     return;
   }
-  await startServer(false, fullUrl, startTime);
+  await startServer(false, componentName, startTime);
 
   // New target device entered
   if (targetName !== '') {
-    updateRememberedDevice(platformSelection, targetName);
+    PreviewService.instance.updateRememberedDevice(
+      platformSelection.platformName,
+      targetName
+    );
     target = targetName;
   }
 
@@ -268,12 +264,7 @@ async function selectPlatformAndExecute(
     .withFlag('-p', platformSelection.platformName)
     .withFlag('-t', targetUsed)
     .withFlag('-n', componentName)
-    .withFlag(
-      '--loglevel',
-      WorkspaceUtils.getInstance()
-        .getWorkspaceSettings()
-        .get(logLevelKey) || defaultLogLevel
-    )
+    .withFlag('--loglevel', PreviewService.instance.getLogLevel())
     .build();
 
   const mobileExecutor = new CliCommandExecutor(command, {
@@ -321,29 +312,4 @@ async function selectPlatformAndExecute(
       }
     });
   }
-}
-
-function getRememberedDevice(platform: PreviewQuickPickItem): string {
-  const store = WorkspaceUtils.getInstance().getGlobalStore();
-  if (store === undefined) {
-    return '';
-  }
-
-  return store.get(`last${platform.platformName}Device`) || '';
-}
-
-function updateRememberedDevice(
-  platform: PreviewQuickPickItem,
-  deviceName: string
-) {
-  const store = WorkspaceUtils.getInstance().getGlobalStore();
-  if (store !== undefined) {
-    store.update(`last${platform.platformName}Device`, deviceName);
-  }
-}
-
-function isMobileEnabled(): boolean {
-  return WorkspaceUtils.getInstance()
-    .getWorkspaceSettings()
-    .get(previewOnMobileKey, false);
 }

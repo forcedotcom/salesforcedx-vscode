@@ -1,47 +1,47 @@
 ---
-title: Org Browser
+title: 組織ブラウザ
 lang: ja
 ---
 
-The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier and simpler to retrieve metadata source, without having to use a [manifest file](./ja/user-guide/development-models/#create-project-with-manifest). The Org Browser is available only in non-scratch orgs such as sandboxes or dev orgs.
+組織ブラウザは、デフォルトの組織で利用可能なメタデータ型とそれに対応するコンポーネントを表示します。この機能により、[マニフェストファイル](./ja/user-guide/development-models/#マニフェストを使用してプロジェクトを作成する)を使用しなくても、メタデータのソースを簡単かつシンプルに取得できるようになります。組織ブラウザは、Sandbox や Developer Edition 組織のような、非スクラッチ組織でのみ利用できます。
 
-## Opening the Org Browser
+## 組織ブラウザを開く
 
-![Org Browser Overview](./images/org_browser_overview.png)
+![組織ブラウザの概観](./images/org_browser_overview.png)
 
-1. Open Org Browser
-2. Refresh available metadata types in the org
-3. Default org
-4. Metadata type
-5. Metadata component
-6. Refresh components for metadata type
-7. Retrieve source for metadata component
+1. 組織ブラウザを開く
+2. 組織で利用可能なメタデータ型を更新する
+3. デフォルトの組織名
+4. メタデータ型
+5. メタデータコンポーネント
+6. メタデータ型のコンポーネントを更新する
+7. メタデータコンポーネントのソースを取得する
 
-To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./ja/user-guide/default-org) is set to a non-scratch org.
+組織ブラウザを開くには、VS Code ウィンドウのサイドバーで雲のアイコン **(1)** をクリックします。もしアイコンが表示されない場合は、[デフォルトの組織](./ja/user-guide/default-org)が非スクラッチ組織に設定されていることを確認してください。
 
-When you open the Org Browser, all the metadata for the default org is saved in your local project under the .sfdx directory to minimize the number of calls to the org.
+組織ブラウザを開く際に、デフォルトの組織にあるすべてのメタデータは .sfdx ディレクトリの下のローカルプロジェクトに保存され、組織への呼び出し回数が最小限に抑えられます。
 
-## Listing and Refreshing Metadata
+## メタデータの一覧表示と更新
 
-The Org Browser lists all the metadata types **(4)** in your default org. To view the components **(5)**, expand the metadata type. When you expand metadata types with folders such as Reports, Dashboards, Documents, and EmailTemplates, all the available folders are displayed. You can view the components in a folder by expanding it.
+組織ブラウザは、デフォルトの組織にあるすべてのメタデータ型 **(4)** を一覧表示します。コンポーネント **(5)** を表示するには、メタデータ型を展開します。レポート、ダッシュボード、ドキュメント、メールテンプレートなどのフォルダがあるメタデータ型を展開すると、利用可能なフォルダがすべて表示されます。フォルダを展開することで、フォルダ内のコンポーネントを表示することができます。
 
-You can refresh metadata at org level, for a type, for folders in a type, and for components in a folder. Click refresh icon next to:
+メタデータは、組織レベル、メタデータ型、メタデータ型内のフォルダ、およびフォルダ内のコンポーネントで更新することができます。
 
-- Org Browser **(2)** to refresh available metadata types in the org
-- metadata type **(6)** to get an updated list of components for the type
-- folder metadata type to update the folders in the type, but not the components in the folder
-- folder in a metadata type to refresh the components in it
+- 組織ブラウザ **(2)** の隣にある更新アイコンをクリックすると、組織で利用可能なメタデータ型が更新されます。
+- メタデータ型 **(6)** の隣にある更新アイコンをクリックすると、そのメタデータ型のコンポーネント一覧が更新されます。
+- フォルダのあるメタデータ型の隣にある更新アイコンクリックすると、フォルダ内のコンポーネントではなく、そのメタデータ型のフォルダ一覧が更新されます。
+- メタデータ型内のフォルダの隣にある更新アイコンをクリックすると、その中に含まれるコンポーネントが更新されます。
 
-![Metadata type with folders](./images/org_browser_folders.png)
+![フォルダのあるメタデータ型](./images/org_browser_folders.png)
 
-## Retrieving Components
+## コンポーネントの取得
 
-You can retrieve a component to your local project by clicking the retrieve button **(7)** next to the component name. Currently, the component is retrieved into your default package directory, which is defined in the [sfdx-project.json](./ja/getting-started/first-project/#sfdx-projectjson-ファイル) file.
+コンポーネント名の隣にある取得ボタン **(7)** をクリックすることで、ローカルのプロジェクトにコンポーネントを取得できます。現在、コンポーネントは [sfdx-project.json](./ja/getting-started/first-project/#sfdx-projectjson-ファイル) ファイルで定義されているデフォルトのパッケージディレクトリに取得されます。
 
-You can also retrieve multiple components from the default org by clicking the retrieve button next to the metadata type. If retrieving a component overwrites it, you'll be prompted to select how to proceed.
+メタデータ型の隣にある取得ボタンをクリックすることで、デフォルトの組織から複数のコンポーネントを取得することもできます。取得しようとしているコンポーネントが上書きされてしまう場合は、どのように処理を進めるかの選択画面が表示されます。
 
-![Overwrite components](./images/overwrite-prompt.png)
+![コンポーネントの上書き](./images/overwrite-prompt.png)
 
-When you retrieve components for a metadata type, the Org Browser automatically refreshes the component list for the selected type and then retrieves them. This ensures that the extensions accurately check the local workspace for existing components.
+メタデータ型のコンポーネントを取得しようとすると、組織ブラウザは、選択された型のコンポーネントリストを自動的に更新してから、コンポーネントを取得します。これにより、拡張機能が既存のコンポーネントについてローカルのワークスペースを正確にチェックすることが保証されます。
 
-> Because of the asynchronous nature of the Metadata API calls, a simultaneous deploy and retrieve could potentially lead to a race condition. To prevent retrieving unexpected components, be mindful of using the Org Browser while a deploy operation is in progress.
+> メタデータ API の呼び出しは非同期であるため、デプロイと取得を同時に行うと競合状態になる可能性があります。予期せぬコンポーネントの取得を防ぐために、デプロイ操作が進行している間は、注意して組織ブラウザを使用してください。
