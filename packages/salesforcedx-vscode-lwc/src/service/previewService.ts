@@ -11,7 +11,6 @@ export class PreviewService {
   private rememberDeviceKey = 'preview.rememberDevice';
   private logLevelKey = 'preview.logLevel';
   private defaultLogLevel = 'warn';
-  private previewOnMobileKey = 'preview.enableMobilePreviews';
 
   private static _instance: PreviewService;
 
@@ -39,12 +38,6 @@ export class PreviewService {
     if (store !== undefined) {
       store.update(`last${platform}Device`, deviceName);
     }
-  }
-
-  public isMobileEnabled(): boolean {
-    return WorkspaceUtils.instance
-      .getWorkspaceSettings()
-      .get(this.previewOnMobileKey, false);
   }
 
   public isRememberedDeviceEnabled(): boolean {

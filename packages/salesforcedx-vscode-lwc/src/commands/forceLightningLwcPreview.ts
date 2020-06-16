@@ -27,8 +27,7 @@ const {
   telemetryService,
   SfdxCommandlet,
   EmptyParametersGatherer,
-  SfdxWorkspaceChecker,
-  sfdxCoreSettings
+  SfdxWorkspaceChecker
 } = sfdxCoreExports;
 
 enum PreviewPlatformType {
@@ -134,12 +133,6 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
       resourcePath
     );
     showError(new Error(message), logName, commandName);
-    return;
-  }
-
-  // Preform existing desktop behavior if mobile is not enabled.
-  if (!PreviewService.instance.isMobileEnabled()) {
-    await startServer(true, componentName, startTime);
     return;
   }
 
