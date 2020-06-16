@@ -13,6 +13,10 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  RegistryAccess,
+  registryData
+} from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -30,6 +34,7 @@ import {
 } from './templates/metadataTypeConstants';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 import { LibraryCommandletExecutor } from './util/libraryCommandlet';
+import { useBetaDeployRetrieve } from './util/useBetaDeployRetrieve';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -83,7 +88,7 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    useBetaRetrieve([sourceUri])
+    useBetaDeployRetrieve([sourceUri])
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor(),
     new SourcePathChecker()
@@ -95,36 +100,16 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new MultipleSourcePathsGatherer(uris),
-    useBetaRetrieve(uris)
+    useBetaDeployRetrieve(uris)
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor()
   );
   await commandlet.run();
 }
 
-// this supported types logic is temporary until we have a way of generating the metadata type from the path
-// once we have the metadata type we can check to see if it is a toolingsupportedtype from that util
-export function useBetaRetrieve(explorerPath: vscode.Uri[]): boolean {
-  if (explorerPath.length > 1) {
-    return false;
-  }
-  const filePath = explorerPath[0].fsPath;
-  const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
-  const supportedType =
-    path.extname(filePath) === APEX_CLASS_EXTENSION ||
-    filePath.includes(`${APEX_CLASS_EXTENSION}-meta.xml`) ||
-    (path.extname(filePath) === APEX_TRIGGER_EXTENSION ||
-      filePath.includes(`${APEX_TRIGGER_EXTENSION}-meta.xml`)) ||
-    (path.extname(filePath) === VISUALFORCE_COMPONENT_EXTENSION ||
-      filePath.includes(`${VISUALFORCE_COMPONENT_EXTENSION}-meta.xml`)) ||
-    (path.extname(filePath) === VISUALFORCE_PAGE_EXTENSION ||
-      filePath.includes(`${VISUALFORCE_PAGE_EXTENSION}-meta.xml`));
-  return betaDeployRetrieve && supportedType;
-}
-
 export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
   string
-> {
+  > {
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
 

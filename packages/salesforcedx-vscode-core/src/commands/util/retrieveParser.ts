@@ -30,13 +30,15 @@ export function outputRetrieveTable(retrieveResult: ApiResult) {
   try {
     retrieveResult.components.forEach(item => {
       // rows for source files
-      item.sources.forEach(sourceItem => {
-        resultRows.push({
-          fullName: item.fullName,
-          type: item.type.name,
-          filePath: sourceItem
+      if (item.sources) {
+        item.sources.forEach(sourceItem => {
+          resultRows.push({
+            fullName: item.fullName,
+            type: item.type.name,
+            filePath: sourceItem
+          });
         });
-      });
+      }
       // row for xml
       resultRows.push({
         fullName: item.fullName,
