@@ -34,7 +34,6 @@ export class LibraryDeployResultParser {
         : 'Created';
     const listOfFiles = this.result.outboundFiles;
     let success: ComponentSuccess[] = [];
-    // map causing issue
     if (listOfFiles) {
       success = listOfFiles.map(file => ({
         state: mdState,
