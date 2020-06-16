@@ -14,7 +14,12 @@ import {
   SourceResult
 } from '@salesforce/source-deploy-retrieve';
 import { nls } from '../../messages';
-
+type ComponentSuccess = {
+  state: string;
+  fullName: string;
+  type: string;
+  filePath: string;
+};
 export class LibraryDeployResultParser {
   public result: DeployResult;
 
@@ -27,20 +32,16 @@ export class LibraryDeployResultParser {
       componentSuccess.changed && !componentSuccess.created
         ? 'Updated'
         : 'Created';
-    const success = [
-      {
+    const listOfFiles = this.result.outboundFiles;
+    let success: ComponentSuccess[] = [];
+    if (listOfFiles) {
+      success = listOfFiles.map(file => ({
         state: mdState,
-        fullName: componentSuccess.fullName,
+        fullName: componentSuccess.fullName!,
         type: componentSuccess.componentType,
-        filePath: componentSuccess.fileName
-      },
-      {
-        state: mdState,
-        fullName: componentSuccess.fullName,
-        type: componentSuccess.componentType,
-        filePath: `${componentSuccess.fileName}-meta.xml`
-      }
-    ];
+        filePath: file
+      }));
+    }
     return success;
   }
 
