@@ -11,13 +11,15 @@ import {
 import {
   DeployResult,
   DeployStatusEnum,
-  RegistryAccess,
   SourceResult
 } from '@salesforce/source-deploy-retrieve';
-import * as path from 'path';
 import { nls } from '../../messages';
-import { getRootWorkspace, getRootWorkspacePath } from '../../util';
-
+type ComponentSuccess = {
+  state: string;
+  fullName: string;
+  type: string;
+  filePath: string;
+};
 export class LibraryDeployResultParser {
   public result: DeployResult;
 
@@ -30,18 +32,16 @@ export class LibraryDeployResultParser {
       componentSuccess.changed && !componentSuccess.created
         ? 'Updated'
         : 'Created';
-
     const listOfFiles = this.result.outboundFiles;
-    const success = [];
+    let success: ComponentSuccess[] = [];
+    // map causing issue
     if (listOfFiles) {
-      for (const file of listOfFiles) {
-        success.push({
-          state: mdState,
-          fullName: componentSuccess.fullName,
-          type: componentSuccess.componentType,
-          filePath: file
-        });
-      }
+      success = listOfFiles.map(file => ({
+        state: mdState,
+        fullName: componentSuccess.fullName!,
+        type: componentSuccess.componentType,
+        filePath: file
+      }));
     }
     return success;
   }
