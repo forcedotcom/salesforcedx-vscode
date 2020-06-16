@@ -33,5 +33,11 @@ Preview `c-hello` from the HTML code.
 Preview `c-hello` from the HTML file.
 ![Preview component from file.](./images/vscode_localdev_file_preview.png)
 
-Here's the previewed component on the local development server.
-![Previewed component in local development.](./images/vscode_localdev_preview.png)
+After you select SFDX: Preview Component Locally, the Command Palette displays a list of preview options. You can choose to preview your component in the desktop browser or in a virtual mobile device (iOS or Android). Mobile previews require additional setup. See ["Set Up Your Dev Environment" in the Lightning Web Components Dev Guide.](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.install_setup_develop)
+![Choose to preview in the desktop browser, an Android emulator, or an iOS simulator.](./images/vscode_localdev_command_palette_preview_options.png)
+
+Here’s the previewed component on the local development server’s desktop browser.
+![Previewed component in local development in a browser.](./images/vscode_localdev_preview.png)
+
+Here's the previewed component on a virtual mobile device.
+![Previewed component in local development in a virtual mobile device.](./images/vscode_localdev_preview_ios.png)
