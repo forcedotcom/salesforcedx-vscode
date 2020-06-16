@@ -14,20 +14,6 @@ import { nls } from '../../../src/messages';
 import sinon = require('sinon');
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
-  let sandboxStub: SinonSandbox;
-  let registryStub: sinon.SinonStub;
-  beforeEach(() => {
-    sandboxStub = createSandbox();
-    registryStub = sandboxStub.stub(
-      RegistryAccess.prototype,
-      'getComponentsFromPath'
-    );
-  });
-
-  afterEach(() => {
-    sandboxStub.restore();
-  });
-
   it('Should build the source deploy command for', () => {
     const sourcePath = path.join('path', 'to', 'sourceFile');
     const sourceDeploy = new ForceSourceDeploySourcePathExecutor();
