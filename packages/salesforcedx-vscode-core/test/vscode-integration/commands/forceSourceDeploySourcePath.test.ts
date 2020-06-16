@@ -5,13 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox } from 'sinon';
 import { ForceSourceDeploySourcePathExecutor } from '../../../src/commands/forceSourceDeploySourcePath';
 import { nls } from '../../../src/messages';
-import sinon = require('sinon');
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
   it('Should build the source deploy command for', () => {
