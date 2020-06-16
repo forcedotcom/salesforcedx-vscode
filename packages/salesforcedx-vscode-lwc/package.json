@@ -81,6 +81,7 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
+    "workspaceContains:../workspace-user.xml",
     "workspaceContains:**/workspace-user.xml",
     "onCommand:sfdx.force.lightning.lwc.start"
   ],
