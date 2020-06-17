@@ -9,9 +9,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
-import { Message } from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
 import { nls } from '../messages';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 const CONFIG_FILE = hasRootWorkspace()
   ? path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
