@@ -1,3 +1,15 @@
+# 48.21.0 - June 17, 2020
+
+## Added
+
+#### docs
+
+- Japanese translations for documentation and messages. ([PR #2246](https://github.com/forcedotcom/salesforcedx-vscode/pull/2246)) -Contribution by [shunkosa](https://github.com/shunkosa)
+
+#### salesforcedx-vscode-core
+
+- changes for release ([PR #2270](https://github.com/forcedotcom/salesforcedx-vscode/pull/2270))
+
 # 48.20.0 - June 11, 2020
 
 ## Fixed
