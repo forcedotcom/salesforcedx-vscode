@@ -29,10 +29,10 @@ export function showOrg() {
 
 export function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  watcher.onDidChange((uri) => {
+  watcher.onDidChange(uri => {
     displayDefaultUserName(uri.fsPath);
   });
-  watcher.onDidCreate((uri) => {
+  watcher.onDidCreate(uri => {
     displayDefaultUserName(uri.fsPath);
   });
 }
