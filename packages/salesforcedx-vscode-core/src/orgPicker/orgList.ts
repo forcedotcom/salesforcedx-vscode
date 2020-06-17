@@ -33,7 +33,7 @@ export class OrgList implements vscode.Disposable {
       49
     );
     this.statusBarItem.command = 'sfdx.force.set.default.org';
-    this.statusBarItem.tooltip = 'Change Default Org';
+    this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
   }
 

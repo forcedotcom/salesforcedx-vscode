@@ -10,6 +10,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { Message } from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
+import { nls } from '../messages';
 
 const CONFIG_FILE = hasRootWorkspace()
   ? path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
@@ -20,7 +22,7 @@ let statusBarItem: StatusBarItem;
 export function showOrg() {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
-    statusBarItem.tooltip = 'Open Org';
+    statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
     statusBarItem.command = 'sfdx.force.org.open';
     statusBarItem.show();
   }
