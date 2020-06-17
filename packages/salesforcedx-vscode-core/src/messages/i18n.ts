@@ -42,6 +42,8 @@ export const messages = {
 
   status_bar_text: `$(x) %s`,
   status_bar_tooltip: 'Click to cancel the command',
+  status_bar_open_org_tooltip: 'Open Org',
+  status_bar_org_picker_tooltip: 'Change Default Org',
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
