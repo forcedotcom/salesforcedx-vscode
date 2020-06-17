@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
+import { nls } from '../messages';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 
 const CONFIG_FILE = hasRootWorkspace()
@@ -20,6 +21,7 @@ let statusBarItem: StatusBarItem;
 export function showOrg() {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
+    statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
     statusBarItem.command = 'sfdx.force.org.open';
     statusBarItem.show();
   }
