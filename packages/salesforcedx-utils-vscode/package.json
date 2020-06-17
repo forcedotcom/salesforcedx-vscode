@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-utils-vscode",
   "displayName": "SFDX Utilities for VS Code",
-  "description": "Provides utilies to interface the SFDX libraries with VS Code",
+  "description": "Provides utilities to interface the SFDX libraries with VS Code",
   "version": "48.21.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
