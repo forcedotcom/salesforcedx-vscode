@@ -20,6 +20,7 @@ let statusBarItem: StatusBarItem;
 export function showOrg() {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
+    statusBarItem.tooltip = 'Open Org';
     statusBarItem.command = 'sfdx.force.org.open';
     statusBarItem.show();
   }
@@ -28,10 +29,10 @@ export function showOrg() {
 
 export function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  watcher.onDidChange(uri => {
+  watcher.onDidChange((uri) => {
     displayDefaultUserName(uri.fsPath);
   });
-  watcher.onDidCreate(uri => {
+  watcher.onDidCreate((uri) => {
     displayDefaultUserName(uri.fsPath);
   });
 }
