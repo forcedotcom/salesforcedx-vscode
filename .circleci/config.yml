@@ -11,7 +11,7 @@ version: 2.1
 
 orbs:
   win: circleci/windows@2.2.0
-  sfchangecase: salesforce/change-case-management@2.0.1
+  sfchangecase: salesforce/change-case-management@3
 
 _refs:
   defaults: &defaults
