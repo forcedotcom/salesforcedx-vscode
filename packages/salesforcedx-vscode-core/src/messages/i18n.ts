@@ -66,9 +66,9 @@ export const messages = {
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
   parameter_gatherer_enter_package_id:
-    'Enter the ID of the package you wish to install',
+    'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
-    'Enter the installation key if one is needed or leave blank otherwise',
+    'Enter the installation key, if required, or leave the field blank',
   parameter_gatherer_enter_project_name: 'Enter project name',
   parameter_gatherer_paste_forceide_url: 'Paste forceide:// URL from Setup',
   parameter_gatherer_paste_forceide_url_placeholder:
