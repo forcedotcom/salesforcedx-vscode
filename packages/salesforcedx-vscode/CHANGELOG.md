@@ -1,3 +1,19 @@
+# 48.21.0 - June 18, 2020
+
+## Added
+
+#### docs
+
+- Japanese translations for documentation and messages. ([PR #2246](https://github.com/forcedotcom/salesforcedx-vscode/pull/2246)) -Contribution by [shunkosa](https://github.com/shunkosa)
+
+#### salesforcedx-vscode-lwc
+
+- Added Mobile Preview Selection for `SFDX: Preview Component Locally`. See [Local Development (Beta)](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) for more details. ([PR #2266](https://github.com/forcedotcom/salesforcedx-vscode/pull/2266))
+
+#### salesforcedx-vscode-core
+
+- Support for Aura and LWC deploys in [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2270](https://github.com/forcedotcom/salesforcedx-vscode/pull/2270))
+
 # 48.20.0 - June 11, 2020
 
 ## Fixed
