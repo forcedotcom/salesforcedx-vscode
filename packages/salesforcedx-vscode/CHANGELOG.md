@@ -6,7 +6,9 @@
 
 - Japanese translations for documentation and messages. ([PR #2246](https://github.com/forcedotcom/salesforcedx-vscode/pull/2246)) -Contribution by [shunkosa](https://github.com/shunkosa)
 
-- Added Mobile Preview Selection for `SFDX: Preview Component Locally`. See [Local Development (Beta)](https://developer.salesforce.com/tools/vscode/en/lwc/local-dev) for more details. ([PR #2266](https://github.com/forcedotcom/salesforcedx-vscode/pull/2266))
+#### salesforcedx-vscode-lwc
+
+- Added Mobile Preview Selection for `SFDX: Preview Component Locally`. See [Local Development (Beta)](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) for more details. ([PR #2266](https://github.com/forcedotcom/salesforcedx-vscode/pull/2266))
 
 #### salesforcedx-vscode-core
 
