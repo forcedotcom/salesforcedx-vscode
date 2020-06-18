@@ -171,9 +171,7 @@ describe('Tooling Deploy Parser', () => {
 
   it('should create array of error info for apex class', async () => {
     const parser = new LibraryDeployResultParser(failedDeployResult);
-    const errorsInfo = parser.buildErrors(
-      failedDeployResult.DeployDetails!.componentFailures
-    );
+    const errorsInfo = parser.buildErrors(failedDeployResult);
     expect(errorsInfo).to.be.an('array');
     expect(errorsInfo.length).to.be.equal(2);
     expect(errorsInfo[0]).to.be.an('object');

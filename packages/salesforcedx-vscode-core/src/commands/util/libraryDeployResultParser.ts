@@ -45,17 +45,32 @@ export class LibraryDeployResultParser {
     return success;
   }
 
-  public buildErrors(componentErrors: SourceResult[]) {
+  public buildErrors(result: DeployResult) {
     const failures = [];
-    for (const err of componentErrors) {
-      if (err.columnNumber && err.lineNumber) {
-        err.problem = `${err.problem} (${err.lineNumber}:${err.columnNumber})`;
+    if (
+      result.DeployDetails &&
+      result.DeployDetails.componentFailures.length > 0
+    ) {
+      for (const err of result.DeployDetails.componentFailures) {
+        if (err.columnNumber && err.lineNumber) {
+          err.problem = `${err.problem} (${err.lineNumber}:${
+            err.columnNumber
+          })`;
+        }
+        failures.push({
+          filePath: err.fileName,
+          error: err.problem
+        });
       }
-      failures.push({
-        filePath: err.fileName,
-        error: err.problem
-      });
+    } else if (result.outboundFiles) {
+      for (const outboundFile of result.outboundFiles) {
+        failures.push({
+          filePath: outboundFile, // might want to format this to only the name of the file vs fullpath
+          error: result.ErrorMsg
+        });
+      }
     }
+
     return failures;
   }
 
@@ -84,9 +99,7 @@ export class LibraryDeployResultParser {
         );
         break;
       case DeployStatusEnum.Failed:
-        const failedErrorRows = this.buildErrors(
-          this.result.DeployDetails!.componentFailures
-        );
+        const failedErrorRows = this.buildErrors(this.result);
         outputResult = table.createTable(
           (failedErrorRows as unknown) as Row[],
           [
