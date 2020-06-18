@@ -10,7 +10,7 @@
     "@oclif/errors": "^1",
     "@salesforce/apex": "0.0.1",
     "@salesforce/command": "^2",
-    "@salesforce/core": "2.4.1",
+    "@salesforce/core": "2.5.1",
     "tslib": "^1"
   },
   "devDependencies": {

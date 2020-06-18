@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { encodeBody } from '../../src/commands/utils';
+import { expect } from 'chai';
+
+describe('encodeBody for execute request', () => {
+  it('should correctly return encoded body given the parameters', () => {
+    const accessToken = '0000000000x189';
+    const actionBody = `System.assert(true);`;
+    const debugHeader =
+      '<apex:DebuggingHeader><apex:debugLevel>DEBUGONLY</apex:debugLevel></apex:DebuggingHeader>';
+    const action = 'executeAnonymous';
+    const expectedBody = `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:cmd="http://soap.sforce.com/2006/08/apex"
+xmlns:apex="http://soap.sforce.com/2006/08/apex">
+    <env:Header>
+        <cmd:SessionHeader>
+            <cmd:sessionId>${accessToken}</cmd:sessionId>
+        </cmd:SessionHeader>
+        ${debugHeader}
+    </env:Header>
+    <env:Body>
+        <${action} xmlns="http://soap.sforce.com/2006/08/apex">
+            <apexcode><![CDATA[${actionBody}]]></apexcode>
+        </${action}>
+    </env:Body>
+</env:Envelope>`;
+
+    const encodedBody = encodeBody(accessToken, actionBody);
+    expect(encodedBody).to.eql(expectedBody);
+  });
+});
