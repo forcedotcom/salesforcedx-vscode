@@ -3,7 +3,7 @@ title: Performance Enhancements
 lang: en
 ---
 
-The changes we have made to enhance performance ensure that single file metadata deploys run through a more efficient code path. Currently, these changes only support Apex and Visualforce metadata types. We’ll add support for more metadata types in future releases.
+The changes we have made to enhance performance ensure that single file metadata deploys run through a more efficient code path. Currently, these changes only support a limited number of metadata types. We’ll add support for more metadata types in future releases.
 
 > NOTICE: The changes to enhance code performance are currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
 
@@ -20,4 +20,5 @@ In this beta release, performance enhancements are effective when you run the **
 - Apex Trigger
 - Visualforce Component
 - Visualforce Page
-- Lightning Components
+- Lightning Web Components
+- Aura Components

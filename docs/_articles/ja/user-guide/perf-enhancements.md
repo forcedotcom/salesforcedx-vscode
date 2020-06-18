@@ -21,3 +21,4 @@ lang: ja
 - Visualforce コンポーネント
 - Visualforce ページ
 - Lightning コンポーネント
+- Aura Components
