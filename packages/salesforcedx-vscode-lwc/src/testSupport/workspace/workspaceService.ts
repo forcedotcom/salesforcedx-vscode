@@ -5,15 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { workspace } from 'vscode';
 import * as vscode from 'vscode';
 
+/**
+ * Provide capabilities for VS Code regarding LWC workspace types defined in lightning-lsp-common
+ */
 class WorkspaceService {
   private currentWorkspaceType: lspCommon.WorkspaceType =
     lspCommon.WorkspaceType.UNKNOWN;
 
   /**
-   * Setup current workspace type and listen to workspace type changes
+   * Setup current workspace type
    * @param context extension context
    * @param workspaceType
    */
@@ -22,23 +24,13 @@ class WorkspaceService {
     workspaceType: lspCommon.WorkspaceType
   ) {
     this.setCurrentWorkspaceType(workspaceType);
-    const handleDidChangeWorkspaceFolders = workspace.onDidChangeWorkspaceFolders(
-      event => {
-        if (!workspace.workspaceFolders) {
-          return;
-        }
-        const workspaceUris = workspace.workspaceFolders.map(
-          workspaceFolder => {
-            return workspaceFolder.uri.fsPath;
-          }
-        );
-        const newWorkspaceType = lspCommon.detectWorkspaceType(workspaceUris);
-        this.setCurrentWorkspaceType(newWorkspaceType);
-      },
-      null,
-      context.subscriptions
+
+    const isInternalDev = this.isCoreWorkspace(workspaceType);
+    vscode.commands.executeCommand(
+      'setContext',
+      'sfdx:internal_dev',
+      isInternalDev
     );
-    return vscode.Disposable.from(handleDidChangeWorkspaceFolders);
   }
 
   public getCurrentWorkspaceType() {
