@@ -26,6 +26,14 @@ xmlns:apex="http://soap.sforce.com/2006/08/apex">
     </env:Body>
 </env:Envelope>`;
 
+export const xmlCharMap: { [index: string]: string } = {
+  '<': '&lt;',
+  '>': '&gt;',
+  '&': '&amp;',
+  '"': '&quot;',
+  "'": '&apos;'
+};
+
 export interface SoapResponse {
   [soapEnv]?: {
     [soapHeader]: { DebuggingInfo: DebuggingInfo };

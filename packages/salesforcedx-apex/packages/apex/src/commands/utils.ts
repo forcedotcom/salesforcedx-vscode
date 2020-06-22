@@ -4,11 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { soapTemplate, action } from '../types/execute';
+import { soapTemplate, action, xmlCharMap } from '../types/execute';
 import * as util from 'util';
 
 export function encodeBody(accessToken: string, data: string): string {
-  const actionBody = `<apexcode><![CDATA[${data}]]></apexcode>`;
+  const escapedData = escapeXml(data);
+  const actionBody = `<apexcode>${escapedData}</apexcode>`;
   const debugHeader =
     '<apex:DebuggingHeader><apex:debugLevel>DEBUGONLY</apex:debugLevel></apex:DebuggingHeader>';
   const body = util.format(
@@ -20,4 +21,10 @@ export function encodeBody(accessToken: string, data: string): string {
     action
   );
   return body;
+}
+
+function escapeXml(data: string): string {
+  return data.replace(/[<>&'"]/g, char => {
+    return xmlCharMap[char];
+  });
 }
