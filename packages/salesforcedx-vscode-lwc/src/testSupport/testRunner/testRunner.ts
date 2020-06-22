@@ -14,9 +14,9 @@ import { TestExecutionInfo, TestInfoKind } from '../types';
 import {
   getCliArgsFromJestArgs,
   getLwcTestRunnerExecutable,
+  getTestWorkspaceFolder,
   workspaceService
 } from '../workspace';
-import { getTestWorkspaceFolder } from './index';
 import { SfdxTask, taskService } from './taskService';
 import { testResultsWatcher } from './testResultsWatcher';
 
