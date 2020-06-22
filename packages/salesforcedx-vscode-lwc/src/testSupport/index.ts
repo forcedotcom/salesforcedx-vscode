@@ -13,7 +13,7 @@ import { lwcTestIndexer } from './testIndexer';
 import { taskService } from './testRunner/taskService';
 import { testResultsWatcher } from './testRunner/testResultsWatcher';
 import { startWatchingEditorFocusChange } from './utils/context';
-import { workspaceService } from './workspace/workspaceService';
+import { workspaceService } from './workspace';
 
 /**
  * Activate LWC Test support for supported workspace types
