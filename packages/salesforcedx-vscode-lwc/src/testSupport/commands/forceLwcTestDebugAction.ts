@@ -18,6 +18,7 @@ import { FORCE_LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
 
 import { telemetryService } from '../../telemetry';
+import { workspaceService } from '../workspace/workspaceService';
 
 const debugSessionStartTimes = new Map<string, [number, number]>();
 
@@ -132,7 +133,9 @@ export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
   );
   if (Array.isArray(startTime)) {
     telemetryService
-      .sendCommandEvent(FORCE_LWC_TEST_DEBUG_LOG_NAME, startTime)
+      .sendCommandEvent(FORCE_LWC_TEST_DEBUG_LOG_NAME, startTime, {
+        workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
+      })
       .catch();
   }
 }

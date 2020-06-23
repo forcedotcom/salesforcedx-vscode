@@ -4,9 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { TestRunner as UtilsTestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as which from 'which';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
@@ -19,6 +21,7 @@ import {
 } from '../../../../src/testSupport/types';
 
 let existsSyncStub: SinonStub<[fs.PathLike], boolean>;
+let whichSyncStub: SinonStub<[string], fs.PathLike>;
 let sfdxTaskExecuteStub: SinonStub<[], Promise<SfdxTask>>;
 let activeTextEditorStub: SinonStub<any[], any>;
 let getTempFolderStub: SinonStub<[string, string], string>;
@@ -43,13 +46,31 @@ export function createMockTestFileInfo() {
   return testExecutionInfo;
 }
 
-export function mockGetLwcTestRunnerExecutable() {
-  existsSyncStub = stub(fs, 'existsSync');
-  existsSyncStub.returns(true);
+export function mockGetLwcTestRunnerExecutable(
+  mockWorkspaceType: lspCommon.WorkspaceType = lspCommon.WorkspaceType.SFDX
+) {
+  if (mockWorkspaceType === lspCommon.WorkspaceType.SFDX) {
+    existsSyncStub = stub(fs, 'existsSync');
+    existsSyncStub.returns(true);
+  }
+  if (
+    mockWorkspaceType === lspCommon.WorkspaceType.CORE_ALL ||
+    mockWorkspaceType === lspCommon.WorkspaceType.CORE_PARTIAL
+  ) {
+    whichSyncStub = stub(which, 'sync');
+    whichSyncStub.returns(path.join('/bin', 'lwc-test'));
+    existsSyncStub = stub(fs, 'existsSync');
+    existsSyncStub.returns(true);
+  }
 }
 
 export function unmockGetLwcTestRunnerExecutable() {
-  existsSyncStub.restore();
+  if (existsSyncStub) {
+    existsSyncStub.restore();
+  }
+  if (whichSyncStub) {
+    whichSyncStub.restore();
+  }
 }
 
 export function mockSfdxTaskExecute(immediate?: boolean) {
