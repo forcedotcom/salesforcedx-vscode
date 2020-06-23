@@ -35,7 +35,7 @@
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
-    "@types/node": "^13.11.0",
+    "@types/node": "^12.8.1",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
     "chai": "^4.0.2",
