@@ -14,7 +14,8 @@ export const SFDX_PROJECT_JSON_GLOB_PATTERN: GlobPattern =
 /**
  * LWC Jest Test glob pattern
  */
-export const LWC_TEST_GLOB_PATTERN: GlobPattern = '**/lwc/**/*.test.js';
+export const LWC_TEST_GLOB_PATTERN: GlobPattern =
+  '**/{lwc,modules}/**/*.test.js';
 /**
  * LWC Jest Test document selector
  */
