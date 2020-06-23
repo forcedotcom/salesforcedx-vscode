@@ -221,8 +221,8 @@ export class CliCommandExecution implements CommandExecution {
     });
 
     // Output
-    this.stdoutSubject = Observable.fromEvent(childProcess.stdout, 'data');
-    this.stderrSubject = Observable.fromEvent(childProcess.stderr, 'data');
+    this.stdoutSubject = Observable.fromEvent(childProcess.stdout!, 'data');
+    this.stderrSubject = Observable.fromEvent(childProcess.stderr!, 'data');
 
     // Cancellation watcher
     if (cancellationToken) {

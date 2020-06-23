@@ -113,7 +113,7 @@ function runTests(): void {
 
   proc.on('exit', code => {
     console.log(`[mocha-runner] Mocha Runner exited with code ${code}`);
-    process.exit(code);
+    process.exit(Number(code));
   });
   proc.on('error', err => {
     console.log(`[mocha-runner] Error running Mocha Runner: ${err}`);
