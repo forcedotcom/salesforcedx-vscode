@@ -13,7 +13,7 @@ import {
   forceLwcTestRun,
   forceLwcTestRunActiveTextEditorTest
 } from '../../../../src/testSupport/commands/forceLwcTestRunAction';
-import { getLwcTestRunnerExecutable } from '../../../../src/testSupport/testRunner';
+import { getLwcTestRunnerExecutable } from '../../../../src/testSupport/workspace';
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
@@ -62,7 +62,10 @@ describe('Force LWC Test Run - Code Action', () => {
       assert.calledWith(
         telemetryStub,
         FORCE_LWC_TEST_RUN_LOG_NAME,
-        mockExecutionTime
+        mockExecutionTime,
+        {
+          workspaceType: 'SFDX'
+        }
       );
 
       processHrtimeStub.restore();
