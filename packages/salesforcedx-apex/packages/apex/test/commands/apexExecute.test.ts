@@ -7,12 +7,13 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import * as fs from 'fs';
-import { createSandbox, SinonSandbox } from 'sinon';
-import { ExecuteAnonymousResponse } from '../../src/types';
-import { SoapResponse, execAnonResult } from '../../src/types/execute';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { ApexExecute } from '../../src/commands/apexExecute';
+import { nls } from '../../src/i18n';
+import { ExecuteAnonymousResponse } from '../../src/types';
+import { execAnonResult, SoapResponse } from '../../src/types/execute';
 
 const $$ = testSetup();
 
@@ -20,6 +21,7 @@ describe('Apex Execute Tests', () => {
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sandboxStub: SinonSandbox;
+  let fsStub: SinonStub;
 
   beforeEach(async () => {
     sandboxStub = createSandbox();
@@ -32,7 +34,7 @@ describe('Apex Execute Tests', () => {
       })
     });
     sandboxStub.stub(fs, 'readFileSync').returns('System.assert(true);');
-    sandboxStub.stub(fs, 'existsSync').returns(true);
+    fsStub = sandboxStub.stub(fs, 'existsSync').returns(true);
   });
 
   afterEach(() => {
@@ -224,5 +226,19 @@ describe('Apex Execute Tests', () => {
     });
     expect(response).to.eql(expectedResult);
     expect(connRequestStub.calledTwice);
+  });
+
+  it('should raise an error when the source file is not found', async () => {
+    const apexFile = 'filepath/to/anonApex/file';
+    const apexExecute = new ApexExecute(mockConnection);
+    fsStub.restore();
+    fsStub.returns(false);
+
+    try {
+      await apexExecute.execute({ apexCodeFile: apexFile });
+      assert.fail('Expected an error');
+    } catch (e) {
+      assert.equal(nls.localize('file_not_found_error', apexFile), e.message);
+    }
   });
 });

@@ -53,7 +53,9 @@ export class ApexExecute {
         }
       }
     } else {
-      throw new Error(nls.localize('file_not_found_error'));
+      throw new Error(
+        nls.localize('file_not_found_error', options.apexCodeFile)
+      );
     }
   }
 
