@@ -136,6 +136,14 @@ describe('DevServerService', () => {
       expect(instance.getBaseUrl()).to.equal('http://localhost:1234');
     });
 
+    it('sets the correct url from server startup response containing ansi codes', async () => {
+      const instance = new DevServerService();
+      instance.setBaseUrlFromDevServerUpMessage(
+        '[35m[1mServer up on http://localhost:3334[22m[39m\n'
+      );
+      expect(instance.getBaseUrl()).to.equal('http://localhost:3334');
+    });
+
     it('keeps the default url with port as fall back', async () => {
       const instance = new DevServerService();
       instance.setBaseUrlFromDevServerUpMessage(

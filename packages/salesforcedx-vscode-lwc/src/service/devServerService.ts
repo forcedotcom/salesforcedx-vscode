@@ -4,11 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import stripAnsi from 'strip-ansi';
 import {
   DEV_SERVER_BASE_URL_REGEX,
   DEV_SERVER_DEFAULT_BASE_URL,
   DEV_SERVER_PREVIEW_ROUTE
 } from '../commands/commandConstants';
+
 export interface ServerHandler {
   stop(): Promise<void>;
 }
@@ -59,13 +61,10 @@ export class DevServerService {
     return this.baseUrl;
   }
 
-  public setBaseUrl(url: string) {
-    this.baseUrl = url;
-  }
-
   public setBaseUrlFromDevServerUpMessage(data: string) {
-    if (data.match(DEV_SERVER_BASE_URL_REGEX)) {
-      this.baseUrl = data.match(DEV_SERVER_BASE_URL_REGEX)![0];
+    const sanitizedData = stripAnsi(data);
+    if (sanitizedData.match(DEV_SERVER_BASE_URL_REGEX)) {
+      this.baseUrl = sanitizedData.match(DEV_SERVER_BASE_URL_REGEX)![0];
     }
   }
 
