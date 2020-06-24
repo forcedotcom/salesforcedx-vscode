@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { getTestWorkspaceFolder, TestRunner, TestRunType } from '../testRunner';
+import { TestRunner, TestRunType } from '../testRunner';
 import {
   TestDirectoryInfo,
   TestExecutionInfo,
@@ -15,6 +15,7 @@ import {
 } from '../types';
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
+import { getTestWorkspaceFolder } from '../workspace';
 
 /**
  * Run an LWC Jest test from provided test execution info

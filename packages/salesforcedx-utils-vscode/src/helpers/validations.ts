@@ -28,6 +28,14 @@ export function isAlphaNumString(value: string | undefined): boolean {
   return value !== undefined && value !== '' && !/\W/.test(value);
 }
 
+export function isRecordIdFormat(value: string = '', prefix: string): boolean {
+  return (
+    isAlphaNumString(value) &&
+    value.startsWith(prefix) &&
+    (value.length === 15 || value.length === 18)
+  );
+}
+
 export function isAlphaNumSpaceString(value: string | undefined): boolean {
   return value !== undefined && /^\w+( *\w*)*$/.test(value);
 }

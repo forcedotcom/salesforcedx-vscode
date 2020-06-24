@@ -51,6 +51,7 @@ export const messages = {
     'SFDX: Navigate to Lightning Web Component Test',
   no_lwc_jest_found_text:
     'sfdx-lwc-jest is not installed. Install it from https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.unit_testing_using_jest_installation',
+  no_lwc_testrunner_found_text: 'lwc-testrunner is not installed.',
   no_workspace_folder_found_for_test_text:
     'Unable to determine workspace folder for this test',
   run_test_title: 'Run Test',
@@ -61,17 +62,17 @@ export const messages = {
   task_windows_command_prompt_messaging:
     'Default shell for running tasks is set to cmd.exe',
   force_lightning_lwc_no_mobile_plugin:
-    'To run this command, first install the @salesforce/lwc-dev-mobile plugin.',
+    'To run this command, install the @salesforce/lwc-dev-mobile plugin.',
   force_lightning_lwc_platform_selection:
     'Select the platform for previewing the component',
   force_lightning_lwc_android_target_default:
-    'Enter the name for the Android emulator (leave blank for default)',
+    'Enter a name for the Android emulator (leave blank for default)',
   force_lightning_lwc_ios_target_default:
-    'Enter the name for the iOS simulator (leave blank for default)',
+    'Enter a name for the iOS simulator (leave blank for default)',
   force_lightning_lwc_android_target_remembered:
-    "Enter the name for the Android emulator (leave blank for '%s')",
+    "Enter a name for the Android emulator (leave blank for '%s')",
   force_lightning_lwc_ios_target_remembered:
-    "Enter the name for the iOS simulator (leave blank for '%s')",
+    "Enter a name for the iOS simulator (leave blank for '%s')",
   force_lightning_lwc_cancelled: 'Preview platform selection cancelled.',
   force_lightning_lwc_android_device_cancelled: 'Emulator selection cancelled.',
   force_lightning_lwc_ios_device_cancelled: 'Simulator selection cancelled.',
@@ -79,10 +80,10 @@ export const messages = {
   force_lightning_lwc_ios_description: 'Preview component on iOS',
   force_lightning_lwc_android_label: 'Use Android Emulator',
   force_lightning_lwc_android_description: 'Preview component on Android',
-  force_lightning_lwc_android_failure: "Failed to start Android Emulator '%s'",
-  force_lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'",
-  force_lightning_lwc_android_start: "Starting Android Emulator '%s'",
-  force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'",
+  force_lightning_lwc_android_failure: "Failed to start Android Emulator '%s'.",
+  force_lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'.",
+  force_lightning_lwc_android_start: "Starting Android Emulator '%s'.",
+  force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
   force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
   force_lightning_lwc_preview_desktop_description:
     'Preview component on desktop browser'

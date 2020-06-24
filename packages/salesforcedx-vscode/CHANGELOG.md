@@ -1,3 +1,51 @@
+# 48.21.0 - June 18, 2020
+
+## Added
+
+#### docs
+
+- Japanese translations for documentation and messages. ([PR #2246](https://github.com/forcedotcom/salesforcedx-vscode/pull/2246)) -Contribution by [shunkosa](https://github.com/shunkosa)
+
+#### salesforcedx-vscode-lwc
+
+- Added Mobile Preview Selection for `SFDX: Preview Component Locally`. See [Local Development (Beta)](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) for more details. ([PR #2266](https://github.com/forcedotcom/salesforcedx-vscode/pull/2266))
+
+#### salesforcedx-vscode-core
+
+- Support for Aura and LWC deploys in [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2270](https://github.com/forcedotcom/salesforcedx-vscode/pull/2270))
+
+# 48.20.0 - June 11, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Cancelling a command execution should not throw errors ([PR #2232](https://github.com/forcedotcom/salesforcedx-vscode/pull/2232))
+
+#### salesforcedx-vscode-lwc
+
+- `SFDX: Start Local Development Server` and `SFDX: Preview Component Locally` use the new url path and correct port ([PR #2239](https://github.com/forcedotcom/salesforcedx-vscode/pull/2239))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add `SFDX: Install Package` command ([PR #2244](https://github.com/forcedotcom/salesforcedx-vscode/pull/2244), [Issue #2140](https://github.com/forcedotcom/salesforcedx-vscode/issues/2140)) - Contribution by [gabrielbarker](https://github.com/gabrielbarker)
+
+- Add `SFDX: Create Lightning Web Component Test` command ([PR #2228](https://github.com/forcedotcom/salesforcedx-vscode/pull/2228))
+
+# 48.19.0 - June 4, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Performance improvements for Apex autocompletion ([PR #2230](https://github.com/forcedotcom/salesforcedx-vscode/pull/2230), [Issue #2095](https://github.com/forcedotcom/salesforcedx-vscode/issues/2095))
+
+#### salesforcedx-vscode-core
+
+- Update command label `SFDX: Invoke Apex Test` to `SFDX: Run Apex Test` ([PR #2220](https://github.com/forcedotcom/salesforcedx-vscode/pull/2220))
+
 # 48.18.0 - May 28, 2020
 
 ## Fixed

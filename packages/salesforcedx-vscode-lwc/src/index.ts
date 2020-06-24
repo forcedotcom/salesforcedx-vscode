@@ -30,7 +30,10 @@ import {
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
-import { activateLwcTestSupport } from './testSupport';
+import {
+  activateLwcTestSupport,
+  shouldActivateLwcTestSupport
+} from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
@@ -117,13 +120,15 @@ export async function activate(context: ExtensionContext) {
         );
       }
     }
+  }
 
-    // Activate Test support only for SFDX workspace type for now
-    activateLwcTestSupport(context);
+  // Activate Test support
+  if (shouldActivateLwcTestSupport(workspaceType)) {
+    activateLwcTestSupport(context, workspaceType);
   }
 
   // Initialize utils for user settings
-  WorkspaceUtils.getInstance().init(context);
+  WorkspaceUtils.instance.init(context);
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();

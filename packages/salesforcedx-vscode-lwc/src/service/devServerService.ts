@@ -4,6 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import stripAnsi from 'strip-ansi';
+import {
+  DEV_SERVER_BASE_URL_REGEX,
+  DEV_SERVER_DEFAULT_BASE_URL,
+  DEV_SERVER_PREVIEW_ROUTE
+} from '../commands/commandConstants';
 
 export interface ServerHandler {
   stop(): Promise<void>;
@@ -20,6 +26,7 @@ export class DevServerService {
   }
 
   private handlers: Set<ServerHandler> = new Set();
+  private baseUrl: string = DEV_SERVER_DEFAULT_BASE_URL;
 
   public isServerHandlerRegistered() {
     return this.handlers.size > 0;
@@ -48,5 +55,20 @@ export class DevServerService {
     } else {
       console.log('lwc dev server was not running');
     }
+  }
+
+  public getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
+  public setBaseUrlFromDevServerUpMessage(data: string) {
+    const sanitizedData = stripAnsi(data);
+    if (sanitizedData.match(DEV_SERVER_BASE_URL_REGEX)) {
+      this.baseUrl = sanitizedData.match(DEV_SERVER_BASE_URL_REGEX)![0];
+    }
+  }
+
+  public getComponentPreviewUrl(componentName: string): string {
+    return `${this.baseUrl}/${DEV_SERVER_PREVIEW_ROUTE}/${componentName}`;
   }
 }

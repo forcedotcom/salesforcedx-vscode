@@ -111,7 +111,7 @@ export const messages = {
   force_source_status_text:
     'すべての変更を参照 (ローカルおよびスクラッチ組織内)',
 
-  force_apex_test_run_text: 'SFDX: Apex テストを呼び出す',
+  force_apex_test_run_text: 'SFDX: Apex テストを呼び出す...',
   force_apex_test_run_all_test_label: 'すべてのテスト',
   force_apex_test_run_all_tests_description_text:
     '現在のプロジェクトのすべてのテストを実行',
@@ -120,13 +120,10 @@ export const messages = {
   force_visualforce_component_create_text:
     'SFDX: Visualforce コンポーネントを作成',
   force_visualforce_page_create_text: 'SFDX: Visualforce ページを作成',
-  force_lightning_app_create_text:
-    'SFDX: Lightning Aura アプリケーションを作成',
-  force_lightning_component_create_text:
-    'SFDX: Lightning Aura コンポーネントを作成',
-  force_lightning_event_create_text: 'SFDX: Lightning Aura イベントを作成',
-  force_lightning_interface_create_text:
-    'SFDX: Lightning Aura インタフェースを作成',
+  force_lightning_app_create_text: 'SFDX: Aura アプリケーションを作成',
+  force_lightning_component_create_text: 'SFDX: Aura コンポーネントを作成',
+  force_lightning_event_create_text: 'SFDX: Aura イベントを作成',
+  force_lightning_interface_create_text: 'SFDX: Aura インタフェースを作成',
   force_source_status_local_text: 'SFDX: ローカルの変更を表示',
   force_source_status_remote_text:
     'SFDX: デフォルトのスクラッチ組織の変更を参照',
@@ -227,7 +224,7 @@ export const messages = {
   REST_API_description: 'REST API でクエリを実行',
   tooling_API_description: 'Tooling API でクエリを実行',
   telemetry_legal_dialog_message:
-    'VS Code のSalesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する] (%s)。',
+    'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',
   invalid_debug_level_id_error:
     '組織内の少なくとも1つのトレースフラグにデバッグログレベルが関連付けられていません。このコマンドを実行する前に、"sfdx force:data:soql:query -t -q "SELECT Id FROM TraceFlag WHERE DebugLevelId = null"" を実行し、無効なトレースフラグを削除するために、"sfdx force:data:record:delete -t -s TraceFlag -i 7tfxxxxxxxxxxxxxxx" を実行してください。7tfxxxxxxxxxxxxxxx はデバッグログレベルがないトレースフラグの ID に置き換えてください。',
@@ -254,7 +251,7 @@ export const messages = {
   missing_default_org: 'デフォルトの組織が未設定',
   force_config_set_org_text: 'SFDX: デフォルトの組織を設定',
   error_parsing_sfdx_project_file:
-    'sfdx-project.json ファイル (%s)をパースできませんでした。パースエラー: %s',
+    'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
   sfdx_cli_not_found:
     'Salesforce CLI がインストールされていません。[%s](%s) からインストールしてください。',
   table_header_errors: 'ERRORS',
@@ -262,11 +259,11 @@ export const messages = {
   table_header_type: 'TYPE',
   table_header_full_name: 'FULL NAME',
   table_header_state: 'STATE',
-  table_no_results_found: '結果がありません',
-  table_title_deployed_source: 'デプロイされたソース',
-  table_title_deploy_errors: 'デプロイエラー',
-  table_title_pushed_source: 'プッシュされたソース',
-  table_title_push_errors: 'プッシュエラー',
+  table_no_results_found: 'No results found',
+  table_title_deployed_source: 'Deployed Source',
+  table_title_deploy_errors: 'Deploy Errors',
+  table_title_pushed_source: 'Pushed Source',
+  table_title_push_errors: 'Push Errors',
   push_conflicts_error:
     '競合のためソースをプッシュできませんでした。組織のメタデータをローカルファイルで上書きしても良い場合は、 "SFDX: ソースをデフォルトのスクラッチ組織にプッシュし競合を上書き" を実行してください。',
   error_no_default_username:
@@ -286,7 +283,7 @@ export const messages = {
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
-  error_invalid_org_alias: '別名にはアンダースコア、スペースと英数字のみを使用できます。',
+  error_invalid_org_alias: '別名にはアンダースコアと英数字のみを使用できます。',
   error_invalid_expiration_days:
     '日数には 1 から 30 までの数値を指定してください。',
   error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
@@ -483,10 +480,41 @@ export const messages = {
   Workflow: 'Workflows',
   XOrgHub: 'X Org Hubs',
 
+  conflict_detect_error: '競合を検出中にエラーが発生しました。%s',
+  conflict_detect_retrieve_org_source:
+    '競合の検出: 組織のソースを取得しています',
+  conflict_detect_convert_org_source:
+    '競合の検出: 組織のソースを変換しています',
+  conflict_detect_conflicts_during_deploy:
+    'メタデータのデプロイ中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
+  conflict_detect_conflicts_during_retrieve:
+    'メタデータの取得中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
+  conflict_detect_override: '競合を上書き',
+  conflict_detect_show_conflicts: '競合を表示',
+  conflict_detect_conflict_header:
+    'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_command_hint:
+    '\nRun the following command to overwrite the conflicts:\n  %s',
+  conflict_detect_no_default_username:
+    'このプロジェクトにはデフォルトのユーザ名がありません',
+  conflict_detect_no_default_package_dir:
+    'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
+  conflict_detect_view_init: '競合検出ビューが初期化されていません',
+  conflict_detect_not_enabled:
+    '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
+  conflict_detect_root_title: 'Org Differences',
+  conflict_detect_view_root: '%s : %s file difference(s)',
+  conflict_detect_no_conflicts: '競合がありません',
+  conflict_detect_diff_title: '%s//%s ↔ local//%s',
+  conflict_detect_diff_command_title: 'ファイルを比較',
+
   force_source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
   force_source_diff_unsupported_type:
     'このメタデータ型に対する差分は現在サポートされていません。',
   force_source_diff_title: '%s//%s ↔ ローカル //%s',
   force_source_diff_command_not_found:
-    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、[https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/](https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/) を参照してください。'
+    'このコマンドの実行には、@salesforce/sfdx-diff プラグインのインストールが必要です。詳細については、[https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/](https://developer.salesforce.com/tools/vscode/jp/user-guide/source-diff/) を参照してください。',
+  package_id_validation_error:
+    'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_id_gatherer_placeholder: '04t...'
 };

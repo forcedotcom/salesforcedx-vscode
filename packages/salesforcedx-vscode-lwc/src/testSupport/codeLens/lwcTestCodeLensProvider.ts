@@ -14,6 +14,7 @@ import {
   TextDocument
 } from 'vscode';
 
+import { LWC_TEST_DOCUMENT_SELECTOR } from '../types/constants';
 import { provideLwcTestCodeLens } from './provideLwcTestCodeLens';
 
 /**
@@ -52,10 +53,7 @@ export const lwcTestCodeLensProvider = new LwcTestCodeLensProvider();
 export function registerLwcTestCodeLensProvider(context: ExtensionContext) {
   context.subscriptions.push(
     languages.registerCodeLensProvider(
-      {
-        language: 'javascript',
-        pattern: '**/lwc/**/*.test.js'
-      },
+      LWC_TEST_DOCUMENT_SELECTOR,
       lwcTestCodeLensProvider
     )
   );

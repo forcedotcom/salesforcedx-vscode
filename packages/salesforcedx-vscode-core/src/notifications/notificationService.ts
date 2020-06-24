@@ -90,7 +90,6 @@ export class NotificationService {
         this.showFailedExecution(executionName);
       }
     });
-
     if (cancellationToken) {
       cancellationToken.onCancellationRequested(() => {
         this.showCanceledExecution(executionName);
