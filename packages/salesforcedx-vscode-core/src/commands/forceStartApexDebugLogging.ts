@@ -87,12 +87,16 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
         }
       } else {
         resultJson = await this.subExecute(new CreateDebugLevel().build());
-        const debugLevelId = resultJson.result.id;
-        developerLogTraceFlag.setDebugLevelId(debugLevelId);
+        if (resultJson) {
+          const debugLevelId = resultJson.result.id;
+          developerLogTraceFlag.setDebugLevelId(debugLevelId);
 
-        developerLogTraceFlag.validateDates();
-        resultJson = await this.subExecute(new CreateTraceFlag(userId).build());
-        developerLogTraceFlag.setTraceFlagId(resultJson.result.id);
+          developerLogTraceFlag.validateDates();
+          resultJson = await this.subExecute(
+            new CreateTraceFlag(userId).build()
+          );
+          developerLogTraceFlag.setTraceFlagId(resultJson.result.id);
+        }
       }
       developerLogTraceFlag.turnOnLogging();
       executionWrapper.successfulExit();

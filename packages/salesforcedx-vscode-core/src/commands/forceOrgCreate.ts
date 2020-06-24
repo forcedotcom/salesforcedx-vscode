@@ -97,11 +97,13 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
           setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
         } else {
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
-          channelService.appendLine(errorResponse.message);
-          telemetryService.sendException(
-            'force_org_create',
-            errorResponse.message
-          );
+          if (errorResponse) {
+            channelService.appendLine(errorResponse.message);
+            telemetryService.sendException(
+              'force_org_create',
+              errorResponse.message
+            );
+          }
         }
       } catch (err) {
         channelService.appendLine(
