@@ -5,6 +5,7 @@ const { runTests } = require('vscode-test');
 
 function main() {
   try {
+    const cwd = process.cwd();
     const extensionDevelopmentPath = path.join(__dirname, '..', 'packages');
     const testWorkspace = path.join(
       __dirname,

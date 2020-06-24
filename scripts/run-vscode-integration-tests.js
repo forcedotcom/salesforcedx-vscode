@@ -1,18 +1,38 @@
 #!/usr/bin/env node
 
-const shell = require('shelljs');
-shell.set('-e');
-shell.set('+v');
-
 const path = require('path');
-const cwd = process.cwd();
+const { runTests } = require('vscode-test');
 
-// Executes the tests in the out/test/vscode-integration directory
-shell.exec(
-  `cross-env CODE_TESTS_PATH='${path.join(
-    cwd,
-    'out',
-    'test',
-    'vscode-integration'
-  )}' node ./node_modules/vscode/bin/test`
-);
+function main() {
+  try {
+    const {
+      CODE_VERSION,
+      CODE_TESTS_PATH,
+      CODE_EXTENSIONS_PATH,
+      CODE_TESTS_WORKSPACE
+    } = process.env;
+
+    const cwd = process.cwd();
+    const version = CODE_VERSION;
+    const extensionDevelopmentPath = CODE_EXTENSIONS_PATH
+      ? CODE_EXTENSIONS_PATH
+      : cwd;
+    const extensionTestsPath = CODE_TESTS_PATH
+      ? CODE_TESTS_PATH
+      : path.join(cwd, 'out', 'test', 'vscode-integration');
+    const testWorkspace = CODE_TESTS_WORKSPACE;
+    const launchArgs = testWorkspace ? [testWorkspace] : undefined;
+    runTests({
+      version,
+      extensionDevelopmentPath,
+      extensionTestsPath,
+      launchArgs
+    });
+  } catch (error) {
+    console.error('Test run failed with error:', error);
+    console.log('Tests exist with error code: 1 when a test fails.');
+    process.exit(1);
+  }
+}
+
+main();
