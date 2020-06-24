@@ -62,9 +62,9 @@ export class DevServerService {
   }
 
   public setBaseUrlFromDevServerUpMessage(data: string) {
-    data = stripAnsi(data);
-    if (data.match(DEV_SERVER_BASE_URL_REGEX)) {
-      this.baseUrl = data.match(DEV_SERVER_BASE_URL_REGEX)![0];
+    const sanitizedData = stripAnsi(data);
+    if (sanitizedData.match(DEV_SERVER_BASE_URL_REGEX)) {
+      this.baseUrl = sanitizedData.match(DEV_SERVER_BASE_URL_REGEX)![0];
     }
   }
 
