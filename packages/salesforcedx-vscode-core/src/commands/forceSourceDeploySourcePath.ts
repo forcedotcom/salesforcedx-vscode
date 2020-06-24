@@ -134,8 +134,6 @@ export function useBetaRetrieve(explorerPath: vscode.Uri[]): boolean {
 }
 
 export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
-  protected sourceClient: SourceClient | undefined;
-
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
 

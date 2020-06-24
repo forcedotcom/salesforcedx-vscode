@@ -4,154 +4,146 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ExecuteAnonymousResponse } from '@salesforce/salesforcedx-apex/packages/apex/lib';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as fs from 'fs';
+// tslint:disable-next-line:no-var-requires
+const fs = require('fs').promises;
 import * as path from 'path';
-import * as util from 'util';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { nls } from '../messages';
-import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
+  ApexLibraryExecutor,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-
-class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
-  public build(data: TempFile): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_execute_document_text'))
-      .withArg('force:apex:execute')
-      .withFlag('--apexcodefile', data.fileName)
-      .withLogName('force_apex_execute')
-      .build();
-  }
-}
 
 class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
     if (hasRootWorkspace()) {
-      const fileName = path.join(
-        getRootWorkspacePath(),
-        '.sfdx',
-        'tools',
-        'tempApex.input'
-      );
-      const editor = await vscode.window.activeTextEditor;
-
+      const editor = vscode.window.activeTextEditor;
       if (!editor) {
         return { type: 'CANCEL' };
       }
 
-      let writeFile;
       const document = editor.document;
-
-      if (editor.selection.isEmpty) {
-        writeFile = await writeFileAsync(fileName, document.getText());
-      } else {
-        writeFile = await writeFileAsync(
-          fileName,
-          document.getText(editor.selection)
+      let fileName = document.uri.fsPath;
+      if (!editor.selection.isEmpty) {
+        fileName = path.join(
+          getRootWorkspacePath(),
+          '.sfdx',
+          'tools',
+          'tempApex.input'
         );
+        await fs.writeFile(fileName, document.getText(editor.selection));
       }
 
-      return writeFile
-        ? { type: 'CONTINUE', data: { fileName } }
-        : { type: 'CANCEL' };
+      return { type: 'CONTINUE', data: { fileName } };
     }
     return { type: 'CANCEL' };
   }
 }
 
-type TempFile = {
-  fileName: string;
-};
-
-export function writeFileAsync(fileName: string, inputText: string) {
-  return new Promise((resolve, reject) => {
-    fs.writeFile(fileName, inputText, err => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(true);
-      }
-    });
-  });
-}
-
 const workspaceChecker = new SfdxWorkspaceChecker();
 const fileNameGatherer = new CreateApexTempFile();
 
-export async function forceApexExecute(filePath: string, withSelection?: any) {
-  const gatherer = new CreateApexTempFile();
-  const inputs = (await gatherer.gather()) as ContinueResponse<{
-    fileName: string;
-  }>;
+export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
+  public async execute(
+    response: ContinueResponse<{ fileName: string }>
+  ): Promise<void> {
+    this.setStartTime();
 
+    try {
+      await this.build(
+        'Apex Execute (via library)',
+        'force_apex_execute_library'
+      );
+
+      if (this.apexService === undefined) {
+        throw new Error('ApexService is not established');
+      }
+
+      const fileName = response.data.fileName;
+      this.apexService.apexExecute = this.executeWrapper(
+        this.apexService.apexExecute
+      );
+
+      const result = await this.apexService.apexExecute({
+        apexCodeFile: fileName
+      });
+      const formattedResult = this.formatResult(result);
+      this.logMetric();
+      channelService.appendLine(formattedResult);
+      channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
+      if (result.result.compiled && result.result.success) {
+        ApexLibraryExecuteExecutor.errorCollection.clear();
+        await notificationService.showSuccessfulExecution(this.executionName);
+      } else {
+      }
+    } catch (e) {
+      telemetryService.sendException('force_apex_execute_library', e.message);
+      notificationService.showFailedExecution(this.executionName);
+      channelService.appendLine(e.message);
+    }
+  }
+
+  public executeWrapper(
+    fn: (...args: any[]) => Promise<ExecuteAnonymousResponse>
+  ) {
+    const commandName = this.executionName;
+
+    return async function(...args: any[]): Promise<ExecuteAnonymousResponse> {
+      channelService.showCommandWithTimestamp(`Starting ${commandName}`);
+
+      const result = await vscode.window.withProgress(
+        {
+          title: commandName,
+          location: vscode.ProgressLocation.Notification
+        },
+        async () => {
+          // @ts-ignore
+          return (await fn.call(this, ...args)) as ExecuteAnonymousResponse;
+        }
+      );
+      return result;
+    };
+  }
+
+  public formatResult(execAnonResponse: ExecuteAnonymousResponse): string {
+    let outputText: string = '';
+    if (execAnonResponse.result.compiled === true) {
+      outputText += `${nls.localize('apex_execute_compile_success')}\n`;
+      if (execAnonResponse.result.success === true) {
+        outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
+      } else {
+        outputText += `Error: ${execAnonResponse.result.exceptionMessage}\n`;
+        outputText += `Error: ${execAnonResponse.result.exceptionStackTrace}\n`;
+      }
+      outputText += `\n${execAnonResponse.result.logs}`;
+    } else {
+      outputText += `Error: Line: ${execAnonResponse.result.line}, Column: ${
+        execAnonResponse.result.column
+      }\n`;
+      outputText += `Error: ${execAnonResponse.result.compileProblem}\n`;
+    }
+    return outputText;
+  }
+}
+
+export async function forceApexExecute(withSelection?: any) {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     fileNameGatherer,
-    new ForceApexExecuteExecutor()
+    new ApexLibraryExecuteExecutor()
   );
   await commandlet.run();
-  /*
-  const fileName = inputs.data.fileName;
-  const data = fs.readFileSync(fileName, 'utf8');
-  // await commandlet.run();
-
-  /*const editor = await vscode.window.activeTextEditor;
-  const document = editor!.document;
-  const data = document.getText(editor!.selection);
-
-  const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
-  if (!usernameOrAlias) {
-    throw new Error(nls.localize('error_no_default_username'));
-  }
-  const connection = await OrgAuthInfo.getConnection(usernameOrAlias);
-  // create exec anonymous request
-  const action = 'executeAnonymous';
-  const debugHeader =
-    '<apex:DebuggingHeader><apex:debugLevel>DEBUGONLY</apex:debugLevel></apex:DebuggingHeader>';
-  const actionBody = `<apexcode>${data}</apexcode>`;
-  const postEndpoint = `${connection.instanceUrl}/services/Soap/s/${
-    connection.version
-  }/${connection.accessToken.split('!')[0]}`;
-  const requestHeaders = {
-    'content-type': 'text/xml',
-    soapaction: action
-  };
-  const request = {
-    method: 'POST',
-    url: postEndpoint,
-    body: util.format(
-      soapTemplate,
-      connection.accessToken,
-      debugHeader,
-      action,
-      actionBody,
-      action
-    ),
-    headers: requestHeaders
-  };
-
-  try {
-    const result = ((await connection.request(
-      request
-    )) as unknown) as SoapResponse;
-    const formattedResult = await formatResult(result[soapEnv]);
-    return formattedResult;
-  } catch (e) {
-    const message = e.message;
-  }*/
 }

@@ -40,3 +40,4 @@ export {
   EmptyPreChecker
 } from './preconditionCheckers';
 export { DeployRetrieveLibraryExecutor } from './deployRetrieveCommandlet';
+export { ApexLibraryExecutor } from './apexCommandlet';

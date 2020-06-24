@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { ExecuteAnonymousResponse } from '@salesforce/salesforcedx-apex/packages/apex/lib';
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DeployResult } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
@@ -81,7 +81,7 @@ export function handleDiagnosticErrors(
   return errorCollection;
 }
 
-export function handleLibraryDiagnostics(
+export function handleSDRLibraryDiagnostics(
   deployResult: DeployResult,
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
@@ -118,4 +118,25 @@ export function handleLibraryDiagnostics(
   });
 
   return errorCollection;
+}
+
+export function handleApexLibraryDiagnostics(
+  apexResult: ExecuteAnonymousResponse,
+  errorCollection: vscode.DiagnosticCollection,
+  filePath: string
+) {
+  errorCollection.clear();
+  const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
+  const range = getRange(
+    apexResult.result.line ? apexResult.result.line.toString() : '1',
+    apexResult.result.column ? apexResult.result.column.toString() : '1'
+  );
+
+  const diagnostic = {
+    message:
+      apexResult.result.compileProblem || apexResult.result.exceptionMessage,
+    severity: vscode.DiagnosticSeverity.Error,
+    source: filePath,
+    range
+  } as vscode.Diagnostic;
 }

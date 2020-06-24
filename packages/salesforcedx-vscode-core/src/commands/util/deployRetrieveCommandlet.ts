@@ -12,7 +12,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { languages, ProgressLocation, window } from 'vscode';
 import { channelService } from '../../channels';
-import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
+import { handleSDRLibraryDiagnostics } from '../../diagnostics/diagnostics';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { OrgAuthInfo } from '../../util';
@@ -35,12 +35,8 @@ export class DeployRetrieveLibraryExecutor extends LibraryCommandletExecutor<
   ): Promise<void> {
     this.executionName = execName;
     this.telemetryName = telemetryLogName;
-    // initialize connection
-    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
-    if (!usernameOrAlias) {
-      throw new Error(nls.localize('error_no_default_username'));
-    }
-    const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
+
+    const conn = await this.initalizeConnection();
     this.sourceClient = new SourceClient(conn);
   }
 
@@ -73,7 +69,7 @@ export class DeployRetrieveLibraryExecutor extends LibraryCommandletExecutor<
         DeployRetrieveLibraryExecutor.errorCollection.clear();
         await notificationService.showSuccessfulExecution(commandName);
       } else {
-        handleLibraryDiagnostics(
+        handleSDRLibraryDiagnostics(
           result,
           DeployRetrieveLibraryExecutor.errorCollection
         );
