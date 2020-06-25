@@ -121,7 +121,6 @@ There are some optional environment variables to configure the test runner:
 | Name                   | Description                                                                                    |
 | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | `CODE_VERSION`         | Version of VS Code to run the tests against (e.g. `0.10.10`)                                   |
-| `CODE_DOWNLOAD_URL`    | Full URL of a VS Code drop to use for running tests against                                    |
 | `CODE_TESTS_PATH`      | Location of the tests to execute (default is `process.cwd()/out/test` or `process.cwd()/test`) |
 | `CODE_EXTENSIONS_PATH` | Location of the extensions to load (default is `proces.cwd()`)                                 |
 | `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance (default is CODE_TESTS_PATH)             |
