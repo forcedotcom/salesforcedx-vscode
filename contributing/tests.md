@@ -118,13 +118,12 @@ such as .npmignore and .vscodeignore)
 
 There are some optional environment variables to configure the test runner:
 
-| Name                   | Description                                                                                    |
-| ---------------------- | ---------------------------------------------------------------------------------------------- |
-| `CODE_VERSION`         | Version of VS Code to run the tests against (e.g. `0.10.10`)                                   |
-| `CODE_DOWNLOAD_URL`    | Full URL of a VS Code drop to use for running tests against                                    |
-| `CODE_TESTS_PATH`      | Location of the tests to execute (default is `process.cwd()/out/test` or `process.cwd()/test`) |
-| `CODE_EXTENSIONS_PATH` | Location of the extensions to load (default is `proces.cwd()`)                                 |
-| `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance (default is CODE_TESTS_PATH)             |
+| Name                   | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| `CODE_VERSION`         | Version of VS Code to run the tests against (e.g. `0.10.10`) |
+| `CODE_TESTS_PATH`      | Location of the tests to execute                             |
+| `CODE_EXTENSIONS_PATH` | Location of the extensions to load                           |
+| `CODE_TESTS_WORKSPACE` | Location of a workspace to open for the test instance        |
 
 If you are running this from the top-level root folder, you can issue `npm run test:without-system-tests`.
 
@@ -133,8 +132,8 @@ See VS Code's doc
 for more information.
 
 See this
-[repository](https://github.com/Microsoft/vscode-extension-vscode/blob/master/bin/test)
-for the actual vscode/bin/test source.
+[repository](https://github.com/microsoft/vscode-test)
+for the actual `vscode-test` source.
 
 ### Running the tests against VS Code Insiders
 
@@ -147,16 +146,16 @@ There are tests that require integration with the Salesforce server. These tests
 require prior authentication to have occurred and a default devhub to be set.
 These show up in several packages. These tests are put under test/integration
 and named in the standard .test.ts pattern. The package.json should have an
-entry like `"test:integration": "node ./node_modules/vscode/bin/test/integration"`.
+entry like `"test:integration": "cross-env VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration"`.
 
 These can be run in the same way from the CLI using `npm run test:integration`.
 Running `npm run test` will also run these.
 
 ## Unit Tests
 
-A module can also have an entry like `"test:unit": "node ./node_modules/vscode/bin/test/unit"`. This is used for pure unit tests and for
-VS Code based tests discussed above. It is a good pattern to have an entry of
-`"test:unit": "node ./node_modules/vscode/bin/test"` in the package.json for
+A module can also have an entry like `"test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit"`.
+This is used for pure unit tests and for VS Code based tests discussed above.
+It is a good pattern to have an entry of `"test:unit"` in the package.json for
 modules that don't have separate integration tests.
 
 These can be run using `npm run test:unit` for quick testing that doesn't
