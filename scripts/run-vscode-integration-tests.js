@@ -6,5 +6,6 @@ const { runIntegrationTests } = require('./vscode-integration-testrunner');
 const cwd = process.cwd();
 runIntegrationTests({
   extensionDevelopmentPath: cwd,
-  extensionTestsPath: path.join(cwd, 'out', 'test', 'vscode-integration')
+  extensionTestsPath: path.join(cwd, 'out', 'test', 'vscode-integration'),
+  testWorkspace: path.join(cwd, 'out', 'test', 'vscode-integration')
 });

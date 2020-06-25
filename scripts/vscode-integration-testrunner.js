@@ -23,18 +23,12 @@ function runIntegrationTests({
       CODE_TESTS_WORKSPACE
     } = process.env;
 
-    const _version = CODE_VERSION ? CODE_VERSION : version;
-    console.log(JSON.stringify(_version, null, 2));
-    const _extensionDevelopmentPath = CODE_EXTENSIONS_PATH
-      ? CODE_EXTENSIONS_PATH
-      : extensionDevelopmentPath;
-    const _extensionTestsPath = CODE_TESTS_PATH
-      ? CODE_TESTS_PATH
-      : extensionTestsPath;
-    const _testWorkspace = CODE_TESTS_WORKSPACE
-      ? CODE_TESTS_WORKSPACE
-      : testWorkspace;
-    const launchArgs = _testWorkspace ? [_testWorkspace] : undefined;
+    const _version = CODE_VERSION || version;
+    const _extensionDevelopmentPath =
+      CODE_EXTENSIONS_PATH || extensionDevelopmentPath;
+    const _extensionTestsPath = CODE_TESTS_PATH || extensionTestsPath;
+    const _testWorkspace = CODE_TESTS_WORKSPACE || testWorkspace;
+    const launchArgs = _testWorkspace && [_testWorkspace];
     runTests({
       version: _version,
       extensionDevelopmentPath: _extensionDevelopmentPath,
