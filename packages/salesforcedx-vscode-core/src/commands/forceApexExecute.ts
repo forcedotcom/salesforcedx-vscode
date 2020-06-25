@@ -15,6 +15,7 @@ const fs = require('fs').promises;
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { handleApexLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -25,7 +26,8 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
+export class CreateApexTempFile
+  implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
@@ -77,18 +79,9 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
         this.apexService.apexExecute
       );
 
-      const result = await this.apexService.apexExecute({
+      await this.apexService.apexExecute({
         apexCodeFile: fileName
       });
-      const formattedResult = this.formatResult(result);
-      this.logMetric();
-      channelService.appendLine(formattedResult);
-      channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
-      if (result.result.compiled && result.result.success) {
-        ApexLibraryExecuteExecutor.errorCollection.clear();
-        await notificationService.showSuccessfulExecution(this.executionName);
-      } else {
-      }
     } catch (e) {
       telemetryService.sendException('force_apex_execute_library', e.message);
       notificationService.showFailedExecution(this.executionName);
@@ -114,32 +107,51 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
           return (await fn.call(this, ...args)) as ExecuteAnonymousResponse;
         }
       );
+
+      const formattedResult = formatResult(result);
+      channelService.appendLine(formattedResult);
+      channelService.showCommandWithTimestamp(`Finished ${commandName}`);
+
+      if (result.result.compiled && result.result.success) {
+        ApexLibraryExecuteExecutor.errorCollection.clear();
+        await notificationService.showSuccessfulExecution(commandName);
+      } else {
+        handleApexLibraryDiagnostics(
+          result,
+          ApexLibraryExecuteExecutor.errorCollection,
+          args[0].apexCodeFile
+        );
+        notificationService.showFailedExecution(commandName);
+      }
+
       return result;
     };
   }
-
-  public formatResult(execAnonResponse: ExecuteAnonymousResponse): string {
-    let outputText: string = '';
-    if (execAnonResponse.result.compiled === true) {
-      outputText += `${nls.localize('apex_execute_compile_success')}\n`;
-      if (execAnonResponse.result.success === true) {
-        outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
-      } else {
-        outputText += `Error: ${execAnonResponse.result.exceptionMessage}\n`;
-        outputText += `Error: ${execAnonResponse.result.exceptionStackTrace}\n`;
-      }
-      outputText += `\n${execAnonResponse.result.logs}`;
-    } else {
-      outputText += `Error: Line: ${execAnonResponse.result.line}, Column: ${
-        execAnonResponse.result.column
-      }\n`;
-      outputText += `Error: ${execAnonResponse.result.compileProblem}\n`;
-    }
-    return outputText;
-  }
 }
 
-export async function forceApexExecute(withSelection?: any) {
+export function formatResult(
+  execAnonResponse: ExecuteAnonymousResponse
+): string {
+  let outputText: string = '';
+  if (execAnonResponse.result.compiled === true) {
+    outputText += `${nls.localize('apex_execute_compile_success')}\n`;
+    if (execAnonResponse.result.success === true) {
+      outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
+    } else {
+      outputText += `Error: ${execAnonResponse.result.exceptionMessage}\n`;
+      outputText += `Error: ${execAnonResponse.result.exceptionStackTrace}\n`;
+    }
+    outputText += `\n${execAnonResponse.result.logs}`;
+  } else {
+    outputText += `Error: Line: ${execAnonResponse.result.line}, Column: ${
+      execAnonResponse.result.column
+    }\n`;
+    outputText += `Error: ${execAnonResponse.result.compileProblem}\n`;
+  }
+  return outputText;
+}
+
+export async function forceApexExecute() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     fileNameGatherer,

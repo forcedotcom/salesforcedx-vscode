@@ -81,7 +81,7 @@ export function handleDiagnosticErrors(
   return errorCollection;
 }
 
-export function handleSDRLibraryDiagnostics(
+export function handleDeployRetrieveLibraryDiagnostics(
   deployResult: DeployResult,
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
@@ -126,7 +126,6 @@ export function handleApexLibraryDiagnostics(
   filePath: string
 ) {
   errorCollection.clear();
-  const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
   const range = getRange(
     apexResult.result.line ? apexResult.result.line.toString() : '1',
     apexResult.result.column ? apexResult.result.column.toString() : '1'
@@ -134,9 +133,14 @@ export function handleApexLibraryDiagnostics(
 
   const diagnostic = {
     message:
-      apexResult.result.compileProblem || apexResult.result.exceptionMessage,
+      typeof apexResult.result.compileProblem === 'string'
+        ? apexResult.result.compileProblem
+        : apexResult.result.exceptionMessage,
     severity: vscode.DiagnosticSeverity.Error,
     source: filePath,
     range
   } as vscode.Diagnostic;
+
+  errorCollection.set(vscode.Uri.file(filePath), [diagnostic]);
+  return errorCollection;
 }

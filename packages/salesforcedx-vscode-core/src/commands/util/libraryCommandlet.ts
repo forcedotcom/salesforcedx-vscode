@@ -45,4 +45,12 @@ export abstract class LibraryCommandletExecutor<T>
   public setStartTime() {
     this.startTime = process.hrtime();
   }
+
+  protected getTelemetryData(
+    success: boolean,
+    response: ContinueResponse<T>,
+    output: string
+  ): TelemetryData | undefined {
+    return;
+  }
 }
