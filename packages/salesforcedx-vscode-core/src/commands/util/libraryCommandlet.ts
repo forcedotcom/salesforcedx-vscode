@@ -16,7 +16,12 @@ import { channelService } from '../../channels';
 import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { Measurements, Properties, telemetryService } from '../../telemetry';
+import {
+  Measurements,
+  Properties,
+  TelemetryData,
+  telemetryService
+} from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import { LibraryDeployResultParser } from './libraryDeployResultParser';
 import { outputRetrieveTable } from './retrieveParser';
@@ -29,9 +34,12 @@ export abstract class LibraryCommandletExecutor<T>
   protected startTime: [number, number] | undefined;
   protected telemetryName: string | undefined;
 
-  public build(execName: string, telemetryLogName: string) {}
+  public async build(
+    execName: string,
+    telemetryLogName: string
+  ): Promise<void> {}
 
-  public execute(response: ContinueResponse<T>): void {}
+  public async execute(response: ContinueResponse<T>): Promise<void> {}
 
   public logMetric(properties?: Properties, measurements?: Measurements) {
     telemetryService.sendCommandEvent(

@@ -70,7 +70,7 @@ describe('ApexCommandlet', () => {
         }()
       ),
       new class extends ApexLibraryExecutor {
-        public execute(response: ContinueResponse<{}>): void {
+        public async execute(response: ContinueResponse<{}>): Promise<void> {
           executed = true;
         }
       }()
@@ -88,7 +88,7 @@ describe('ApexCommandlet', () => {
       .stub(OrgAuthInfo, 'getConnection')
       .returns(mockConnection);
     const commandlet = new class extends ApexLibraryExecutor {
-      public execute(response: ContinueResponse<{}>): void {}
+      public async execute(response: ContinueResponse<{}>): Promise<void> {}
     }();
 
     await commandlet.build('Test name', 'telemetry_test');
@@ -102,7 +102,7 @@ describe('ApexCommandlet', () => {
       .returns(undefined);
     const orgAuthConnMock = sb.stub(OrgAuthInfo, 'getConnection');
     const commandlet = new class extends ApexLibraryExecutor {
-      public execute(response: ContinueResponse<{}>): void {}
+      public async execute(response: ContinueResponse<{}>): Promise<void> {}
     }();
     try {
       await commandlet.build('Test name', 'telemetry_test');

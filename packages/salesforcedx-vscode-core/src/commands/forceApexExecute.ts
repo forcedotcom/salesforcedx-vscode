@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExecuteAnonymousResponse } from '@salesforce/salesforcedx-apex/packages/apex/lib';
+import { ExecuteAnonymousResponse } from '@salesforce/salesforcedx-apex/packages/apex';
 import {
   CancelResponse,
   ContinueResponse,
@@ -66,8 +66,8 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
 
     try {
       await this.build(
-        'Apex Execute (via library)',
-        'force_apex_execute_library'
+        nls.localize('apex_execute_text'),
+        nls.localize('force_apex_execute_library')
       );
 
       if (this.apexService === undefined) {
