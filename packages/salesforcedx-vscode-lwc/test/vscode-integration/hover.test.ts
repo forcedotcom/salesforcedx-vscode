@@ -17,6 +17,8 @@ import {
 } from 'vscode';
 
 describe('LWC Hovers', function() {
+  this.timeout(4000);
+
   let lwcDir: string;
 
   before(async function() {
