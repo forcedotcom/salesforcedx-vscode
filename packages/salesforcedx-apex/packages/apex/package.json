@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
+  "main": "lib/index.js",
   "dependencies": {
     "@salesforce/core": "2.5.1"
   },
@@ -33,6 +34,9 @@
     "salesforce",
     "sfdx",
     "salesforcedx"
+  ],
+  "files": [
+    "lib"
   ],
   "scripts": {
     "build": "shx rm -rf lib && tsc -b",
