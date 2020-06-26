@@ -58,13 +58,13 @@ export abstract class SfdxCommandletExecutor<T>
 
   public logMetric(
     logName: string | undefined,
-    executionTime: [number, number],
+    hrstart: [number, number],
     properties?: Properties,
     measurements?: Measurements
   ) {
     telemetryService.sendCommandEvent(
       logName,
-      executionTime,
+      hrstart,
       properties,
       measurements
     );
