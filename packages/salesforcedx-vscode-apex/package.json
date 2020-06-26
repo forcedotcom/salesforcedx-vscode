@@ -43,12 +43,12 @@
     "@types/path-exists": "^1.0.29",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
+    "@types/vscode": "1.40.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
     "sinon": "^7.3.1",
     "typescript": "3.1.6",
-    "vscode": "^1.1.36",
     "vscode-extension-telemetry": "0.0.17"
   },
   "extensionDependencies": [
@@ -63,7 +63,6 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
