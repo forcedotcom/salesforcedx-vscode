@@ -47,6 +47,7 @@
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
+    "@types/vscode": "1.40.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
@@ -55,8 +56,7 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "sinon": "^7.3.1",
-    "typescript": "3.1.6",
-    "vscode": "^1.1.36"
+    "typescript": "3.1.6"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -67,7 +67,6 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:integration && npm run test:vscode-integration",
     "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json",
     "test:vscode-integration": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ../../scripts/run-vscode-integration-tests",
