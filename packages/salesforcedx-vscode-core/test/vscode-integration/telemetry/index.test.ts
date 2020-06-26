@@ -198,11 +198,16 @@ describe('Telemetry', () => {
       telemetryService.sendExtensionActivationEvent([0, 678]);
       assert.calledOnce(reporter);
 
-      const expectedData = {
-        extensionName: 'salesforcedx-vscode-core',
-        startupTime: match.string
+      const expectedProps = {
+        extensionName: 'salesforcedx-vscode-core'
       };
-      assert.calledWith(reporter, 'activationEvent', match(expectedData));
+      const expectedMeasures = match({ startupTime: match.number });
+      assert.calledWith(
+        reporter,
+        'activationEvent',
+        expectedProps,
+        expectedMeasures
+      );
       expect(teleStub.firstCall.args).to.eql([true]);
     });
 
@@ -231,21 +236,26 @@ describe('Telemetry', () => {
       telemetryService.sendCommandEvent('create_apex_class_command', [0, 678]);
       assert.calledOnce(reporter);
 
-      const expectedData = {
+      const expectedProps = {
         extensionName: 'salesforcedx-vscode-core',
-        commandName: 'create_apex_class_command',
-        executionTime: match.string
+        commandName: 'create_apex_class_command'
       };
-      assert.calledWith(reporter, 'commandExecution', match(expectedData));
+      const expectedMeasures = { executionTime: match.number };
+      assert.calledWith(
+        reporter,
+        'commandExecution',
+        expectedProps,
+        match(expectedMeasures)
+      );
       expect(teleStub.firstCall.args).to.eql([true]);
     });
 
-    it('Should send correct data format on sendCommandEvent with additionalData', async () => {
+    it('Should send correct data format on sendCommandEvent with additional props', async () => {
       // create vscode extensionContext
       mockContext = new MockContext(true);
 
       await telemetryService.initializeService(mockContext, machineId);
-      const additionalData = {
+      const additionalProps = {
         dirType: 'testDirectoryType',
         secondParam: 'value'
       };
@@ -253,18 +263,59 @@ describe('Telemetry', () => {
       telemetryService.sendCommandEvent(
         'create_apex_class_command',
         [0, 678],
-        additionalData
+        additionalProps
       );
       assert.calledOnce(reporter);
 
-      const expectedData = {
+      const expectedProps = {
         extensionName: 'salesforcedx-vscode-core',
         commandName: 'create_apex_class_command',
-        executionTime: match.string,
         dirType: 'testDirectoryType',
         secondParam: 'value'
       };
-      assert.calledWith(reporter, 'commandExecution', match(expectedData));
+      const expectedMeasures = { executionTime: match.number };
+      assert.calledWith(
+        reporter,
+        'commandExecution',
+        expectedProps,
+        match(expectedMeasures)
+      );
+      expect(teleStub.firstCall.args).to.eql([true]);
+    });
+
+    it('Should send correct data format on sendCommandEvent with additional measurements', async () => {
+      // create vscode extensionContext
+      mockContext = new MockContext(true);
+
+      await telemetryService.initializeService(mockContext, machineId);
+      const additionalMeasures = {
+        value: 3,
+        count: 10
+      };
+
+      telemetryService.sendCommandEvent(
+        'create_apex_class_command',
+        [0, 678],
+        undefined,
+        additionalMeasures
+      );
+      assert.calledOnce(reporter);
+
+      const expectedProps = {
+        extensionName: 'salesforcedx-vscode-core',
+        commandName: 'create_apex_class_command'
+      };
+      const expectedMeasures = {
+        executionTime: match.number,
+        value: 3,
+        count: 10
+      };
+      assert.calledWith(
+        reporter,
+        'commandExecution',
+        expectedProps,
+        match(expectedMeasures)
+      );
       expect(teleStub.firstCall.args).to.eql([true]);
     });
 
