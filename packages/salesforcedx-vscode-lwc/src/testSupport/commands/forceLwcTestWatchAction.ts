@@ -36,6 +36,10 @@ export async function forceLwcTestStopWatching(data: {
   testWatcher.stopWatchingTest(testExecutionInfo);
 }
 
+export function forceLwcTestStopWatchingAllTests() {
+  testWatcher.stopWatchingAllTests();
+}
+
 /**
  * Start watching the test of currently focused editor
  */

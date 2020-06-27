@@ -239,6 +239,10 @@
         {
           "command": "sfdx.force.lightning.lwc.test.editorTitle.stopWatching",
           "when": "sfdx:lwc_jest_file_focused"
+        },
+        {
+          "command": "sfdx.force.lightning.lwc.test.stopWatchingAllTests",
+          "when": "sfdx:project_opened || sfdx:internal_dev"
         }
       ]
     },
@@ -342,6 +346,10 @@
           "light": "resources/light/stopWatching.svg",
           "dark": "resources/dark/stopWatching.svg"
         }
+      },
+      {
+        "command": "sfdx.force.lightning.lwc.test.stopWatchingAllTests",
+        "title": "%force_lightning_lwc_test_stop_watching_all_tests_text%"
       }
     ],
     "configuration": {
