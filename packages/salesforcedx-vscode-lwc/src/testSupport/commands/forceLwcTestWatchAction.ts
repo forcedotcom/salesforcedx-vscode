@@ -20,7 +20,7 @@ import { isLwcJestTest } from '../utils';
  * It will kick off a VS Code task to execute the test runner in watch mode,
  * so that on file changes to the test file or the code related to the test file,
  * it will re-run the tests.
- * @param data providded by test watch commands (or test explorer potentially in the future)
+ * @param data provided by test watch commands (or test explorer potentially in the future)
  */
 export async function forceLwcTestStartWatching(data: {
   testExecutionInfo: TestExecutionInfo;
@@ -29,6 +29,11 @@ export async function forceLwcTestStartWatching(data: {
   await testWatcher.watchTest(testExecutionInfo);
 }
 
+/**
+ * Stop watching tests using the provided test execution info.
+ * It will terminate the test watch task matched by the test URI.
+ * @param data provided by test watch commands
+ */
 export async function forceLwcTestStopWatching(data: {
   testExecutionInfo: TestExecutionInfo;
 }) {
@@ -36,6 +41,10 @@ export async function forceLwcTestStopWatching(data: {
   testWatcher.stopWatchingTest(testExecutionInfo);
 }
 
+/**
+ * Stop watching all tests.
+ * It will terminate all test watch tasks.
+ */
 export function forceLwcTestStopWatchingAllTests() {
   testWatcher.stopWatchingAllTests();
 }
