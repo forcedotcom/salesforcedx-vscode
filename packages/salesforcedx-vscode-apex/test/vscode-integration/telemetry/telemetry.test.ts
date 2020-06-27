@@ -45,11 +45,18 @@ describe('Telemetry', () => {
     telemetryService.sendExtensionActivationEvent([1, 700]);
     assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex',
-      startupTime: match.string
+    const expectedProps = {
+      extensionName: 'salesforcedx-vscode-apex'
     };
-    assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
+    const expectedMeasures = {
+      startupTime: match.number
+    };
+    assert.calledWith(
+      sendEvent,
+      'activationEvent',
+      expectedProps,
+      match(expectedMeasures)
+    );
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
@@ -72,11 +79,18 @@ describe('Telemetry', () => {
     telemetryService.sendApexLSPActivationEvent([0, 50]);
     assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex',
-      startupTime: match.string
+    const expectedProps = {
+      extensionName: 'salesforcedx-vscode-apex'
     };
-    assert.calledWith(sendEvent, 'apexLSPStartup', match(expectedData));
+    const expectedMeasures = {
+      startupTime: match.number
+    };
+    assert.calledWith(
+      sendEvent,
+      'apexLSPStartup',
+      expectedProps,
+      match(expectedMeasures)
+    );
   });
 
   it('Should send correct data format on sendApexLSPError', async () => {
@@ -93,34 +107,63 @@ describe('Telemetry', () => {
     assert.calledWith(sendEvent, 'apexLSPError', expectedData);
   });
 
-  it('Should send correct data format on sendErrorEvent with additionalData', async () => {
+  it('Should send correct data format on sendErrorEvent with additional properties', async () => {
     const telemetryService = TelemetryService.getInstance();
     telemetryService.initializeService(reporter, true);
 
-    const additionalData = {
+    const properties = {
       cancelled: false,
-      standardObjects: 1,
+      commandName: 'sobject_refresh_command'
+    };
+
+    telemetryService.sendErrorEvent(
+      { message: 'sample error', stack: 'sample stack' },
+      properties
+    );
+    assert.calledOnce(sendEvent);
+
+    const expectedProps = {
+      extensionName: 'salesforcedx-vscode-apex',
+      errorMessage: 'sample error',
+      errorStack: 'sample stack',
+      cancelled: false,
+      commandName: 'sobject_refresh_command'
+    };
+    assert.calledWith(sendEvent, 'error', expectedProps);
+  });
+
+  it('Should send correct data format on sendErrorEvent with additional measurements', async () => {
+    const telemetryService = TelemetryService.getInstance();
+    telemetryService.initializeService(reporter, true);
+
+    const measurements = {
       customObjects: 2,
-      commandName: 'sobject_refresh_command',
+      standardObjects: 1,
       executionTime: telemetryService.getEndHRTime([0, 678])
     };
 
     telemetryService.sendErrorEvent(
       { message: 'sample error', stack: 'sample stack' },
-      additionalData
+      undefined,
+      measurements
     );
     assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-apex',
+    const expectedProps = {
       errorMessage: 'sample error',
       errorStack: 'sample stack',
-      cancelled: false,
-      standardObjects: 1,
-      customObjects: 2,
-      commandName: 'sobject_refresh_command',
-      executionTime: match.string
+      extensionName: 'salesforcedx-vscode-apex'
     };
-    assert.calledWith(sendEvent, 'error', match(expectedData));
+    const expectedMeasures = {
+      customObjects: 2,
+      executionTime: match.number,
+      standardObjects: 1
+    };
+    assert.calledWith(
+      sendEvent,
+      'error',
+      expectedProps,
+      match(expectedMeasures)
+    );
   });
 });

@@ -21,7 +21,7 @@ import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { TelemetryData, telemetryService } from '../../telemetry';
-import { Measurements, Properties } from '../../telemetry/telemetry';
+import { Measurements, Properties } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
 
 export interface FlagParameter<T> {
