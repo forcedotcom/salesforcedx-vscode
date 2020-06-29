@@ -15,7 +15,7 @@ import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
 import * as vscode from 'vscode';
-import { useBetaDeployRetrieve } from '../../../../src/commands/util/useBetaDeployRetrieve';
+import { useBetaDeployRetrieve } from '../../../../src/commands/util/betaDeployRetrieve';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
 describe('Force Source Deploy with Sourcepath Beta', () => {
@@ -302,6 +302,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
   let mockRegistry: SinonStub;
   const apexClassMDComponent: MetadataComponent = {
     type: {
+      id: 'apexclass',
       name: 'ApexClass',
       directoryName: 'classes',
       inFolder: false,
@@ -313,6 +314,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
   };
   const apexTriggerMDComponent: MetadataComponent = {
     type: {
+      id: 'apextrigger',
       name: 'ApexTrigger',
       directoryName: 'triggers',
       inFolder: false,
@@ -324,6 +326,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
   };
   const pageMDComponent: MetadataComponent = {
     type: {
+      id: 'apexpage',
       name: 'ApexPage',
       directoryName: 'pages',
       inFolder: false,
@@ -335,6 +338,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
   };
   const vfComponentMDComponent: MetadataComponent = {
     type: {
+      id: 'apexcomponent',
       name: 'ApexComponent',
       directoryName: 'components',
       inFolder: false,
@@ -346,6 +350,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
   };
   const auraMDComponent: MetadataComponent = {
     type: {
+      id: 'auradefinitionbundle',
       name: 'AuraDefinitionBundle',
       directoryName: 'aura',
       inFolder: false
@@ -356,6 +361,7 @@ describe('Force Source Retrieve with Sourcepath Beta', () => {
   };
   const lwcMDComponent: MetadataComponent = {
     type: {
+      id: 'lightningcomponentbundle',
       name: 'LightningComponentBundle',
       directoryName: 'lwc',
       inFolder: false
