@@ -1,5 +1,5 @@
 {
-  "name": "@salesforce/apex",
+  "name": "@salesforce/apex-node",
   "description": "Salesforce js library for Apex",
   "version": "0.0.1",
   "author": "Salesforce",
