@@ -31,7 +31,7 @@ import { InputBuffer } from 'uuid/interfaces';
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
     let telemetryStub: SinonStub<
-      [(string | undefined)?, ([number, number] | undefined)?, any?],
+      [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
       Promise<void>
     >;
     let processHrtimeStub: SinonStub<

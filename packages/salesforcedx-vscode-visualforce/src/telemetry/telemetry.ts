@@ -37,10 +37,13 @@ export class TelemetryService {
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent('activationEvent', {
-        extensionName: EXTENSION_NAME,
-        startupTime
-      });
+      this.reporter.sendTelemetryEvent(
+        'activationEvent',
+        {
+          extensionName: EXTENSION_NAME
+        },
+        { startupTime }
+      );
     }
   }
 
@@ -52,8 +55,8 @@ export class TelemetryService {
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): string {
+  private getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
-    return util.format('%d%d', hrend[0], hrend[1] / 1000000);
+    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 }
