@@ -67,10 +67,13 @@ export class TelemetryService {
     await this.setupVSCodeTelemetry();
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent('activationEvent', {
-        extensionName: EXTENSION_NAME,
-        startupTime
-      });
+      this.reporter.sendTelemetryEvent(
+        'activationEvent',
+        {
+          extensionName: EXTENSION_NAME
+        },
+        { startupTime }
+      );
     }
   }
 
@@ -86,17 +89,29 @@ export class TelemetryService {
   public async sendCommandEvent(
     commandName?: string,
     hrstart?: [number, number],
-    additionalData?: any
+    properties?: any,
+    measurements?: any
   ): Promise<void> {
     await this.setupVSCodeTelemetry();
     if (this.reporter !== undefined && this.isTelemetryEnabled && commandName) {
       const baseTelemetry = {
         extensionName: EXTENSION_NAME,
-        commandName,
-        ...(hrstart && { executionTime: this.getEndHRTime(hrstart) })
+        commandName
       };
-      const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
-      this.reporter.sendTelemetryEvent('commandExecution', aggregatedTelemetry);
+      const aggregatedProps = Object.assign(baseTelemetry, properties);
+
+      let aggregatedMeasurements: any | undefined;
+      if (hrstart || measurements) {
+        aggregatedMeasurements = Object.assign({}, measurements);
+        if (hrstart) {
+          aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
+        }
+      }
+      this.reporter.sendTelemetryEvent(
+        'commandExecution',
+        aggregatedProps,
+        aggregatedMeasurements
+      );
     }
   }
 
@@ -108,8 +123,8 @@ export class TelemetryService {
     }
   }
 
-  private getEndHRTime(hrstart: [number, number]): string {
+  private getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
-    return util.format('%d%d', hrend[0], hrend[1] / 1000000);
+    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 }
