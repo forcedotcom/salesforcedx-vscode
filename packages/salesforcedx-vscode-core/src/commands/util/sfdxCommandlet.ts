@@ -21,6 +21,7 @@ import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { TelemetryData, telemetryService } from '../../telemetry';
+import { Measurements, Properties } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
 
 export interface FlagParameter<T> {
@@ -57,10 +58,16 @@ export abstract class SfdxCommandletExecutor<T>
 
   public logMetric(
     logName: string | undefined,
-    executionTime: [number, number],
-    additionalData?: any
+    hrstart: [number, number],
+    properties?: Properties,
+    measurements?: Measurements
   ) {
-    telemetryService.sendCommandEvent(logName, executionTime, additionalData);
+    telemetryService.sendCommandEvent(
+      logName,
+      hrstart,
+      properties,
+      measurements
+    );
   }
 
   public execute(response: ContinueResponse<T>): void {
@@ -84,10 +91,17 @@ export abstract class SfdxCommandletExecutor<T>
         output
       );
       let properties;
+      let measurements;
       if (telemetryData) {
         properties = telemetryData.properties;
+        measurements = telemetryData.measurements;
       }
-      this.logMetric(execution.command.logName, startTime, properties);
+      this.logMetric(
+        execution.command.logName,
+        startTime,
+        properties,
+        measurements
+      );
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }

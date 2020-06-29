@@ -59,7 +59,7 @@ describe('Force LWC Test Debug - Code Action', () => {
     [number, number]
   >;
   let telemetryStub: SinonStub<
-    [(string | undefined)?, ([number, number] | undefined)?, any?],
+    [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
     Promise<void>
   >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';

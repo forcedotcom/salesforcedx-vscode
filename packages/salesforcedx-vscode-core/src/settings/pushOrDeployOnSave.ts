@@ -97,7 +97,7 @@ export class DeployQueue {
           {
             documentsToDeploy: toDeploy.length,
             waitTimeForLastDeploy: this.deployWaitStart
-              ? parseFloat(telemetryService.getEndHRTime(this.deployWaitStart))
+              ? telemetryService.getEndHRTime(this.deployWaitStart)
               : 0
           }
         );

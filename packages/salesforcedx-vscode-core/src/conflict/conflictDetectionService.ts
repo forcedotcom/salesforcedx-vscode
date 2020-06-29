@@ -113,7 +113,7 @@ export class ConflictDetector {
       return Promise.reject(error);
     }
 
-    telemetryService.sendCommandEvent('conflict_detect', startTime, {
+    telemetryService.sendCommandEvent('conflict_detect', startTime, undefined, {
       conflicts: results.different.size,
       orgFiles: results.scannedRemote,
       localFiles: results.scannedLocal
