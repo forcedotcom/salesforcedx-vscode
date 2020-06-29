@@ -6,3 +6,4 @@
  */
 
 export { ApexExecute } from './apexExecute';
+export { ApexLogGet } from './apexLogGet';

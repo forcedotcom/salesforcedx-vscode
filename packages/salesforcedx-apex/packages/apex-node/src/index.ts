@@ -7,3 +7,4 @@
 
 export { ExecuteAnonymousResponse, ApexExecuteOptions } from './types/service';
 export { ApexService } from './apexService';
+export { ApexLogGetOptions } from './types/service';

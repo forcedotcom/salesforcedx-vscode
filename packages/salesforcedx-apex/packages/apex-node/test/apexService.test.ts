@@ -8,10 +8,11 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox } from 'sinon';
-import { ApexService } from '../src/apexService';
 import { ExecuteAnonymousResponse } from '../src/types';
 import { ApexExecute } from '../src/commands/apexExecute';
+import { createSandbox, SinonSandbox, sandbox } from 'sinon';
+import { ApexService } from '../src/apexService';
+import { ApexLogGet } from '../src/commands';
 
 const $$ = testSetup();
 
@@ -57,5 +58,13 @@ describe('Apex Service Tests', () => {
       apexCodeFile: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(execAnonResponse);
+  });
+
+  it('should run apexLogGet command', async () => {
+    const apexService = new ApexService(mockConnection);
+    const logRecords = ['48.0 APEX_CODE,FINEST;APEX_PROFILING,INFO;CALLOUT'];
+    sandboxStub.stub(ApexLogGet.prototype, 'execute').resolves(logRecords);
+    const response = await apexService.apexLogGet({ numberOfLogs: 1 });
+    expect(response.length).to.eql(1);
   });
 });

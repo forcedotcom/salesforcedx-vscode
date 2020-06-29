@@ -18,5 +18,7 @@
 export const messages = {
   unexpected_execute_command_error:
     'Unexpected error while executing anonymous apex. %s',
-  file_not_found_error: 'File not found at the specified path: %s'
+  file_not_found_error: 'File not found at the specified path: %s',
+  unexpected_log_get_command_error: 'Unexpected error while getting logs. %s',
+  num_logs_error: 'Expected number of logs to be greater than 0.'
 };

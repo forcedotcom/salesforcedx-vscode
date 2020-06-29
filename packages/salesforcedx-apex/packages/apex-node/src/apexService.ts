@@ -9,6 +9,8 @@ import { Connection } from '@salesforce/core';
 import { ApexExecute } from './commands';
 import { nls } from './i18n';
 import { ApexExecuteOptions, ExecuteAnonymousResponse } from './types';
+import { ApexLogGet } from './commands/apexLogGet';
+import { ApexLogGetOptions } from './types/service';
 
 export class ApexService {
   public readonly connection: Connection;
@@ -34,5 +36,17 @@ export class ApexService {
   public async refreshAuth(connection: Connection) {
     const requestInfo = { url: connection.baseUrl(), method: 'GET' };
     return await connection.request(requestInfo);
+  }
+
+  public async apexLogGet(options: ApexLogGetOptions): Promise<string[]> {
+    try {
+      const apexLogGet = new ApexLogGet(this.connection);
+      const result = await apexLogGet.execute(options);
+      return result;
+    } catch (e) {
+      throw new Error(
+        nls.localize('unexpected_log_get_command_error', e.message)
+      );
+    }
   }
 }

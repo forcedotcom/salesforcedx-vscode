@@ -36,3 +36,8 @@ export type ApexExecuteOptions = CommonOptions & {
   targetUsername?: string;
   apexCodeFile: string;
 };
+
+export type ApexLogGetOptions = CommonOptions & {
+  numberOfLogs?: number;
+  logId?: string;
+};
