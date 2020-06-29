@@ -15,9 +15,10 @@ import {
   window,
   workspace
 } from 'vscode';
-import URI from 'vscode-uri';
 
 describe('Aura Hovers', function() {
+  this.timeout(4000);
+
   let auraDir: string;
 
   before(async function() {
