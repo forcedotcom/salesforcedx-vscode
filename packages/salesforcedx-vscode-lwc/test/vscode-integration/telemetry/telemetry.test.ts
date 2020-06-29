@@ -70,11 +70,18 @@ describe('Telemetry', () => {
     await telemetryService.sendExtensionActivationEvent([0, 678]);
     assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-lwc',
-      startupTime: match.string
+    const expectedProps = {
+      extensionName: 'salesforcedx-vscode-lwc'
     };
-    assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
+    const expectedMeasures = {
+      startupTime: match.number
+    };
+    assert.calledWith(
+      sendEvent,
+      'activationEvent',
+      expectedProps,
+      match(expectedMeasures)
+    );
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {
@@ -106,14 +113,21 @@ describe('Telemetry', () => {
     );
     assert.calledOnce(sendEvent);
 
-    const expectedExecutionTime = '3000.0004';
-    const expectedData = {
+    const expectedExecutionTime = 3000.0004;
+    const expectedProps = {
       extensionName: 'salesforcedx-vscode-lwc',
       commandName: mockCommandLogName,
-      executionTime: expectedExecutionTime,
       mockKey: 'mockValue'
     };
-    assert.calledWith(sendEvent, 'commandExecution', match(expectedData));
+    const expectedMeasures = {
+      executionTime: expectedExecutionTime
+    };
+    assert.calledWith(
+      sendEvent,
+      'commandExecution',
+      expectedProps,
+      expectedMeasures
+    );
   });
 
   it('Should send correct data format on sendException', async () => {
