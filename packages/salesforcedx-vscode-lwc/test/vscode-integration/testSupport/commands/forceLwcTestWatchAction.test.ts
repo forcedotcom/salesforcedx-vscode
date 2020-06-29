@@ -67,6 +67,10 @@ describe('Force LWC Test Watch Action', () => {
     );
   });
 
+  it('Stop watching all tests should not throw if no tests are being watched', async () => {
+    expect(forceLwcTestStopWatchingAllTests).to.not.throw();
+  });
+
   it('Should start and stop watching current file', async () => {
     mockActiveTextEditorUri(mockTestFileInfo.testUri);
     await forceLwcTestStartWatchingCurrentFile();
