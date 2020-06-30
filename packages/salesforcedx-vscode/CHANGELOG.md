@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Added 8 new apex code snippets ([PR #2262](https://github.com/forcedotcom/salesforcedx-vscode/pull/2262), [Issue #2261](https://github.com/forcedotcom/salesforcedx-vscode/issues/2261)) - Contribution by [lukecotter](https://github.com/lukecotter)
+- Added 8 new Apex code snippets ([PR #2262](https://github.com/forcedotcom/salesforcedx-vscode/pull/2262), [Issue #2261](https://github.com/forcedotcom/salesforcedx-vscode/issues/2261)) - Contribution by [lukecotter](https://github.com/lukecotter)
 
 #### salesforcedx-vscode-core
 
