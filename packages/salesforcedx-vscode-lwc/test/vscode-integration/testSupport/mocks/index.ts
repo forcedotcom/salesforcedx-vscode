@@ -26,7 +26,7 @@ let sfdxTaskExecuteStub: SinonStub<[], Promise<SfdxTask>>;
 let activeTextEditorStub: SinonStub<any[], any>;
 let getTempFolderStub: SinonStub<[string, string], string>;
 let watchTestResultsStub: SinonStub<[string], void>;
-export function createMockTestFileInfo() {
+export function createMockTestFileInfo(mockTestFile = 'mockTest.test.js') {
   const mockDirectory = path.join(
     vscode.workspace.workspaceFolders![0].uri.fsPath,
     'force-app',
@@ -36,7 +36,6 @@ export function createMockTestFileInfo() {
     '__tests__'
   );
 
-  const mockTestFile = 'mockTest.test.js';
   const mockTestFilePath = path.join(mockDirectory, mockTestFile);
   const testExecutionInfo: TestFileInfo = {
     kind: TestInfoKind.TEST_FILE,
