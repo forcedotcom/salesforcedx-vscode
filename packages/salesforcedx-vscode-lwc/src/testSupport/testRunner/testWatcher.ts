@@ -38,6 +38,7 @@ class TestWatcher {
         });
         this.watchedTests.set(fsPath, sfdxTask);
         this.setWatchingContext(testUri);
+        return sfdxTask;
       }
     } catch (error) {
       console.error(error);
