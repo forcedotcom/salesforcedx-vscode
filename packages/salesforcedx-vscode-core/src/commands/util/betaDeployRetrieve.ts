@@ -9,8 +9,8 @@ import {
   RegistryAccess,
   registryData
 } from '@salesforce/source-deploy-retrieve';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import * as vscode from 'vscode';
-
 import { sfdxCoreSettings } from '../../settings';
 
 export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
@@ -39,4 +39,17 @@ export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
     typeName === apexpage.name ||
     typeName === apextrigger.name;
   return betaDeployRetrieve && supportedType;
+}
+
+export function createComponentCount(components: MetadataComponent[]) {
+  const quantities: { [type: string]: number } = {};
+  for (const component of components) {
+    const { name: typeName } = component.type;
+    const typeCount = quantities[typeName];
+    quantities[typeName] = typeCount ? typeCount + 1 : 1;
+  }
+  return Object.keys(quantities).map(type => ({
+    type,
+    quantity: quantities[type]
+  }));
 }
