@@ -17,7 +17,12 @@ import { channelService } from '../../channels';
 import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { TelemetryData, telemetryService } from '../../telemetry';
+import {
+  Measurements,
+  Properties,
+  TelemetryData,
+  telemetryService
+} from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import { LibraryDeployResultParser } from './libraryDeployResultParser';
 import { outputRetrieveTable } from './retrieveParser';
@@ -48,6 +53,7 @@ export abstract class LibraryCommandletExecutor<T>
       throw new Error(nls.localize('error_no_default_username'));
     }
     const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
+    // @ts-ignore private logger mismatch
     this.sourceClient = new SourceClient(conn);
   }
 
@@ -114,19 +120,16 @@ export abstract class LibraryCommandletExecutor<T>
     };
   }
 
-  public logMetric() {
-    telemetryService.sendCommandEvent(this.telemetryName, this.startTime);
+  public logMetric(properties?: Properties, measurements?: Measurements) {
+    telemetryService.sendCommandEvent(
+      this.telemetryName,
+      this.startTime,
+      properties,
+      measurements
+    );
   }
 
   public setStartTime() {
     this.startTime = process.hrtime();
-  }
-
-  protected getTelemetryData(
-    success: boolean,
-    response: ContinueResponse<T>,
-    output: string
-  ): TelemetryData | undefined {
-    return;
   }
 }
