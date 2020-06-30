@@ -12,6 +12,13 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
 
+const validManageableStates = new Set([
+  'unmanaged',
+  'installedEditable',
+  'deprecatedEditable',
+  undefined // not part of a package
+]);
+
 export class ComponentUtils {
   public async getComponentsPath(
     metadataType: string,
@@ -59,7 +66,7 @@ export class ComponentUtils {
           const { fullName, manageableState } = cmp;
           if (
             !isNullOrUndefined(fullName) &&
-            (!manageableState || manageableState === 'unmanaged')
+            validManageableStates.has(manageableState)
           ) {
             components.push(fullName);
           }

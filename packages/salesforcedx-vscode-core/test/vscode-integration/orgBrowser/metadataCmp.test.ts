@@ -129,10 +129,9 @@ describe('build metadata components list', () => {
     }
   });
 
-  it('should only return "unmanaged" components if they have a manageableState', async () => {
+  it('should not return components if they are uneditable', async () => {
     const type = 'ApexClass';
     const states = [
-      'unmanaged',
       'installed',
       'released',
       'deleted',
@@ -153,26 +152,34 @@ describe('build metadata components list', () => {
       undefined
     );
 
-    expect(fullNames.length).to.equal(1);
-    expect(fullNames[0]).to.equal('fakeName0');
+    expect(fullNames.length).to.equal(0);
   });
 
-  it('should return components with no manageableState', async () => {
+  it('should return components that are editable', () => {
     const type = 'CustomObject';
+    const validStates = [
+      'unmanaged',
+      'deprecatedEditable',
+      'installedEditable',
+      undefined // unpackaged component
+    ];
+
     const fileData = {
       status: 0,
-      result: [{ fullName: 'fakeName', type }]
+      result: validStates.map((s, i) => ({
+        fullName: `fakeName${i}`,
+        type,
+        manageableState: s
+      }))
     };
-
     const fullNames = cmpUtil.buildComponentsList(
       type,
       JSON.stringify(fileData),
       undefined
     );
 
-    expect(fullNames.length).to.equal(1);
-    expect(fullNames[0]).to.equal('fakeName');
-  });
+    expect(fullNames).to.deep.equal(['fakeName0', 'fakeName1', 'fakeName2', 'fakeName3'])
+  })
 });
 
 describe('load metadata component data', () => {
