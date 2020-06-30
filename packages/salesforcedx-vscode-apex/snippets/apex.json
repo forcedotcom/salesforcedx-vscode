@@ -33,6 +33,41 @@
         ],
         "description": "System.debug"
     },
+    "System Assert False": {
+        "prefix": "sysassf",
+        "body": [
+            "System.assert(false, ${1:message});"
+        ],
+        "description": "System.assert(false, message);"
+    },
+    "System Assert Equal": {
+        "prefix": "sysasseq",
+        "body": [
+            "System.assertEqual(${1:expected}, ${2:actual});"
+        ],
+        "description": "System.assertEqual(expected, actual);"
+    },
+    "System Assert not Equal": {
+        "prefix": "sysassnoteq",
+        "body": [
+            "System.assertNotEqual(${1:expected}, ${2:actual});"
+        ],
+        "description": "System.assertNotEqual(expected, actual);"
+    },
+    "System Assert null": {
+        "prefix": "sysassnull",
+        "body": [
+            "System.assertEqual(null, ${1:actual});"
+        ],
+        "description": "System.assertEqual(null, actual);"
+    },
+    "System Assert Not Null": {
+        "prefix": "sysassnotnull",
+        "body": [
+            "System.assertNotEqual(null, ${1:actual});"
+        ],
+        "description": "System.assertNotEqual(null, actual);"
+    },
     "DescribeFieldResult": {
         "prefix": "dfr",
         "body": [
@@ -59,14 +94,14 @@
         "body": [
             "do {",
             "\t$0",
-            "} while (${1:true});"
+            "} while (${1:condition});"
         ],
         "description": "do...while loop"
     },
     "while loop": {
         "prefix": "while",
         "body": [
-            "while (${1:true}) {",
+            "while (${1:condition}) {",
             "\t$0",
             "}"
         ],
@@ -75,7 +110,7 @@
     "for": {
         "prefix": "for",
         "body": [
-            "for (${1:variable} : ${2:List_or_set}) {",
+            "for (${1:type} ${2:variable} : ${3:List_or_set}) {",
             "\t$0",
             "}"
         ],
@@ -84,7 +119,7 @@
     "for soql": {
         "prefix": "fors",
         "body": [
-            "for (${1:variable} : [${2:SOQL}]) {",
+            "for (${1:SObject} ${2:variable} : [${3:SOQL}]) {",
             "\t$0",
             "}"
         ],
@@ -108,14 +143,35 @@
         ],
         "description": "indexed for loop"
     },
+    "for map": {
+        "prefix": "formap",
+        "body": [
+            "for(${1:Object} ${2:key} : ${3:map}.keySet()){ {",
+            "\t${1:Object} ${4:item} = ${3}.get(${1});",
+            "\t$0",
+            "}"
+        ],
+        "description": "For loop to iterate over a map"
+    },
     "if statement": {
         "prefix": "if",
         "body": [
-            "if (${1:true}) {",
+            "if (${1:condition}) {",
             "\t$0",
             "}"
         ],
         "description": "if statement"
+    },
+    "if else statement": {
+        "prefix": "ifelse",
+        "body": [
+            "if (${1:condition}) {",
+            "\t$2",
+            "} else {",
+            "\t$0",
+            "}"
+        ],
+        "description": "if/else statement"
     },
     "Else statement": {
         "prefix": "else",
@@ -125,6 +181,72 @@
             "}"
         ],
         "description": "Else statement"
+    },
+    "if null statement": {
+        "prefix": "ifnull",
+        "body": [
+            "if (${1:condition} == null) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "if null statement"
+    },
+    "if not null statement": {
+        "prefix": "ifnotnull",
+        "body": [
+            "if (${1:condition} != null) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "if not null statement"
+    },
+    "ternary": {
+        "prefix": "ter",
+        "body": [
+            "${1:condition} ? ${2:exprIfTrue} : ${3:exprIfFalse};"
+        ],
+        "description": "x ? y : z;"
+    },
+    "constructor": {
+        "prefix": "constructor",
+        "body": [
+            "${1:|private,public,global|} ${2:${TM_FILENAME_BASE}}($3) {",
+            "\t${0:super();}",
+            "}"
+        ],
+        "description": "New constructor"
+    },
+    "new object": {
+        "prefix": "newobj",
+        "body": [
+            "${1:Object} ${2:var} = new ${1:Object}();"
+        ],
+        "description": "New Object"
+    },
+    "Field": {
+        "prefix": "field",
+        "body": [
+            "${1:|private,public,global|} ${2:String} ${3:name};"
+        ],
+        "description": "Field"
+    },
+    "method": {
+        "prefix": "method",
+        "body": [
+            "${1:|private,public,global|} ${2:void} ${3:name}($4) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "New method"
+    },
+    "static method": {
+        "prefix": "staticmethod",
+        "body": [
+            "${1:|private,public,global|} static ${2:void} ${3:name}($4) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "New static method"
     },
     "Try finally": {
         "prefix": "tryf",
@@ -196,12 +318,26 @@
         ],
         "description": "Map constructor"
     },
+    "Map from list of records": {
+        "prefix": "mapfromrecordlist",
+        "body": [
+            "Map<Id, ${1:SObject}> ${2:variable} = new Map<Id, ${1}>(${3:recordList});"
+        ],
+        "description": "Map from List of records"
+    },
     "set": {
         "prefix": "Set",
         "body": [
             "Set<${1:Object}> ${2:setName} = new Set<$1>();"
         ],
         "description": "Set constructor"
+    },
+    "Set Ids from list of records": {
+        "prefix": "setidsfromrecordlist",
+        "body": [
+            "Set<Id> ${1:variable} = new Map<Id, SObject>(${2:recordList}).keySet();"
+        ],
+        "description": "Set of Ids from List of records"
     },
     "@AuraEnabled": {
         "prefix": "@AuraEnabled",
