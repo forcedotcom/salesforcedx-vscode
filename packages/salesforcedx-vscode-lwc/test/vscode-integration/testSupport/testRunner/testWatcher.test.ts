@@ -20,7 +20,7 @@ import { expect } from 'chai';
 describe('Test Watcher', () => {
   describe('Telemetry for watching tests', () => {
     let telemetryStub: SinonStub<
-      [(string | undefined)?, ([number, number] | undefined)?, any?],
+      [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
       Promise<void>
     >;
     let processHrtimeStub: SinonStub<
