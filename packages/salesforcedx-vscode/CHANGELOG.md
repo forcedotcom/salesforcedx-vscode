@@ -1,3 +1,29 @@
+# 48.23.0 - July 2, 2020
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Added 8 new apex code snippets ([PR #2262](https://github.com/forcedotcom/salesforcedx-vscode/pull/2262), [Issue #2261](https://github.com/forcedotcom/salesforcedx-vscode/issues/2261)) - Contribution by [lukecotter](https://github.com/lukecotter)
+
+#### salesforcedx-vscode-core
+
+- Added tooltips to the org picker and org status bar items ([PR #2272](https://github.com/forcedotcom/salesforcedx-vscode/pull/2272))
+
+#### salesforcedx-vscode-lwc
+
+- Added `SFDX: Stop Watching All Lightning Web Component Tests` command ([PR #2298](https://github.com/forcedotcom/salesforcedx-vscode/pull/2298))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fixed an issue where cancelling a command threw an error ([PR #2280](https://github.com/forcedotcom/salesforcedx-vscode/pull/2280))
+
+#### salesforcedx-vscode-lwc
+
+- Fixed an issue with the local dev server start and component preview commands failing to run due to encoding issues ([PR #2287](https://github.com/forcedotcom/salesforcedx-vscode/pull/2287), [Issue #2284](https://github.com/forcedotcom/salesforcedx-vscode/issues/2284))
+
 # 48.21.0 - June 18, 2020
 
 ## Added
