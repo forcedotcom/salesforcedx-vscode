@@ -131,12 +131,7 @@ describe('build metadata components list', () => {
 
   it('should not return components if they are uneditable', async () => {
     const type = 'ApexClass';
-    const states = [
-      'installed',
-      'released',
-      'deleted',
-      'depricated'
-    ];
+    const states = ['installed', 'released', 'deleted', 'depricated'];
     const fileData = {
       status: 0,
       result: states.map((s, i) => ({
@@ -178,8 +173,13 @@ describe('build metadata components list', () => {
       undefined
     );
 
-    expect(fullNames).to.deep.equal(['fakeName0', 'fakeName1', 'fakeName2', 'fakeName3'])
-  })
+    expect(fullNames).to.deep.equal([
+      'fakeName0',
+      'fakeName1',
+      'fakeName2',
+      'fakeName3'
+    ]);
+  });
 });
 
 describe('load metadata component data', () => {
