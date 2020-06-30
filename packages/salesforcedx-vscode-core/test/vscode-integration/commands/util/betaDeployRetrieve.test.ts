@@ -16,8 +16,8 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
 import * as vscode from 'vscode';
 import {
-  useBetaDeployRetrieve,
-  createComponentCount
+  createComponentCount,
+  useBetaDeployRetrieve
 } from '../../../../src/commands/util/betaDeployRetrieve';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
