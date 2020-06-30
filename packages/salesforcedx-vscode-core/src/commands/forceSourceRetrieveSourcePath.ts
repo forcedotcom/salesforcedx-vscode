@@ -31,12 +31,15 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import {
+  createComponentCount,
+  useBetaDeployRetrieve
+} from './util/betaDeployRetrieve';
 import { LibraryCommandletExecutor } from './util/libraryCommandlet';
-import { useBetaDeployRetrieve } from './util/useBetaDeployRetrieve';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
-  > {
+> {
   public build(sourcePath: string): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_retrieve_text'))
@@ -115,7 +118,7 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
 
 export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
   string
-  > {
+> {
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
 
@@ -129,14 +132,19 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
         throw new Error('SourceClient is not established');
       }
 
-      this.sourceClient.tooling.retrieveWithPaths = this.retrieveWrapper(
-        this.sourceClient.tooling.retrieveWithPaths
+      this.sourceClient.tooling.retrieve = this.retrieveWrapper(
+        this.sourceClient.tooling.retrieve
       );
-      const retrieveOpts = {
-        paths: [response.data]
-      };
-      await this.sourceClient.tooling.retrieveWithPaths(retrieveOpts);
-      this.logMetric();
+
+      const registryAccess = new RegistryAccess();
+      const components = registryAccess.getComponentsFromPath(response.data);
+      const retrievePromise = this.sourceClient.tooling.retrieve({
+        components
+      });
+      const metadataCount = JSON.stringify(createComponentCount(components));
+      await retrievePromise;
+
+      this.logMetric({ metadataCount });
     } catch (e) {
       telemetryService.sendException(
         'force_source_retrieve_with_sourcepath_beta',

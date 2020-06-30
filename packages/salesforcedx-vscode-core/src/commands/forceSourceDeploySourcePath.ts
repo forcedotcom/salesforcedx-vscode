@@ -33,8 +33,11 @@ import {
   VISUALFORCE_PAGE_EXTENSION
 } from './templates/metadataTypeConstants';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  createComponentCount,
+  useBetaDeployRetrieve
+} from './util/betaDeployRetrieve';
 import { LibraryCommandletExecutor } from './util/libraryCommandlet';
-import { useBetaDeployRetrieve } from './util/useBetaDeployRetrieve';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -109,7 +112,7 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
 
 export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
   string
-  > {
+> {
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
 
@@ -123,14 +126,17 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
         throw new Error('SourceClient is not established');
       }
 
-      this.sourceClient.tooling.deployWithPaths = this.deployWrapper(
-        this.sourceClient.tooling.deployWithPaths
+      this.sourceClient.tooling.deploy = this.deployWrapper(
+        this.sourceClient.tooling.deploy
       );
 
-      await this.sourceClient.tooling.deployWithPaths({
-        paths: [response.data]
-      });
-      this.logMetric();
+      const registryAccess = new RegistryAccess();
+      const components = registryAccess.getComponentsFromPath(response.data);
+      const deployPromise = this.sourceClient.tooling.deploy({ components });
+      const metadataCount = JSON.stringify(createComponentCount(components));
+      await deployPromise;
+
+      this.logMetric({ metadataCount });
     } catch (e) {
       telemetryService.sendException(
         'force_source_deploy_with_sourcepath_beta',
