@@ -13,7 +13,7 @@ import {
   forceLwcTestRun,
   forceLwcTestRunActiveTextEditorTest
 } from '../../../../src/testSupport/commands/forceLwcTestRunAction';
-import { getLwcTestRunnerExecutable } from '../../../../src/testSupport/testRunner';
+import { getLwcTestRunnerExecutable } from '../../../../src/testSupport/workspace';
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
@@ -31,7 +31,7 @@ import { InputBuffer } from 'uuid/interfaces';
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
     let telemetryStub: SinonStub<
-      [(string | undefined)?, ([number, number] | undefined)?, any?],
+      [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
       Promise<void>
     >;
     let processHrtimeStub: SinonStub<
@@ -62,7 +62,10 @@ describe('Force LWC Test Run - Code Action', () => {
       assert.calledWith(
         telemetryStub,
         FORCE_LWC_TEST_RUN_LOG_NAME,
-        mockExecutionTime
+        mockExecutionTime,
+        {
+          workspaceType: 'SFDX'
+        }
       );
 
       processHrtimeStub.restore();

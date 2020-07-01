@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import { assert, SinonStub, stub } from 'sinon';
 import * as uuid from 'uuid';
@@ -20,7 +21,7 @@ import {
   handleDidStartDebugSession,
   handleDidTerminateDebugSession
 } from '../../../../src/testSupport/commands/forceLwcTestDebugAction';
-import * as lwcTestRunner from '../../../../src/testSupport/testRunner';
+import * as lwcTestWorkspace from '../../../../src/testSupport/workspace';
 import {
   TestCaseInfo,
   TestInfoKind,
@@ -49,13 +50,16 @@ describe('Force LWC Test Debug - Code Action', () => {
     ],
     Thenable<any>
   >;
-  let lwcTestRunnerStub: SinonStub<[string], string | undefined>;
+  let getLwcTestRunnerExecutableStub: SinonStub<
+    [string],
+    fs.PathLike | undefined
+  >;
   let processHrtimeStub: SinonStub<
     [([number, number] | undefined)?],
     [number, number]
   >;
   let telemetryStub: SinonStub<
-    [(string | undefined)?, ([number, number] | undefined)?, any?],
+    [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
     Promise<void>
   >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
@@ -64,7 +68,10 @@ describe('Force LWC Test Debug - Code Action', () => {
     debugStub = stub(vscode.debug, 'startDebugging');
     processHrtimeStub = stub(process, 'hrtime');
     telemetryStub = stub(telemetryService, 'sendCommandEvent');
-    lwcTestRunnerStub = stub(lwcTestRunner, 'getLwcTestRunnerExecutable');
+    getLwcTestRunnerExecutableStub = stub(
+      lwcTestWorkspace,
+      'getLwcTestRunnerExecutable'
+    );
     uuidStub.returns(mockUuid);
     telemetryStub.returns(Promise.resolve());
     debugStub.returns(Promise.resolve());
@@ -75,7 +82,7 @@ describe('Force LWC Test Debug - Code Action', () => {
     debugStub.restore();
     processHrtimeStub.restore();
     telemetryStub.restore();
-    lwcTestRunnerStub.restore();
+    getLwcTestRunnerExecutableStub.restore();
   });
 
   const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
@@ -136,7 +143,7 @@ describe('Force LWC Test Debug - Code Action', () => {
 
   describe('Debug Test Case', () => {
     it('Should send telemetry for debug test case', async () => {
-      lwcTestRunnerStub.returns(lwcTestExecutablePath);
+      getLwcTestRunnerExecutableStub.returns(lwcTestExecutablePath);
       const mockExecutionTime: [number, number] = [123, 456];
       processHrtimeStub.returns(mockExecutionTime);
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
@@ -157,14 +164,17 @@ describe('Force LWC Test Debug - Code Action', () => {
       assert.calledWith(
         telemetryStub,
         FORCE_LWC_TEST_DEBUG_LOG_NAME,
-        mockExecutionTime
+        mockExecutionTime,
+        {
+          workspaceType: 'SFDX'
+        }
       );
     });
   });
 
   describe('Debug Test File', () => {
     beforeEach(() => {
-      lwcTestRunnerStub.returns(lwcTestExecutablePath);
+      getLwcTestRunnerExecutableStub.returns(lwcTestExecutablePath);
       mockTestResultWatcher();
     });
     afterEach(() => {

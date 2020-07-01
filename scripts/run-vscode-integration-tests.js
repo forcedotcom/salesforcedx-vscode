@@ -1,18 +1,11 @@
 #!/usr/bin/env node
 
-const shell = require('shelljs');
-shell.set('-e');
-shell.set('+v');
-
 const path = require('path');
-const cwd = process.cwd();
+const { runIntegrationTests } = require('./vscode-integration-testrunner');
 
-// Executes the tests in the out/test/vscode-integration directory
-shell.exec(
-  `cross-env CODE_TESTS_PATH='${path.join(
-    cwd,
-    'out',
-    'test',
-    'vscode-integration'
-  )}' node ./node_modules/vscode/bin/test`
-);
+const cwd = process.cwd();
+runIntegrationTests({
+  extensionDevelopmentPath: cwd,
+  extensionTestsPath: path.join(cwd, 'out', 'test', 'vscode-integration'),
+  testWorkspace: path.join(cwd, 'out', 'test', 'vscode-integration')
+});

@@ -45,11 +45,18 @@ describe('Telemetry', () => {
     telemetryService.sendExtensionActivationEvent([1, 300]);
     assert.calledOnce(sendEvent);
 
-    const expectedData = {
-      extensionName: 'salesforcedx-vscode-visualforce',
-      startupTime: match.string
+    const expectedProps = {
+      extensionName: 'salesforcedx-vscode-visualforce'
     };
-    assert.calledWith(sendEvent, 'activationEvent', match(expectedData));
+    const expectedMeasures = {
+      startupTime: match.number
+    };
+    assert.calledWith(
+      sendEvent,
+      'activationEvent',
+      expectedProps,
+      match(expectedMeasures)
+    );
   });
 
   it('Should send correct data format on sendExtensionDeactivationEvent', async () => {

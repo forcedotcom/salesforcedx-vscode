@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "48.19.0",
+  "version": "48.22.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,25 +24,25 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-apex-replay-debugger": "48.19.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "48.22.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "48.19.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "48.22.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
-    "@types/node": "8.9.3",
+    "@types/node": "12.0.12",
     "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.2",
+    "@types/vscode": "1.40.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
-    "sinon": "^7.3.1",
-    "vscode": "^1.1.36"
+    "sinon": "^7.3.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -57,7 +57,6 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "postinstall": "node ./node_modules/vscode/bin/install",
     "test": "npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"

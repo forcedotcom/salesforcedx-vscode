@@ -42,10 +42,13 @@ export class TelemetryService {
   public sendExtensionActivationEvent(hrstart: [number, number]): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent('activationEvent', {
-        extensionName: EXTENSION_NAME,
-        startupTime
-      });
+      this.reporter.sendTelemetryEvent(
+        'activationEvent',
+        {
+          extensionName: EXTENSION_NAME
+        },
+        { startupTime }
+      );
     }
   }
 
@@ -60,10 +63,13 @@ export class TelemetryService {
   public sendApexLSPActivationEvent(hrstart: [number, number]): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const startupTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent('apexLSPStartup', {
-        extensionName: EXTENSION_NAME,
-        startupTime
-      });
+      this.reporter.sendTelemetryEvent(
+        'apexLSPStartup',
+        {
+          extensionName: EXTENSION_NAME
+        },
+        { startupTime }
+      );
     }
   }
 
@@ -87,7 +93,8 @@ export class TelemetryService {
 
   public sendErrorEvent(
     error: { message: string; stack?: string },
-    additionalData?: any
+    properties?: any,
+    measurements?: any
   ): void {
     if (this.reporter !== undefined && this.isTelemetryEnabled) {
       const baseTelemetry: ErrorMetric = {
@@ -96,13 +103,13 @@ export class TelemetryService {
         errorStack: error.stack
       };
 
-      const aggregatedTelemetry = Object.assign(baseTelemetry, additionalData);
-      this.reporter.sendTelemetryEvent('error', aggregatedTelemetry);
+      const aggregatedProps = Object.assign(baseTelemetry, properties);
+      this.reporter.sendTelemetryEvent('error', aggregatedProps, measurements);
     }
   }
 
-  public getEndHRTime(hrstart: [number, number]): string {
+  public getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
-    return util.format('%d%d', hrend[0], hrend[1] / 1000000);
+    return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
   }
 }

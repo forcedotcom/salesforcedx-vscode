@@ -23,6 +23,7 @@ import {
 } from './forceLwcTestRunAction';
 import {
   forceLwcTestStartWatchingCurrentFile,
+  forceLwcTestStopWatchingAllTests,
   forceLwcTestStopWatchingCurrentFile
 } from './forceLwcTestWatchAction';
 
@@ -77,6 +78,10 @@ export function registerCommands(
     'sfdx.force.lightning.lwc.test.editorTitle.stopWatching',
     forceLwcTestStopWatchingCurrentFile
   );
+  const forceLwcTestStopWatchingAllTestsCmd = commands.registerCommand(
+    'sfdx.force.lightning.lwc.test.stopWatchingAllTests',
+    forceLwcTestStopWatchingAllTests
+  );
   const startDebugSessionDisposable = vscode.debug.onDidStartDebugSession(
     handleDidStartDebugSession
   );
@@ -95,6 +100,7 @@ export function registerCommands(
     forceLwcTestEditorTitleDebugCmd,
     forceLwcTestEditorTitleStartWatchingCmd,
     forceLwcTestEditorTitleStopWatchingCmd,
+    forceLwcTestStopWatchingAllTestsCmd,
     startDebugSessionDisposable,
     stopDebugSessionDisposable
   );

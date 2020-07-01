@@ -149,9 +149,9 @@ describe('CommandExecutor tests', () => {
 
       expect(patchedOptions).to.have.property('env');
       expect(patchedOptions.env).to.have.property('key1');
-      expect(patchedOptions.env.key1).to.equal(testData.get('key1'));
+      expect(patchedOptions.env!.key1).to.equal(testData.get('key1'));
       expect(patchedOptions.env).to.have.property('key2');
-      expect(patchedOptions.env.key2).to.equal(testData.get('key2'));
+      expect(patchedOptions.env!.key2).to.equal(testData.get('key2'));
       expect(patchedOptions.env).to.have.any.keys('PATH', 'Path', 'path');
     });
 
@@ -169,11 +169,11 @@ describe('CommandExecutor tests', () => {
 
       expect(patchedOptions).to.have.property('env');
       expect(patchedOptions.env).to.have.property('key1');
-      expect(patchedOptions.env.key1).to.equal(testData.get('key1'));
+      expect(patchedOptions.env!.key1).to.equal(testData.get('key1'));
       expect(patchedOptions.env).to.have.property('key2');
-      expect(patchedOptions.env.key2).to.equal(testData.get('key2'));
+      expect(patchedOptions.env!.key2).to.equal(testData.get('key2'));
       expect(patchedOptions.env).to.have.property('SFDX_TOOL');
-      expect(patchedOptions.env.SFDX_TOOL).to.equal(
+      expect(patchedOptions.env!.SFDX_TOOL).to.equal(
         'salesforce-vscode-extensions'
       );
       expect(patchedOptions.env).to.have.any.keys('PATH', 'Path', 'path');
@@ -197,9 +197,9 @@ describe('CommandExecutor tests', () => {
 
       expect(patchedOptions).to.have.property('env');
       expect(patchedOptions.env).to.have.property('key1');
-      expect(patchedOptions.env.key1).to.equal(existingKey1Value);
+      expect(patchedOptions.env!.key1).to.equal(existingKey1Value);
       expect(patchedOptions.env).to.have.property('key2');
-      expect(patchedOptions.env.key2).to.equal(testData.get('key2'));
+      expect(patchedOptions.env!.key2).to.equal(testData.get('key2'));
     });
 
     it('patchEnv maintains exising vars', async () => {
@@ -222,7 +222,7 @@ describe('CommandExecutor tests', () => {
       expect(patchedOptions.env).to.have.property('key1');
       expect(patchedOptions.env).to.have.property('key2');
       expect(patchedOptions.env).to.have.property('keyOrig1');
-      expect(patchedOptions.env.keyOrig1).to.equal(existingValue);
+      expect(patchedOptions.env!.keyOrig1).to.equal(existingValue);
     });
   });
 });
