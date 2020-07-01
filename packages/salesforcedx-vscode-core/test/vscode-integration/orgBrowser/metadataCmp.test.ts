@@ -131,7 +131,7 @@ describe('build metadata components list', () => {
 
   it('should not return components if they are uneditable', async () => {
     const type = 'ApexClass';
-    const states = ['installed', 'released', 'deleted', 'deprecated'];
+    const states = ['installed', 'released', 'deleted', 'deprecated', 'beta'];
     const fileData = {
       status: 0,
       result: states.map((s, i) => ({
