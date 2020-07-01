@@ -28,34 +28,38 @@ export class ApexExecute {
   public async execute(
     options: ApexExecuteOptions
   ): Promise<ExecuteAnonymousResponse> {
-    if (existsSync(options.apexCodeFile)) {
-      const data = readFileSync(options.apexCodeFile, 'utf8');
-      let count = 0;
-      while (count < 2) {
-        try {
-          const request = this.buildExecRequest(data);
-          const result = await this.connectionRequest(request);
-          const jsonResult = this.jsonFormat(result);
-          return jsonResult;
-        } catch (e) {
-          if (
-            e.name === 'ERROR_HTTP_500' &&
-            e.message &&
-            e.message.includes('INVALID_SESSION_ID')
-          ) {
-            await this.refreshAuth(this.connection);
-            count += 1;
-          } else {
-            throw new Error(
-              nls.localize('unexpected_execute_command_error', e.message)
-            );
-          }
+    let data: string;
+
+    if (options.apexFilePath) {
+      if (!existsSync(options.apexFilePath))
+        throw new Error(
+          nls.localize('file_not_found_error', options.apexFilePath)
+        );
+      data = readFileSync(options.apexFilePath, 'utf8');
+    } else {
+      data = String(options.apexCode);
+    }
+
+    let count = 0;
+    while (count < 2) {
+      try {
+        const request = this.buildExecRequest(data);
+        const result = await this.connectionRequest(request);
+        return this.jsonFormat(result);
+      } catch (e) {
+        if (
+          e.name === 'ERROR_HTTP_500' &&
+          e.message &&
+          e.message.includes('INVALID_SESSION_ID')
+        ) {
+          await this.refreshAuth(this.connection);
+          count += 1;
+        } else {
+          throw new Error(
+            nls.localize('unexpected_execute_command_error', e.message)
+          );
         }
       }
-    } else {
-      throw new Error(
-        nls.localize('file_not_found_error', options.apexCodeFile)
-      );
     }
   }
 
@@ -103,8 +107,7 @@ export class ApexExecute {
   public async connectionRequest(
     requestData: RequestData
   ): Promise<SoapResponse> {
-    const result = (await this.connection.request(requestData)) as SoapResponse;
-    return result;
+    return (await this.connection.request(requestData)) as SoapResponse;
   }
 
   public async refreshAuth(connection: Connection) {

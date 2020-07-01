@@ -80,7 +80,7 @@ describe('Apex Execute Tests', () => {
       .stub(ApexExecute.prototype, 'connectionRequest')
       .resolves(soapResponse);
     const response = await apexExecute.execute({
-      apexCodeFile: 'filepath/to/anonApex/file'
+      apexFilePath: 'filepath/to/anonApex/file'
     });
 
     expect(response).to.eql(expectedResult);
@@ -126,7 +126,7 @@ describe('Apex Execute Tests', () => {
       .resolves(soapResponse);
 
     const response = await apexExecute.execute({
-      apexCodeFile: 'filepath/to/anonApex/file'
+      apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(expectedResult);
   });
@@ -170,7 +170,7 @@ describe('Apex Execute Tests', () => {
       .resolves(soapResponse);
 
     const response = await apexExecute.execute({
-      apexCodeFile: 'filepath/to/anonApex/file'
+      apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(expectedResult);
   });
@@ -222,7 +222,7 @@ describe('Apex Execute Tests', () => {
     connRequestStub.onSecondCall().resolves(soapResponse);
 
     const response = await apexExecute.execute({
-      apexCodeFile: 'filepath/to/anonApex/file'
+      apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(expectedResult);
     expect(connRequestStub.calledTwice);
@@ -235,10 +235,56 @@ describe('Apex Execute Tests', () => {
     fsStub.returns(false);
 
     try {
-      await apexExecute.execute({ apexCodeFile: apexFile });
+      await apexExecute.execute({ apexFilePath: apexFile });
       assert.fail('Expected an error');
     } catch (e) {
       assert.equal(nls.localize('file_not_found_error', apexFile), e.message);
     }
+  });
+
+  it('should handle Buffer input correctly', async () => {
+    const apexExecute = new ApexExecute(mockConnection);
+    const log =
+      '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n';
+    const bufferInput = new Buffer('System.assert(true);');
+    const execAnonResult: execAnonResult = {
+      result: {
+        column: -1,
+        line: -1,
+        compiled: 'true',
+        compileProblem: '',
+        exceptionMessage: '',
+        exceptionStackTrace: '',
+        success: 'true'
+      }
+    };
+    const soapResponse: SoapResponse = {
+      'soapenv:Envelope': {
+        'soapenv:Header': { DebuggingInfo: { debugLog: log } },
+        'soapenv:Body': {
+          executeAnonymousResponse: execAnonResult
+        }
+      }
+    };
+    const expectedResult: ExecuteAnonymousResponse = {
+      result: {
+        column: -1,
+        line: -1,
+        compiled: true,
+        compileProblem: '',
+        exceptionMessage: '',
+        exceptionStackTrace: '',
+        success: true,
+        logs: log
+      }
+    };
+    sandboxStub
+      .stub(ApexExecute.prototype, 'connectionRequest')
+      .resolves(soapResponse);
+    const response = await apexExecute.execute({
+      apexCode: bufferInput
+    });
+
+    expect(response).to.eql(expectedResult);
   });
 });

@@ -10,7 +10,7 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { ExecuteAnonymousResponse } from '../src/types';
 import { ApexExecute } from '../src/commands/apexExecute';
-import { createSandbox, SinonSandbox, sandbox } from 'sinon';
+import { createSandbox, SinonSandbox } from 'sinon';
 import { ApexService } from '../src/apexService';
 import { ApexLogGet } from '../src/commands';
 
@@ -55,7 +55,7 @@ describe('Apex Service Tests', () => {
       .stub(ApexExecute.prototype, 'execute')
       .resolves(execAnonResponse);
     const response = await apexService.apexExecute({
-      apexCodeFile: 'filepath/to/anonApex/file'
+      apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(execAnonResponse);
   });
