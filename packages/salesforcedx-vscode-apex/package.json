@@ -26,6 +26,7 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.3.0",
     "@salesforce/core": "2.5.1",
+    "@salesforce/kit": "1.2.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "48.23.0",
     "@salesforce/salesforcedx-utils-vscode": "48.23.0",
     "expand-home-dir": "0.0.3",
