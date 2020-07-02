@@ -215,7 +215,10 @@ jobs:
       - add_ssh_keys: *ssh-config
       - checkout
       - restore_cache: *restore_cache
-      - sfchangecase/install
+      - run:
+          name: 'Setup gus case management'
+          command: |
+            sudo npm install -g @salesforce/change-case-management
       - run: *gus-prepare-environment-variables
       - sfchangecase/create:
           location: REPO_LOCATION
