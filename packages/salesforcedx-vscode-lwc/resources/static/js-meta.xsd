@@ -157,14 +157,14 @@
             <xs:enumeration value="lightningSnapin__ChatMessage">
               <xs:annotation>
                 <xs:documentation>
-                                Enables a component installed from a managed package to run in a community that has Lightning Locker disabled. This setting allows managed package developers to opt in to running their Lightning web components in a community with Lightning Locker disabled.
+                  Enables a custom chat message component to be selected from Embedded Service Chat Setup. A component that imports the lightningsnapin/baseChatMessage module must specify the lightningSnapin__ChatMessage target. For more information, see the lightningsnapin/baseChatMessage documentation.
                             </xs:documentation>
               </xs:annotation>
             </xs:enumeration>
             <xs:enumeration value="lightningSnapin__Minimized">
               <xs:annotation>
                 <xs:documentation>
-                                Enables a custom chat message component to be selected from Embedded Service Chat Setup. A component that imports the lightningsnapin/baseChatMessage module must specify the lightningSnapin__ChatMessage target. For more information, see the lightningsnapin/baseChatMessage documentation.
+                  Enables a custom minimized component to be selected from Embedded Service Chat Setup. A component that imports the lightningsnapin/minimized module must specify the lightningSnapin__Minimized target. For more information, see the lightningsnapin/minimized documentation.
                             </xs:documentation>
               </xs:annotation>
             </xs:enumeration>
@@ -193,7 +193,7 @@
   <xs:complexType name="objects">
     <xs:annotation>
       <xs:documentation>
-        Limits the component to a set of one or more objects. If you don’t use this tag set, the component supports all supported objects. This tag set works only inside a parent targetConfig that’s configured for lightning__RecordPage.Specify the objects tag set only once inside a targetConfig set. Supports the object subtag.
+        Limits the component to a set of one or more objects. If you don’t use this tag set, the component supports all supported objects. This tag set works only inside a parent targetConfig that’s configured for lightning__RecordPage. Specify the objects tag set only once inside a targetConfig set. Supports the object subtag.
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
@@ -214,21 +214,92 @@
                 Specifies a public property of a component that can be set in Lightning App Builder, App Manager, Lightning Flow Builder, or Experience Builder. The component author defines the property in the component’s JavaScript class using the @api decorator.
           </xs:documentation>
     </xs:annotation>
-    <xs:attribute type="xs:string" name="datasource" use="optional" />
-    <xs:attribute type="xs:string" name="default" use="optional" />
-    <xs:attribute type="xs:string" name="description" use="optional" />
-    <xs:attribute type="xs:string" name="label" use="optional" />
-    <xs:attribute type="xs:integer" name="max" use="optional" />
-    <xs:attribute type="xs:integer" name="min" use="optional" />
-    <xs:attribute type="xs:string" name="name" use="required" />
-    <xs:attribute type="xs:string" name="placeholder" use="optional" />
-    <xs:attribute type="xs:string" name="required" use="optional" />
-    <xs:attribute type="xs:string" name="role" use="optional" />
-    <xs:attribute type="xs:string" name="type" use="required" />
+    <xs:attribute type="xs:string" name="datasource" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Renders a field as a picklist, with static values. Supported only if the type attribute is String. You can also set the picklist values dynamically using an Apex class. See Create Dynamic Picklists for Your Custom Components in the documentation for more information.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="default" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          The default value for the attribute.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="description" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Displays as an i-bubble for the attribute in the tool.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="label" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Displays as a label for the attribute in the tool.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:integer" name="max" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          The maximum allowed value for an attribute of type Integer. Not supported if the target is lightning__FlowScreen.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:integer" name="min" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          The minimum allowed value for an attribute of type Integer. Not supported if the target is lightning__FlowScreen.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="name" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          Required if you’re setting properties for your component. The attribute name. This value must match the property name in the component’s JavaScript class.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="placeholder" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Input placeholder text for the attribute when it displays in the tool. This text is the ghost text in text fields and text areas before a user starts typing. Supported only if the type attribute is String. Not supported if the target is lightning__FlowScreen.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="required" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Specifies whether the attribute is required. The default value is false.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="role" use="optional">
+      <xs:annotation>
+        <xs:documentation>
+          Specifies whether the attribute is inputOnly or outputOnly. If you don’t specify the role attribute, the default value allows input and output. For example, if a property is restricted to outputOnly, users can’t set its value from a Lightning record page. Supported only if the target is lightning__FlowScreen. If you don’t set the role attribute, or if you set it to inputOnly, the property is exposed in a custom property editor. If you set it to outputOnly, the property isn’t exposed in a custom property editor.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="type" use="required">
+      <xs:annotation>
+        <xs:documentation>
+          The attribute’s data type. Please refer to the documentation for all supported types for different targets.
+        </xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
   </xs:complexType>
 
   <!-- supportedFormFactors SXD-->
   <xs:complexType name="supportedFormFactors">
+    <xs:annotation>
+      <xs:documentation>
+        A set of one or more form factors or devices that the component supports. Specify the supportedFormFactors tag set once inside a targetConfig set. Supports the supportedFormFactor subtag.
+      </xs:documentation>
+    </xs:annotation>
     <xs:sequence>
       <xs:element name="supportedFormFactor" maxOccurs="unbounded" minOccurs="1">
         <xs:complexType>
@@ -237,7 +308,13 @@
             Defines which form factor or device the component supports. Use one supportedFormFactor tag for each supported form factor.
             </xs:documentation>
           </xs:annotation>
-          <xs:attribute type="supportedFormFactortype" name="type" use="required" />
+          <xs:attribute type="supportedFormFactortype" name="type" use="required">
+            <xs:annotation>
+              <xs:documentation>
+                Device form factor on which the component displays.
+              </xs:documentation>
+            </xs:annotation>
+          </xs:attribute>
         </xs:complexType>
 
 
@@ -247,13 +324,30 @@
 
   <xs:simpleType name="supportedFormFactortype">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="Large" />
-      <xs:enumeration value="Small" />
+      <xs:enumeration value="Large">
+        <xs:annotation>
+          <xs:documentation>
+            Represents the desktop form factor. Supported for all page types.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Small">
+        <xs:annotation>
+          <xs:documentation>
+            Represents the phone form factor. Supported for lightning__AppPage and lightning__RecordPage only.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
     </xs:restriction>
   </xs:simpleType>
 
   <!-- targetConfigs SXD-->
   <xs:complexType name="targetConfigs">
+    <xs:annotation>
+      <xs:documentation>
+        Configure the component for different page types and define component properties. For example, a component could have different properties on a record home page than on the Salesforce Home page or on an app page. For Communities, only lightningCommunity__Default supports component properties. Supports the targetConfig subtag.
+      </xs:documentation>
+    </xs:annotation>
     <xs:sequence>
       <xs:element name="targetConfig" maxOccurs="unbounded" minOccurs="0">
         <xs:complexType>
@@ -272,7 +366,7 @@
           <xs:attribute type="xs:string" name="configurationEditor" use="optional">
             <xs:annotation>
               <xs:documentation>
-                                Registers a custom property editor for a flow screen component. A custom property editor is a Lightning web component that provides a custom UI for configuring a custom flow screen component’s input attributes. See Develop Custom Property Editors for Flow Screen Components (Beta).
+                                Registers a custom property editor for a flow screen component. A custom property editor is a Lightning web component that provides a custom UI for configuring a custom flow screen component’s input attributes.
                             </xs:documentation>
             </xs:annotation>
           </xs:attribute>
