@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.5.1",
+    "@salesforce/kit": "1.2.2",
     "@salesforce/salesforcedx-utils-vscode": "48.23.0",
     "@salesforce/source-deploy-retrieve": "1.0.14",
     "adm-zip": "0.4.13",
@@ -48,7 +49,6 @@
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
     "@types/vscode": "1.40.0",
-    "@salesforce/kit": "1.2.2",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
