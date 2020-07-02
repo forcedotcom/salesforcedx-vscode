@@ -1,8 +1,6 @@
-<xs:schema attributeFormDefault="unqualified" 
-           elementFormDefault="qualified" 
-           targetNamespace="http://soap.sforce.com/2006/04/metadata" 
-           xmlns="http://soap.sforce.com/2006/04/metadata"
-           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<!-- Content of this file referenced from 
+  https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.reference_configuration_tags-->
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://soap.sforce.com/2006/04/metadata" xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
 
   <xs:element name="LightningComponentBundle">
     <xs:complexType>
@@ -229,18 +227,6 @@
     <xs:attribute type="xs:string" name="type" use="required" />
   </xs:complexType>
 
-  <!-- <xs:simpleType name="type">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="Boolean" />
-            <xs:enumeration value="Integer" />
-            <xs:enumeration value="Color" />
-            <xs:enumeration value="Date" />
-            <xs:enumeration value="DateTime" />
-            <xs:enumeration value="String" />
-            <xs:enumeration value="String" />
-        </xs:restriction>
-    </xs:simpleType> -->
-
   <!-- supportedFormFactors SXD-->
   <xs:complexType name="supportedFormFactors">
     <xs:sequence>
@@ -251,7 +237,7 @@
             Defines which form factor or device the component supports. Use one supportedFormFactor tag for each supported form factor.
             </xs:documentation>
           </xs:annotation>
-          <xs:attribute type="supportedFormFactortype" name="type" use="required"/>
+          <xs:attribute type="supportedFormFactortype" name="type" use="required" />
         </xs:complexType>
 
 
@@ -259,12 +245,12 @@
     </xs:sequence>
   </xs:complexType>
 
-    <xs:simpleType name="supportedFormFactortype">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="Large" />
-            <xs:enumeration value="Small" />
-        </xs:restriction>
-    </xs:simpleType>
+  <xs:simpleType name="supportedFormFactortype">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Large" />
+      <xs:enumeration value="Small" />
+    </xs:restriction>
+  </xs:simpleType>
 
   <!-- targetConfigs SXD-->
   <xs:complexType name="targetConfigs">
