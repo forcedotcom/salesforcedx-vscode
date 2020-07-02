@@ -23,9 +23,9 @@ _refs:
       - '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
   restore_cache: &restore_cache
     keys:
-      - dependency-cache-v2-{{ checksum "package.json" }}
+      - dependency-cache-v3-{{ checksum "package.json" }}
       # if cache for exact version of 'package.json' is not present, then load the most recent cache
-      - dependency-cache-v2-
+      - dependency-cache-v3-
   install: &install
     name: Install dependencies
     command: |

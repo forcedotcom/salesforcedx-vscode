@@ -9,8 +9,9 @@
     "vscode": "^1.40.0"
   },
   "dependencies": {
-    "@salesforce/core": "2.4.1",
-    "@salesforce/salesforcedx-utils-vscode": "48.22.0",
+    "@salesforce/core": "2.5.1",
+    "@salesforce/kit": "1.2.2",
+    "@salesforce/salesforcedx-utils-vscode": "48.23.0",
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
