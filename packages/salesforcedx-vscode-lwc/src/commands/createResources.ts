@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import path = require('path');
@@ -18,8 +25,15 @@ export function createLWCResource() {
 
   // copy file to developer local
   function getlocalfile(targetFileName: string, destinationPath: string) {
-    const thisExtPath = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-lwc')!.extensionPath;
-    const resourcepath = path.join(thisExtPath, 'resources', 'static', targetFileName);
+    const thisExtPath = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-lwc'
+    )!.extensionPath;
+    const resourcepath = path.join(
+      thisExtPath,
+      'resources',
+      'static',
+      targetFileName
+    );
     fs.copyFileSync(resourcepath, destinationPath);
   }
 
@@ -33,23 +47,30 @@ export function addJsMetaSetting() {
    * It is important to make sure if one were to expand these settings to support more XSDs
    * we need to have a better solution.
    */
-  const vsCodeSettingsPath = path.join(vscode.workspace.rootPath!, '.vscode/settings.json');
+  const vsCodeSettingsPath = path.join(
+    vscode.workspace.rootPath!,
+    '.vscode/settings.json'
+  );
   const fileContents = fs.readFileSync(vsCodeSettingsPath, 'utf8');
   const settings = JSON.parse(fileContents);
 
   // catalogs and fileassociation settings generated directly from here.
   // TODO: maybe check the values within?
   if (!('xml.catalogs' in settings)) {
-    settings['xml.catalogs'] = ['.sfdx\/lwcResources\/js-meta-home.xml'];
+    settings['xml.catalogs'] = ['.sfdx/lwcResources/js-meta-home.xml'];
     settings['xml.fileAssociations'] = [
       {
-        systemId: '.sfdx\/lwcResources\/js-meta.xsd',
-        pattern: '**\/*js-meta.xml'
+        systemId: '.sfdx/lwcResources/js-meta.xsd',
+        pattern: '**/*js-meta.xml'
       }
     ];
 
-    fs.writeFile(vsCodeSettingsPath, JSON.stringify(settings, null, '\t'), err => {
-      console.log('error writing to settings');
-    });
+    fs.writeFile(
+      vsCodeSettingsPath,
+      JSON.stringify(settings, null, '\t'),
+      err => {
+        console.log('error writing to settings');
+      }
+    );
   }
 }
