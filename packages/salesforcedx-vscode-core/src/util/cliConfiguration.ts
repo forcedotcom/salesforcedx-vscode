@@ -15,6 +15,7 @@ import {
   SFDX_CONFIG_DISABLE_TELEMETRY
 } from '../constants';
 import { nls } from '../messages';
+import { ConfigUtil } from '.';
 
 export function isCLIInstalled(): boolean {
   let isInstalled = false;
