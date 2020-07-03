@@ -101,7 +101,7 @@ describe('SFDX CLI Configuration utility', () => {
     it('Should return true if cli is not installed', async () => {
       whichStub.withArgs('sfdx').returns('');
 
-      const response = await isCLITelemetryAllowed('');
+      const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
     });
 
@@ -112,7 +112,7 @@ describe('SFDX CLI Configuration utility', () => {
       config.set(SFDX_CONFIG_DISABLE_TELEMETRY, 'true');
       configGetSpy.returns(config);
 
-      const response = await isCLITelemetryAllowed('');
+      const response = await isCLITelemetryAllowed();
       expect(response).to.equal(false);
     });
 
@@ -120,7 +120,7 @@ describe('SFDX CLI Configuration utility', () => {
       whichStub.withArgs('sfdx').returns('Users/some/path/sfdx/cli');
       configGetSpy.returns(new Map<string, string>());
 
-      const response = await isCLITelemetryAllowed('');
+      const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
     });
 
@@ -131,7 +131,7 @@ describe('SFDX CLI Configuration utility', () => {
       config.set(SFDX_CONFIG_DISABLE_TELEMETRY, 'false');
       configGetSpy.returns(config);
 
-      const response = await isCLITelemetryAllowed('');
+      const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
     });
 
@@ -140,7 +140,7 @@ describe('SFDX CLI Configuration utility', () => {
 
       configGetSpy.throws('NoSetting');
 
-      const response = await isCLITelemetryAllowed('');
+      const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
     });
 
