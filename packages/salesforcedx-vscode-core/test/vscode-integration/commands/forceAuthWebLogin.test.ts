@@ -11,14 +11,14 @@ import * as vscode from 'vscode';
 import {
   AuthParams,
   AuthParamsGatherer,
-  createExecutor,
+  createAuthWebLoginExecutor,
   DEFAULT_ALIAS,
   ForceAuthWebLoginDemoModeExecutor,
   ForceAuthWebLoginExecutor,
   OrgTypeItem,
   PRODUCTION_URL,
   SANDBOX_URL
-} from '../../../src/commands/forceAuthWebLogin';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 const TEST_ALIAS = 'testAlias';
@@ -226,13 +226,16 @@ describe('Force Auth Web Login is based on environment variables', () => {
 
     it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
       process.env.SFDX_ENV = 'DEMO';
-      expect(createExecutor() instanceof ForceAuthWebLoginDemoModeExecutor).to
-        .be.true;
+      expect(
+        createAuthWebLoginExecutor() instanceof
+          ForceAuthWebLoginDemoModeExecutor
+      ).to.be.true;
     });
 
     it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
       process.env.SFDX_ENV = '';
-      expect(createExecutor() instanceof ForceAuthWebLoginExecutor).to.be.true;
+      expect(createAuthWebLoginExecutor() instanceof ForceAuthWebLoginExecutor)
+        .to.be.true;
     });
   });
 

@@ -6,5 +6,4 @@
  */
 import { TelemetryService } from './telemetry';
 export { TelemetryData, Properties, Measurements } from './telemetry';
-
 export const telemetryService = TelemetryService.getInstance();

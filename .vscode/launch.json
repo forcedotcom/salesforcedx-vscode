@@ -48,6 +48,7 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       }
     },
@@ -63,6 +64,7 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile"
@@ -79,6 +81,7 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile"
@@ -102,6 +105,7 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -124,6 +128,7 @@
       "sourceMapPathOverrides": {
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/vscode-integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -147,6 +152,7 @@
         "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-apex/out/test/vscode-integration/*",
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-apex/out/test/vscode-integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -335,6 +341,7 @@
       "sourceMapPathOverrides": {
         "../../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-apex-debugger/out/test/unit/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -364,6 +371,7 @@
       "sourceMapPathOverrides": {
         "../../../test/integration/": "${workspaceFolder}/packages/salesforcedx-apex-debugger/out/test/integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -387,6 +395,7 @@
         "../../../test/vscode-integration/": "${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger/out/test/vscode-integration/*",
         "../../../../test/vscode-integration/": "${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger/out/test/vscode-integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -467,6 +476,7 @@
       "sourceMapPathOverrides": {
         "../../../../test/unit/": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/test/unit/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -496,6 +506,7 @@
       "sourceMapPathOverrides": {
         "../../../test/integration/": "${workspaceFolder}/packages/salesforcedx-apex-replay-debugger/out/test/integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
@@ -519,6 +530,7 @@
         "../../../test/vscode-integration/": "${workspaceFolder}packages/salesforcedx-vscode-apex-replay-debugger/out/test/vscode-integration/*",
         "../../../../test/vscode-integration/": "${workspaceFolder}packages/salesforcedx-vscode-apex-replay-debugger/out/test/vscode-integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",

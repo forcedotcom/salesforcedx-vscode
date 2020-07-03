@@ -10,13 +10,13 @@ import { testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import {
-  createExecutor,
+  createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
-} from '../../../src/commands/forceAuthDevHub';
+} from '../../../src/commands';
 import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-import { ConfigSource, OrgAuthInfo } from '../../../src/util/index';
+import { ConfigSource, OrgAuthInfo } from '../../../src/util';
 
 class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
   public getShowChannelOutput() {
@@ -145,13 +145,15 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
 
     it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {
       process.env.SFDX_ENV = 'DEMO';
-      expect(createExecutor() instanceof ForceAuthDevHubDemoModeExecutor).to.be
-        .true;
+      expect(
+        createAuthDevHubExecutor() instanceof ForceAuthDevHubDemoModeExecutor
+      ).to.be.true;
     });
 
     it('Should use ForceAuthDevHubExecutor if demo mode is false', () => {
       process.env.SFDX_ENV = '';
-      expect(createExecutor() instanceof ForceAuthDevHubExecutor).to.be.true;
+      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+        .be.true;
     });
   });
 

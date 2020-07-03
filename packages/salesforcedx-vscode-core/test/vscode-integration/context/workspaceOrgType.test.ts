@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* tslint:disable:no-unused-expression */
+import { Aliases, AuthInfo } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-
-import { Aliases, AuthInfo } from '@salesforce/core';
 import {
   getDefaultUsernameOrAlias,
   getWorkspaceOrgType,
