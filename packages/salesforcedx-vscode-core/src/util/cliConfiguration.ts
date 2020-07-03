@@ -17,6 +17,7 @@ import {
   SFDX_CONFIG_DISABLE_TELEMETRY
 } from '../constants';
 import { nls } from '../messages';
+import { ConfigUtil } from '.';
 
 export function isCLIInstalled(): boolean {
   let isInstalled = false;
@@ -53,18 +54,12 @@ export function disableCLITelemetry() {
 export async function isCLITelemetryAllowed(
   projectPath: string
 ): Promise<boolean> {
-  if (isCLIInstalled()) {
-    try {
-      const forceConfig = await new ForceConfigGet().getConfig(
-        projectPath,
-        SFDX_CONFIG_DISABLE_TELEMETRY
-      );
-      const disabledConfig =
-        forceConfig.get(SFDX_CONFIG_DISABLE_TELEMETRY) || '';
-      return disabledConfig !== 'true';
-    } catch (e) {
-      console.log('Error checking cli settings: ' + e);
-    }
+  try {
+    const disabledConfig =
+      (await ConfigUtil.getConfigValue(SFDX_CONFIG_DISABLE_TELEMETRY)) || '';
+    return disabledConfig !== 'true';
+  } catch (e) {
+    console.log('Error checking cli settings: ' + e);
   }
   return true;
 }
