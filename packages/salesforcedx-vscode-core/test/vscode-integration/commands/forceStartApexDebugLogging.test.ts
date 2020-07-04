@@ -7,16 +7,16 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { developerLogTraceFlag } from '../../../src/commands';
 import {
   CreateDebugLevel,
   CreateTraceFlag,
+  developerLogTraceFlag,
   ForceQueryTraceFlag,
   ForceQueryUser,
   ForceStartApexDebugLoggingExecutor,
   UpdateDebugLevelsExecutor,
   UpdateTraceFlagsExecutor
-} from '../../../src/commands/forceStartApexDebugLogging';
+} from '../../../src/commands';
 import {
   APEX_CODE_DEBUG_LEVEL,
   VISUALFORCE_DEBUG_LEVEL

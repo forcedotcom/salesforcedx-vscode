@@ -58,7 +58,7 @@ import {
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
-import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
+import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
   CompositeParametersGatherer,
   EmptyParametersGatherer,

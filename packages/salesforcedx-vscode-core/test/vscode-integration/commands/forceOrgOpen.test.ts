@@ -10,7 +10,7 @@ import {
   ForceOrgOpenContainerExecutor,
   ForceOrgOpenExecutor,
   getExecutor
-} from '../../../src/commands/forceOrgOpen';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

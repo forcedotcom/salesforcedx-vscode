@@ -14,7 +14,7 @@ import {
   ForceApexTestRunExecutor,
   TestsSelector,
   TestType
-} from '../../../src/commands/forceApexTestRun';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Force Apex Test Run', () => {
