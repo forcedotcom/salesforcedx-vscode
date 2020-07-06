@@ -235,11 +235,6 @@
   dependencies:
     fancy-test "^1.4.3"
 
-"@salesforce/apex@0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@salesforce/apex/-/apex-0.0.1.tgz#d5736f08fa96a765c9f9156dacb9fd01c28ede5c"
-  integrity sha512-xxYef0fN5B/HlUCveVnlfx1aJ8qxE2bcCzr4rsDwraDWygh4B5uFFiqA3n9ESle2RcJAdtFFHgKjQSyAA4CJhg==
-
 "@salesforce/bunyan@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@salesforce/bunyan/-/bunyan-2.0.0.tgz#8dbe377f2cf7d35348a23260416fee15adba5f97"
@@ -268,7 +263,7 @@
     chalk "^2.4.2"
     cli-ux "^4.9.3"
 
-"@salesforce/core@^2.1.4", "@salesforce/core@2.5.1":
+"@salesforce/core@2.5.1", "@salesforce/core@^2.1.4":
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.5.1.tgz#1574e140e7fdd851a86972074013eca442083661"
   integrity sha512-izKS51yO14Z5M7N1UMUf2B9+XQU0c3yAMZEX4QkV+9N849OJLTP86DjMYP1cjWlWrVOqSTwD95H4DZX1AOYpUQ==
@@ -306,6 +301,7 @@
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.0.1.tgz#d1db56759d2b22a7688e1821aec564e979237ad2"
   integrity sha512-78pP1GB/DbIS8nSWGL0GpQ27g02drrEo0vzYdRipGYAIXHMzlh1gqEsq0pOiIQlPm1MxWyEqbmf4GG5qSVsd0Q==
+
 "@salesforce/ts-sinon@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@salesforce/ts-sinon/-/ts-sinon-1.1.2.tgz#fe7ba3f7cc8311e136bf6ee78fb9fa422a8fa75b"

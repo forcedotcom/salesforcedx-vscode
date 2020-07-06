@@ -19,5 +19,8 @@
     "lint": "lerna run lint",
     "postinstall": "lerna bootstrap --no-ci",
     "test": "lerna run test"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
