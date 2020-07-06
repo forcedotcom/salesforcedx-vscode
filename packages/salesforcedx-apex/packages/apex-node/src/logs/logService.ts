@@ -6,31 +6,19 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { ApexLogGetOptions } from '../types/service';
+import { ApexLogGetOptions } from '../types';
 import { QueryResult } from '../types/common';
 import { nls } from '../i18n';
 
 const MAX_NUM_LOGS = 25;
 
-export class ApexLogGet {
+export class LogService {
   public readonly connection: Connection;
   constructor(connection: Connection) {
     this.connection = connection;
   }
 
-  public async getLogIds(numberOfLogs: number): Promise<string[]> {
-    if (numberOfLogs <= 0) {
-      throw new Error(nls.localize('num_logs_error'));
-    }
-    numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
-    const query = `Select Id from ApexLog Order By StartTime DESC LIMIT ${numberOfLogs}`;
-    const response = (await this.connection.tooling.query(
-      query
-    )) as QueryResult;
-    return response.records.map(record => record.Id);
-  }
-
-  public async execute(options: ApexLogGetOptions): Promise<string[]> {
+  public async getLogs(options: ApexLogGetOptions): Promise<string[]> {
     let logIdList: string[] = [];
     if (options.numberOfLogs) {
       logIdList = await this.getLogIds(options.numberOfLogs);
@@ -43,6 +31,18 @@ export class ApexLogGet {
       return this.connectionRequest(url);
     });
     return await Promise.all(connectionRequests);
+  }
+
+  public async getLogIds(numberOfLogs: number): Promise<string[]> {
+    if (numberOfLogs <= 0) {
+      throw new Error(nls.localize('num_logs_error'));
+    }
+    numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
+    const query = `Select Id from ApexLog Order By StartTime DESC LIMIT ${numberOfLogs}`;
+    const response = (await this.connection.tooling.query(
+      query
+    )) as QueryResult;
+    return response.records.map(record => record.Id);
   }
 
   public async connectionRequest(url: string): Promise<string> {

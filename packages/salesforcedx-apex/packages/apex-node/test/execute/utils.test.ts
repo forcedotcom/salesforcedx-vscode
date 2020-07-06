@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { encodeBody } from '../../src/commands/utils';
+import { encodeBody } from '../../src/execute/utils';
 import { expect } from 'chai';
 
 describe('encodeBody for execute request', () => {

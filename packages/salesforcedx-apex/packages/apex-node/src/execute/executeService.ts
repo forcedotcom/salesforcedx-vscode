@@ -18,14 +18,14 @@ import { ExecuteAnonymousResponse, ApexExecuteOptions } from '../types';
 import { nls } from '../i18n';
 import { encodeBody } from './utils';
 
-export class ApexExecute {
+export class ExecuteService {
   public readonly connection: Connection;
 
   constructor(connection: Connection) {
     this.connection = connection;
   }
 
-  public async execute(
+  public async executeAnonymous(
     options: ApexExecuteOptions
   ): Promise<ExecuteAnonymousResponse> {
     let data: string;

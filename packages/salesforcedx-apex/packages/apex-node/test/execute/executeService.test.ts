@@ -10,7 +10,7 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { assert, expect } from 'chai';
 import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { ApexExecute } from '../../src/commands/apexExecute';
+import { ExecuteService } from '../../src/execute';
 import { nls } from '../../src/i18n';
 import { ExecuteAnonymousResponse } from '../../src/types';
 import { execAnonResult, SoapResponse } from '../../src/types/execute';
@@ -42,7 +42,7 @@ describe('Apex Execute Tests', () => {
   });
 
   it('should execute and display successful result in correct format', async () => {
-    const apexExecute = new ApexExecute(mockConnection);
+    const apexExecute = new ExecuteService(mockConnection);
     const log =
       '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n';
     const execAnonResult: execAnonResult = {
@@ -77,9 +77,9 @@ describe('Apex Execute Tests', () => {
       }
     };
     sandboxStub
-      .stub(ApexExecute.prototype, 'connectionRequest')
+      .stub(ExecuteService.prototype, 'connectionRequest')
       .resolves(soapResponse);
-    const response = await apexExecute.execute({
+    const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
 
@@ -87,7 +87,7 @@ describe('Apex Execute Tests', () => {
   });
 
   it('should execute and display runtime issue in correct format', async () => {
-    const apexExecute = new ApexExecute(mockConnection);
+    const apexExecute = new ExecuteService(mockConnection);
     const log =
       '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n';
     const execAnonResult: execAnonResult = {
@@ -122,17 +122,17 @@ describe('Apex Execute Tests', () => {
       }
     };
     sandboxStub
-      .stub(ApexExecute.prototype, 'connectionRequest')
+      .stub(ExecuteService.prototype, 'connectionRequest')
       .resolves(soapResponse);
 
-    const response = await apexExecute.execute({
+    const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(expectedResult);
   });
 
   it('should execute and display compile issue in correct format', async () => {
-    const apexExecute = new ApexExecute(mockConnection);
+    const apexExecute = new ExecuteService(mockConnection);
     const execAnonResult: execAnonResult = {
       result: {
         column: 1,
@@ -166,17 +166,17 @@ describe('Apex Execute Tests', () => {
       }
     };
     sandboxStub
-      .stub(ApexExecute.prototype, 'connectionRequest')
+      .stub(ExecuteService.prototype, 'connectionRequest')
       .resolves(soapResponse);
 
-    const response = await apexExecute.execute({
+    const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(expectedResult);
   });
 
   it('should handle access token session id error correctly', async () => {
-    const apexExecute = new ApexExecute(mockConnection);
+    const apexExecute = new ExecuteService(mockConnection);
     const log =
       '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n';
     const execAnonResult: execAnonResult = {
@@ -212,16 +212,16 @@ describe('Apex Execute Tests', () => {
     };
 
     const connRequestStub = sandboxStub.stub(
-      ApexExecute.prototype,
+      ExecuteService.prototype,
       'connectionRequest'
     );
-    sandboxStub.stub(ApexExecute.prototype, 'refreshAuth');
+    sandboxStub.stub(ExecuteService.prototype, 'refreshAuth');
     const error = new Error('INVALID_SESSION_ID');
     error.name = 'ERROR_HTTP_500';
     connRequestStub.onFirstCall().throws(error);
     connRequestStub.onSecondCall().resolves(soapResponse);
 
-    const response = await apexExecute.execute({
+    const response = await apexExecute.executeAnonymous({
       apexFilePath: 'filepath/to/anonApex/file'
     });
     expect(response).to.eql(expectedResult);
@@ -230,12 +230,12 @@ describe('Apex Execute Tests', () => {
 
   it('should raise an error when the source file is not found', async () => {
     const apexFile = 'filepath/to/anonApex/file';
-    const apexExecute = new ApexExecute(mockConnection);
+    const apexExecute = new ExecuteService(mockConnection);
     fsStub.restore();
     fsStub.returns(false);
 
     try {
-      await apexExecute.execute({ apexFilePath: apexFile });
+      await apexExecute.executeAnonymous({ apexFilePath: apexFile });
       assert.fail('Expected an error');
     } catch (e) {
       assert.equal(nls.localize('file_not_found_error', apexFile), e.message);
@@ -243,7 +243,7 @@ describe('Apex Execute Tests', () => {
   });
 
   it('should handle Buffer input correctly', async () => {
-    const apexExecute = new ApexExecute(mockConnection);
+    const apexExecute = new ExecuteService(mockConnection);
     const log =
       '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n';
     const bufferInput = new Buffer('System.assert(true);');
@@ -279,9 +279,9 @@ describe('Apex Execute Tests', () => {
       }
     };
     sandboxStub
-      .stub(ApexExecute.prototype, 'connectionRequest')
+      .stub(ExecuteService.prototype, 'connectionRequest')
       .resolves(soapResponse);
-    const response = await apexExecute.execute({
+    const response = await apexExecute.executeAnonymous({
       apexCode: bufferInput
     });
 

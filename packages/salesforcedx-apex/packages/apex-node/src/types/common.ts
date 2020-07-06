@@ -5,6 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+enum logLevel {
+  trace = 'trace',
+  debug = 'debug',
+  info = 'info',
+  warn = 'warn',
+  error = 'error',
+  fatal = 'fatal'
+}
+
+export type CommonOptions = {
+  json?: boolean;
+  loglevel?: logLevel;
+};
+
 export type QueryResult = {
   records: { Id: string }[];
 };
