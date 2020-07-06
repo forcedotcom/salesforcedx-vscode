@@ -181,7 +181,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       notificationService.showWarningMessage(
         nls.localize('command_canceled', executionName)
       );
-      this.showChannelOutput();
+      channelService.showChannelOutput();
     });
   }
 

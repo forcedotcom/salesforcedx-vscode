@@ -89,7 +89,7 @@ export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      if (data !== undefined && data.toString() === '0') {
+      if (data !== undefined && String(data) === '0') {
         await vscode.commands.executeCommand(
           'vscode.openFolder',
           vscode.Uri.file(

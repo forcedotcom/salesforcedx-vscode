@@ -51,7 +51,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime, {
         dirType: this.identifyDirType(response.data.outputdir)
       });
-      if (data !== undefined && data.toString() === '0' && hasRootWorkspace()) {
+      if (data !== undefined && String(data) === '0' && hasRootWorkspace()) {
         const document = await vscode.workspace.openTextDocument(
           this.getPathToSource(response.data.outputdir, response.data.fileName)
         );
