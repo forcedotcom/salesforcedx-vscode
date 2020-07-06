@@ -22,17 +22,68 @@ parameters:
     description: 'SFDX Domain Retry Wait in Seconds'
     type: integer
     default: 300
+  fingerprint:
+    type: string
+    default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
 
 commands:
-  ssh-config:
+  compile:
     parameters:
-      fingerprints-value:
+      compile-mode:
         type: string
-        default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
+        default: production
     steps:
-      - add_ssh_keys:
-          fingerprints:
-            - << parameters.fingerprints-value >>
+      - run:
+          name: 'Compile in << parameters.compile-mode >> mode'
+          environment:
+            - NODE_ENV: << parameters.compile-mode >>
+          command: |
+            npm run compile
+
+  gh-config:
+    parameters:
+      cache_timeout:
+        description: 'Cache timeout in seconds'
+        type: integer
+        default: 120
+      gh_email:
+        description: 'GitHub email'
+        type: string
+        default: $GH_EMAIL
+      gh_username:
+        description: 'GitHub username'
+        type: string
+        default: 'Release Bot'
+    steps:
+      - run:
+          name: 'Configuring GitHub'
+          command: |
+            git config credential.helper 'cache --timeout=<< parameters.cache_timeout >>'
+            git config user.email "<< parameters.gh_email >>"
+            git config user.name "<< parameters.gh_username >>"
+
+  gus-prepare-environment-variables:
+    parameters:
+      package-json-path:
+        type: string
+        default: './packages/salesforcedx-vscode/package.json'
+      release-tag-name:
+        type: string
+        default: 'offcore.tooling'
+    steps:
+      - run:
+          name: 'Prepare environment variables for GUS Change Case Management'
+          command: |
+            export GUS_BUILD="$(node -pe "require(<< parameters.package-json-path >>).version")"
+            echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
+
+  install:
+    description: 'Installing node'
+    steps:
+      - node/install:
+          node-version: << pipeline.parameters.node-version >>
+      - run: npm --version
+      - run: node --version
 
   restore_dependency_cache:
     # This logic cannot be done within the node orb currently. This is due to the fact that we use
@@ -62,63 +113,11 @@ commands:
           paths:
             - << parameters.path-to-save >>
 
-  gus-prepare-environment-variables:
-    parameters:
-      package-json-path:
-        type: string
-        default: './packages/salesforcedx-vscode/package.json'
-      release-tag-name:
-        type: string
-        default: 'offcore.tooling'
+  ssh-config:
     steps:
-      - run:
-          name: 'Prepare environment variables for GUS Change Case Management'
-          command: |
-            export GUS_BUILD="$(node -pe "require(<< parameters.package-json-path >>).version")"
-            echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
-
-  install:
-    description: 'Installing node'
-    steps:
-      - node/install:
-          node-version: << pipeline.parameters.node-version >>
-      - run: npm --version
-      - run: node --version
-
-  gh-config:
-    parameters:
-      cache_timeout:
-        description: 'Cache timeout in seconds'
-        type: integer
-        default: 120
-      gh_email:
-        description: 'GitHub email'
-        type: string
-        default: $GH_EMAIL
-      gh_username:
-        description: 'GitHub username'
-        type: string
-        default: 'Release Bot'
-    steps:
-      - run:
-          name: 'Configuring GitHub'
-          command: |
-            git config credential.helper 'cache --timeout=<< parameters.cache_timeout >>'
-            git config user.email "<< parameters.gh_email >>"
-            git config user.name "<< parameters.gh_username >>"
-
-  compile:
-    parameters:
-      compile-mode:
-        type: string
-        default: production
-    steps:
-      - run:
-          name: 'Compile in << parameters.compile-mode >> mode'
-          environment:
-            - NODE_ENV: << parameters.compile-mode >>
-          command: |
-            npm run compile
+      - add_ssh_keys:
+          fingerprints:
+            - << pipeline.parameters.fingerprint >>
 
   build-artifacts:
     description: 'Building and archiving extension artifacts.'
