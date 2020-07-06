@@ -18,6 +18,10 @@ parameters:
   node-version:
     type: string
     default: '12.4.0'
+  domain-retry:
+    description: 'SFDX Domain Retry Wait in Seconds'
+    type: integer
+    default: 300
 
 commands:
   ssh-config:
@@ -103,18 +107,26 @@ commands:
             git config user.email "<< parameters.gh_email >>"
             git config user.name "<< parameters.gh_username >>"
 
+  compile:
+    parameters:
+      compile-mode:
+        type: string
+        default: production
+    steps:
+      - run:
+          name: 'Compile in << parameters.compile-mode >> mode'
+          environment:
+            - NODE_ENV: << parameters.compile-mode >>
+          command: |
+            npm run compile
+
   build-artifacts:
     description: 'Building and archiving extension artifacts.'
     steps:
       - checkout
       - restore_dependency_cache
-      - run: npm install
-      - run:
-          name: 'Compile in production mode'
-          environment:
-            - NODE_ENV: production
-          command: |
-            npm run compile
+      - install
+      - compile
       - run:
           name: 'Packaging extensions'
           command: npm run vscode:package
@@ -186,7 +198,7 @@ jobs:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_USE_GENERIC_UNIX_KEYCHAIN: true
-      - SFDX_DOMAIN_RETRY: 300
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
     steps:
       - build-artifacts
 
@@ -195,7 +207,7 @@ jobs:
     executor: win/default
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
-      - SFDX_DOMAIN_RETRY: 300
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
     steps:
       - build-win
@@ -232,7 +244,7 @@ jobs:
     executor: win/default
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
-      - SFDX_DOMAIN_RETRY: 300
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
     parameters:
       run-unit-tests:
@@ -298,12 +310,7 @@ jobs:
           release: GUS_RELEASE
       - gh-config
       - install
-      - run:
-          name: 'Compile in production mode'
-          environment:
-            - NODE_ENV: production
-          command: |
-            npm run compile
+      - compile
       - run:
           name: 'Packaging extensions'
           command: npm run vscode:package
