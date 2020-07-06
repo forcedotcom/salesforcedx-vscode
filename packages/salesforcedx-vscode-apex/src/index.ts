@@ -256,7 +256,8 @@ async function registerTestView(
 
 export async function getApexClassFiles(): Promise<vscode.Uri[]> {
   const jsonProject = (await vscode.workspace.findFiles(
-    '**/sfdx-project.json'
+    '**/sfdx-project.json',
+    '**/node_modules/**'
   ))[0];
   const innerText = fs.readFileSync(jsonProject.path);
   const jsonObject = JSON.parse(innerText.toString());
@@ -265,7 +266,10 @@ export async function getApexClassFiles(): Promise<vscode.Uri[]> {
   const allClasses = new Array<vscode.Uri>();
   for (const packageDirectory of packageDirectories) {
     const pattern = path.join(packageDirectory.path, '**/*.cls');
-    const apexClassFiles = await vscode.workspace.findFiles(pattern);
+    const apexClassFiles = await vscode.workspace.findFiles(
+      pattern,
+      '**/node_modules/**'
+    );
     allClasses.push(...apexClassFiles);
   }
   return allClasses;

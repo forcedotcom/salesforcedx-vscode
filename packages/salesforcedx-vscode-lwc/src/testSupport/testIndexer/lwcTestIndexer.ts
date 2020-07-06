@@ -201,7 +201,8 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
   private async indexAllTestFiles(): Promise<TestFileInfo[]> {
     // TODO, infer package directory from sfdx project json
     const lwcJestTestFiles = await vscode.workspace.findFiles(
-      LWC_TEST_GLOB_PATTERN
+      LWC_TEST_GLOB_PATTERN,
+      '**/node_modules/**'
     );
     const allTestFileInfo = lwcJestTestFiles.map(lwcJestTestFile => {
       const { fsPath } = lwcJestTestFile;

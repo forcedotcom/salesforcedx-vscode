@@ -5,16 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { ConfigSource, ConfigUtil } from '../../../src/util';
 
 describe('getConfigSource', () => {
-  let getConfigValueStub: sinon.SinonStub;
+  let sandboxStub: SinonSandbox;
+  let getConfigValueStub: SinonStub;
   beforeEach(() => {
-    getConfigValueStub = sinon.stub(ConfigUtil, 'getConfigValue');
+    sandboxStub = createSandbox();
+    getConfigValueStub = sandboxStub.stub(ConfigUtil, 'getConfigValue');
   });
   afterEach(() => {
-    getConfigValueStub.restore();
+    sandboxStub.restore();
   });
   it('should return ConfigSource.Local if the key/value is in the local config', async () => {
     getConfigValueStub.onCall(0).returns('someValue');

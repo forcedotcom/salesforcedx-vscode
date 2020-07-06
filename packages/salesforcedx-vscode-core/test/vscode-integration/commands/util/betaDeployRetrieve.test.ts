@@ -12,8 +12,7 @@ import {
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { Uri } from 'vscode';
+import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
   createComponentCount,

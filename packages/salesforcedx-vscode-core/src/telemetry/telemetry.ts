@@ -216,7 +216,7 @@ export class TelemetryService {
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
-    return await isCLITelemetryAllowed(getRootWorkspacePath());
+    return await isCLITelemetryAllowed();
   }
 
   public setCliTelemetryEnabled(isEnabled: boolean) {

@@ -5,12 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ForceConfigGet,
-  GlobalCliEnvironment
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { which } from 'shelljs';
 import { window } from 'vscode';
+import { ConfigUtil } from '.';
 import {
   ENV_SFDX_DISABLE_TELEMETRY,
   SFDX_CLI_DOWNLOAD_LINK,
@@ -50,21 +48,13 @@ export function disableCLITelemetry() {
   );
 }
 
-export async function isCLITelemetryAllowed(
-  projectPath: string
-): Promise<boolean> {
-  if (isCLIInstalled()) {
-    try {
-      const forceConfig = await new ForceConfigGet().getConfig(
-        projectPath,
-        SFDX_CONFIG_DISABLE_TELEMETRY
-      );
-      const disabledConfig =
-        forceConfig.get(SFDX_CONFIG_DISABLE_TELEMETRY) || '';
-      return disabledConfig !== 'true';
-    } catch (e) {
-      console.log('Error checking cli settings: ' + e);
-    }
+export async function isCLITelemetryAllowed(): Promise<boolean> {
+  try {
+    const disabledConfig =
+      (await ConfigUtil.getConfigValue(SFDX_CONFIG_DISABLE_TELEMETRY)) || '';
+    return disabledConfig !== 'true';
+  } catch (e) {
+    console.log('Error checking cli settings: ' + e);
   }
   return true;
 }

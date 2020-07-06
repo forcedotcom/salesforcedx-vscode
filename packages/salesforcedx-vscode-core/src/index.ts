@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -78,13 +79,7 @@ import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import {
-  getRootWorkspacePath,
-  hasRootWorkspace,
-  isCLIInstalled,
-  isCLITelemetryAllowed,
-  showCLINotInstalledMessage
-} from './util';
+import { hasRootWorkspace, isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 function registerCommands(
@@ -497,14 +492,6 @@ export async function activate(context: vscode.ExtensionContext) {
       telemetryService
     };
 
-    if (!isCLIInstalled()) {
-      showCLINotInstalledMessage();
-      telemetryService.sendException(
-        'core_internal_no_cli',
-        'Salesforce CLI is not installed, internal dev mode'
-      );
-    }
-
     telemetryService.sendExtensionActivationEvent(extensionHRStart);
     console.log('SFDX CLI Extension Activated (internal dev mode)');
     return internalApi;
@@ -513,10 +500,13 @@ export async function activate(context: vscode.ExtensionContext) {
   // Context
   let sfdxProjectOpened = false;
   if (hasRootWorkspace()) {
-    const files = await vscode.workspace.findFiles('**/sfdx-project.json');
+    const files = await vscode.workspace.findFiles(
+      '**/sfdx-project.json',
+      '**/{node_modules,out}/**'
+    );
     sfdxProjectOpened = files && files.length > 0;
   }
-
+  // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
   if (
     vscode.extensions.getExtension(
@@ -549,17 +539,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   await setupOrgBrowser(context);
   await setupConflictView(context);
-  if (isCLIInstalled()) {
-    // Set context for defaultusername org
-    await setupWorkspaceOrgType(defaultUsernameorAlias);
-    await orgList.registerDefaultUsernameWatcher(context);
-  } else {
-    showCLINotInstalledMessage();
-    telemetryService.sendException(
-      'core_no_cli',
-      'Salesforce CLI is not installed'
-    );
-  }
+  // Set context for defaultusername org
+  await setupWorkspaceOrgType(defaultUsernameorAlias);
+  await orgList.registerDefaultUsernameWatcher(context);
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();
@@ -572,11 +554,11 @@ export async function activate(context: vscode.ExtensionContext) {
   if (hasRootWorkspace()) {
     decorators.showOrg();
     decorators.monitorOrgConfigChanges();
-  }
 
-  // Demo mode Decorator
-  if (hasRootWorkspace() && isDemoMode()) {
-    decorators.showDemoMode();
+    // Demo mode Decorator
+    if (isDemoMode()) {
+      decorators.showDemoMode();
+    }
   }
 
   const api: any = {

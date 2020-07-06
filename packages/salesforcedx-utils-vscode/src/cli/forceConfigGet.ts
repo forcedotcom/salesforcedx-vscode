@@ -8,7 +8,10 @@
 import { SfdxCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
-
+/**
+ * @deprecated
+ * NOTE: This code is deprecated in favor of using ConfigUtil.ts
+ */
 export class ForceConfigGet {
   public async getConfig(
     projectPath: string,
