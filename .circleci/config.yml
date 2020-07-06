@@ -78,12 +78,17 @@ commands:
             echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
 
   install:
-    description: 'Installing node'
+    description: 'Installing dependencies'
     steps:
-      - node/install:
-          node-version: << pipeline.parameters.node-version >>
+      - run: npm install
       - run: npm --version
       - run: node --version
+
+  package-extensions:
+    steps:
+      - run:
+          name: 'Packaging extensions'
+          command: npm run vscode:package
 
   restore_dependency_cache:
     # This logic cannot be done within the node orb currently. This is due to the fact that we use
@@ -119,6 +124,20 @@ commands:
           fingerprints:
             - << pipeline.parameters.fingerprint >>
 
+  stage-and-store-artifacts:
+    parameters:
+      location:
+        type: string
+        default: 'extensions'
+    steps:
+      - run:
+          name: 'Staging artifacts'
+          command: |
+            mkdir << parameters.location >>
+            find packages -name "*.vsix" -type f -exec cp {} ./<< parameters.location >> \;
+      - store_artifacts:
+          path: ./<< parameters.location >>
+
   build-artifacts:
     description: 'Building and archiving extension artifacts.'
     steps:
@@ -126,16 +145,8 @@ commands:
       - restore_dependency_cache
       - install
       - compile
-      - run:
-          name: 'Packaging extensions'
-          command: npm run vscode:package
-      - run:
-          name: 'Staging artifacts'
-          command: |
-            mkdir extensions
-            find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
-      - store_artifacts:
-          path: ./extensions
+      - package-extensions
+      - stage-and-store-artifacts
       - save_dependency_cache
 
   build-win:
@@ -310,9 +321,7 @@ jobs:
       - gh-config
       - install
       - compile
-      - run:
-          name: 'Packaging extensions'
-          command: npm run vscode:package
+      - package-extensions
       - run:
           name: 'Generating the SHA256 and appending to the file.'
           command: npm run vscode:sha256
@@ -330,13 +339,7 @@ jobs:
       - run:
           name: 'Publishing to the VS Code Marketplace.'
           command: npm run vscode:publish
-      - run:
-          name: 'Store artifacts that were published'
-          command: |
-            mkdir extensions
-            find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
-      - store_artifacts:
-          path: ./extensions
+      - stage-and-store-artifacts
       - run:
           name: 'Create git tag (e.g. v48.1.0) & push changes back to master branch'
           command: |
