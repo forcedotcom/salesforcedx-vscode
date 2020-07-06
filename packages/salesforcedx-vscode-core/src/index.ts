@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as util from 'util';
+
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -583,13 +583,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
-  console.log('CLI activation ==> ', getEndHRTime(extensionHRStart));
   return api;
-}
-
-function getEndHRTime(hrstart: [number, number]): number {
-  const hrend = process.hrtime(hrstart);
-  return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
 }
 
 export function deactivate(): Promise<void> {
