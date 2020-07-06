@@ -200,10 +200,9 @@ executors:
 jobs:
   build-all:
     description: 'Build artifacts in a non-Windows environment'
-    parameters:
-      e:
-        type: executor
-    executor: << parameters.e >>
+    executor:
+      name: default-executor
+      working-dir: ~/project
     environment:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
@@ -377,8 +376,7 @@ workflows:
   # run a build and a windows test on every commit
   commit-workflow:
     jobs:
-      - build-all:
-          e: default-executor
+      - build-all
       - unit-tests
       - integration-tests
       - publish:
@@ -403,8 +401,7 @@ workflows:
                 - develop
                 - master
     jobs:
-      - build-all:
-          e: default-executor
+      - build-all
       - unit-tests
       - integration-tests
 
