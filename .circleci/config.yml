@@ -192,23 +192,17 @@ executors:
         default: cimg/node:<< pipeline.parameters.node-version >>
       working-dir:
         type: string
-        default: ~/cli
+        default: ~/home/circleci/cli
     docker:
       - image: << parameters.image >>
     working_directory: << parameters.working-dir >>
-  node-executor:
-    parameters:
-      image:
-        type: string
-        default: cimg/node:<< pipeline.parameters.node-version >>
-    docker:
-      - image: << parameters.image >>
 
 jobs:
   build-all:
     description: 'Build artifacts in a non-Windows environment'
-    docker:
-      - image: circleci/node:12.4.0
+    executor:
+      name: default-executor
+      working-dir: ~/home/circleci/project
     environment:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
