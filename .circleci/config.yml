@@ -11,8 +11,8 @@ version: 2.1
 
 orbs:
   win: circleci/windows@2.2.0
-  node: circleci/node@3.0.1
   sfchangecase: salesforce/change-case-management@3
+  slack: circleci/slack@3.4.2
 
 parameters:
   node-version:
@@ -74,7 +74,7 @@ commands:
       - run:
           name: 'Prepare environment variables for GUS Change Case Management'
           command: |
-            export GUS_BUILD="$(node -pe "require(<< parameters.package-json-path >>).version")"
+            export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
             echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
 
   install:
@@ -199,6 +199,21 @@ executors:
     working_directory: << parameters.working-dir >>
 
 jobs:
+  simple-sample-job:
+    description: 'Just for local testing'
+    docker:
+      - image: circleci/node:<< pipeline.parameters.node-version >>
+    steps:
+      - install
+      - gus-prepare-environment-variables
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#42e2f4'
+          message: 'TESTING - VSCode Extensions $GUS_BUILD have been published to the marketplace'
+      - run:
+          command: |
+            echo "Hey I ran for $GUS_BUILD!"
+
   build-all:
     description: 'Build artifacts in a non-Windows environment'
     executor:
@@ -350,6 +365,10 @@ jobs:
       - sfchangecase/update:
           location: REPO_LOCATION
           release: GUS_RELEASE
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#42e2f4'
+          message: 'VSCode Extensions have been published to the marketplace'
 
   create-release-branch:
     parameters:
@@ -374,22 +393,26 @@ jobs:
 workflows:
   version: 2.1
 
-  # run a build and a windows test on every commit
   commit-workflow:
     jobs:
-      - build-all
-      - unit-tests
-      - integration-tests
-      - publish:
-          e: default-executor
-          filters:
-            branches:
-              only:
-                - master
-          requires:
-            - build-all
-            - unit-tests
-            - integration-tests
+      - simple-sample-job
+
+  # run a build and a windows test on every commit
+  #commit-workflow:
+  #  jobs:
+  #    - build-all
+  #    - unit-tests
+  #    - integration-tests
+  #    - publish:
+  #        e: default-executor
+  #        filters:
+  #          branches:
+  #            only:
+  #              - master
+  #        requires:
+  #          - build-all
+  #          - unit-tests
+  #          - integration-tests
 
   # run a build/test every mid-night
   scheduled-workflow:
