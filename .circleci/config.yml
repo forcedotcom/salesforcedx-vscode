@@ -207,8 +207,8 @@ executors:
 jobs:
   build-all:
     description: 'Build artifacts in a non-Windows environment'
-    executor:
-      name: node-executor
+    docker:
+      - image: circleci/node:12.4.0
     environment:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
@@ -312,9 +312,9 @@ jobs:
       - checkout
       - restore_dependency_cache
       - run:
-        name: 'Setup gus case management'
-        command: |
-          sudo npm install -g @salesforce/change-case-management
+          name: 'Setup gus case management'
+          command: |
+            sudo npm install -g @salesforce/change-case-management
       - sfchangecase/install
       - gus-prepare-environment-variables
       - sfchangecase/create:
