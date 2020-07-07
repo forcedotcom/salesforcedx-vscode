@@ -80,9 +80,7 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run:
-          name: 'Install Dependencies'
-          command: sudo npm install -g
+      - run: npm install
       - run: npm --version
       - run: node --version
 
@@ -192,7 +190,7 @@ executors:
       # We are unable to use the recommended cimg docker images since they use the root path instead of home
       image:
         type: string
-        default: cimg/node:<< pipeline.parameters.node-version >>
+        default: circleci/node:<< pipeline.parameters.node-version >>
       working-dir:
         type: string
         default: ~/cli
