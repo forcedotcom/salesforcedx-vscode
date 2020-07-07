@@ -80,7 +80,9 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run: npm install
+      - run:
+          name: 'Install Dependencies'
+          command: sudo npm install -g
       - run: npm --version
       - run: node --version
 
@@ -187,12 +189,13 @@ commands:
 executors:
   default-executor:
     parameters:
+      # We are unable to use the recommended cimg docker images since they use the root path instead of home
       image:
         type: string
         default: cimg/node:<< pipeline.parameters.node-version >>
       working-dir:
         type: string
-        default: ~/home/circleci/cli
+        default: ~/cli
     docker:
       - image: << parameters.image >>
     working_directory: << parameters.working-dir >>
@@ -202,7 +205,7 @@ jobs:
     description: 'Build artifacts in a non-Windows environment'
     executor:
       name: default-executor
-      working-dir: ~/home/circleci/project
+      working-dir: ~/project
     environment:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
