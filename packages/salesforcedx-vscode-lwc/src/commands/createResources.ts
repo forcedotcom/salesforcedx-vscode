@@ -54,8 +54,16 @@ export function addJsMetaSetting() {
   const fileContents = fs.readFileSync(vsCodeSettingsPath, 'utf8');
   const settings = JSON.parse(fileContents);
 
-  // catalogs and fileassociation settings generated directly from here.
-  // TODO: maybe check the values within?
+  function saveFile() {
+    fs.writeFile(
+      vsCodeSettingsPath,
+      JSON.stringify(settings, null, '\t'),
+      err => {
+        console.log('error writing to settings');
+      }
+    );
+  }
+
   if (!('xml.catalogs' in settings)) {
     settings['xml.catalogs'] = ['.sfdx/lwcResources/js-meta-home.xml'];
     settings['xml.fileAssociations'] = [
@@ -64,13 +72,19 @@ export function addJsMetaSetting() {
         pattern: '**/*js-meta.xml'
       }
     ];
+    saveFile();
 
-    fs.writeFile(
-      vsCodeSettingsPath,
-      JSON.stringify(settings, null, '\t'),
-      err => {
-        console.log('error writing to settings');
-      }
-    );
+  } else {
+    // checking for catalog settings
+    if (!settings['xml.catalogs'].includes('.sfdx/lwcResources/js-meta-home.xml')) {
+      settings['xml.catalogs'].push('.sfdx/lwcResources/js-meta-home.xml');
+      saveFile();
+    }
+
+    // checking for fileassociation settings
+    if (!settings['xml.fileAssociations'].some((element: { systemId: string; }) => element.systemId === '.sfdx/lwcResources/js-meta.xsd')) {
+      settings['xml.fileAssociations'].push({ systemId: '.sfdx/lwcResources/js-meta.xsd', pattern: '**/*js-meta.xml' });
+      saveFile();
+    }
   }
 }
