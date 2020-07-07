@@ -221,7 +221,7 @@ describe('Force Auth Web Login is based on environment variables', () => {
     });
 
     afterEach(() => {
-      process.env.SFXD_ENV = originalValue;
+      process.env.SFDX_ENV = originalValue;
     });
 
     it('Should use ForceAuthDevHubDemoModeExecutor if demo mode is true', () => {

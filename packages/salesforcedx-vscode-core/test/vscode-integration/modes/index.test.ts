@@ -18,7 +18,7 @@ describe('Demo Mode Utils', () => {
     });
 
     afterEach(() => {
-      process.env.SFXD_ENV = originalValue;
+      process.env.SFDX_ENV = originalValue;
     });
 
     it('Should report demo mode if SFDX_ENV === DEMO', () => {
