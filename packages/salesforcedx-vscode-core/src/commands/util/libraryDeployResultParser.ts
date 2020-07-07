@@ -65,7 +65,7 @@ export class LibraryDeployResultParser {
     } else if (result.outboundFiles) {
       for (const outboundFile of result.outboundFiles) {
         failures.push({
-          filePath: outboundFile, // might want to format this to only the name of the file vs fullpath
+          filePath: outboundFile,
           error: result.ErrorMsg
         });
       }
