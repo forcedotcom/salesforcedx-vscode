@@ -4,22 +4,29 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
-// tslint:disable-next-line:no-var-requires
-const fs = require('fs').promises;
 import {
+  AnonApexGatherer,
   ApexLibraryExecuteExecutor,
-  CreateApexTempFile,
   formatResult
 } from '../../../src/commands/forceApexExecute';
-import { getRootWorkspacePath } from '../../../src/util';
-
+import {
+  CompositeParametersGatherer,
+  SfdxCommandlet
+} from '../../../src/commands/util';
 import { nls } from '../../../src/messages';
+import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Format Execute Anonymous Response', () => {
@@ -94,20 +101,18 @@ describe('Format Execute Anonymous Response', () => {
   });
 });
 
-describe('CreateApexTempFile', async () => {
+describe('AnonApexGatherer', async () => {
   let sb: SinonSandbox;
-  let fsStub: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
-    fsStub = sb.stub(fs, 'writeFile');
   });
 
   afterEach(async () => {
     sb.restore();
   });
 
-  it('should use the selected file to execute anonymous apex', async () => {
+  it('should return the selected file to execute anonymous apex', async () => {
     const fileName = path.join(
       getRootWorkspacePath(),
       '.sfdx',
@@ -116,47 +121,127 @@ describe('CreateApexTempFile', async () => {
     );
     const mockActiveTextEditor = {
       document: {
-        uri: 'file/path/to/anonApex',
+        uri: { fsPath: fileName }
+      },
+      selection: { isEmpty: true }
+    };
+    sb.stub(vscode.window, 'activeTextEditor').get(() => {
+      return mockActiveTextEditor;
+    });
+
+    const fileNameGatherer = new AnonApexGatherer();
+    const result = (await fileNameGatherer.gather()) as ContinueResponse<{
+      fileName: string;
+    }>;
+    expect(result.data.fileName).to.equal(fileName);
+  });
+
+  it(`should return the currently highlighted 'selection' to execute anonymous apex`, async () => {
+    const mockActiveTextEditor = {
+      document: {
         getText: (doc: { isEmpty: boolean; text: string }) => doc.text
       },
-      revealRange: (
-        range: vscode.Range,
-        revealType?: vscode.TextEditorRevealType
-      ) => {},
       selection: { isEmpty: false, text: 'System.assert(true);' }
     };
     sb.stub(vscode.window, 'activeTextEditor').get(() => {
       return mockActiveTextEditor;
     });
 
-    const fileNameGatherer = new CreateApexTempFile();
-    const result = (await fileNameGatherer.gather()) as ContinueResponse<{
-      fileName: string;
+    const apexCodeGatherer = new AnonApexGatherer();
+    const result = (await apexCodeGatherer.gather()) as ContinueResponse<{
+      apexCode: string;
     }>;
-    expect(fsStub.called).to.be.true;
-    expect(result.data.fileName).to.equal(fileName);
+    expect(result.data.apexCode).to.equal('System.assert(true);');
+  });
+});
+
+describe('ApexLibraryExecuteExecutor', () => {
+  // Setup the test environment.
+  const $$ = testSetup();
+  const testData = new MockTestOrgData();
+
+  let mockConnection: Connection;
+  let sb: SinonSandbox;
+
+  beforeEach(async () => {
+    sb = createSandbox();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
+      .withArgs('defaultusername')
+      .returns(testData.username);
   });
 
-  it(`should use the currently highlighted 'selection' to execute anonymous apex`, async () => {
-    const filePath = 'file/path/to/anonApex';
-    const mockActiveTextEditor = {
-      document: {
-        uri: { fsPath: filePath },
-        getText: (doc: { isEmpty: boolean; text: string }) => doc.text
-      },
-      selection: { isEmpty: true, text: 'System.assert(true);' }
-    };
-    const activeTextEditorStub = sb
-      .stub(vscode.window, 'activeTextEditor')
-      .get(() => {
-        return mockActiveTextEditor;
-      });
+  afterEach(() => {
+    $$.SANDBOX.restore();
+    sb.restore();
+  });
 
-    const fileNameGatherer = new CreateApexTempFile();
-    const result = (await fileNameGatherer.gather()) as ContinueResponse<{
-      fileName: string;
-    }>;
-    expect(fsStub.called).to.be.false;
-    expect(result.data.fileName).to.equal(filePath);
+  it('Should call executor', async () => {
+    let executed = false;
+    const commandlet = new SfdxCommandlet(
+      new class {
+        public check(): boolean {
+          return true;
+        }
+      }(),
+      new CompositeParametersGatherer(
+        new class implements ParametersGatherer<{}> {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        }()
+      ),
+      new class extends ApexLibraryExecuteExecutor {
+        public async execute(response: ContinueResponse<{}>): Promise<void> {
+          executed = true;
+        }
+      }()
+    );
+
+    await commandlet.run();
+    expect(executed).to.be.true;
+  });
+
+  it('Should create connection on build phase', async () => {
+    const orgAuthMock = sb
+      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
+      .returns(testData.username);
+    const orgAuthConnMock = sb
+      .stub(OrgAuthInfo, 'getConnection')
+      .returns(mockConnection);
+    const commandlet = new class extends ApexLibraryExecuteExecutor {
+      public async execute(response: ContinueResponse<{}>): Promise<void> {}
+    }();
+
+    await commandlet.build('Test name', 'telemetry_test');
+    expect(orgAuthMock.calledOnce).to.equal(true);
+    expect(orgAuthConnMock.calledOnce).to.equal(true);
+  });
+
+  it('Should fail build phase if username cannot be found', async () => {
+    const orgAuthMock = sb
+      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
+      .returns(undefined);
+    const orgAuthConnMock = sb.stub(OrgAuthInfo, 'getConnection');
+    const commandlet = new class extends ApexLibraryExecuteExecutor {
+      public async execute(response: ContinueResponse<{}>): Promise<void> {}
+    }();
+    try {
+      await commandlet.build('Test name', 'telemetry_test');
+      fail('build phase should throw an error');
+    } catch (e) {
+      expect(e.message).to.equal(nls.localize('error_no_default_username'));
+      expect(orgAuthMock.calledOnce).to.equal(true);
+      expect(orgAuthConnMock.calledOnce).to.equal(false);
+    }
   });
 });

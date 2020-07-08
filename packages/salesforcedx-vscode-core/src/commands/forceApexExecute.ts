@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExecuteAnonymousResponse } from '@salesforce/salesforcedx-apex/packages/apex';
+import {
+  ExecuteAnonymousResponse,
+  ExecuteService
+} from '@salesforce/apex-node';
 import {
   CancelResponse,
   ContinueResponse,
@@ -19,17 +22,17 @@ import { handleApexLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { hasRootWorkspace, OrgAuthInfo } from '../util';
 import {
   ApexLibraryExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
 
-export class CreateApexTempFile
-  implements ParametersGatherer<{ fileName: string }> {
+export class AnonApexGatherer
+  implements ParametersGatherer<{ fileName?: string; apexCode?: string }> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ fileName: string }>
+    CancelResponse | ContinueResponse<{ fileName?: string; apexCode?: string }>
   > {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
@@ -38,29 +41,42 @@ export class CreateApexTempFile
       }
 
       const document = editor.document;
-      let fileName = document.uri.fsPath;
       if (!editor.selection.isEmpty) {
-        fileName = path.join(
-          getRootWorkspacePath(),
-          '.sfdx',
-          'tools',
-          'tempApex.input'
-        );
-        await fs.writeFile(fileName, document.getText(editor.selection));
+        return {
+          type: 'CONTINUE',
+          data: { apexCode: document.getText(editor.selection) }
+        };
       }
 
-      return { type: 'CONTINUE', data: { fileName } };
+      return { type: 'CONTINUE', data: { fileName: document.uri.fsPath } };
     }
     return { type: 'CANCEL' };
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const fileNameGatherer = new CreateApexTempFile();
+const fileNameGatherer = new AnonApexGatherer();
 
 export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
+  protected executeService: ExecuteService | undefined;
+
+  public async build(
+    execName: string,
+    telemetryLogName: string
+  ): Promise<void> {
+    this.executionName = execName;
+    this.telemetryName = telemetryLogName;
+
+    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+    if (!usernameOrAlias) {
+      throw new Error(nls.localize('error_no_default_username'));
+    }
+    const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
+    this.executeService = new ExecuteService(conn);
+  }
+
   public async execute(
-    response: ContinueResponse<{ fileName: string }>
+    response: ContinueResponse<{ fileName?: string; apexCode?: string }>
   ): Promise<void> {
     this.setStartTime();
 
@@ -70,17 +86,17 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
         nls.localize('force_apex_execute_library')
       );
 
-      if (this.apexService === undefined) {
-        throw new Error('ApexService is not established');
+      if (this.executeService === undefined) {
+        throw new Error('ExecuteService is not established');
       }
 
-      const fileName = response.data.fileName;
-      this.apexService.apexExecute = this.executeWrapper(
-        this.apexService.apexExecute
+      this.executeService.executeAnonymous = this.executeWrapper(
+        this.executeService.executeAnonymous
       );
 
-      await this.apexService.apexExecute({
-        apexCodeFile: fileName
+      await this.executeService.executeAnonymous({
+        ...(response.data.fileName && { apexFilePath: response.data.fileName }),
+        ...(response.data.apexCode && { apexCode: response.data.apexCode })
       });
     } catch (e) {
       telemetryService.sendException('force_apex_execute_library', e.message);
@@ -116,10 +132,14 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
         ApexLibraryExecuteExecutor.errorCollection.clear();
         await notificationService.showSuccessfulExecution(commandName);
       } else {
+        const editor = vscode.window.activeTextEditor;
+        const document = editor!.document;
+        const filePath = args[0].apexFilePath || document.uri.fsPath;
+
         handleApexLibraryDiagnostics(
           result,
           ApexLibraryExecuteExecutor.errorCollection,
-          args[0].apexCodeFile
+          filePath
         );
         notificationService.showFailedExecution(commandName);
       }

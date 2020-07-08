@@ -305,7 +305,7 @@ export const messages = {
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successully.',
   apex_execute_text: 'Execute Anonymous Apex',
-
+  force_apex_execute_library: 'Apex Library: Execute Anonymous',
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
   AIAssistantTemplate: 'AI Assistant Templates',
