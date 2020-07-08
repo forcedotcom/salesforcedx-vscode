@@ -22,7 +22,7 @@
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "decache": "^4.1.0",
-    "electron": "^1.7.5",
+    "electron": "7.3.2",
     "glob": "^7.1.2",
     "istanbul": "^0.4.5",
     "mkdirp": "0.5.1",
@@ -32,7 +32,7 @@
     "remap-istanbul": "^0.9.5",
     "rimraf": "^2.6.1",
     "shelljs": "0.8.3",
-    "spectron": "5.0.0",
+    "spectron": "9.0.0",
     "typescript": "3.1.6"
   },
   "scripts": {
