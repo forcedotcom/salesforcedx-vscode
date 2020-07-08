@@ -367,8 +367,8 @@ jobs:
       - run:
           name: 'Create git tag (e.g. v48.1.0) & push changes back to master branch'
           command: |
-            git tag v${GUS_BUILD}
-            git push origin v${GUS_BUILD}
+            git tag v${RELEASE_VERSION}
+            git push origin v${RELEASE_VERSION}
             git push origin master
       - sfchangecase/update:
           location: REPO_LOCATION
