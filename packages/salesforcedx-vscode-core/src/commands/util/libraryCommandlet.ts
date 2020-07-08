@@ -6,25 +6,11 @@
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
-  ApiResult,
-  DeployResult,
-  DeployStatusEnum,
-  SourceClient
-} from '@salesforce/source-deploy-retrieve';
-import { languages, ProgressLocation, window } from 'vscode';
-import { channelService } from '../../channels';
-import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
-import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
-import {
   Measurements,
   Properties,
   TelemetryData,
   telemetryService
 } from '../../telemetry';
-import { OrgAuthInfo } from '../../util';
-import { LibraryDeployResultParser } from './libraryDeployResultParser';
-import { outputRetrieveTable } from './retrieveParser';
 import { CommandletExecutor } from './sfdxCommandlet';
 
 export abstract class LibraryCommandletExecutor<T>

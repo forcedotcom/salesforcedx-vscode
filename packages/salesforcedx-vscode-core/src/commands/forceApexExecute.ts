@@ -13,9 +13,6 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-// tslint:disable-next-line:no-var-requires
-const fs = require('fs').promises;
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleApexLibraryDiagnostics } from '../diagnostics';
