@@ -17,12 +17,7 @@ import { channelService } from '../../channels';
 import { handleLibraryDiagnostics } from '../../diagnostics/diagnostics';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import {
-  Measurements,
-  Properties,
-  TelemetryData,
-  telemetryService
-} from '../../telemetry';
+import { Measurements, Properties, telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import { LibraryDeployResultParser } from './libraryDeployResultParser';
 import { outputRetrieveTable } from './retrieveParser';
