@@ -339,7 +339,7 @@ jobs:
       - slack/notify:
           channel: 'pdt_releases'
           color: '#FFDEAD'
-          message: 'TESTING - Starting publish for VSCode Extensions'
+          message: 'Starting publish for VSCode Extensions'
       - ssh-config
       - checkout
       - gus-prepare-environment-variables
@@ -376,7 +376,7 @@ jobs:
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
-          message: 'TESTING - VSCode Extensions v${RELEASE_VERSION} have been published to the marketplace'
+          message: 'VSCode Extensions v${RELEASE_VERSION} have been published to the marketplace'
       - slack/status:
           channel: 'pdt_releases'
           fail_only: true
@@ -390,7 +390,7 @@ jobs:
       - slack/notify:
           channel: 'pdt_releases'
           color: '#FFDEAD'
-          message: 'TESTING - Starting creation of release branch for VSCode Extensions'
+          message: 'Starting creation of release branch for VSCode Extensions'
       - ssh-config
       - checkout
       - restore_dependency_cache
@@ -407,7 +407,7 @@ jobs:
       - slack/notify:
           channel: 'pdt_releases'
           color: '#d8bfd8'
-          message: 'TESTING - VSCode Extensions release branch has been cut'
+          message: 'VSCode Extensions release branch has been cut'
       - slack/status:
           channel: 'pdt_releases'
           fail_only: true
