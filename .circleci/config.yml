@@ -15,16 +15,28 @@ orbs:
   slack: circleci/slack@3.4.2
 
 parameters:
+  cli-version:
+    type: string
+    default: '7.45.1'
   node-version:
     type: string
     default: '12.4.0'
+  lerna-version:
+    type: string
+    default: '3.13.1'
   domain-retry:
     description: 'SFDX Domain Retry Wait in Seconds'
     type: integer
     default: 300
   fingerprint:
     type: string
-    default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
+    default: 'dc:00:e0:c3:28:59:ad:c1:01:49:9f:d5:88:b3:17:da'
+  publish:
+    type: boolean
+    default: false
+  create-release:
+    type: boolean
+    default: false
 
 commands:
   compile:
@@ -75,7 +87,11 @@ commands:
           name: 'Prepare environment variables for GUS Change Case Management'
           command: |
             export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
+            echo "export RELEASE_VERSION=$GUS_BUILD" >> $BASH_ENV
             echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
+            source $BASH_ENV
+            echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
+            echo "GUS_RELEASE is: ${GUS_RELEASE}"
 
   install:
     description: 'Installing dependencies'
@@ -138,6 +154,23 @@ commands:
       - store_artifacts:
           path: ./<< parameters.location >>
 
+  updating-sha-for-publish:
+    steps:
+      - run:
+          name: 'Generating the SHA256 and appending to the file.'
+          command: npm run vscode:sha256
+      - run:
+          name: 'Concatenating the contents to the proper SHA256.md'
+          command: scripts/concatenate-sha256.js
+      - run:
+          name: 'Removing the temp SHA256 file.'
+          command: rm ./SHA256
+      - run:
+          name: 'Adding the SHA256 to git.'
+          command: |
+            git add SHA256.md
+            git commit -m "[skip ci] Updated SHA256"
+
   build-artifacts:
     description: 'Building and archiving extension artifacts.'
     steps:
@@ -169,7 +202,7 @@ commands:
           command: |
             npm config set scripts-prepend-node-path true
             npm install
-            npm install -g sfdx-cli@7.45.1
+            npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g codecov
             npm install -g junit-merge
       - run:
@@ -199,21 +232,6 @@ executors:
     working_directory: << parameters.working-dir >>
 
 jobs:
-  simple-sample-job:
-    description: 'Just for local testing'
-    docker:
-      - image: circleci/node:<< pipeline.parameters.node-version >>
-    steps:
-      - install
-      - gus-prepare-environment-variables
-      - slack/notify:
-          channel: 'pdt_releases'
-          color: '#42e2f4'
-          message: 'TESTING - VSCode Extensions $GUS_BUILD have been published to the marketplace'
-      - run:
-          command: |
-            echo "Hey I ran for $GUS_BUILD!"
-
   build-all:
     description: 'Build artifacts in a non-Windows environment'
     executor:
@@ -259,7 +277,7 @@ jobs:
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
             $failure = $results.SelectSingleNode("//failure")
-            if ($failure -ne $null) { 
+            if ($failure -ne $null) {
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }
@@ -318,15 +336,19 @@ jobs:
         type: executor
     executor: << parameters.e >>
     steps:
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#FFDEAD'
+          message: 'TESTING - Starting publish for VSCode Extensions'
       - ssh-config
       - checkout
+      - gus-prepare-environment-variables
       - restore_dependency_cache
       - run:
           name: 'Setup gus case management'
           command: |
             sudo npm install -g @salesforce/change-case-management
       - sfchangecase/install
-      - gus-prepare-environment-variables
       - sfchangecase/create:
           location: REPO_LOCATION
           release: GUS_RELEASE
@@ -337,20 +359,7 @@ jobs:
       - install
       - compile
       - package-extensions
-      - run:
-          name: 'Generating the SHA256 and appending to the file.'
-          command: npm run vscode:sha256
-      - run:
-          name: 'Concatenating the contents to the proper SHA256.md'
-          command: scripts/concatenate-sha256.js
-      - run:
-          name: 'Removing the temp SHA256 file.'
-          command: rm ./SHA256
-      - run:
-          name: 'Adding the SHA256 to git.'
-          command: |
-            git add SHA256.md
-            git commit -m "[skip ci] Updated SHA256"
+      - updating-sha-for-publish
       - run:
           name: 'Publishing to the VS Code Marketplace.'
           command: npm run vscode:publish
@@ -358,7 +367,6 @@ jobs:
       - run:
           name: 'Create git tag (e.g. v48.1.0) & push changes back to master branch'
           command: |
-            export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
             git tag v${GUS_BUILD}
             git push origin v${GUS_BUILD}
             git push origin master
@@ -367,8 +375,11 @@ jobs:
           release: GUS_RELEASE
       - slack/notify:
           channel: 'pdt_releases'
-          color: '#42e2f4'
-          message: 'VSCode Extensions have been published to the marketplace'
+          color: '#9bcd9b'
+          message: 'TESTING - VSCode Extensions v${RELEASE_VERSION} have been published to the marketplace'
+      - slack/status:
+          channel: 'pdt_releases'
+          fail_only: true
 
   create-release-branch:
     parameters:
@@ -376,6 +387,10 @@ jobs:
         type: executor
     executor: << parameters.e >>
     steps:
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#FFDEAD'
+          message: 'TESTING - Starting creation of release branch for VSCode Extensions'
       - ssh-config
       - checkout
       - restore_dependency_cache
@@ -383,36 +398,81 @@ jobs:
       - install
       - run:
           name: Install Lerna
-          command: sudo npm install -g lerna@3.13.1
+          command: sudo npm install -g lerna@<< pipeline.parameters.lerna-version >>
       - run:
           name: Create release branch
           command: |
             git branch
             scripts/create-release-branch.js
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#d8bfd8'
+          message: 'TESTING - VSCode Extensions release branch has been cut'
+      - slack/status:
+          channel: 'pdt_releases'
+          fail_only: true
 
 workflows:
   version: 2.1
 
-  commit-workflow:
-    jobs:
-      - simple-sample-job
-
   # run a build and a windows test on every commit
-  #commit-workflow:
-  #  jobs:
-  #    - build-all
-  #    - unit-tests
-  #    - integration-tests
-  #    - publish:
-  #        e: default-executor
-  #        filters:
-  #          branches:
-  #            only:
-  #              - master
-  #        requires:
-  #          - build-all
-  #          - unit-tests
-  #          - integration-tests
+  commit-workflow:
+    when:
+      and:
+        - not: << pipeline.parameters.publish >>
+        - not: << pipeline.parameters.create-release >>
+    jobs:
+      - build-all
+      - unit-tests
+      - integration-tests
+
+  publish-workflow:
+    when: << pipeline.parameters.publish >>
+    jobs:
+      - slack/approval-notification:
+          message: Pending Approval for Publish
+          channel: 'pdt_releases'
+          color: '#0E1111'
+      - build-all
+      - unit-tests
+      - integration-tests
+      - hold: # Requires manual approval in Circle Ci
+          type: approval
+      - publish:
+          e: default-executor
+          requires:
+            - build-all
+            - unit-tests
+            - integration-tests
+            - hold
+          filters:
+            branches:
+              only:
+                - master
+
+  create-release-branch-workflow:
+    when: << pipeline.parameters.create-release >>
+    jobs:
+      - slack/approval-notification:
+          message: Pending Approval for Creation of Release Branch
+          channel: 'pdt_releases'
+          color: '#0E1111'
+      - build-all
+      - unit-tests
+      - integration-tests
+      - hold: # Requires manual approval in Circle Ci
+          type: approval
+      - create-release-branch:
+          e: default-executor
+          requires:
+            - build-all
+            - unit-tests
+            - integration-tests
+            - hold
+          filters:
+            branches:
+              only:
+                - develop
 
   # run a build/test every mid-night
   scheduled-workflow:
