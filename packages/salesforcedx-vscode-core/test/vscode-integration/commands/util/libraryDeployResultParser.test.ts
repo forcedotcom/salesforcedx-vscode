@@ -105,6 +105,22 @@ describe('Tooling Deploy Parser', () => {
     metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
   };
 
+  const failedManagedPkgDeployResult: DeployResult = {
+    State: DeployStatusEnum.Failed,
+    ErrorMsg:
+      'Could not save testAPI, : managed installed classes cannot be saved',
+    isDeleted: false,
+    DeployDetails: {
+      componentFailures: [],
+      componentSuccesses: []
+    },
+    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml'),
+    outboundFiles: [
+      path.join('file', 'path', 'classes', 'testAPI.cls'),
+      path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
+    ]
+  };
+
   const queuedDeployResult: DeployResult = {
     State: DeployStatusEnum.Queued,
     isDeleted: false,
@@ -171,9 +187,7 @@ describe('Tooling Deploy Parser', () => {
 
   it('should create array of error info for apex class', async () => {
     const parser = new LibraryDeployResultParser(failedDeployResult);
-    const errorsInfo = parser.buildErrors(
-      failedDeployResult.DeployDetails!.componentFailures
-    );
+    const errorsInfo = parser.buildErrors(failedDeployResult);
     expect(errorsInfo).to.be.an('array');
     expect(errorsInfo.length).to.be.equal(2);
     expect(errorsInfo[0]).to.be.an('object');
@@ -183,6 +197,28 @@ describe('Tooling Deploy Parser', () => {
     expect(errorsInfo[1]).to.be.an('object');
     expect(errorsInfo[1].filePath).to.equal('classes/testAPI.cls');
     expect(errorsInfo[1].error).to.equal('Variable does not exist: waa (4:5)');
+  });
+
+  it('should create array of error info for managed package deploy error', async () => {
+    const parser = new LibraryDeployResultParser(failedManagedPkgDeployResult);
+    const errorsInfo = parser.buildErrors(failedManagedPkgDeployResult);
+    expect(errorsInfo).to.be.an('array');
+    expect(errorsInfo.length).to.be.equal(2);
+    expect(errorsInfo[0]).to.be.an('object');
+    expect(errorsInfo[0].filePath).to.equal(
+      path.join('file', 'path', 'classes', 'testAPI.cls')
+    );
+    expect(errorsInfo[0].error).to.equal(
+      'Could not save testAPI, : managed installed classes cannot be saved'
+    );
+
+    expect(errorsInfo[1]).to.be.an('object');
+    expect(errorsInfo[1].filePath).to.equal(
+      path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
+    );
+    expect(errorsInfo[1].error).to.equal(
+      'Could not save testAPI, : managed installed classes cannot be saved'
+    );
   });
 
   it('should create a table with successful results', async () => {
@@ -233,6 +269,31 @@ describe('Tooling Deploy Parser', () => {
       "classes/testAPI.cls  Missing ';' at '}' (4:5) (4:5)          \n";
     errorResult +=
       'classes/testAPI.cls  Variable does not exist: waa (4:5) (4:5)\n';
+
+    const results = await parser.outputResult();
+    expect(results).to.equal(errorResult);
+  });
+
+  it('should create a table with failed results for managed package errors', async () => {
+    const parser = new LibraryDeployResultParser(failedManagedPkgDeployResult);
+
+    let errorResult = '=== Deploy Errors\n';
+    errorResult +=
+      'PROJECT PATH                            ERRORS                                                             \n';
+    errorResult +=
+      '──────────────────────────────────────  ───────────────────────────────────────────────────────────────────\n';
+    errorResult += `${path.join(
+      'file',
+      'path',
+      'classes',
+      'testAPI.cls'
+    )}           Could not save testAPI, : managed installed classes cannot be saved\n`;
+    errorResult += `${path.join(
+      'file',
+      'path',
+      'classes',
+      'testAPI.cls-meta.xml'
+    )}  Could not save testAPI, : managed installed classes cannot be saved\n`;
 
     const results = await parser.outputResult();
     expect(results).to.equal(errorResult);
