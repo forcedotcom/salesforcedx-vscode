@@ -13,25 +13,16 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  RegistryAccess,
-  registryData
-} from '@salesforce/source-deploy-retrieve';
-import * as path from 'path';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { DeployQueue, sfdxCoreSettings } from '../settings';
+import { DeployQueue } from '../settings';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import {
-  APEX_CLASS_EXTENSION,
-  APEX_TRIGGER_EXTENSION,
-  VISUALFORCE_COMPONENT_EXTENSION,
-  VISUALFORCE_PAGE_EXTENSION
-} from './templates/metadataTypeConstants';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 import {
   createComponentCount,
@@ -130,9 +121,15 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
         this.sourceClient.tooling.deploy
       );
 
+      const projectNamespace = (await SfdxProjectConfig.getValue(
+        'namespace'
+      )) as string;
       const registryAccess = new RegistryAccess();
       const components = registryAccess.getComponentsFromPath(response.data);
-      const deployPromise = this.sourceClient.tooling.deploy({ components });
+      const deployPromise = this.sourceClient.tooling.deploy({
+        components,
+        namespace: projectNamespace
+      });
       const metadataCount = JSON.stringify(createComponentCount(components));
       await deployPromise;
 

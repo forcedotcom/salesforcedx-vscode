@@ -28,7 +28,7 @@
     "@salesforce/core": "2.5.1",
     "@salesforce/kit": "1.2.2",
     "@salesforce/salesforcedx-utils-vscode": "48.24.0",
-    "@salesforce/source-deploy-retrieve": "1.0.14",
+    "@salesforce/source-deploy-retrieve": "1.0.15",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
