@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Cancelling a command execution should not throw errors ([PR #2316](https://github.com/forcedotcom/salesforcedx-vscode/pull/2316))
+- Fix SFDX commands causing _toString_ errors when cancelled ([PR #2316](https://github.com/forcedotcom/salesforcedx-vscode/pull/2316))
 
 ## Added
 
