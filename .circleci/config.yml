@@ -37,6 +37,9 @@ parameters:
   create-release:
     type: boolean
     default: false
+  cache-version:
+    type: string
+    default: 'dependency-cache-v3-'
 
 commands:
   compile:
@@ -112,7 +115,7 @@ commands:
     parameters:
       base-cache-path:
         type: string
-        default: 'dependency-cache-v2-'
+        default: << pipeline.parameters.cache-version >>
     steps:
       - restore_cache:
           keys:
@@ -124,7 +127,7 @@ commands:
     parameters:
       base-cache-path:
         type: string
-        default: 'dependency-cache-v2-'
+        default: << pipeline.parameters.cache-version >>
       path-to-save:
         type: string
         default: 'node_modules'
@@ -188,7 +191,7 @@ commands:
       - run: git config --global core.autocrlf false
       - checkout
       - restore_dependency_cache:
-          base-cache-path: 'dependency-cache-win3-'
+          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Install node'
           shell: bash.exe
@@ -210,7 +213,7 @@ commands:
           shell: bash.exe
           command: npm run compile
       - save_dependency_cache:
-          base-cache-path: 'dependency-cache-win3-'
+          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Run lint'
           shell: bash.exe
@@ -348,7 +351,6 @@ jobs:
           name: 'Setup gus case management'
           command: |
             sudo npm install -g @salesforce/change-case-management
-      - sfchangecase/install
       - sfchangecase/create:
           location: REPO_LOCATION
           release: GUS_RELEASE
