@@ -4,47 +4,50 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExecuteAnonymousResponse } from '@salesforce/apex-node';
-import { Connection } from '@salesforce/core';
-import * as path from 'path';
+import {
+  ApiResult,
+  DeployResult,
+  DeployStatusEnum,
+  SourceClient
+} from '@salesforce/source-deploy-retrieve';
 import { languages, ProgressLocation, window } from 'vscode';
-import * as vscode from 'vscode';
 import { channelService } from '../../channels';
-import { handleApexLibraryDiagnostics } from '../../diagnostics';
+// import { handleDeployRetrieveLibraryDiagnostics } from '../../diagnostics';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { OrgAuthInfo } from '../../util';
-import { formatExecuteResult } from './apexLibraryResultFormatter';
 import { LibraryCommandletExecutor } from './libraryCommandlet';
+import { LibraryDeployResultParser } from './libraryDeployResultParser';
+import { outputRetrieveTable } from './retrieveParser';
 
-export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{}> {
+export class DeployRetrieveLibraryExecutor extends LibraryCommandletExecutor<
+  string
+> {
+  protected sourceClient: SourceClient | undefined;
+
   public static errorCollection = languages.createDiagnosticCollection(
-    'apex-errors'
+    'deploy-errors'
   );
 
-  public abstract createService(conn: Connection): void;
-
   public async build(
-    execName: string,
-    telemetryLogName: string
+    executionName: string,
+    telemetryName: string
   ): Promise<void> {
-    this.executionName = execName;
-    this.telemetryName = telemetryLogName;
+    this.executionName = executionName;
+    this.telemetryName = telemetryName;
 
     const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
     if (!usernameOrAlias) {
       throw new Error(nls.localize('error_no_default_username'));
     }
     const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
-    this.createService(conn);
+    this.sourceClient = new SourceClient(conn);
   }
 
-  public executeWrapper(
-    fn: (...args: any[]) => Promise<ExecuteAnonymousResponse>
-  ) {
+  public deployWrapper(fn: (...args: any[]) => Promise<DeployResult>) {
     const commandName = this.executionName;
 
-    return async function(...args: any[]): Promise<ExecuteAnonymousResponse> {
+    return async function(...args: any[]): Promise<DeployResult> {
       channelService.showCommandWithTimestamp(`Starting ${commandName}`);
 
       const result = await window.withProgress(
@@ -54,56 +57,51 @@ export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{}> 
         },
         async () => {
           // @ts-ignore
-          return (await fn.call(this, ...args)) as ExecuteAnonymousResponse;
+          return (await fn.call(this, ...args)) as DeployResult;
         }
       );
 
-      const formattedResult = formatExecuteResult(result);
-      channelService.appendLine(formattedResult);
+      const parser = new LibraryDeployResultParser(result);
+      const outputResult = await parser.outputResult();
+      channelService.appendLine(outputResult);
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
 
-      if (result.result.compiled && result.result.success) {
-        ApexLibraryExecutor.errorCollection.clear();
+      if (
+        result.State === DeployStatusEnum.Completed ||
+        result.State === DeployStatusEnum.Queued
+      ) {
+        DeployRetrieveLibraryExecutor.errorCollection.clear();
         await notificationService.showSuccessfulExecution(commandName);
       } else {
-        const editor = window.activeTextEditor;
-        const document = editor!.document;
-        const filePath = args[0].apexFilePath || document.uri.fsPath;
-
-        handleApexLibraryDiagnostics(
-          result,
-          ApexLibraryExecutor.errorCollection,
-          filePath
-        );
+        //  handleDeployRetrieveLibraryDiagnostics(
+        //     result,
+        //     DeployRetrieveLibraryExecutor.errorCollection
+        //   );
         notificationService.showFailedExecution(commandName);
       }
-
       return result;
     };
   }
 
-  public getLogsWrapper(fn: (...args: any[]) => Promise<string[]>) {
+  public retrieveWrapper(fn: (...args: any[]) => Promise<ApiResult>) {
     const commandName = this.executionName;
 
-    return async function(...args: any[]): Promise<string[]> {
+    return async function(...args: any[]): Promise<ApiResult> {
       channelService.showCommandWithTimestamp(`Starting ${commandName}`);
 
-      const result = await vscode.window.withProgress(
+      const result = await window.withProgress(
         {
           title: commandName,
-          location: vscode.ProgressLocation.Notification
+          location: ProgressLocation.Notification
         },
         async () => {
           // @ts-ignore
-          return (await fn.call(this, ...args)) as string[];
+          return (await fn.call(this, ...args)) as ApiResult;
         }
       );
 
+      channelService.appendLine(outputRetrieveTable(result));
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
-
-      const logPath = path.join(`${args[0].outputDir}`, `${args[0].logId}.log`);
-      const document = await vscode.workspace.openTextDocument(logPath);
-      vscode.window.showTextDocument(document);
       await notificationService.showSuccessfulExecution(commandName);
       return result;
     };

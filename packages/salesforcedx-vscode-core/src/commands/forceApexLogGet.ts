@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LogService } from '@salesforce/apex-node';
+import { Connection } from '@salesforce/core';
 import {
   CliCommandExecutor,
   Command,
@@ -29,9 +31,13 @@ import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { taskViewService } from '../statuses';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import {
+  ApexLibraryExecutor,
+  CommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -208,14 +214,60 @@ export class ForceApexLogList {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new LogFileSelector();
+export class ApexLibraryGetLogsExecutor extends ApexLibraryExecutor {
+  protected logService: LogService | undefined;
+
+  public createService(conn: Connection): void {
+    this.logService = new LogService(conn);
+  }
+
+  public async execute(
+    response: ContinueResponse<{ id: string }>
+  ): Promise<void> {
+    try {
+      await this.build(
+        nls.localize('apex_log_get_text'),
+        nls.localize('force_apex_log_get_library')
+      );
+
+      if (this.logService === undefined) {
+        throw new Error('Log Service is not established.');
+      }
+
+      this.logService.getLogs = this.getLogsWrapper(this.logService.getLogs);
+      const id = response.data.id;
+      const logDir = path.join(
+        getRootWorkspacePath(),
+        '.sfdx',
+        'tools',
+        'debug',
+        'logs'
+      );
+      await this.logService.getLogs({
+        logId: id,
+        outputDir: logDir
+      });
+    } catch (e) {
+      telemetryService.sendException(
+        nls.localize('force_apex_log_get_library'),
+        e.message
+      );
+      notificationService.showFailedExecution(this.executionName!);
+      channelService.appendLine(e.message);
+    }
+  }
+}
 
 export async function forceApexLogGet(explorerDir?: any) {
+  const parameterGatherer = new LogFileSelector();
+  const logGetExecutor = sfdxCoreSettings.getApexLibrary()
+    ? new ApexLibraryGetLogsExecutor()
+    : new ForceApexLogGetExecutor();
+
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
+    new SfdxWorkspaceChecker(),
     parameterGatherer,
-    new ForceApexLogGetExecutor()
+    logGetExecutor
   );
   await commandlet.run();
 }
