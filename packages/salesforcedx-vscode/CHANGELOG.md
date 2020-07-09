@@ -10,11 +10,9 @@
 
 #### salesforcedx-vscode-core
 
-- Add unlocked package support to Org Browser ([PR #2305](https://github.com/forcedotcom/salesforcedx-vscode/pull/2305))
+- Add unlocked package support to Org Browser ([PR #2305](https://github.com/forcedotcom/salesforcedx-vscode/pull/2305), [Issue #2204](https://github.com/forcedotcom/salesforcedx-vscode/issues/2204))
 
 - Enhance performance for extension activation ([PR #2324](https://github.com/forcedotcom/salesforcedx-vscode/pull/2324))
-
-- Add telemetry for beta deploy/retrieve operations ([PR #2299](https://github.com/forcedotcom/salesforcedx-vscode/pull/2299))
 
 - Add namespace support for beta deploy/retrieve operations ([PR #2330](https://github.com/forcedotcom/salesforcedx-vscode/pull/2330), [Issue #2188](https://github.com/forcedotcom/salesforcedx-vscode/issues/2188), [Issue #2281](https://github.com/forcedotcom/salesforcedx-vscode/issues/2281))
 
