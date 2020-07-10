@@ -1,3 +1,21 @@
+# 48.24.0 - July 9, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix SFDX commands causing _toString_ errors when cancelled ([PR #2316](https://github.com/forcedotcom/salesforcedx-vscode/pull/2316))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Support for unlocked packages in Org Browser ([PR #2305](https://github.com/forcedotcom/salesforcedx-vscode/pull/2305), [Issue #2204](https://github.com/forcedotcom/salesforcedx-vscode/issues/2204))
+
+- Enhance performance by removing Salesforce CLI checks during core extension activation. Command-level errors handle CLI installation or configuration issues, if any ([PR #2324](https://github.com/forcedotcom/salesforcedx-vscode/pull/2324))
+
+- Support namespaces for beta deploy and retrieve operations ([PR #2330](https://github.com/forcedotcom/salesforcedx-vscode/pull/2330), [Issue #2188](https://github.com/forcedotcom/salesforcedx-vscode/issues/2188), [Issue #2281](https://github.com/forcedotcom/salesforcedx-vscode/issues/2281))
+
 # 48.23.0 - July 2, 2020
 
 ## Added
