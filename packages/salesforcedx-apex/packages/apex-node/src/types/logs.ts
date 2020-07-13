@@ -9,4 +9,5 @@ import { CommonOptions } from './common';
 export type ApexLogGetOptions = CommonOptions & {
   numberOfLogs?: number;
   logId?: string;
+  outputDir?: string;
 };
