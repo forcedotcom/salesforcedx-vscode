@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { workspace } from 'vscode';
 import { TestRunType } from '../testRunner/testRunner';
 
 /**
@@ -16,7 +17,12 @@ export function getCliArgsFromJestArgs(
   testRunType: TestRunType
 ) {
   const cliArgs = ['--', ...jestArgs];
-  if (testRunType === TestRunType.DEBUG) {
+
+  const usePreviewJavaScriptDebugger = workspace
+    .getConfiguration('debug')
+    .get('javascript.usePreview');
+
+  if (testRunType === TestRunType.DEBUG && !usePreviewJavaScriptDebugger) {
     cliArgs.unshift('--debug');
   }
   return cliArgs;
