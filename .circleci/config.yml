@@ -12,76 +12,186 @@ version: 2.1
 orbs:
   win: circleci/windows@2.2.0
   sfchangecase: salesforce/change-case-management@3
+  slack: circleci/slack@3.4.2
 
-_refs:
-  defaults: &defaults
-    working_directory: ~/cli
-    docker:
-      - image: circleci/node:12.4.0
-  ssh-config: &ssh-config
-    fingerprints:
-      - '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
-  restore_cache: &restore_cache
-    keys:
-      - dependency-cache-v3-{{ checksum "package.json" }}
-      # if cache for exact version of 'package.json' is not present, then load the most recent cache
-      - dependency-cache-v3-
-  install: &install
-    name: Install dependencies
-    command: |
-      npm --version
-      node --version
-      npm install
-  gh-config: &gh-config
-    name: Configuring GitHub
-    command: |
-      git config credential.helper 'cache --timeout=120'
-      git config user.email "$GH_EMAIL"
-      git config user.name "Release Bot"
-  gus-prepare-environment-variables: &gus-prepare-environment-variables
-    name: 'Prepare environment variables for GUS Change Case Management'
-    command: |
-      export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
-      echo "export GUS_RELEASE=offcore.tooling.$GUS_BUILD" >> $BASH_ENV
+parameters:
+  cli-version:
+    type: string
+    default: '7.45.1'
+  node-version:
+    type: string
+    default: '12.4.0'
+  lerna-version:
+    type: string
+    default: '3.13.1'
+  domain-retry:
+    description: 'SFDX Domain Retry Wait in Seconds'
+    type: integer
+    default: 300
+  fingerprint:
+    type: string
+    default: 'dc:00:e0:c3:28:59:ad:c1:01:49:9f:d5:88:b3:17:da'
+  publish:
+    type: boolean
+    default: false
+  create-release:
+    type: boolean
+    default: false
+  cache-version:
+    type: string
+    default: 'dependency-cache-v3-'
 
 commands:
+  compile:
+    parameters:
+      compile-mode:
+        type: string
+        default: production
+    steps:
+      - run:
+          name: 'Compile in << parameters.compile-mode >> mode'
+          environment:
+            - NODE_ENV: << parameters.compile-mode >>
+          command: |
+            npm run compile
+
+  gh-config:
+    parameters:
+      cache_timeout:
+        description: 'Cache timeout in seconds'
+        type: integer
+        default: 120
+      gh_email:
+        description: 'GitHub email'
+        type: string
+        default: $GH_EMAIL
+      gh_username:
+        description: 'GitHub username'
+        type: string
+        default: 'Release Bot'
+    steps:
+      - run:
+          name: 'Configuring GitHub'
+          command: |
+            git config credential.helper 'cache --timeout=<< parameters.cache_timeout >>'
+            git config user.email "<< parameters.gh_email >>"
+            git config user.name "<< parameters.gh_username >>"
+
+  gus-prepare-environment-variables:
+    parameters:
+      package-json-path:
+        type: string
+        default: './packages/salesforcedx-vscode/package.json'
+      release-tag-name:
+        type: string
+        default: 'offcore.tooling'
+    steps:
+      - run:
+          name: 'Prepare environment variables for GUS Change Case Management'
+          command: |
+            export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
+            echo "export RELEASE_VERSION=$GUS_BUILD" >> $BASH_ENV
+            echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
+            source $BASH_ENV
+            echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
+            echo "GUS_RELEASE is: ${GUS_RELEASE}"
+
+  install:
+    description: 'Installing dependencies'
+    steps:
+      - run: npm install
+      - run: npm --version
+      - run: node --version
+
+  package-extensions:
+    steps:
+      - run:
+          name: 'Packaging extensions'
+          command: npm run vscode:package
+
+  restore_dependency_cache:
+    # This logic cannot be done within the node orb currently. This is due to the fact that we use
+    # the package.json instead of the package-lock.json for our checksum.
+    parameters:
+      base-cache-path:
+        type: string
+        default: << pipeline.parameters.cache-version >>
+    steps:
+      - restore_cache:
+          keys:
+            - << parameters.base-cache-path >>{{ checksum "package.json" }}
+            # if cache for exact version of 'package.json' is not present, then load the most recent cache
+            - << parameters.base-cache-path >>
+
+  save_dependency_cache:
+    parameters:
+      base-cache-path:
+        type: string
+        default: << pipeline.parameters.cache-version >>
+      path-to-save:
+        type: string
+        default: 'node_modules'
+    steps:
+      - save_cache:
+          key: << parameters.base-cache-path >>{{ checksum "package.json" }}
+          paths:
+            - << parameters.path-to-save >>
+
+  ssh-config:
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - << pipeline.parameters.fingerprint >>
+
+  stage-and-store-artifacts:
+    parameters:
+      location:
+        type: string
+        default: 'extensions'
+    steps:
+      - run:
+          name: 'Staging artifacts'
+          command: |
+            mkdir << parameters.location >>
+            find packages -name "*.vsix" -type f -exec cp {} ./<< parameters.location >> \;
+      - store_artifacts:
+          path: ./<< parameters.location >>
+
+  updating-sha-for-publish:
+    steps:
+      - run:
+          name: 'Generating the SHA256 and appending to the file.'
+          command: npm run vscode:sha256
+      - run:
+          name: 'Concatenating the contents to the proper SHA256.md'
+          command: scripts/concatenate-sha256.js
+      - run:
+          name: 'Removing the temp SHA256 file.'
+          command: rm ./SHA256
+      - run:
+          name: 'Adding the SHA256 to git.'
+          command: |
+            git add SHA256.md
+            git commit -m "[skip ci] Updated SHA256"
+
   build-artifacts:
     description: 'Building and archiving extension artifacts.'
     steps:
       - checkout
-      - restore_cache: *restore_cache
-      - run: npm install
-      - run:
-          name: 'Compile in production mode'
-          environment:
-            - NODE_ENV: production
-          command: |
-            npm run compile
-      - run:
-          name: 'Packaging extensions'
-          command: npm run vscode:package
-      - run:
-          name: 'Staging artifacts'
-          command: |
-            mkdir extensions
-            find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
-      - store_artifacts:
-          path: ./extensions
-      - save_cache:
-          key: dependency-cache-v2-{{ checksum "package.json" }}
-          paths:
-            - node_modules
+      - restore_dependency_cache
+      - install
+      - compile
+      - package-extensions
+      - stage-and-store-artifacts
+      - save_dependency_cache
 
   build-win:
     description: 'Build for Windows.'
     steps:
       - run: git config --global core.autocrlf false
       - checkout
-      - restore_cache:
-          keys:
-            - dependency-cache-win3-{{ checksum "package.json" }}
-            # if cache for exact version of 'package.json' is not present, then load the most recent cache
-            - dependency-cache-win3-
+      - restore_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Install node'
           shell: bash.exe
@@ -95,33 +205,46 @@ commands:
           command: |
             npm config set scripts-prepend-node-path true
             npm install
-            npm install -g sfdx-cli@7.45.1
+            npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g codecov
             npm install -g junit-merge
       - run:
           name: 'Compile'
           shell: bash.exe
           command: npm run compile
-      - save_cache:
-          key: dependency-cache-win3-{{ checksum "package.json" }}
-          paths:
-            - node_modules
+      - save_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Run lint'
           shell: bash.exe
           command: |
             npm run lint
 
+executors:
+  default-executor:
+    parameters:
+      # We are unable to use the recommended cimg docker images since they use the root path instead of home
+      image:
+        type: string
+        default: circleci/node:<< pipeline.parameters.node-version >>
+      working-dir:
+        type: string
+        default: ~/cli
+    docker:
+      - image: << parameters.image >>
+    working_directory: << parameters.working-dir >>
+
 jobs:
   build-all:
     description: 'Build artifacts in a non-Windows environment'
-    docker:
-      - image: circleci/node:12.4.0
+    executor:
+      name: default-executor
+      working-dir: ~/project
     environment:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_USE_GENERIC_UNIX_KEYCHAIN: true
-      - SFDX_DOMAIN_RETRY: 300
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
     steps:
       - build-artifacts
 
@@ -130,8 +253,8 @@ jobs:
     executor: win/default
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
-      - SFDX_DOMAIN_RETRY: 300
-      - NODE_VERSION: '12.4.0'
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
+      - NODE_VERSION: << pipeline.parameters.node-version >>
     steps:
       - build-win
       - run:
@@ -157,7 +280,7 @@ jobs:
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
             $failure = $results.SelectSingleNode("//failure")
-            if ($failure -ne $null) { 
+            if ($failure -ne $null) {
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }
@@ -167,8 +290,8 @@ jobs:
     executor: win/default
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
-      - SFDX_DOMAIN_RETRY: 300
-      - NODE_VERSION: '12.4.0'
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
+      - NODE_VERSION: << pipeline.parameters.node-version >>
     parameters:
       run-unit-tests:
         type: boolean
@@ -209,104 +332,149 @@ jobs:
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }
+
   publish:
-    <<: *defaults
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
     steps:
-      - add_ssh_keys: *ssh-config
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#FFDEAD'
+          message: 'Starting publish for VSCode Extensions'
+      - ssh-config
       - checkout
-      - restore_cache: *restore_cache
+      - gus-prepare-environment-variables
+      - restore_dependency_cache
       - run:
           name: 'Setup gus case management'
           command: |
             sudo npm install -g @salesforce/change-case-management
-      - run: *gus-prepare-environment-variables
       - sfchangecase/create:
           location: REPO_LOCATION
           release: GUS_RELEASE
       - sfchangecase/check:
           location: REPO_LOCATION
           release: GUS_RELEASE
-      - run: *gh-config
-      - run: *install
-      - run:
-          name: 'Compile in production mode'
-          environment:
-            - NODE_ENV: production
-          command: |
-            npm run compile
-      - run:
-          name: 'Packaging extensions'
-          command: npm run vscode:package
-      - run:
-          name: 'Generating the SHA256 and appending to the file.'
-          command: npm run vscode:sha256
-      - run:
-          name: 'Concatenating the contents to the proper SHA256.md'
-          command: scripts/concatenate-sha256.js
-      - run:
-          name: 'Removing the temp SHA256 file.'
-          command: rm ./SHA256
-      - run:
-          name: 'Adding the SHA256 to git.'
-          command: |
-            git add SHA256.md
-            git commit -m "[skip ci] Updated SHA256"
+      - gh-config
+      - install
+      - compile
+      - package-extensions
+      - updating-sha-for-publish
       - run:
           name: 'Publishing to the VS Code Marketplace.'
           command: npm run vscode:publish
-      - run:
-          name: 'Store artifacts that were published'
-          command: |
-            mkdir extensions
-            find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
-      - store_artifacts:
-          path: ./extensions
+      - stage-and-store-artifacts
       - run:
           name: 'Create git tag (e.g. v48.1.0) & push changes back to master branch'
           command: |
-            export GUS_BUILD="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
-            git tag v${GUS_BUILD}
-            git push origin v${GUS_BUILD}
+            git tag v${RELEASE_VERSION}
+            git push origin v${RELEASE_VERSION}
             git push origin master
       - sfchangecase/update:
           location: REPO_LOCATION
           release: GUS_RELEASE
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#9bcd9b'
+          message: 'VSCode Extensions v${RELEASE_VERSION} have been published to the marketplace'
+      - slack/status:
+          channel: 'pdt_releases'
+          fail_only: true
 
   create-release-branch:
-    <<: *defaults
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
     steps:
-      - add_ssh_keys: *ssh-config
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#FFDEAD'
+          message: 'Starting creation of release branch for VSCode Extensions'
+      - ssh-config
       - checkout
-      - restore_cache: *restore_cache
-      - run: *gh-config
-      - run: *install
+      - restore_dependency_cache
+      - gh-config
+      - install
       - run:
           name: Install Lerna
-          command: sudo npm install -g lerna@3.13.1
+          command: sudo npm install -g lerna@<< pipeline.parameters.lerna-version >>
       - run:
           name: Create release branch
           command: |
             git branch
             scripts/create-release-branch.js
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#d8bfd8'
+          message: 'VSCode Extensions release branch has been cut'
+      - slack/status:
+          channel: 'pdt_releases'
+          fail_only: true
 
 workflows:
   version: 2.1
 
   # run a build and a windows test on every commit
   commit-workflow:
+    when:
+      and:
+        - not: << pipeline.parameters.publish >>
+        - not: << pipeline.parameters.create-release >>
     jobs:
       - build-all
       - unit-tests
       - integration-tests
+
+  publish-workflow:
+    when: << pipeline.parameters.publish >>
+    jobs:
+      - slack/approval-notification:
+          message: Pending Approval for Publish
+          channel: 'pdt_releases'
+          color: '#0E1111'
+      - build-all
+      - unit-tests
+      - integration-tests
+      - hold: # Requires manual approval in Circle Ci
+          type: approval
       - publish:
-          filters:
-            branches:
-              only:
-                - master
+          e: default-executor
           requires:
             - build-all
             - unit-tests
             - integration-tests
+            - hold
+          filters:
+            branches:
+              only:
+                - master
+
+  create-release-branch-workflow:
+    when: << pipeline.parameters.create-release >>
+    jobs:
+      - slack/approval-notification:
+          message: Pending Approval for Creation of Release Branch
+          channel: 'pdt_releases'
+          color: '#0E1111'
+      - build-all
+      - unit-tests
+      - integration-tests
+      - hold: # Requires manual approval in Circle Ci
+          type: approval
+      - create-release-branch:
+          e: default-executor
+          requires:
+            - build-all
+            - unit-tests
+            - integration-tests
+            - hold
+          filters:
+            branches:
+              only:
+                - develop
 
   # run a build/test every mid-night
   scheduled-workflow:
@@ -332,4 +500,5 @@ workflows:
               only:
                 - develop
     jobs:
-      - create-release-branch
+      - create-release-branch:
+          e: default-executor
