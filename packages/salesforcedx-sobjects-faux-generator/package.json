@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-sobjects-faux-generator",
   "displayName": "Salesforce SObject Faux Generator",
   "description": "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
-  "version": "48.24.0",
+  "version": "49.0.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -11,7 +11,7 @@
   "dependencies": {
     "@salesforce/core": "2.5.1",
     "@salesforce/kit": "1.2.2",
-    "@salesforce/salesforcedx-utils-vscode": "48.24.0",
+    "@salesforce/salesforcedx-utils-vscode": "49.0.0",
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
