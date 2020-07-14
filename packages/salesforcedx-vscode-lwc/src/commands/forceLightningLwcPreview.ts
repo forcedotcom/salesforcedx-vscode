@@ -8,6 +8,7 @@
 import { componentUtil } from '@salesforce/lightning-lsp-common';
 import {
   CliCommandExecutor,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as fs from 'fs';
@@ -84,6 +85,7 @@ export const platformOptions: PreviewQuickPickItem[] = [
 
 const logName = 'force_lightning_lwc_preview';
 const commandName = nls.localize('force_lightning_lwc_preview_text');
+const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 
@@ -210,9 +212,21 @@ async function selectPlatformAndExecute(
 
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
   let target: string = platformSelection.defaultTargetName;
-  let placeholderText = isAndroid
+  const createDeviceLabelText = nls.localize(
+    'force_lightning_lwc_preview_create_virtual_device_label'
+  );
+  const createDeviceDetailText = nls.localize(
+    'force_lightning_lwc_preview_create_virtual_device_detail'
+  );
+  const selectDevicePlaceholderText = nls.localize(
+    'force_lightning_lwc_preview_select_virtual_device'
+  );
+  let createDevicePlaceholderText = isAndroid
     ? nls.localize('force_lightning_lwc_android_target_default')
     : nls.localize('force_lightning_lwc_ios_target_default');
+  const commandCancelledMessage = isAndroid
+    ? nls.localize('force_lightning_lwc_android_device_cancelled')
+    : nls.localize('force_lightning_lwc_ios_device_cancelled');
   const lastTarget = PreviewService.instance.getRememberedDevice(
     platformSelection.platformName
   );
@@ -222,21 +236,75 @@ async function selectPlatformAndExecute(
     const message = isAndroid
       ? 'force_lightning_lwc_android_target_remembered'
       : 'force_lightning_lwc_ios_target_remembered';
-    placeholderText = nls.localize(message, lastTarget);
+    createDevicePlaceholderText = nls.localize(message, lastTarget);
     target = lastTarget;
   }
-  const targetName = await vscode.window.showInputBox({
-    placeHolder: placeholderText
-  });
 
-  if (targetName === undefined) {
-    vscode.window.showInformationMessage(
-      isAndroid
-        ? nls.localize('force_lightning_lwc_android_device_cancelled')
-        : nls.localize('force_lightning_lwc_ios_device_cancelled')
-    );
-    return;
+  const deviceListOutput = new CommandOutput();
+  const deviceListCommand = new SfdxCommandBuilder()
+    .withArg(sfdxDeviceListCommand)
+    .withFlag('-p', platformSelection.platformName)
+    .withJson()
+    .build();
+
+  const mobileCancellationTokenSource = new vscode.CancellationTokenSource();
+  const mobileCancellationToken = mobileCancellationTokenSource.token;
+  const deviceListExecutor = new CliCommandExecutor(deviceListCommand, {});
+  const deviceListExecution = deviceListExecutor.execute(
+    mobileCancellationToken
+  );
+
+  const options: vscode.QuickPickItem[] = [];
+  let targetName: string | undefined;
+  try {
+    const result = await deviceListOutput.getCmdResult(deviceListExecution);
+    const jsonString = result.substring(result.indexOf('{'));
+    const json = JSON.parse(jsonString);
+    const devices = json.result as any[];
+
+    devices.forEach(device => {
+      const label = isAndroid ? device.displayName : device.name;
+      const detail = isAndroid
+        ? `${device.target}, ${device.api}`
+        : device.runtimeId;
+      options.push({ label, detail });
+    });
+  } catch (e) {
+    // If device enumeration failes for any reason, we silently fail
+    // and proceed with an empty list of devices.
   }
+
+  // if there are any devices available, show a pick list.
+  if (options.length > 0) {
+    options.unshift({
+      label: createDeviceLabelText,
+      detail: createDeviceDetailText
+    });
+
+    const selectedItem = await vscode.window.showQuickPick(options, {
+      placeHolder: selectDevicePlaceholderText
+    });
+    targetName = selectedItem && selectedItem.label;
+
+    if (targetName === undefined) {
+      vscode.window.showInformationMessage(commandCancelledMessage);
+      return;
+    }
+  }
+
+  // if there are no devices available or user chooses to create
+  // a new device then show an inputbox and ask for further info.
+  if (targetName === undefined || targetName === createDeviceLabelText) {
+    targetName = await vscode.window.showInputBox({
+      placeHolder: createDevicePlaceholderText
+    });
+
+    if (targetName === undefined) {
+      vscode.window.showInformationMessage(commandCancelledMessage);
+      return;
+    }
+  }
+
   await startServer(false, componentName, startTime);
 
   // New target device entered
@@ -248,31 +316,28 @@ async function selectPlatformAndExecute(
     target = targetName;
   }
 
-  const mobileCancellationTokenSource = new vscode.CancellationTokenSource();
-  const mobileCancellationToken = mobileCancellationTokenSource.token;
-  const targetUsed = target || platformSelection.defaultTargetName;
-  const command = new SfdxCommandBuilder()
+  const previewCommand = new SfdxCommandBuilder()
     .withDescription(commandName)
     .withArg(sfdxMobilePreviewCommand)
     .withFlag('-p', platformSelection.platformName)
-    .withFlag('-t', targetUsed)
+    .withFlag('-t', target)
     .withFlag('-n', componentName)
     .withFlag('--loglevel', PreviewService.instance.getLogLevel())
     .build();
 
-  const mobileExecutor = new CliCommandExecutor(command, {
+  const previewExecutor = new CliCommandExecutor(previewCommand, {
     env: { SFDX_JSON_TO_STDOUT: 'true' }
   });
-  const execution = mobileExecutor.execute(mobileCancellationToken);
+  const previewExecution = previewExecutor.execute(mobileCancellationToken);
   telemetryService.sendCommandEvent(logName, startTime);
-  channelService.streamCommandOutput(execution);
+  channelService.streamCommandOutput(previewExecution);
   channelService.showChannelOutput();
 
-  execution.processExitSubject.subscribe(async exitCode => {
+  previewExecution.processExitSubject.subscribe(async exitCode => {
     if (exitCode !== 0) {
       const message = isAndroid
-        ? nls.localize('force_lightning_lwc_android_failure', targetUsed)
-        : nls.localize('force_lightning_lwc_ios_failure', targetUsed);
+        ? nls.localize('force_lightning_lwc_android_failure', target)
+        : nls.localize('force_lightning_lwc_ios_failure', target);
       showError(new Error(message), logName, commandName);
 
       // Error code 127 means the lwc on mobile sfdx plugin is not installed.
@@ -284,9 +349,11 @@ async function selectPlatformAndExecute(
         );
       }
     } else if (!isAndroid) {
-      notificationService.showSuccessfulExecution(execution.command.toString());
+      notificationService.showSuccessfulExecution(
+        previewExecution.command.toString()
+      );
       vscode.window.showInformationMessage(
-        nls.localize('force_lightning_lwc_ios_start', targetUsed)
+        nls.localize('force_lightning_lwc_ios_start', target)
       );
     }
   });
@@ -294,13 +361,13 @@ async function selectPlatformAndExecute(
   // TODO: Remove this when SFDX Plugin launches Android Emulator as separate process.
   // listen for Android Emulator finished
   if (isAndroid) {
-    execution.stdoutSubject.subscribe(async data => {
+    previewExecution.stdoutSubject.subscribe(async data => {
       if (data && data.toString().includes(androidSuccessString)) {
         notificationService.showSuccessfulExecution(
-          execution.command.toString()
+          previewExecution.command.toString()
         );
         vscode.window.showInformationMessage(
-          nls.localize('force_lightning_lwc_android_start', targetUsed)
+          nls.localize('force_lightning_lwc_android_start', target)
         );
       }
     });
