@@ -6,13 +6,14 @@
  */
 
 import {
+  CliCommandExecution,
   CliCommandExecutor,
   Command,
   CommandBuilder,
   CommandExecution,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -40,11 +41,77 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const { channelService, SfdxCommandlet, notificationService } = sfdxCoreExports;
+const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'preview.rememberDevice';
 const logLevelKey = 'preview.logLevel';
 const defaultLogLevel = 'warn';
 const androidSuccessString = 'Launching... Opening Browser';
+
+const iOSPickedDevice: vscode.QuickPickItem = {
+  label: 'iPhone 8',
+  detail: 'iOS 13.3'
+};
+const iOSDeviceListJson = `
+  {
+    "status":0,
+    "result":[
+      {
+          "name":"iPhone 8",
+          "udid":"6CC16032-2671-4BD2-8FF1-0E314945010C",
+          "state":"Shutdown",
+          "runtimeId":"iOS 13.3",
+          "isAvailable":true
+      },
+      {
+          "name":"LWCSimulator",
+          "udid":"09D522C8-DC85-4259-AD15-15D36672D2EA",
+          "state":"Shutdown",
+          "runtimeId":"iOS 13.3",
+          "isAvailable":true
+      }
+    ]
+  }
+`;
+
+const androidPickedDevice: vscode.QuickPickItem = {
+  label: 'emu2',
+  detail: 'Default Android System Image'
+};
+const androidDeviceListJson = `
+  {
+    "status":0,
+    "result":[
+      {
+          "name":"emu2",
+          "displayName":"emu2",
+          "deviceName":"pixel",
+          "path":"/Users/maliroteh/.android/avd/emu2.avd",
+          "target":"Default Android System Image",
+          "api":"API 29"
+      },
+      {
+          "name":"Pixel_API_29",
+          "displayName":"Pixel API 29",
+          "deviceName":"pixel",
+          "path":"/Users/maliroteh/.android/avd/Pixel_API_29.avd",
+          "target":"Google APIs",
+          "api":"API 29"
+      }
+    ]
+  }
+`;
+
+const createDeviceLabelText = nls.localize(
+  'force_lightning_lwc_preview_create_virtual_device_label'
+);
+const createDeviceDetailText = nls.localize(
+  'force_lightning_lwc_preview_create_virtual_device_detail'
+);
+const createNewDeviceOption: vscode.QuickPickItem = {
+  label: createDeviceLabelText,
+  detail: createDeviceDetailText
+};
 
 describe('forceLightningLwcPreview', () => {
   let sandbox: SinonSandbox;
@@ -93,6 +160,7 @@ describe('forceLightningLwcPreview', () => {
     [(CancellationToken | undefined)?],
     CliCommandExecution | MockExecution
   >;
+  let commandOutputStub: sinon.SinonStub<[CommandExecution], Promise<string>>;
   let mockExecution: MockExecution;
   let showWarningMessageSpy: sinon.SinonSpy<any, any>;
   let successInfoMessageSpy: sinon.SinonSpy<any, any>;
@@ -218,6 +286,8 @@ describe('forceLightningLwcPreview', () => {
     mockExecution = new MockExecution(new SfdxCommandBuilder().build());
     mobileExecutorStub = sinon.stub(CliCommandExecutor.prototype, 'execute');
     mobileExecutorStub.returns(mockExecution);
+    commandOutputStub = sinon.stub(CommandOutput.prototype, 'getCmdResult');
+    commandOutputStub.returns(Promise.resolve('{}'));
     showWarningMessageSpy = sandbox.spy(vscode.window, 'showWarningMessage');
     successInfoMessageSpy = sandbox.spy(
       vscode.window,
@@ -237,6 +307,7 @@ describe('forceLightningLwcPreview', () => {
     showWarningMessageSpy.restore();
     successInfoMessageSpy.restore();
     mobileExecutorStub.restore();
+    commandOutputStub.restore();
     streamCommandOutputSpy.restore();
     appendLineSpy.restore();
   });
@@ -353,48 +424,16 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('starts the server if it is not running when Android selected', async () => {
-    devServiceStub.isServerHandlerRegistered.returns(false);
-    mockFileExists(mockLwcFilePath);
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return false;
-      }
-    } as fs.Stats);
-    getConfigurationStub.returns(new MockWorkspace(false));
-    getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(androidQuickPick);
-    showInputBoxStub.resolves('');
-    const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.stdoutSubject.next(androidSuccessString);
-    sinon.assert.calledOnce(showQuickPickStub);
-    sinon.assert.calledOnce(showInputBoxStub);
-    sinon.assert.calledOnce(commandletStub);
-    expect(cmdWithArgSpy.callCount).to.equal(1);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(4);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-      '-p',
-      PlatformName.Android
-    ]);
-    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-      '-t',
-      'SFDXEmulator'
-    ]);
-    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
-      '-n',
-      'c/foo'
-    ]);
-    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
-      '--loglevel',
-      'warn'
-    ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
-    expect(successInfoMessageSpy.callCount).to.equal(1);
+    await doStartServerTest(true);
   });
 
   it('starts the server if it is not running when iOS selected', async () => {
+    await doStartServerTest(false);
+  });
+
+  async function doStartServerTest(isAndroid: Boolean) {
+    const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
+    const deviceName = isAndroid ? 'SFDXEmulator' : 'SFDXSimulator';
     devServiceStub.isServerHandlerRegistered.returns(false);
     mockFileExists(mockLwcFilePath);
     existsSyncStub.returns(true);
@@ -405,37 +444,54 @@ describe('forceLightningLwcPreview', () => {
     } as fs.Stats);
     getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(iOSQuickPick);
+    showQuickPickStub.resolves(isAndroid ? androidQuickPick : iOSQuickPick);
     showInputBoxStub.resolves('');
     const commandletStub = sandbox.stub(SfdxCommandlet.prototype, 'run');
     await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.processExitSubject.next(0);
+
+    if (isAndroid) {
+      mockExecution.stdoutSubject.next(androidSuccessString);
+    } else {
+      mockExecution.processExitSubject.next(0);
+    }
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
     sinon.assert.calledOnce(commandletStub);
-    expect(cmdWithArgSpy.callCount).to.equal(1);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(4);
+    expect(cmdWithArgSpy.callCount).to.equal(2);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithFlagSpy.callCount).to.equal(5);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      PlatformName.iOS
+      platform
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-      '-t',
-      'SFDXSimulator'
+      '-p',
+      platform
     ]);
     expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+      '-t',
+      deviceName
+    ]);
+    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
       '-n',
       'c/foo'
     ]);
-    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
       '--loglevel',
       'warn'
     ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     expect(successInfoMessageSpy.callCount).to.equal(1);
-  });
+    expect(
+      successInfoMessageSpy.calledWith(
+        isAndroid
+          ? nls.localize('force_lightning_lwc_android_start', deviceName)
+          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+      )
+    );
+  }
 
   it('shows an error when source path is not recognized as an lwc module file', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
@@ -521,26 +577,31 @@ describe('forceLightningLwcPreview', () => {
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithArgSpy.callCount).to.equal(1);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(4);
+    expect(cmdWithArgSpy.callCount).to.equal(2);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithFlagSpy.callCount).to.equal(5);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
       PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-p',
+      PlatformName.Android
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
       '-t',
       'SFDXEmulator'
     ]);
-    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
       '-n',
       'c/foo'
     ]);
-    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
       '--loglevel',
       'warn'
     ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     expect(successInfoMessageSpy.callCount).to.equal(1);
   });
 
@@ -562,26 +623,31 @@ describe('forceLightningLwcPreview', () => {
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithArgSpy.callCount).to.equal(1);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(4);
+    expect(cmdWithArgSpy.callCount).to.equal(2);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithFlagSpy.callCount).to.equal(5);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
       PlatformName.iOS
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-p',
+      PlatformName.iOS
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
       '-t',
       'SFDXSimulator'
     ]);
-    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
       '-n',
       'c/foo'
     ]);
-    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
       '--loglevel',
       'warn'
     ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     expect(successInfoMessageSpy.callCount).to.equal(1);
   });
 
@@ -636,7 +702,16 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('calls SFDX preview with specified Android device name', async () => {
-    const deviceName = 'androidtestname';
+    await doSpecifiedDeviceTest(true);
+  });
+
+  it('calls SFDX preview with specified iOS device name', async () => {
+    await doSpecifiedDeviceTest(false);
+  });
+
+  async function doSpecifiedDeviceTest(isAndroid: Boolean) {
+    const deviceName = isAndroid ? 'androidtestname' : 'iostestname';
+    const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
     devServiceStub.isServerHandlerRegistered.returns(true);
     mockFileExists(mockLwcFileDirectory);
     existsSyncStub.returns(true);
@@ -648,107 +723,50 @@ describe('forceLightningLwcPreview', () => {
 
     getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(androidQuickPick);
+    showQuickPickStub.resolves(isAndroid ? androidQuickPick : iOSQuickPick);
     showInputBoxStub.resolves(deviceName);
+
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
-    mockExecution.stdoutSubject.next(androidSuccessString);
+    if (isAndroid) {
+      mockExecution.stdoutSubject.next(androidSuccessString);
+    } else {
+      mockExecution.processExitSubject.next(0);
+    }
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      PlatformName.Android
+      platform
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-      '-t',
-      deviceName
-    ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
-    expect(successInfoMessageSpy.callCount).to.equal(1);
-    expect(
-      successInfoMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_android_start', deviceName)
-      )
-    );
-  });
-
-  it('calls SFDX preview with specified iOS device name', async () => {
-    const deviceName = 'iostestname';
-    mockFileExists(mockLwcFilePath);
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return true;
-      }
-    } as fs.Stats);
-
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    getConfigurationStub.returns(new MockWorkspace(false));
-    getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(iOSQuickPick);
-    showInputBoxStub.resolves(deviceName);
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.processExitSubject.next(0);
-
-    sinon.assert.calledOnce(showQuickPickStub);
-    sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      PlatformName.iOS
+      platform
     ]);
-    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
       '-t',
       deviceName
     ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     expect(successInfoMessageSpy.callCount).to.equal(1);
     expect(
       successInfoMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_ios_start', deviceName)
+        isAndroid
+          ? nls.localize('force_lightning_lwc_android_start', deviceName)
+          : nls.localize('force_lightning_lwc_ios_start', deviceName)
       )
     );
-  });
+  }
 
   it('calls SFDX preview with remembered Android device name', async () => {
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    mockFileExists(mockLwcFilePath);
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return true;
-      }
-    } as fs.Stats);
-
-    getConfigurationStub.returns(new MockWorkspace(true));
-    getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(androidQuickPick);
-    showInputBoxStub.resolves('');
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.stdoutSubject.next(androidSuccessString);
-
-    sinon.assert.calledOnce(showQuickPickStub);
-    sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
-      '-p',
-      PlatformName.Android
-    ]);
-    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-      '-t',
-      rememberedAndroidDevice
-    ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
-    expect(successInfoMessageSpy.callCount).to.equal(1);
-    expect(
-      successInfoMessageSpy.calledWith(
-        nls.localize(
-          'force_lightning_lwc_android_start',
-          rememberedAndroidDevice
-        )
-      )
-    );
+    await doRememberedDeviceTest(true);
   });
 
   it('calls SFDX preview with remembered iOS device name', async () => {
+    await doRememberedDeviceTest(false);
+  });
+
+  async function doRememberedDeviceTest(isAndroid: Boolean) {
     devServiceStub.isServerHandlerRegistered.returns(true);
     mockFileExists(mockLwcFilePath);
     existsSyncStub.returns(true);
@@ -760,31 +778,56 @@ describe('forceLightningLwcPreview', () => {
 
     getConfigurationStub.returns(new MockWorkspace(true));
     getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(iOSQuickPick);
+    showQuickPickStub.resolves(isAndroid ? androidQuickPick : iOSQuickPick);
     showInputBoxStub.resolves('');
     await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.processExitSubject.next(0);
+
+    if (isAndroid) {
+      mockExecution.stdoutSubject.next(androidSuccessString);
+    } else {
+      mockExecution.processExitSubject.next(0);
+    }
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
+
+    const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
+    const deviceName = isAndroid
+      ? rememberedAndroidDevice
+      : rememberediOSDevice;
+
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
-      PlatformName.iOS
+      platform
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
-      '-t',
-      rememberediOSDevice
+      '-p',
+      platform
     ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+      '-t',
+      deviceName
+    ]);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     expect(successInfoMessageSpy.callCount).to.equal(1);
     expect(
       successInfoMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_android_start', rememberediOSDevice)
+        isAndroid
+          ? nls.localize('force_lightning_lwc_android_start', deviceName)
+          : nls.localize('force_lightning_lwc_ios_start', deviceName)
       )
     );
-  });
+  }
 
   it('shows warning when you cancel Android device name input', async () => {
+    await doCancelledExecutionTest(true);
+  });
+
+  it('shows warning when you cancel iOS device name input', async () => {
+    await doCancelledExecutionTest(false);
+  });
+
+  async function doCancelledExecutionTest(isAndroid: Boolean) {
     mockFileExists(mockLwcFilePath);
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
@@ -795,84 +838,32 @@ describe('forceLightningLwcPreview', () => {
 
     getConfigurationStub.returns(new MockWorkspace(true));
     getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(androidQuickPick);
+    showQuickPickStub.resolves(isAndroid ? androidQuickPick : iOSQuickPick);
     // This simulates the user hitting the escape key to cancel input.
     showInputBoxStub.resolves(undefined);
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithArgSpy.callCount).to.equal(0);
-    expect(cmdWithFlagSpy.callCount).to.equal(0);
-    sinon.assert.notCalled(mobileExecutorStub);
+    expect(cmdWithArgSpy.callCount).to.equal(1);
+    expect(cmdWithFlagSpy.callCount).to.equal(1);
+    sinon.assert.calledOnce(mobileExecutorStub); // device list only (no preview)
     expect(
       showWarningMessageSpy.calledWith(
         nls.localize('force_lightning_lwc_android_device_cancelled')
       )
     );
-  });
-
-  it('shows warning when you cancel iOS device name input', async () => {
-    mockFileExists(mockLwcFilePath);
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return true;
-      }
-    } as fs.Stats);
-
-    getConfigurationStub.returns(new MockWorkspace(true));
-    getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(iOSQuickPick);
-    // This simulates the user hitting the escape key to cancel input.
-    showInputBoxStub.resolves(undefined);
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-
-    sinon.assert.calledOnce(showQuickPickStub);
-    sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithArgSpy.callCount).to.equal(0);
-    expect(cmdWithFlagSpy.callCount).to.equal(0);
-    sinon.assert.notCalled(mobileExecutorStub);
-    expect(
-      showWarningMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_ios_device_cancelled')
-      )
-    );
-  });
+  }
 
   it('shows error in console when Android SFDX execution fails', async () => {
-    devServiceStub.isServerHandlerRegistered.returns(true);
-    mockFileExists(mockLwcFilePath);
-    existsSyncStub.returns(true);
-    lstatSyncStub.returns({
-      isDirectory() {
-        return false;
-      }
-    } as fs.Stats);
-
-    getConfigurationStub.returns(new MockWorkspace(false));
-    getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(androidQuickPick);
-    showInputBoxStub.resolves('');
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.processExitSubject.next(1);
-
-    sinon.assert.calledOnce(mobileExecutorStub);
-    sinon.assert.calledTwice(showErrorMessageStub);
-    sinon.assert.calledWith(
-      showErrorMessageStub,
-      sinon.match(
-        nls.localize(
-          'force_lightning_lwc_android_failure',
-          androidQuickPick.defaultTargetName
-        )
-      )
-    );
-    sinon.assert.calledOnce(streamCommandOutputSpy);
-    expect(successInfoMessageSpy.callCount).to.equal(0);
+    await doFailedExecutionTest(true);
   });
 
   it('shows error in console when iOS SFDX execution fails', async () => {
+    await doFailedExecutionTest(false);
+  });
+
+  async function doFailedExecutionTest(isAndroid: Boolean) {
     devServiceStub.isServerHandlerRegistered.returns(true);
     mockFileExists(mockLwcFilePath);
     existsSyncStub.returns(true);
@@ -884,25 +875,30 @@ describe('forceLightningLwcPreview', () => {
 
     getConfigurationStub.returns(new MockWorkspace(false));
     getGlobalStoreStub.returns(new MockMemento());
-    showQuickPickStub.resolves(iOSQuickPick);
+    showQuickPickStub.resolves(isAndroid ? androidQuickPick : iOSQuickPick);
     showInputBoxStub.resolves('');
     await forceLightningLwcPreview(mockLwcFilePathUri);
     mockExecution.processExitSubject.next(1);
 
-    sinon.assert.calledOnce(mobileExecutorStub);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     sinon.assert.calledTwice(showErrorMessageStub);
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
-        nls.localize(
-          'force_lightning_lwc_ios_failure',
-          iOSQuickPick.defaultTargetName
-        )
+        isAndroid
+          ? nls.localize(
+              'force_lightning_lwc_android_failure',
+              androidQuickPick.defaultTargetName
+            )
+          : nls.localize(
+              'force_lightning_lwc_ios_failure',
+              iOSQuickPick.defaultTargetName
+            )
       )
     );
     sinon.assert.calledOnce(streamCommandOutputSpy);
     expect(successInfoMessageSpy.callCount).to.equal(0);
-  });
+  }
 
   it('shows install message if sfdx plugin is not installed', async () => {
     devServiceStub.isServerHandlerRegistered.returns(true);
@@ -922,7 +918,7 @@ describe('forceLightningLwcPreview', () => {
     await forceLightningLwcPreview(mockLwcFilePathUri);
     mockExecution.processExitSubject.next(127);
 
-    sinon.assert.calledOnce(mobileExecutorStub);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(
@@ -966,26 +962,169 @@ describe('forceLightningLwcPreview', () => {
 
     sinon.assert.calledOnce(showQuickPickStub);
     sinon.assert.calledOnce(showInputBoxStub);
-    expect(cmdWithArgSpy.callCount).to.equal(1);
-    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(4);
+    expect(cmdWithArgSpy.callCount).to.equal(2);
+    expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
+    expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
+    expect(cmdWithFlagSpy.callCount).to.equal(5);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
       PlatformName.Android
     ]);
     expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-p',
+      PlatformName.Android
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
       '-t',
       'SFDXEmulator'
     ]);
-    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
       '-n',
       'c/foo'
     ]);
-    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
+    expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
       '--loglevel',
       'debug'
     ]);
-    sinon.assert.calledOnce(mobileExecutorStub);
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
     expect(successInfoMessageSpy.callCount).to.equal(1);
   });
+
+  it('Shows device pick list for Android devices', async () => {
+    await doDeviceListQuickPickTest(true);
+  });
+
+  it('Shows device pick list for iOS devices', async () => {
+    await doDeviceListQuickPickTest(false);
+  });
+
+  async function doDeviceListQuickPickTest(isAndroid: Boolean) {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    mockFileExists(mockLwcFileDirectory);
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return true;
+      }
+    } as fs.Stats);
+
+    getConfigurationStub.returns(new MockWorkspace(false));
+    getGlobalStoreStub.returns(new MockMemento());
+    showQuickPickStub
+      .onFirstCall()
+      .resolves(isAndroid ? androidQuickPick : iOSQuickPick);
+    showQuickPickStub
+      .onSecondCall()
+      .resolves(isAndroid ? androidPickedDevice : iOSPickedDevice);
+    commandOutputStub.returns(
+      Promise.resolve(isAndroid ? androidDeviceListJson : iOSDeviceListJson)
+    );
+
+    await forceLightningLwcPreview(mockLwcFileDirectoryUri);
+
+    if (isAndroid) {
+      mockExecution.stdoutSubject.next(androidSuccessString);
+    } else {
+      mockExecution.processExitSubject.next(0);
+    }
+
+    sinon.assert.calledTwice(showQuickPickStub); // platform + device list
+    sinon.assert.notCalled(showInputBoxStub);
+
+    const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
+    const deviceName = isAndroid
+      ? androidPickedDevice.label
+      : iOSPickedDevice.label;
+
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      platform
+    ]);
+    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-p',
+      platform
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+      '-t',
+      deviceName
+    ]);
+
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
+
+    expect(successInfoMessageSpy.callCount).to.equal(1);
+    expect(
+      successInfoMessageSpy.calledWith(
+        isAndroid
+          ? nls.localize('force_lightning_lwc_android_start', deviceName)
+          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+      )
+    );
+  }
+
+  it('Shows input box when choosing New from device pick list for Android devices', async () => {
+    await doNewDeviceQuickPickTest(true);
+  });
+
+  it('Shows input box when choosing New from device pick list for iOS devices', async () => {
+    await doNewDeviceQuickPickTest(false);
+  });
+
+  async function doNewDeviceQuickPickTest(isAndroid: Boolean) {
+    const deviceName = isAndroid ? 'androidtestname' : 'iostestname';
+    const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    mockFileExists(mockLwcFileDirectory);
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return true;
+      }
+    } as fs.Stats);
+
+    getConfigurationStub.returns(new MockWorkspace(false));
+    getGlobalStoreStub.returns(new MockMemento());
+    showQuickPickStub
+      .onFirstCall()
+      .resolves(isAndroid ? androidQuickPick : iOSQuickPick);
+    showQuickPickStub.onSecondCall().resolves(createNewDeviceOption);
+    showInputBoxStub.resolves(deviceName);
+    commandOutputStub.returns(
+      Promise.resolve(isAndroid ? androidDeviceListJson : iOSDeviceListJson)
+    );
+
+    await forceLightningLwcPreview(mockLwcFileDirectoryUri);
+
+    if (isAndroid) {
+      mockExecution.stdoutSubject.next(androidSuccessString);
+    } else {
+      mockExecution.processExitSubject.next(0);
+    }
+
+    sinon.assert.calledTwice(showQuickPickStub); // platform + device list
+    sinon.assert.calledOnce(showInputBoxStub);
+
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      platform
+    ]);
+    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-p',
+      platform
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+      '-t',
+      deviceName
+    ]);
+
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
+
+    expect(successInfoMessageSpy.callCount).to.equal(1);
+    expect(
+      successInfoMessageSpy.calledWith(
+        isAndroid
+          ? nls.localize('force_lightning_lwc_android_start', deviceName)
+          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+      )
+    );
+  }
 });
