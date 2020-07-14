@@ -19,6 +19,12 @@ import {
   TestInfoKind,
   TestType
 } from '../../../../src/testSupport/types';
+import {
+  mockPreviewJavaScriptDebugger,
+  unmockPreviewJavaScriptDebugger
+} from './vscodeConfiguration';
+
+export { mockPreviewJavaScriptDebugger, unmockPreviewJavaScriptDebugger };
 
 let existsSyncStub: SinonStub<[fs.PathLike], boolean>;
 let whichSyncStub: SinonStub<[string], fs.PathLike>;

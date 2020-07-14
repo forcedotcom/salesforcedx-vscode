@@ -42,6 +42,7 @@ export function getDebugConfiguration(
     cwd,
     runtimeExecutable: command,
     args,
+    resolveSourceMapLocations: ['**', '!**/node_modules/**'],
     console: 'integratedTerminal',
     internalConsoleOptions: 'openOnSessionStart',
     port: 9229,
