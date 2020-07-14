@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
+import { JsonCollection } from '@salesforce/ts-types';
 import { existsSync, readFileSync } from 'fs';
 import {
   SoapResponse,
@@ -31,10 +32,11 @@ export class ExecuteService {
     let data: string;
 
     if (options.apexFilePath) {
-      if (!existsSync(options.apexFilePath))
+      if (!existsSync(options.apexFilePath)) {
         throw new Error(
           nls.localize('file_not_found_error', options.apexFilePath)
         );
+      }
       data = readFileSync(options.apexFilePath, 'utf8');
     } else {
       data = String(options.apexCode);
@@ -110,7 +112,7 @@ export class ExecuteService {
     return (await this.connection.request(requestData)) as SoapResponse;
   }
 
-  public async refreshAuth(connection: Connection) {
+  public async refreshAuth(connection: Connection): Promise<JsonCollection> {
     const requestInfo = { url: connection.baseUrl(), method: 'GET' };
     return await connection.request(requestInfo);
   }

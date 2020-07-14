@@ -10,5 +10,7 @@
     "**/lib": true,
     "**/bin": true
   },
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "eslint.format.enable": true
 }

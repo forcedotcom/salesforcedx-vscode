@@ -46,12 +46,12 @@ export interface SoapResponse {
   [soapEnv]?: {
     [soapHeader]: { DebuggingInfo: DebuggingInfo };
     [soapBody]: {
-      executeAnonymousResponse: execAnonResult;
+      executeAnonymousResponse: ExecAnonResult;
     };
   };
 }
 
-export interface execAnonResult {
+export interface ExecAnonResult {
   result: {
     column: number;
     compiled: string;

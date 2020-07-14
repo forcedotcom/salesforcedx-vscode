@@ -6,7 +6,7 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint", "jsdoc"],
-  "extends": ["plugin:@typescript-eslint/recommended"],
+  "extends": ["plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
   "rules": {
     "ban-ts-ignore": "off",
     "@typescript-eslint/ban-ts-ignore": "off",
@@ -44,3 +44,4 @@
     "@typescript-eslint/class-name-casing": "warn"
   }
 }
+
