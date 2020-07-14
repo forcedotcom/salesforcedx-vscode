@@ -62,10 +62,6 @@ describe('Force LWC Test Debug - Code Action', () => {
     [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
     Promise<void>
   >;
-  let getConfigurationStub: SinonStub<
-    [string?, (vscode.Uri | null)?],
-    vscode.WorkspaceConfiguration
-  >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   beforeEach(() => {
     uuidStub = stub(uuid, 'v4');
@@ -87,7 +83,6 @@ describe('Force LWC Test Debug - Code Action', () => {
     processHrtimeStub.restore();
     telemetryStub.restore();
     getLwcTestRunnerExecutableStub.restore();
-    getConfigurationStub.restore();
   });
 
   const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';

@@ -22,26 +22,25 @@ describe('getCliArgsFromJestArgs Unit Tests', () => {
     'mockTestPath'
   ];
 
-  beforeEach(() => {
-    mockPreviewJavaScriptDebugger(true);
-  });
   afterEach(() => {
     unmockPreviewJavaScriptDebugger();
   });
 
   it('Should return Cli args for run mode', () => {
+    mockPreviewJavaScriptDebugger(true);
     const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.RUN);
     const expectedCliArgs = ['--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);
   });
 
   it('Should return Cli args for watch mode', () => {
+    mockPreviewJavaScriptDebugger(true);
     const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.WATCH);
     const expectedCliArgs = ['--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);
   });
 
-  it('Should return Cli args for debug mode', () => {
+  it('Should return Cli args for debug mode if not using preview JavaScript debugger', () => {
     mockPreviewJavaScriptDebugger(false);
     const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
     const expectedCliArgs = ['--debug', '--', ...mockJestArgs];

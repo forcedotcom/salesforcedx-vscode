@@ -1,3 +1,4 @@
+import * as vscode from 'vscode';
 import { workspace, Uri, WorkspaceConfiguration } from 'vscode';
 import { SinonStub, stub } from 'sinon';
 
@@ -5,7 +6,7 @@ let getConfigurationStub: SinonStub<
   [string?, (Uri | null)?],
   WorkspaceConfiguration
 >;
-let mockBaseConfiguration = {
+const mockBaseConfiguration = {
   has(section: string) {
     return true;
   },
@@ -14,22 +15,22 @@ let mockBaseConfiguration = {
   },
   async update(section: string, value: any) {}
 };
+const mockDebugConfigurationJson: { [index: string]: any } = {};
+const mockDebugConfiguration: WorkspaceConfiguration = {
+  ...mockBaseConfiguration,
+  get(section: string) {
+    return mockDebugConfigurationJson[section];
+  }
+};
 
 /**
  * Mock "debug.javascript.usePreview" value
  * @param enabled is configuration enabled
  */
-export function mockPreviewJavaScriptDebugger(enabled: boolean = true) {
-  if (!getConfigurationStub) {
-    getConfigurationStub = stub(workspace, 'getConfiguration');
-  }
-  const mockConfiguration: WorkspaceConfiguration = {
-    ...mockBaseConfiguration,
-    get(section: string) {
-      if (section === 'javascript.usePreview') return enabled;
-    }
-  };
-  getConfigurationStub.returns(mockConfiguration);
+export function mockPreviewJavaScriptDebugger(enabled: boolean) {
+  getConfigurationStub = stub(workspace, 'getConfiguration');
+  mockDebugConfigurationJson['javascript.usePreview'] = enabled;
+  getConfigurationStub.returns(mockDebugConfiguration);
 }
 
 export function unmockPreviewJavaScriptDebugger() {
