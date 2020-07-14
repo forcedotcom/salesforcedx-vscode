@@ -303,7 +303,7 @@ export const messages = {
     'No scratch definition files found. These files must be in the "config" folder and have file names that end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   force_list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
-  apex_execute_runtime_success: 'Executed successully.',
+  apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
   force_apex_execute_library: 'Apex Library: Execute Anonymous',
   AccessControlPolicy: 'Access Control Policies',
