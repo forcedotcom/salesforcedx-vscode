@@ -63,6 +63,7 @@ export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
   forceSourceRetrieveSourcePath,
   ForceSourceRetrieveSourcePathExecutor,
+  LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
 export {

@@ -1,8 +1,10 @@
 const path = require('path');
 const glob = require('glob');
 const DIST = path.resolve(__dirname);
+const shell = require('shelljs');
 
 const getEntryObject = () => {
+  shell.rm('-rf', 'out/src');
   const entryArray = glob.sync('src/**/*.ts');
   const srcObj = entryArray.reduce((acc, item) => {
     const modulePath = item.replace(/\/[\.A-Za-z0-9_-]*\.ts/g, '');
@@ -16,26 +18,7 @@ const getEntryObject = () => {
 
     return acc;
   }, {});
-
-  if (getMode() !== 'development') {
-    return srcObj;
-  }
-
-  const entryTestArray = glob.sync('test/**/*.ts');
-  const testObj = entryTestArray.reduce((acc, item) => {
-    const modulePath = item.replace(/\.ts/g, '');
-    const outputModulePath = path.join('out', modulePath);
-
-    if (!acc.hasOwnProperty(outputModulePath)) {
-      // webpack requires the object to be in this format
-      // { 'out/test/unit/fauxClassGenerator.test': './test/unit/fauxClassGenerator.test.ts' }
-      acc[outputModulePath] = '.' + path.join(path.sep, `${modulePath}.ts`);
-    }
-
-    return acc;
-  }, {});
-
-  return Object.assign(testObj, srcObj);
+  return srcObj;
 };
 
 const getMode = () => {
