@@ -49,6 +49,12 @@
       }
     },
     {
+      "label": "Create Release Branch",
+      "command": "./scripts/create-release-branch-workflow.sh",
+      "type": "shell",
+      "args": ["${input:circleCiId}"]
+    },
+    {
       "label": "Lint",
       "command": "npm",
       "type": "shell",
@@ -58,6 +64,12 @@
       },
       "args": ["run", "lint"],
       "isBackground": false
+    },
+    {
+      "label": "Publish Extensions",
+      "command": "./scripts/publish-workflow.sh",
+      "type": "shell",
+      "args": ["${input:circleCiId}"]
     },
     {
       "label": "Watch",
@@ -71,6 +83,13 @@
       "args": ["run", "watch"],
       "isBackground": true,
       "problemMatcher": "$tsc-watch"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "circleCiId",
+      "type": "promptString",
+      "description": "CircleCi Token"
     }
   ]
 }
