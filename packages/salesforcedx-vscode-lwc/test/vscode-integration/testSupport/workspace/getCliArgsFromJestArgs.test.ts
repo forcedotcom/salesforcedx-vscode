@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
-import { workspace, Uri, WorkspaceConfiguration } from 'vscode';
 import { getCliArgsFromJestArgs } from '../../../../src/testSupport/workspace';
 import { TestRunType } from '../../../../src/testSupport/testRunner/testRunner';
+import {
+  mockPreviewJavaScriptDebugger,
+  unmockPreviewJavaScriptDebugger
+} from '../mocks';
 
 describe('getCliArgsFromJestArgs Unit Tests', () => {
   const mockJestArgs = [
@@ -19,40 +21,12 @@ describe('getCliArgsFromJestArgs Unit Tests', () => {
     '--runTestsByPath',
     'mockTestPath'
   ];
-  let getConfigurationStub: SinonStub<
-    [string?, (Uri | null)?],
-    WorkspaceConfiguration
-  >;
-  let mockBaseConfiguration = {
-    has(section: string) {
-      return true;
-    },
-    inspect(section: string) {
-      return undefined;
-    },
-    async update(section: string, value: any) {}
-  };
-  let mockPreviewJavaScriptDebuggerEnabledConfiguration: WorkspaceConfiguration = {
-    ...mockBaseConfiguration,
-    get(section: string) {
-      if (section === 'javascript.usePreview') return true;
-    }
-  };
-  let mockPreviewJavaScriptDebuggerDisabledConfiguration: WorkspaceConfiguration = {
-    ...mockBaseConfiguration,
-    get(section: string) {
-      if (section === 'javascript.usePreview') return false;
-    }
-  };
 
   beforeEach(() => {
-    getConfigurationStub = stub(workspace, 'getConfiguration');
-    getConfigurationStub.returns(
-      mockPreviewJavaScriptDebuggerEnabledConfiguration
-    );
+    mockPreviewJavaScriptDebugger(true);
   });
   afterEach(() => {
-    getConfigurationStub.restore();
+    unmockPreviewJavaScriptDebugger();
   });
 
   it('Should return Cli args for run mode', () => {
@@ -68,18 +42,14 @@ describe('getCliArgsFromJestArgs Unit Tests', () => {
   });
 
   it('Should return Cli args for debug mode', () => {
-    getConfigurationStub.returns(
-      mockPreviewJavaScriptDebuggerDisabledConfiguration
-    );
+    mockPreviewJavaScriptDebugger(false);
     const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
     const expectedCliArgs = ['--debug', '--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);
   });
 
   it('Should return Cli args for debug mode if using preview JavaScript debugger', () => {
-    getConfigurationStub.returns(
-      mockPreviewJavaScriptDebuggerEnabledConfiguration
-    );
+    mockPreviewJavaScriptDebugger(true);
     const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
     const expectedCliArgs = ['--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);

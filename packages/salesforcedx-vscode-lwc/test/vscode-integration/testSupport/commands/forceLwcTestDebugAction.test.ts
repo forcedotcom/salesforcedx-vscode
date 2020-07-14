@@ -62,6 +62,10 @@ describe('Force LWC Test Debug - Code Action', () => {
     [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
     Promise<void>
   >;
+  let getConfigurationStub: SinonStub<
+    [string?, (vscode.Uri | null)?],
+    vscode.WorkspaceConfiguration
+  >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   beforeEach(() => {
     uuidStub = stub(uuid, 'v4');
@@ -83,6 +87,7 @@ describe('Force LWC Test Debug - Code Action', () => {
     processHrtimeStub.restore();
     telemetryStub.restore();
     getLwcTestRunnerExecutableStub.restore();
+    getConfigurationStub.restore();
   });
 
   const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
@@ -111,18 +116,19 @@ describe('Force LWC Test Debug - Code Action', () => {
     testUri,
     testName
   };
-  const command = lwcTestExecutablePath;
-  const args = [
-    '--debug',
-    '--',
-    '--runTestsByPath',
-    /^win32/.test(process.platform) ? testRelativePath : testFsPath,
-    '--testNamePattern',
-    '"mockTestName"'
-  ];
-  const cwd = sfdxProjectPath;
 
   describe('Debug Configuration', () => {
+    const command = lwcTestExecutablePath;
+    const args = [
+      '--debug',
+      '--',
+      '--runTestsByPath',
+      /^win32/.test(process.platform) ? testRelativePath : testFsPath,
+      '--testNamePattern',
+      '"mockTestName"'
+    ];
+    const cwd = sfdxProjectPath;
+
     it('Should generate debug configuration for single test case', () => {
       const debugConfiguration = getDebugConfiguration(command, args, cwd);
       expect(debugConfiguration).to.deep.equal({
@@ -133,15 +139,14 @@ describe('Force LWC Test Debug - Code Action', () => {
         cwd: sfdxProjectPath,
         runtimeExecutable: lwcTestExecutablePath,
         args,
+        resolveSourceMapLocations: ['**', '!**/node_modules/**'],
         console: 'integratedTerminal',
         internalConsoleOptions: 'openOnSessionStart',
         port: 9229,
         disableOptimisticBPs: true
       });
     });
-  });
 
-  describe('Debug Test Case', () => {
     it('Should send telemetry for debug test case', async () => {
       getLwcTestRunnerExecutableStub.returns(lwcTestExecutablePath);
       const mockExecutionTime: [number, number] = [123, 456];
@@ -189,7 +194,6 @@ describe('Force LWC Test Debug - Code Action', () => {
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
       assert.calledWith(debugStub, vscode.workspace.workspaceFolders![0], {
         args: [
-          '--debug',
           '--',
           '--json',
           '--outputFile',
@@ -207,6 +211,7 @@ describe('Force LWC Test Debug - Code Action', () => {
             ? path.relative(expectedCwd, mockTestFileInfo.testUri.fsPath)
             : mockTestFileInfo.testUri.fsPath
         ],
+        resolveSourceMapLocations: ['**', '!**/node_modules/**'],
         console: 'integratedTerminal',
         cwd: expectedCwd,
         disableOptimisticBPs: true,
@@ -226,7 +231,6 @@ describe('Force LWC Test Debug - Code Action', () => {
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
       assert.calledWith(debugStub, vscode.workspace.workspaceFolders![0], {
         args: [
-          '--debug',
           '--',
           '--json',
           '--outputFile',
@@ -244,6 +248,7 @@ describe('Force LWC Test Debug - Code Action', () => {
             ? path.relative(expectedCwd, mockTestFileInfo.testUri.fsPath)
             : mockTestFileInfo.testUri.fsPath
         ],
+        resolveSourceMapLocations: ['**', '!**/node_modules/**'],
         console: 'integratedTerminal',
         cwd: expectedCwd,
         disableOptimisticBPs: true,
