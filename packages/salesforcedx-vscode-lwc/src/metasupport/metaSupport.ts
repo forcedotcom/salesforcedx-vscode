@@ -14,8 +14,10 @@ const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
 export class MetaSupport {
   private static instance: MetaSupport;
   private static sfdxUri = '.sfdx';
-  private static lwcResourceUri = path.join(MetaSupport.sfdxUri, 'lwcResources');
+  private static resourceUri = path.join(MetaSupport.sfdxUri, 'resources');
+  private static lwcResourceUri = path.join(MetaSupport.resourceUri, 'lwcResources');
   private static dir = path.join(vscode.workspace.rootPath!, MetaSupport.lwcResourceUri);
+  private static resourceDir = path.join(vscode.workspace.rootPath!, MetaSupport.resourceUri);
 
   public static initializeSupport() {
     if (!MetaSupport.instance) {
@@ -28,7 +30,10 @@ export class MetaSupport {
     /**
      * creates LWCResource folder if not exist
      */
-    if (!fs.existsSync(MetaSupport.dir)) {
+    if (!fs.existsSync(MetaSupport.resourceDir)) {
+      fs.mkdirSync(MetaSupport.resourceDir);
+      fs.mkdirSync(MetaSupport.dir);
+    } else if (!fs.existsSync(MetaSupport.dir)) {
       fs.mkdirSync(MetaSupport.dir);
     }
   }
@@ -53,5 +58,7 @@ export class MetaSupport {
     this.createLWCResourceFolder();
     this.getLocalFile('js-meta.xsd', path.join(MetaSupport.dir, 'js-meta.xsd'));
     this.getLocalFile('js-meta-home.xml', path.join(MetaSupport.dir, 'js-meta-home.xml'));
+
+    // console.log(require.resolve('lwc-resources'));
   }
 }
