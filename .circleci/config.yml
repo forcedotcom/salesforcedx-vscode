@@ -30,7 +30,7 @@ parameters:
     default: 300
   fingerprint:
     type: string
-    default: 'dc:00:e0:c3:28:59:ad:c1:01:49:9f:d5:88:b3:17:da'
+    default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
   publish:
     type: boolean
     default: false
