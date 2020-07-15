@@ -26,7 +26,6 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.5.1",
-    "@salesforce/kit": "^1.2.3",
     "@salesforce/salesforcedx-utils-vscode": "49.0.0",
     "@salesforce/source-deploy-retrieve": "1.0.15",
     "@salesforce/apex-node": "0.0.2",
