@@ -63,5 +63,6 @@
   "force_source_retrieve_display_text": "Retrieve Source from Org",
   "force_diff_against_org": "SFDX: Diff File Against Org",
   "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template",
-  "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience."
+  "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience.",
+  "experimental_apex_library_description": "Use Apex Library for Apex CLI commands"
 }
