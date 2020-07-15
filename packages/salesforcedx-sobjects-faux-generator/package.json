@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@salesforce/core": "2.5.1",
-    "@salesforce/kit": "1.2.2",
     "@salesforce/salesforcedx-utils-vscode": "49.1.0",
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
@@ -35,7 +34,7 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "sinon": "^7.3.1",
-    "typescript": "3.1.6"
+    "typescript": "3.7.5"
   },
   "scripts": {
     "compile": "webpack",

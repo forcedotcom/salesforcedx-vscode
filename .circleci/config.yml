@@ -39,7 +39,7 @@ parameters:
     default: false
   cache-version:
     type: string
-    default: 'dependency-cache-v3-'
+    default: 'dependency-cache-v4-'
 
 commands:
   compile:
