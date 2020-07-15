@@ -39,3 +39,5 @@ export {
   DevUsernameChecker,
   EmptyPreChecker
 } from './preconditionCheckers';
+export { DeployRetrieveLibraryExecutor } from './deployRetrieveLibraryExecutor';
+export { ApexLibraryExecutor } from './apexLibraryExecutor';

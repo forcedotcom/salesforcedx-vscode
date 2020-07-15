@@ -19,12 +19,12 @@ import {
   CompositeParametersGatherer,
   SfdxCommandlet
 } from '../../../../src/commands/util';
-import { LibraryCommandletExecutor } from '../../../../src/commands/util/libraryCommandlet';
+import { DeployRetrieveLibraryExecutor } from '../../../../src/commands/util/deployRetrieveLibraryExecutor';
 import { nls } from '../../../../src/messages';
 import { OrgAuthInfo } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
-describe('LibraryCommandlet', () => {
+describe('DeployRetrieveLibraryExecutor', () => {
   // Setup the test environment.
   const $$ = testSetup();
   const testData = new MockTestOrgData();
@@ -69,8 +69,8 @@ describe('LibraryCommandlet', () => {
           }
         }()
       ),
-      new class extends LibraryCommandletExecutor<{}> {
-        public execute(response: ContinueResponse<{}>): void {
+      new class extends DeployRetrieveLibraryExecutor {
+        public async execute(response: ContinueResponse<{}>): Promise<void> {
           executed = true;
         }
       }()
@@ -87,8 +87,8 @@ describe('LibraryCommandlet', () => {
     const orgAuthConnMock = sb
       .stub(OrgAuthInfo, 'getConnection')
       .returns(mockConnection);
-    const commandlet = new class extends LibraryCommandletExecutor<{}> {
-      public execute(response: ContinueResponse<{}>): void {}
+    const commandlet = new class extends DeployRetrieveLibraryExecutor {
+      public async execute(response: ContinueResponse<{}>): Promise<void> {}
     }();
 
     await commandlet.build('Test name', 'telemetry_test');
@@ -101,8 +101,8 @@ describe('LibraryCommandlet', () => {
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(undefined);
     const orgAuthConnMock = sb.stub(OrgAuthInfo, 'getConnection');
-    const commandlet = new class extends LibraryCommandletExecutor<{}> {
-      public execute(response: ContinueResponse<{}>): void {}
+    const commandlet = new class extends DeployRetrieveLibraryExecutor {
+      public async execute(response: ContinueResponse<{}>): Promise<void> {}
     }();
     try {
       await commandlet.build('Test name', 'telemetry_test');
