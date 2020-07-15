@@ -35,7 +35,9 @@ To start remote development in dev container, install:
 1. Open an existing project you want to work with or create a new project.
 1. From the Command Palette, run `Remote-Containers: Add Development Container Configuration Files`.
    If you are unable to see this command, make sure that you have installed the latest version of VS Code Remote Development Extension Pack.
+   
    ![Add Dev Container Config Files](./images/add_dev_container.png)
+   
 1. Select **Salesforce Project** from the list of templates to add `SFDX .devcontainer` folder. The `.devcontainer` folder contains the `devcontainer.json` file that defines how to configure the dev container, the Dockerfile to use, and the extensions to install. 
    
    VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container. If the pop-up window disappears, from the Command Palette, run `Remote-Containers: Reopen in Container`.
