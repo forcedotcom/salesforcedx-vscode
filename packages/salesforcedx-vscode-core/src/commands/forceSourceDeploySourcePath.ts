@@ -23,12 +23,16 @@ import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  DeployRetrieveLibraryExecutor,
+  FilePathGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from './util';
 import {
   createComponentCount,
   useBetaDeployRetrieve
 } from './util/betaDeployRetrieve';
-import { LibraryCommandletExecutor } from './util/libraryCommandlet';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -101,9 +105,7 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   await commandlet.run();
 }
 
-export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
-  string
-> {
+export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
 
