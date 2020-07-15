@@ -43,7 +43,8 @@ export class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
+export class CreateApexTempFile
+  implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
@@ -159,17 +160,16 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = sfdxCoreSettings.getCliCommand()
-  ? new CreateApexTempFile()
-  : new AnonApexGatherer();
-const executeExecutor = sfdxCoreSettings.getCliCommand()
-  ? new ForceApexExecuteExecutor()
-  : new ApexLibraryExecuteExecutor();
-
 export async function forceApexExecute() {
+  const parameterGatherer = sfdxCoreSettings.getCliCommand()
+    ? new CreateApexTempFile()
+    : new AnonApexGatherer();
+  const executeExecutor = sfdxCoreSettings.getCliCommand()
+    ? new ForceApexExecuteExecutor()
+    : new ApexLibraryExecuteExecutor();
+
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
+    new SfdxWorkspaceChecker(),
     parameterGatherer as ParametersGatherer<{}>,
     executeExecutor as CommandletExecutor<{}>
   );

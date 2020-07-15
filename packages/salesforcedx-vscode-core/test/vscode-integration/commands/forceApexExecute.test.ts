@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import {
   AnonApexGatherer,
   ApexLibraryExecuteExecutor,
+  CreateApexTempFile,
   forceApexExecute,
   ForceApexExecuteExecutor
 } from '../../../src/commands/forceApexExecute';
@@ -76,17 +77,43 @@ describe('AnonApexGatherer', async () => {
 describe('use CLI Command setting', async () => {
   let sb: SinonSandbox;
   let settingStub: SinonStub;
-  let apexExecutorStub: SinonSpy;
-  let cliExecutorStub: SinonSpy;
+  let apexExecutorStub: SinonStub;
+  let cliExecutorStub: SinonStub;
+  let anonGather: SinonStub;
+  let apexTempFile: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
     settingStub = sb.stub(sfdxCoreSettings, 'getCliCommand');
-    apexExecutorStub = sb.spy(ApexLibraryExecuteExecutor);
-    cliExecutorStub = sb.spy(ForceApexExecuteExecutor);
+    apexExecutorStub = sb.stub(ApexLibraryExecuteExecutor.prototype, 'execute');
+    cliExecutorStub = sb.stub(ForceApexExecuteExecutor.prototype, 'execute');
+    anonGather = sb
+      .stub(AnonApexGatherer.prototype, 'gather')
+      .returns({ type: 'CONTINUE' } as ContinueResponse<{}>);
+    apexTempFile = sb
+      .stub(CreateApexTempFile.prototype, 'gather')
+      .returns({ type: 'CONTINUE' } as ContinueResponse<{}>);
   });
 
   afterEach(async () => {
     sb.restore();
+  });
+
+  it('should use the ApexLibraryExecuteExecutor if setting is false', async () => {
+    settingStub.returns(false);
+    await forceApexExecute();
+    expect(apexExecutorStub.calledOnce).to.be.true;
+    expect(anonGather.calledOnce).to.be.true;
+    expect(cliExecutorStub.called).to.be.false;
+    expect(apexTempFile.called).to.be.false;
+  });
+
+  it('should use the ForceApexExecuteExecutor if setting is true', async () => {
+    settingStub.returns(true);
+    await forceApexExecute();
+    expect(cliExecutorStub.calledOnce).to.be.true;
+    expect(apexTempFile.calledOnce).to.be.true;
+    expect(apexExecutorStub.called).to.be.false;
+    expect(anonGather.called).to.be.false;
   });
 });
