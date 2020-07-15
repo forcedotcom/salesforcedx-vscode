@@ -47,14 +47,14 @@ export function extname(path: string): string {
   return idx ? path.substring(~idx) : '';
 }
 
-export const join: (...parts: string[]) => string = () => {
+export const join: (...parts: string[]) => string = (...parts) => {
   // Not using a function with var-args because of how TS compiles
   // them to JS - it would result in 2*n runtime cost instead
   // of 1*n, where n is parts.length.
 
   let value = '';
-  for (let i = 0; i < arguments.length; i++) {
-    const part = arguments[i];
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
     if (i > 0) {
       // add the separater between two parts unless
       // there already is one
