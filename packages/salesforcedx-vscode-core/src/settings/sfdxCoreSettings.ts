@@ -12,6 +12,7 @@ import {
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
+  REVERT_CLI_COMMAND,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -72,6 +73,10 @@ export class SfdxCoreSettings {
 
   public getBetaDeployRetrieve(): boolean {
     return this.getConfigValue(BETA_DEPLOY_RETRIEVE, false);
+  }
+
+  public getCliCommand(): boolean {
+    return this.getConfigValue(REVERT_CLI_COMMAND, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

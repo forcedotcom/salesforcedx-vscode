@@ -803,6 +803,11 @@
           "type": "boolean",
           "default": false,
           "description": "%experimental_deploy_retrieve_description%"
+        },
+        "salesforcedx-vscode-core.experimental.cliCommand": {
+          "type": "boolean",
+          "default": false,
+          "description": "%experimental_cli_command_description%"
         }
       }
     },
