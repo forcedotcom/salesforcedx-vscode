@@ -14,7 +14,8 @@ import {
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
-  TELEMETRY_ENABLED
+  TELEMETRY_ENABLED,
+  USE_APEX_LIBRARY
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -72,6 +73,10 @@ export class SfdxCoreSettings {
 
   public getBetaDeployRetrieve(): boolean {
     return this.getConfigValue(BETA_DEPLOY_RETRIEVE, false);
+  }
+
+  public getApexLibrary(): boolean {
+    return this.getConfigValue(USE_APEX_LIBRARY, true);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
