@@ -273,7 +273,7 @@ export class SpectronApplication {
       if (wdioDeprecationWarning.test(message)) {
         return;
       }
-      warn.apply(console, arguments);
+      warn.apply(console, Array.from(arguments) as [any?, ...any[]]);
     };
   }
 }

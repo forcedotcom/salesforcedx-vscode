@@ -31,7 +31,7 @@
     "nyc": "^13",
     "request-light": "0.2.4",
     "sinon": "^7.3.1",
-    "typescript": "3.1.6"
+    "typescript": "3.7.5"
   },
   "engines": {
     "vscode": "^1.40.0"

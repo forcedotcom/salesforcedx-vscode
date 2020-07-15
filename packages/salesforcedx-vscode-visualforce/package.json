@@ -42,7 +42,7 @@
     "cross-env": "5.2.0",
     "mocha": "^5",
     "sinon": "^7.3.1",
-    "typescript": "3.1.6"
+    "typescript": "3.7.5"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
