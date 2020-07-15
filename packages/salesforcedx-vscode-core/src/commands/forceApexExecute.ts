@@ -7,21 +7,94 @@
 import { ExecuteService } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
+  Command,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
-import { hasRootWorkspace } from '../util';
+import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   ApexLibraryExecutor,
+  CommandletExecutor,
   SfdxCommandlet,
+  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+
+export class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
+  public build(data: TempFile): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_apex_execute_document_text'))
+      .withArg('force:apex:execute')
+      .withFlag('--apexcodefile', data.fileName)
+      .withLogName('force_apex_execute')
+      .build();
+  }
+}
+
+class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ fileName: string }>
+  > {
+    if (hasRootWorkspace()) {
+      const fileName = path.join(
+        getRootWorkspacePath(),
+        '.sfdx',
+        'tools',
+        'tempApex.input'
+      );
+      const editor = await vscode.window.activeTextEditor;
+
+      if (!editor) {
+        return { type: 'CANCEL' };
+      }
+
+      let writeFile;
+      const document = editor.document;
+
+      if (editor.selection.isEmpty) {
+        writeFile = await writeFileAsync(fileName, document.getText());
+      } else {
+        writeFile = await writeFileAsync(
+          fileName,
+          document.getText(editor.selection)
+        );
+      }
+
+      return writeFile
+        ? { type: 'CONTINUE', data: { fileName } }
+        : { type: 'CANCEL' };
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
+type TempFile = {
+  fileName: string;
+};
+
+export function writeFileAsync(fileName: string, inputText: string) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(fileName, inputText, err => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
 
 export class AnonApexGatherer
   implements ParametersGatherer<{ fileName?: string; apexCode?: string }> {
@@ -47,9 +120,6 @@ export class AnonApexGatherer
     return { type: 'CANCEL' };
   }
 }
-
-const workspaceChecker = new SfdxWorkspaceChecker();
-const fileNameGatherer = new AnonApexGatherer();
 
 export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
   protected executeService: ExecuteService | undefined;
@@ -89,11 +159,19 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
   }
 }
 
+const workspaceChecker = new SfdxWorkspaceChecker();
+const parameterGatherer = sfdxCoreSettings.getCliCommand()
+  ? new CreateApexTempFile()
+  : new AnonApexGatherer();
+const executeExecutor = sfdxCoreSettings.getCliCommand()
+  ? new ForceApexExecuteExecutor()
+  : new ApexLibraryExecuteExecutor();
+
 export async function forceApexExecute() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
-    fileNameGatherer,
-    new ApexLibraryExecuteExecutor()
+    parameterGatherer as ParametersGatherer<{}>,
+    executeExecutor as CommandletExecutor<{}>
   );
   await commandlet.run();
 }

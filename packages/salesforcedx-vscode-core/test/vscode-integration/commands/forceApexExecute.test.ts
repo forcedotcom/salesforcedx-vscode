@@ -7,9 +7,15 @@
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { AnonApexGatherer } from '../../../src/commands/forceApexExecute';
+import {
+  AnonApexGatherer,
+  ApexLibraryExecuteExecutor,
+  forceApexExecute,
+  ForceApexExecuteExecutor
+} from '../../../src/commands/forceApexExecute';
+import { sfdxCoreSettings } from '../../../src/settings';
 import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -64,5 +70,23 @@ describe('AnonApexGatherer', async () => {
       apexCode: string;
     }>;
     expect(result.data.apexCode).to.equal('System.assert(true);');
+  });
+});
+
+describe('use CLI Command setting', async () => {
+  let sb: SinonSandbox;
+  let settingStub: SinonStub;
+  let apexExecutorStub: SinonSpy;
+  let cliExecutorStub: SinonSpy;
+
+  beforeEach(async () => {
+    sb = createSandbox();
+    settingStub = sb.stub(sfdxCoreSettings, 'getCliCommand');
+    apexExecutorStub = sb.spy(ApexLibraryExecuteExecutor);
+    cliExecutorStub = sb.spy(ForceApexExecuteExecutor);
+  });
+
+  afterEach(async () => {
+    sb.restore();
   });
 });
