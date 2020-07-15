@@ -161,12 +161,12 @@ export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
 }
 
 export async function forceApexExecute() {
-  const parameterGatherer = sfdxCoreSettings.getCliCommand()
-    ? new CreateApexTempFile()
-    : new AnonApexGatherer();
-  const executeExecutor = sfdxCoreSettings.getCliCommand()
-    ? new ForceApexExecuteExecutor()
-    : new ApexLibraryExecuteExecutor();
+  const parameterGatherer = sfdxCoreSettings.getApexLibrary()
+    ? new AnonApexGatherer()
+    : new CreateApexTempFile();
+  const executeExecutor = sfdxCoreSettings.getApexLibrary()
+    ? new ApexLibraryExecuteExecutor()
+    : new ForceApexExecuteExecutor();
 
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),

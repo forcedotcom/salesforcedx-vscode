@@ -84,7 +84,7 @@ describe('use CLI Command setting', async () => {
 
   beforeEach(async () => {
     sb = createSandbox();
-    settingStub = sb.stub(sfdxCoreSettings, 'getCliCommand');
+    settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary');
     apexExecutorStub = sb.stub(ApexLibraryExecuteExecutor.prototype, 'execute');
     cliExecutorStub = sb.stub(ForceApexExecuteExecutor.prototype, 'execute');
     anonGather = sb
@@ -100,7 +100,7 @@ describe('use CLI Command setting', async () => {
   });
 
   it('should use the ApexLibraryExecuteExecutor if setting is false', async () => {
-    settingStub.returns(false);
+    settingStub.returns(true);
     await forceApexExecute();
     expect(apexExecutorStub.calledOnce).to.be.true;
     expect(anonGather.calledOnce).to.be.true;
@@ -109,7 +109,7 @@ describe('use CLI Command setting', async () => {
   });
 
   it('should use the ForceApexExecuteExecutor if setting is true', async () => {
-    settingStub.returns(true);
+    settingStub.returns(false);
     await forceApexExecute();
     expect(cliExecutorStub.calledOnce).to.be.true;
     expect(apexTempFile.calledOnce).to.be.true;

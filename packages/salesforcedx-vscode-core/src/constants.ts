@@ -28,4 +28,4 @@ export const DEFAULT_DEV_HUB_USERNAME_KEY = 'defaultdevhubusername';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
 export const PKG_ID_PREFIX = '04t';
-export const REVERT_CLI_COMMAND = 'experimental.cliCommand';
+export const USE_APEX_LIBRARY = 'experimental.useApexLibrary';
