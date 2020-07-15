@@ -26,7 +26,6 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.5.1",
-    "@salesforce/kit": "1.2.2",
     "@salesforce/salesforcedx-utils-vscode": "49.1.0",
     "@salesforce/source-deploy-retrieve": "1.0.15",
     "@salesforce/apex-node": "0.0.2",
@@ -58,7 +57,7 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "sinon": "^7.3.1",
-    "typescript": "3.1.6"
+    "typescript": "3.7.5"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
