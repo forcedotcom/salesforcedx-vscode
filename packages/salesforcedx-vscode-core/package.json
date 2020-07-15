@@ -29,6 +29,7 @@
     "@salesforce/kit": "^1.2.3",
     "@salesforce/salesforcedx-utils-vscode": "49.0.0",
     "@salesforce/source-deploy-retrieve": "1.0.15",
+    "@salesforce/apex-node": "0.0.2",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -802,6 +803,11 @@
           "type": "boolean",
           "default": false,
           "description": "%experimental_deploy_retrieve_description%"
+        },
+        "salesforcedx-vscode-core.experimental.useApexLibrary": {
+          "type": "boolean",
+          "default": true,
+          "description": "%experimental_apex_library_description%"
         }
       }
     },
