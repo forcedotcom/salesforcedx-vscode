@@ -37,7 +37,10 @@ To start remote development in dev container, install:
    If you are unable to see this command, make sure that you have installed the latest version of VS Code Remote Development Extension Pack.
    ![Add Dev Container Config Files](./images/add_dev_container.png)
 1. Select **Salesforce Project** from the list of templates to add `SFDX .devcontainer` folder. The `.devcontainer` folder contains the `devcontainer.json` file that defines how to configure the dev container, the Dockerfile to use, and the extensions to install. 
-   VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container. VS code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps to the container, and the side bar shows **Dev Container: Salesforce Project**. The container pre-installs and configures Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
+   
+   VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container. If the pop-up window disappears, from the Command Palette, run `Remote-Containers: Reopen in Container`.
+   
+   VS code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps to the container, and the side bar shows **Dev Container: Salesforce Project**. The container pre-installs and configures Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
    
    ![Dev Coontainer](./images/devcontainer.png)
    
