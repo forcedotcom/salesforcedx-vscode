@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@salesforce/core": "2.5.1",
-    "@salesforce/kit": "1.2.2",
+    "@salesforce/kit": "^1.2.3",
     "@salesforce/salesforcedx-utils-vscode": "49.0.0",
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
