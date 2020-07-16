@@ -33,20 +33,20 @@ To start remote development in dev container, install:
 ## Open a Project in a Dev Container
 
 1. Open an existing project you want to work with or create a new project.
-1. From the Command Palette, run `Remote-Containers: Add Development Container Configuration Files`.
+1. From the Command Palette, run **Remote-Containers: Add Development Container Configuration Files**.
    If you are unable to see this command, make sure that you have installed the latest version of VS Code Remote Development Extension Pack.
    
    ![Add Dev Container Config Files](./images/add_dev_container.png)
    
 1. Select **Salesforce Project** from the list of templates to add `SFDX .devcontainer` folder. The `.devcontainer` folder contains the `devcontainer.json` file that defines how to configure the dev container, the Dockerfile to use, and the extensions to install. 
    
-   VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container. If the pop-up window disappears, from the Command Palette, run `Remote-Containers: Reopen in Container`.
+   VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container. If the pop-up window disappears, from the Command Palette, run **Remote-Containers: Reopen in Container**.
    
-   VS Code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps to the container, and the side bar shows **Dev Container: Salesforce Project**. The container pre-installs and configures Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
+   VS Code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps to the container, and the side bar shows `Dev Container: Salesforce Project`. The container pre-installs and configures Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
    
    ![Dev Container](./images/devcontainer.png)
    
-1. From the Command Palette, run the `SFDX:Authorize a Dev Hub` in the container. From the Output panel (below the editor region), you can get the user code and the verification URL required to complete the authorization.
+1. From the Command Palette, run the **SFDX:Authorize a Dev Hub** in the container. From the Output panel (below the editor region), you can get the user code and the verification URL required to complete the authorization.
 
    If you are logged in to an org that you don’t want to authorize as a Dev Hub, make sure to log out. Otherwise, you're not prompted to enter the credentials for the org that you want to authorize. After the authorization is complete, the message `SFDX: Authorize a Dev Hub successfully ran` is displayed. In case the success message is not displayed, check if you have the correct user code and try again. If the login page doesn’t prompt you to re-enter the code, terminate the command and run it again.
 
@@ -54,8 +54,8 @@ If you are interested, read more about [Device Authentication Flow](https://help
    
    ![Authorize Success Message](./images/authorize_message.png)
    
-1. Run `SFDX: Create a Default Scratch Org`.   
-1. Click `Reopen in Container` to build a dev container. Now the side bar shows **Dev Container: Salesforce Project**.
+1. Run **SFDX: Create a Default Scratch Org**.   
+1. Click **Reopen in Container** to build a dev container. Now the side bar shows `Dev Container: Salesforce Project`.
 
    You’ve set up a dev container for an existing project to use as your full-time development environment.
 
