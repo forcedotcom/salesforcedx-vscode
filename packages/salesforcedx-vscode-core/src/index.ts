@@ -426,10 +426,10 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
 async function checkSObjectsRefreshed() {
   const sobjectsCache = '.sfdx/typings/lwc/sobjects/**.d.ts';
   const files = await vscode.workspace.findFiles(sobjectsCache);
-  if (!files || files.length == 0) {
+  if (!files || files.length === 0) {
     const message = nls.localize('sobjects_refresh');
     notificationService.showErrorMessage(message);
-    telemetryService.sendException('sObjectsNotRefreshed', message)
+    telemetryService.sendException('sObjectsNotRefreshed', message);
   }
 }
 
