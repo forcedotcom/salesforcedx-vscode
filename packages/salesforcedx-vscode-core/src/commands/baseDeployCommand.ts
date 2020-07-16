@@ -14,7 +14,10 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  RegistryAccess,
+  SourceClient
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -35,11 +38,13 @@ export enum DeployType {
 export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   string
 > {
+  protected sourceClient: SourceClient | undefined;
   public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
 
   public execute(response: ContinueResponse<string>): void {
+    const source = this.sourceClient;
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -66,9 +71,10 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         );
         const metadataCount = JSON.stringify(createComponentCount(components));
         properties = { metadataCount };
-      } catch (e) {}
-      this.logMetric(execution.command.logName, startTime, properties);
-
+        this.logMetric(execution.command.logName, startTime, properties);
+      } catch (e) {
+        properties = '';
+      }
       try {
         if (stdOut) {
           const deployParser = new ForceDeployResultParser(stdOut);
