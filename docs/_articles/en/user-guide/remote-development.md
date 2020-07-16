@@ -42,7 +42,7 @@ To start remote development in dev container, install:
    
    VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container. If the pop-up window disappears, from the Command Palette, run `Remote-Containers: Reopen in Container`.
    
-   VS code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps to the container, and the side bar shows **Dev Container: Salesforce Project**. The container pre-installs and configures Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
+   VS Code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps to the container, and the side bar shows **Dev Container: Salesforce Project**. The container pre-installs and configures Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
    
    ![Dev Container](./images/devcontainer.png)
    
