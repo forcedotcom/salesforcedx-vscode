@@ -14,6 +14,10 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  RegistryAccess,
+  SourceClient
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -23,6 +27,7 @@ import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
+import { createComponentCount } from './util/betaDeployRetrieve';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export enum DeployType {
@@ -33,11 +38,13 @@ export enum DeployType {
 export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   string
 > {
+  protected sourceClient: SourceClient | undefined;
   public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
 
   public execute(response: ContinueResponse<string>): void {
+    const source = this.sourceClient;
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -48,7 +55,6 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       cwd: workspacePath,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
-
     channelService.streamCommandStartStop(execution);
 
     let stdOut = '';
@@ -57,7 +63,18 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      this.logMetric(execution.command.logName, startTime);
+      let properties;
+      const registryAccess = new RegistryAccess();
+      try {
+        const components = registryAccess.getComponentsFromPath(
+          execFilePathOrPaths
+        );
+        const metadataCount = JSON.stringify(createComponentCount(components));
+        properties = { metadataCount };
+        this.logMetric(execution.command.logName, startTime, properties);
+      } catch (e) {
+        properties = '';
+      }
       try {
         if (stdOut) {
           const deployParser = new ForceDeployResultParser(stdOut);
