@@ -145,15 +145,15 @@ describe('use CLI Command setting', async () => {
     sb.restore();
   });
 
-  it('should use the ApexLibraryGetLogsExecutor if setting is false', async () => {
+  it('should use the ApexLibraryGetLogsExecutor if setting is true', async () => {
     settingStub.returns(true);
     await forceApexLogGet();
     expect(apexLogGetStub.calledOnce).to.be.true;
     expect(cliExecutorStub.called).to.be.false;
-    expect(fileSelector.called).to.be.false;
+    expect(fileSelector.called).to.be.true;
   });
 
-  it('should use the ForceApexLogGetExecutor if setting is true', async () => {
+  it('should use the ForceApexLogGetExecutor if setting is false', async () => {
     settingStub.returns(false);
     await forceApexLogGet();
     expect(cliExecutorStub.calledOnce).to.be.true;
