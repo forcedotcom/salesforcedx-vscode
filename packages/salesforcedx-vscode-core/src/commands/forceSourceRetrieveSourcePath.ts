@@ -132,7 +132,6 @@ export class LibraryRetrieveSourcePathExecutor extends DeployRetrieveLibraryExec
         'namespace'
       )) as string;
       const registryAccess = new RegistryAccess();
-      // collect components from filepath and build metadatavariables with CCC (log metric with the varible)
       const components = registryAccess.getComponentsFromPath(response.data);
       const retrievePromise = this.sourceClient.tooling.retrieve({
         components,
