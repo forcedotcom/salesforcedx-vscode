@@ -44,7 +44,7 @@ To start remote development in dev container, install:
    
    VS code creates a dev container the first time you open the project. After the dev container is built, the project folder in your local system automatically connects and maps to the container, and the side bar shows **Dev Container: Salesforce Project**. The container pre-installs and configures Java, Git, Salesforce CLI, and all other extensions defined in the `devcontainer.json` file.
    
-   ![Dev Coontainer](./images/devcontainer.png)
+   ![Dev Container](./images/devcontainer.png)
    
 1. From the Command Palette, run the `SFDX:Authorize a Dev Hub` in the container. From the Output panel (below the editor region), you can get the user code and the verification URL required to complete the authorization.
    If you are logged in to an org that you don’t want to authorize as a Dev Hub, make sure to log out. Otherwise, you're not prompted to enter the credentials for the org that you want to authorize.
