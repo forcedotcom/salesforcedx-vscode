@@ -38,13 +38,11 @@ export enum DeployType {
 export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
   string
 > {
-  protected sourceClient: SourceClient | undefined;
   public static errorCollection = vscode.languages.createDiagnosticCollection(
     'deploy-errors'
   );
 
   public execute(response: ContinueResponse<string>): void {
-    const source = this.sourceClient;
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -71,10 +69,9 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         );
         const metadataCount = JSON.stringify(createComponentCount(components));
         properties = { metadataCount };
-        this.logMetric(execution.command.logName, startTime, properties);
-      } catch (e) {
-        properties = '';
-      }
+      } catch (e) {}
+      this.logMetric(execution.command.logName, startTime, properties);
+
       try {
         if (stdOut) {
           const deployParser = new ForceDeployResultParser(stdOut);
