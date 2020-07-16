@@ -798,6 +798,11 @@
           "default": false,
           "description": "%conflict_detection_enabled_description%"
         },
+        "salesforcedx-vscode-core.experimental.deployRetrieve": {
+          "type": "boolean",
+          "default": false,
+          "description": "%experimental_deploy_retrieve_description%"
+        },
         "salesforcedx-vscode-core.experimental.useApexLibrary": {
           "type": "boolean",
           "default": true,
