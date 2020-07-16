@@ -48,7 +48,7 @@ To start remote development in dev container, install:
    
 1. From the Command Palette, run the `SFDX:Authorize a Dev Hub` in the container. From the Output panel (below the editor region), you can get the user code and the verification URL required to complete the authorization.
 
-If you are logged in to an org that you don’t want to authorize as a Dev Hub, make sure to log out. Otherwise, you're not prompted to enter the credentials for the org that you want to authorize. After the authorization is complete, the message `SFDX: Authorize a Dev Hub successfully ran` is displayed. In case the success message is not displayed, check if you have the correct user code and try again. If the login page doesn’t prompt you to re-enter the code, terminate the command and run it again.
+   If you are logged in to an org that you don’t want to authorize as a Dev Hub, make sure to log out. Otherwise, you're not prompted to enter the credentials for the org that you want to authorize. After the authorization is complete, the message `SFDX: Authorize a Dev Hub successfully ran` is displayed. In case the success message is not displayed, check if you have the correct user code and try again. If the login page doesn’t prompt you to re-enter the code, terminate the command and run it again.
 
 If you are interested, read more about [Device Authentication Flow](https://help.salesforce.com/articleView?id=remoteaccess_oauth_device_flow.htm&type=5).
    
