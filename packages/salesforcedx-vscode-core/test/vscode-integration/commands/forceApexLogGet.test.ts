@@ -123,3 +123,41 @@ describe('Force Apex Log Get Logging', () => {
     showQuickPickStub.calledWith([logInfos[2], logInfos[1], logInfos[0]]);
   });
 });
+
+describe('use CLI Command setting', async () => {
+  let sb: SinonSandbox;
+  let settingStub: SinonStub;
+  let apexLogGetStub: SinonStub;
+  let cliExecutorStub: SinonStub;
+  let fileSelector: SinonStub;
+
+  beforeEach(async () => {
+    sb = createSandbox();
+    settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary');
+    apexLogGetStub = sb.stub(ApexLibraryGetLogsExecutor.prototype, 'execute');
+    cliExecutorStub = sb.stub(ForceApexLogGetExecutor.prototype, 'execute');
+    fileSelector = sb
+      .stub(LogFileSelector.prototype, 'gather')
+      .returns({ type: 'CONTINUE' } as ContinueResponse<{}>);
+  });
+
+  afterEach(async () => {
+    sb.restore();
+  });
+
+  it('should use the ApexLibraryGetLogsExecutor if setting is false', async () => {
+    settingStub.returns(true);
+    await forceApexLogGet();
+    expect(apexLogGetStub.calledOnce).to.be.true;
+    expect(cliExecutorStub.called).to.be.false;
+    expect(fileSelector.called).to.be.false;
+  });
+
+  it('should use the ForceApexLogGetExecutor if setting is true', async () => {
+    settingStub.returns(false);
+    await forceApexLogGet();
+    expect(cliExecutorStub.calledOnce).to.be.true;
+    expect(fileSelector.calledOnce).to.be.true;
+    expect(apexLogGetStub.called).to.be.false;
+  });
+});
