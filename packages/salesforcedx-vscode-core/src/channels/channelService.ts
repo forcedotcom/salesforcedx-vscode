@@ -64,8 +64,7 @@ export class ChannelService {
 
       this.channel.append(' ');
       if (data !== undefined) {
-        //      if (/sfdx.*ENOENT/.test(data.message)) {
-        if (false) {
+        if (/sfdx.*ENOENT/.test(data.message)) {
           this.channel.appendLine(
             nls.localize('channel_end_with_sfdx_not_found')
           );
