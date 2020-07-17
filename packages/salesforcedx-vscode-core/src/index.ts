@@ -72,7 +72,6 @@ import {
 import { registerConflictView, setupConflictView } from './conflict';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
-import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -423,16 +422,6 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
 
-async function checkSObjectsRefreshed() {
-  const sobjectsCache = '.sfdx/typings/lwc/sobjects/**.d.ts';
-  const files = await vscode.workspace.findFiles(sobjectsCache);
-  if (!files || files.length === 0) {
-    const message = nls.localize('sobjects_refresh');
-    notificationService.showErrorMessage(message);
-    telemetryService.sendException('sObjectsNotRefreshed', message);
-  }
-}
-
 async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext
 ): Promise<void> {
@@ -572,9 +561,6 @@ export async function activate(context: vscode.ExtensionContext) {
       decorators.showDemoMode();
     }
   }
-
-  // Check SObjects are refreshed so code-completing and other language server features work
-  await checkSObjectsRefreshed();
 
   const api: any = {
     channelService,

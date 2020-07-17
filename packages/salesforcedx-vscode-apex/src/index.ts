@@ -17,7 +17,8 @@ import {
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
   forceGenerateFauxClassesCreate,
-  initSObjectDefinitions
+  initSObjectDefinitions,
+  checkSObjectsAndRefresh
 } from './commands';
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
@@ -90,6 +91,7 @@ export async function activate(context: vscode.ExtensionContext) {
             const sobjectRefreshStartup: boolean = vscode.workspace
               .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
               .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+
             if (sobjectRefreshStartup) {
               initSObjectDefinitions(
                 vscode.workspace.workspaceFolders![0].uri.fsPath
@@ -99,8 +101,9 @@ export async function activate(context: vscode.ExtensionContext) {
                   stack: e.stack
                 })
               );
+            } else {
+              checkSObjectsAndRefresh(vscode.workspace.workspaceFolders![0].uri.fsPath);
             }
-
             await testOutlineProvider.refresh();
           });
         }

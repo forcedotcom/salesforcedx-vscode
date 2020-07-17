@@ -56,5 +56,7 @@ export const messages = {
     'Unable to activate the Apex Language Server',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects'
+  sobject_refresh_standard: 'Standard SObjects',
+  sobjects_refresh_needed: 'To take advantage of autocompletion for SObjects in Apex code, run the SFDX: Refresh SObject Definitions command.',
+  sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions now'
 };
