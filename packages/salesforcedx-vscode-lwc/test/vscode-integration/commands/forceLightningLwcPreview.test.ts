@@ -915,27 +915,23 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(androidQuickPick);
     showInputBoxStub.resolves('');
 
-    await forceLightningLwcPreview(mockLwcFilePathUri);
-    mockExecution.processExitSubject.next(127);
-
-    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
-    sinon.assert.calledWith(
-      showErrorMessageStub,
-      sinon.match(
-        nls.localize(
-          'force_lightning_lwc_android_failure',
-          androidQuickPick.defaultTargetName
-        )
-      )
+    commandOutputStub.returns(
+      Promise.reject(`${sfdxDeviceListCommand} is not a sfdx command.`)
     );
+
+    await forceLightningLwcPreview(mockLwcFilePathUri);
+
+    sinon.assert.calledOnce(mobileExecutorStub); // device list only
+
     sinon.assert.calledWith(
       showErrorMessageStub,
       sinon.match(nls.localize('force_lightning_lwc_no_mobile_plugin'))
     );
-    sinon.assert.calledOnce(streamCommandOutputSpy);
-    expect(successInfoMessageSpy.callCount).to.equal(0);
 
-    sinon.assert.calledTwice(appendLineSpy);
+    sinon.assert.notCalled(streamCommandOutputSpy);
+    sinon.assert.notCalled(successInfoMessageSpy);
+
+    sinon.assert.calledOnce(appendLineSpy);
     expect(
       appendLineSpy.calledWith(
         nls.localize('force_lightning_lwc_no_mobile_plugin')

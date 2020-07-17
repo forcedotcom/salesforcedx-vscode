@@ -247,15 +247,20 @@ async function selectPlatformAndExecute(
     .withJson()
     .build();
 
-  const mobileCancellationTokenSource = new vscode.CancellationTokenSource();
-  const mobileCancellationToken = mobileCancellationTokenSource.token;
+  let deviceListExecutionExitCode: number | undefined;
+  const deviceListCancellationTokenSource = new vscode.CancellationTokenSource();
+  const deviceListCancellationToken = deviceListCancellationTokenSource.token;
   const deviceListExecutor = new CliCommandExecutor(deviceListCommand, {});
   const deviceListExecution = deviceListExecutor.execute(
-    mobileCancellationToken
+    deviceListCancellationToken
   );
+  deviceListExecution.processExitSubject.subscribe(exitCode => {
+    deviceListExecutionExitCode = exitCode;
+  });
 
   const options: vscode.QuickPickItem[] = [];
   let targetName: string | undefined;
+
   try {
     const result = await deviceListOutput.getCmdResult(deviceListExecution);
     const jsonString = result.substring(result.indexOf('{'));
@@ -270,8 +275,22 @@ async function selectPlatformAndExecute(
       options.push({ label, detail });
     });
   } catch (e) {
-    // If device enumeration failes for any reason, we silently fail
-    // and proceed with an empty list of devices.
+    // If device enumeration fails due to exit code 127
+    // (i.e. lwc on mobile sfdx plugin is not installed)
+    // then show an error message and exit. For other reasons,
+    // silently fail and proceed with an empty list of devices.
+    const error = String(e) || '';
+    if (
+      deviceListExecutionExitCode === 127 ||
+      error.includes('not a sfdx command')
+    ) {
+      showError(
+        new Error(nls.localize('force_lightning_lwc_no_mobile_plugin')),
+        logName,
+        commandName
+      );
+      return;
+    }
   }
 
   // if there are any devices available, show a pick list.
@@ -328,7 +347,9 @@ async function selectPlatformAndExecute(
   const previewExecutor = new CliCommandExecutor(previewCommand, {
     env: { SFDX_JSON_TO_STDOUT: 'true' }
   });
-  const previewExecution = previewExecutor.execute(mobileCancellationToken);
+  const previewCancellationTokenSource = new vscode.CancellationTokenSource();
+  const previewCancellationToken = previewCancellationTokenSource.token;
+  const previewExecution = previewExecutor.execute(previewCancellationToken);
   telemetryService.sendCommandEvent(logName, startTime);
   channelService.streamCommandOutput(previewExecution);
   channelService.showChannelOutput();
@@ -339,15 +360,6 @@ async function selectPlatformAndExecute(
         ? nls.localize('force_lightning_lwc_android_failure', target)
         : nls.localize('force_lightning_lwc_ios_failure', target);
       showError(new Error(message), logName, commandName);
-
-      // Error code 127 means the lwc on mobile sfdx plugin is not installed.
-      if (exitCode === 127) {
-        showError(
-          new Error(nls.localize('force_lightning_lwc_no_mobile_plugin')),
-          logName,
-          commandName
-        );
-      }
     } else if (!isAndroid) {
       notificationService.showSuccessfulExecution(
         previewExecution.command.toString()
