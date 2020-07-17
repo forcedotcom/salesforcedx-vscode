@@ -216,7 +216,12 @@ export async function checkSObjectsAndRefresh(projectPath: string) {
       const buttonTxt = nls.localize('sobjects_refresh_now');
       const shouldRefreshNow = await notificationService.showInformationMessage(message, buttonTxt);
       if (shouldRefreshNow && shouldRefreshNow === buttonTxt) {
-        initSObjectDefinitions(projectPath);
+        initSObjectDefinitions(projectPath).catch(e =>
+          telemetryService.sendErrorEvent({
+            message: e.message,
+            stack: e.stack
+          })
+        );
       }
     }
   }

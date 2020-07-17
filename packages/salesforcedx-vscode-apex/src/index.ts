@@ -12,13 +12,13 @@ import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
+  checkSObjectsAndRefresh,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
   forceGenerateFauxClassesCreate,
-  initSObjectDefinitions,
-  checkSObjectsAndRefresh
+  initSObjectDefinitions
 } from './commands';
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
@@ -102,7 +102,12 @@ export async function activate(context: vscode.ExtensionContext) {
                 })
               );
             } else {
-              checkSObjectsAndRefresh(vscode.workspace.workspaceFolders![0].uri.fsPath);
+              checkSObjectsAndRefresh(vscode.workspace.workspaceFolders![0].uri.fsPath).catch(e =>
+                telemetryService.sendErrorEvent({
+                  message: e.message,
+                  stack: e.stack
+                })
+              );
             }
             await testOutlineProvider.refresh();
           });
