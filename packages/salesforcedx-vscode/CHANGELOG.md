@@ -1,3 +1,21 @@
+# 49.1.0 - July 18, 2020
+
+## Fixed
+
+#### docs
+
+- Update whitelist to allowlist ([PR #2323](https://github.com/forcedotcom/salesforcedx-vscode/pull/2323))
+
+- Update prettier-plugin-apex documentation ([PR #2329](https://github.com/forcedotcom/salesforcedx-vscode/pull/2329), [Issue #2328](https://github.com/forcedotcom/salesforcedx-vscode/issues/2328))-Contribution by [@jefersonchaves](https://github.com/jefersonchaves)
+
+#### salesforcedx-vscode-core
+
+- Performance enhancements for `SFDX: Execute Anonymous Apex with Editor Contents` command ([PR #2291](https://github.com/forcedotcom/salesforcedx-vscode/pull/2291))
+
+#### salesforcedx-vscode-lwc
+
+- Support debugging LWC tests in VSCode's new JavaScript debugger ([PR #2345](https://github.com/forcedotcom/salesforcedx-vscode/pull/2345))
+
 # 48.24.0 - July 9, 2020
 
 ## Fixed
