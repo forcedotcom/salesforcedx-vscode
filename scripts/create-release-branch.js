@@ -40,14 +40,11 @@ if (isRemoteReleaseBranchExist) {
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
 
-// Create the new release branch and switch to it
-shell.exec(`git checkout -b ${releaseBranchName}`);
-
 // lerna version
 // increment the version number in all packages without publishing to npmjs
-// only run on branch named release/vxx.xx.xx and do not create git tags
+// only run on branch named develop and do not create git tags
 shell.exec(
-  `lerna version ${nextVersion} --force-publish --allow-branch ${releaseBranchName} --no-git-tag-version --exact --yes`
+  `lerna version ${nextVersion} --force-publish --allow-branch develop --no-git-tag-version --exact --yes`
 );
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
@@ -60,6 +57,12 @@ shell.exec('git add lerna.json');
 
 // Git commit
 shell.exec(`git commit -m "Update to version ${nextVersion}"`);
+
+// Push version update commits to develop
+shell.exec(`git push origin develop`);
+
+// Create the new release branch and switch to it
+shell.exec(`git checkout -b ${releaseBranchName}`);
 
 // Push new release branch to remote
 shell.exec(`git push -u origin ${releaseBranchName}`);
