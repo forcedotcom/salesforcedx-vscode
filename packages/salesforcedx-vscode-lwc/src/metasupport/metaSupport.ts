@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import path = require('path');
+import semver = require('semver');
 
 const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
 
@@ -26,10 +27,10 @@ export class MetaSupport {
     return MetaSupport.instance;
   }
 
+  /**
+   * Creates LWCResource folder if not exist
+   */
   private createLWCResourceFolder() {
-    /**
-     * creates LWCResource folder if not exist
-     */
     if (!fs.existsSync(MetaSupport.resourceDir)) {
       fs.mkdirSync(MetaSupport.resourceDir);
       fs.mkdirSync(MetaSupport.dir);
@@ -38,6 +39,10 @@ export class MetaSupport {
     }
   }
 
+  /**
+   * Copies static XSD and XML files to .sfdx folder.
+   * TODO: use npm install to deliever these files.
+   */
   private getLocalFile(targetFileName: string, destinationPath: string) {
     const thisExtPath = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-lwc'
@@ -51,14 +56,39 @@ export class MetaSupport {
     fs.copyFileSync(resourcepath, destinationPath);
   }
 
+  /**
+   * This function creates the js-meta.xml resource folder and
+   * duplicates XSD and XML files to the .sfdx folder of developers.
+   * It also calls Redhat XML APIs to setup required settings for the plugin to work.
+   */
   public getMetaSupport() {
-    /**
-     * This is the public facing fuction that creates the resource folder and duplicates the relative files.
-     */
-    this.createLWCResourceFolder();
-    this.getLocalFile('js-meta.xsd', path.join(MetaSupport.dir, 'js-meta.xsd'));
-    this.getLocalFile('js-meta-home.xml', path.join(MetaSupport.dir, 'js-meta-home.xml'));
+    // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
+    const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
+    if (redHatExtension === undefined) {
+      vscode.window.showInformationMessage('Salesforce js-meta.xml intellisense requires RedHat XML Plugin');
+    } else if (redHatExtension) {
+      // semver compares the version id: https://www.npmjs.com/package/semver#prerelease-identifiers
+      if (semver.satisfies(redHatExtension!.packageJSON['version'], '>0.13.0')) {
+        // Create required files and folders
+        this.createLWCResourceFolder();
+        this.getLocalFile('js-meta.xsd', path.join(MetaSupport.dir, 'js-meta.xsd'));
+        this.getLocalFile('js-meta-home.xml', path.join(MetaSupport.dir, 'js-meta-home.xml'));
+        // Append Redhat XML Settings
+        async function setupRedhatXml() {
+          const extensionApi = await redHatExtension!.activate();
+          extensionApi.addXMLCatalogs(['.sfdx/resources/lwcResources/js-meta-home.xml']);
+          extensionApi.addXMLFileAssociations([{
+            systemId: '.sfdx/resources/lwcResources/js-meta.xsd',
+            pattern: '**/*js-meta.xml'
+          }]);
+        }
+        setupRedhatXml();
 
-    // console.log(require.resolve('lwc-resources'));
+      } else {
+        vscode.window.showInformationMessage('Salesforce js-meta.xml intellisense requires RedHat XML Plugin Version 0.13.0 above');
+      }
+    } else {
+      console.log('Some error occured in metaSupport');
+    }
   }
 }
