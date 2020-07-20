@@ -73,7 +73,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       } catch (e) {
         telemetryService.sendException(
           e.name,
-          'error detecting deploy components'
+          'error detecting deployed components'
         );
       }
       this.logMetric(execution.command.logName, startTime, properties);
