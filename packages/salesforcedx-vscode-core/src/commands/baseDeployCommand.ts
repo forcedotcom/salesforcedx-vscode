@@ -69,7 +69,13 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         );
         const metadataCount = JSON.stringify(createComponentCount(components));
         properties = { metadataCount };
-      } catch (e) {}
+        // registry does not handle multiple paths. only log component count for single paths
+      } catch (e) {
+        telemetryService.sendException(
+          e.name,
+          'error detecting deploy components'
+        );
+      }
       this.logMetric(execution.command.logName, startTime, properties);
 
       try {
