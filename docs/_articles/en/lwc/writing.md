@@ -29,21 +29,21 @@ To learn more about `@salesforce` modules, see [`@salesforce` Modules](https://d
 
 In this example, VS Code displays the possible static resource names to choose from when completing the `import` statement.
 
-![Static Resource Completion](./images/vscode_lwc_staticresource_trailhead.png)
+![Static Resource Completion](../../../images/vscode_lwc_staticresource_trailhead.png)
 
 Here's what code completion looks like for `@salesforce/schema`.
 
-![Schema Completion](./images/vscode_lwc_schema.png)
+![Schema Completion](../../../images/vscode_lwc_schema.png)
 
 Here's an example of code completion for an Apex controller.
 
-![Apex Completion](./images/vscode_lwc_apex.png)
+![Apex Completion](../../../images/vscode_lwc_apex.png)
 
 ### Lightning API
 
 VS Code also completes Lightning API resources, such as `lightning/uiRecordApi` and `lightning/uiObjectInfoApi`. See the [`lightning/ui*Api` Wire Adapters and Functions](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.reference_ui_api) in the _Lighting Web Components Developer Guide_ for more information.
 
-![Lightning UI Completion](./images/vscode_lwc_lightningui.png)
+![Lightning UI Completion](../../../images/vscode_lwc_lightningui.png)
 
 ### Lightning Web Components Syntax
 
@@ -51,19 +51,19 @@ VS Code completes the Lightning Web Components framework's reactive properties a
 
 Here is an example of code completion for including the Apex function `getContactList` in the `@wire` decorator.
 
-![Lightning @wire Completion](./images/vscode_lwc_wire.png)
+![Lightning @wire Completion](../../../images/vscode_lwc_wire.png)
 
 ### Namespace Completion in HTML Attributes and Tags
 
 Code completion is also provided for HTML tags and attributes for components in the `lightning` and `c` namespaces. Here, with `c-view-source`, VS Code completes its `source` attribute.
 
-![HTML Attribute Completion](./images/vscode_lwc_html_attr.png)
+![HTML Attribute Completion](../../../images/vscode_lwc_html_attr.png)
 
 ## View Documentation on Hover
 
 VS Code displays documentation when you hover over a standard Lightning web component in the `lightning` namespace as well as the `c` namespace, if you provide documentation for your custom components. Here is the documentation that displays for `lightning-layout`. The dropdown also provides a link to view the component in the Component Library.
 
-![Documentation on Hover](./images/vscode_lwc_hover.png)
+![Documentation on Hover](../../../images/vscode_lwc_hover.png)
 
 ## Linting
 
@@ -71,7 +71,7 @@ Linting provides errors about malformed or suspicious-looking code while you edi
 
 In this example, when hovering over `onpress`, the linter reports that you cannot name an API property starting with "on."
 
-![Linter Example with Hover](./images/vscode_lwc_linting_press.png)
+![Linter Example with Hover](../../../images/vscode_lwc_linting_press.png)
 
 ### Peek Problem and Quick Fix
 
@@ -79,17 +79,17 @@ VS Code has a range of actions to quickly address problems and refactor code, in
 
 Clicking **Peek Problem** on the error message highlights the line where the linter found the error. If the message says there is more than one error, click the down arrow in the message's upper right corner to see the others.
 
-![Linter Example with Peek](./images/vscode_lwc_peek.png)
+![Linter Example with Peek](../../../images/vscode_lwc_peek.png)
 
 Clicking **Quick Fix** provides options to disable the warning on valid API names in the line or in the file, and links to the documentation. You can see these same options by clicking on the yellow lightbulb icon next to `@api onpress;`.
 
-![Linter Example with Quick Fix](./images/vscode_lwc_quickfix.png)
+![Linter Example with Quick Fix](../../../images/vscode_lwc_quickfix.png)
 
 ### Errors and Warnings
 
 File and compiler errors display on hover. Here, when `@track` is hovered over, the error message says that it must be declared.
 
-![Documentation on Hover](./images/vscode_lwc_track.png)
+![Documentation on Hover](../../../images/vscode_lwc_track.png)
 
 ## Code Navigation
 
@@ -97,8 +97,14 @@ VS Code provides shortcuts to preview or jump to definitions within your code wi
 
 To preview a definition, hold down **Ctrl** (Windows or Linux) or **Command** (macOS) and hover over the item whose definition you want to see. This example shows a preview of the source of a `c` namespace component.
 
-![View source of a c namespace component](./images/vscode_lwc_commandhover.png)
+![View source of a c namespace component](../../../images/vscode_lwc_commandhover.png)
 
 To view a definition, right-click the item and select **Peek Definition**, or press **Alt+F12**.
 
 To jump to the location of a definition, right-click the item and select **Go to Definition**, or press **F12**.
+
+## Supporting js-meta.xml
+
+VS Code provides intellisense support through integrating XML plugin by Red-hat for js-meta.xml. It supports features that comes out of the box by the extension, such as but not limited to auto suggestion, syntax error reporting, renaming support, automatic code generation and more.
+
+![View suggestions for target in js-meta.xml](../../../images/vscode-lwc-jsmeta-intellisense.png)
