@@ -29,6 +29,7 @@ import {
   forceLightningLwcStop
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
+import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import {
@@ -107,6 +108,9 @@ export async function activate(context: ExtensionContext) {
 
   // Start the LWC Language Server
   startLWCLanguageServer(context);
+
+  // Creates resources for js-meta.xml to work
+  metaSupport.getMetaSupport();
 
   if (workspaceType === lspCommon.WorkspaceType.SFDX) {
     // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
