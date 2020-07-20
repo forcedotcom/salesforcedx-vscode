@@ -82,7 +82,7 @@ export class MetaSupport {
             pattern: '**/*js-meta.xml'
           }]);
         }
-        setupRedhatXml();
+        setupRedhatXml().catch(err => console.log('An Error occured: ' + err));
 
       } else {
         vscode.window.showInformationMessage('Salesforce js-meta.xml intellisense requires RedHat XML Plugin Version 0.13.0 above');
