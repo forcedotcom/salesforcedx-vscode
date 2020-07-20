@@ -262,10 +262,12 @@ async function selectPlatformAndExecute(
   let targetName: string | undefined;
 
   try {
-    const result = await deviceListOutput.getCmdResult(deviceListExecution);
-    const jsonString = result.substring(result.indexOf('{'));
-    const json = JSON.parse(jsonString);
-    const devices = json.result as any[];
+    const result: string = await deviceListOutput.getCmdResult(
+      deviceListExecution
+    );
+    const jsonString: string = result.substring(result.indexOf('{'));
+    const json: any = JSON.parse(jsonString);
+    const devices: any[] = json.result as any[];
 
     devices.forEach(device => {
       const label = isAndroid ? device.displayName : device.name;

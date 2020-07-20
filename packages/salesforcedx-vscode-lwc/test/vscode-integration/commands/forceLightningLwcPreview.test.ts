@@ -102,17 +102,6 @@ const androidDeviceListJson = `
   }
 `;
 
-const createDeviceLabelText = nls.localize(
-  'force_lightning_lwc_preview_create_virtual_device_label'
-);
-const createDeviceDetailText = nls.localize(
-  'force_lightning_lwc_preview_create_virtual_device_detail'
-);
-const createNewDeviceOption: vscode.QuickPickItem = {
-  label: createDeviceLabelText,
-  detail: createDeviceDetailText
-};
-
 describe('forceLightningLwcPreview', () => {
   let sandbox: SinonSandbox;
   let devServiceStub: any;
@@ -1066,6 +1055,15 @@ describe('forceLightningLwcPreview', () => {
   });
 
   async function doNewDeviceQuickPickTest(isAndroid: Boolean) {
+    const createNewDeviceOption: vscode.QuickPickItem = {
+      label: nls.localize(
+        'force_lightning_lwc_preview_create_virtual_device_label'
+      ),
+      detail: nls.localize(
+        'force_lightning_lwc_preview_create_virtual_device_detail'
+      )
+    };
+
     const deviceName = isAndroid ? 'androidtestname' : 'iostestname';
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
     devServiceStub.isServerHandlerRegistered.returns(true);
