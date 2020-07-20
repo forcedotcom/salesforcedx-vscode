@@ -212,17 +212,31 @@ function getSObjectsDirectory(projectPath: string) {
 export async function checkSObjectsAndRefresh(projectPath: string) {
   if (projectPath) {
     if (!fs.existsSync(getSObjectsDirectory(projectPath))) {
+      telemetryService.sendEventData('sObjectsRefresh',
+        { type: 'No SObjects' },
+        undefined);
       const message = nls.localize('sobjects_refresh_needed');
       const buttonTxt = nls.localize('sobjects_refresh_now');
       const shouldRefreshNow = await notificationService.showInformationMessage(message, buttonTxt);
       if (shouldRefreshNow && shouldRefreshNow === buttonTxt) {
+        telemetryService.sendEventData('sObjectsRefresh',
+          { type: 'Requested Refresh' },
+          undefined);
         initSObjectDefinitions(projectPath).catch(e =>
           telemetryService.sendErrorEvent({
             message: e.message,
             stack: e.stack
           })
         );
+      } else {
+        telemetryService.sendEventData('sObjectsRefresh',
+          { type: 'Refresh Request Cancelled' },
+          undefined);
       }
+    } else {
+      telemetryService.sendEventData('sObjectsRefresh',
+        { type: 'SObjects exist' },
+        undefined);
     }
   }
 }
