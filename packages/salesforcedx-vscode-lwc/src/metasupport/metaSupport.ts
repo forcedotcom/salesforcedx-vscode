@@ -80,7 +80,7 @@ export class MetaSupport {
     } else if (redHatExtension) {
       // semver compares the version id: https://www.npmjs.com/package/semver#prerelease-identifiers
       if (
-        semver.satisfies(redHatExtension!.packageJSON['version'], '>0.13.0')
+        semver.satisfies(redHatExtension!.packageJSON['version'], '>=0.14.0')
       ) {
         // Create required files and folders
         this.createLWCResourceFolder();
@@ -108,7 +108,7 @@ export class MetaSupport {
         setupRedhatXml().catch(err => console.log('An Error occured: ' + err));
       } else {
         vscode.window.showInformationMessage(
-          'Salesforce js-meta.xml intellisense requires RedHat XML Plugin Version 0.13.0 above'
+          'Salesforce js-meta.xml intellisense requires RedHat XML Plugin Version 0.14.0 or above'
         );
       }
     } else {
