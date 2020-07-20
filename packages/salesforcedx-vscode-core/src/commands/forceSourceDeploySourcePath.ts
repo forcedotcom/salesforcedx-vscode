@@ -25,6 +25,7 @@ import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
   createComponentCount,
+  DeployRetrieveLibraryExecutor,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker,

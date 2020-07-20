@@ -23,6 +23,7 @@ import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
   createComponentCount,
+  DeployRetrieveLibraryExecutor,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
