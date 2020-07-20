@@ -8,7 +8,10 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import path = require('path');
+<<<<<<< HEAD
 import semver = require('semver');
+=======
+>>>>>>> f94f73530e1d60914ae9dbb6498a973ba51c1b1e
 
 const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
 
@@ -27,10 +30,17 @@ export class MetaSupport {
     return MetaSupport.instance;
   }
 
+<<<<<<< HEAD
   /**
    * Creates LWCResource folder if not exist
    */
   private createLWCResourceFolder() {
+=======
+  private createLWCResourceFolder() {
+    /**
+     * creates LWCResource folder if not exist
+     */
+>>>>>>> f94f73530e1d60914ae9dbb6498a973ba51c1b1e
     if (!fs.existsSync(MetaSupport.resourceDir)) {
       fs.mkdirSync(MetaSupport.resourceDir);
       fs.mkdirSync(MetaSupport.dir);
@@ -39,10 +49,13 @@ export class MetaSupport {
     }
   }
 
+<<<<<<< HEAD
   /**
    * Copies static XSD and XML files to .sfdx folder.
    * TODO: use npm install to deliever these files.
    */
+=======
+>>>>>>> f94f73530e1d60914ae9dbb6498a973ba51c1b1e
   private getLocalFile(targetFileName: string, destinationPath: string) {
     const thisExtPath = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-lwc'
@@ -56,6 +69,7 @@ export class MetaSupport {
     fs.copyFileSync(resourcepath, destinationPath);
   }
 
+<<<<<<< HEAD
   /**
    * This function creates the js-meta.xml resource folder and
    * duplicates XSD and XML files to the .sfdx folder of developers.
@@ -90,5 +104,16 @@ export class MetaSupport {
     } else {
       console.log('Some error occured in metaSupport');
     }
+=======
+  public getMetaSupport() {
+    /**
+     * This is the public facing fuction that creates the resource folder and duplicates the relative files.
+     */
+    this.createLWCResourceFolder();
+    this.getLocalFile('js-meta.xsd', path.join(MetaSupport.dir, 'js-meta.xsd'));
+    this.getLocalFile('js-meta-home.xml', path.join(MetaSupport.dir, 'js-meta-home.xml'));
+
+    // console.log(require.resolve('lwc-resources'));
+>>>>>>> f94f73530e1d60914ae9dbb6498a973ba51c1b1e
   }
 }
