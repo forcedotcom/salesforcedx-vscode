@@ -172,7 +172,7 @@ commands:
           name: 'Adding the SHA256 to git.'
           command: |
             git add SHA256.md
-            git commit -m "[skip ci] Updated SHA256"
+            git commit -m "Updated SHA256 v${RELEASE_VERSION}"
 
   build-artifacts:
     description: 'Building and archiving extension artifacts.'
