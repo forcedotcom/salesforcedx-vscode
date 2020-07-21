@@ -120,8 +120,6 @@ commands:
       - restore_cache:
           keys:
             - << parameters.base-cache-path >>{{ checksum "package.json" }}
-            # if cache for exact version of 'package.json' is not present, then load the most recent cache
-            - << parameters.base-cache-path >>
 
   save_dependency_cache:
     parameters:
