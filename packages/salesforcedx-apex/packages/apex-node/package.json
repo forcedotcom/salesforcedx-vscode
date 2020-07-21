@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/apex-node",
   "description": "Salesforce js library for Apex",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/index.js",
@@ -30,7 +30,7 @@
     "shx": "0.2.2",
     "sinon": "^7.3.1",
     "ts-node": "^8.7.0",
-    "typescript": "3.7"
+    "typescript": "3.7.5"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
   "keywords": [

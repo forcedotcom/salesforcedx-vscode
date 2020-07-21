@@ -74,6 +74,7 @@ export class Message implements LocalizationProvider {
       }
 
       args.unshift(possibleLabel);
+      // eslint-disable-next-line prefer-spread
       return util.format.apply(util, args);
     }
 

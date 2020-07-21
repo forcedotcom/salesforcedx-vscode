@@ -132,10 +132,7 @@ describe('Apex Log Service Tests', () => {
     const filePath = path.join('file', 'path', 'logs');
     const logIds = ['07WgsWfad', '9SiomgS'];
     sandboxStub.stub(LogService.prototype, 'getLogIds').resolves(logIds);
-    const createStreamStub = sandboxStub.stub(fs, 'createWriteStream').returns({
-      //@ts-ignore
-      write: () => {}
-    });
+    const createStreamStub = sandboxStub.stub(fs, 'createWriteStream');
     const logs = ['48jnskd', '57fskjf'];
     toolingRequestStub.onFirstCall().resolves(logs[0]);
     toolingRequestStub.onSecondCall().resolves(logs[1]);
@@ -156,10 +153,7 @@ describe('Apex Log Service Tests', () => {
     const existsStub = sandboxStub.stub(fs, 'existsSync');
     existsStub.onFirstCall().returns(false);
     existsStub.onSecondCall().returns(true);
-    const createStreamStub = sandboxStub.stub(fs, 'createWriteStream').returns({
-      //@ts-ignore
-      write: () => {}
-    });
+    const createStreamStub = sandboxStub.stub(fs, 'createWriteStream');
     toolingRequestStub.onFirstCall().resolves(logs[0]);
     toolingRequestStub.onSecondCall().resolves(logs[1]);
     const response = await apexLogGet.getLogs({
