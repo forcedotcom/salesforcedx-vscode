@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import * as vscode from 'vscode';
-import path = require('path');
 import { nls } from '../messages';
 
 const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
@@ -18,14 +18,6 @@ export class MetaSupport {
   private static lwcResourceUri = path.join(
     MetaSupport.resourceUri,
     'lwcResources'
-  );
-  private static dir = path.join(
-    vscode.workspace.rootPath!,
-    MetaSupport.lwcResourceUri
-  );
-  private static resourceDir = path.join(
-    vscode.workspace.rootPath!,
-    MetaSupport.resourceUri
   );
 
   public static initializeSupport() {
