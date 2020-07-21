@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'fs';
 import * as vscode from 'vscode';
 import path = require('path');
-import semver = require('semver');
+import { nls } from '../messages';
 
 const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
 
@@ -43,9 +42,7 @@ export class MetaSupport {
    * @returns - a list of path for each file name
    */
   private getLocalFilePath(targetFileNames: [string]) {
-    const thisExtPath = vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-lwc'
-    )!.extensionPath;
+    const thisExtPath = vscode.extensions.getExtension(EXTENSION_NAME)!.extensionPath;
     const listOfPaths: string[] = [];
 
     targetFileNames.forEach(targetFileName => {
@@ -53,6 +50,19 @@ export class MetaSupport {
     });
 
     return listOfPaths;
+  }
+
+  /**
+   * A Promise to setup Redhat XML API
+   * @param inputCatalogs - a list of catalog file names
+   * @param inputFileAssociations - a list of dictionary specifying file associations
+   * @returns - None
+   */
+  private async setupRedhatXml(inputCatalogs: string[], inputFileAssociations: Array<{ systemId: string; pattern: string; }>) {
+    const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
+    const extensionApi = await redHatExtension!.activate();
+    extensionApi.addXMLCatalogs(inputCatalogs);
+    extensionApi.addXMLFileAssociations(inputFileAssociations);
   }
 
   /**
@@ -64,22 +74,11 @@ export class MetaSupport {
     // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     if (redHatExtension === undefined) {
-      vscode.window.showInformationMessage(
-        'Salesforce js-meta.xml intellisense requires RedHat XML Plugin'
-      );
+      vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_no_redhat_extension_found'));
     } else if (redHatExtension) {
-      // semver compares the version id: https://www.npmjs.com/package/semver#prerelease-identifiers
-      if (
-        semver.satisfies(redHatExtension!.packageJSON['version'], '>0.13.0')
-      ) {
-        // Append Redhat XML Settings
-        async function setupRedhatXml(inputCatalogs: string[], inputFileAssociations: Array<{ systemId: string; pattern: string; }>) {
-          const extensionApi = await redHatExtension!.activate();
-          extensionApi.addXMLCatalogs(inputCatalogs);
-          extensionApi.addXMLFileAssociations(inputFileAssociations);
-
-        }
-        // find the path to the sttic resouces
+      const pluginVersionNumber = redHatExtension!.packageJSON['version'];
+      // checks plugin version greater than 0.13.0, might need to change.
+      if (parseInt(pluginVersionNumber.split('.')[1], 10) >= 13 && parseInt(pluginVersionNumber.split('.')[2], 10) > 0) {
         const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
         const fileAssociations = [
           {
@@ -87,11 +86,9 @@ export class MetaSupport {
             pattern: '**/*js-meta.xml'
           }
         ];
-        setupRedhatXml(catalogs, fileAssociations).catch(err => console.log('An Error occured: ' + err));
+        this.setupRedhatXml(catalogs, fileAssociations).catch(err => console.log('An Error occured: ' + err));
       } else {
-        vscode.window.showInformationMessage(
-          'Salesforce js-meta.xml intellisense requires RedHat XML Plugin Version 0.14.0 or above'
-        );
+        vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_deprecated_redhat_extension'));
       }
     }
   }
