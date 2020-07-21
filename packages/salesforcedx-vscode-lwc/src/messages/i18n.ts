@@ -86,5 +86,7 @@ export const messages = {
   force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
   force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
   force_lightning_lwc_preview_desktop_description:
-    'Preview component on desktop browser'
+    'Preview component on desktop browser',
+  force_lightning_lwc_no_redhat_extension_found: 'Salesforce js-meta.xml intellisense requires RedHat XML Plugin',
+  force_lightning_lwc_deprecated_redhat_extension: 'Salesforce js-meta.xml intellisense requires RedHat XML Plugin Version > 0.13.0'
 };
