@@ -10,6 +10,7 @@ export type ApexExecuteOptions = CommonOptions & {
   targetUsername?: string;
   apexFilePath?: string;
   apexCode?: string | Buffer;
+  userInput?: boolean;
 };
 
 export const soapEnv = 'soapenv:Envelope';

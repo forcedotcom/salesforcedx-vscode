@@ -9,6 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { assert, expect } from 'chai';
 import * as fs from 'fs';
+import * as readline from 'readline';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { ExecuteService } from '../../src/execute';
 import { nls } from '../../src/i18n';
@@ -17,7 +18,7 @@ import { ExecAnonResult, SoapResponse } from '../../src/types/execute';
 
 const $$ = testSetup();
 
-describe('Apex Execute Tests', () => {
+describe('Apex Execute Tests', async () => {
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sandboxStub: SinonSandbox;
@@ -287,4 +288,74 @@ describe('Apex Execute Tests', () => {
 
     expect(response).to.eql(expectedResult);
   });
+
+  it('should throw an error if no option is specified', async () => {
+    try {
+      const executeService = new ExecuteService(mockConnection);
+      await executeService.executeAnonymous({});
+      assert.fail();
+    } catch (e) {
+      assert.equal(nls.localize('option_exec_anon_error'), e.message);
+    }
+  });
+
+  it('should throw an error if user input fails', async () => {
+    const errorText = 'This is the error';
+    const on = (event: string, listener: (err?: Error) => {}) => {
+      try {
+        if (event === 'error') {
+          listener(new Error(errorText));
+        }
+        listener();
+      } catch (e) {
+        throw e;
+      }
+    };
+    sandboxStub
+      .stub(readline, 'createInterface')
+      //@ts-ignore
+      .returns({ on });
+
+    try {
+      const executeService = new ExecuteService(mockConnection);
+      await executeService.getUserInput();
+    } catch (e) {
+      assert.equal(
+        nls.localize('unexpected_exec_anon_input_error', errorText),
+        e.message
+      );
+    }
+  });
+
+  it('should process user input correctly', async () => {
+    const inputText = 'This should be the only text';
+    const on = (event: string, listener: (input: string) => {}) => {
+      listener(inputText);
+    };
+    sandboxStub
+      .stub(readline, 'createInterface')
+      //@ts-ignore
+      .returns({ on });
+
+    const executeService = new ExecuteService(mockConnection);
+    const text = await executeService.getUserInput();
+    expect(text).to.equal(`${inputText}\n`);
+  });
+
+  it('should throw error if user is idle', async () => {
+    const on = (event: string, listener: () => {}) => {
+      listener();
+    };
+    sandboxStub
+      .stub(readline, 'createInterface')
+      //@ts-ignore
+      .returns({ on });
+  });
+
+  try {
+    const executeService = new ExecuteService(mockConnection);
+    await executeService.getUserInput();
+  } catch (e) {
+    assert.equal(nls.localize('exec_anon_input_timeout'), e.message);
+  }
 });

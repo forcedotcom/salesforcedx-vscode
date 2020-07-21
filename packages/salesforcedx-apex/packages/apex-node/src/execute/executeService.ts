@@ -18,6 +18,7 @@ import {
 import { ExecuteAnonymousResponse, ApexExecuteOptions } from '../types';
 import { nls } from '../i18n';
 import { encodeBody } from './utils';
+import * as readline from 'readline';
 
 export class ExecuteService {
   public readonly connection: Connection;
@@ -29,18 +30,7 @@ export class ExecuteService {
   public async executeAnonymous(
     options: ApexExecuteOptions
   ): Promise<ExecuteAnonymousResponse> {
-    let data: string;
-
-    if (options.apexFilePath) {
-      if (!existsSync(options.apexFilePath)) {
-        throw new Error(
-          nls.localize('file_not_found_error', options.apexFilePath)
-        );
-      }
-      data = readFileSync(options.apexFilePath, 'utf8');
-    } else {
-      data = String(options.apexCode);
-    }
+    const data = await this.getApexCode(options);
 
     let count = 0;
     while (count < 2) {
@@ -63,6 +53,53 @@ export class ExecuteService {
         }
       }
     }
+  }
+
+  public async getApexCode(options: ApexExecuteOptions): Promise<string> {
+    if (options.apexCode) {
+      return String(options.apexCode);
+    } else if (options.apexFilePath) {
+      if (!existsSync(options.apexFilePath)) {
+        throw new Error(
+          nls.localize('file_not_found_error', options.apexFilePath)
+        );
+      }
+      return readFileSync(options.apexFilePath, 'utf8');
+    } else if (options.userInput) {
+      return await this.getUserInput();
+    } else {
+      throw new Error(nls.localize('option_exec_anon_error'));
+    }
+  }
+
+  public async getUserInput(): Promise<string> {
+    process.stdout.write(nls.localize('exec_anon_input_prompt'));
+    return new Promise<string>((resolve, reject) => {
+      const readInterface = readline.createInterface(
+        process.stdin,
+        process.stdout
+      );
+      const timeout = setTimeout(() => {
+        reject(new Error(nls.localize('exec_anon_input_timeout')));
+        readInterface.close();
+      }, 10000);
+
+      let apexCode = '';
+      readInterface.on('line', (input: string) => {
+        timeout.refresh();
+        apexCode = apexCode + input + '\n';
+      });
+      readInterface.on('close', () => {
+        resolve(apexCode);
+      });
+      readInterface.on('error', (err: Error) => {
+        reject(
+          new Error(
+            nls.localize('unexpected_exec_anon_input_error', err.message)
+          )
+        );
+      });
+    });
   }
 
   // Tooling API execute anonymous apex REST endpoint was not used because
@@ -106,6 +143,7 @@ export class ExecuteService {
     return formattedResponse;
   }
 
+  // TODO: make these general utils accessible to other classes
   public async connectionRequest(
     requestData: RequestData
   ): Promise<SoapResponse> {
