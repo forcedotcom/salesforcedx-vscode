@@ -37,32 +37,22 @@ export class MetaSupport {
   }
 
   /**
-   * Creates LWCResource folder if not exist
-   */
-  private createLWCResourceFolder() {
-    if (!fs.existsSync(MetaSupport.resourceDir)) {
-      fs.mkdirSync(MetaSupport.resourceDir);
-      fs.mkdirSync(MetaSupport.dir);
-    } else if (!fs.existsSync(MetaSupport.dir)) {
-      fs.mkdirSync(MetaSupport.dir);
-    }
-  }
-
-  /**
-   * Copies static XSD and XML files to .sfdx folder.
+   * Returns path to the XSD and XML files from the extension folder.
    * TODO: use npm install to deliever these files.
+   * @param targetFileName - a list of file names
+   * @returns - a list of path for each file name
    */
-  private getLocalFile(targetFileName: string, destinationPath: string) {
+  private getLocalFilePath(targetFileNames: [string]) {
     const thisExtPath = vscode.extensions.getExtension(
       'salesforce.salesforcedx-vscode-lwc'
     )!.extensionPath;
-    const resourcepath = path.join(
-      thisExtPath,
-      'resources',
-      'static',
-      targetFileName
-    );
-    fs.copyFileSync(resourcepath, destinationPath);
+    const listOfPaths: string[] = [];
+
+    targetFileNames.forEach(targetFileName => {
+      listOfPaths.push(path.join(thisExtPath, 'resources', 'static', targetFileName));
+    });
+
+    return listOfPaths;
   }
 
   /**
@@ -80,39 +70,29 @@ export class MetaSupport {
     } else if (redHatExtension) {
       // semver compares the version id: https://www.npmjs.com/package/semver#prerelease-identifiers
       if (
-        semver.satisfies(redHatExtension!.packageJSON['version'], '>=0.14.0')
+        semver.satisfies(redHatExtension!.packageJSON['version'], '>0.13.0')
       ) {
-        // Create required files and folders
-        this.createLWCResourceFolder();
-        this.getLocalFile(
-          'js-meta.xsd',
-          path.join(MetaSupport.dir, 'js-meta.xsd')
-        );
-        this.getLocalFile(
-          'js-meta-home.xml',
-          path.join(MetaSupport.dir, 'js-meta-home.xml')
-        );
         // Append Redhat XML Settings
-        async function setupRedhatXml() {
+        async function setupRedhatXml(inputCatalogs: string[], inputFileAssociations: Array<{ systemId: string; pattern: string; }>) {
           const extensionApi = await redHatExtension!.activate();
-          extensionApi.addXMLCatalogs([
-            '.sfdx/resources/lwcResources/js-meta-home.xml'
-          ]);
-          extensionApi.addXMLFileAssociations([
-            {
-              systemId: '.sfdx/resources/lwcResources/js-meta.xsd',
-              pattern: '**/*js-meta.xml'
-            }
-          ]);
+          extensionApi.addXMLCatalogs(inputCatalogs);
+          extensionApi.addXMLFileAssociations(inputFileAssociations);
+
         }
-        setupRedhatXml().catch(err => console.log('An Error occured: ' + err));
+        // find the path to the sttic resouces
+        const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
+        const fileAssociations = [
+          {
+            systemId: this.getLocalFilePath(['js-meta.xsd'])[0],
+            pattern: '**/*js-meta.xml'
+          }
+        ];
+        setupRedhatXml(catalogs, fileAssociations).catch(err => console.log('An Error occured: ' + err));
       } else {
         vscode.window.showInformationMessage(
           'Salesforce js-meta.xml intellisense requires RedHat XML Plugin Version 0.14.0 or above'
         );
       }
-    } else {
-      console.log('Some error occured in metaSupport');
     }
   }
 }
