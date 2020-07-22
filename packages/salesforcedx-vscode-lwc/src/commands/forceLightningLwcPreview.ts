@@ -43,7 +43,7 @@ export const enum PlatformName {
   iOS = 'iOS'
 }
 
-export interface IOSSimulatorDevice {
+interface IOSSimulatorDevice {
   name: string;
   udid: string;
   state: string;
@@ -51,7 +51,7 @@ export interface IOSSimulatorDevice {
   isAvailable: boolean;
 }
 
-export interface AndroidVirtualDevice {
+interface AndroidVirtualDevice {
   name: string;
   displayName: string;
   deviceName: string;
