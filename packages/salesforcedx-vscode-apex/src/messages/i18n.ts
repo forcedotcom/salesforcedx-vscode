@@ -57,6 +57,6 @@ export const messages = {
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
-  sobjects_refresh_needed: 'To take advantage of autocompletion for SObjects in Apex code, run the SFDX: Refresh SObject Definitions command.',
-  sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions now'
+  sobjects_refresh_needed: "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
+  sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions'
 };
