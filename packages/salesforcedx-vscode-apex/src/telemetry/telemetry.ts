@@ -108,6 +108,16 @@ export class TelemetryService {
     }
   }
 
+  public sendEventData(
+    eventName: string,
+    properties?: { [key: string]: string },
+    measures?: { [key: string]: number }
+  ): void {
+    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+      this.reporter.sendTelemetryEvent(eventName, properties, measures);
+    }
+  }
+
   public getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
