@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
+  checkSObjectsAndRefresh,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
@@ -90,6 +91,7 @@ export async function activate(context: vscode.ExtensionContext) {
             const sobjectRefreshStartup: boolean = vscode.workspace
               .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
               .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+
             if (sobjectRefreshStartup) {
               initSObjectDefinitions(
                 vscode.workspace.workspaceFolders![0].uri.fsPath
@@ -99,8 +101,14 @@ export async function activate(context: vscode.ExtensionContext) {
                   stack: e.stack
                 })
               );
+            } else {
+              checkSObjectsAndRefresh(vscode.workspace.workspaceFolders![0].uri.fsPath).catch(e =>
+                telemetryService.sendErrorEvent({
+                  message: e.message,
+                  stack: e.stack
+                })
+              );
             }
-
             await testOutlineProvider.refresh();
           });
         }
