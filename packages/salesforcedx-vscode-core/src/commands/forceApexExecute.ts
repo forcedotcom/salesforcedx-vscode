@@ -109,10 +109,14 @@ export class AnonApexGatherer
       }
 
       const document = editor.document;
-      if (!editor.selection.isEmpty) {
+      if (!editor.selection.isEmpty || !fs.existsSync(document.uri.fsPath)) {
         return {
           type: 'CONTINUE',
-          data: { apexCode: document.getText(editor.selection) }
+          data: {
+            apexCode: !editor.selection.isEmpty
+              ? document.getText(editor.selection)
+              : document.getText()
+          }
         };
       }
 

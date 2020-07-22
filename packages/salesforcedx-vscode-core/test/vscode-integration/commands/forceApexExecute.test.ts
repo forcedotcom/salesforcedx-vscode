@@ -6,6 +6,7 @@
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -44,6 +45,7 @@ describe('AnonApexGatherer', async () => {
       },
       selection: { isEmpty: true }
     };
+    sb.stub(fs, 'existsSync').returns(true);
     sb.stub(vscode.window, 'activeTextEditor').get(() => {
       return mockActiveTextEditor;
     });
@@ -53,6 +55,33 @@ describe('AnonApexGatherer', async () => {
       fileName: string;
     }>;
     expect(result.data.fileName).to.equal(fileName);
+  });
+
+  it('should return the text in file if file has not been created yet', async () => {
+    const text = 'System.assert(true);';
+    const fileName = path.join(
+      getRootWorkspacePath(),
+      '.sfdx',
+      'tools',
+      'tempApex.input'
+    );
+    const mockActiveTextEditor = {
+      document: {
+        uri: { fsPath: fileName },
+        getText: () => text
+      },
+      selection: { isEmpty: true, text: 'System.assert(false);' }
+    };
+    sb.stub(vscode.window, 'activeTextEditor').get(() => {
+      return mockActiveTextEditor;
+    });
+    sb.stub(fs, 'existsSync').returns(false);
+
+    const fileNameGatherer = new AnonApexGatherer();
+    const result = (await fileNameGatherer.gather()) as ContinueResponse<{
+      apexCode: string;
+    }>;
+    expect(result.data.apexCode).to.equal(text);
   });
 
   it(`should return the currently highlighted 'selection' to execute anonymous apex`, async () => {
