@@ -84,6 +84,11 @@ export const messages = {
   force_lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'.",
   force_lightning_lwc_android_start: "Starting Android Emulator '%s'.",
   force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
+  force_lightning_lwc_preview_create_virtual_device_label: 'New...',
+  force_lightning_lwc_preview_create_virtual_device_detail:
+    'Create a Virtual Device',
+  force_lightning_lwc_preview_select_virtual_device:
+    'Select a Virtual Device...',
   force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
   force_lightning_lwc_preview_desktop_description:
     'Preview component on desktop browser'
