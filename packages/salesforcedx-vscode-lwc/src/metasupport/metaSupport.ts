@@ -13,12 +13,6 @@ const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
 
 export class MetaSupport {
   private static instance: MetaSupport;
-  private static sfdxUri = '.sfdx';
-  private static resourceUri = path.join(MetaSupport.sfdxUri, 'resources');
-  private static lwcResourceUri = path.join(
-    MetaSupport.resourceUri,
-    'lwcResources'
-  );
 
   public static initializeSupport() {
     if (!MetaSupport.instance) {
@@ -52,9 +46,14 @@ export class MetaSupport {
    */
   private async setupRedhatXml(inputCatalogs: string[], inputFileAssociations: Array<{ systemId: string; pattern: string; }>) {
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
-    const extensionApi = await redHatExtension!.activate();
-    extensionApi.addXMLCatalogs(inputCatalogs);
-    extensionApi.addXMLFileAssociations(inputFileAssociations);
+    try {
+      const extensionApi = await redHatExtension!.activate();
+      extensionApi.addXMLCatalogs(inputCatalogs);
+      extensionApi.addXMLFileAssociations(inputFileAssociations);
+    } catch (error) {
+      vscode.window.showErrorMessage(nls.localize('force_lightning_lwc_fail_redhat_extension'));
+      vscode.window.showErrorMessage(error);
+    }
   }
 
   /**
@@ -78,7 +77,7 @@ export class MetaSupport {
             pattern: '**/*js-meta.xml'
           }
         ];
-        this.setupRedhatXml(catalogs, fileAssociations).catch(err => console.log('An Error occured: ' + err));
+        this.setupRedhatXml(catalogs, fileAssociations);
       } else {
         vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_deprecated_redhat_extension'));
       }
