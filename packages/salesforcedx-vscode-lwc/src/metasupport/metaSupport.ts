@@ -77,7 +77,7 @@ export class MetaSupport {
             pattern: '**/*js-meta.xml'
           }
         ];
-        this.setupRedhatXml(catalogs, fileAssociations);
+        this.setupRedhatXml(catalogs, fileAssociations).catch(err => vscode.window.showErrorMessage(nls.localize('force_lightning_lwc_fail_redhat_extension')));
       } else {
         vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_deprecated_redhat_extension'));
       }
