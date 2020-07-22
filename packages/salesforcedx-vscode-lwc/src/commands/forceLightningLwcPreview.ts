@@ -43,6 +43,23 @@ export const enum PlatformName {
   iOS = 'iOS'
 }
 
+export interface IOSSimulatorDevice {
+  name: string;
+  udid: string;
+  state: string;
+  runtimeId: string;
+  isAvailable: boolean;
+}
+
+export interface AndroidVirtualDevice {
+  name: string;
+  displayName: string;
+  deviceName: string;
+  path: string;
+  target: string;
+  api: string;
+}
+
 interface PreviewQuickPickItem extends vscode.QuickPickItem {
   label: string;
   detail: string;
@@ -265,17 +282,26 @@ async function selectPlatformAndExecute(
     const result: string = await deviceListOutput.getCmdResult(
       deviceListExecution
     );
-    const jsonString: string = result.substring(result.indexOf('{'));
-    const json: any = JSON.parse(jsonString);
-    const devices: any[] = json.result as any[];
 
-    devices.forEach(device => {
-      const label = isAndroid ? device.displayName : device.name;
-      const detail = isAndroid
-        ? `${device.target}, ${device.api}`
-        : device.runtimeId;
-      options.push({ label, detail });
-    });
+    const jsonString: string = result.substring(result.indexOf('{'));
+
+    if (isAndroid) {
+      const devices: AndroidVirtualDevice[] = JSON.parse(jsonString)
+        .result as AndroidVirtualDevice[];
+      devices.forEach(device => {
+        const label: string = device.displayName;
+        const detail: string = `${device.target}, ${device.api}`;
+        options.push({ label, detail });
+      });
+    } else {
+      const devices: IOSSimulatorDevice[] = JSON.parse(jsonString)
+        .result as IOSSimulatorDevice[];
+      devices.forEach(device => {
+        const label: string = device.name;
+        const detail: string = device.runtimeId;
+        options.push({ label, detail });
+      });
+    }
   } catch (e) {
     // If device enumeration fails due to exit code 127
     // (i.e. lwc on mobile sfdx plugin is not installed)
