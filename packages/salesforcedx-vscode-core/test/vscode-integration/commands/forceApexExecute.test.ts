@@ -41,11 +41,12 @@ describe('AnonApexGatherer', async () => {
     );
     const mockActiveTextEditor = {
       document: {
-        uri: { fsPath: fileName }
+        uri: { fsPath: fileName },
+        isUntitled: false
       },
       selection: { isEmpty: true }
     };
-    sb.stub(fs, 'existsSync').returns(true);
+
     sb.stub(vscode.window, 'activeTextEditor').get(() => {
       return mockActiveTextEditor;
     });
@@ -68,14 +69,14 @@ describe('AnonApexGatherer', async () => {
     const mockActiveTextEditor = {
       document: {
         uri: { fsPath: fileName },
-        getText: () => text
+        getText: () => text,
+        isUntitled: true
       },
       selection: { isEmpty: true, text: 'System.assert(false);' }
     };
     sb.stub(vscode.window, 'activeTextEditor').get(() => {
       return mockActiveTextEditor;
     });
-    sb.stub(fs, 'existsSync').returns(false);
 
     const fileNameGatherer = new AnonApexGatherer();
     const result = (await fileNameGatherer.gather()) as ContinueResponse<{
@@ -87,7 +88,8 @@ describe('AnonApexGatherer', async () => {
   it(`should return the currently highlighted 'selection' to execute anonymous apex`, async () => {
     const mockActiveTextEditor = {
       document: {
-        getText: (doc: { isEmpty: boolean; text: string }) => doc.text
+        getText: (doc: { isEmpty: boolean; text: string }) => doc.text,
+        isUntitled: true
       },
       selection: { isEmpty: false, text: 'System.assert(true);' }
     };
