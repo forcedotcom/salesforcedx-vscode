@@ -10,6 +10,8 @@
 
 - We fixed some minor under-the-hood bugs.
 
+- Fix `SFDX: Execute Anonymous Apex with Editor Contents` not working on untitled editors ([PR #2370](https://github.com/forcedotcom/salesforcedx-vscode/pull/2370), [Issue #2369](https://github.com/forcedotcom/salesforcedx-vscode/issues/2369))
+
 # 49.1.0 - July 18, 2020
 
 ## Fixed
