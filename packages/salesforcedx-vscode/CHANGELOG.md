@@ -1,3 +1,17 @@
+# 49.2.0 - July 24, 2020
+
+## Fixed
+
+#### docs
+
+- Update [Remote Development - Containers](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) to remove references to the sample repo. ([PR #2352](https://github.com/forcedotcom/salesforcedx-vscode/pull/2352))
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs.
+
+- Fix `SFDX: Execute Anonymous Apex with Editor Contents` to work on untitled editors ([PR #2370](https://github.com/forcedotcom/salesforcedx-vscode/pull/2370), [Issue #2369](https://github.com/forcedotcom/salesforcedx-vscode/issues/2369))
+
 # 49.1.0 - July 18, 2020
 
 ## Fixed
