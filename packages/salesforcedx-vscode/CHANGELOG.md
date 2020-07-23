@@ -1,3 +1,33 @@
+# 49.2.0 - July 24, 2020
+
+## Fixed
+
+#### docs
+
+- Update [Remote Development - Containers](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) ([PR #2352](https://github.com/forcedotcom/salesforcedx-vscode/pull/2352))
+
+#### salesforcedx-vscode-core
+
+- We fixed some minor under-the-hood bugs.
+
+# 49.1.0 - July 18, 2020
+
+## Fixed
+
+#### docs
+
+- Update whitelist to allowlist ([PR #2323](https://github.com/forcedotcom/salesforcedx-vscode/pull/2323))
+
+- Update prettier-plugin-apex documentation ([PR #2329](https://github.com/forcedotcom/salesforcedx-vscode/pull/2329), [Issue #2328](https://github.com/forcedotcom/salesforcedx-vscode/issues/2328))-Contribution by [@jefersonchaves](https://github.com/jefersonchaves)
+
+#### salesforcedx-vscode-core
+
+- Performance enhancements for `SFDX: Execute Anonymous Apex with Editor Contents` command ([PR #2291](https://github.com/forcedotcom/salesforcedx-vscode/pull/2291))
+
+#### salesforcedx-vscode-lwc
+
+- Support debugging LWC tests in VSCode's new JavaScript debugger ([PR #2345](https://github.com/forcedotcom/salesforcedx-vscode/pull/2345))
+
 # 48.24.0 - July 9, 2020
 
 ## Fixed
