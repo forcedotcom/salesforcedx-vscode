@@ -40,10 +40,12 @@ describe('AnonApexGatherer', async () => {
     );
     const mockActiveTextEditor = {
       document: {
-        uri: { fsPath: fileName }
+        uri: { fsPath: fileName },
+        isUntitled: false
       },
       selection: { isEmpty: true }
     };
+
     sb.stub(vscode.window, 'activeTextEditor').get(() => {
       return mockActiveTextEditor;
     });
@@ -55,10 +57,38 @@ describe('AnonApexGatherer', async () => {
     expect(result.data.fileName).to.equal(fileName);
   });
 
+  it('should return the text in file if file has not been created yet', async () => {
+    const text = 'System.assert(true);';
+    const fileName = path.join(
+      getRootWorkspacePath(),
+      '.sfdx',
+      'tools',
+      'tempApex.input'
+    );
+    const mockActiveTextEditor = {
+      document: {
+        uri: { fsPath: fileName },
+        getText: () => text,
+        isUntitled: true
+      },
+      selection: { isEmpty: true, text: 'System.assert(false);' }
+    };
+    sb.stub(vscode.window, 'activeTextEditor').get(() => {
+      return mockActiveTextEditor;
+    });
+
+    const fileNameGatherer = new AnonApexGatherer();
+    const result = (await fileNameGatherer.gather()) as ContinueResponse<{
+      apexCode: string;
+    }>;
+    expect(result.data.apexCode).to.equal(text);
+  });
+
   it(`should return the currently highlighted 'selection' to execute anonymous apex`, async () => {
     const mockActiveTextEditor = {
       document: {
-        getText: (doc: { isEmpty: boolean; text: string }) => doc.text
+        getText: (doc: { isEmpty: boolean; text: string }) => doc.text,
+        isUntitled: true
       },
       selection: { isEmpty: false, text: 'System.assert(true);' }
     };
