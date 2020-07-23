@@ -1,0 +1,54 @@
+{
+  "name": "salesforcedx-vscode-soql",
+  "displayName": "SOQL",
+  "description": "Provides code-editing features for SOQL",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "0.0.1",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.46.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "12.0.12",
+    "@types/vscode": "^1.46.0",
+    "typescript": "3.7.5"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "tslint --project .",
+    "watch": "tsc -watch -p ."
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/src",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "soqlCustom.soql",
+        "displayName": "SOQL Builder",
+        "selector": [
+          {
+            "filenamePattern": "*.soql"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  }
+}
