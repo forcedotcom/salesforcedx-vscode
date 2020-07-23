@@ -6,7 +6,6 @@
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
-import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
