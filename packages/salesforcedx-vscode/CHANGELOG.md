@@ -4,7 +4,7 @@
 
 #### docs
 
-- Update [Remote Development - Containers](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) ([PR #2352](https://github.com/forcedotcom/salesforcedx-vscode/pull/2352))
+- Update [Remote Development - Containers](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) to remove references to the sample repo. ([PR #2352](https://github.com/forcedotcom/salesforcedx-vscode/pull/2352))
 
 #### salesforcedx-vscode-core
 
