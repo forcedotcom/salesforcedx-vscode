@@ -1,0 +1,11 @@
+# Jest coverage
+coverage/
+
+# Default lib folder
+lib/
+
+# Default dist folder
+dist/
+
+# Default resources folder
+src/resources
