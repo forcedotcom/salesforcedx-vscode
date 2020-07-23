@@ -32,7 +32,18 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToHtml = path.join(__dirname, '../../../media', 'index.html');
-    const html = fs.readFileSync(pathToHtml).toString();
+    let html = fs.readFileSync(pathToHtml).toString();
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'app.js'))
+    );
+    const zeroDotScriptUri = webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(this.context.extensionPath, 'media', '0.app.js')
+      )
+    );
+
+    html = html.replace('./0.app.js', `${zeroDotScriptUri}`);
+    html = html.replace('./app.js', `${scriptUri}`);
 
     return html;
   }
