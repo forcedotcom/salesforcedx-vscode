@@ -32,7 +32,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToHtml = path.join(__dirname, '../../../media', 'index.html');
-    let html = fs.readFileSync(pathToHtml).toString();
+    const html = fs.readFileSync(pathToHtml).toString();
 
     return html;
   }
