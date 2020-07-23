@@ -9,10 +9,6 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "galleryBanner": {
-    "color": "#ECECEC",
-    "theme": "light"
-  },
   "version": "0.0.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
@@ -34,7 +30,7 @@
     "watch": "tsc -watch -p ."
   },
   "activationEvents": [
-    "*"
+    "onCustomEditor:soqlCustom.soql"
   ],
   "main": "./out/src",
   "contributes": {
