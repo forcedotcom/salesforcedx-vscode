@@ -11,6 +11,8 @@ export { forceApexTestRun } from './forceApexTestRun';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export { forceOrgCreate } from './forceOrgCreate';
 export { forceOrgOpen } from './forceOrgOpen';
+export { forceSandboxCreate } from './forceSandboxCreate';
+export { forceSandboxClone } from './forceSandboxClone';
 export { forceSourceDelete } from './forceSourceDelete';
 export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {

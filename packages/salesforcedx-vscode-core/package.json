@@ -302,6 +302,14 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.sandbox.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.sandbox.clone",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.org.open",
           "when": "sfdx:project_opened"
         },
@@ -531,6 +539,14 @@
       {
         "command": "sfdx.force.org.create",
         "title": "%force_org_create_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.sandbox.create",
+        "title": "%force_sandbox_create%"
+      },
+      {
+        "command": "sfdx.force.sandbox.clone",
+        "title": "%force_sandbox_clone%"
       },
       {
         "command": "sfdx.force.org.open",

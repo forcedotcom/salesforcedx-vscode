@@ -38,6 +38,7 @@ import {
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
+  forceSandboxCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
@@ -55,7 +56,8 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
-  turnOffLogging
+  turnOffLogging,
+  forceSandboxClone
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
@@ -101,6 +103,14 @@ function registerCommands(
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
     forceOrgCreate
+  );
+  const forceSandboxCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.sandbox.create',
+    forceSandboxCreate
+  );
+  const forceSandboxCloneCmd = vscode.commands.registerCommand(
+    'sfdx.force.sandbox.clone',
+    forceSandboxClone
   );
   const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
@@ -333,6 +343,8 @@ function registerCommands(
     forceDiffFile,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceSandboxCreateCmd,
+    forceSandboxCloneCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
