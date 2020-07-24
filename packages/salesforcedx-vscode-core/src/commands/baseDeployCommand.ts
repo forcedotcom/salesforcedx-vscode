@@ -14,10 +14,7 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  RegistryAccess,
-  SourceClient
-} from '@salesforce/source-deploy-retrieve';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -73,7 +70,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       } catch (e) {
         telemetryService.sendException(
           e.name,
-          'error detecting deployed components'
+          `Error detecting deployed components: ${e.message}`
         );
       }
       this.logMetric(execution.command.logName, startTime, properties);
