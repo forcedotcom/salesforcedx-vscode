@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as path from 'path';
 
-import { ForceSourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
+import { ForceSourceDeployManifestExecutor } from '../../../src/commands';
 
 import { nls } from '../../../src/messages';
 

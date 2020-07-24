@@ -20,7 +20,7 @@ import {
   ForceSourceRetrieveSourcePathExecutor,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
-} from '../../../src/commands/forceSourceRetrieveSourcePath';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {

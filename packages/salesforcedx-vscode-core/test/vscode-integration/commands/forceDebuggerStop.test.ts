@@ -13,7 +13,7 @@ import {
   IdGatherer,
   IdSelection,
   StopActiveDebuggerSessionExecutor
-} from '../../../src/commands/forceDebuggerStop';
+} from '../../../src/commands';
 import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
