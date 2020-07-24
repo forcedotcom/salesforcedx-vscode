@@ -7,10 +7,7 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import * as vscode from 'vscode';
-
-import { ForceSourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
-
+import { ForceSourceRetrieveManifestExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Force Source Retrieve with Manifest Option', () => {

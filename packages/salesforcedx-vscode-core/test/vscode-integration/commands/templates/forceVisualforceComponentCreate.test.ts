@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import { ForceVisualForceComponentCreateExecutor } from '../../../../src/commands/templates/forceVisualforceComponentCreate';
+import { ForceVisualForceComponentCreateExecutor } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
 
 // tslint:disable:no-unused-expression

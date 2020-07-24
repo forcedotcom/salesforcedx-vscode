@@ -24,15 +24,13 @@ import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
+  createComponentCount,
   DeployRetrieveLibraryExecutor,
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
-import {
-  createComponentCount,
+  SfdxWorkspaceChecker,
   useBetaDeployRetrieve
-} from './util/betaDeployRetrieve';
+} from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
