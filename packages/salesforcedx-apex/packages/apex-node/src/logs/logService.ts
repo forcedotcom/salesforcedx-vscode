@@ -8,8 +8,8 @@ import { Connection } from '@salesforce/core';
 import { ApexLogGetOptions } from '../types';
 import { QueryResult } from '../types/common';
 import { nls } from '../i18n';
-import * as fs from 'fs';
 import * as path from 'path';
+import { createFile } from '../utils';
 
 const MAX_NUM_LOGS = 25;
 
@@ -33,26 +33,14 @@ export class LogService {
       const url = `${this.connection.tooling._baseUrl()}/sobjects/ApexLog/${id}/Body`;
       const logRecord = await this.toolingRequest(url);
       if (options.outputDir) {
-        this.writeLog(options.outputDir, logRecord, id);
+        createFile(path.join(options.outputDir, `${id}.log`), logRecord);
       }
       return logRecord;
     });
-    const result = await Promise.all(connectionRequests);
-    return result;
-  }
 
-  public async writeLog(
-    outputDir: string,
-    logRecord: string,
-    id: string
-  ): Promise<void> {
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-    const filePath = path.join(`${outputDir}`, `${id}.txt`);
-    const stream = fs.createWriteStream(filePath);
-    stream.write(logRecord);
-    stream.end();
+    const result = await Promise.all(connectionRequests);
+
+    return result;
   }
 
   public async getLogIds(numberOfLogs: number): Promise<string[]> {
