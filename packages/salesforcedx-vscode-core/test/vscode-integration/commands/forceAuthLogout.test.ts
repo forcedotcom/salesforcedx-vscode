@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { ForceAuthLogoutAll } from '../../../src/commands/forceAuthLogout';
+import { ForceAuthLogoutAll } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

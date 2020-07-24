@@ -115,7 +115,7 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export function createExecutor(): SfdxCommandletExecutor<{}> {
+export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
   return isDemoMode()
     ? new ForceAuthDevHubDemoModeExecutor()
     : new ForceAuthDevHubExecutor();
@@ -125,7 +125,7 @@ export async function forceAuthDevHub() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    createExecutor()
+    createAuthDevHubExecutor()
   );
   await commandlet.run();
 }

@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { ForceConfigSetExecutor } from '../../../src/commands/forceConfigSet';
+import { ForceConfigSetExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Force Config Set', () => {

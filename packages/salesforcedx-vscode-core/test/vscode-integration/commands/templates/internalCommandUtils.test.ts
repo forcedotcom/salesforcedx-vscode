@@ -14,7 +14,7 @@ import { Uri } from 'vscode';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
-} from '../../../../src/commands/templates/internalCommandUtils';
+} from '../../../../src/commands/templates';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
 describe('Internal Command Utilities', () => {

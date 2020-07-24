@@ -22,16 +22,14 @@ import { notificationService } from '../notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
+  createComponentCount,
   DeployRetrieveLibraryExecutor,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './util';
-import {
-  createComponentCount,
+  SfdxWorkspaceChecker,
   useBetaDeployRetrieve
-} from './util/betaDeployRetrieve';
+} from './util';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string

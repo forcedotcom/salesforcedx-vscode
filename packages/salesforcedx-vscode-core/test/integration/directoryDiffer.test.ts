@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { CommonDirDirectoryDiffer } from '../../src/conflict/directoryDiffer';
+import { CommonDirDirectoryDiffer } from '../../src/conflict';
 
 describe('Directory Differ', () => {
   const TEST_DATA_FOLDER = path.join(

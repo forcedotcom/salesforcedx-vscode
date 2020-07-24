@@ -7,15 +7,11 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import * as context from '../../../src/context';
-
 import { channelService } from '../../../src/channels';
+import * as context from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import {
-  DeployQueue,
-  pathIsInPackageDirectory
-} from '../../../src/settings/pushOrDeployOnSave';
+import { DeployQueue, pathIsInPackageDirectory } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
 

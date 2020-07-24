@@ -8,4 +8,8 @@
 import { SfdxCoreSettings } from './sfdxCoreSettings';
 
 export const sfdxCoreSettings = SfdxCoreSettings.getInstance();
-export { DeployQueue, registerPushOrDeployOnSave } from './pushOrDeployOnSave';
+export {
+  DeployQueue,
+  registerPushOrDeployOnSave,
+  pathIsInPackageDirectory
+} from './pushOrDeployOnSave';

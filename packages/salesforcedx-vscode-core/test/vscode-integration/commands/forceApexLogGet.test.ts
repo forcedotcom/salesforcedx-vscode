@@ -13,7 +13,7 @@ import {
   ForceApexLogGetExecutor,
   ForceApexLogList,
   LogFileSelector
-} from '../../../src/commands/forceApexLogGet';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

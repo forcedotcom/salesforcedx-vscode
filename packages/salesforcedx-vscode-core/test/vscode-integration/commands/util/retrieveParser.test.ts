@@ -7,7 +7,7 @@
 
 import { ApiResult } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
-import { outputRetrieveTable } from '../../../../src/commands/util/retrieveParser';
+import { outputRetrieveTable } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 
 describe('retrieveParser', () => {

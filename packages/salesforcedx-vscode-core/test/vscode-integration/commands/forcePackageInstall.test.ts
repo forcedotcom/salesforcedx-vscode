@@ -12,7 +12,7 @@ import {
   ForcePackageInstallExecutor,
   SelectInstallationKey,
   SelectPackageID
-} from '../../../src/commands/forcePackageInstall';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

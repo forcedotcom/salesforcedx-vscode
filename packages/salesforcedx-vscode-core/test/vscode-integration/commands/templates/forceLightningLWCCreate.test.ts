@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import { SinonStub, stub } from 'sinon';
-import { ForceLightningLwcCreateExecutor } from '../../../../src/commands/templates/forceLightningLwcCreate';
+import { ForceLightningLwcCreateExecutor } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 

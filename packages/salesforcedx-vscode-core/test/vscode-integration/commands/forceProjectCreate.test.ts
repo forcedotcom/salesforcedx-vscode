@@ -14,12 +14,12 @@ import {
   ForceProjectCreateExecutor,
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
+  projectTemplateEnum,
   ProjectTemplateItem,
   SelectProjectFolder,
   SelectProjectName,
   SelectProjectTemplate
-} from '../../../src/commands/forceProjectCreate';
-import { projectTemplateEnum } from '../../../src/commands/forceProjectCreate';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { getRootWorkspacePath } from '../../../src/util';
 

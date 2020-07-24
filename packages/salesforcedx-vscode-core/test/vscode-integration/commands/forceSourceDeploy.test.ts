@@ -19,10 +19,12 @@ import {
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { channelService } from '../../../src/channels';
-import { BaseDeployExecutor } from '../../../src/commands/baseDeployCommand';
-import { ForceSourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
-import { ForceSourceDeploySourcePathExecutor } from '../../../src/commands/forceSourceDeploySourcePath';
-import { ForceSourcePushExecutor } from '../../../src/commands/forceSourcePush';
+import {
+  BaseDeployExecutor,
+  ForceSourceDeployManifestExecutor,
+  ForceSourceDeploySourcePathExecutor,
+  ForceSourcePushExecutor
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 describe('Correctly output deploy results', () => {

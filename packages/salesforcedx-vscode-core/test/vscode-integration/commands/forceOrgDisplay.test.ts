@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { ForceOrgDisplay } from '../../../src/commands/forceOrgDisplay';
+import { ForceOrgDisplay } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

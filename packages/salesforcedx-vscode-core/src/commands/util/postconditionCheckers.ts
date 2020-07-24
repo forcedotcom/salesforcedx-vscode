@@ -24,8 +24,11 @@ import { notificationService } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../util';
-import { MetadataDictionary } from '../../util/metadataDictionary';
+import {
+  getRootWorkspacePath,
+  MetadataDictionary,
+  OrgAuthInfo
+} from '../../util';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
