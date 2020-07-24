@@ -11,7 +11,6 @@ version: 2.1
 
 orbs:
   win: circleci/windows@2.2.0
-  sfchangecase: salesforce/change-case-management@3
   slack: circleci/slack@3.4.2
 
 parameters:
