@@ -57,14 +57,22 @@ export const messages = {
   parameter_gatherer_enter_lwc_name:
     'Enter desired Lightning Web Component (Press Enter to confirm or Esc to cancel)',
   parameter_gatherer_enter_username_name: 'Enter target username',
+  parameter_gatherer_enter_source_org:
+    'Enter source org to clone or use default value from sandbox-def.json file',
+  parameter_gatherer_enter_sandbox_name:
+    'Enter an sandbox name',
   parameter_gatherer_enter_alias_name:
     'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url:
     'Enter a custom login URL or use the default URL',
   parameter_gatherer_enter_scratch_org_def_files:
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
+  parameter_gatherer_enter_sandbox_org_def_files:
+    'Select sandbox definition file. Matched files with format: "config/**/*-sandbox-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
+  parameter_gatherer_enter_sandbox_org_wait_time_mins:
+    'Enter the number of mins (1–120) to wait for sandbox creation or use the default value (30)',
   parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
@@ -84,10 +92,14 @@ export const messages = {
   parameter_gatherer_placeholder_delete_default_org:
     'Confirm to continue deleting the default org',
 
+  force_sandbox_create: 'SFDX: Create a Sandbox Org...',
+  force_sandbox_clone: 'SFDX: Clone a Sandbox Org...',
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
   force_org_create_result_parsing_error:
     'An unexpected error occurred while processing the org create response.',
+  force_org_clone_result_parsing_error:
+    'An unexpected error occurred while processing the org clone response.',
 
   force_org_open_default_scratch_org_text: 'SFDX: Open Default Org',
   force_org_open_default_scratch_org_container_error:
@@ -331,6 +343,7 @@ export const messages = {
   error_invalid_org_alias:
     'Alias can only contain underscores, spaces and alphanumeric characters',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
+  error_invalid_wait_time_mins: 'Number of mins should be between 1 and 120',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
@@ -339,6 +352,8 @@ export const messages = {
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
+  error_no_sandbox_def:
+    'No sandbox definition files found. These files must be in the "config" folder and end with "-sandboxdef.json". See [Sandbox Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_sandbox_definition.htm) for help.',
   force_list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',

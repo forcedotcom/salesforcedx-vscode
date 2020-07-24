@@ -52,6 +52,8 @@ export {
   forceSourceDeployManifest,
   ForceSourceDeployManifestExecutor
 } from './forceSourceDeployManifest';
+export { forceSandboxCreate } from './forceSandboxCreate';
+export { forceSandboxClone } from './forceSandboxClone';
 export {
   forceSourceDeployMultipleSourcePaths,
   forceSourceDeploySourcePath,
