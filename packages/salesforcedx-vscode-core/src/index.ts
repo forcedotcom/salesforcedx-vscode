@@ -44,6 +44,7 @@ import {
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
+  forceSandboxClone,
   forceSandboxCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
@@ -63,8 +64,7 @@ import {
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
   registerFunctionInvokeCodeLensProvider,
-  turnOffLogging,
-  forceSandboxClone
+  turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
