@@ -9,10 +9,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {
-  AliasGatherer,
-  ForceOrgCreateExecutor
-} from '../../../src/commands/forceOrgCreate';
+import { AliasGatherer, ForceOrgCreateExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { getRootWorkspacePath } from '../../../src/util';
 

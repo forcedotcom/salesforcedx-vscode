@@ -14,7 +14,7 @@ import { createSandbox, SinonSandbox } from 'sinon';
 import {
   ForceSourceDeploySourcePathExecutor,
   LibraryDeploySourcePathExecutor
-} from '../../../src/commands/forceSourceDeploySourcePath';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { SfdxProjectConfig } from '../../../src/sfdxProject';
 import { OrgAuthInfo } from '../../../src/util';

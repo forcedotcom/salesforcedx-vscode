@@ -232,7 +232,7 @@ export async function promptLogOutForProdOrg() {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
-export function createExecutor(): SfdxCommandletExecutor<{}> {
+export function createAuthWebLoginExecutor(): SfdxCommandletExecutor<{}> {
   return isDemoMode()
     ? new ForceAuthWebLoginDemoModeExecutor()
     : new ForceAuthWebLoginExecutor();
@@ -242,7 +242,7 @@ export async function forceAuthWebLogin() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    createExecutor()
+    createAuthWebLoginExecutor()
   );
   await commandlet.run();
 }
