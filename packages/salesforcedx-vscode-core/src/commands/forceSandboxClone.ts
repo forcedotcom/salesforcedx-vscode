@@ -205,7 +205,7 @@ export class AliasGatherer implements ParametersGatherer<Alias> {
             ? defaultWaitTime
             : scratchOrgExpirationInDays,
         sourceSandbox: cloneSource,
-        sandboxName: sandboxName
+        sandboxName
       }
     };
   }
