@@ -126,7 +126,8 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
       )) as string;
       const registryAccess = new RegistryAccess();
       const components = registryAccess.getComponentsFromPath(response.data);
-      const deployPromise = this.sourceClient.tooling.deploy(components, {
+      const deployPromise = this.sourceClient.tooling.deploy({
+        components,
         namespace: projectNamespace
       });
       const metadataCount = JSON.stringify(createComponentCount(components));
