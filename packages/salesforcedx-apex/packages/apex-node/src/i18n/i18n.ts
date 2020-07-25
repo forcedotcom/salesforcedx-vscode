@@ -28,5 +28,6 @@ export const messages = {
     'Start typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.\n',
   exec_anon_input_timeout: 'Timed out while waiting for user input.',
   no_test_result_summary: 'No test results were found for test run %s',
-  no_test_queue_results: 'No test results were found in the queue for test run %s'
+  no_test_queue_results:
+    'No test results were found in the queue for test run %s'
 };

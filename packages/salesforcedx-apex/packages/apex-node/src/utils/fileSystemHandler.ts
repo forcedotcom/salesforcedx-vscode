@@ -7,6 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { AnyJson } from '@salesforce/ts-types';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -24,12 +25,12 @@ export function ensureFileExists(filePath: string): void {
 /**
  * Method to save a file on disk.
  *
- * @param filePath path where to 
+ * @param filePath path where to
  * @param fileContent file contents
  */
-export function createFile(filePath: string, fileContent: string): void {
-    ensureFileExists(filePath);
+export function createFile(filePath: string, fileContent: AnyJson): void {
+  ensureFileExists(filePath);
 
-    const writeStream = fs.createWriteStream(filePath);
-    writeStream.write(fileContent);
+  const writeStream = fs.createWriteStream(filePath);
+  writeStream.write(fileContent);
 }

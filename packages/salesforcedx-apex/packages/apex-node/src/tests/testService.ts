@@ -139,7 +139,7 @@ export class TestService {
     timeout = 15000,
     interval = 500
   ): Promise<ApexTestQueueItem> {
-    let result:ApexTestQueueItem;
+    let result: ApexTestQueueItem;
     let triedOnce = false;
     const queryApexTestQueueItem = `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`;
     const endTime = Date.now() + timeout;
@@ -148,7 +148,7 @@ export class TestService {
         setTimeout(resolve, interval);
       });
     };
-    
+
     do {
       if (triedOnce) {
         await wait(interval);

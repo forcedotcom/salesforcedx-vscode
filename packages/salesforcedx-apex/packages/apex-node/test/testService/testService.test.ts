@@ -22,7 +22,6 @@ import {
   ApexTestRunResult,
   ApexTestResult
 } from '../../src/tests/types';
-import { fail } from 'assert';
 
 const $$ = testSetup();
 let mockConnection: Connection;

@@ -10,6 +10,7 @@ import { QueryResult } from '../types/common';
 import { nls } from '../i18n';
 import * as path from 'path';
 import { createFile } from '../utils';
+import { AnyJson } from '@salesforce/ts-types';
 
 const MAX_NUM_LOGS = 25;
 
@@ -35,7 +36,7 @@ export class LogService {
       if (options.outputDir) {
         createFile(path.join(options.outputDir, `${id}.log`), logRecord);
       }
-      return logRecord;
+      return JSON.stringify(logRecord);
     });
 
     const result = await Promise.all(connectionRequests);
@@ -55,8 +56,8 @@ export class LogService {
     return response.records.map(record => record.Id);
   }
 
-  public async toolingRequest(url: string): Promise<string> {
-    const log = await this.connection.tooling.request(url);
-    return JSON.stringify(log);
+  public async toolingRequest(url: string): Promise<AnyJson> {
+    const log = (await this.connection.tooling.request(url)) as AnyJson;
+    return log;
   }
 }
