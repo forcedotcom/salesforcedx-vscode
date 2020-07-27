@@ -23,7 +23,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.options = {
       enableScripts: true,
       localResourceRoots: [
-        vscode.Uri.file(path.join(this.context.extensionPath, 'media'))
+        vscode.Uri.file(path.join(this.context.extensionPath, 'node_modules'))
       ]
     };
 
@@ -31,15 +31,17 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   }
 
   private getWebViewContent(webview: vscode.Webview): string {
-    const pathToHtml = path.join(__dirname, '../../../media', 'index.html');
+    const pathToLwcDist = path.join(
+      this.context.extensionPath,
+      'node_modules/@salesforce/soql-builder-ui/dist'
+    );
+    const pathToHtml = path.join(pathToLwcDist, 'index.html');
     let html = fs.readFileSync(pathToHtml).toString();
     const scriptUri = webview.asWebviewUri(
-      vscode.Uri.file(path.join(this.context.extensionPath, 'media', 'app.js'))
+      vscode.Uri.file(path.join(pathToLwcDist, 'app.js'))
     );
     const zeroDotScriptUri = webview.asWebviewUri(
-      vscode.Uri.file(
-        path.join(this.context.extensionPath, 'media', '0.app.js')
-      )
+      vscode.Uri.file(path.join(pathToLwcDist, '0.app.js'))
     );
 
     html = html.replace('./0.app.js', `${zeroDotScriptUri}`);
