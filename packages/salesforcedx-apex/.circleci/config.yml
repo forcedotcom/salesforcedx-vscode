@@ -9,6 +9,9 @@ _refs:
     working_directory: ~/cli
     docker:
       - image: node:12
+  ssh-config: &ssh-config
+    fingerprints:
+      - 'b1:50:d4:d9:01:2c:7c:8b:a0:e3:3c:c1:f8:a4:41:f0'
   restore_cache: &restore_cache
     keys:
       - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
@@ -16,6 +19,12 @@ _refs:
   lint: &lint
     name: Lint source files
     command: yarn lint
+  gh-config: &gh-config
+    name: Configuring GitHub
+    command: |
+      git config credential.helper 'cache --timeout=120'
+      git config user.email "$GH_EMAIL"
+      git config user.name "Release Bot"
   install: &install
     name: Install dependencies
     command: |
@@ -28,6 +37,11 @@ _refs:
   test: &test
     name: Run tests
     command: yarn test
+
+parameters:
+  publish:
+    type: boolean
+    default: false
 
 jobs:
   node-latest: &node-test
@@ -79,10 +93,39 @@ jobs:
       - run: *lint
       - run: *build
       - run: *test
+  publish:
+    <<: *defaults
+    steps:
+      - add_ssh_keys: *ssh-config
+      - checkout
+      - restore_cache: *restore_cache
+      - run: *gh-config
+      - run: *install
+      - run: *build
+      - run:
+          name: Bump package version
+          command: |
+            yarn bump-versions patch
+            git add .
+            export RELEASE_TAG="$(node -pe "require('./packages/apex-node/package.json').version")"
+            git commit -m "Updated version $RELEASE_TAG"
+      - run:
+          name: Set .npmrc
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - run: yarn publish-apex
+      - run: git push origin main
+      - run:
+          name: Tag the release and push to repo
+          command: |
+            export RELEASE_TAG="$(node -pe "require('./packages/apex-node/package.json').version")"
+            git tag v${RELEASE_TAG}
+            git push --tags
 
 workflows:
-  version: 2
-  'salesforcedx-apex':
+  version: 2.1
+  
+  commit-workflow:
+    unless: << pipeline.parameters.publish >>
     jobs:
       - node-latest
       - node-12
@@ -94,3 +137,22 @@ workflows:
             branches:
               ignore: /.*/
       - run-win-tests
+  
+  publish-workflow:
+    when: << pipeline.parameters.publish >>
+    jobs:
+      - node-latest
+      - node-12
+      - node-10
+      - run-win-tests
+      - publish:
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+              - run-win-tests
+              - node-latest
+              - node-12
+              - node-10
+

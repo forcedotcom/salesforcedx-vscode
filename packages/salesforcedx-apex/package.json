@@ -25,9 +25,11 @@
   "license": "BSD-3-Clause",
   "scripts": {
     "build": "lerna run build",
+    "bump-versions": "lerna version --force-publish --no-git-tag-version --exact --yes",
     "format": "lerna run format",
     "lint": "lerna run lint",
     "postinstall": "lerna bootstrap --no-ci",
+    "publish-apex": "lerna run publish-apex",
     "test": "lerna run test"
   },
   "publishConfig": {

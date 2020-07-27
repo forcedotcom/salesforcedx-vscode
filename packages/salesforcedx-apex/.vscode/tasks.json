@@ -52,6 +52,19 @@
           "message": 6
         }
       }
+    },
+    {
+      "label": "Publish Packages",
+      "command": "./scripts/publish-workflow.sh",
+      "type": "shell",
+      "args": ["${input:circleCiId}"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "circleCiId",
+      "type": "promptString",
+      "description": "CircleCi Token"
     }
   ]
 }

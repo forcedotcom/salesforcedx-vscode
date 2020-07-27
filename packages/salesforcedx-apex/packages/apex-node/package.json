@@ -38,7 +38,8 @@
     "build": "shx rm -rf lib && tsc -b",
     "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
-    "test": "mocha --recursive \"./test/**/*.test.ts\" --full-trace"
+    "test": "mocha --recursive \"./test/**/*.test.ts\" --full-trace",
+    "publish-apex": "yarn publish --non-interactive"
   },
   "husky": {
     "hooks": {
