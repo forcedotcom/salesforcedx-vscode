@@ -301,6 +301,7 @@ describe('Apex Execute Tests', async () => {
 
   it('should throw an error if user input fails', async () => {
     const errorText = 'This is the error';
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const on = (event: string, listener: (err?: Error) => {}) => {
       try {
         if (event === 'error') {
@@ -329,6 +330,7 @@ describe('Apex Execute Tests', async () => {
 
   it('should process user input correctly', async () => {
     const inputText = 'This should be the only text';
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const on = (event: string, listener: (input: string) => {}) => {
       listener(inputText);
     };
@@ -343,6 +345,7 @@ describe('Apex Execute Tests', async () => {
   });
 
   it('should throw error if user is idle', async () => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const on = (event: string, listener: () => {}) => {
       listener();
     };

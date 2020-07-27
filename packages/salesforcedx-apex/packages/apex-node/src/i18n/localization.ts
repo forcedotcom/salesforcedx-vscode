@@ -67,9 +67,7 @@ export class Message implements LocalizationProvider {
       if (args.length !== expectedNumArgs) {
         // just log it, we might want to hide some in some languges on purpose
         console.log(
-          `Arguments do not match for label '${label}', got ${
-            args.length
-          } but want ${expectedNumArgs}`
+          `Arguments do not match for label '${label}', got ${args.length} but want ${expectedNumArgs}`
         );
       }
 

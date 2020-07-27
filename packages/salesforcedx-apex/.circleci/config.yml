@@ -13,6 +13,9 @@ _refs:
     keys:
       - v1-npm-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
       - v1-npm-{{checksum ".circleci/config.yml"}}
+  lint: &lint
+    name: Lint source files
+    command: yarn lint
   install: &install
     name: Install dependencies
     command: |
@@ -35,6 +38,7 @@ jobs:
       - checkout
       - restore_cache: *restore_cache
       - run: *install
+      - run: *lint
       - run: *build
       - run: *test
   node-12:
@@ -72,6 +76,7 @@ jobs:
           key: dependency-cache-win1-{{checksum ".circleci/config.yml"}}-{{checksum "yarn.lock"}}
           paths:
             - node_modules
+      - run: *lint
       - run: *build
       - run: *test
 

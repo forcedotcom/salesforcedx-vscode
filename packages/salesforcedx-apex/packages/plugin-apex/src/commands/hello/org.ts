@@ -51,6 +51,7 @@ export default class Org extends SfdxCommand {
       const name = this.flags.name || 'world';
 
       // this.org is guaranteed because requiresUsername=true, as opposed to supportsUsername
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const conn = this.org!.getConnection();
       const query = 'Select Name, TrialExpirationDate from Organization';
 
@@ -67,6 +68,7 @@ export default class Org extends SfdxCommand {
       // The output and --json will automatically be handled for you.
       if (!result.records || result.records.length <= 0) {
         throw new SfdxError(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           messages.getMessage('errorNoOrgResults', [this.org!.getOrgId()])
         );
       }
@@ -93,6 +95,7 @@ export default class Org extends SfdxCommand {
       }
 
       // Return an object to be displayed with --json
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return { orgId: this.org!.getOrgId(), outputString };
     } catch (e) {
       return Promise.reject(e);

@@ -19,20 +19,18 @@
     "@oclif/test": "^1",
     "@salesforce/dev-config": "1.4.1",
     "@salesforce/ts-sinon": "^1.1.2",
+    "@salesforce/ts-types": "1.2.2",
     "@types/chai": "^4",
     "@types/mocha": "^5",
     "@types/node": "^10",
     "chai": "^4",
-    "eslint": "6.6.0",
-    "eslint-config-prettier": "6.5.0",
     "globby": "^8",
     "mocha": "^5",
-    "nyc": "^14",
-    "prettier": "1.16.4",
-    "pretty-quick": "^1.11.1",
+    "nyc": "^14.1.1",
     "shx": "0.2.2",
-    "ts-node": "^8",
-    "tslint": "^5"
+    "sinon": "^7.3.1",
+    "ts-node": "^8.7.0",
+    "typescript": "3.7.5"
   },
   "engines": {
     "node": ">=10.17.0"
@@ -63,10 +61,20 @@
   "repository": "forcedotcom/salesforcedx-apex",
   "scripts": {
     "build": "shx rm -rf lib && tsc -b && oclif-dev manifest",
-    "format": "prettier --config ../../.prettierrc --write './*.{js,json}' './**/*.{ts,json}'",
-    "lint": "tslint --project . --config tslint.json --format stylish",
+    "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
+    "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
     "postpack": "shx rm -f oclif.manifest.json",
     "test": "mocha --recursive \"./test/**/*.test.ts\" --full-trace",
     "version": "oclif-dev readme && git add README.md"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint-staged"
+    }
+  },
+  "lint-staged": {
+    "./{src,test}/**/*.{ts,js}": [
+      "eslint -c .eslintrc.json --fix"
+    ]
   }
 }
