@@ -19,7 +19,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/soql-builder-ui": "0.0.1"
+    "@salesforce/soql-builder-ui": "http://platform-cli-registry.eng.sfdc.net:4880/soql-builder-ui/-/soql-builder-ui-0.0.1.tgz"
   },
   "devDependencies": {
     "@types/node": "12.0.12",
