@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -19,6 +20,7 @@ import {
 } from '../../../src/commands/forceApexLogGet';
 import { nls } from '../../../src/messages';
 import { sfdxCoreSettings } from '../../../src/settings';
+
 // tslint:disable:no-unused-expression
 describe('Force Apex Log Get Logging', () => {
   const newerStartTime = new Date(Date.now());
