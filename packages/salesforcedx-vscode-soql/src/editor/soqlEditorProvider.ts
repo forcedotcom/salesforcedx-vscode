@@ -30,7 +30,12 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     webviewPanel.webview.options = {
       enableScripts: true,
       localResourceRoots: [
-        vscode.Uri.file(path.join(this.context.extensionPath, 'node_modules'))
+        vscode.Uri.file(
+          path.join(
+            this.context.extensionPath,
+            'node_modules/@salesforce/soql-builder-ui'
+          )
+        )
       ]
     };
 
