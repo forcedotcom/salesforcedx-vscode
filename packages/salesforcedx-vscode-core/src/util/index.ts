@@ -19,3 +19,4 @@ export {
   getRootWorkspacePath,
   hasRootWorkspace
 } from './rootWorkspace';
+export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
