@@ -24,12 +24,13 @@
   "devDependencies": {
     "@types/node": "12.0.12",
     "@types/vscode": "^1.46.0",
+    "@typescript-eslint/parser": "^3.7.1",
     "typescript": "3.7.5",
     "eslint": "6.0.1"
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "lint": "eslint .",
+    "lint": "eslint ./src/**/*.ts",
     "watch": "tsc -watch -p .",
     "vscode:package": "vsce package"
   },
