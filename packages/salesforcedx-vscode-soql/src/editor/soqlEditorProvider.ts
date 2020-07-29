@@ -55,7 +55,15 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     const zeroDotScriptUri = webview.asWebviewUri(
       vscode.Uri.file(path.join(pathToLwcDist, '0.app.js'))
     );
+    const cspMetaTag: string = `<meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none';
+      img-src ${webview.cspSource} https:;
+      script-src ${webview.cspSource};
+      style-src 'unsafe-inline' ${webview.cspSource};"
+    />`;
 
+    html = html.replace('<!-- CSP TAG -->', cspMetaTag);
     html = html.replace('./0.app.js', `${zeroDotScriptUri}`);
     html = html.replace('./app.js', `${scriptUri}`);
 
