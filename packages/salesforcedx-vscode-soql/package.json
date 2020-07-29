@@ -24,12 +24,14 @@
   "devDependencies": {
     "@types/node": "12.0.12",
     "@types/vscode": "^1.46.0",
-    "typescript": "3.7.5"
+    "typescript": "3.7.5",
+    "eslint": "6.0.1"
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "lint": "tslint --project .",
-    "watch": "tsc -watch -p ."
+    "lint": "eslint .",
+    "watch": "tsc -watch -p .",
+    "vscode:package": "vsce package"
   },
   "activationEvents": [
     "onCustomEditor:soqlCustom.soql"
