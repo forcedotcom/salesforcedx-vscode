@@ -252,7 +252,7 @@ export class ApexLibraryGetLogsExecutor extends ApexLibraryExecutor {
         nls.localize('force_apex_log_get_library'),
         e.message
       );
-      notificationService.showFailedExecution(this.executionName!);
+      notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
     }
   }
