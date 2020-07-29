@@ -8,7 +8,7 @@
 import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as shelljs from 'shelljs';
-import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
+import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
 import {
   ENV_SFDX_DISABLE_TELEMETRY,

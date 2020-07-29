@@ -191,16 +191,52 @@ export async function initSObjectDefinitions(projectPath: string) {
   const hasDefaultUsernameSet =
     (await getDefaultUsernameOrAlias()) !== undefined;
   if (projectPath && hasDefaultUsernameSet) {
-    const sobjectFolder = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR
-    );
+    const sobjectFolder = getSObjectsDirectory(projectPath);
     if (!fs.existsSync(sobjectFolder)) {
       forceGenerateFauxClassesCreate(SObjectRefreshSource.Startup).catch(e => {
         throw e;
       });
+    }
+  }
+}
+
+function getSObjectsDirectory(projectPath: string) {
+  return path.join(
+    projectPath,
+    SFDX_DIR,
+    TOOLS_DIR,
+    SOBJECTS_DIR
+  );
+}
+
+export async function checkSObjectsAndRefresh(projectPath: string) {
+  if (projectPath) {
+    if (!fs.existsSync(getSObjectsDirectory(projectPath))) {
+      telemetryService.sendEventData('sObjectRefreshNotification',
+        { type: 'No SObjects' },
+        undefined);
+      const message = nls.localize('sobjects_refresh_needed');
+      const buttonTxt = nls.localize('sobjects_refresh_now');
+      const shouldRefreshNow = await notificationService.showInformationMessage(message, buttonTxt);
+      if (shouldRefreshNow && shouldRefreshNow === buttonTxt) {
+        telemetryService.sendEventData('sObjectRefreshNotification',
+          { type: 'Requested Refresh' },
+          undefined);
+        initSObjectDefinitions(projectPath).catch(e =>
+          telemetryService.sendErrorEvent({
+            message: e.message,
+            stack: e.stack
+          })
+        );
+      } else {
+        telemetryService.sendEventData('sObjectRefreshNotification',
+          { type: 'Refresh Request Cancelled' },
+          undefined);
+      }
+    } else {
+      telemetryService.sendEventData('sObjectRefreshNotification',
+        { type: 'SObjects exist' },
+        undefined);
     }
   }
 }

@@ -5,13 +5,13 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { ContinueResponse } from '../../../../../salesforcedx-utils-vscode/out/src/types/index';
+import { ContinueResponse } from '../../../../../salesforcedx-utils-vscode/out/src/types';
 import { projectTemplateEnum } from '../../../../src/commands/forceProjectCreate';
 import {
   EnterForceIdeUri,
   IsvDebugBootstrapConfig,
   IsvDebugBootstrapExecutor
-} from '../../../../src/commands/isvdebugging/bootstrapCmd';
+} from '../../../../src/commands/isvdebugging';
 import { nls } from '../../../../src/messages';
 import { getRootWorkspacePath } from '../../../../src/util';
 

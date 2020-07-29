@@ -13,9 +13,9 @@ import {
   ComponentUtils,
   MetadataOutlineProvider,
   NodeType,
+  parseErrors,
   TypeUtils
 } from '../../../src/orgBrowser';
-import { parseErrors } from '../../../src/orgBrowser/metadataOutlineProvider';
 
 /* tslint:disable:no-unused-expression */
 describe('load org browser tree outline', () => {

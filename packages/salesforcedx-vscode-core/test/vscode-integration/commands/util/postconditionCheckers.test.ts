@@ -29,8 +29,7 @@ import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../../src/util';
-import { MetadataDictionary } from '../../../../src/util/metadataDictionary';
+import { getRootWorkspacePath, MetadataDictionary } from '../../../../src/util';
 
 const env = sandbox.create();
 
