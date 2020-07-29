@@ -47,9 +47,7 @@ class MockRhApi {
   }
   public addXMLCatalogs(catalogs: string[]) {
     catalogs.forEach(catalog => {
-      this.listOfCatalogs.push(
-        path.join(this.extentionPath, 'resources', 'static', catalog)
-      );
+      this.listOfCatalogs.push(catalog);
     });
   }
   public isReady() {
@@ -60,12 +58,7 @@ class MockRhApi {
   ) {
     associations.forEach(associate => {
       this.listOfAssociations.push({
-        systemId: path.join(
-          this.extentionPath,
-          'resources',
-          'static',
-          associate.systemId
-        ),
+        systemId: path.join(associate.systemId),
         pattern: associate.pattern
       });
     });

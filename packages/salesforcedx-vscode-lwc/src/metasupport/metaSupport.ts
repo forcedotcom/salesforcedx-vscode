@@ -68,7 +68,7 @@ export class MetaSupport {
       vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_no_redhat_extension_found'));
     } else if (redHatExtension) {
       const pluginVersionNumber = redHatExtension!.packageJSON['version'];
-      console.log('\t\tloggin xml version:' + pluginVersionNumber);
+
       // checks plugin version greater than 0.13.0, might need to change.
       if ((parseInt(pluginVersionNumber.split('.')[1], 10) === 13 &&
         parseInt(pluginVersionNumber.split('.')[2], 10) > 0) ||
