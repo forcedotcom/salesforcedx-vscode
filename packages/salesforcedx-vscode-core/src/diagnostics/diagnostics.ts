@@ -6,7 +6,7 @@
  */
 import { ExecuteAnonymousResponse } from '@salesforce/apex-node';
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DeployResult } from '@salesforce/source-deploy-retrieve';
+import { DeployResult } from '@salesforce/source-deploy-retrieve/lib/types/newClient';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -88,7 +88,7 @@ export function handleDeployRetrieveLibraryDiagnostics(
   errorCollection.clear();
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 
-  deployResult.DeployDetails!.componentFailures.forEach(err => {
+  deployResult.details.componentFailures!.forEach(err => {
     const range = getRange(
       err.lineNumber ? err.lineNumber.toString() : '1',
       err.columnNumber ? err.columnNumber.toString() : '1'

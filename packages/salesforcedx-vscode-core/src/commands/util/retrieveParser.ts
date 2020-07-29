@@ -30,8 +30,8 @@ export function outputRetrieveTable(retrieveResult: ApiResult) {
   try {
     retrieveResult.components.forEach(item => {
       // rows for source files
-      if (item.sources) {
-        item.sources.forEach(sourceItem => {
+      if (item.walkContent()) {
+        item.walkContent().forEach(sourceItem => {
           resultRows.push({
             fullName: item.fullName,
             type: item.type.name,

@@ -27,7 +27,7 @@
   "dependencies": {
     "@salesforce/core": "2.5.1",
     "@salesforce/salesforcedx-utils-vscode": "49.0.0",
-    "@salesforce/source-deploy-retrieve": "1.0.15",
+    "@salesforce/source-deploy-retrieve": "1.0.16",
     "@salesforce/apex-node": "0.0.2",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",

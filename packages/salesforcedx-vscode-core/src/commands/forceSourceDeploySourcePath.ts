@@ -13,7 +13,14 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  RegistryAccess,
+  ToolingDeployStatus
+} from '@salesforce/source-deploy-retrieve';
+import {
+  DeployStatus,
+  SourceDeployResult
+} from '@salesforce/source-deploy-retrieve/lib/types/newClient';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -33,7 +40,8 @@ import {
   createComponentCount,
   useBetaDeployRetrieve
 } from './util/betaDeployRetrieve';
-
+import { LibraryDeployResultParser } from './util/libraryDeployResultParser';
+import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics/diagnostics';
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
     const commandBuilder = new SfdxCommandBuilder()
@@ -114,28 +122,53 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
         'Deploy (Beta)',
         'force_source_deploy_with_sourcepath_beta'
       );
-
+      channelService.showCommandWithTimestamp(`Starting ${this.executionName}`);
       if (this.sourceClient === undefined) {
         throw new Error('SourceClient is not established');
       }
-
-      this.sourceClient.tooling.deploy = this.deployWrapper(
-        this.sourceClient.tooling.deploy
-      );
-
       const projectNamespace = (await SfdxProjectConfig.getValue(
         'namespace'
       )) as string;
       const registryAccess = new RegistryAccess();
       const components = registryAccess.getComponentsFromPath(response.data);
-      const deployPromise = this.sourceClient.tooling.deploy({
-        components,
-        namespace: projectNamespace
-      });
+      let deployPromise: Promise<SourceDeployResult>;
+      if (projectNamespace) {
+        deployPromise = this.sourceClient.tooling.deploy(components, {
+          namespace: projectNamespace
+        }) as Promise<SourceDeployResult>;
+      } else {
+        deployPromise = this.sourceClient.metadata.deploy(
+          components
+        ) as Promise<SourceDeployResult>;
+      }
       const metadataCount = JSON.stringify(createComponentCount(components));
-      await deployPromise;
-
+      const result = (await vscode.window.withProgress(
+        {
+          title: this.executionName,
+          location: vscode.ProgressLocation.Notification
+        },
+        () => deployPromise
+      )) as SourceDeployResult;
+      const parser = new LibraryDeployResultParser(result);
+      const outputResult = parser.ResultParser(result);
       this.logMetric({ metadataCount });
+      channelService.appendLine(outputResult);
+      channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
+      if (
+        result.status === DeployStatus.Succeeded ||
+        // @ts-ignore
+        result.status === ToolingDeployStatus.Completed
+      ) {
+        DeployRetrieveLibraryExecutor.errorCollection.clear();
+        await notificationService.showSuccessfulExecution(this.executionName);
+      } else {
+        handleDeployRetrieveLibraryDiagnostics(
+          // @ts-ignore
+          result,
+          DeployRetrieveLibraryExecutor.errorCollection
+        );
+        notificationService.showFailedExecution(this.executionName);
+      }
     } catch (e) {
       telemetryService.sendException(
         'force_source_deploy_with_sourcepath_beta',

@@ -1,331 +1,337 @@
-/*
- * Copyright (c) 2020, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
+// /*
+//  * Copyright (c) 2020, salesforce.com, inc.
+//  * All rights reserved.
+//  * Licensed under the BSD 3-Clause license.
+//  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+//  */
 
-import {
-  RegistryAccess,
-  registryData
-} from '@salesforce/source-deploy-retrieve';
-import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
-import { expect } from 'chai';
-import * as path from 'path';
-import { createSandbox, SinonSandbox } from 'sinon';
-import * as vscode from 'vscode';
-import {
-  createComponentCount,
-  useBetaDeployRetrieve
-} from '../../../../src/commands/util/betaDeployRetrieve';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+// import {
+//   RegistryAccess,
+//   registryData,
+//   SourceComponent
+// } from '@salesforce/source-deploy-retrieve';
+// import { expect } from 'chai';
+// import * as path from 'path';
+// import { createSandbox, SinonSandbox } from 'sinon';
+// import * as vscode from 'vscode';
+// import {
+//   createComponentCount,
+//   useBetaDeployRetrieve
+// } from '../../../../src/commands/util/betaDeployRetrieve';
+// import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
-describe('Force Source Deploy with Sourcepath Beta', () => {
-  let sandboxStub: SinonSandbox;
-  let registryStub: sinon.SinonStub;
-  beforeEach(() => {
-    sandboxStub = createSandbox();
-    registryStub = sandboxStub.stub(
-      RegistryAccess.prototype,
-      'getComponentsFromPath'
-    );
-  });
+// describe('Force Source Deploy with Sourcepath Beta', () => {
+//   let sandboxStub: SinonSandbox;
+//   let registryStub: sinon.SinonStub;
+//   beforeEach(() => {
+//     sandboxStub = createSandbox();
+//     registryStub = sandboxStub.stub(
+//       RegistryAccess.prototype,
+//       'getComponentsFromPath'
+//     );
+//   });
 
-  afterEach(() => {
-    sandboxStub.restore();
-  });
+//   afterEach(() => {
+//     sandboxStub.restore();
+//   });
 
-  describe('useBetaDeployRetrieve', () => {
-    it('Should return false for multiple valid URI when beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apextrigger,
-          xml: 'bar.trigger-meta.xml',
-          sources: ['bar.trigger', 'bar.trigger-meta.xml']
-        },
-        {
-          fullName: 'bar',
-          type: registryData.types.apexclass,
-          xml: 'bar.cls-meta.xml',
-          sources: ['bar.cls', 'bar.cls-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.cls');
-      const uriTwo = vscode.Uri.parse('file:///bar.trigger');
-      const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
-      expect(multipleFileProcessing).to.equal(false);
-    });
+//   describe('useBetaDeployRetrieve', () => {
+//     it('Should return false for multiple valid URI when beta configuration is enabled', () => {
+//       sandboxStub
+//         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//         .returns(true);
+//       const components: SourceComponent[] = [
+//         // @ts-ignore
+//         {
+//           name: 'bar',
+//           type: registryData.types.apextrigger,
+//           xml: 'bar.trigger-meta.xml',
+//           // @ts-ignore
+//           walkContent(): ['bar.trigger', 'bar.trigger-meta.xml'];
+//         },
+//         // @ts-ignore
+//         {
+//           name: 'bar',
+//           type: registryData.types.apexclass,
+//           xml: 'bar.cls-meta.xml',
+//           // @ts-ignore
+//           walkContent(): ['bar.cls', 'bar.cls-meta.xml'];
+//         }
+//       ];
+//       registryStub.returns(components);
+//       const uriOne = vscode.Uri.parse('file:///bar.cls');
+//       const uriTwo = vscode.Uri.parse('file:///bar.trigger');
+//       const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
+//       expect(multipleFileProcessing).to.equal(false);
+//     });
 
-    it('Should return false for URI not part of the beta when the beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.lightningcomponentbundle,
-          xml: 'bar.js-meta.xml',
-          sources: ['bar.js', 'bar.html', 'bar.js-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.html');
-      const fileProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(fileProcessing).to.equal(true);
-    });
+//     it('Should return false for URI not part of the beta when the beta configuration is enabled', () => {
+//       sandboxStub
+//         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//         .returns(true);
+//       const components: SourceComponent[] = [
+//         // @ts-ignore
+//         {
+//           name: 'bar',
+//           type: registryData.types.lightningcomponentbundle,
+//           xml: 'bar.js-meta.xml',
+//           // @ts-ignore
+//           walkContent(): ['bar.js', 'bar.html', 'bar.js-meta.xml'];
+//         }
+//       ];
+//       registryStub.returns(components);
+//       const uriOne = vscode.Uri.parse('file:///bar.html');
+//       const fileProcessing = useBetaDeployRetrieve([uriOne]);
+//       expect(fileProcessing).to.equal(true);
+//     });
 
-    it('Should return true for ApexClass URI when beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexclass,
-          xml: 'bar.cls-meta.xml',
-          sources: ['bar.cls', 'bar.cls-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.cls');
-      const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(apexClassProcessing).to.equal(true);
+//     //   it('Should return true for ApexClass URI when beta configuration is enabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(true);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apexclass
+//     //         xml: 'bar.cls-meta.xml'
+//     //         // sources: ['bar.cls', 'bar.cls-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.cls');
+//     //     const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(apexClassProcessing).to.equal(true);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
-      const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(apexClassMetaProcessing).to.equal(true);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
+//     //     const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(apexClassMetaProcessing).to.equal(true);
+//     //   });
 
-    it('Should return false for ApexClass URI when beta configuration is disabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexclass,
-          xml: 'bar.cls-meta.xml',
-          sources: ['bar.cls', 'bar.cls-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.cls');
-      const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(apexClassProcessing).to.equal(false);
+//     //   it('Should return false for ApexClass URI when beta configuration is disabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(false);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apexclass
+//     //         // xml: 'bar.cls-meta.xml',
+//     //         // sources: ['bar.cls', 'bar.cls-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.cls');
+//     //     const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(apexClassProcessing).to.equal(false);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
-      const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(apexClassMetaProcessing).to.equal(false);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
+//     //     const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(apexClassMetaProcessing).to.equal(false);
+//     //   });
 
-    it('Should return true for ApexTrigger URI when beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apextrigger,
-          xml: 'bar.trigger-meta.xml',
-          sources: ['bar.trigger', 'bar.trigger-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.trigger');
-      const triggerProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(triggerProcessing).to.equal(true);
+//     //   it('Should return true for ApexTrigger URI when beta configuration is enabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(true);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apextrigger
+//     //         // xml: 'bar.trigger-meta.xml',
+//     //         // sources: ['bar.trigger', 'bar.trigger-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.trigger');
+//     //     const triggerProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(triggerProcessing).to.equal(true);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
-      const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(triggerMetaProcessing).to.equal(true);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
+//     //     const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(triggerMetaProcessing).to.equal(true);
+//     //   });
 
-    it('Should return false for ApexTrigger URI when beta configuration is disabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apextrigger,
-          xml: 'bar.trigger-meta.xml',
-          sources: ['bar.trigger', 'bar.trigger-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.trigger');
-      const triggerProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(triggerProcessing).to.equal(false);
+//     //   it('Should return false for ApexTrigger URI when beta configuration is disabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(false);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apextrigger
+//     //         // xml: 'bar.trigger-meta.xml',
+//     //         // sources: ['bar.trigger', 'bar.trigger-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.trigger');
+//     //     const triggerProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(triggerProcessing).to.equal(false);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
-      const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(triggerMetaProcessing).to.equal(false);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
+//     //     const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(triggerMetaProcessing).to.equal(false);
+//     //   });
 
-    it('Should return true for VF Page URI when beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexpage,
-          xml: 'bar.page-meta.xml',
-          sources: ['bar.page', 'bar.page-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.page');
-      const pageProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(pageProcessing).to.equal(true);
+//     //   it('Should return true for VF Page URI when beta configuration is enabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(true);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apexpage
+//     //         // xml: 'bar.page-meta.xml',
+//     //         // sources: ['bar.page', 'bar.page-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.page');
+//     //     const pageProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(pageProcessing).to.equal(true);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
-      const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(pageMetaProcessing).to.equal(true);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
+//     //     const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(pageMetaProcessing).to.equal(true);
+//     //   });
 
-    it('Should return false for VF Page URI when beta configuration is disabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexpage,
-          xml: 'bar.page-meta.xml',
-          sources: ['bar.page', 'bar.page-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.page');
-      const pageProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(pageProcessing).to.equal(false);
+//     //   it('Should return false for VF Page URI when beta configuration is disabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(false);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apexpage
+//     //         // xml: 'bar.page-meta.xml',
+//     //         // sources: ['bar.page', 'bar.page-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.page');
+//     //     const pageProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(pageProcessing).to.equal(false);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
-      const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(pageMetaProcessing).to.equal(false);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
+//     //     const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(pageMetaProcessing).to.equal(false);
+//     //   });
 
-    it('Should return true for VF Component URI when beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexcomponent,
-          xml: 'bar.component-meta.xml',
-          sources: ['bar.component', 'bar.component-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.component');
-      const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(cmpProcessing).to.equal(true);
+//     //   it('Should return true for VF Component URI when beta configuration is enabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(true);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apexcomponent
+//     //         // xml: 'bar.component-meta.xml',
+//     //         // sources: ['bar.component', 'bar.component-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.component');
+//     //     const cmpProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(cmpProcessing).to.equal(true);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-      const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(cmpMetaProcessing).to.equal(true);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
+//     //     const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(cmpMetaProcessing).to.equal(true);
+//     //   });
 
-    it('Should return false for VF Component URI when beta configuration is disabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexcomponent,
-          xml: 'bar.component-meta.xml',
-          sources: ['bar.component', 'bar.component-meta.xml']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.component');
-      const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(cmpProcessing).to.equal(false);
+//     //   it('Should return false for VF Component URI when beta configuration is disabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(false);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.apexcomponent
+//     //         // xml: 'bar.component-meta.xml',
+//     //         // sources: ['bar.component', 'bar.component-meta.xml']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.component');
+//     //     const cmpProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(cmpProcessing).to.equal(false);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-      const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(cmpMetaProcessing).to.equal(false);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
+//     //     const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(cmpMetaProcessing).to.equal(false);
+//     //   });
 
-    it('Should return true for LWC URI when beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.lightningcomponentbundle,
-          xml: 'bar.js-meta.xml',
-          sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.component');
-      const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(cmpProcessing).to.equal(true);
+//     //   it('Should return true for LWC URI when beta configuration is enabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(true);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.lightningcomponentbundle
+//     //         // xml: 'bar.js-meta.xml',
+//     //         // sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.component');
+//     //     const cmpProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(cmpProcessing).to.equal(true);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-      const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(cmpMetaProcessing).to.equal(true);
-    });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
+//     //     const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(cmpMetaProcessing).to.equal(true);
+//     //   });
 
-    it('Should return false for LWC URI when beta configuration is enabled', () => {
-      sandboxStub
-        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-        .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.lightningcomponentbundle,
-          xml: 'bar.js-meta.xml',
-          sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.component');
-      const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-      expect(cmpProcessing).to.equal(false);
+//     //   it('Should return false for LWC URI when beta configuration is enabled', () => {
+//     //     sandboxStub
+//     //       .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+//     //       .returns(false);
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'bar',
+//     //         type: registryData.types.lightningcomponentbundle
+//     //         // xml: 'bar.js-meta.xml',
+//     //         // sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
+//     //       }
+//     //     ];
+//     //     registryStub.returns(components);
+//     //     const uriOne = vscode.Uri.parse('file:///bar.component');
+//     //     const cmpProcessing = useBetaDeployRetrieve([uriOne]);
+//     //     expect(cmpProcessing).to.equal(false);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-      const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-      expect(cmpMetaProcessing).to.equal(false);
-    });
-  });
+//     //     const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
+//     //     const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
+//     //     expect(cmpMetaProcessing).to.equal(false);
+//     //   });
+//     // });
 
-  describe('createComponentCount', () => {
-    it('should correctly generate rows for telemetry', () => {
-      const { name: layoutName } = registryData.types.layout;
-      const { name: customAppName } = registryData.types.customapplication;
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'test',
-          type: registryData.types.layout,
-          xml: path.join('path', 'to', 'file.layout-meta.xml')
-        },
-        {
-          fullName: 'test2',
-          type: registryData.types.layout,
-          xml: path.join('path', 'to', 'file2.layout-meta.xml')
-        },
-        {
-          fullName: 'test3',
-          type: registryData.types.customapplication,
-          xml: path.join('path', 'to', 'file3.app-meta')
-        }
-      ];
-      const rows = createComponentCount(components);
-      expect(rows).to.deep.equal([
-        { type: layoutName, quantity: 2 },
-        { type: customAppName, quantity: 1 }
-      ]);
-    });
-  });
-});
+//     // describe('createComponentCount', () => {
+//     //   it('should correctly generate rows for telemetry', () => {
+//     //     const { name: layoutName } = registryData.types.layout;
+//     //     const { name: customAppName } = registryData.types.customapplication;
+//     //     const components: MetadataComponent[] = [
+//     //       {
+//     //         fullName: 'test',
+//     //         type: registryData.types.layout
+//     //         // xml: path.join('path', 'to', 'file.layout-meta.xml')
+//     //       },
+//     //       {
+//     //         fullName: 'test2',
+//     //         type: registryData.types.layout
+//     //         // xml: path.join('path', 'to', 'file2.layout-meta.xml')
+//     //       },
+//     //       {
+//     //         fullName: 'test3',
+//     //         type: registryData.types.customapplication
+//     //         // xml: path.join('path', 'to', 'file3.app-meta')
+//     //       }
+//     //     ];
+//     //     const rows = createComponentCount(components);
+//     //     expect(rows).to.deep.equal([
+//     //       { type: layoutName, quantity: 2 },
+//     //       { type: customAppName, quantity: 1 }
+//     //     ]);
+//     //   });
+//   });
+// });
