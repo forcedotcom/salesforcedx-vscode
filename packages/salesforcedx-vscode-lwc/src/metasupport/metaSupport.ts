@@ -51,14 +51,14 @@ export class MetaSupport {
       extensionApi.addXMLCatalogs(inputCatalogs);
       extensionApi.addXMLFileAssociations(inputFileAssociations);
     } catch (error) {
-      vscode.window.showErrorMessage(nls.localize('force_lightning_lwc_fail_redhat_extension'));
       vscode.window.showErrorMessage(error);
+      vscode.window.showErrorMessage(nls.localize('force_lightning_lwc_fail_redhat_extension'));
     }
   }
 
   /**
    * This function creates the js-meta.xml resource folder and
-   * duplicates XSD and XML files to the .sfdx folder of developers.
+   * duplicates XSD and XML files to the .sfdn, x folder of developers.
    * It also calls Redhat XML APIs to setup required settings for the plugin to work.
    */
   public getMetaSupport() {
@@ -68,8 +68,11 @@ export class MetaSupport {
       vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_no_redhat_extension_found'));
     } else if (redHatExtension) {
       const pluginVersionNumber = redHatExtension!.packageJSON['version'];
+      console.log('\t\tloggin xml version:' + pluginVersionNumber);
       // checks plugin version greater than 0.13.0, might need to change.
-      if (parseInt(pluginVersionNumber.split('.')[1], 10) >= 13 && parseInt(pluginVersionNumber.split('.')[2], 10) > 0) {
+      if ((parseInt(pluginVersionNumber.split('.')[1], 10) === 13 &&
+        parseInt(pluginVersionNumber.split('.')[2], 10) > 0) ||
+        parseInt(pluginVersionNumber.split('.')[1], 10) > 13) {
         const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
         const fileAssociations = [
           {
@@ -77,9 +80,15 @@ export class MetaSupport {
             pattern: '**/*js-meta.xml'
           }
         ];
-        this.setupRedhatXml(catalogs, fileAssociations).catch(err => vscode.window.showErrorMessage(nls.localize('force_lightning_lwc_fail_redhat_extension')));
+        this.setupRedhatXml(catalogs, fileAssociations).catch(err => {
+          vscode.window.showErrorMessage(
+            nls.localize('force_lightning_lwc_fail_redhat_extension')
+          );
+        });
       } else {
-        vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_deprecated_redhat_extension'));
+        vscode.window.showInformationMessage(
+          nls.localize('force_lightning_lwc_deprecated_redhat_extension')
+        );
       }
     }
   }
