@@ -44,7 +44,6 @@
     "no-var": "error",
     "jsdoc/no-types": "warn",
     "@typescript-eslint/semi": "warn",
-    "@typescript-eslint/class-name-casing": "warn",
     "header/header": [
       2,
       "block",
@@ -60,6 +59,5 @@
         " "
       ]
     ]
-  },
-  "ignorePatterns": ["*.js"]
+  }
 }
