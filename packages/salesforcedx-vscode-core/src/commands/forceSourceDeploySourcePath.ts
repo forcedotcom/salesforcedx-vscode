@@ -23,6 +23,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/types/newClient';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics/diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
@@ -41,7 +42,6 @@ import {
   useBetaDeployRetrieve
 } from './util/betaDeployRetrieve';
 import { LibraryDeployResultParser } from './util/libraryDeployResultParser';
-import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics/diagnostics';
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
     const commandBuilder = new SfdxCommandBuilder()

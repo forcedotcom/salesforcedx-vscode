@@ -99,7 +99,7 @@ export class LibraryDeployResultParser {
     );
     return outputResult;
   }
-  public ResultParser(result: SourceDeployResult) {
+  public resultParser(result: SourceDeployResult) {
     let outputResult: string;
     switch (result.status) {
       case DeployStatus.Succeeded:
