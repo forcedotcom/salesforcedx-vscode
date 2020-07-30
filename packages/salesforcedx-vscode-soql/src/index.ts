@@ -12,5 +12,3 @@ export function activate(context: vscode.ExtensionContext) {
   console.log('SOQL Extension Activated');
   context.subscriptions.push(SOQLEditorProvider.register(context));
 }
-
-export function deactivate() {}

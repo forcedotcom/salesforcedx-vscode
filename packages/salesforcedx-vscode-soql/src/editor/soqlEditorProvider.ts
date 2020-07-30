@@ -55,7 +55,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     const zeroDotScriptUri = webview.asWebviewUri(
       vscode.Uri.file(path.join(pathToLwcDist, '0.app.js'))
     );
-    const cspMetaTag: string = `<meta
+    const cspMetaTag = `<meta
       http-equiv="Content-Security-Policy"
       content="default-src 'none';
       img-src ${webview.cspSource} https:;
