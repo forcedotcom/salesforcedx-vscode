@@ -8,6 +8,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {
+  SOQL_BUILDER_UI_PATH,
+  WEBVIEW_RESOURCE_ROOTS_PATH
+} from '../constants';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext) {
@@ -31,10 +35,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       localResourceRoots: [
         vscode.Uri.file(
-          path.join(
-            this.context.extensionPath,
-            'node_modules/@salesforce/soql-builder-ui'
-          )
+          path.join(this.context.extensionPath, WEBVIEW_RESOURCE_ROOTS_PATH)
         )
       ]
     };
@@ -45,7 +46,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToLwcDist = path.join(
       this.context.extensionPath,
-      'node_modules/@salesforce/soql-builder-ui/dist'
+      SOQL_BUILDER_UI_PATH
     );
     const pathToHtml = path.join(pathToLwcDist, 'index.html');
     let html = fs.readFileSync(pathToHtml).toString();
