@@ -13,10 +13,7 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  RegistryAccess,
-  ToolingDeployStatus
-} from '@salesforce/source-deploy-retrieve';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import {
   DeployStatus,
   SourceDeployResult
@@ -133,13 +130,15 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
       const components = registryAccess.getComponentsFromPath(response.data);
       let deployPromise: Promise<SourceDeployResult>;
       if (projectNamespace) {
+        // @ts-ignore
         deployPromise = this.sourceClient.tooling.deploy(components, {
           namespace: projectNamespace
         }) as Promise<SourceDeployResult>;
       } else {
-        deployPromise = this.sourceClient.metadata.deploy(
+        // @ts-ignore
+        deployPromise = this.sourceClient.metadata.deploy({
           components
-        ) as Promise<SourceDeployResult>;
+        }) as Promise<SourceDeployResult>;
       }
       const metadataCount = JSON.stringify(createComponentCount(components));
       const result = (await vscode.window.withProgress(
@@ -150,7 +149,7 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
         () => deployPromise
       )) as SourceDeployResult;
       const parser = new LibraryDeployResultParser(result);
-      const outputResult = parser.ResultParser(result);
+      const outputResult = parser.resultParser(result);
       this.logMetric({ metadataCount });
       channelService.appendLine(outputResult);
       channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);

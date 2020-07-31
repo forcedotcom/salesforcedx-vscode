@@ -7,9 +7,9 @@
 
 import {
   RegistryAccess,
-  registryData,
-  SourceComponent
+  registryData
 } from '@salesforce/source-deploy-retrieve';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve/lib/metadata-registry/sourceComponent';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';
