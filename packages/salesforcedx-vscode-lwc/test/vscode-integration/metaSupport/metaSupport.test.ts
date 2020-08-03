@@ -16,7 +16,6 @@ var sandbox = require('sinon').createSandbox();
 var infoMessageStub: any;
 var mockRhExtension: any;
 var rhExtension: any;
-var rhAPI: any;
 
 describe('MetaSupport: Extension version too old', () => {
 
@@ -30,7 +29,7 @@ describe('MetaSupport: Extension version too old', () => {
   });
 
   it('Should provide information to update XML plugin', async () => {
-    metaSupport.getMetaSupport();
+    await metaSupport.getMetaSupport();
     expect(infoMessageStub).to.have.calledOnceWith(nls.localize('force_lightning_lwc_deprecated_redhat_extension'));
   });
 
@@ -48,7 +47,7 @@ describe('MetaSupport: Extension not found', () => {
   });
 
   it('Should provide information to install XML plugin', async () => {
-    metaSupport.getMetaSupport();
+    await metaSupport.getMetaSupport();
     expect(infoMessageStub).to.have.calledOnceWith(nls.localize('force_lightning_lwc_no_redhat_extension_found'));
   });
 });

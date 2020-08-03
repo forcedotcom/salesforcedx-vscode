@@ -61,7 +61,7 @@ export class MetaSupport {
    * duplicates XSD and XML files to the .sfdn, x folder of developers.
    * It also calls Redhat XML APIs to setup required settings for the plugin to work.
    */
-  public getMetaSupport() {
+  public async getMetaSupport() {
     // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     if (redHatExtension === undefined) {
@@ -80,11 +80,7 @@ export class MetaSupport {
             pattern: '**/*js-meta.xml'
           }
         ];
-        this.setupRedhatXml(catalogs, fileAssociations).catch(err => {
-          vscode.window.showErrorMessage(
-            nls.localize('force_lightning_lwc_fail_redhat_extension')
-          );
-        });
+        await this.setupRedhatXml(catalogs, fileAssociations);
       } else {
         vscode.window.showInformationMessage(
           nls.localize('force_lightning_lwc_deprecated_redhat_extension')
