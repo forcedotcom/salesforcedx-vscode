@@ -110,7 +110,7 @@ export async function activate(context: ExtensionContext) {
   startLWCLanguageServer(context);
 
   // Creates resources for js-meta.xml to work
-  metaSupport.getMetaSupport();
+  await metaSupport.getMetaSupport();
 
   if (workspaceType === lspCommon.WorkspaceType.SFDX) {
     // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
