@@ -353,12 +353,12 @@ describe('Apex Execute Tests', async () => {
       .stub(readline, 'createInterface')
       //@ts-ignore
       .returns({ on });
-  });
 
-  try {
-    const executeService = new ExecuteService(mockConnection);
-    await executeService.getUserInput();
-  } catch (e) {
-    assert.equal(nls.localize('exec_anon_input_timeout'), e.message);
-  }
+    try {
+      const executeService = new ExecuteService(mockConnection);
+      await executeService.getUserInput();
+    } catch (e) {
+      assert.equal(nls.localize('exec_anon_input_timeout'), e.message);
+    }
+  });
 });
