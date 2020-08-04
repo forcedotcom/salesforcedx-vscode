@@ -13,12 +13,14 @@ lerna-debug.log*
 
 
 # test results
+/testTmp
 test-results.xml
 xunit.xml
 junit-custom.xml
 
 # nyc test coverage
 .nyc_output
+/test-results
 
 # Eclipse
 .project

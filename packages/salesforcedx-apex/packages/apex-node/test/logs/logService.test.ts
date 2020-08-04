@@ -128,7 +128,7 @@ describe('Apex Log Service Tests', () => {
 
   it('should store logs in the directory', async () => {
     const apexLogGet = new LogService(mockConnection);
-    const filePath = path.join('file', 'path', 'logs');
+    const filePath = path.join('testTmp', 'file', 'path', 'logs');
     const logIds = ['07WgsWfad', '9SiomgS'];
     sandboxStub.stub(LogService.prototype, 'getLogIds').resolves(logIds);
 
