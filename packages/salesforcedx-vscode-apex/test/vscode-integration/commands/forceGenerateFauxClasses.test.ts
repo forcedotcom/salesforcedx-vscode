@@ -105,6 +105,7 @@ describe('ForceGenerateFauxClasses', () => {
   describe('checkSObjectsAndRefresh', () => {
     let existsSyncStub: sinon.SinonStub;
     let notificationStub: sinon.SinonStub;
+    let getUsernameStub: sinon.SinonStub;
 
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
@@ -117,16 +118,19 @@ describe('ForceGenerateFauxClasses', () => {
     beforeEach(() => {
       existsSyncStub = sinon.stub(fs, 'existsSync');
       notificationStub = sinon.stub(notificationService, 'showInformationMessage');
+      getUsernameStub = sinon.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
     });
 
     afterEach(() => {
       existsSyncStub.restore();
       notificationStub.restore();
+      getUsernameStub.restore();
     });
 
     it('Should call notification service when sobjects already exist', async () => {
       existsSyncStub.returns(false);
       notificationStub.returns('Run SFDX: Refresh SObject Definitions now');
+      getUsernameStub.returns(new Map([['defaultusername', 'Sample']]));
 
       await checkSObjectsAndRefresh(projectPath);
 
@@ -137,10 +141,20 @@ describe('ForceGenerateFauxClasses', () => {
     it('Should not call notification service when sobjects already exist', async () => {
       existsSyncStub.returns(true);
       notificationStub.returns('Run SFDX: Refresh SObject Definitions now');
+      getUsernameStub.returns(new Map([['defaultusername', 'Sample']]));
 
       await checkSObjectsAndRefresh(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
+      expect(notificationStub.notCalled).to.be.true;
+    });
+
+    it('Should not call notification service when username not set', async () => {
+      notificationStub.returns('Run SFDX: Refresh SObject Definitions now');
+      getUsernameStub.returns(undefined);
+
+      await checkSObjectsAndRefresh(projectPath);
+
       expect(notificationStub.notCalled).to.be.true;
     });
   });
