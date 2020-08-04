@@ -6,7 +6,7 @@
  */
 import { ExecuteAnonymousResponse } from '@salesforce/apex-node';
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DeployResult } from '@salesforce/source-deploy-retrieve/lib/types/newClient';
+import { SourceDeployResult } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -82,41 +82,38 @@ export function handleDiagnosticErrors(
 }
 
 export function handleDeployRetrieveLibraryDiagnostics(
-  deployResult: DeployResult,
+  deployResult: SourceDeployResult,
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
   errorCollection.clear();
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
+  deployResult.components?.forEach(detail => {
+    detail.diagnostics.forEach(err => {
+      const range = getRange(
+        err.lineNumber ? err.lineNumber.toString() : '1',
+        err.columnNumber ? err.columnNumber.toString() : '1'
+      );
+      const diagnostic = {
+            message: err.message,
+            severity: vscode.DiagnosticSeverity.Error,
+            source: err.filePath,
+            range
+          } as vscode.Diagnostic;
+          // NOTE: This is a workaround while we fix DeployResults not providing full
+          // path info
+      const fileUri = detail.component.xml;
 
-  deployResult.details.componentFailures!.forEach(err => {
-    const range = getRange(
-      err.lineNumber ? err.lineNumber.toString() : '1',
-      err.columnNumber ? err.columnNumber.toString() : '1'
-    );
+      if (!diagnosticMap.has(fileUri)) {
+            diagnosticMap.set(fileUri, []);
+          }
 
-    const diagnostic = {
-      message: err.problem,
-      severity: vscode.DiagnosticSeverity.Error,
-      source: err.fileName,
-      range
-    } as vscode.Diagnostic;
-
-    // NOTE: This is a workaround while we fix DeployResults not providing full
-    // path info
-    const fileUri = deployResult.metadataFile.replace('-meta.xml', '');
-
-    if (!diagnosticMap.has(fileUri)) {
-      diagnosticMap.set(fileUri, []);
-    }
-
-    diagnosticMap.get(fileUri)!.push(diagnostic);
+      diagnosticMap.get(fileUri)!.push(diagnostic);
+        });
   });
-
   diagnosticMap.forEach((diagMap: vscode.Diagnostic[], file) => {
     const fileUri = vscode.Uri.file(file);
     errorCollection.set(fileUri, diagMap);
   });
-
   return errorCollection;
 }
 

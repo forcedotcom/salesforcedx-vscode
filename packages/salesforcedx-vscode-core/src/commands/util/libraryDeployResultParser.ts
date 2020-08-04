@@ -12,7 +12,7 @@ import {
   DeployStatus,
   SourceDeployResult,
   ToolingDeployStatus
-} from '@salesforce/source-deploy-retrieve/lib/types/newClient';
+} from '@salesforce/source-deploy-retrieve';
 import { nls } from '../../messages';
 type ComponentSuccess = {
   state: string;
@@ -33,9 +33,6 @@ export class LibraryDeployResultParser {
   }
 
   public buildSuccesses(componentSuccess: SourceDeployResult) {
-    const table = new Table();
-    let title: string;
-    title = nls.localize(`table_title_deployed_source`);
     let success: ComponentSuccess[] = [];
     for (const component of componentSuccess.components!) {
       const listOfFiles = component.component.walkContent();
@@ -49,20 +46,7 @@ export class LibraryDeployResultParser {
         }));
       }
     }
-    const outputResult = table.createTable(
-      (success as unknown) as Row[],
-      [
-        { key: 'state', label: nls.localize('table_header_state') },
-        { key: 'fullName', label: nls.localize('table_header_full_name') },
-        { key: 'type', label: nls.localize('table_header_type') },
-        {
-          key: 'filePath',
-          label: nls.localize('table_header_project_path')
-        }
-      ],
-      title
-    );
-    return outputResult;
+    return success;
   }
   public buildErrors(result: SourceDeployResult) {
     const table = new Table();
@@ -76,7 +60,9 @@ export class LibraryDeployResultParser {
         ) {
           failures.push({
             filePath: diagnostic.filePath,
-            error: `(${diagnostic.lineNumber}): ${diagnostic.columnNumber}`
+            error: `${diagnostic.message} (${diagnostic.lineNumber}:${
+              diagnostic.columnNumber
+            })`
           });
         } else {
           failures.push({
@@ -86,39 +72,58 @@ export class LibraryDeployResultParser {
         }
       }
     }
-    const outputResult = table.createTable(
-      (failures as unknown) as Row[],
-      [
-        {
-          key: 'filePath',
-          label: nls.localize('table_header_project_path')
-        },
-        { key: 'error', label: nls.localize('table_header_errors') }
-      ],
-      nls.localize(`table_title_deploy_errors`)
-    );
-    return outputResult;
+    return failures;
   }
   public resultParser(result: SourceDeployResult) {
-    let outputResult: string;
+    let outputResult: ComponentSuccess[] | ComponentFailure[];
+    let formatResult: string;
+    let table = new Table();
     switch (result.status) {
       case DeployStatus.Succeeded:
       case ToolingDeployStatus.Completed:
+        table = new Table();
+        let title: string;
+        title = nls.localize(`table_title_deployed_source`);
         outputResult = this.buildSuccesses(result);
+        formatResult = table.createTable(
+          (outputResult as unknown) as Row[],
+          [
+            { key: 'state', label: nls.localize('table_header_state') },
+            { key: 'fullName', label: nls.localize('table_header_full_name') },
+            { key: 'type', label: nls.localize('table_header_type') },
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            }
+          ],
+          title
+        );
         break;
       case ToolingDeployStatus.Error:
       case DeployStatus.Failed:
       case ToolingDeployStatus.Failed:
+        table = new Table();
         outputResult = this.buildErrors(result);
+        formatResult = table.createTable(
+          (outputResult as unknown) as Row[],
+          [
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            },
+            { key: 'error', label: nls.localize('table_header_errors') }
+          ],
+          nls.localize(`table_title_deploy_errors`)
+        );
         break;
       case ToolingDeployStatus.Queued:
       case DeployStatus.Pending:
       case DeployStatus.InProgress:
-        outputResult = nls.localize('beta_tapi_queue_status');
+        formatResult = nls.localize('beta_tapi_queue_status');
         break;
       default:
-        outputResult = '';
+        formatResult = '';
     }
-    return outputResult;
+    return formatResult;
   }
 }

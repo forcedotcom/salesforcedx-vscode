@@ -7,9 +7,9 @@
 
 import {
   RegistryAccess,
-  registryData,
-  SourceComponent
+  registryData
 } from '@salesforce/source-deploy-retrieve';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve/lib/metadata-registry/sourceComponent';
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import * as vscode from 'vscode';
 import { sfdxCoreSettings } from '../../settings';
@@ -42,7 +42,7 @@ export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
   return betaDeployRetrieve && supportedType;
 }
 
-export function createComponentCount(components: SourceComponent[]) {
+export function createComponentCount(components: MetadataComponent[]) {
   const quantities: { [type: string]: number } = {};
   for (const component of components) {
     const { name: typeName } = component.type;

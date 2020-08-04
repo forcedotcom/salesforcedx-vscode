@@ -13,11 +13,11 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import {
   DeployStatus,
+  RegistryAccess,
   SourceDeployResult
-} from '@salesforce/source-deploy-retrieve/lib/types/newClient';
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics/diagnostics';
@@ -130,15 +130,13 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
       const components = registryAccess.getComponentsFromPath(response.data);
       let deployPromise: Promise<SourceDeployResult>;
       if (projectNamespace) {
-        // @ts-ignore
         deployPromise = this.sourceClient.tooling.deploy(components, {
           namespace: projectNamespace
         }) as Promise<SourceDeployResult>;
       } else {
-        // @ts-ignore
-        deployPromise = this.sourceClient.metadata.deploy({
+        deployPromise = this.sourceClient.metadata.deploy(
           components
-        }) as Promise<SourceDeployResult>;
+        ) as Promise<SourceDeployResult>;
       }
       const metadataCount = JSON.stringify(createComponentCount(components));
       const result = (await vscode.window.withProgress(

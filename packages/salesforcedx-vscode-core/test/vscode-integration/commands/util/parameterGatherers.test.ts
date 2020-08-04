@@ -11,9 +11,9 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   RegistryAccess,
-  registryData,
-  SourceComponent
+  registryData
 } from '@salesforce/source-deploy-retrieve';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import { join } from 'path';
@@ -326,14 +326,14 @@ describe('Parameter Gatherers', () => {
         'lwc',
         'propertyMap'
       );
-      const components: SourceComponent[] = [
+      const components: MetadataComponent[] = [
         // @ts-ignore
         {
-          name: 'propertyMap',
+          fullName: 'propertyMap',
           type: registryData.types.lightningcomponentbundle,
-          xml: path.join(filePath, 'propertyMap.js-meta.xml'),
+          // xml: path.join(filePath, 'propertyMap.js-meta.xml'),
           // @ts-ignore
-          walkContent(): [];
+          sources: []
         }
       ];
       const getPackageDirPathsStub = sinon.stub(
