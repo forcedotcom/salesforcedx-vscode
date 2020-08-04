@@ -1,0 +1,41 @@
+[
+    {
+        "command": "commandreference:generate",
+        "flags": [
+            "json",
+            "loglevel",
+            "outputdir",
+            "plugins",
+            "hidden",
+            "erroronwarnings"
+        ]
+    },
+    {
+        "command": "force:apex:execute",
+        "flags": [
+            "json",
+            "loglevel",
+            "apiversion",
+            "apexcodefile",
+            "targetusername"
+        ]
+    },
+    {
+        "command": "help",
+        "flags": [
+            "all"
+        ]
+    },
+    {
+        "command": "snapshot:compare",
+        "flags": [
+            "filepath"
+        ]
+    },
+    {
+        "command": "snapshot:generate",
+        "flags": [
+            "filepath"
+        ]
+    }
+]

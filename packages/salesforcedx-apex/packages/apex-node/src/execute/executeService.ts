@@ -59,17 +59,19 @@ export class ExecuteService {
     if (options.apexCode) {
       return String(options.apexCode);
     } else if (options.apexFilePath) {
-      if (!existsSync(options.apexFilePath)) {
-        throw new Error(
-          nls.localize('file_not_found_error', options.apexFilePath)
-        );
-      }
-      return readFileSync(options.apexFilePath, 'utf8');
+      return this.readApexFile(options.apexFilePath);
     } else if (options.userInput) {
       return await this.getUserInput();
     } else {
       throw new Error(nls.localize('option_exec_anon_error'));
     }
+  }
+
+  public readApexFile(filepath: string): string {
+    if (!existsSync(filepath)) {
+      throw new Error(nls.localize('file_not_found_error', filepath));
+    }
+    return readFileSync(filepath, 'utf8');
   }
 
   public async getUserInput(): Promise<string> {

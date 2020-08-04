@@ -9,15 +9,18 @@
     "@oclif/config": "^1",
     "@oclif/errors": "^1",
     "@salesforce/apex-node": "0.0.4",
-    "@salesforce/command": "^2",
-    "@salesforce/core": "2.5.1",
+    "@salesforce/command": "3.0.1",
+    "@salesforce/core": "2.6.0",
+    "chalk": "^4.1.0",
     "tslib": "^1"
   },
   "devDependencies": {
     "@oclif/dev-cli": "^1",
+    "@oclif/plugin-command-snapshot": "^1.0.0",
     "@oclif/plugin-help": "^2",
     "@oclif/test": "^1",
     "@salesforce/dev-config": "1.4.1",
+    "@salesforce/plugin-command-reference": "^1.1.0",
     "@salesforce/ts-sinon": "^1.1.2",
     "@salesforce/ts-types": "1.2.2",
     "@types/chai": "^4",
@@ -53,19 +56,49 @@
   "license": "BSD-3-Clause",
   "oclif": {
     "commands": "./lib/commands",
+    "topics": {
+      "force": {
+        "external": true,
+        "subtopics": {
+          "apex": {
+            "description": "work with Apex code",
+            "longDescription": "Use the apex commands to create Apex classes, execute anonymous blocks, view your logs, run Apex tests, and view Apex test results.",
+            "subtopics": {
+              "log": {
+                "description": "generate and retrieve Apex logs"
+              },
+              "test": {
+                "description": "run Apex tests and retrieve test reports"
+              },
+              "class": {
+                "external": true
+              },
+              "trigger": {
+                "external": true
+              }
+            }
+          }
+        }
+      }
+    },
     "bin": "sfdx",
     "devPlugins": [
-      "@oclif/plugin-help"
+      "@oclif/plugin-help",
+      "@oclif/plugin-command-snapshot",
+      "@salesforce/plugin-command-reference"
     ]
   },
   "repository": "forcedotcom/salesforcedx-apex",
   "scripts": {
-    "build": "shx rm -rf lib && tsc -b && oclif-dev manifest",
+    "build": "shx rm -rf lib && tsc -b",
     "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
+    "prepack": "yarn build && oclif-dev manifest",
     "postpack": "shx rm -f oclif.manifest.json",
     "test": "mocha --recursive \"./test/**/*.test.ts\" --full-trace",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && git add README.md",
+    "test:deprecation-policy": "./bin/run snapshot:compare",
+    "test:command-reference": "./bin/run commandreference:generate -p apex --erroronwarnings"
   },
   "husky": {
     "hooks": {
