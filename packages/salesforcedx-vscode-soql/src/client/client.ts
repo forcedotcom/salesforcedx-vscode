@@ -44,7 +44,7 @@ export function startLanguageClient(context: ExtensionContext) {
     documentSelector: [{ scheme: 'file', language: 'soql' }],
     synchronize: {
       configurationSection: 'soql',
-      fileEvents: workspace.createFileSystemWatcher('**/.soql')
+      fileEvents: workspace.createFileSystemWatcher('**/*.soql')
     }
   };
 
