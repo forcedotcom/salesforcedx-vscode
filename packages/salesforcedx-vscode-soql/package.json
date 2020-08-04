@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "@salesforce/soql-builder-ui": "0.0.2",
-    "@salesforce/soql-language-server": "0.1.0",
+    "@salesforce/soql-language-server": "0.2.1",
     "vscode-languageclient": "^6.1.3"
   },
   "devDependencies": {
