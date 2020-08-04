@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,12 +10,14 @@ import { extensions, window } from 'vscode';
 import { nls } from '../../../src/messages';
 import { MockRedhatExtension } from './MockRhExtension';
 import { metaSupport } from '../../../src/metasupport';
-var assert = require('assert');
+import { strict as assert } from 'assert';
+import * as sinon from 'sinon';
+import * as path from 'path';
 
-var sandbox = require('sinon').createSandbox();
-var infoMessageStub: any;
-var mockRhExtension: any;
-var rhExtension: any;
+let sandbox = sinon.createSandbox();
+let infoMessageStub: any;
+let mockRhExtension: any;
+let rhExtension: any;
 
 describe('MetaSupport: Extension version too old', () => {
 
@@ -67,14 +69,14 @@ describe('MetaSupport: Extension function', () => {
   it('Should pass correct catalog path', async () => {
     await metaSupport.getMetaSupport();
 
-    const path = ['extension/local/path/resources/static/js-meta-home.xml'];
-    assert.equal(rhExtension.api.listOfCatalogs[0], path[0]);
+    const catalogPaths = [path.join('extension', 'local', 'path', 'resources', 'static', 'js-meta-home.xml')]
+    assert.equal(rhExtension.api.listOfCatalogs[0], catalogPaths[0]);
   });
 
   it('Should pass correct file association path', async () => {
     await metaSupport.getMetaSupport();
 
-    const systemId = 'extension/local/path/resources/static/js-meta.xsd';
+    const systemId = path.join('extension', 'local', 'path', 'resources', 'static', 'js-meta.xsd');
     const pattern = '**/*js-meta.xml';
 
     assert.equal(rhExtension.api.listOfAssociations[0]['systemId'], systemId);
