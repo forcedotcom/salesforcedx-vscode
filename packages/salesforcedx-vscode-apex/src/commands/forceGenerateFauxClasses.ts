@@ -190,7 +190,12 @@ export async function forceGenerateFauxClassesCreate(
 export async function initSObjectDefinitions(projectPath: string) {
   const hasDefaultUsernameSet =
     (await getDefaultUsernameOrAlias()) !== undefined;
-  initSObjectDefinitionsWithUserName(projectPath, hasDefaultUsernameSet);
+  initSObjectDefinitionsWithUserName(projectPath, hasDefaultUsernameSet).catch(e =>
+    telemetryService.sendErrorEvent({
+      message: e.message,
+      stack: e.stack
+    })
+  );
 }
 
 export async function initSObjectDefinitionsWithUserName(projectPath: string, hasDefaultUsernameSet: boolean) {
