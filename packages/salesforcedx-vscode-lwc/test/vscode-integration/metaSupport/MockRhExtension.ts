@@ -1,18 +1,17 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Extension, ExtensionKind, extensions } from 'vscode';
 import * as path from 'path';
-import { version } from 'process';
 
 export class MockRedhatExtension implements Extension<any> {
   public extensionKind = ExtensionKind.Workspace;
   constructor(version: string) {
     this.id = 'redhat.vscode-xml';
-    this.extensionPath = 'extension/local/path';
+    this.extensionPath = path.join('extension', 'local', 'path');
     this.isActive = true;
     this.packageJSON = {
       name: 'vscode-xml',

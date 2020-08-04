@@ -105,6 +105,6 @@ To jump to the location of a definition, right-click the item and select **Go to
 
 ## Supporting js-meta.xml
 
-VS Code provides intellisense support through integrating XML plugin by Red-hat for js-meta.xml. It supports features that comes out of the box by the extension, such as but not limited to auto suggestion, syntax error reporting, renaming support, automatic code generation and more.
+VS Code provides intellisense support through integrating XML VSCode extention by Red-hat for js-meta.xml. It supports features that comes out of the box by the extension, such as but not limited to auto suggestion, syntax error reporting, renaming support, automatic code generation and more.
 
 ![View suggestions for target in js-meta.xml](./images/vscode-lwc-jsmeta-intellisense.png)
