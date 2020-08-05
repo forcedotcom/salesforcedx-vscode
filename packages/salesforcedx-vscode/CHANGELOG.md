@@ -1,3 +1,17 @@
+# 49.4.0 - August 6, 2020
+
+## Added
+
+#### salesforcedx-vscode-soql
+
+- Added SOQL Builder Package for `.soql` files ([PR #2382](https://github.com/forcedotcom/salesforcedx-vscode/pull/2382))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Performance enhancements for `SFDX: Get Apex Debug Logs...` command ([PR #2353](https://github.com/forcedotcom/salesforcedx-vscode/pull/2353))
+
 # 49.3.0 - July 30, 2020
 
 ## Added
