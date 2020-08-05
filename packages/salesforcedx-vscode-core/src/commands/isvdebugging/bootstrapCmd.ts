@@ -250,6 +250,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       this.relativeInstalledPackagesPath
     );
 
+    // remove any previous project at this path location
+    shell.rm('-rf', projectPath);
+
     // 1: create project
     await this.executeCommand(
       this.buildCreateProjectCommand(response.data),
@@ -265,6 +268,8 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       cancellationTokenSource,
       cancellationToken
     );
+
+    console.log('It got here at least');
 
     // 2b: update sfdx-project.json with namespace
     const orgNamespaceInfoResponseJson = await this.executeCommand(
@@ -383,6 +388,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     try {
       const packagesTempPath = path.join(projectMetadataTempPath, 'packages');
       shell.mkdir('-p', packagesTempPath);
+
+      // Remove any previous installed packages at this location.
+      // shell.rm('-rf', projectInstalledPackagesPath);
       shell.mkdir('-p', projectInstalledPackagesPath);
       const zip = new AdmZip(
         path.join(projectMetadataTempPath, 'unpackaged.zip')

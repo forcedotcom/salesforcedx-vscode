@@ -19,7 +19,7 @@ import { getRootWorkspacePath } from '../../../../src/util';
 describe('ISV Debugging Project Bootstrap Command', () => {
   const LOGIN_URL = 'a.b.c';
   const SESSION_ID = '0x123';
-  const PROJECT_NAME = 'sfdx-simple';
+  const PROJECT_NAME = 'sfdx-simple-test';
   const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
@@ -376,6 +376,10 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectPath,
         executor.relativeMetdataTempPath
       );
+      const projectInstalledPackagesPath = path.join(
+        projectPath,
+        executor.relativeInstalledPackagesPath
+      );
 
       // fake namespace query
       executeCommandSpy
@@ -416,16 +420,9 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         zip.writeZip(path.join(projectMetadataTempPath, 'unpackaged.zip'));
       });
 
-      // fake package metadate convert
+      // fake package metadata convert
       executeCommandSpy.onCall(7).callsFake(() => {
-        shell.mkdir(
-          '-p',
-          path.join(
-            projectPath,
-            executor.relativeInstalledPackagesPath,
-            'mypackage'
-          )
-        );
+        shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'mypackage'));
       });
 
       const input = {
@@ -446,6 +443,18 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         fs.existsSync(path.join(projectPath, '.vscode', 'launch.json')),
         'there must be a launch.json file'
       ).to.equal(true);
+
+      // expect(
+      //   fs.existsSync(path.join(projectInstalledPackagesPath, 'mypackage')),
+      //   'installed packages folder should be present'
+      // ).to.equal(true);
+
+      // const dirInfo = fs.readdirSync(projectInstalledPackagesPath);
+      // // there should be only one package in the installed-packages folder
+      // expect(
+      //   dirInfo.length,
+      //   `There should only be one package installed at ${projectInstalledPackagesPath}`
+      // ).to.equal(1);
 
       // any temp files should be gone
       expect(
