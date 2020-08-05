@@ -5,18 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import { Subject } from 'rxjs/Subject';
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
-
 import {
   CliCommandExecutor,
   CommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { expect } from 'chai';
+import { Subject } from 'rxjs/Subject';
+import * as sinon from 'sinon';
+import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { ProgressNotification } from '../../../src/notifications/progressNotification';
+import { ProgressNotification } from '../../../src/notifications';
 
 // tslint:disable:no-unused-expression
 describe('Progress Notification', () => {

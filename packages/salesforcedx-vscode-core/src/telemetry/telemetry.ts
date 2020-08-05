@@ -6,16 +6,12 @@
  */
 
 import * as util from 'util';
+import { commands, ExtensionContext, Uri, window } from 'vscode';
 import { TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
-import {
-  disableCLITelemetry,
-  getRootWorkspacePath,
-  isCLITelemetryAllowed
-} from '../util';
+import { disableCLITelemetry, isCLITelemetryAllowed } from '../util';
 import TelemetryReporter from './telemetryReporter';
-import vscode = require('vscode');
 
 const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
@@ -41,7 +37,7 @@ export interface TelemetryData {
 
 export class TelemetryService {
   private static instance: TelemetryService;
-  private context: vscode.ExtensionContext | undefined;
+  private context: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
   private cliAllowsTelemetry: boolean = true;
 
@@ -53,7 +49,7 @@ export class TelemetryService {
   }
 
   public async initializeService(
-    context: vscode.ExtensionContext,
+    context: ExtensionContext,
     machineId: string
   ): Promise<void> {
     this.context = context;
@@ -120,14 +116,14 @@ export class TelemetryService {
         'telemetry_legal_dialog_message',
         TELEMETRY_OPT_OUT_LINK
       );
-      vscode.window
+      window
         .showInformationMessage(showMessage, showButtonText)
         .then(selection => {
           // Open disable telemetry link
           if (selection && selection === showButtonText) {
-            vscode.commands.executeCommand(
+            commands.executeCommand(
               'vscode.open',
-              vscode.Uri.parse(TELEMETRY_OPT_OUT_LINK)
+              Uri.parse(TELEMETRY_OPT_OUT_LINK)
             );
           }
         });
@@ -216,7 +212,7 @@ export class TelemetryService {
   }
 
   public async checkCliTelemetry(): Promise<boolean> {
-    return await isCLITelemetryAllowed(getRootWorkspacePath());
+    return await isCLITelemetryAllowed();
   }
 
   public setCliTelemetryEnabled(isEnabled: boolean) {

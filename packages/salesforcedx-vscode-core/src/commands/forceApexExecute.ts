@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { ExecuteService } from '@salesforce/apex-node';
+import { Connection } from '@salesforce/core';
 import {
   Command,
   SfdxCommandBuilder
@@ -17,15 +18,21 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
+  ApexLibraryExecutor,
+  CommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
 
-class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: TempFile): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_execute_document_text'))
@@ -36,7 +43,8 @@ class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
   }
 }
 
-class CreateApexTempFile implements ParametersGatherer<{ fileName: string }> {
+export class CreateApexTempFile
+  implements ParametersGatherer<{ fileName: string }> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
@@ -89,14 +97,85 @@ export function writeFileAsync(fileName: string, inputText: string) {
   });
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
-const fileNameGatherer = new CreateApexTempFile();
+export class AnonApexGatherer
+  implements ParametersGatherer<{ fileName?: string; apexCode?: string }> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ fileName?: string; apexCode?: string }>
+  > {
+    if (hasRootWorkspace()) {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        return { type: 'CANCEL' };
+      }
 
-export async function forceApexExecute(withSelection?: any) {
+      const document = editor.document;
+      if (!editor.selection.isEmpty || document.isUntitled) {
+        return {
+          type: 'CONTINUE',
+          data: {
+            apexCode: !editor.selection.isEmpty
+              ? document.getText(editor.selection)
+              : document.getText()
+          }
+        };
+      }
+
+      return { type: 'CONTINUE', data: { fileName: document.uri.fsPath } };
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
+export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
+  protected executeService: ExecuteService | undefined;
+
+  public createService(conn: Connection): void {
+    this.executeService = new ExecuteService(conn);
+  }
+
+  public async execute(
+    response: ContinueResponse<{ fileName?: string; apexCode?: string }>
+  ): Promise<void> {
+    this.setStartTime();
+
+    try {
+      await this.build(
+        nls.localize('apex_execute_text'),
+        nls.localize('force_apex_execute_library')
+      );
+
+      if (this.executeService === undefined) {
+        throw new Error('ExecuteService is not established');
+      }
+
+      this.executeService.executeAnonymous = this.executeWrapper(
+        this.executeService.executeAnonymous
+      );
+
+      await this.executeService.executeAnonymous({
+        ...(response.data.fileName && { apexFilePath: response.data.fileName }),
+        ...(response.data.apexCode && { apexCode: response.data.apexCode })
+      });
+    } catch (e) {
+      telemetryService.sendException('force_apex_execute_library', e.message);
+      notificationService.showFailedExecution(this.executionName);
+      channelService.appendLine(e.message);
+    }
+  }
+}
+
+export async function forceApexExecute() {
+  const parameterGatherer = sfdxCoreSettings.getApexLibrary()
+    ? new AnonApexGatherer()
+    : new CreateApexTempFile();
+  const executeExecutor = sfdxCoreSettings.getApexLibrary()
+    ? new ApexLibraryExecuteExecutor()
+    : new ForceApexExecuteExecutor();
+
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    fileNameGatherer,
-    new ForceApexExecuteExecutor()
+    new SfdxWorkspaceChecker(),
+    parameterGatherer as ParametersGatherer<{}>,
+    executeExecutor as CommandletExecutor<{}>
   );
   await commandlet.run();
 }

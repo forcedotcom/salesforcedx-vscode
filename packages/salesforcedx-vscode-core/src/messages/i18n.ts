@@ -65,8 +65,7 @@ export const messages = {
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
-  parameter_gatherer_enter_package_id:
-    'Enter the ID of the package to install',
+  parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
   parameter_gatherer_enter_project_name: 'Enter project name',
@@ -210,6 +209,8 @@ export const messages = {
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   force_apex_log_list_text: 'Getting Apex debug logs',
+  force_apex_log_get_library: 'Apex Library: Get Logs',
+  apex_log_get_text: 'Get Apex Logs',
 
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
@@ -303,7 +304,10 @@ export const messages = {
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and have file names that end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   force_list_metadata: 'SFDX: Force List Metadata',
-
+  apex_execute_compile_success: 'Compiled successfully.',
+  apex_execute_runtime_success: 'Executed successfully.',
+  apex_execute_text: 'Execute Anonymous Apex',
+  force_apex_execute_library: 'Apex Library: Execute Anonymous',
   AccessControlPolicy: 'Access Control Policies',
   ActionLinkGroupTemplate: 'Action Link Group Templates',
   AIAssistantTemplate: 'AI Assistant Templates',

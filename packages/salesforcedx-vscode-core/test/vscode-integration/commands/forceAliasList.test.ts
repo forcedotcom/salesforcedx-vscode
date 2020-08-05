@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { ForceAliasList } from '../../../src/commands/forceAliasList';
+import { ForceAliasList } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression

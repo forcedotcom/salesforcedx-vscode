@@ -14,29 +14,26 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import {
-  RegistryAccess,
-  registryData
-} from '@salesforce/source-deploy-retrieve';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
+  createComponentCount,
+  DeployRetrieveLibraryExecutor,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  useBetaDeployRetrieve
 } from './util';
-import { LibraryCommandletExecutor } from './util/libraryCommandlet';
-import { useBetaDeployRetrieve } from './util/useBetaDeployRetrieve';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
-  > {
+> {
   public build(sourcePath: string): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_source_retrieve_text'))
@@ -113,9 +110,7 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   await commandlet.run();
 }
 
-export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
-  string
-  > {
+export class LibraryRetrieveSourcePathExecutor extends DeployRetrieveLibraryExecutor {
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
 
@@ -129,14 +124,23 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
         throw new Error('SourceClient is not established');
       }
 
-      this.sourceClient.tooling.retrieveWithPaths = this.retrieveWrapper(
-        this.sourceClient.tooling.retrieveWithPaths
+      this.sourceClient.tooling.retrieve = this.retrieveWrapper(
+        this.sourceClient.tooling.retrieve
       );
-      const retrieveOpts = {
-        paths: [response.data]
-      };
-      await this.sourceClient.tooling.retrieveWithPaths(retrieveOpts);
-      this.logMetric();
+
+      const projectNamespace = (await SfdxProjectConfig.getValue(
+        'namespace'
+      )) as string;
+      const registryAccess = new RegistryAccess();
+      const components = registryAccess.getComponentsFromPath(response.data);
+      const retrievePromise = this.sourceClient.tooling.retrieve({
+        components,
+        namespace: projectNamespace
+      });
+      const metadataCount = JSON.stringify(createComponentCount(components));
+      await retrievePromise;
+
+      this.logMetric({ metadataCount });
     } catch (e) {
       telemetryService.sendException(
         'force_source_retrieve_with_sourcepath_beta',

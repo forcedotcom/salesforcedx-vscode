@@ -39,3 +39,12 @@ export {
   DevUsernameChecker,
   EmptyPreChecker
 } from './preconditionCheckers';
+export { DeployRetrieveLibraryExecutor } from './deployRetrieveLibraryExecutor';
+export { ApexLibraryExecutor } from './apexLibraryExecutor';
+export { LibraryCommandletExecutor } from './libraryCommandlet';
+export {
+  createComponentCount,
+  useBetaDeployRetrieve
+} from './betaDeployRetrieve';
+export { LibraryDeployResultParser } from './libraryDeployResultParser';
+export { outputRetrieveTable } from './retrieveParser';

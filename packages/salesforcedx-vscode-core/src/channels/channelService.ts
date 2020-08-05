@@ -64,13 +64,13 @@ export class ChannelService {
 
       this.channel.append(' ');
       if (data !== undefined) {
-        this.channel.appendLine(
-          nls.localize('channel_end_with_error', data.message)
-        );
-
         if (/sfdx.*ENOENT/.test(data.message)) {
           this.channel.appendLine(
             nls.localize('channel_end_with_sfdx_not_found')
+          );
+        } else {
+          this.channel.appendLine(
+            nls.localize('channel_end_with_error', data.message)
           );
         }
       } else {

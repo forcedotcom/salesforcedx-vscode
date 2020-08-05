@@ -45,7 +45,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime);
-      if (data !== undefined && data.toString() === '0') {
+      if (data !== undefined && String(data) === '0') {
         developerLogTraceFlag.turnOffLogging();
         hideTraceFlagExpiration();
       }
