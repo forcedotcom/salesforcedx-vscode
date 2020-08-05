@@ -25,9 +25,9 @@ import { ProgressLocation } from 'vscode';
 import {
   checkSObjectsAndRefresh,
   ForceGenerateFauxClassesExecutor,
-  initSObjectDefinitions,
   RefreshSelection,
-  SObjectRefreshGatherer
+  SObjectRefreshGatherer,
+  verifyUsernameAndInitSObjectDefinitions
 } from '../../../src/commands/forceGenerateFauxClasses';
 import * as forceGenerateFauxClasses from '../../../src/commands/forceGenerateFauxClasses';
 import { nls } from '../../../src/messages';
@@ -71,7 +71,7 @@ describe('ForceGenerateFauxClasses', () => {
       existsSyncStub.returns(false);
       getUsernameStub.returns(new Map([['defaultusername', 'Sample']]));
 
-      await initSObjectDefinitions(projectPath);
+      await verifyUsernameAndInitSObjectDefinitions(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
       expect(commandletSpy.calledOnce).to.be.true;
@@ -86,7 +86,7 @@ describe('ForceGenerateFauxClasses', () => {
       existsSyncStub.returns(true);
       getUsernameStub.returns('Sample');
 
-      await initSObjectDefinitions(projectPath);
+      await verifyUsernameAndInitSObjectDefinitions(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
       expect(commandletSpy.notCalled).to.be.true;
@@ -96,7 +96,7 @@ describe('ForceGenerateFauxClasses', () => {
       existsSyncStub.returns(false);
       getUsernameStub.returns(undefined);
 
-      await initSObjectDefinitions(projectPath);
+      await verifyUsernameAndInitSObjectDefinitions(projectPath);
 
       expect(commandletSpy.notCalled).to.be.true;
     });
