@@ -7,9 +7,9 @@
     "declaration": true,
     "moduleResolution": "node",
     "noImplicitAny": true,
-    "rootDir": "src",
+    "rootDir": ".",
     "outDir": "lib",
     "preserveConstEnums": true
   },
-  "exclude": ["node_modules", "lib", "test"]
+  "exclude": ["node_modules", "lib"]
 }

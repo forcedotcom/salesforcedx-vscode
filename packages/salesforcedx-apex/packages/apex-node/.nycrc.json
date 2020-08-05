@@ -1,0 +1,6 @@
+{
+  "extension": [".js"],
+  "reporter": ["text", "text-summary"],
+  "instrument": true,
+  "sourceMap": true
+}

@@ -3,6 +3,7 @@
 /.vscode
 /src
 /test
+/lib/test
 
 # Configuration files
 .eslintrc.json

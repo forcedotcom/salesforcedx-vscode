@@ -4,7 +4,7 @@
   "version": "0.0.4",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
-  "main": "lib/index.js",
+  "main": "lib/src/index.js",
   "dependencies": {
     "@salesforce/core": "2.6.0"
   },
@@ -22,7 +22,6 @@
     "shx": "0.2.2",
     "sinon": "^7.3.1",
     "source-map-support": "^0.5.16",
-    "ts-node": "^8.7.0",
     "typescript": "3.7.5"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
@@ -40,7 +39,7 @@
     "build": "shx rm -rf lib && tsc -b",
     "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
-    "test": "nyc mocha --recursive \"./test/**/*.test.ts\" --full-trace",
+    "test": "mocha lib/**/**/*.js",
     "publish-apex": "yarn publish --non-interactive"
   },
   "husky": {
@@ -56,23 +55,5 @@
   "license": "BSD-3-Clause",
   "engines": {
     "node": ">=10.17.0"
-  },
-  "nyc": {
-    "include": [
-      "src/**/*.ts"
-    ],
-    "extension": [
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ],
-    "reporter": [
-      "text",
-      "text-summary"
-    ],
-    "sourceMap": true,
-    "report-dir": "./test-results/coverage",
-    "temp-dir": "./test-results/coverage/.nyc_output"
   }
 }
