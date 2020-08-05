@@ -129,7 +129,7 @@ describe('Apex Log Service Tests', () => {
   it('should store logs in the directory', async () => {
     const apexLogGet = new LogService(mockConnection);
     const filePath = path.join('testTmp', 'file', 'path', 'logs');
-    const logIds = ['07WgsWfad', '9SiomgS'];
+    const logIds = ['07L5tgg0005PGdTnEAL', '07L5tgg0005PGdTnFPL'];
     sandboxStub.stub(LogService.prototype, 'getLogIds').resolves(logIds);
 
     const createStreamStub = sandboxStub.stub(fs, 'createWriteStream');
@@ -147,7 +147,10 @@ describe('Apex Log Service Tests', () => {
       numberOfLogs: 2,
       outputDir: filePath
     });
-    expect(response.length).to.eql(2);
+    expect(response).to.deep.equal([
+      path.join(filePath, '07L5tgg0005PGdTnEAL.log'),
+      path.join(filePath, '07L5tgg0005PGdTnFPL.log')
+    ]);
     expect(createStreamStub.callCount).to.eql(2);
   });
 

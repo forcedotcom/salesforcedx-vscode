@@ -42,18 +42,23 @@ export class LogService {
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
   public async getLogs(options: ApexLogGetOptions): Promise<string[]> {
     const logIdList = await this.getIdList(options);
+    const logPaths: string[] = [];
     const connectionRequests = logIdList.map(async id => {
       const url = `${this.connection.tooling._baseUrl()}/sobjects/ApexLog/${id}/Body`;
       const logRecord = await this.toolingRequest(url);
       if (options.outputDir) {
-        createFile(path.join(options.outputDir, `${id}.log`), logRecord);
+        const logPath = path.join(options.outputDir, `${id}.log`);
+        logPaths.push(logPath);
+        createFile(logPath, logRecord);
       }
       return JSON.stringify(logRecord);
     });
 
-    const result = await Promise.all(connectionRequests);
-
-    return result;
+    const logs = await Promise.all(connectionRequests);
+    if (logPaths.length > 0) {
+      return logPaths;
+    }
+    return logs;
   }
 
   public async getLogIds(numberOfLogs: number): Promise<string[]> {
