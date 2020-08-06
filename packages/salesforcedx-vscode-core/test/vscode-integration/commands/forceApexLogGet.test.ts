@@ -17,7 +17,7 @@ import {
   ForceApexLogGetExecutor,
   ForceApexLogList,
   LogFileSelector
-} from '../../../src/commands/forceApexLogGet';
+} from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { sfdxCoreSettings } from '../../../src/settings';
 
