@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { soapTemplate, action, xmlCharMap } from '../types/execute';
+import { soapTemplate, action, xmlCharMap } from './types';
 import * as util from 'util';
 
 function escapeXml(data: string): string {

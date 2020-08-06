@@ -58,7 +58,6 @@ export default class Execute extends SfdxCommand {
         );
       }
       const conn = this.org.getConnection();
-      //@ts-ignore
       const exec = new ExecuteService(conn);
 
       const execAnonOptions: ApexExecuteOptions = {
@@ -66,40 +65,62 @@ export default class Execute extends SfdxCommand {
           ? { apexFilePath: this.flags.apexcodefile }
           : { userInput: true })
       };
+
       const result = await exec.executeAnonymous(execAnonOptions);
-      this.ux.log(this.formatResult(result));
-      return result.result;
+      this.ux.log(this.formatDefault(result));
+      return this.formatJson(result);
     } catch (e) {
       return Promise.reject(e);
     }
   }
 
-  private formatResult(response: ExecuteAnonymousResponse): string {
+  private formatDefault(response: ExecuteAnonymousResponse): string {
     let outputText = '';
-    if (response.result.compiled === true) {
+    if (response.success) {
       outputText += `${colorSuccess(
         messages.getMessage('execute_compile_success')
       )}\n`;
-      if (response.result.success === true) {
-        outputText += `${colorSuccess(
-          messages.getMessage('execute_runtime_success')
-        )}\n`;
-      } else {
-        outputText += colorError(
-          `Error: ${response.result.exceptionMessage}\n`
-        );
-        outputText += colorError(
-          `Error: ${response.result.exceptionStackTrace}\n`
-        );
-      }
-      outputText += `\n${response.result.logs}`;
+      outputText += `${colorSuccess(
+        messages.getMessage('execute_runtime_success')
+      )}\n`;
+      outputText += `\n${response.logs}`;
     } else {
-      outputText += colorError(
-        `Error: Line: ${response.result.line}, Column: ${response.result.column}\n`
-      );
+      const diagnostic = response.diagnostic![0];
 
-      outputText += colorError(`Error: ${response.result.compileProblem}\n`);
+      if (!response.compiled) {
+        outputText += colorError(
+          `Error: Line: ${diagnostic.lineNumber}, Column: ${diagnostic.columnNumber}\n`
+        );
+        outputText += colorError(`Error: ${diagnostic.compileProblem}\n`);
+      } else {
+        outputText += `${colorSuccess(
+          messages.getMessage('execute_compile_success')
+        )}\n`;
+        outputText += colorError(`Error: ${diagnostic.exceptionMessage}\n`);
+        outputText += colorError(`Error: ${diagnostic.exceptionStackTrace}\n`);
+        outputText += `\n${response.logs}`;
+      }
     }
     return outputText;
+  }
+
+  private formatJson(response: ExecuteAnonymousResponse): AnyJson {
+    const diagnostic = typeof response.diagnostic !== 'undefined';
+
+    const formattedResponse = {
+      success: response.success,
+      compiled: response.compiled,
+      compileProblem: diagnostic ? response.diagnostic![0].compileProblem : '',
+      exceptionMessage: diagnostic
+        ? response.diagnostic![0].exceptionMessage
+        : '',
+      exceptionStackTrace: diagnostic
+        ? response.diagnostic![0].exceptionStackTrace
+        : '',
+      line: diagnostic ? response.diagnostic![0].lineNumber : -1,
+      column: diagnostic ? response.diagnostic![0].columnNumber : -1,
+      logs: response.logs
+    };
+    return formattedResponse;
   }
 }

@@ -10,7 +10,7 @@
     "@oclif/errors": "^1",
     "@salesforce/apex-node": "0.0.4",
     "@salesforce/command": "3.0.1",
-    "@salesforce/core": "2.6.0",
+    "@salesforce/core": "2.9.0",
     "chalk": "^4.1.0",
     "tslib": "^1"
   },

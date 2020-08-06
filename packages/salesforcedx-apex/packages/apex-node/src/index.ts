@@ -6,10 +6,9 @@
  */
 
 export {
+  ExecuteService,
   ExecuteAnonymousResponse,
-  ApexExecuteOptions,
-  ApexLogGetOptions
-} from './types';
-export { ExecuteService } from './execute';
-export { LogService } from './logs';
+  ApexExecuteOptions
+} from './execute';
+export { LogService, ApexLogGetOptions } from './logs';
 export { TestService } from './tests';

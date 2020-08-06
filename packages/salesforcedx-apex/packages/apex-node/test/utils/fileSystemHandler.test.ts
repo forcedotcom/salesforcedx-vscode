@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fsUtil from '../../src/utils/fileSystemHandler';
+import * as fsUtil from '../../src/common/fileSystemHandler';
 import { createSandbox, SinonStub } from 'sinon';
 import { expect } from 'chai';
 import { join } from 'path';

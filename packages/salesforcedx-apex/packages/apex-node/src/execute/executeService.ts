@@ -8,14 +8,15 @@ import { Connection } from '@salesforce/core';
 import { JsonCollection } from '@salesforce/ts-types';
 import { existsSync, readFileSync } from 'fs';
 import {
+  ExecuteAnonymousResponse,
+  ApexExecuteOptions,
   SoapResponse,
   soapEnv,
   soapBody,
   soapHeader,
   RequestData,
   action
-} from '../types/execute';
-import { ExecuteAnonymousResponse, ApexExecuteOptions } from '../types';
+} from './types';
 import { nls } from '../i18n';
 import { encodeBody } from './utils';
 import * as readline from 'readline';
@@ -129,18 +130,32 @@ export class ExecuteService {
     const execAnonResponse =
       soapResponse[soapEnv][soapBody].executeAnonymousResponse.result;
 
-    const formattedResponse = {
-      result: {
-        compiled: execAnonResponse.compiled === 'true' ? true : false,
-        compileProblem: execAnonResponse.compileProblem,
-        success: execAnonResponse.success === 'true' ? true : false,
-        line: execAnonResponse.line,
-        column: execAnonResponse.column,
-        exceptionMessage: execAnonResponse.exceptionMessage,
-        exceptionStackTrace: execAnonResponse.exceptionStackTrace,
-        logs: soapResponse[soapEnv][soapHeader].DebuggingInfo.debugLog
-      }
+    const formattedResponse: ExecuteAnonymousResponse = {
+      compiled: execAnonResponse.compiled === 'true',
+      success: execAnonResponse.success === 'true',
+      logs: soapResponse[soapEnv][soapHeader].DebuggingInfo.debugLog
     };
+
+    if (!formattedResponse.success) {
+      formattedResponse.diagnostic = [
+        {
+          lineNumber: execAnonResponse.line,
+          columnNumber: execAnonResponse.column,
+          compileProblem:
+            typeof execAnonResponse.compileProblem === 'object'
+              ? ''
+              : execAnonResponse.compileProblem,
+          exceptionMessage:
+            typeof execAnonResponse.exceptionMessage === 'object'
+              ? ''
+              : execAnonResponse.exceptionMessage,
+          exceptionStackTrace:
+            typeof execAnonResponse.exceptionStackTrace === 'object'
+              ? ''
+              : execAnonResponse.exceptionStackTrace
+        }
+      ];
+    }
 
     return formattedResponse;
   }

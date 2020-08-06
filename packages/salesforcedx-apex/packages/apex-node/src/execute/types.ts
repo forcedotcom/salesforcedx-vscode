@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommonOptions } from './common';
+import { CommonOptions } from '../common';
 
 export type ApexExecuteOptions = CommonOptions & {
   targetUsername?: string;
@@ -47,20 +47,8 @@ export interface SoapResponse {
   [soapEnv]?: {
     [soapHeader]: { DebuggingInfo: DebuggingInfo };
     [soapBody]: {
-      executeAnonymousResponse: ExecAnonResult;
+      executeAnonymousResponse: { result: ExecAnonApiResponse };
     };
-  };
-}
-
-export interface ExecAnonResult {
-  result: {
-    column: number;
-    compiled: string;
-    compileProblem: string;
-    exceptionMessage: string;
-    exceptionStackTrace: string;
-    line: number;
-    success: string;
   };
 }
 
@@ -76,14 +64,26 @@ export interface RequestData {
 }
 
 export type ExecuteAnonymousResponse = {
-  result: {
-    column: number;
-    compiled: boolean;
-    compileProblem: string;
-    exceptionMessage: string;
-    exceptionStackTrace: string;
-    line: number;
-    success: boolean;
-    logs: string;
-  };
+  compiled: boolean;
+  success: boolean;
+  logs?: string;
+  diagnostic?: ApexDiagnostic[];
+};
+
+export type ExecAnonApiResponse = {
+  column: number;
+  compiled: string;
+  compileProblem: string | object;
+  exceptionMessage: string | object;
+  exceptionStackTrace: string | object;
+  line: number;
+  success: string;
+};
+
+export type ApexDiagnostic = {
+  lineNumber: number;
+  columnNumber: number;
+  exceptionMessage: string;
+  compileProblem: string;
+  exceptionStackTrace: string;
 };

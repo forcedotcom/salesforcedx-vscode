@@ -16,9 +16,9 @@ describe('apex:execute', () => {
     column: -1,
     line: -1,
     compiled: 'true',
-    compileProblem: {},
-    exceptionMessage: {},
-    exceptionStackTrace: {},
+    compileProblem: '',
+    exceptionMessage: '',
+    exceptionStackTrace: '',
     success: 'true'
   };
   const soapResponse = {
@@ -33,9 +33,9 @@ describe('apex:execute', () => {
     column: -1,
     line: -1,
     compiled: true,
-    compileProblem: {},
-    exceptionMessage: {},
-    exceptionStackTrace: {},
+    compileProblem: '',
+    exceptionMessage: '',
+    exceptionStackTrace: '',
     success: true,
     logs: log
   };
@@ -45,8 +45,8 @@ describe('apex:execute', () => {
     line: 11,
     compiled: 'false',
     compileProblem: 'problem compiling',
-    exceptionMessage: {},
-    exceptionStackTrace: {},
+    exceptionMessage: '',
+    exceptionStackTrace: '',
     success: 'false'
   };
   const soapCompileProblem = {
@@ -62,8 +62,8 @@ describe('apex:execute', () => {
     line: 11,
     compiled: false,
     compileProblem: 'problem compiling',
-    exceptionMessage: {},
-    exceptionStackTrace: {},
+    exceptionMessage: '',
+    exceptionStackTrace: '',
     success: false,
     logs: log
   };
@@ -72,7 +72,7 @@ describe('apex:execute', () => {
     column: 1,
     line: 11,
     compiled: 'true',
-    compileProblem: {},
+    compileProblem: '',
     exceptionMessage: 'problem at runtime',
     exceptionStackTrace: 'Issue in mock file',
     success: 'false'
