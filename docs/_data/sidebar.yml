@@ -77,7 +77,7 @@
         ja: デフォルトの組織
       url: /user-guide/default-org
     - title:
-        en: Remote Containers
+        en: Remote Development
         ja: リモートコンテナ
       url: /user-guide/remote-development
     - title:
