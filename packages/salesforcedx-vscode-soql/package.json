@@ -19,7 +19,9 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/soql-builder-ui": "0.0.2"
+    "@salesforce/soql-builder-ui": "0.0.2",
+    "@salesforce/soql-language-server": "0.2.1",
+    "vscode-languageclient": "^6.1.3"
   },
   "devDependencies": {
     "@types/node": "12.0.12",
@@ -39,7 +41,8 @@
     "vscode:package": "vsce package"
   },
   "activationEvents": [
-    "onCustomEditor:soqlCustom.soql"
+    "onCustomEditor:soqlCustom.soql",
+    "onLanguage:soql"
   ],
   "main": "./out/src",
   "contributes": {
@@ -53,6 +56,18 @@
           }
         ],
         "priority": "default"
+      }
+    ],
+    "languages": [
+      {
+        "id": "soql",
+        "aliases": [
+          "soql",
+          "SOQL"
+        ],
+        "extensions": [
+          ".soql"
+        ]
       }
     ]
   }
