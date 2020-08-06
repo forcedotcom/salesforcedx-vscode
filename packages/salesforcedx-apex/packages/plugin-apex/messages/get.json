@@ -1,6 +1,6 @@
 {
     "commandDescription": "fetch debug logs",
-    "longDescription": "Fetch debug logs from your org by specifying a specific log ID or the number of logs to return. \nExecuting this command fetches the specified log or given number of most recent logs from your default scratch org. \nTo get the IDs for your debug logs, run \"sfdx force:apex:log:list\". \nUse the --logid parameter to return a specific log. \nUse the --number parameter to return the specified number of recent logs. \nExecuting this command without parameters returns the most recent log.",
+    "longDescription": "Fetches the specified log or given number of most recent logs from the scratch org. \nTo get the IDs for your debug logs, run \"sfdx force:apex:log:list\". \nUse the --logid parameter to return a specific log. \nUse the --number parameter to return the specified number of recent logs.\nUse the --outputdir parameter to specify the directory to store the logs in.\nExecuting this command without parameters returns the most recent log.",
     "jsonDescription": "format output as JSON",
     "logLevelDescription": "logging level for this command invocation",
     "logLevelLongDescription":  "Permissible values are: trace, debug, info, warn, error, fatal, TRACE, DEBUG, INFO, WARN, ERROR, FATAL",

@@ -24,7 +24,8 @@ export default class Get extends SfdxCommand {
   public static examples = [
     `$ sfdx force:apex:log:get -i <log id>`,
     `$ sfdx force:apex:log:get -i <log id> -u me@my.org`,
-    `$ sfdx force:apex:log:get -n 2 -c`
+    `$ sfdx force:apex:log:get -n 2 -c`,
+    `$ sfdx force:apex:log:get -d Users/Desktop/logs -n 2`
   ];
 
   protected static supportsUsername = true;
