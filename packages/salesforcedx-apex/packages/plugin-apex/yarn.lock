@@ -248,13 +248,6 @@
   dependencies:
     fancy-test "^1.4.3"
 
-"@salesforce/apex-node@0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@salesforce/apex-node/-/apex-node-0.0.4.tgz#9fe106b41a52cf4a8fdd454339b2e1a9a31a15dc"
-  integrity sha512-8VtSQ3NwSLvHKvDejxz+P4ckWruNFk2Q0+hOM6wGo4YTEgnvocpOsTgsEOraAewNeEEtcRo/Vkt/QUZpvrQ1ww==
-  dependencies:
-    "@salesforce/core" "2.5.1"
-
 "@salesforce/bunyan@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@salesforce/bunyan/-/bunyan-2.0.0.tgz#8dbe377f2cf7d35348a23260416fee15adba5f97"
@@ -283,23 +276,6 @@
     chalk "^2.4.2"
     cli-ux "^4.9.3"
 
-"@salesforce/core@2.5.1":
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.5.1.tgz#1574e140e7fdd851a86972074013eca442083661"
-  integrity sha512-izKS51yO14Z5M7N1UMUf2B9+XQU0c3yAMZEX4QkV+9N849OJLTP86DjMYP1cjWlWrVOqSTwD95H4DZX1AOYpUQ==
-  dependencies:
-    "@salesforce/bunyan" "^2.0.0"
-    "@salesforce/kit" "^1.0.0"
-    "@salesforce/schemas" "^1.0.1"
-    "@salesforce/ts-types" "^1.0.0"
-    "@types/jsforce" "1.9.2"
-    debug "^3.1.0"
-    jsen "0.6.6"
-    jsforce "1.9.3"
-    jsonwebtoken "8.5.0"
-    mkdirp "1.0.4"
-    sfdx-faye "^1.0.9"
-
 "@salesforce/core@2.9.0", "@salesforce/core@^2.2.0", "@salesforce/core@^2.6.0":
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.9.0.tgz#380996f5069433ec13a5e5b4e35890b3654fb871"
@@ -326,7 +302,7 @@
     tslint-microsoft-contrib "^5"
     typescript "^3"
 
-"@salesforce/kit@^1.0.0", "@salesforce/kit@^1.2.2":
+"@salesforce/kit@^1.2.2":
   version "1.3.2"
   resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.3.2.tgz#a44f738d8e6a1bcdf8dfec1ced5617143983cd60"
   integrity sha512-Fhzl4pzk1z0B3CAbo+RfzZ5iwtc85Hpdx6CFctIdpPmB8Y1RRF7HByFRf3NYWHEYggfPmPutkwj4IZfpOcJaiQ==

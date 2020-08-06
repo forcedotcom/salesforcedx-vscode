@@ -39,7 +39,7 @@
     "build": "shx rm -rf lib && tsc -b",
     "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
-    "test": "mocha lib/**/**/*.js",
+    "test": "nyc mocha",
     "publish-apex": "yarn publish --non-interactive"
   },
   "husky": {

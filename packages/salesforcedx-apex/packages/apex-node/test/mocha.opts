@@ -1,5 +1,6 @@
 --reporter ./test/combinedTestReporter.js
 --reporter-options mochaFile=./test-results/test-results.xml
 --require source-map-support/register
+lib/test/**/*.test.js
 --colors
 --exit

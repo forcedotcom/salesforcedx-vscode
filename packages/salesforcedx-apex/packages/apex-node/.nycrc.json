@@ -1,6 +1,9 @@
 {
+  "include": ["lib/src/**/*.js"],
   "extension": [".js"],
   "reporter": ["text", "text-summary"],
-  "instrument": true,
-  "sourceMap": true
+  "sourceMap": true,
+  "exclude-after-remap": false,
+  "report-dir": "./test-results/coverage",
+  "temp-dir": "./test-results/coverage/.nyc_output"
 }
