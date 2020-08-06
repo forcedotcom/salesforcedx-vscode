@@ -6,9 +6,15 @@
  */
 
 import * as vscode from 'vscode';
+import { startLanguageClient, stopLanguageClient } from './client/client';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('SOQL Extension Activated');
   context.subscriptions.push(SOQLEditorProvider.register(context));
+  startLanguageClient(context);
+}
+
+export function deactivate(): Thenable<void> | undefined {
+  return stopLanguageClient();
 }
