@@ -1,11 +1,5 @@
 # 49.4.0 - August 6, 2020
 
-## Added
-
-#### salesforcedx-vscode-soql
-
-- Added SOQL Builder Package for `.soql` files ([PR #2382](https://github.com/forcedotcom/salesforcedx-vscode/pull/2382))
-
 ## Fixed
 
 #### salesforcedx-vscode-core
