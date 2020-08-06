@@ -37,14 +37,12 @@ export class LibraryDeployResultParser {
     for (const component of componentSuccess.components!) {
       const listOfFiles = component.component.walkContent();
       listOfFiles.push(component.component.xml);
-      if (listOfFiles) {
-        success = listOfFiles.map(file => ({
-          state: component.status,
-          fullName: component.component.fullName,
-          type: component.component.type.name,
-          filePath: file
-        }));
-      }
+      success = listOfFiles.map(file => ({
+        state: component.status,
+        fullName: component.component.fullName,
+        type: component.component.type.name,
+        filePath: file
+      }));
     }
     return success;
   }
@@ -53,20 +51,22 @@ export class LibraryDeployResultParser {
     const failures: ComponentFailure[] = [];
     for (const component of result.components!) {
       for (const diagnostic of component.diagnostics) {
-        if (
-          diagnostic.columnNumber &&
-          diagnostic.lineNumber &&
-          diagnostic.filePath
-        ) {
-          failures.push({
-            filePath: diagnostic.filePath,
-            error: `${diagnostic.message} (${diagnostic.lineNumber}:${
-              diagnostic.columnNumber
-            })`
-          });
+        if (diagnostic.filePath) {
+          if (diagnostic.columnNumber && diagnostic.lineNumber) {
+            failures.push({
+              filePath: diagnostic.filePath,
+              error: `${diagnostic.message} (${diagnostic.lineNumber}:${
+                diagnostic.columnNumber
+              })`
+            });
+          } else {
+            failures.push({
+              filePath: diagnostic.filePath,
+              error: diagnostic.message
+            });
+          }
         } else {
           failures.push({
-            filePath: component.component.content,
             error: diagnostic.message
           });
         }

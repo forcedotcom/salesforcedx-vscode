@@ -39,45 +39,6 @@ export class DeployRetrieveLibraryExecutor extends LibraryCommandletExecutor<
     this.sourceClient = new SourceClient(conn);
   }
 
-  // public deployWrapper(fn: (...args: any[]) => Promise<DeployResult>) {
-  //   const commandName = this.executionName;
-
-  //   return async function(...args: any[]): Promise<DeployResult> {
-  //     channelService.showCommandWithTimestamp(`Starting ${commandName}`);
-
-  //     const result = await window.withProgress(
-  //       {
-  //         title: commandName,
-  //         location: ProgressLocation.Notification
-  //       },
-  //       async () => {
-  //         // @ts-ignore
-  //         return (await fn.call(this, ...args)) as DeployResult;
-  //       }
-  //     );
-
-  //     const parser = new LibraryDeployResultParser(result);
-  //     const outputResult = await parser.outputResult();
-  //     channelService.appendLine(outputResult);
-  //     channelService.showCommandWithTimestamp(`Finished ${commandName}`);
-
-  //     if (
-  //       result.State === DeployStatusEnum.Completed ||
-  //       result.State === DeployStatusEnum.Queued
-  //     ) {
-  //       DeployRetrieveLibraryExecutor.errorCollection.clear();
-  //       await notificationService.showSuccessfulExecution(commandName);
-  //     } else {
-  //       handleDeployRetrieveLibraryDiagnostics(
-  //         result,
-  //         DeployRetrieveLibraryExecutor.errorCollection
-  //       );
-  //       notificationService.showFailedExecution(commandName);
-  //     }
-  //     return result;
-  //   };
-  // }
-
   public retrieveWrapper(fn: (...args: any[]) => Promise<ApiResult>) {
     const commandName = this.executionName;
 

@@ -86,7 +86,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       expect(getComponentsStub.calledWith(filePath)).to.be.true;
       expect(getNamespace.calledOnce).to.equal(true);
       // NOTE: There's currently a limitation on source deploy retrieve that prevents
-      // us from mocking SourceClinet.tooling.deploy. We'll look into updating the library and this test.
+      // us from mocking SourceClient.tooling.deploy. We'll look into updating the library and this test.
     });
   });
 });

@@ -19,7 +19,7 @@ import * as path from 'path';
 import { LibraryDeployResultParser } from '../../../../src/commands/util/libraryDeployResultParser';
 import { nls } from '../../../../src/messages';
 
-describe('Tooling Deploy Parser', () => {
+describe('Deploy Parser', () => {
   let props;
   let virtualFs;
   let component;
@@ -79,6 +79,13 @@ describe('Tooling Deploy Parser', () => {
             filePath: 'classes/testAPI.cls',
             message: "Missing ';' at '}'",
             type: 'Error'
+          },
+          {
+            lineNumber: 7,
+            columnNumber: 9,
+            filePath: 'classes/testAPI.cls',
+            message: "Extra ':' at '}'",
+            type: 'Error'
           }
         ]
       }
@@ -109,7 +116,13 @@ describe('Tooling Deploy Parser', () => {
             message:
               'Could not save testAPI, : managed installed classes cannot be saved',
             type: 'Error'
-          },
+          }
+        ]
+      },
+      {
+        component,
+        status: ComponentStatus.Failed,
+        diagnostics: [
           {
             filePath: 'classes/testAPI.cls-meta.xml',
             message:
@@ -157,6 +170,7 @@ describe('Tooling Deploy Parser', () => {
     expect(successInfo[0].fullName).to.equal('testAPI');
     expect(successInfo[0].type).to.equal('ApexClass');
     expect(successInfo[0].filePath).to.equal('classes/testAPI.cls');
+
     expect(successInfo[1]).to.be.an('object');
     expect(successInfo[1].state).to.equal('Changed');
     expect(successInfo[1].fullName).to.equal('testAPI');
@@ -186,15 +200,20 @@ describe('Tooling Deploy Parser', () => {
     const parser = new LibraryDeployResultParser(failedDeployResult);
     const errorsInfo = parser.buildErrors(failedDeployResult);
     expect(errorsInfo).to.be.an('array');
-    expect(errorsInfo.length).to.be.equal(1);
+    expect(errorsInfo.length).to.be.equal(2);
     expect(errorsInfo[0]).to.be.an('object');
     expect(errorsInfo[0].filePath).to.equal('classes/testAPI.cls');
     expect(errorsInfo[0].error).to.equal("Missing ';' at '}' (4:5)");
+
+    expect(errorsInfo[1]).to.be.an('object');
+    expect(errorsInfo[1].filePath).to.equal('classes/testAPI.cls');
+    expect(errorsInfo[1].error).to.equal("Extra ':' at '}' (7:9)");
   });
 
   it('should create array of error info for managed package deploy error', async () => {
     const parser = new LibraryDeployResultParser(failedManagedPkgDeployResult);
     const errorsInfo = parser.buildErrors(failedManagedPkgDeployResult);
+    console.log(errorsInfo);
     expect(errorsInfo).to.be.an('array');
     expect(errorsInfo.length).to.be.equal(2);
     expect(errorsInfo[0]).to.be.an('object');
@@ -255,20 +274,20 @@ describe('Tooling Deploy Parser', () => {
     errorResult += 'PROJECT PATH         ERRORS                  \n';
     errorResult += '───────────────────  ────────────────────────\n';
     errorResult += "classes/testAPI.cls  Missing ';' at '}' (4:5)\n";
+    errorResult += "classes/testAPI.cls  Extra ':' at '}' (7:9)  \n";
 
     const results = parser.resultParser(failedDeployResult);
     expect(results).to.equal(errorResult);
   });
 
-  // component content disallows for multiple paths to errors
   it('should create a table with failed results for managed package errors', async () => {
     const parser = new LibraryDeployResultParser(failedManagedPkgDeployResult);
 
     let errorResult = '=== Deploy Errors\n';
     errorResult +=
-      'PROJECT PATH                            ERRORS                                                             \n';
+      'PROJECT PATH                  ERRORS                                                             \n';
     errorResult +=
-      '──────────────────────────────────────  ───────────────────────────────────────────────────────────────────\n';
+      '────────────────────────────  ───────────────────────────────────────────────────────────────────\n';
     errorResult += `${path.join(
       'classes',
       'testAPI.cls'

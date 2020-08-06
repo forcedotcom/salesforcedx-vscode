@@ -16,11 +16,12 @@ import {
 import {
   DeployStatus,
   RegistryAccess,
-  SourceDeployResult
+  SourceDeployResult,
+  ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics/diagnostics';
+import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
@@ -153,14 +154,14 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
       channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
       if (
         result.status === DeployStatus.Succeeded ||
-        // @ts-ignore
-        result.status === ToolingDeployStatus.Completed
+        ToolingDeployStatus.Completed
       ) {
         DeployRetrieveLibraryExecutor.errorCollection.clear();
-        await notificationService.showSuccessfulExecution(this.executionName);
+        notificationService
+          .showSuccessfulExecution(this.executionName)
+          .catch(error => {});
       } else {
         handleDeployRetrieveLibraryDiagnostics(
-          // @ts-ignore
           result,
           DeployRetrieveLibraryExecutor.errorCollection
         );
