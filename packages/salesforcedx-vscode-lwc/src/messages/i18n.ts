@@ -99,6 +99,6 @@ export const messages = {
   force_lightning_lwc_no_redhat_extension_found:
     'Salesforce js-meta.xml intellisense requires RedHat XML Plugin',
   force_lightning_lwc_deprecated_redhat_extension:
-    'Salesforce js-meta.xml intellisense requires RedHat XML Extension Version > 0.13.0. Please upgrade the extension',
+    'Salesforce js-meta.xml intellisense requires RedHat XML Extension Version >= 0.14.0. Please upgrade the RedHat XML Extension.',
   force_lightning_lwc_fail_redhat_extension: 'Failed to setup RedHat XML Plugin'
 };
