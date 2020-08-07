@@ -10,6 +10,7 @@ import {
   registryData
 } from '@salesforce/source-deploy-retrieve';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve/lib/metadata-registry/sourceComponent';
+import { MetadataType } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
@@ -19,7 +20,7 @@ import {
 } from '../../../../src/commands/util/betaDeployRetrieve';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
-function createComponent(type: any, ext: string, extrafile?: string) {
+function createComponent(type: MetadataType, ext: string, extrafile?: string) {
   const props = {
     name: 'bar',
     type,
@@ -248,16 +249,12 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(false);
-      const components: SourceComponent[] = [
-        // @ts-ignore
-        {
-          name: 'bar',
-          type: registryData.types.lightningcomponentbundle,
-          xml: 'bar.js-meta.xml',
-          // @ts-ignore
-          walkContent(): ['bar.js', 'bar.js-meta.xml', 'bar.html'];
-        }
-      ];
+      const components = [];
+      components.push(
+        registryData.types.lightningcomponentbundle,
+        'js',
+        'bar.html'
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.js');
       const cmpProcessing = useBetaDeployRetrieve([uriOne]);

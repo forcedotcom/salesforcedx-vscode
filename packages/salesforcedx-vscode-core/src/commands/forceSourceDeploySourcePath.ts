@@ -154,7 +154,7 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
       channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
       if (
         result.status === DeployStatus.Succeeded ||
-        ToolingDeployStatus.Completed
+        result.status === ToolingDeployStatus.Completed
       ) {
         DeployRetrieveLibraryExecutor.errorCollection.clear();
         notificationService
