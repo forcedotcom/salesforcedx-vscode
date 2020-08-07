@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "49.3.0",
+  "version": "49.4.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -36,6 +36,7 @@
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-lightning",
     "salesforce.salesforcedx-vscode-visualforce",
-    "salesforce.salesforcedx-vscode-lwc"
+    "salesforce.salesforcedx-vscode-lwc",
+    "salesforce.salesforce-vscode-slds"
   ]
 }
