@@ -5,20 +5,20 @@ lang: en
 
 ## Overview
 
-Salesforce Extension for VS Code supports remote development and allows you to use a container as a full-featured development environment. You can open a project mounted into a Docker container or using WSL2 and edit with full code completions, code navigation, debugging, and more.
+Salesforce Extension for VS Code supports remote development and allows you to use a container as a full-featured development environment. You can open a project mounted into a Docker container or use Windows Subsystem for Linux (WSL) 2 to edit with full code completions, code navigation, debugging, and more.
 
 > NOTICE: The remote development feature is currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./bugs-and-feedback).
 
 Refer to VS Code documentation if you want to understand more about remote development:
 
 - Use a [Docker container](https://www.docker.com/) as your [development container](https://code.visualstudio.com/docs/remote/containers#_indepth-setting-up-a-folder-to-run-in-a-container)
-- Use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/) as your [development container](https://code.visualstudio.com/docs/remote/wsl)
+- Use [WSL 2](https://docs.microsoft.com/en-us/windows/wsl/) as your [development container](https://code.visualstudio.com/docs/remote/wsl)
 - Provide [full-featured development environment](https://code.visualstudio.com/docs/remote/remote-overview)
 - Switch your development environment by [connecting to a container](https://code.visualstudio.com/docs/remote/containers)
 
 ## Using a Docker Container
 
-For remote development using a Docker Container follow the instructions below.
+Follow these instruction for remote development using a Docker Container.
 
 ### Install
 
@@ -64,43 +64,45 @@ If you are interested, read more about [Device Authentication Flow](https://help
 
    You’ve set up a dev container for an existing project to use as your full-time development environment.
 
-## Using Windows Subsystem for Linux
+## Using Windows Subsystem for Linux (WSL) 2
 
-For remote development using the Windows Subsytem for Linux follow the instructions below.
+Follow these instruction for remote development using WSL 2.
 
-## Install
+### Install
 
-To start developing in a container with the Windows Subsystem for Linux (WSL), first you must set up WSL on your machine. To do so, following the [instructions provided by Microsoft](https://docs.microsoft.com/en-us/windows/wsl/install-win10). **Note, you should only use WSL2. There are known issues with WSL1. The instructions below assume Ubuntu. Other Linux distros should work, but the steps may be slightly different.**
+First, set up WSL 2 on your machine. Follow the [instructions provided by Microsoft](https://docs.microsoft.com/en-us/windows/wsl/install-win10). 
 
-After you have installed WSL2, you will need to setup your environment for Salesforce Development. The two main things you will need are Node.js, the Salesforce CLI, and the JDK.
+**Important:** Only use WSL 2. There are known issues with WSL 1. These instructions below assume Ubuntu. Other Linux distros should work, but the steps may be slightly different.
 
-To install Node.js, follow [these instructions provided by Microsoft](https://docs.microsoft.com/en-us/windows/nodejs/setup-on-wsl2). It is recommended you use NVM in order to easily switch between node versions. For Salesforce development, generally you should use the LTS version of Node.js.
+After you have installed WSL 2, set up your environment for Salesforce development. You'll need Node.js, Salesforce CLI, and  OpenJDK.
 
-Once Node.js is setup, install the Salesforce CLI by running the following.
+To install Node.js, follow [these instructions provided by Microsoft](https://docs.microsoft.com/en-us/windows/nodejs/setup-on-wsl2). We recommend that you use NVM to easily switch between node versions. For Salesforce development, you'll like use the LTS version of Node.js.
+
+Once Node.js is set up, install Salesforce CLI by running:
 
 ```
 $ npm install sfdx-cli -g
 ```
 
-To install the JDK run the following command.
+To install the JDK, run:
 
 ```
 $ sudo apt install openjdk-11-jre-headless
 ```
 
-In order to determine the path of your JDK installation run the following.
+To determine the path of your JDK installation, run:
 
 ```
 $ update-java-alternatives --list
 ```
 
-You should get a list back with one of the paths being something like `/usr/lib/java-1.11.0-openjdk-amd64`. Copy that path for later use.
+The output contains a path that looks something like `/usr/lib/java-1.11.0-openjdk-amd64`. Copy that path for later use.
 
 ### Open a Project in a Dev Container
 
-1. Open an existing project you want to work with or create a new project.
+1. Open an existing project or create a new project.
 1. From the Command Palette, run **Remote-Containers: Add Development Container Configuration Files**.
-   If you are unable to see this command, make sure that you have installed the latest version of VS Code Remote Development Extension Pack.
+   If you are unable to see this command, make sure that you have installed the latest version of the VS Code Remote Development Extension Pack.
 
    ![Add Dev Container Config Files](./images/add_dev_container.png)
 
@@ -108,16 +110,16 @@ You should get a list back with one of the paths being something like `/usr/lib/
 
    VS Code detects the dev container configuration file and prompts you to reopen the project folder in a container. **DO NOT RUN THIS YET.**
 
-1. Open the `.devcontainer/devcontainer.json` file and make the following changes.
+1. Open the `.devcontainer/devcontainer.json` file and make these edits:
 
    - Remove the line `"dockerFile": "Dockerfile",`
-   - Set the value of `salesforcedx-vscode-apex.java.home` to the value you recorded earlier after the command `update-java-alternatives --list`.
+   - Set the value of `salesforcedx-vscode-apex.java.home` to the path you copied earlier after the command `update-java-alternatives --list`.
 
 1. From the Command Palette, run **Remote-Containers: Reopen in Container**.
 
-1. Once the project is open, you likely need to install the node modules. Open a new terminal in VS Code - which will be mounted to the remote WSL environment, and run `npm i`.
+1. Once the project is open, install the node modules. Open a new terminal in VS Code, which is mounted to the remote WSL environment, and run `npm i`.
 
-1. You can now proceed to authorize orgs and create scratch orgs as you normally would.
+1. Authorize orgs and create scratch orgs.
 
 See Also (VS Code documentation):
 
