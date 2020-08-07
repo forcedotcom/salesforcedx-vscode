@@ -31,5 +31,11 @@ export const messages = {
   exec_anon_input_timeout: 'Timed out while waiting for user input.',
   no_test_result_summary: 'No test results were found for test run %s',
   no_test_queue_results:
-    'No test results were found in the queue for test run %s'
+    'No test results were found in the queue for test run %s',
+  no_access_token_found:
+    'No access token could be found for the provided username',
+  streaming_handshake_fail: 'Test run handshake failed: %s',
+  streaming_transport_up: 'Listening for streaming state changes...',
+  streaming_transport_down: 'Faye client generated a transport:down event.',
+  streaming_processing_test_run: 'Processing test run %s'
 };

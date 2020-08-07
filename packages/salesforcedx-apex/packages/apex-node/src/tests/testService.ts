@@ -14,11 +14,11 @@ import {
   ApexTestRunResult,
   ApexTestResult,
   ApexTestQueueItem,
-  ApexTestQueueItemStatus,
   AsyncTestResult
 } from './types';
 import * as util from 'util';
 import { nls } from '../i18n';
+import { StreamingClient } from '../streaming';
 
 export class TestService {
   public readonly connection: Connection;
@@ -45,6 +45,8 @@ export class TestService {
   public async runTestAsynchronous(
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration
   ): Promise<AsyncTestResult> {
+    const sClient = new StreamingClient(this.connection);
+    await sClient.init();
     const url = `${this.connection.tooling._baseUrl()}/runTestsAsynchronous`;
     const request = {
       method: 'POST',
@@ -56,11 +58,8 @@ export class TestService {
     const testRunId = (await this.connection.tooling.request(
       request
     )) as string;
-    // NOTE: we need to replace polling with a streaming api subscription.
-    // we will poll for 10-20 seconds, if the tests are still running then we'll use
-    // streaming api to get the results.
-    const testQueueResult = await this.testRunQueueStatusPoll(testRunId);
 
+    const testQueueResult = await sClient.subscribe(testRunId);
     return await this.getTestResultData(testQueueResult, testRunId);
   }
 
@@ -76,6 +75,12 @@ export class TestService {
     const testRunSummaryResults = (await this.connection.tooling.query(
       testRunSummaryQuery
     )) as ApexTestRunResult;
+
+    if (testRunSummaryResults.records.length === 0) {
+      throw new Error(nls.localize('no_test_result_summary', testRunId));
+    }
+
+    const summaryRecord = testRunSummaryResults.records[0];
 
     let apexTestResultQuery = 'SELECT Id, QueueItemId, StackTrace, Message, ';
     apexTestResultQuery +=
@@ -114,12 +119,6 @@ export class TestService {
       };
     });
 
-    if (testRunSummaryResults.records.length === 0) {
-      throw new Error(nls.localize('no_test_result_summary', testRunId));
-    }
-
-    const summaryRecord = testRunSummaryResults.records[0];
-
     // TODO: add code coverage
     const result: AsyncTestResult = {
       summary: {
@@ -131,51 +130,6 @@ export class TestService {
       },
       tests: testResults
     };
-    return result;
-  }
-
-  public async testRunQueueStatusPoll(
-    testRunId: string,
-    timeout = 15000,
-    interval = 500
-  ): Promise<ApexTestQueueItem> {
-    let result: ApexTestQueueItem;
-    let triedOnce = false;
-    const queryApexTestQueueItem = `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`;
-    const endTime = Date.now() + timeout;
-    const wait = (interval: number): Promise<void> => {
-      return new Promise(resolve => {
-        setTimeout(resolve, interval);
-      });
-    };
-
-    do {
-      if (triedOnce) {
-        await wait(interval);
-      }
-
-      try {
-        result = (await this.connection.tooling.query(
-          queryApexTestQueueItem
-        )) as ApexTestQueueItem;
-      } catch (e) {
-        throw new Error(e.message);
-      }
-
-      if (result.records.length === 0) {
-        throw new Error(nls.localize('no_test_queue_results', testRunId));
-      }
-
-      switch (result.records[0].Status) {
-        case ApexTestQueueItemStatus.Completed:
-        case ApexTestQueueItemStatus.Failed:
-        case ApexTestQueueItemStatus.Aborted:
-          return result;
-      }
-
-      triedOnce = true;
-    } while (Date.now() < endTime);
-
     return result;
   }
 }

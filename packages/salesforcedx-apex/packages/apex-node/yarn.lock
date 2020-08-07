@@ -494,7 +494,7 @@ crypt@0.0.2:
   resolved "https://registry.yarnpkg.com/crypt/-/crypt-0.0.2.tgz#88d7ff7ec0dfb86f713dc87bbb42d044d3e6c41b"
   integrity sha1-iNf/fsDfuG9xPch7u0LQRNPmxBs=
 
-csprng@*, csprng@~0.1.2:
+csprng@, csprng@*, csprng@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/csprng/-/csprng-0.1.2.tgz#4bc68f12fa368d252a59841cbaca974b18ab45e2"
   integrity sha1-S8aPEvo2jSUqWYQcusqXSxirReI=
@@ -679,6 +679,16 @@ faye-websocket@~0.9.1:
   integrity sha1-iFk0x57/sECVSeDAo4Ae0XpAza0=
   dependencies:
     websocket-driver ">=0.5.1"
+
+faye@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/faye/-/faye-1.1.2.tgz#d7de4c94e3b9168b4c2c2b254deb3d264b60ae80"
+  integrity sha1-195MlOO5FotMLCslTes9JktgroA=
+  dependencies:
+    csprng ""
+    faye-websocket ">=0.9.1"
+    tough-cookie ""
+    tunnel-agent ""
 
 faye@^1.2.0:
   version "1.4.0"
@@ -1907,7 +1917,7 @@ to-fast-properties@^2.0.0:
   resolved "https://registry.yarnpkg.com/to-fast-properties/-/to-fast-properties-2.0.0.tgz#dc5e698cbd079265bc73e0377681a4e4e83f616e"
   integrity sha1-3F5pjL0HkmW8c+A3doGk5Og/YW4=
 
-tough-cookie@*:
+tough-cookie@, tough-cookie@*:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-4.0.0.tgz#d822234eeca882f991f0f908824ad2622ddbece4"
   integrity sha512-tHdtEpQCMrc1YLrMaqXXcj6AxhYi/xgit6mZu1+EDWUn+qhUf8wMQoFIy9NXuq23zAwtcB0t/MjACGR18pcRbg==
@@ -1937,7 +1947,7 @@ tslib@^1.10.0:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
   integrity sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
 
-tunnel-agent@*, tunnel-agent@^0.6.0, tunnel-agent@~0.6.0:
+tunnel-agent@, tunnel-agent@*, tunnel-agent@^0.6.0, tunnel-agent@~0.6.0:
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/tunnel-agent/-/tunnel-agent-0.6.0.tgz#27a5dea06b36b04a0a9966774b290868f0fc40fd"
   integrity sha1-J6XeoGs2sEoKmWZ3SykIaPD8QP0=

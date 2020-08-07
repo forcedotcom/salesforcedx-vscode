@@ -22,6 +22,9 @@ import {
   ApexTestRunResult,
   ApexTestResult
 } from '../../src/tests/types';
+import { StreamingClient } from '../../src/streaming';
+import { fail } from 'assert';
+import { nls } from '../../src/i18n';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -180,21 +183,38 @@ describe('Run Apex tests asynchronously', () => {
     };
 
     toolingRequestStub.withArgs(testAsyncRequest).returns(testRunId);
-    const testSrv = new TestService(mockConnection);
-    const mockPolling = sandboxStub
-      .stub(testSrv, 'testRunQueueStatusPoll')
+    sandboxStub
+      .stub(StreamingClient.prototype, 'subscribe')
       .resolves(pollResponse);
+    const testSrv = new TestService(mockConnection);
     const mockTestResultData = sandboxStub
       .stub(testSrv, 'getTestResultData')
       .resolves(testResultData);
     const testResult = await testSrv.runTestAsynchronous(requestOptions);
     expect(testResult).to.be.a('object');
     expect(toolingRequestStub.calledOnce).to.equal(true);
-    expect(mockPolling.calledOnceWith(testRunId)).to.equal(true);
     expect(mockTestResultData.calledOnce).to.equal(true);
     expect(mockTestResultData.getCall(0).args[0]).to.equal(pollResponse);
     expect(mockTestResultData.getCall(0).args[1]).to.equal(testRunId);
     expect(testResult).to.equal(testResultData);
+  });
+
+  it('should throw an error on refresh token issue', async () => {
+    const requestOptions: AsyncTestConfiguration = {
+      classNames: 'TestSample',
+      testLevel: TestLevel.RunSpecifiedTests
+    };
+
+    sandboxStub
+      .stub(StreamingClient.prototype, 'init')
+      .throwsException('No access token');
+    const testSrv = new TestService(mockConnection);
+    try {
+      await testSrv.runTestAsynchronous(requestOptions);
+      fail('Test should have thrown an error');
+    } catch (e) {
+      expect(e.name).to.equal('No access token');
+    }
   });
 
   it('should return formatted test results', async () => {
@@ -259,130 +279,23 @@ describe('Run Apex tests asynchronously', () => {
     expect(mockToolingQuery.getCall(1).args[0]).to.equal(testResultQuery);
     expect(getTestResultData).to.deep.equals(testResultData);
   });
-});
 
-describe('Run Apex tests testRunQueueStatusPoll', () => {
-  let toolingQueryStub: SinonStub;
-  const testRunId = '707xx0000AGQ3jbQQD';
-
-  beforeEach(async () => {
-    sandboxStub = createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
-    });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
-    toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
-  });
-
-  afterEach(() => {
-    sandboxStub.restore();
-  });
-
-  it('should return a success result', async () => {
-    const queryResponse = {
-      records: [
-        {
-          Id: '709xx000000Vt94QAC',
-          Status: 'Completed',
-          ApexClassId: '01pxx00000O6tXZQAZ',
-          TestRunResultId: '05mxx000000TgYuQAK'
-        }
-      ]
-    };
-
-    toolingQueryStub.resolves(queryResponse);
+  it('should return an error if no test results are found', async () => {
     const testSrv = new TestService(mockConnection);
-    const testQueueResult = await testSrv.testRunQueueStatusPoll(
-      testRunId,
-      100,
-      50
-    );
-    expect(testQueueResult).to.deep.equal(queryResponse);
-  });
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    mockToolingQuery.onFirstCall().resolves({
+      done: true,
+      totalSize: 0,
+      records: []
+    } as ApexTestRunResult);
 
-  it('should return a success result on second query', async () => {
-    const queryResponse = {
-      records: [
-        {
-          Id: '709xx000000Vt94QAC',
-          Status: 'Completed',
-          ApexClassId: '01pxx00000O6tXZQAZ',
-          TestRunResultId: '05mxx000000TgYuQAK'
-        }
-      ]
-    };
-
-    toolingQueryStub.onFirstCall().resolves({
-      records: [
-        {
-          Id: '709xx000000Vt94QAC',
-          Status: 'Processing',
-          ApexClassId: '01pxx00000O6tXZQAZ',
-          TestRunResultId: '05mxx000000TgYuQAK'
-        }
-      ]
-    });
-    toolingQueryStub.onSecondCall().resolves(queryResponse);
-    const testSrv = new TestService(mockConnection);
-    const testQueueResult = await testSrv.testRunQueueStatusPoll(
-      testRunId,
-      10,
-      5
-    );
-    expect(testQueueResult).to.deep.equal(queryResponse);
-    expect(toolingQueryStub.callCount).to.equal(2);
-    expect(toolingQueryStub.getCall(0).args[0]).to.equal(
-      `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
-    );
-    expect(toolingQueryStub.getCall(1).args[0]).to.equal(
-      `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
-    );
-  });
-
-  it('should return a failed result', async () => {
-    const queryResponse = {
-      records: [
-        {
-          Id: '709xx000000Vt94QAC',
-          Status: 'Failed',
-          ApexClassId: '01pxx00000O6tXZQAZ',
-          TestRunResultId: '05mxx000000TgYuQAK'
-        }
-      ]
-    };
-
-    toolingQueryStub.resolves(queryResponse);
-    const testSrv = new TestService(mockConnection);
-    const testQueueResult = await testSrv.testRunQueueStatusPoll(
-      testRunId,
-      100,
-      50
-    );
-    expect(testQueueResult).to.deep.equal(queryResponse);
-  });
-
-  it('should return current status when timing out', async () => {
-    const queryResponse = {
-      records: [
-        {
-          Id: '709xx000000Vt94QAC',
-          Status: 'Queued',
-          ApexClassId: '01pxx00000O6tXZQAZ',
-          TestRunResultId: '05mxx000000TgYuQAK'
-        }
-      ]
-    };
-    toolingQueryStub.resolves(queryResponse);
-    const testSrv = new TestService(mockConnection);
-    const testQueueResult = await testSrv.testRunQueueStatusPoll(
-      testRunId,
-      1,
-      5
-    );
-    expect(testQueueResult).to.deep.equal(queryResponse);
+    try {
+      await testSrv.getTestResultData(pollResponse, testRunId);
+      fail('Test should have thrown an error');
+    } catch (e) {
+      expect(e.message).to.equal(
+        nls.localize('no_test_result_summary', testRunId)
+      );
+    }
   });
 });
