@@ -57,9 +57,8 @@ export class MetaSupport {
   }
 
   /**
-   * This function creates the js-meta.xml resource folder and
-   * duplicates XSD and XML files to the .sfdn, x folder of developers.
-   * It also calls Redhat XML APIs to setup required settings for the plugin to work.
+   * This function checks the enviornment and passes relevant settings
+   * to set up RedHat XML
    */
   public async getMetaSupport() {
     // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
