@@ -70,9 +70,7 @@ export class MetaSupport {
       const pluginVersionNumber = redHatExtension!.packageJSON['version'];
 
       // checks plugin version greater than 0.13.0, might need to change.
-      if ((parseInt(pluginVersionNumber.split('.')[1], 10) === 13 &&
-        parseInt(pluginVersionNumber.split('.')[2], 10) > 0) ||
-        parseInt(pluginVersionNumber.split('.')[1], 10) > 13) {
+      if (parseInt(pluginVersionNumber.split('.')[1], 10) >= 14) {
         const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
         const fileAssociations = [
           {
