@@ -187,10 +187,21 @@ export async function forceGenerateFauxClassesCreate(
   await commandlet.run();
 }
 
-export async function initSObjectDefinitions(projectPath: string) {
+export async function verifyUsernameAndInitSObjectDefinitions(projectPath: string) {
   const hasDefaultUsernameSet =
     (await getDefaultUsernameOrAlias()) !== undefined;
-  if (projectPath && hasDefaultUsernameSet) {
+  if (hasDefaultUsernameSet) {
+    initSObjectDefinitions(projectPath).catch(e =>
+      telemetryService.sendErrorEvent({
+        message: e.message,
+        stack: e.stack
+      })
+    );
+  }
+}
+
+export async function initSObjectDefinitions(projectPath: string) {
+  if (projectPath) {
     const sobjectFolder = getSObjectsDirectory(projectPath);
     if (!fs.existsSync(sobjectFolder)) {
       forceGenerateFauxClassesCreate(SObjectRefreshSource.Startup).catch(e => {
@@ -210,7 +221,9 @@ function getSObjectsDirectory(projectPath: string) {
 }
 
 export async function checkSObjectsAndRefresh(projectPath: string) {
-  if (projectPath) {
+  const hasDefaultUsernameSet =
+    await getDefaultUsernameOrAlias();
+  if (projectPath && hasDefaultUsernameSet) {
     if (!fs.existsSync(getSObjectsDirectory(projectPath))) {
       telemetryService.sendEventData('sObjectRefreshNotification',
         { type: 'No SObjects' },
