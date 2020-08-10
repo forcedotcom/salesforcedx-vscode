@@ -86,34 +86,48 @@ export function handleDeployRetrieveLibraryDiagnostics(
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
   errorCollection.clear();
+
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
-  deployResult.components?.forEach(detail => {
-    detail.diagnostics.forEach(err => {
-      const range = getRange(
-        err.lineNumber ? err.lineNumber.toString() : '1',
-        err.columnNumber ? err.columnNumber.toString() : '1'
-      );
-      const diagnostic = {
-            message: err.message,
-            severity: vscode.DiagnosticSeverity.Error,
-            source: err.filePath,
-            range
-          } as vscode.Diagnostic;
-          // NOTE: This is a workaround while we fix DeployResults not providing full
-          // path info
-      const fileUri = detail.component.xml;
 
-      if (!diagnosticMap.has(fileUri)) {
-            diagnosticMap.set(fileUri, []);
+  if (deployResult.components) {
+    for (const deployment of deployResult.components) {
+      for (const diagnostic of deployment.diagnostics) {
+        const {
+          message,
+          lineNumber,
+          columnNumber,
+          type,
+          filePath
+        } = diagnostic;
+        const range = getRange(
+          lineNumber ? lineNumber.toString() : '1',
+          columnNumber ? columnNumber.toString() : '1'
+        );
+        const severity =
+          type === 'Error'
+            ? vscode.DiagnosticSeverity.Error
+            : vscode.DiagnosticSeverity.Warning;
+        const vscDiagnostic: vscode.Diagnostic = {
+          message,
+          range,
+          severity,
+          source: filePath
+        };
+
+        if (filePath) {
+          if (!diagnosticMap.has(filePath)) {
+            diagnosticMap.set(filePath, []);
           }
+          diagnosticMap.get(filePath)!.push(vscDiagnostic);
+        }
+      }
+    }
+  }
 
-      diagnosticMap.get(fileUri)!.push(diagnostic);
-        });
-  });
-  diagnosticMap.forEach((diagMap: vscode.Diagnostic[], file) => {
-    const fileUri = vscode.Uri.file(file);
-    errorCollection.set(fileUri, diagMap);
-  });
+  diagnosticMap.forEach((diagnostics, file) =>
+    errorCollection.set(vscode.Uri.file(file), diagnostics)
+  );
+
   return errorCollection;
 }
 

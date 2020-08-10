@@ -14,12 +14,14 @@ import {
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import { nls } from '../../messages';
+
 type ComponentSuccess = {
   state: string;
   fullName: string;
   type: string;
   filePath: string;
 };
+
 type ComponentFailure = {
   filePath?: string;
   error: string;
@@ -32,48 +34,49 @@ export class LibraryDeployResultParser {
     this.result = deployResult;
   }
 
-  public buildSuccesses(componentSuccess: SourceDeployResult) {
+  public buildSuccesses(result: SourceDeployResult) {
     let success: ComponentSuccess[] = [];
-    for (const component of componentSuccess.components!) {
-      const listOfFiles = component.component.walkContent();
-      listOfFiles.push(component.component.xml);
-      success = listOfFiles.map(file => ({
-        state: component.status,
-        fullName: component.component.fullName,
-        type: component.component.type.name,
-        filePath: file
-      }));
+    const { components: deployments } = result;
+
+    if (deployments) {
+      for (const deployment of deployments) {
+        const { component } = deployment;
+        const listOfFiles = [component.xml, ...component.walkContent()];
+        success = listOfFiles.map(file => ({
+          state: deployment.status,
+          fullName: component.fullName,
+          type: component.type.name,
+          filePath: file
+        }));
+      }
     }
+
     return success;
   }
+
   public buildErrors(result: SourceDeployResult) {
-    const table = new Table();
     const failures: ComponentFailure[] = [];
-    for (const component of result.components!) {
-      for (const diagnostic of component.diagnostics) {
-        if (diagnostic.filePath) {
-          if (diagnostic.columnNumber && diagnostic.lineNumber) {
-            failures.push({
-              filePath: diagnostic.filePath,
-              error: `${diagnostic.message} (${diagnostic.lineNumber}:${
-                diagnostic.columnNumber
-              })`
-            });
-          } else {
-            failures.push({
-              filePath: diagnostic.filePath,
-              error: diagnostic.message
-            });
+
+    const { components: deployments } = result;
+    if (deployments) {
+      for (const deployment of deployments) {
+        for (const diagnostic of deployment.diagnostics) {
+          const { filePath, message, lineNumber, columnNumber } = diagnostic;
+          const row: ComponentFailure = {
+            error: message,
+            filePath: filePath || ''
+          };
+          if (filePath && columnNumber && lineNumber) {
+            row.error += ` (${lineNumber}:${columnNumber})`;
           }
-        } else {
-          failures.push({
-            error: diagnostic.message
-          });
+          failures.push(row);
         }
       }
     }
+
     return failures;
   }
+
   public resultParser(result: SourceDeployResult) {
     let outputResult: ComponentSuccess[] | ComponentFailure[];
     let formatResult: string;
@@ -82,8 +85,6 @@ export class LibraryDeployResultParser {
       case DeployStatus.Succeeded:
       case ToolingDeployStatus.Completed:
         table = new Table();
-        let title: string;
-        title = nls.localize(`table_title_deployed_source`);
         outputResult = this.buildSuccesses(result);
         formatResult = table.createTable(
           (outputResult as unknown) as Row[],
@@ -96,7 +97,7 @@ export class LibraryDeployResultParser {
               label: nls.localize('table_header_project_path')
             }
           ],
-          title
+          nls.localize(`table_title_deployed_source`)
         );
         break;
       case ToolingDeployStatus.Error:
