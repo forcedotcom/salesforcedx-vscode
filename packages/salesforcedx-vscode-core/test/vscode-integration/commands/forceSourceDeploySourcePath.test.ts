@@ -9,6 +9,7 @@ import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import { ToolingApi } from '@salesforce/source-deploy-retrieve/lib/client';
+import { MetadataApi } from '@salesforce/source-deploy-retrieve/lib/client/metadataApi';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';
@@ -19,7 +20,6 @@ import {
 import { nls } from '../../../src/messages';
 import { SfdxProjectConfig } from '../../../src/sfdxProject';
 import { OrgAuthInfo } from '../../../src/util';
-import { MetadataApi } from '@salesforce/source-deploy-retrieve/lib/client/metadataApi';
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
   it('Should build the source deploy command for', () => {

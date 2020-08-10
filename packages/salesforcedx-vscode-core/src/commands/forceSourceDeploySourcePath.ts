@@ -145,7 +145,7 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
         result.status === ToolingDeployStatus.Completed
       ) {
         DeployRetrieveLibraryExecutor.errorCollection.clear();
-        notificationService.showSuccessfulExecution(this.executionName);
+        await notificationService.showSuccessfulExecution(this.executionName);
       } else {
         handleDeployRetrieveLibraryDiagnostics(
           result,
