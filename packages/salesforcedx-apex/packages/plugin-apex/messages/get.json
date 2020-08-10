@@ -6,7 +6,7 @@
     "logLevelLongDescription":  "Permissible values are: trace, debug, info, warn, error, fatal, TRACE, DEBUG, INFO, WARN, ERROR, FATAL",
     "logIDDescription": "id of the log to display",
     "numberDescription": "number of most recent logs to display",
-    "outputDirDescription": "folder for saving the log files",
+    "outputDirDescription": "directory for saving the log files",
     "outputDirLongDescription": "The location can be an absolute path or relative to the current working directory. The default is the current directory.",
     "missing_auth_error": "Must pass a username and/or OAuth options when creating an AuthInfo instance."
 }
