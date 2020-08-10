@@ -62,7 +62,10 @@ describe('Aura Intellisense Test Suite', function() {
             kind: vscode.CompletionItemKind.Property
           },
           // Custom Aura
-          { label: 'c:DemoApp', kind: vscode.CompletionItemKind.Property },
+          {
+            label: 'c:DemoApp',
+            kind: vscode.CompletionItemKind.Property
+          },
           // Custom LWC
           {
             label: 'c:demoLwcComponent',
@@ -208,11 +211,13 @@ async function testCompletion(
         "' to have type: " +
         expectedItem.kind
     );
-    assert.isDefined(
-      actualItem!.documentation,
-      "Expected completion item '" +
-        expectedItem.label +
-        "' to have documentation"
-    );
+    if (actualItem?.detail === 'Lightning') {
+      assert.isDefined(
+        actualItem!.documentation,
+        "Expected completion item '" +
+          expectedItem.label +
+          "' to have documentation"
+      );
+    }
   });
 }
