@@ -40,33 +40,33 @@
         ],
         "description": "System.assert(false, message);"
     },
-    "System Assert Equal": {
+    "System Assert Equals": {
         "prefix": "sysasseq",
         "body": [
-            "System.assertEqual(${1:expected}, ${2:actual});"
+            "System.assertEquals(${1:expected}, ${2:actual});"
         ],
-        "description": "System.assertEqual(expected, actual);"
+        "description": "System.assertEquals(expected, actual);"
     },
-    "System Assert not Equal": {
+    "System Assert not Equals": {
         "prefix": "sysassnoteq",
         "body": [
-            "System.assertNotEqual(${1:expected}, ${2:actual});"
+            "System.assertNotEquals(${1:expected}, ${2:actual});"
         ],
-        "description": "System.assertNotEqual(expected, actual);"
+        "description": "System.assertNotEquals(expected, actual);"
     },
     "System Assert null": {
         "prefix": "sysassnull",
         "body": [
-            "System.assertEqual(null, ${1:actual});"
+            "System.assertEquals(null, ${1:actual});"
         ],
-        "description": "System.assertEqual(null, actual);"
+        "description": "System.assertEquals(null, actual);"
     },
     "System Assert Not Null": {
         "prefix": "sysassnotnull",
         "body": [
-            "System.assertNotEqual(null, ${1:actual});"
+            "System.assertNotEquals(null, ${1:actual});"
         ],
-        "description": "System.assertNotEqual(null, actual);"
+        "description": "System.assertNotEquals(null, actual);"
     },
     "DescribeFieldResult": {
         "prefix": "dfr",
