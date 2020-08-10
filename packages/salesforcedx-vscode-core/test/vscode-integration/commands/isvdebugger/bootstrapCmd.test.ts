@@ -19,7 +19,8 @@ import { getRootWorkspacePath } from '../../../../src/util';
 describe('ISV Debugging Project Bootstrap Command', () => {
   const LOGIN_URL = 'a.b.c';
   const SESSION_ID = '0x123';
-  const PROJECT_NAME = 'sfdx-simple-test';
+  const PROJECT_NAME = 'sfdx-simple-clone';
+  const ORIGINAL_PROJECT = 'sfdx-simple';
   const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
@@ -381,6 +382,18 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         executor.relativeInstalledPackagesPath
       );
 
+      // Setup old project data that should not be present upon completion
+      shell.mkdir('-p', path.join(projectInstalledPackagesPath, 'old-package'));
+
+      // fake project setup - copy the original project into this clone
+      executeCommandSpy.onCall(0).callsFake(() => {
+        shell.cp(
+          '-R',
+          path.join(PROJECT_DIR[0].fsPath, ORIGINAL_PROJECT),
+          projectPath
+        );
+      });
+
       // fake namespace query
       executeCommandSpy
         .onCall(2)
@@ -444,23 +457,27 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         'there must be a launch.json file'
       ).to.equal(true);
 
-      // expect(
-      //   fs.existsSync(path.join(projectInstalledPackagesPath, 'mypackage')),
-      //   'installed packages folder should be present'
-      // ).to.equal(true);
+      // 'mypackage' should be an installed package
+      expect(
+        fs.existsSync(path.join(projectInstalledPackagesPath, 'mypackage')),
+        'installed packages folder should be present'
+      ).to.equal(true);
 
-      // const dirInfo = fs.readdirSync(projectInstalledPackagesPath);
-      // // there should be only one package in the installed-packages folder
-      // expect(
-      //   dirInfo.length,
-      //   `There should only be one package installed at ${projectInstalledPackagesPath}`
-      // ).to.equal(1);
+      // there should be only one package in the installed-packages folder
+      const dirInfo = fs.readdirSync(projectInstalledPackagesPath);
+      expect(
+        dirInfo.length,
+        `There should only be one package installed at ${projectInstalledPackagesPath}`
+      ).to.equal(1);
 
       // any temp files should be gone
       expect(
         fs.existsSync(projectMetadataTempPath),
         `folder ${projectMetadataTempPath} must be deleted`
       ).to.equal(false);
+
+      // Clean up project
+      shell.rm('-rf', projectPath);
     });
   });
 });
