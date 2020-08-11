@@ -16,7 +16,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { LibraryDeployResultParser } from '../../../../src/commands/util/libraryDeployResultParser';
+import { LibraryDeployResultParser } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 
 describe('Deploy Parser', () => {

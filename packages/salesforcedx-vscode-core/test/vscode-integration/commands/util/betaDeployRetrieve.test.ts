@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import {
   createComponentCount,
   useBetaDeployRetrieve
-} from '../../../../src/commands/util/betaDeployRetrieve';
+} from '../../../../src/commands/util';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
 function createComponent(type: MetadataType, ext: string, extrafile?: string) {
