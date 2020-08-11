@@ -34,14 +34,14 @@ export class LibraryDeployResultParser {
     this.result = deployResult;
   }
 
-  public buildSuccesses(result: SourceDeployResult) {
+  private buildSuccesses(result: SourceDeployResult) {
     let success: ComponentSuccess[] = [];
     const { components: deployments } = result;
 
     if (deployments) {
       for (const deployment of deployments) {
         const { component } = deployment;
-        const listOfFiles = [component.xml, ...component.walkContent()];
+        const listOfFiles = [...component.walkContent(), component.xml];
         success = listOfFiles.map(file => ({
           state: deployment.status,
           fullName: component.fullName,
@@ -54,7 +54,7 @@ export class LibraryDeployResultParser {
     return success;
   }
 
-  public buildErrors(result: SourceDeployResult) {
+  private buildErrors(result: SourceDeployResult) {
     const failures: ComponentFailure[] = [];
 
     const { components: deployments } = result;

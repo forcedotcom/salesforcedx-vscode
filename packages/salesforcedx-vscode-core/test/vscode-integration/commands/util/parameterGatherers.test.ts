@@ -11,7 +11,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   RegistryAccess,
-  registryData
+  registryData,
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
@@ -319,23 +320,15 @@ describe('Parameter Gatherers', () => {
     it('Should gather filepath and Lightning web component options', async () => {
       const selector = new SelectLwcComponentDir();
       const packageDirs = ['force-app'];
-      const filePath = path.join(
-        'force-app',
-        'main',
-        'default',
-        'lwc',
-        'propertyMap'
-      );
-      const components: MetadataComponent[] = [
-        // @ts-ignore
+      const filePath = path.join('force-app', 'main', 'default', 'lwc', 'test');
+      const component = SourceComponent.createVirtualComponent(
         {
-          fullName: 'propertyMap',
+          name: 'test',
           type: registryData.types.lightningcomponentbundle,
-          // xml: path.join(filePath, 'propertyMap.js-meta.xml'),
-          // @ts-ignore
-          sources: []
-        }
-      ];
+          xml: path.join(filePath, 'test.js-meta.xml')
+        },
+        []
+      );
       const getPackageDirPathsStub = sinon.stub(
         SfdxPackageDirectories,
         'getPackageDirectoryPaths'
@@ -348,9 +341,9 @@ describe('Parameter Gatherers', () => {
       getPackageDirPathsStub.returns(packageDirs);
       getLwcsStub
         .withArgs(path.join(getRootWorkspacePath(), packageDirs[0]))
-        .returns(components);
+        .returns([component]);
       const dirChoice = packageDirs[0];
-      const componentChoice = components[0].fullName;
+      const componentChoice = component.fullName;
       showMenuStub.onFirstCall().returns(dirChoice);
       showMenuStub.onSecondCall().returns(componentChoice);
 

@@ -19,6 +19,7 @@ import {
   useBetaDeployRetrieve
 } from '../../../../src/commands/util/betaDeployRetrieve';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import { join } from 'path';
 
 function createComponent(type: MetadataType, ext: string, extrafile?: string) {
   const props = {
@@ -249,13 +250,15 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(false);
-      const components = [];
-      components.push(
-        registryData.types.lightningcomponentbundle,
-        'js',
-        'bar.html'
+      const component = SourceComponent.createVirtualComponent(
+        {
+          name: 'test',
+          type: registryData.types.lightningcomponentbundle,
+          xml: join('lwc', 'test', 'test.js-meta.xml')
+        },
+        []
       );
-      registryStub.returns(components);
+      registryStub.returns([component]);
       const uriOne = vscode.Uri.parse('file:///bar.js');
       const cmpProcessing = useBetaDeployRetrieve([uriOne]);
       expect(cmpProcessing).to.equal(false);
