@@ -250,6 +250,9 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
       this.relativeInstalledPackagesPath
     );
 
+    // remove any previous project at this path location
+    shell.rm('-rf', projectPath);
+
     // 1: create project
     await this.executeCommand(
       this.buildCreateProjectCommand(response.data),
