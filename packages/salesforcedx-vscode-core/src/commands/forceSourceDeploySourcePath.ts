@@ -16,7 +16,6 @@ import {
 import {
   DeployStatus,
   RegistryAccess,
-  SourceComponent,
   SourceDeployResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
@@ -182,32 +181,5 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
     } finally {
       await DeployQueue.get().unlock();
     }
-  }
-
-  private async doDeploy(
-    components: SourceComponent[],
-    namespace?: string
-  ): Promise<SourceDeployResult> {
-    if (this.sourceClient === undefined) {
-      throw new Error('SourceClient is not established');
-    }
-
-    let deploy: Promise<SourceDeployResult>;
-
-    if (namespace) {
-      deploy = this.sourceClient.tooling.deploy(components, {
-        namespace
-      });
-    } else {
-      deploy = this.sourceClient.metadata.deploy(components);
-    }
-
-    return vscode.window.withProgress(
-      {
-        title: this.executionName,
-        location: vscode.ProgressLocation.Notification
-      },
-      () => deploy
-    );
   }
 }
