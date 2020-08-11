@@ -34,49 +34,6 @@ export class LibraryDeployResultParser {
     this.result = deployResult;
   }
 
-  private buildSuccesses(result: SourceDeployResult) {
-    let success: ComponentSuccess[] = [];
-    const { components: deployments } = result;
-
-    if (deployments) {
-      for (const deployment of deployments) {
-        const { component } = deployment;
-        const listOfFiles = [...component.walkContent(), component.xml];
-        success = listOfFiles.map(file => ({
-          state: deployment.status,
-          fullName: component.fullName,
-          type: component.type.name,
-          filePath: file
-        }));
-      }
-    }
-
-    return success;
-  }
-
-  private buildErrors(result: SourceDeployResult) {
-    const failures: ComponentFailure[] = [];
-
-    const { components: deployments } = result;
-    if (deployments) {
-      for (const deployment of deployments) {
-        for (const diagnostic of deployment.diagnostics) {
-          const { filePath, message, lineNumber, columnNumber } = diagnostic;
-          const row: ComponentFailure = {
-            error: message,
-            filePath: filePath || ''
-          };
-          if (filePath && columnNumber && lineNumber) {
-            row.error += ` (${lineNumber}:${columnNumber})`;
-          }
-          failures.push(row);
-        }
-      }
-    }
-
-    return failures;
-  }
-
   public resultParser(result: SourceDeployResult) {
     let outputResult: ComponentSuccess[] | ComponentFailure[];
     let formatResult: string;
@@ -126,5 +83,48 @@ export class LibraryDeployResultParser {
         formatResult = '';
     }
     return formatResult;
+  }
+
+  private buildSuccesses(result: SourceDeployResult) {
+    let success: ComponentSuccess[] = [];
+    const { components: deployments } = result;
+
+    if (deployments) {
+      for (const deployment of deployments) {
+        const { component } = deployment;
+        const listOfFiles = [...component.walkContent(), component.xml];
+        success = listOfFiles.map(file => ({
+          state: deployment.status,
+          fullName: component.fullName,
+          type: component.type.name,
+          filePath: file
+        }));
+      }
+    }
+
+    return success;
+  }
+
+  private buildErrors(result: SourceDeployResult) {
+    const failures: ComponentFailure[] = [];
+
+    const { components: deployments } = result;
+    if (deployments) {
+      for (const deployment of deployments) {
+        for (const diagnostic of deployment.diagnostics) {
+          const { filePath, message, lineNumber, columnNumber } = diagnostic;
+          const row: ComponentFailure = {
+            error: message,
+            filePath: filePath || ''
+          };
+          if (filePath && columnNumber && lineNumber) {
+            row.error += ` (${lineNumber}:${columnNumber})`;
+          }
+          failures.push(row);
+        }
+      }
+    }
+
+    return failures;
   }
 }

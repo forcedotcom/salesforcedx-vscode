@@ -28,25 +28,21 @@ export function outputRetrieveTable(retrieveResult: ApiResult) {
   const title = nls.localize('lib_retrieve_result_title');
   const resultRows = [] as Row[];
   try {
-    retrieveResult.components.forEach(item => {
-      // rows for source files
-      if (item.walkContent()) {
-        item.walkContent().forEach(sourceItem => {
-          resultRows.push({
-            fullName: item.fullName,
-            type: item.type.name,
-            filePath: sourceItem
-          });
+    for (const component of retrieveResult.components) {
+      const { fullName, type } = component;
+      for (const file of component.walkContent()) {
+        resultRows.push({
+          fullName,
+          type: type.name,
+          filePath: file
         });
       }
-      // row for xml
       resultRows.push({
-        fullName: item.fullName,
-        type: item.type.name,
-        filePath: item.xml
+        fullName,
+        type: type.name,
+        filePath: component.xml
       });
-    });
-
+    }
     outputResult = table.createTable(
       resultRows,
       [

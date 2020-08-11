@@ -14,7 +14,6 @@ import {
   registryData,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import { join } from 'path';
