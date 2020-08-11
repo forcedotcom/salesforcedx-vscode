@@ -202,8 +202,7 @@ export const messages = {
     'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
-  isv_debug_bootstrap_open_project:
-    'Opening project in new Visual Studio Code window',
+  isv_debug_bootstrap_open_project: 'Opening project in Visual Studio Code',
 
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
