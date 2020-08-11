@@ -9,7 +9,7 @@ import { test } from '@salesforce/command/lib/test';
 import { expect } from 'chai';
 import { ExecuteService } from '@salesforce/apex-node';
 
-describe('apex:execute', () => {
+describe('force:apex:execute', () => {
   const log =
     '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n';
   const successJsonResult = {

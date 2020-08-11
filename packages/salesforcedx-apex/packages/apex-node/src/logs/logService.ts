@@ -50,7 +50,7 @@ export class LogService {
         logPaths.push(logPath);
         createFile(logPath, logRecord);
       }
-      return JSON.stringify(logRecord);
+      return String(logRecord);
     });
 
     const logs = await Promise.all(connectionRequests);

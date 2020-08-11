@@ -31,3 +31,32 @@ export function buildDescription(
 ): string {
   return `${shortDescription}\n${longDescription}`;
 }
+
+const colorMap = new Map([
+  [new RegExp(/\b([\w]+\.)+(\w)+\b/g), chalk.blueBright],
+  [new RegExp(/\b(DEBUG)\b/g), chalk.bold.cyan],
+  [new RegExp(/\b(HINT|INFO|INFORMATION)\b/g), chalk.bold.green],
+  [new RegExp(/\b(WARNING|WARN)\b/g), chalk.bold.yellow],
+  [new RegExp(/\b(ERROR|FAILURE|FAIL)\b/g), chalk.bold.red],
+  [new RegExp(/\b([a-zA-Z.]*Exception)\b/g), chalk.bold.red],
+  [new RegExp(/"[^"]*"/g), chalk.bold.red],
+  [new RegExp(/\b([0-9]+|true|false|null)\b/g), chalk.blueBright]
+]);
+
+function replace(regex: RegExp, word: string): string {
+  const color = colorMap.get(regex);
+  if (!color) {
+    throw new Error('Error retrieving colors');
+  }
+  const result = word.replace(regex, match => {
+    return `${color(match)}`;
+  });
+  return result;
+}
+
+export function colorLogs(log: string): string {
+  for (const c of colorMap.keys()) {
+    log = replace(c, log);
+  }
+  return log;
+}

@@ -9,7 +9,7 @@ import { LogService } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import { buildDescription, logLevels } from '../../../../utils';
+import { buildDescription, colorLogs, logLevels } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/plugin-apex', 'get');
@@ -87,9 +87,9 @@ export default class Get extends SfdxCommand {
         return logs;
       }
       const parsedLogs = logs.map(log => {
-        const parsed = JSON.parse(log);
-        this.ux.log(parsed);
-        return { log: parsed };
+        const colored = colorLogs(log);
+        this.ux.log(colored);
+        return { log };
       });
 
       return parsedLogs;
