@@ -129,9 +129,30 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
         'namespace'
       )) as string;
 
-      const deploy = this.doDeploy(components, projectNamespace);
+      if (this.sourceClient === undefined) {
+        throw new Error('SourceClient is not established');
+      }
+
+      let deploy: Promise<SourceDeployResult>;
+      let api: string;
+      if (projectNamespace) {
+        deploy = this.sourceClient.tooling.deploy(components, {
+          namespace: projectNamespace
+        });
+        api = 'tooling';
+      } else {
+        deploy = this.sourceClient.metadata.deploy(components);
+        api = 'metadata';
+      }
+
       const metadataCount = JSON.stringify(createComponentCount(components));
-      const result = await deploy;
+      const result = await vscode.window.withProgress(
+        {
+          title: this.executionName,
+          location: vscode.ProgressLocation.Notification
+        },
+        () => deploy
+      );
 
       const parser = new LibraryDeployResultParser(result);
       const outputResult = parser.resultParser(result);
@@ -139,7 +160,7 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
 
       channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
 
-      this.logMetric({ metadataCount });
+      this.logMetric({ metadataCount, api });
 
       if (
         result.status === DeployStatus.Succeeded ||
