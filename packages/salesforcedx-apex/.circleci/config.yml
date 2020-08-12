@@ -4,6 +4,7 @@ version: 2.1
 orbs:
   win: circleci/windows@2.2.0
   slack: circleci/slack@3.4.2
+  npm-release-management: salesforce/npm-release-management@2.0.0
 
 _refs:
   defaults: &defaults
@@ -38,6 +39,31 @@ _refs:
   test: &test
     name: Run tests
     command: yarn test
+
+commands:
+  setup-publish:
+    steps:
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#FFDEAD'
+          message: 'Starting Publish for Apex Library & Plugin'
+      - add_ssh_keys: *ssh-config
+      - checkout
+      - restore_cache: *restore_cache
+      - run: *gh-config
+      - run: *install
+      - run: *build
+  release-management-commands:
+    steps:
+      - npm-release-management/sign
+      - npm-release-management/publish:
+          use_tarfile: true
+      - npm-release-management/verify-signed-package
+      - npm-release-management/create-git-tag
+  set-npmrc:
+    steps:
+      - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+
 
 parameters:
   publish:
@@ -97,19 +123,10 @@ jobs:
       - run: *lint
       - run: *build
       - run: *test
-  publish:
+  prepublish:
     <<: *defaults
     steps:
-      - slack/notify:
-          channel: 'pdt_releases'
-          color: '#FFDEAD'
-          message: 'Starting Publish for Apex Plugin'
-      - add_ssh_keys: *ssh-config
-      - checkout
-      - restore_cache: *restore_cache
-      - run: *gh-config
-      - run: *install
-      - run: *build
+      - setup-publish
       - run:
           name: Bump package version
           command: |
@@ -119,16 +136,24 @@ jobs:
             echo "export RELEASE_VERSION=$RELEASE_TAG" >> $BASH_ENV
             source $BASH_ENV
             git commit -m "Updated version $RELEASE_TAG"
-      - run:
-          name: Set .npmrc
-          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-      - run: yarn publish-apex
+  publish-apex-node:
+    <<: *defaults
+    steps:    
+      - npm-release-management/publish:
+          use_tarfile: true
       - run: git push origin main
       - run:
           name: Tag the release and push to repo
           command: |
+            export RELEASE_TAG="$(node -pe "require('./packages/apex-node/package.json').version")"
             git tag v${RELEASE_VERSION}
             git push --tags
+  publish-plugin-apex:
+    <<: *defaults
+    working_directory: ~/salesforcedx-apex/packages/plugin-apex
+    steps:
+      - release-management-commands     
+      - run: git push origin main
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
@@ -167,7 +192,8 @@ workflows:
       - run-win-tests
       - hold: # Requires manual approval in Circle Ci
           type: approval
-      - publish:
+      - prepublish
+      - publish-apex-node:
           filters:
             branches:
               only:
@@ -177,4 +203,17 @@ workflows:
               - node-latest
               - node-12
               - node-10
-
+              - prepublish
+              - hold
+      - publish-plugin-apex:
+          filters:
+            branches:
+              only:
+                - main
+          requires:
+              - run-win-tests
+              - node-latest
+              - node-12
+              - node-10
+              - prepublish
+              - hold

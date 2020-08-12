@@ -32,7 +32,5 @@
     "publish-apex": "lerna run publish-apex",
     "test": "lerna run test"
   },
-  "publishConfig": {
-    "access": "public"
-  }
+  "private": true
 }
