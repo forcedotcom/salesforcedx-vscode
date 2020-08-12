@@ -53,7 +53,7 @@ describe('LWC Hovers', () => {
 
     expect(content!.value).to.include('Attributes');
     expect(content!.value).to.include('View in Component Library');
-  });
+  }).timeout(4000);
 
   it('Should provide additional details when hovering over a LWC attribute', async () => {
     const doc = await workspace.openTextDocument(
