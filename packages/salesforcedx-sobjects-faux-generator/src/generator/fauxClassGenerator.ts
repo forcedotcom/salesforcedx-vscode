@@ -94,7 +94,7 @@ export class FauxClassGenerator {
   private static fieldDeclToString(decl: FieldDeclaration): string {
     return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${
       decl.modifier
-    } ${decl.type} ${decl.name};`;
+      } ${decl.type} ${decl.name};`;
   }
 
   // VisibleForTesting
@@ -102,9 +102,9 @@ export class FauxClassGenerator {
     // for some reasons if the comment is on a single line the help context shows the last '*/'
     return comment
       ? `${INDENT}/* ${comment.replace(
-          /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
-          ''
-        )}${EOL}${INDENT}*/${EOL}`
+        /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
+        ''
+      )}${EOL}${INDENT}*/${EOL}`
       : '';
   }
 
@@ -163,8 +163,9 @@ export class FauxClassGenerator {
         err.stack
       );
     }
+    const filteredSObjects = sobjects.filter(this.isRequiredSObject);
     let j = 0;
-    while (j < sobjects.length) {
+    while (j < filteredSObjects.length) {
       try {
         if (
           this.cancellationToken &&
@@ -173,7 +174,7 @@ export class FauxClassGenerator {
           return this.cancelExit();
         }
         fetchedSObjects = fetchedSObjects.concat(
-          await describe.describeSObjectBatch(projectPath, sobjects, j)
+          await describe.describeSObjectBatch(projectPath, filteredSObjects, j)
         );
         j = fetchedSObjects.length;
       } catch (errorMessage) {
@@ -210,6 +211,14 @@ export class FauxClassGenerator {
     }
 
     return this.successExit();
+  }
+
+  // VisibleForTesting
+  public isRequiredSObject(sobject: string): boolean {
+    if (sobject.endsWith('Share') || sobject.endsWith('History') || sobject.endsWith('Feed') || sobject.endsWith('Event')) {
+      return false;
+    }
+    return true;
   }
 
   // VisibleForTesting
