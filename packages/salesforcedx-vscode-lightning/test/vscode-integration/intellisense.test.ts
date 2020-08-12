@@ -32,7 +32,7 @@ describe('Aura Intellisense Test Suite', function() {
    * Test that aura markup intellisense contains aura, lightning, custom aura, custom lwc tags
    */
 
-  it('Aura markup intellisense', async function() {
+  xit('Aura markup intellisense', async function() {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp')
     );
