@@ -10,26 +10,20 @@ import * as path from 'path';
 import { Location, Position, commands, window, workspace } from 'vscode';
 import URI from 'vscode-uri';
 
-describe('LWC Definition Linking', function() {
-  let lwcDir: string;
+describe('LWC Definition Linking', () => {
+  const lwcDir = path.join(
+    workspace.workspaceFolders![0].uri.fsPath,
+    'force-app',
+    'main',
+    'default',
+    'lwc'
+  );
 
-  before(async function() {
-    lwcDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'lwc'
-    );
-
-    await new Promise(r => setTimeout(r, 1500));
-  });
-
-  afterEach(async function() {
+  afterEach(async () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  it('Should provide navigation to a selected LWC tag', async function() {
+  it('Should provide navigation to a selected LWC tag', async () => {
     // select the 'c-view-source' tag
     testDefinitionNavigation(
       path.join(lwcDir, 'hello', 'hello.html'),
@@ -59,7 +53,7 @@ async function testDefinitionNavigation(
     position
   )) as Location[];
 
-  expect(locations).to.have.lengthOf(1);
+  expect(locations).to.have.lengthOf(3);
 
   const location = locations![0];
 
