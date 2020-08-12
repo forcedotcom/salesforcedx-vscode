@@ -4,27 +4,23 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix system assert snippets ([PR #2393](https://github.com/forcedotcom/salesforcedx-vscode/pull/2393))
+- Fix system assert snippets ([PR #2393](https://github.com/forcedotcom/salesforcedx-vscode/pull/2393)) - Contribution by ([@PawełWoźniak](https://github.com/PawelWozniak))
 
 - Fix SObject refresh pop up when a project does not have a defaultusername ([PR #2396](https://github.com/forcedotcom/salesforcedx-vscode/pull/2396))
 
 #### docs
 
-- Update remote-development docs ([PR #2402](https://github.com/forcedotcom/salesforcedx-vscode/pull/2402))
+- Update ([Remote-Development docs](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/)) ([PR #2402](https://github.com/forcedotcom/salesforcedx-vscode/pull/2402))
 
 ## Added
 
 #### docs
 
-- Add docs for remote dev using WSL2 ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
+- Add docs for ([Remote-Development](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/#stq=remote%20development&stp=1)) using WSL2 ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
 
 #### salesforcedx-vscode
 
 - Add SLDS validator extension to extension pack ([PR #2245](https://github.com/forcedotcom/salesforcedx-vscode/pull/2245))
-
-#### salesforcedx-vscode-soql
-
-- Add SOQL language client to connect with the SOQL language server ([PR #2398](https://github.com/forcedotcom/salesforcedx-vscode/pull/2398))
 
 # 49.4.0 - August 6, 2020
 
