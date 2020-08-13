@@ -20,7 +20,7 @@
 
 #### salesforcedx-vscode
 
-- Add SLDS validator extension to extension pack ([PR #2245](https://github.com/forcedotcom/salesforcedx-vscode/pull/2245))
+- Include SLDS Validator extension in Salesforce Extension Pack ([PR #2245](https://github.com/forcedotcom/salesforcedx-vscode/pull/2245))
 
 # 49.4.0 - August 6, 2020
 
