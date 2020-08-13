@@ -10,7 +10,7 @@
 
 #### docs
 
-- Update ([Remote-Development docs](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/)) ([PR #2402](https://github.com/forcedotcom/salesforcedx-vscode/pull/2402))
+- Update [Remote Development](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) doc ([PR #2402](https://github.com/forcedotcom/salesforcedx-vscode/pull/2402))
 
 ## Added
 
