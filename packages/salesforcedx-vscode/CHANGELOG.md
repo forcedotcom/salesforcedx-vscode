@@ -16,7 +16,7 @@
 
 #### docs
 
-- Add docs for ([Remote-Development](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/#stq=remote%20development&stp=1)) using WSL2 ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
+- Add docs for [Using Windows Subsystem for Linux (WSL) 2](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/#using-windows-subsystem-for-linux-wsl-2)  ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
 
 #### salesforcedx-vscode
 
