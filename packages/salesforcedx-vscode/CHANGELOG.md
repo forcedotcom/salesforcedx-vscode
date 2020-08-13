@@ -1,3 +1,27 @@
+# 49.5.0 - August 13, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix system assert snippets ([PR #2393](https://github.com/forcedotcom/salesforcedx-vscode/pull/2393)) - Contribution by ([@PawełWoźniak](https://github.com/PawelWozniak))
+
+- Fix SObject refresh pop up when a project does not have a defaultusername ([PR #2396](https://github.com/forcedotcom/salesforcedx-vscode/pull/2396))
+
+#### docs
+
+- Update [Remote Development](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) doc ([PR #2402](https://github.com/forcedotcom/salesforcedx-vscode/pull/2402))
+
+## Added
+
+#### docs
+
+- Add docs for [Using Windows Subsystem for Linux (WSL) 2](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/#using-windows-subsystem-for-linux-wsl-2)  ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
+
+#### salesforcedx-vscode
+
+- Include SLDS Validator extension in Salesforce Extension Pack ([PR #2245](https://github.com/forcedotcom/salesforcedx-vscode/pull/2245))
+
 # 49.4.0 - August 6, 2020
 
 ## Fixed
