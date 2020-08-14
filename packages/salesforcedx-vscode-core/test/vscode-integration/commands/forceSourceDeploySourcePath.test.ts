@@ -8,8 +8,8 @@
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
-import { ToolingApi } from '@salesforce/source-deploy-retrieve/lib/client';
-import { MetadataApi } from '@salesforce/source-deploy-retrieve/lib/client/metadataApi';
+import { MetadataApi } from '@salesforce/source-deploy-retrieve/lib/src/client/metadataApi';
+import { ToolingApi } from '@salesforce/source-deploy-retrieve/lib/src/client/toolingApi';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';

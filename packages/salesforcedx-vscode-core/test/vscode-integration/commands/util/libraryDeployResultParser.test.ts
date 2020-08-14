@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ComponentStatus,
+  DeployStatus,
   registryData,
   SourceComponent,
   SourceDeployResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
-import {
-  ComponentStatus,
-  DeployStatus
-} from '@salesforce/source-deploy-retrieve/lib/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import { LibraryDeployResultParser } from '../../../../src/commands/util';

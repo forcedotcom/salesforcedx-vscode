@@ -9,8 +9,8 @@ import {
   RegistryAccess,
   registryData
 } from '@salesforce/source-deploy-retrieve';
-import { SourceComponent } from '@salesforce/source-deploy-retrieve/lib/metadata-registry/sourceComponent';
-import { MetadataType } from '@salesforce/source-deploy-retrieve/lib/types';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import { MetadataType } from '@salesforce/source-deploy-retrieve/lib/src/common';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';
