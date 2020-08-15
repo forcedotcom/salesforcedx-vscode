@@ -1,5 +1,17 @@
 [
     {
+        "command": "force:apex:log:get",
+        "flags": [
+            "json",
+            "loglevel",
+            "apiversion",
+            "logid",
+            "number",
+            "outputdir",
+            "targetusername"
+        ]
+    },
+    {
         "command": "commandreference:generate",
         "flags": [
             "json",
