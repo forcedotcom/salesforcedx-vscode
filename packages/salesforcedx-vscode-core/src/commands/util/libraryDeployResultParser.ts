@@ -9,83 +9,42 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import {
-  DeployResult,
-  DeployStatusEnum,
-  SourceResult
+  DeployStatus,
+  SourceDeployResult,
+  ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import { nls } from '../../messages';
+
 type ComponentSuccess = {
   state: string;
   fullName: string;
   type: string;
   filePath: string;
 };
-export class LibraryDeployResultParser {
-  public result: DeployResult;
 
-  constructor(deployResult: DeployResult) {
+type ComponentFailure = {
+  filePath?: string;
+  error: string;
+};
+
+export class LibraryDeployResultParser {
+  public result: SourceDeployResult;
+
+  constructor(deployResult: SourceDeployResult) {
     this.result = deployResult;
   }
 
-  public buildSuccesses(componentSuccess: SourceResult) {
-    const mdState =
-      componentSuccess.changed && !componentSuccess.created
-        ? 'Updated'
-        : 'Created';
-    const listOfFiles = this.result.outboundFiles;
-    let success: ComponentSuccess[] = [];
-    if (listOfFiles) {
-      success = listOfFiles.map(file => ({
-        state: mdState,
-        fullName: componentSuccess.fullName!,
-        type: componentSuccess.componentType,
-        filePath: file
-      }));
-    }
-    return success;
-  }
-
-  public buildErrors(result: DeployResult) {
-    const failures = [];
-    if (
-      result.DeployDetails &&
-      result.DeployDetails.componentFailures.length > 0
-    ) {
-      for (const err of result.DeployDetails.componentFailures) {
-        if (err.columnNumber && err.lineNumber) {
-          err.problem = `${err.problem} (${err.lineNumber}:${
-            err.columnNumber
-          })`;
-        }
-        failures.push({
-          filePath: err.fileName,
-          error: err.problem
-        });
-      }
-    } else if (result.outboundFiles) {
-      for (const outboundFile of result.outboundFiles) {
-        failures.push({
-          filePath: outboundFile,
-          error: result.ErrorMsg
-        });
-      }
-    }
-
-    return failures;
-  }
-
-  public async outputResult(sourceUri?: string): Promise<string> {
-    let outputResult: string;
-    const table = new Table();
-    let title: string;
-    switch (this.result.State) {
-      case DeployStatusEnum.Completed:
-        title = nls.localize(`table_title_deployed_source`);
-        const successRows = this.buildSuccesses(
-          this.result.DeployDetails!.componentSuccesses[0]
-        );
-        outputResult = table.createTable(
-          (successRows as unknown) as Row[],
+  public resultParser(result: SourceDeployResult) {
+    let outputResult: ComponentSuccess[] | ComponentFailure[];
+    let formatResult: string;
+    let table = new Table();
+    switch (result.status) {
+      case DeployStatus.Succeeded:
+      case ToolingDeployStatus.Completed:
+        table = new Table();
+        outputResult = this.buildSuccesses(result);
+        formatResult = table.createTable(
+          (outputResult as unknown) as Row[],
           [
             { key: 'state', label: nls.localize('table_header_state') },
             { key: 'fullName', label: nls.localize('table_header_full_name') },
@@ -95,13 +54,16 @@ export class LibraryDeployResultParser {
               label: nls.localize('table_header_project_path')
             }
           ],
-          title
+          nls.localize(`table_title_deployed_source`)
         );
         break;
-      case DeployStatusEnum.Failed:
-        const failedErrorRows = this.buildErrors(this.result);
-        outputResult = table.createTable(
-          (failedErrorRows as unknown) as Row[],
+      case ToolingDeployStatus.Error:
+      case DeployStatus.Failed:
+      case ToolingDeployStatus.Failed:
+        table = new Table();
+        outputResult = this.buildErrors(result);
+        formatResult = table.createTable(
+          (outputResult as unknown) as Row[],
           [
             {
               key: 'filePath',
@@ -112,27 +74,57 @@ export class LibraryDeployResultParser {
           nls.localize(`table_title_deploy_errors`)
         );
         break;
-      case DeployStatusEnum.Queued:
-        outputResult = nls.localize('beta_tapi_queue_status');
-        break;
-      case DeployStatusEnum.Error:
-        const error = this.result.ErrorMsg!;
-        const errorRows = [{ filePath: sourceUri, error }];
-        outputResult = table.createTable(
-          (errorRows as unknown) as Row[],
-          [
-            {
-              key: 'filePath',
-              label: nls.localize('table_header_project_path')
-            },
-            { key: 'error', label: nls.localize('table_header_errors') }
-          ],
-          nls.localize(`table_title_deploy_errors`)
-        );
+      case ToolingDeployStatus.Queued:
+      case DeployStatus.Pending:
+      case DeployStatus.InProgress:
+        formatResult = nls.localize('beta_tapi_queue_status');
         break;
       default:
-        outputResult = '';
+        formatResult = '';
     }
-    return outputResult;
+    return formatResult;
+  }
+
+  private buildSuccesses(result: SourceDeployResult) {
+    let success: ComponentSuccess[] = [];
+    const { components: deployments } = result;
+
+    if (deployments) {
+      for (const deployment of deployments) {
+        const { component } = deployment;
+        const listOfFiles = [...component.walkContent(), component.xml];
+        success = listOfFiles.map(file => ({
+          state: deployment.status,
+          fullName: component.fullName,
+          type: component.type.name,
+          filePath: file
+        }));
+      }
+    }
+
+    return success;
+  }
+
+  private buildErrors(result: SourceDeployResult) {
+    const failures: ComponentFailure[] = [];
+
+    const { components: deployments } = result;
+    if (deployments) {
+      for (const deployment of deployments) {
+        for (const diagnostic of deployment.diagnostics) {
+          const { filePath, message, lineNumber, columnNumber } = diagnostic;
+          const row: ComponentFailure = {
+            error: message,
+            filePath: filePath || ''
+          };
+          if (filePath && columnNumber && lineNumber) {
+            row.error += ` (${lineNumber}:${columnNumber})`;
+          }
+          failures.push(row);
+        }
+      }
+    }
+
+    return failures;
   }
 }

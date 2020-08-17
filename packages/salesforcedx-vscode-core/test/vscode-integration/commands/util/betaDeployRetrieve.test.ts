@@ -9,9 +9,10 @@ import {
   RegistryAccess,
   registryData
 } from '@salesforce/source-deploy-retrieve';
-import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import { MetadataType } from '@salesforce/source-deploy-retrieve/lib/src/common';
 import { expect } from 'chai';
-import * as path from 'path';
+import { join } from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -19,6 +20,23 @@ import {
   useBetaDeployRetrieve
 } from '../../../../src/commands/util';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+
+function createComponent(type: MetadataType, ext: string, extrafile?: string) {
+  const props = {
+    name: 'bar',
+    type,
+    xml: `bar.${ext}-meta.xml`,
+    content: `bar.${ext}`
+  };
+  const virtualFs = {
+    dirPath: '',
+    children: [`bar.${ext}`, `bar.${ext}-meta.xml`]
+  };
+  if (extrafile) {
+    virtualFs.children.push(extrafile);
+  }
+  return SourceComponent.createVirtualComponent(props, [virtualFs]);
+}
 
 describe('Force Source Deploy with Sourcepath Beta', () => {
   let sandboxStub: SinonSandbox;
@@ -40,20 +58,11 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apextrigger,
-          xml: 'bar.trigger-meta.xml',
-          sources: ['bar.trigger', 'bar.trigger-meta.xml']
-        },
-        {
-          fullName: 'bar',
-          type: registryData.types.apexclass,
-          xml: 'bar.cls-meta.xml',
-          sources: ['bar.cls', 'bar.cls-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(createComponent(registryData.types.apexclass, 'cls'));
+      components.push(
+        createComponent(registryData.types.apextrigger, 'trigger')
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.cls');
       const uriTwo = vscode.Uri.parse('file:///bar.trigger');
@@ -65,14 +74,14 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.lightningcomponentbundle,
-          xml: 'bar.js-meta.xml',
-          sources: ['bar.js', 'bar.html', 'bar.js-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(
+        createComponent(
+          registryData.types.lightningcomponentbundle,
+          'js',
+          'bar.html'
+        )
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.html');
       const fileProcessing = useBetaDeployRetrieve([uriOne]);
@@ -83,14 +92,8 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexclass,
-          xml: 'bar.cls-meta.xml',
-          sources: ['bar.cls', 'bar.cls-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(createComponent(registryData.types.apexclass, 'cls'));
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.cls');
       const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
@@ -105,14 +108,8 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexclass,
-          xml: 'bar.cls-meta.xml',
-          sources: ['bar.cls', 'bar.cls-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(createComponent(registryData.types.apexclass, 'cls'));
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.cls');
       const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
@@ -127,14 +124,10 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apextrigger,
-          xml: 'bar.trigger-meta.xml',
-          sources: ['bar.trigger', 'bar.trigger-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(
+        createComponent(registryData.types.apextrigger, 'trigger')
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.trigger');
       const triggerProcessing = useBetaDeployRetrieve([uriOne]);
@@ -149,14 +142,10 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apextrigger,
-          xml: 'bar.trigger-meta.xml',
-          sources: ['bar.trigger', 'bar.trigger-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(
+        createComponent(registryData.types.apextrigger, 'trigger')
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.trigger');
       const triggerProcessing = useBetaDeployRetrieve([uriOne]);
@@ -171,14 +160,8 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexpage,
-          xml: 'bar.page-meta.xml',
-          sources: ['bar.page', 'bar.page-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(createComponent(registryData.types.apexpage, 'page'));
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.page');
       const pageProcessing = useBetaDeployRetrieve([uriOne]);
@@ -193,14 +176,8 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexpage,
-          xml: 'bar.page-meta.xml',
-          sources: ['bar.page', 'bar.page-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(createComponent(registryData.types.apexpage, 'page'));
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.page');
       const pageProcessing = useBetaDeployRetrieve([uriOne]);
@@ -215,14 +192,10 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexcomponent,
-          xml: 'bar.component-meta.xml',
-          sources: ['bar.component', 'bar.component-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(
+        createComponent(registryData.types.apexcomponent, 'component')
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.component');
       const cmpProcessing = useBetaDeployRetrieve([uriOne]);
@@ -237,14 +210,10 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(false);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.apexcomponent,
-          xml: 'bar.component-meta.xml',
-          sources: ['bar.component', 'bar.component-meta.xml']
-        }
-      ];
+      const components = [];
+      components.push(
+        createComponent(registryData.types.apexcomponent, 'component')
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.component');
       const cmpProcessing = useBetaDeployRetrieve([uriOne]);
@@ -259,14 +228,14 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'bar',
-          type: registryData.types.lightningcomponentbundle,
-          xml: 'bar.js-meta.xml',
-          sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
-        }
-      ];
+      const components = [];
+      components.push(
+        createComponent(
+          registryData.types.lightningcomponentbundle,
+          'js',
+          'bar.html'
+        )
+      );
       registryStub.returns(components);
       const uriOne = vscode.Uri.parse('file:///bar.component');
       const cmpProcessing = useBetaDeployRetrieve([uriOne]);
@@ -281,20 +250,20 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(false);
-      const components: MetadataComponent[] = [
+      const component = SourceComponent.createVirtualComponent(
         {
-          fullName: 'bar',
+          name: 'test',
           type: registryData.types.lightningcomponentbundle,
-          xml: 'bar.js-meta.xml',
-          sources: ['bar.js', 'bar.js-meta.xml', 'bar.html']
-        }
-      ];
-      registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.component');
+          xml: join('lwc', 'test', 'test.js-meta.xml')
+        },
+        []
+      );
+      registryStub.returns([component]);
+      const uriOne = vscode.Uri.parse('file:///bar.js');
       const cmpProcessing = useBetaDeployRetrieve([uriOne]);
       expect(cmpProcessing).to.equal(false);
 
-      const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
+      const uriTwo = vscode.Uri.parse('file:///bar.js-meta.xml');
       const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
       expect(cmpMetaProcessing).to.equal(false);
     });
@@ -304,26 +273,14 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
     it('should correctly generate rows for telemetry', () => {
       const { name: layoutName } = registryData.types.layout;
       const { name: customAppName } = registryData.types.customapplication;
-      const components: MetadataComponent[] = [
-        {
-          fullName: 'test',
-          type: registryData.types.layout,
-          xml: path.join('path', 'to', 'file.layout-meta.xml')
-        },
-        {
-          fullName: 'test2',
-          type: registryData.types.layout,
-          xml: path.join('path', 'to', 'file2.layout-meta.xml')
-        },
-        {
-          fullName: 'test3',
-          type: registryData.types.customapplication,
-          xml: path.join('path', 'to', 'file3.app-meta')
-        }
-      ];
+      const components = [];
+      components.push(createComponent(registryData.types.layout, 'layout'));
+      components.push(
+        createComponent(registryData.types.customapplication, 'app')
+      );
       const rows = createComponentCount(components);
       expect(rows).to.deep.equal([
-        { type: layoutName, quantity: 2 },
+        { type: layoutName, quantity: 1 },
         { type: customAppName, quantity: 1 }
       ]);
     });

@@ -5,9 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApiResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ApiResult,
+  registryData,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
-import { outputRetrieveTable } from '../../../../src/commands/util';
+import { join } from 'path';
+import { outputRetrieveTable } from '../../../../src/commands/util/retrieveParser';
 import { nls } from '../../../../src/messages';
 
 describe('retrieveParser', () => {
@@ -37,21 +42,26 @@ describe('retrieveParser', () => {
     expect(parsedResult).to.equal('Message from library');
   });
 
-  it('Should handle an fully formed ApiResult', () => {
+  it('Should handle a fully formed ApiResult', () => {
+    const apexClassPath = join('classes', 'MyTestClass.cls');
+    const apexClassXmlPath = `${apexClassPath}-meta.xml`;
+    const component = SourceComponent.createVirtualComponent(
+      {
+        name: 'MyTestClass',
+        type: registryData.types.apexclass,
+        xml: apexClassXmlPath,
+        content: apexClassPath
+      },
+      [
+        {
+          dirPath: 'classes',
+          children: ['MyTestClass.cls', 'MyTestClass.cls-meta.xml']
+        }
+      ]
+    );
     const successfulResult = {
       success: true,
-      components: [
-        {
-          fullName: 'MyTestClass',
-          xml: 'some/path/MyTestClass.cls-meta.xml',
-          type: {
-            name: 'ApexClass',
-            directoryName: 'classes',
-            inFolder: false
-          },
-          sources: ['some/path/MyTestClass.cls']
-        }
-      ],
+      components: [component],
       message: 'Message from library'
     } as ApiResult;
 
@@ -59,25 +69,25 @@ describe('retrieveParser', () => {
 
     let expectedResult = '=== Retrieved Source\n';
     expectedResult +=
-      'FULL NAME    TYPE       PROJECT PATH                      \n';
+      'FULL NAME    TYPE       PROJECT PATH                    \n';
     expectedResult +=
-      '───────────  ─────────  ──────────────────────────────────\n';
-    expectedResult +=
-      'MyTestClass  ApexClass  some/path/MyTestClass.cls         \n';
-    expectedResult +=
-      'MyTestClass  ApexClass  some/path/MyTestClass.cls-meta.xml\n';
+      '───────────  ─────────  ────────────────────────────────\n';
+    expectedResult += `MyTestClass  ApexClass  ${apexClassPath}         \n`;
+    expectedResult += `MyTestClass  ApexClass  ${apexClassXmlPath}\n`;
 
     expect(parsedResult).to.equal(expectedResult);
   });
 
   it('Should handle a malformed ApiResult', () => {
+    // @ts-ignore
     const apiResultWithOutType = {
       success: true,
       components: [
         {
-          fullName: 'MyTestClass',
+          name: 'MyTestClass',
           xml: 'some/path/MyTestClass.cls-meta.xml',
-          sources: ['some/path/MyTestClass.cls']
+          // @ts-ignore
+          walkContent(): ['some/path/MyTestClass.cls'];
         }
       ],
       message: 'Message from library'

@@ -9,7 +9,7 @@ import {
   RegistryAccess,
   registryData
 } from '@salesforce/source-deploy-retrieve';
-import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { sfdxCoreSettings } from '../../settings';
 
