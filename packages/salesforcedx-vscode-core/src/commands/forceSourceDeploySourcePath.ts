@@ -13,9 +13,15 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  DeployStatus,
+  RegistryAccess,
+  SourceDeployResult,
+  ToolingDeployStatus
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
@@ -24,13 +30,16 @@ import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
-  createComponentCount,
   DeployRetrieveLibraryExecutor,
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  useBetaDeployRetrieve
+  SfdxWorkspaceChecker
 } from './util';
+import {
+  createComponentCount,
+  useBetaDeployRetrieve
+} from './util/betaDeployRetrieve';
+import { LibraryDeployResultParser } from './util/libraryDeployResultParser';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -106,39 +115,67 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
 export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
   public async execute(response: ContinueResponse<string>): Promise<void> {
     this.setStartTime();
-
     try {
       await this.build(
         'Deploy (Beta)',
         'force_source_deploy_with_sourcepath_beta'
       );
+      channelService.showCommandWithTimestamp(`Starting ${this.executionName}`);
+
+      const registryAccess = new RegistryAccess();
+      const components = registryAccess.getComponentsFromPath(response.data);
+      const projectNamespace = (await SfdxProjectConfig.getValue(
+        'namespace'
+      )) as string;
 
       if (this.sourceClient === undefined) {
         throw new Error('SourceClient is not established');
       }
 
-      this.sourceClient.tooling.deploy = this.deployWrapper(
-        this.sourceClient.tooling.deploy
-      );
+      let deploy: Promise<SourceDeployResult>;
+      let api: string;
+      if (projectNamespace) {
+        deploy = this.sourceClient.tooling.deploy(components, {
+          namespace: projectNamespace
+        });
+        api = 'tooling';
+      } else {
+        deploy = this.sourceClient.metadata.deploy(components);
+        api = 'metadata';
+      }
 
-      const projectNamespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
-      const registryAccess = new RegistryAccess();
-      const components = registryAccess.getComponentsFromPath(response.data);
-      const deployPromise = this.sourceClient.tooling.deploy({
-        components,
-        namespace: projectNamespace
-      });
       const metadataCount = JSON.stringify(createComponentCount(components));
-      await deployPromise;
-
-      this.logMetric({ metadataCount });
-    } catch (e) {
-      telemetryService.sendException(
-        'force_source_deploy_with_sourcepath_beta',
-        e.message
+      const result = await vscode.window.withProgress(
+        {
+          title: this.executionName,
+          location: vscode.ProgressLocation.Notification
+        },
+        () => deploy
       );
+
+      const parser = new LibraryDeployResultParser(result);
+      const outputResult = parser.resultParser(result);
+      channelService.appendLine(outputResult);
+
+      channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
+
+      this.logMetric({ metadataCount, api });
+
+      if (
+        result.status === DeployStatus.Succeeded ||
+        result.status === ToolingDeployStatus.Completed
+      ) {
+        DeployRetrieveLibraryExecutor.errorCollection.clear();
+        await notificationService.showSuccessfulExecution(this.executionName);
+      } else {
+        handleDeployRetrieveLibraryDiagnostics(
+          result,
+          DeployRetrieveLibraryExecutor.errorCollection
+        );
+        notificationService.showFailedExecution(this.executionName);
+      }
+    } catch (e) {
+      telemetryService.sendException(e.name, e.message);
       notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
     } finally {
