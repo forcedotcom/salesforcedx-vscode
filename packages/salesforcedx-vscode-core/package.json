@@ -807,6 +807,11 @@
           "type": "boolean",
           "default": true,
           "description": "%experimental_apex_library_description%"
+        },
+        "salesforcedx-vscode-core.experimental.supportFunctions": {
+          "type": "boolean",
+          "default": true,
+          "description": "%experimental_support_functions%"
         }
       }
     },
