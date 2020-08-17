@@ -810,7 +810,7 @@
         },
         "salesforcedx-vscode-core.experimental.supportFunctions": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "%experimental_support_functions%"
         }
       }
