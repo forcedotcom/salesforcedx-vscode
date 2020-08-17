@@ -41,7 +41,8 @@
     "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
     "test": "nyc mocha",
-    "publish-apex": "yarn publish --non-interactive"
+    "publish-apex": "yarn publish --non-interactive",
+    "package": "npm pack"
   },
   "husky": {
     "hooks": {

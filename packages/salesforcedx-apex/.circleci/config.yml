@@ -53,6 +53,10 @@ commands:
       - run: *gh-config
       - run: *install
       - run: *build
+      - run:
+          working_directory: ./packages/plugin-apex
+          command: yarn manifest:generate
+      - run: yarn package
   release-management-commands:
     steps:
       - npm-release-management/sign
@@ -60,9 +64,6 @@ commands:
           use_tarfile: true
       - npm-release-management/verify-signed-package
       - npm-release-management/create-git-tag
-  set-npmrc:
-    steps:
-      - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
 
 
 parameters:
@@ -132,12 +133,25 @@ jobs:
           command: |
             yarn bump-versions << pipeline.parameters.publish-type >>
             git add .
-            export RELEASE_TAG="$(node -pe "require('./packages/apex-node/package.json').version")"
+            export RELEASE_TAG="$(node -pe "require('./lerna.json').version")"
             echo "export RELEASE_VERSION=$RELEASE_TAG" >> $BASH_ENV
             source $BASH_ENV
             git commit -m "Updated version $RELEASE_TAG"
+      - persist_to_workspace:
+          root: .
+          paths:
+              - .git
+              - ./packages/apex-node/salesforce-apex-node-$RELEASE_TAG.tgz
+              - ./packages/plugin-apex/package.json
+              - ./packages/plugin-apex/bin
+              - ./packages/plugin-apex/lib
+              - ./packages/plugin-apex/oclif.manifest.json
+              - ./packages/plugin-apex/messages
+              - ./packages/plugin-apex/README.md
+              - ./packages/plugin-apex/yarn.lock
   publish-apex-node:
     <<: *defaults
+    working_directory: ~/salesforcedx-apex/packages/apex-node
     steps:    
       - npm-release-management/publish:
           use_tarfile: true
@@ -192,7 +206,9 @@ workflows:
       - run-win-tests
       - hold: # Requires manual approval in Circle Ci
           type: approval
-      - prepublish
+      - prepublish:
+          requires:
+              - hold
       - publish-apex-node:
           filters:
             branches:
@@ -203,8 +219,8 @@ workflows:
               - node-latest
               - node-12
               - node-10
-              - prepublish
               - hold
+              - prepublish
       - publish-plugin-apex:
           filters:
             branches:
@@ -215,5 +231,6 @@ workflows:
               - node-latest
               - node-12
               - node-10
-              - prepublish
               - hold
+              - prepublish
+              - publish-apex-node

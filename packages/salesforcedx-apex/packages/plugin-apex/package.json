@@ -42,7 +42,8 @@
     "/lib",
     "/messages",
     "/npm-shrinkwrap.json",
-    "/oclif.manifest.json"
+    "/oclif.manifest.json",
+    "yarn.lock"
   ],
   "homepage": "https://github.com/forcedotcom/salesforcedx-apex",
   "keywords": [
@@ -93,12 +94,13 @@
     "build": "shx rm -rf lib && tsc -b",
     "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
-    "prepack": "yarn build && oclif-dev manifest",
+    "manifest:generate": "yarn build && oclif-dev manifest",
     "postpack": "shx rm -f oclif.manifest.json",
     "test": "mocha --recursive \"./test/**/*.test.ts\" --full-trace",
     "version": "oclif-dev readme && git add README.md",
     "test:deprecation-policy": "./bin/run snapshot:compare",
-    "test:command-reference": "./bin/run commandreference:generate -p apex --erroronwarnings"
+    "test:command-reference": "./bin/run commandreference:generate -p apex --erroronwarnings",
+    "package": "npm pack"
   },
   "husky": {
     "hooks": {

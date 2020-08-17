@@ -30,7 +30,8 @@
     "lint": "lerna run lint",
     "postinstall": "lerna bootstrap --no-ci",
     "publish-apex": "lerna run publish-apex",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "package": "lerna run package"
   },
   "private": true
 }
