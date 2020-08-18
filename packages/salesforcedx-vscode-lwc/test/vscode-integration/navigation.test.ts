@@ -53,6 +53,7 @@ async function testDefinitionNavigation(
     position
   )) as Location[];
 
+  // allows a users to pick between the html, js or css files in a component to navigate to
   expect(locations).to.have.lengthOf(3);
 
   const location = locations![0];
