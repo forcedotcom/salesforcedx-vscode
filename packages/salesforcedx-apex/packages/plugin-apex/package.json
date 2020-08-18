@@ -39,6 +39,8 @@
     "node": ">=10.17.0"
   },
   "files": [
+    "yarn.lock",
+    "/bin",
     "/lib",
     "/messages",
     "/npm-shrinkwrap.json",

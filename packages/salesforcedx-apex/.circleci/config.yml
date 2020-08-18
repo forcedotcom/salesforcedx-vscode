@@ -141,18 +141,22 @@ jobs:
           root: .
           paths:
               - .git
-              - ./packages/apex-node/salesforce-apex-node-$RELEASE_TAG.tgz
-              - ./packages/plugin-apex/package.json
-              - ./packages/plugin-apex/bin
-              - ./packages/plugin-apex/lib
-              - ./packages/plugin-apex/oclif.manifest.json
-              - ./packages/plugin-apex/messages
-              - ./packages/plugin-apex/README.md
-              - ./packages/plugin-apex/yarn.lock
+              - packages/apex-node/package.json
+              - packages/apex-node/salesforce-apex-node-$RELEASE_TAG.tgz
+              - packages/plugin-apex/package.json
+              - packages/plugin-apex/bin
+              - packages/plugin-apex/lib
+              - packages/plugin-apex/oclif.manifest.json
+              - packages/plugin-apex/messages
+              - packages/plugin-apex/README.md
+              - packages/plugin-apex/yarn.lock
+              - packages/plugin-apex/.gitignore
   publish-apex-node:
     <<: *defaults
-    working_directory: ~/salesforcedx-apex/packages/apex-node
-    steps:    
+    working_directory: ~/cli/packages/apex-node
+    steps:
+      - attach_workspace:
+          at: ~/cli    
       - npm-release-management/publish:
           use_tarfile: true
       - run: git push origin main
@@ -164,8 +168,10 @@ jobs:
             git push --tags
   publish-plugin-apex:
     <<: *defaults
-    working_directory: ~/salesforcedx-apex/packages/plugin-apex
+    working_directory: ~/cli/packages/plugin-apex
     steps:
+      - attach_workspace:
+          at: ~/cli
       - release-management-commands     
       - run: git push origin main
       - slack/notify:
