@@ -14,7 +14,12 @@ import {
   ApexTestRunResult,
   ApexTestResult,
   ApexTestQueueItem,
-  AsyncTestResult
+  AsyncTestResult,
+  ApexCodeCoverageAggregate,
+  ApexTestResultData,
+  CodeCoverageResult,
+  ApexOrgWideCoverage,
+  ApexTestResultOutcome
 } from './types';
 import * as util from 'util';
 import { nls } from '../i18n';
@@ -43,7 +48,8 @@ export class TestService {
   }
 
   public async runTestAsynchronous(
-    options: AsyncTestConfiguration | AsyncTestArrayConfiguration
+    options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
+    codeCoverage = false
   ): Promise<AsyncTestResult> {
     const sClient = new StreamingClient(this.connection);
     await sClient.init();
@@ -60,12 +66,27 @@ export class TestService {
     )) as string;
 
     const testQueueResult = await sClient.subscribe(testRunId);
-    return await this.getTestResultData(testQueueResult, testRunId);
+
+    return await this.getTestResultData(
+      testQueueResult,
+      testRunId,
+      codeCoverage
+    );
+  }
+
+  private calculatePercentage(dividend: number, divisor: number): string {
+    let percentage = '0%';
+    if (dividend > 0) {
+      const calcPct = ((dividend / divisor) * 100).toFixed();
+      percentage = `${calcPct}%`;
+    }
+    return percentage;
   }
 
   public async getTestResultData(
     testQueueResult: ApexTestQueueItem,
-    testRunId: string
+    testRunId: string,
+    codeCoverage = false
   ): Promise<AsyncTestResult> {
     let testRunSummaryQuery =
       'SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, ';
@@ -96,40 +117,121 @@ export class TestService {
       util.format(apexTestResultQuery, `'${apexResultId}'`)
     )) as ApexTestResult;
 
+    let globalTestPassed = 0;
+    let globalTestFailed = 0;
+    let globalTestSkipped = 0;
     // Iterate over test results, format and add them as results.tests
-    const testResults = apexTestResults.records.map(item => {
-      return {
-        Id: item.Id,
-        QueueItemId: item.QueueItemId,
-        StackTrace: item.StackTrace,
-        Message: item.Message,
-        AsyncApexJobId: item.AsyncApexJobId,
-        MethodName: item.MethodName,
-        Outcome: item.Outcome,
-        ApexLogId: item.ApexLogId,
-        ApexClass: {
-          Id: item.ApexClass.Id,
-          Name: item.ApexClass.Name,
-          NamespacePrefix: item.ApexClass.NamespacePrefix,
-          FullName: item.ApexClass.FullName
+    const testResults: ApexTestResultData[] = [];
+    apexTestResults.records.forEach(item => {
+      switch (item.Outcome) {
+        case ApexTestResultOutcome.Pass:
+          globalTestPassed++;
+          break;
+        case ApexTestResultOutcome.Fail:
+        case ApexTestResultOutcome.CompileFail:
+          globalTestFailed++;
+          break;
+        case ApexTestResultOutcome.Skip:
+          globalTestSkipped++;
+          break;
+      }
+
+      testResults.push({
+        id: item.Id,
+        queueItemId: item.QueueItemId,
+        stackTrace: item.StackTrace,
+        message: item.Message,
+        asyncApexJobId: item.AsyncApexJobId,
+        methodName: item.MethodName,
+        outcome: item.Outcome,
+        apexLogId: item.ApexLogId,
+        apexClass: {
+          id: item.ApexClass.Id,
+          name: item.ApexClass.Name,
+          namespacePrefix: item.ApexClass.NamespacePrefix,
+          fullName: item.ApexClass.FullName
         },
-        RunTime: item.RunTime,
-        TestTimestamp: item.TestTimestamp, // TODO: convert timestamp
-        FullName: `${item.ApexClass.FullName}.${item.MethodName}`
-      };
+        runTime: item.RunTime,
+        testTimestamp: item.TestTimestamp, // TODO: convert timestamp
+        fullName: `${item.ApexClass.FullName}.${item.MethodName}`
+      });
     });
 
-    // TODO: add code coverage
     const result: AsyncTestResult = {
       summary: {
+        failRate: this.calculatePercentage(
+          globalTestFailed,
+          testResults.length
+        ),
+        numTestsRan: testResults.length,
+        orgId: this.connection.getAuthInfoFields().orgId,
         outcome: summaryRecord.Status,
+        passRate: this.calculatePercentage(
+          globalTestPassed,
+          testResults.length
+        ),
+        skipRate: this.calculatePercentage(
+          globalTestSkipped,
+          testResults.length
+        ),
         testStartTime: summaryRecord.StartTime,
         testExecutionTime: summaryRecord.TestTime,
         testRunId,
-        userId: summaryRecord.UserId
+        userId: summaryRecord.UserId,
+        username: this.connection.getUsername()
       },
       tests: testResults
     };
+
+    if (codeCoverage) {
+      result.codecoverage = await this.getTestCodeCoverage();
+      result.summary.orgWideCoverage = await this.getOrgWideCoverage();
+    }
+
     return result;
+  }
+
+  public async getOrgWideCoverage(): Promise<string> {
+    const orgWideCoverageResult = (await this.connection.tooling.query(
+      'SELECT PercentCovered FROM ApexOrgWideCoverage'
+    )) as ApexOrgWideCoverage;
+
+    if (orgWideCoverageResult.records.length === 0) {
+      return '0%';
+    }
+    return `${orgWideCoverageResult.records[0].PercentCovered}%`;
+  }
+
+  public async getTestCodeCoverage(): Promise<CodeCoverageResult[]> {
+    const codeCoverageQuery =
+      'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate';
+    const codeCoverageResuls = (await this.connection.tooling.query(
+      codeCoverageQuery
+    )) as ApexCodeCoverageAggregate;
+
+    const coverageResults: CodeCoverageResult[] = codeCoverageResuls.records.map(
+      item => {
+        const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
+        const percentage = this.calculatePercentage(
+          item.NumLinesCovered,
+          totalLines
+        );
+
+        return {
+          apexId: item.ApexClassOrTrigger.Id,
+          name: item.ApexClassOrTrigger.Name,
+          type: item.ApexClassOrTrigger.Id.startsWith('01p')
+            ? 'ApexClass'
+            : 'ApexTrigger',
+          numLinesCovered: item.NumLinesCovered,
+          numLinesUncovered: item.NumLinesUncovered,
+          percentage,
+          coveredLines: item.Coverage.coveredLines,
+          uncoveredLines: item.Coverage.uncoveredLines
+        };
+      }
+    );
+
+    return coverageResults;
   }
 }

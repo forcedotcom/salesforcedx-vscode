@@ -33,5 +33,9 @@
     "test": "lerna run test",
     "package": "lerna run package"
   },
-  "private": true
+  "private": true,
+  "volta": {
+    "node": "12.4.0",
+    "yarn": "1.22.4"
+  }
 }

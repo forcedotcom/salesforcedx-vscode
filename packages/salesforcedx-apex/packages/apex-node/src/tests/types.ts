@@ -204,11 +204,7 @@ export type ApexTestResultRecord = {
   /**
    * The start time of the test method.
    */
-  TestTimestamp: number;
-  /**
-   * The full name of the associated ApexClass method
-   */
-  FullName?: string;
+  TestTimestamp: string;
 };
 
 export type ApexTestResult = {
@@ -283,14 +279,116 @@ export type ApexTestQueueItem = {
   records: ApexTestQueueItemRecord[];
 };
 
+export type ApexTestResultData = {
+  id: string;
+  /**
+   * Points to the ApexTestQueueItem which is the class that this test method is part of
+   */
+  queueItemId: string;
+  /**
+   * The Apex stack trace if the test failed; otherwise, null.
+   */
+  stackTrace: string | null;
+  /**
+   * The exception error message if a test failure occurs; otherwise, null.
+   */
+  message: string | null;
+  /**
+   * Points to the AsyncApexJob that represents the entire test run
+   */
+  asyncApexJobId: string;
+  /**
+   * The name of the test method.
+   */
+  methodName: string;
+  /**
+   * The result of the test
+   */
+  outcome: ApexTestResultOutcome;
+  /**
+   * Points to the ApexLog for this test method execution if debug logging is enabled; otherwise, null.
+   */
+  apexLogId: string | null;
+  apexClass: {
+    id: string;
+    /**
+     * Name of the class (up to 255 characters)
+     */
+    name: string;
+    /**
+     * The namespace prefix associated with this ApexClass
+     */
+    namespacePrefix: string;
+    /**
+     * The full name of the associated ApexClass
+     */
+    fullName: string;
+  };
+  /**
+   * The time it took the test method to run, in seconds.
+   */
+  runTime: number;
+  /**
+   * The start time of the test method.
+   */
+  testTimestamp: string;
+  /**
+   * The full name of the associated ApexClass method
+   */
+  fullName: string;
+};
+
+export type CodeCoverageResult = {
+  apexId: string;
+  name: string;
+  type: 'ApexClass' | 'ApexTrigger';
+  numLinesCovered: number;
+  numLinesUncovered: number;
+  percentage: string;
+  coveredLines: number[];
+  uncoveredLines: number[];
+};
+
 export type AsyncTestResult = {
   summary: {
+    failRate: string;
+    numTestsRan: number;
+    orgId: string;
+    orgWideCoverage?: string;
     outcome: string;
+    passRate: string;
+    skipRate: string;
     testStartTime: string;
     testExecutionTime: number;
     testRunId: string;
     userId: string;
+    username: string;
   };
-  tests: ApexTestResultRecord[];
-  codecoverage?: [];
+  tests: ApexTestResultData[];
+  codecoverage?: CodeCoverageResult[];
+};
+
+export type ApexCodeCoverageAggregateRecord = {
+  ApexClassOrTrigger: {
+    Id: string;
+    Name: string;
+  };
+  NumLinesCovered: number;
+  NumLinesUncovered: number;
+  Coverage: {
+    coveredLines: number[];
+    uncoveredLines: number[];
+  };
+};
+
+export type ApexCodeCoverageAggregate = {
+  done: boolean;
+  totalSize: number;
+  records: ApexCodeCoverageAggregateRecord[];
+};
+
+export type ApexOrgWideCoverage = {
+  done: boolean;
+  totalSize: number;
+  records: { PercentCovered: string }[];
 };
