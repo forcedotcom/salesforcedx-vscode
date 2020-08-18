@@ -65,5 +65,5 @@
   "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template",
   "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience.",
   "experimental_apex_library_description": "Use Apex Library for Apex CLI commands",
-  "experimental_support_functions": "Enable building and managing Salesforce functions from VSCode"
+  "experimental_support_functions": "Enable building and managing Salesforce functions from VS Code"
 }
