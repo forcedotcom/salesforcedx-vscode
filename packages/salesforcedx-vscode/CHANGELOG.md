@@ -10,16 +10,6 @@
 
 - Fix SObject refresh to ignore entities ending with Share, History, Feed and Event ([PR #2412](https://github.com/forcedotcom/salesforcedx-vscode/pull/2412))
 
-## Added
-
-#### docs
-
-- Add reference for SLDS Validator ([Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode)) ([PR #2417](https://github.com/forcedotcom/salesforcedx-vscode/pull/2417))
-
-#### salesforcedx-vscode-core
-
-- Consume new deploy result in VSCode [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2383](https://github.com/forcedotcom/salesforcedx-vscode/pull/2383))
-
 # 49.5.0 - August 13, 2020
 
 ## Fixed
