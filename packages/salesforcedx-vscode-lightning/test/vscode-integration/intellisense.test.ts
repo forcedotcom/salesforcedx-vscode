@@ -27,6 +27,7 @@ describe('Aura Intellisense Test Suite', function() {
       '.sfdx', 'indexes', 'lwc', 'custom-components.json');
     let attempts = 0;
     do {
+      attempts++;
       if (fs.existsSync(langSrvIndexes)) {
         console.log('custom indexes found!!');
         break;
