@@ -187,7 +187,9 @@ async function testCompletion(
   )) as vscode.CompletionList;
 
   expectedCompletionList.items.forEach(function(expectedItem) {
+    console.log('expected label ===> ', expectedItem.label);
     const actualItem = actualCompletionList.items.find(function(obj) {
+      console.log('actual label ===> ', obj.label);
       if (obj.label) {
         return obj.label === expectedItem.label;
       }
