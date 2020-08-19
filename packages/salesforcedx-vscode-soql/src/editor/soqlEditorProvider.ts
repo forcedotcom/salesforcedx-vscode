@@ -9,21 +9,26 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
+  HTML_FILE,
   SOQL_BUILDER_UI_PATH,
+  VIEW_TYPE,
   WEBVIEW_RESOURCE_ROOTS_PATH
 } from '../constants';
+import { EditorUtils } from './editorUtils';
+import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext) {
     const provider = new SOQLEditorProvider(context);
     const providerRegistration = vscode.window.registerCustomEditorProvider(
-      SOQLEditorProvider.viewType,
+      VIEW_TYPE,
       provider
     );
     return providerRegistration;
   }
 
-  private static readonly viewType = 'soqlCustom.soql';
+  private instances: SOQLEditorInstance[] = [];
+
   constructor(private readonly context: vscode.ExtensionContext) {}
 
   public async resolveCustomTextEditor(
@@ -39,50 +44,32 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
         )
       ]
     };
-
     webviewPanel.webview.html = this.getWebViewContent(webviewPanel.webview);
-  }
+    const instance = new SOQLEditorInstance(document, webviewPanel, _token);
+    this.instances.push(instance);
+    instance.onDispose(this.disposeInstance.bind(this));
 
+    Array.prototype.push.apply(
+      this.context.subscriptions,
+      instance.subscriptions
+    );
+  }
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToLwcDist = path.join(
       this.context.extensionPath,
       SOQL_BUILDER_UI_PATH
     );
-    const pathToHtml = path.join(pathToLwcDist, 'index.html');
+    const pathToHtml = path.join(pathToLwcDist, HTML_FILE);
     let html = fs.readFileSync(pathToHtml).toString();
-    /**
-     * This section replaces the relative file paths that are produced by
-     * webpack in the build in the dist folder with the protocol that
-     * vscode uses internally.
-     *
-     * <script src="./app.js"> becomes <script src="vscode-webview-resource:app.js">
-     *
-     * Since we don't know how many bundles webpack will produce, we regex match and
-     * replace them in a while loop.
-     */
-    const rgx = /script\ssrc=\"\.\/(?<app>[^\"]*app.js)\"/g;
-    let matches;
-    let newScriptSrc;
-    // tslint:disable-next-line:no-conditional-assignment
-    while ((matches = rgx.exec(html)) !== null) {
-      newScriptSrc = webview.asWebviewUri(
-        vscode.Uri.file(path.join(pathToLwcDist, matches[1]))
-      );
-      html = html.replace(`./${matches[1]}`, newScriptSrc.toString());
-    }
-
-    /**
-     * The content security policy for running in vscode.
-     */
-    const cspMetaTag = `<meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'none';
-      img-src ${webview.cspSource} https:;
-      script-src ${webview.cspSource};
-      style-src 'unsafe-inline' ${webview.cspSource};"
-    />`;
-
-    html = html.replace('<!-- CSP TAG -->', cspMetaTag);
+    html = EditorUtils.transformHtml(html, pathToLwcDist, webview);
     return html;
+  }
+  private disposeInstance(instance: SOQLEditorInstance) {
+    const found = this.instances.findIndex(storedInstance => {
+      return storedInstance === instance;
+    });
+    if (found > -1) {
+      this.instances.splice(found, 1);
+    }
   }
 }
