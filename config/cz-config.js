@@ -1,8 +1,7 @@
-// Note we are following https://chris.beams.io/posts/git-commit/ as much as possible.
 module.exports = {
   types: [
-    { value: 'feat', name: 'feat:     A new feature' },
-    { value: 'fix', name: 'fix:      A bug fix' },
+    { value: 'feat', name: 'Feature:     A new feature' },
+    { value: 'fix', name: 'fix:      A Bug Fix' },
     { value: 'docs', name: 'docs:     Documentation only changes' },
     {
       value: 'style',
@@ -25,7 +24,8 @@ module.exports = {
         'chore:    Changes to the build process or auxiliary tools\n            and libraries such as documentation generation'
     },
     { value: 'revert', name: 'revert:   Revert to a commit' },
-    { value: 'WIP', name: 'WIP:      Work in progress' }
+    { value: 'WIP', name: 'WIP:      Work in progress' },
+    { value: 'JustATest', name: 'Blahblahblah' }
   ],
 
   scopes: [
