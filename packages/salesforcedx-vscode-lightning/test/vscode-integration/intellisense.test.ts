@@ -6,6 +6,7 @@
  */
 
 import { assert, expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -21,7 +22,19 @@ describe('Aura Intellisense Test Suite', function() {
       'aura'
     );
 
-    await new Promise(r => setTimeout(r, 1000));
+    const langSrvIndexes = path.join(
+      vscode.workspace.workspaceFolders![0].uri.fsPath,
+      '.sfdx', 'indexes', 'lwc', 'custom-components.json');
+    let attempts = 0;
+    do {
+      if (fs.existsSync(langSrvIndexes)) {
+        console.log('custom indexes found!!');
+        break;
+      }
+      console.log('custom indexes are not present yet');
+      await new Promise(r => setTimeout(r, 1000));
+    } while (attempts < 5)
+    
   });
 
   afterEach(async function() {
