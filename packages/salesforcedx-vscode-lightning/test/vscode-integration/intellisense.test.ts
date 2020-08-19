@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 describe('Aura Intellisense Test Suite', function() {
   let auraDir: string;
 
-  before(async function() {
+  beforeEach(async ()=> {
     auraDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -32,12 +32,12 @@ describe('Aura Intellisense Test Suite', function() {
         break;
       }
       console.log('custom indexes are not present yet');
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 200));
     } while (attempts < 5)
     
   });
 
-  afterEach(async function() {
+  afterEach(async () => {
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
@@ -45,7 +45,7 @@ describe('Aura Intellisense Test Suite', function() {
    * Test that aura markup intellisense contains aura, lightning, custom aura, custom lwc tags
    */
 
-  it('Aura markup intellisense', async function() {
+  it('Aura markup intellisense', async () => {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponent.cmp')
     );
@@ -95,7 +95,7 @@ describe('Aura Intellisense Test Suite', function() {
    * Test aura javascript completions
    */
 
-  it('Aura global javascript intellisense', async function() {
+  it('Aura global javascript intellisense', async () => {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
     );
@@ -125,7 +125,7 @@ describe('Aura Intellisense Test Suite', function() {
     }
   });
 
-  it('Aura property javascript intellisense', async function() {
+  it('Aura property javascript intellisense', async () => {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
     );
@@ -153,7 +153,7 @@ describe('Aura Intellisense Test Suite', function() {
     }
   });
 
-  it('Aura helper javascript intellisense', async function() {
+  it('Aura helper javascript intellisense', async () => {
     const docUri = vscode.Uri.file(
       path.join(auraDir, 'DemoComponent', 'DemoComponentController.js')
     );
