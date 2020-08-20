@@ -25,9 +25,8 @@ import {
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
-import { APEX_CLASS_DIRECTORY, APEX_CLASS_TYPE } from './metadataTypeConstants';
-
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+import { APEX_CLASS_DIRECTORY, APEX_CLASS_TYPE } from './metadataTypeConstants';
 
 export class LibraryForceApexClassCreateExecutor extends LibraryBaseTemplateCommand<
   DirFileNameSelection
