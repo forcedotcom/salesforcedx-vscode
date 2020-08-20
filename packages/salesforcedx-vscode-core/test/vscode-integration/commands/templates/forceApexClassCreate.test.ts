@@ -90,21 +90,22 @@ describe('Force Apex Class Create', () => {
 
     it('Should create Apex Class', async () => {
       // arrange
-      showInputBoxStub.returns('TestApexClass');
-      quickPickStub.returns('force-app/main/default/classes');
+      const outputPath = 'force-app/main/default/classes';
       const apexClassPath = path.join(
         getRootWorkspacePath(),
-        'force-app/main/default/classes',
+        outputPath,
         'TestApexClass.cls'
       );
       const apexClassMetaPath = path.join(
         getRootWorkspacePath(),
-        'force-app/main/default/classes',
+        outputPath,
         'TestApexClass.cls-meta.xml'
       );
       shell.rm('-f', apexClassPath);
       shell.rm('-f', apexClassMetaPath);
       assert.noFile([apexClassPath, apexClassMetaPath]);
+      showInputBoxStub.returns('TestApexClass');
+      quickPickStub.returns(outputPath);
 
       // act
       await forceApexClassCreate();
