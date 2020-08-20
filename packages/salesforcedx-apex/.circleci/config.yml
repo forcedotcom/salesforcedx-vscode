@@ -159,6 +159,13 @@ jobs:
           at: ~/cli    
       - npm-release-management/publish:
           use_tarfile: true
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#9bcd9b'
+          message: 'apex-node v${RELEASE_VERSION} has been published to npm'
+      - slack/status:
+          channel: 'pdt_releases'
+          fail_only: true
   publish-plugin-apex:
     <<: *defaults
     working_directory: ~/cli/packages/plugin-apex
@@ -172,7 +179,7 @@ jobs:
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
-          message: 'Apex Plugin v${RELEASE_VERSION} has been published to npm'
+          message: 'plugin-apex v${RELEASE_VERSION} has been published to npm'
       - slack/status:
           channel: 'pdt_releases'
           fail_only: true
