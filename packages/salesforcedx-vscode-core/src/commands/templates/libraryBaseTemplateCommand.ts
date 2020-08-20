@@ -19,6 +19,7 @@ import {
 
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
+import { telemetryService } from '../../telemetry';
 import {
   getRootWorkspacePath,
   hasRootWorkspace,
@@ -43,7 +44,6 @@ interface ExecutionResult {
 
 function wrapExecute(
   commandName: string,
-  telemetryName: string,
   fn: (...args: any[]) => Promise<ExecutionResult>
 ) {
   return async (...args: any[]) => {
@@ -75,7 +75,6 @@ export abstract class LibraryBaseTemplateCommand<T>
   implements CommandletExecutor<T> {
   private _metadataType: MetadataInfo | undefined;
   protected showChannelOutput = true;
-  protected startTime: [number, number] | undefined;
 
   public abstract get executionName(): string;
   public abstract get telemetryName(): string;
@@ -83,7 +82,8 @@ export abstract class LibraryBaseTemplateCommand<T>
   public abstract constructTemplateOptions(data: T): TemplateOptions;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    await wrapExecute(this.executionName, this.telemetryName, async () => {
+    const startTime = process.hrtime();
+    await wrapExecute(this.executionName, async () => {
       try {
         const templateOptions = this.constructTemplateOptions(response.data);
         const result = await this.createTemplate(
@@ -91,6 +91,10 @@ export abstract class LibraryBaseTemplateCommand<T>
           templateOptions
         );
         const fileName = this.getOutputFileName(response.data);
+        telemetryService.sendCommandEvent(this.telemetryName, startTime, {
+          dirType: this.identifyDirType(result.outputDir),
+          commandExecutor: 'library'
+        });
         await this.openCreatedTemplateInVSCode(result.outputDir, fileName);
         return {
           output: result.rawOutput
