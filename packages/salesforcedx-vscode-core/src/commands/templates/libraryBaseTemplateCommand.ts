@@ -27,21 +27,21 @@ import {
   MetadataInfo
 } from '../../util';
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  DirFileNameSelection,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 
 import * as path from 'path';
-import { commands, ProgressLocation, Uri, window, workspace } from 'vscode';
+import { ProgressLocation, window, workspace } from 'vscode';
 
 interface ExecutionResult {
   output?: string;
   error?: Error;
 }
 
+/**
+ * Warpping function exeuction with VS Code interface, such as Output channel and progress
+ * @param commandName command name
+ * @param fn function to execute
+ */
 function wrapExecute(
   commandName: string,
   fn: (...args: any[]) => Promise<ExecutionResult>
@@ -71,14 +71,30 @@ function wrapExecute(
   };
 }
 
+/**
+ * Base class for all template commands
+ */
 export abstract class LibraryBaseTemplateCommand<T>
   implements CommandletExecutor<T> {
   private _metadataType: MetadataInfo | undefined;
   protected showChannelOutput = true;
 
+  /**
+   * Command name
+   */
   public abstract get executionName(): string;
+  /**
+   * Command telemetry name
+   */
   public abstract get telemetryName(): string;
+  /**
+   * Template type
+   */
   public abstract get templateType(): TemplateType;
+  /**
+   * Construct template creation options from user input
+   * @param data data from Continue response
+   */
   public abstract constructTemplateOptions(data: T): TemplateOptions;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
@@ -134,6 +150,12 @@ export abstract class LibraryBaseTemplateCommand<T>
    * or getSourcePathStrategy/getFileExtension/getDefaultDirectory.
    */
   public metadataTypeName: string = '';
+  /**
+   * Locate output file name from user input.
+   * We use this function to determine the file name to open,
+   * after template creation completes.
+   * @param data data from ContinueResponse
+   */
   public abstract getOutputFileName(data: T): string;
 
   private get metadataType(): MetadataInfo | undefined {
