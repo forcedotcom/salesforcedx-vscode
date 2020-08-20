@@ -31,3 +31,4 @@ export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const USE_APEX_LIBRARY = 'experimental.useApexLibrary';
+export const FUNCTIONS_ENABLED = 'experimental.supportFunctions';

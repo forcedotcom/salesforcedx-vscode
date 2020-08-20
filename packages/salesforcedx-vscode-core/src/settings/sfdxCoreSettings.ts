@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
+  FUNCTIONS_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
@@ -77,6 +78,10 @@ export class SfdxCoreSettings {
 
   public getApexLibrary(): boolean {
     return this.getConfigValue(USE_APEX_LIBRARY, true);
+  }
+
+  public getFunctionsEnabled(): boolean {
+    return this.getConfigValue(FUNCTIONS_ENABLED, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

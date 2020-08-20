@@ -68,6 +68,13 @@ const DEFINITIONS: { [key: string]: MetadataInfo } = {
     directory: 'waveTemplates',
     pathStrategy: PathStrategyFactory.createWaveTemplateBundleStrategy(),
     extensions: ['']
+  },
+  function: {
+    type: 'function',
+    suffix: '',
+    directory: 'functions',
+    pathStrategy: PathStrategyFactory.createFunctionTemplateStrategy(),
+    extensions: ['.js', '.ts']
   }
 };
 
