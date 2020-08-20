@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
+
 import {
   Command,
   SfdxCommandBuilder
@@ -17,6 +19,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   PathStrategyFactory,
@@ -26,10 +29,39 @@ import {
   SourcePathStrategy
 } from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import {
   ANALYTICS_TEMPLATE_DIRECTORY,
   ANALYTICS_TEMPLATE_TYPE
 } from './metadataTypeConstants';
+
+export class LibraryForceAnalyticsTemplateCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize('force_analytics_template_create_text');
+  public telemetryName = 'force_analytics_template_create';
+  public metadataTypeName = ANALYTICS_TEMPLATE_TYPE;
+  public templateType = TemplateType.AnalyticsTemplate;
+  public getFileExtension(): string {
+    return '.json';
+  }
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const templateOptions: AnalyticsTemplateOptions = {
+      outputdir: data.outputdir,
+      templatename: data.fileName
+    };
+    return templateOptions;
+  }
+  public getDefaultDirectory() {
+    return ANALYTICS_TEMPLATE_DIRECTORY;
+  }
+  public getSourcePathStrategy(): SourcePathStrategy {
+    return PathStrategyFactory.createWaveTemplateBundleStrategy();
+  }
+}
 
 export class ForceAnalyticsTemplateCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -85,10 +117,13 @@ const parameterGatherer = new CompositeParametersGatherer(
 );
 
 export async function forceAnalyticsTemplateCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceAnalyticsTemplateCreateExecutor()
+    : new ForceAnalyticsTemplateCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     parameterGatherer,
-    new ForceAnalyticsTemplateCreateExecutor()
+    createTemplateExecutor
   );
   await commandlet.run();
 }
