@@ -52,9 +52,18 @@ commands:
       - restore_cache: *restore_cache
       - run: *gh-config
       - run: *install
+      - run:
+          name: Bump package version
+          command: |
+            yarn bump-versions << pipeline.parameters.publish-type >>
+            git add .
+            export RELEASE_TAG="$(node -pe "require('./lerna.json').version")"
+            echo "export RELEASE_VERSION=$RELEASE_TAG" >> $BASH_ENV
+            source $BASH_ENV
+            git commit -m "Updated version $RELEASE_TAG"
       - run: *build
       - run:
-          working_directory: ./packages/plugin-apex
+          name: Generate plugin manifest
           command: yarn manifest:generate
       - run: yarn package
   release-management-commands:
@@ -128,21 +137,12 @@ jobs:
     <<: *defaults
     steps:
       - setup-publish
-      - run:
-          name: Bump package version
-          command: |
-            yarn bump-versions << pipeline.parameters.publish-type >>
-            git add .
-            export RELEASE_TAG="$(node -pe "require('./lerna.json').version")"
-            echo "export RELEASE_VERSION=$RELEASE_TAG" >> $BASH_ENV
-            source $BASH_ENV
-            git commit -m "Updated version $RELEASE_TAG"
       - persist_to_workspace:
           root: .
           paths:
               - .git
               - packages/apex-node/package.json
-              - packages/apex-node/salesforce-apex-node-$RELEASE_TAG.tgz
+              - packages/apex-node/*.tgz
               - packages/plugin-apex/package.json
               - packages/plugin-apex/bin
               - packages/plugin-apex/lib
