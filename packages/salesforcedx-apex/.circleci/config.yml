@@ -24,9 +24,9 @@ _refs:
   gh-config: &gh-config
     name: Configuring GitHub
     command: |
-      git config credential.helper 'cache --timeout=120'
-      git config user.email "$GH_EMAIL"
-      git config user.name "Release Bot"
+      git config --global credential.helper 'cache --timeout=120'
+      git config --global user.email "$GH_EMAIL"
+      git config --global user.name "Release Bot"
   install: &install
     name: Install dependencies
     command: |
@@ -172,9 +172,9 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/cli
-      - release-management-commands
       - add_ssh_keys: *ssh-config
       - run: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+      - release-management-commands
       - run: git push origin main
       - slack/notify:
           channel: 'pdt_releases'
