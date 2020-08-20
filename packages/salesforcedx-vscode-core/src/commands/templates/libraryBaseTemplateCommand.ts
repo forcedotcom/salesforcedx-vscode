@@ -12,6 +12,7 @@ import {
 } from '@salesforce/templates';
 import {
   CommandletExecutor,
+  PathStrategyFactory,
   SelectOutputDir,
   SourcePathStrategy
 } from '../util';
@@ -33,7 +34,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 
 import * as path from 'path';
-import { ProgressLocation, window, workspace } from 'vscode';
+import { commands, ProgressLocation, Uri, window, workspace } from 'vscode';
 
 interface ExecutionResult {
   output?: string;
@@ -64,6 +65,7 @@ function wrapExecute(
       });
     }
     if (result.error) {
+      channelService.appendLine(result.error.message);
       notificationService.showFailedExecution(commandName);
     }
   };
@@ -77,23 +79,8 @@ export abstract class LibraryBaseTemplateCommand<T>
 
   public abstract get executionName(): string;
   public abstract get telemetryName(): string;
-  public abstract get metadataTypeName(): string;
   public abstract get templateType(): TemplateType;
   public abstract constructTemplateOptions(data: T): TemplateOptions;
-  public abstract getOutputFileName(data: T): string;
-
-  private get metadataType(): MetadataInfo {
-    if (this._metadataType) {
-      return this._metadataType;
-    }
-    const type = this.metadataTypeName;
-    const info = MetadataDictionary.getInfo(type);
-    if (!info) {
-      throw new Error(`Unrecognized metadata type ${type}`);
-    }
-    this._metadataType = info;
-    return info;
-  }
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
     await wrapExecute(this.executionName, this.telemetryName, async () => {
@@ -104,7 +91,7 @@ export abstract class LibraryBaseTemplateCommand<T>
           templateOptions
         );
         const fileName = this.getOutputFileName(response.data);
-        await this.openCreatedDocument(result.outputDir, fileName);
+        await this.openCreatedTemplateInVSCode(result.outputDir, fileName);
         return {
           output: result.rawOutput
         };
@@ -125,13 +112,34 @@ export abstract class LibraryBaseTemplateCommand<T>
     return await templateService.create(templateType, templateOptions);
   }
 
-  private async openCreatedDocument(outputdir: string, fileName: string) {
+  protected async openCreatedTemplateInVSCode(
+    outputdir: string,
+    fileName: string
+  ) {
     if (hasRootWorkspace()) {
       const document = await workspace.openTextDocument(
         this.getPathToSource(outputdir, fileName)
       );
       window.showTextDocument(document);
     }
+  }
+
+  /**
+   * Specify one of the metadata types from one of metadataTypeConstants.
+   * if this is not specified, you should override openCreatedTemplateInVSCode
+   * or getSourcePathStrategy/getFileExtension/getDefaultDirectory.
+   */
+  public metadataTypeName: string = '';
+  public abstract getOutputFileName(data: T): string;
+
+  private get metadataType(): MetadataInfo | undefined {
+    if (this._metadataType) {
+      return this._metadataType;
+    }
+    const type = this.metadataTypeName;
+    const info = MetadataDictionary.getInfo(type);
+    this._metadataType = info;
+    return info;
   }
 
   private identifyDirType(outputDirectory: string): string {
@@ -154,14 +162,17 @@ export abstract class LibraryBaseTemplateCommand<T>
   }
 
   public getSourcePathStrategy(): SourcePathStrategy {
+    if (!this.metadataType) return PathStrategyFactory.createDefaultStrategy();
     return this.metadataType.pathStrategy;
   }
 
   public getFileExtension(): string {
+    if (!this.metadataType) return '';
     return `.${this.metadataType.suffix}`;
   }
 
   public getDefaultDirectory(): string {
+    if (!this.metadataType) return '';
     return this.metadataType.directory;
   }
 }

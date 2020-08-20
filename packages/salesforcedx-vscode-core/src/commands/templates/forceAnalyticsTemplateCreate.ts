@@ -36,7 +36,7 @@ import {
 } from './metadataTypeConstants';
 
 export class LibraryForceAnalyticsTemplateCreateExecutor extends LibraryBaseTemplateCommand<
-  DirFileNameSelection
+  TemplateAndDir
 > {
   public executionName = nls.localize('force_analytics_template_create_text');
   public telemetryName = 'force_analytics_template_create';
@@ -45,10 +45,10 @@ export class LibraryForceAnalyticsTemplateCreateExecutor extends LibraryBaseTemp
   public getFileExtension(): string {
     return '.json';
   }
-  public getOutputFileName(data: DirFileNameSelection) {
+  public getOutputFileName(data: TemplateAndDir) {
     return data.fileName;
   }
-  public constructTemplateOptions(data: DirFileNameSelection) {
+  public constructTemplateOptions(data: TemplateAndDir) {
     const templateOptions: AnalyticsTemplateOptions = {
       outputdir: data.outputdir,
       templatename: data.fileName

@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ProjectOptions, TemplateType } from '@salesforce/templates';
+
 import {
   CliCommandExecutor,
   Command,
@@ -23,7 +25,9 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { taskViewService } from '../statuses';
+import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
@@ -47,6 +51,46 @@ export class ProjectTemplateItem implements vscode.QuickPickItem {
   constructor(name: string, description: string) {
     this.label = nls.localize(name);
     this.description = nls.localize(description);
+  }
+}
+
+export class LibraryForceProjectCreateExecutor extends LibraryBaseTemplateCommand<
+  ProjectNameAndPathAndTemplate
+> {
+  private readonly options: forceProjectCreateOptions;
+
+  public constructor(options = { isProjectWithManifest: false }) {
+    super();
+    this.options = options;
+  }
+
+  public executionName = nls.localize('force_project_create_text');
+  public telemetryName = 'force_project_create';
+  public templateType = TemplateType.Project;
+  public getOutputFileName(data: ProjectNameAndPathAndTemplate) {
+    return data.projectName;
+  }
+  protected async openCreatedTemplateInVSCode(
+    outputdir: string,
+    fileName: string
+  ) {
+    await vscode.commands.executeCommand(
+      'vscode.openFolder',
+      vscode.Uri.file(path.join(outputdir, fileName))
+    );
+  }
+
+  public constructTemplateOptions(data: ProjectNameAndPathAndTemplate) {
+    const templateOptions: ProjectOptions = {
+      projectname: data.projectName,
+      template: data.projectTemplate as ProjectOptions['template'],
+      outputdir: data.projectUri,
+      ns: '',
+      loginurl: 'https://login.salesforce.com',
+      defaultpackagedir: 'force-app',
+      manifest: this.options.isProjectWithManifest
+    };
+    return templateOptions;
   }
 }
 
@@ -246,22 +290,28 @@ const parameterGatherer = new CompositeParametersGatherer(
 );
 const pathExistsChecker = new PathExistsChecker();
 
-const sfdxProjectCreateCommandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  new ForceProjectCreateExecutor(),
-  pathExistsChecker
-);
 export async function forceSfdxProjectCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceProjectCreateExecutor()
+    : new ForceProjectCreateExecutor();
+  const sfdxProjectCreateCommandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    createTemplateExecutor,
+    pathExistsChecker
+  );
   await sfdxProjectCreateCommandlet.run();
 }
 
-const projectWithManifestCreateCommandlet = new SfdxCommandlet(
-  workspaceChecker,
-  parameterGatherer,
-  new ForceProjectCreateExecutor({ isProjectWithManifest: true }),
-  pathExistsChecker
-);
 export async function forceProjectWithManifestCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceProjectCreateExecutor({ isProjectWithManifest: true })
+    : new ForceProjectCreateExecutor({ isProjectWithManifest: true });
+  const projectWithManifestCreateCommandlet = new SfdxCommandlet(
+    workspaceChecker,
+    parameterGatherer,
+    createTemplateExecutor,
+    pathExistsChecker
+  );
   await projectWithManifestCreateCommandlet.run();
 }
