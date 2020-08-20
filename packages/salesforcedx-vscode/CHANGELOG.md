@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Remove files in an existing project when running the `SFDX: Create and Set Up Project for ISV Debugging` command ([PR #2407](https://github.com/forcedotcom/salesforcedx-vscode/pull/2407))
+- Prompts the user to remove stale files in an existing project when running the `SFDX: Create and Set Up Project for ISV Debugging` command ([PR #2407](https://github.com/forcedotcom/salesforcedx-vscode/pull/2407))
 
 #### salesforcedx-sobjects-faux-generator
 
