@@ -29,6 +29,7 @@
     "@salesforce/core": "2.5.1",
     "@salesforce/salesforcedx-utils-vscode": "49.6.0",
     "@salesforce/source-deploy-retrieve": "1.0.18",
+    "@salesforce/templates": "49.4.3",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -39,7 +40,6 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "49.6.0",
-    "@salesforce/templates": "49.4.3",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -50,6 +50,7 @@
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
     "@types/vscode": "1.40.0",
+    "@types/yeoman-assert": "^3.1.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
@@ -58,7 +59,8 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "sinon": "^7.3.1",
-    "typescript": "3.7.5"
+    "typescript": "3.7.5",
+    "yeoman-assert": "^3.1.1"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
