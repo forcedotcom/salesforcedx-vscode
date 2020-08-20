@@ -159,20 +159,15 @@ jobs:
           at: ~/cli    
       - npm-release-management/publish:
           use_tarfile: true
-      - run: git push origin main
-      - run:
-          name: Tag the release and push to repo
-          command: |
-            export RELEASE_TAG="$(node -pe "require('./packages/apex-node/package.json').version")"
-            git tag v${RELEASE_VERSION}
-            git push --tags
   publish-plugin-apex:
     <<: *defaults
     working_directory: ~/cli/packages/plugin-apex
     steps:
       - attach_workspace:
           at: ~/cli
-      - release-management-commands     
+      - release-management-commands
+      - add_ssh_keys: *ssh-config
+      - run: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
       - run: git push origin main
       - slack/notify:
           channel: 'pdt_releases'
