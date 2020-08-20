@@ -69,8 +69,7 @@
   },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "yarn sfdx-husky-commit-msg",
-      "pre-commit": "yarn sfdx-husky-pre-commit",
+      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
       "pre-push": "npm run lint && npm run reformat"
     }
   },
