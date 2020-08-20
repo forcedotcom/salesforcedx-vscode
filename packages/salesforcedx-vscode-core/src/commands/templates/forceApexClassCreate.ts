@@ -14,6 +14,7 @@ import {
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -70,7 +71,9 @@ const outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
 
 export async function forceApexClassCreate() {
-  const libraryExecutor = new LibraryForceApexClassCreateExecutor();
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceApexClassCreateExecutor()
+    : new ForceApexClassCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -78,7 +81,7 @@ export async function forceApexClassCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    libraryExecutor, // new ForceApexClassCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
