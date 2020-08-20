@@ -8,46 +8,32 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  Extension,
-  FileSystemWatcher,
-  Position,
-  extensions,
-  window,
-  workspace,
-  WorkspaceEdit
-} from 'vscode';
+import { Position, window, workspace, WorkspaceEdit } from 'vscode';
 import URI from 'vscode-uri';
 
 const CONFIG_FILENAME = 'jsconfig.json';
 const TEST_COMPONENT_NAME = 'testComponent';
 const CREATE_COMPONENT_NAME = 'createComponent';
 
-describe('jsconfig Test Suite', function() {
-  let lwcDir: string;
+describe('jsconfig Test Suite', () => {
+  const lwcDir = path.join(
+    workspace.workspaceFolders![0].uri.fsPath,
+    'force-app',
+    'main',
+    'default',
+    'lwc'
+  );
 
-  let configPath: string;
+  const configPath = path.join(lwcDir, CONFIG_FILENAME);
   let config: object;
 
-  before(function() {
-    lwcDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'lwc'
-    );
-
-    configPath = path.join(lwcDir, CONFIG_FILENAME);
-  });
-
-  beforeEach(async function() {
+  beforeEach(async () => {
     await createComponent(TEST_COMPONENT_NAME, lwcDir);
     await waitForConfigUpdate(configPath);
     config = await parseConfig(configPath);
   });
 
-  afterEach(async function() {
+  afterEach(async () => {
     if (fs.existsSync(path.join(lwcDir, TEST_COMPONENT_NAME))) {
       await workspace.fs.delete(
         URI.file(path.join(lwcDir, TEST_COMPONENT_NAME)),
@@ -65,36 +51,18 @@ describe('jsconfig Test Suite', function() {
     }
   });
 
-  it('Should add the newly created component to the jsconfig compilerOptions paths map', async function() {
+  it('Should keep a generic c/* field in jsconfig after creating a new component', async () => {
     await createComponent(CREATE_COMPONENT_NAME, lwcDir);
 
     const didUpdate = await waitForConfigUpdate(configPath);
-    expect(didUpdate, 'config should be updated').to.be.true;
+    expect(didUpdate, 'config should not be updated').to.be.false;
 
     const newConfig = await parseConfig(configPath);
-    expect(config).not.to.eql(newConfig);
-    expect(newConfig.compilerOptions.paths).have.own.property(
-      `c/${CREATE_COMPONENT_NAME}`
-    );
+    expect(config).to.eql(newConfig);
+    expect(newConfig.paths).have.own.property(`c/*`);
   });
 
-  it('Should remove the deleted component from the jsconfig compilerOptions paths map', async function() {
-    await workspace.fs.delete(
-      URI.file(path.join(lwcDir, TEST_COMPONENT_NAME)),
-      { recursive: true }
-    );
-
-    const didUpdate = await waitForConfigUpdate(configPath);
-    expect(didUpdate, 'config should be updated').to.be.true;
-
-    const newConfig = await parseConfig(configPath);
-    expect(config).not.to.eql(newConfig);
-    expect(newConfig.compilerOptions.paths).not.to.have.own.property(
-      `c/${TEST_COMPONENT_NAME}`
-    );
-  });
-
-  it('Should not update jsconfig.json when a component is saved', async function() {
+  it('Should not update jsconfig.json when a component is saved', async () => {
     const document = await workspace.openTextDocument(
       path.join(lwcDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -108,7 +76,7 @@ describe('jsconfig Test Suite', function() {
     expect(config).to.eql(newConfig);
   });
 
-  it('Should not update jsconfig.json on keystrokes in a component file', async function() {
+  it('Should not update jsconfig.json on keystrokes in a component file', async () => {
     const document = await workspace.openTextDocument(
       path.join(lwcDir, TEST_COMPONENT_NAME, `${TEST_COMPONENT_NAME}.js`)
     );
@@ -162,7 +130,7 @@ function waitForConfigUpdate(configPath: string): Promise<boolean> {
     timer = setTimeout(() => {
       watcher.dispose();
       resolve(false);
-    }, 1000);
+    }, 500);
   });
 }
 

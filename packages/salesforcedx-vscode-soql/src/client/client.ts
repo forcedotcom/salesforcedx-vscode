@@ -17,7 +17,7 @@ import {
 
 let client: LanguageClient;
 
-export function startLanguageClient(context: ExtensionContext) {
+export function startLanguageClient(context: ExtensionContext): void {
   // path to language server module
   const serverModule = context.asAbsolutePath(
     path.join(
