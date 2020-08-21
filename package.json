@@ -33,6 +33,7 @@
     "clean": "lerna run clean",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
+    "lint-fix": "yarn sfdx-lint --fix",
     "publish": "node scripts/publish-circleci.js",
     "build-change-log": "node scripts/change-log-generator.js",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test --if-present",
@@ -69,7 +70,7 @@
   },
   "husky": {
     "hooks": {
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+      "commit-msg": "yarn sfdx-husky-commit-msg",
       "pre-push": "npm run lint && npm run reformat"
     }
   },
