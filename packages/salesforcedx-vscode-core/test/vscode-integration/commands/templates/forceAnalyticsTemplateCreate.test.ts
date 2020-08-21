@@ -153,6 +153,9 @@ describe('Force Analytics Template Create', () => {
         templateDashboardPath,
         '"name": "TestWaveDashboard_tp"'
       );
+
+      // clean up
+      shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath));
     });
   });
 });
