@@ -8,10 +8,16 @@
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
+import * as shell from 'shelljs';
 import * as sinon from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
+import * as assert from 'yeoman-assert';
+import { channelService } from '../../../src/channels';
 import {
   ForceProjectCreateExecutor,
+  forceProjectWithManifestCreate,
+  forceSfdxProjectCreate,
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
   projectTemplateEnum,
@@ -21,7 +27,10 @@ import {
   SelectProjectTemplate
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
+import { notificationService } from '../../../src/notifications';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { getRootWorkspacePath } from '../../../src/util';
+import Sinon = require('sinon');
 
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
@@ -290,6 +299,228 @@ describe('Force Project Create', () => {
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
       );
+    });
+  });
+
+  describe('Library Create', () => {
+    let settings: SinonStub;
+    let showInputBoxStub: SinonStub;
+    let quickPickStub: SinonStub;
+    let openDialogStub: SinonStub;
+    let appendLineStub: SinonStub;
+    let showSuccessfulExecutionStub: SinonStub;
+    let showFailedExecutionStub: SinonStub;
+    let executeCommandStub: SinonStub;
+
+    let showWarningStub: SinonStub;
+
+    beforeEach(() => {
+      // mock experimental setting
+      settings = stub(SfdxCoreSettings.prototype, 'getTemplatesLibrary');
+      settings.returns(true);
+      showInputBoxStub = stub(vscode.window, 'showInputBox');
+      quickPickStub = stub(vscode.window, 'showQuickPick');
+      openDialogStub = stub(vscode.window, 'showOpenDialog');
+      appendLineStub = stub(channelService, 'appendLine');
+      showSuccessfulExecutionStub = stub(
+        notificationService,
+        'showSuccessfulExecution'
+      );
+      showSuccessfulExecutionStub.returns(Promise.resolve());
+      showFailedExecutionStub = stub(
+        notificationService,
+        'showFailedExecution'
+      );
+      executeCommandStub = stub(vscode.commands, 'executeCommand');
+
+      showWarningStub = stub(vscode.window, 'showWarningMessage');
+    });
+
+    afterEach(() => {
+      settings.restore();
+      showInputBoxStub.restore();
+      quickPickStub.restore();
+      openDialogStub.restore();
+      showSuccessfulExecutionStub.restore();
+      showFailedExecutionStub.restore();
+      appendLineStub.restore();
+      executeCommandStub.restore();
+
+      showWarningStub.restore();
+    });
+
+    it('Should Create Project', async () => {
+      // arrange
+      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      shell.rm('-rf', projectPath);
+      assert.noFile(projectPath);
+
+      quickPickStub.returns({
+        label: nls.localize(
+          'force_project_create_standard_template_display_text'
+        )
+      });
+      showInputBoxStub.returns('TestProject');
+      openDialogStub.returns([
+        vscode.Uri.file(path.join(getRootWorkspacePath()))
+      ]);
+
+      // act
+      await forceSfdxProjectCreate();
+
+      const standardfolderarray = [
+        'aura',
+        'applications',
+        'classes',
+        'contentassets',
+        'flexipages',
+        'layouts',
+        'objects',
+        'permissionsets',
+        'staticresources',
+        'tabs',
+        'triggers'
+      ];
+      const filestocopy = [
+        '.eslintignore',
+        '.forceignore',
+        '.gitignore',
+        '.prettierignore',
+        '.prettierrc',
+        'package.json'
+      ];
+      const vscodearray = ['extensions', 'launch', 'settings'];
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'config',
+          'project-scratch-def.json'
+        )
+      ]);
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'scripts',
+          'soql',
+          'account.soql'
+        )
+      ]);
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'scripts',
+          'apex',
+          'hello.apex'
+        )
+      ]);
+      assert.file([
+        path.join(getRootWorkspacePath(), 'TestProject', 'README.md')
+      ]);
+      assert.file([
+        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json')
+      ]);
+      assert.fileContent(
+        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        '"namespace": "",'
+      );
+      assert.fileContent(
+        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        '"path": "force-app",'
+      );
+      assert.fileContent(
+        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        'sourceApiVersion'
+      );
+      assert.fileContent(
+        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        '"sfdcLoginUrl": "https://login.salesforce.com"'
+      );
+
+      for (const file of vscodearray) {
+        assert.file([
+          path.join(
+            getRootWorkspacePath(),
+            'TestProject',
+            '.vscode',
+            `${file}.json`
+          )
+        ]);
+      }
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'force-app',
+          'main',
+          'default',
+          'lwc',
+          '.eslintrc.json'
+        )
+      ]);
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'force-app',
+          'main',
+          'default',
+          'aura',
+          '.eslintrc.json'
+        )
+      ]);
+      for (const file of filestocopy) {
+        assert.file([path.join(getRootWorkspacePath(), 'TestProject', file)]);
+      }
+      for (const folder of standardfolderarray) {
+        assert.file(
+          path.join(
+            getRootWorkspacePath(),
+            'TestProject',
+            'force-app',
+            'main',
+            'default',
+            folder
+          )
+        );
+      }
+
+      // clean up
+      shell.rm('-rf', projectPath);
+    });
+
+    it('Should Create Project with manifest', async () => {
+      // arrange
+      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      shell.rm('-rf', projectPath);
+      assert.noFile(projectPath);
+
+      quickPickStub.returns({
+        label: nls.localize(
+          'force_project_create_standard_template_display_text'
+        )
+      });
+      showInputBoxStub.returns('TestProject');
+      openDialogStub.returns([
+        vscode.Uri.file(path.join(getRootWorkspacePath()))
+      ]);
+
+      // act
+      await forceProjectWithManifestCreate();
+
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'manifest',
+          'package.xml'
+        )
+      ]);
+
+      // clean up
+      shell.rm('-rf', projectPath);
     });
   });
 });
