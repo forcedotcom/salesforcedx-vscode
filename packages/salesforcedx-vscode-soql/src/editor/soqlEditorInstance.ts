@@ -15,7 +15,6 @@ export class SOQLEditorInstance {
   ) => void;
 
   // when destroyed, dispose of all event listeners.
-  // might need to use context.subscriptions
   public subscriptions: vscode.Disposable[] = [];
 
   // Notify soqlEditorProvider when destroyed
