@@ -16,28 +16,20 @@ import {
   workspace
 } from 'vscode';
 
-describe('LWC Hovers', function() {
-  this.timeout(4000);
+describe('LWC Hovers', () => {
+  let lwcDir = path.join(
+    workspace.workspaceFolders![0].uri.fsPath,
+    'force-app',
+    'main',
+    'default',
+    'lwc'
+  );
 
-  let lwcDir: string;
-
-  before(async function() {
-    lwcDir = path.join(
-      workspace.workspaceFolders![0].uri.fsPath,
-      'force-app',
-      'main',
-      'default',
-      'lwc'
-    );
-
-    await new Promise(r => setTimeout(r, 1000));
-  });
-
-  afterEach(async function() {
+  afterEach(async () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
-  it('Should provide additional details when hovering over a LWC tag', async function() {
+  it('Should provide additional details when hovering over a LWC tag', async () => {
     const doc = await workspace.openTextDocument(
       path.join(lwcDir, 'hello', 'hello.html')
     );
@@ -54,16 +46,16 @@ describe('LWC Hovers', function() {
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const content = findContentFromInstances(hoverInstances, 'lightning-card');
+    const content = findContentFromInstances(hoverInstances, 'Cards apply a');
 
     expect(content).not.to.be.undefined;
     expect(content).not.to.be.null;
 
-    expect(content!.value).to.include('lightning-card');
+    expect(content!.value).to.include('Attributes');
     expect(content!.value).to.include('View in Component Library');
-  });
+  }).timeout(4000);
 
-  it('Should provide additional details when hovering over a LWC attribute', async function() {
+  it('Should provide additional details when hovering over a LWC attribute', async () => {
     const doc = await workspace.openTextDocument(
       path.join(lwcDir, 'hello', 'hello.html')
     );
@@ -80,7 +72,7 @@ describe('LWC Hovers', function() {
 
     expect(hoverInstances).to.have.lengthOf.at.least(1);
 
-    const content = findContentFromInstances(hoverInstances, '**title**');
+    const content = findContentFromInstances(hoverInstances, 'The title can');
 
     expect(content).not.to.be.undefined;
     expect(content).not.to.be.null;

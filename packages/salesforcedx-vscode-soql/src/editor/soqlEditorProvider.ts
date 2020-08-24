@@ -34,6 +34,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
+    // eslint-disable-next-line
     _token: vscode.CancellationToken
   ): Promise<void> {
     webviewPanel.webview.options = {

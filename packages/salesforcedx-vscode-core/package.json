@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "49.4.0",
+  "version": "49.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,8 +27,8 @@
   "dependencies": {
     "@salesforce/apex-node": "0.0.4",
     "@salesforce/core": "2.5.1",
-    "@salesforce/salesforcedx-utils-vscode": "49.4.0",
-    "@salesforce/source-deploy-retrieve": "1.0.15",
+    "@salesforce/salesforcedx-utils-vscode": "49.6.0",
+    "@salesforce/source-deploy-retrieve": "1.0.18",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -38,7 +38,7 @@
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "49.4.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "49.6.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
