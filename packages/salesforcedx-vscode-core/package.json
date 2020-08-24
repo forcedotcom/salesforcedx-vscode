@@ -813,7 +813,7 @@
         },
         "salesforcedx-vscode-core.experimental.useTemplatesLibrary": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%experimental_templates_library_description%"
         }
       }
