@@ -16,12 +16,12 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
+import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
-import { nls } from '../../messages';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import { FUNCTION_TYPE } from './metadataTypeConstants';
 

@@ -32,5 +32,4 @@ describe('Force Apex Function Create', () => {
     expect(funcCreateCmd.description).to.equal(nls.localize('force_function_create_text'));
     expect(funcCreate.getFileExtension()).to.equal('.ts');
   });
-
 });
