@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -25,7 +32,7 @@ export class EditorUtils {
     html: string,
     pathToLwcDist: string,
     webview: vscode.Webview
-  ) {
+  ): string {
     html = EditorUtils.transformScriptTags(html, pathToLwcDist, webview);
     html = EditorUtils.replaceCspMetaTag(html, webview);
     return html;
@@ -53,7 +60,7 @@ export class EditorUtils {
     html: string,
     pathToLwcDist: string,
     webview: vscode.Webview
-  ) {
+  ): string {
     let matches;
     let newScriptSrc;
     // tslint:disable-next-line:no-conditional-assignment
@@ -71,7 +78,10 @@ export class EditorUtils {
    * @param html
    * @param webview
    */
-  public static replaceCspMetaTag(html: string, webview: vscode.Webview) {
+  public static replaceCspMetaTag(
+    html: string,
+    webview: vscode.Webview
+  ): string {
     const cspMetaTag = `<meta
       http-equiv="Content-Security-Policy"
       content="default-src 'none';

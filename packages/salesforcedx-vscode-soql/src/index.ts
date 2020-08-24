@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import { startLanguageClient, stopLanguageClient } from './client/client';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(SOQLEditorProvider.register(context));
   startLanguageClient(context);
 }

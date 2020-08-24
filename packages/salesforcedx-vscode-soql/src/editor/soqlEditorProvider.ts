@@ -18,7 +18,7 @@ import { EditorUtils } from './editorUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
-  public static register(context: vscode.ExtensionContext) {
+  public static register(context: vscode.ExtensionContext): vscode.Disposable {
     const provider = new SOQLEditorProvider(context);
     const providerRegistration = vscode.window.registerCustomEditorProvider(
       VIEW_TYPE,
