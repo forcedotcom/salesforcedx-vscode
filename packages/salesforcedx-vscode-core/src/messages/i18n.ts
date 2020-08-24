@@ -136,6 +136,7 @@ export const messages = {
   force_lightning_component_create_text: 'SFDX: Create Aura Component',
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
+  force_function_create_text: 'SFDX: Create Function',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
@@ -539,5 +540,7 @@ export const messages = {
     'Not able to parse current results. Raw result: %s',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
-  package_id_gatherer_placeholder: '04t...'
+  package_id_gatherer_placeholder: '04t...',
+  force_function_enter_function: 'Enter a name for the function',
+  force_function_enter_language: 'Select a language for your function'
 };

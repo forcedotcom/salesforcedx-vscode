@@ -10,9 +10,6 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  isAlphaNumSpaceString
-} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import {
   CancelResponse,
   ContinueResponse,
   FunctionInfo,
@@ -21,10 +18,10 @@ import {
 import * as vscode from 'vscode';
 import {
   CompositeParametersGatherer,
-  SelectFileName,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
+import { nls } from '../../messages';
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import { FUNCTION_TYPE } from './metadataTypeConstants';
 
@@ -40,9 +37,7 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       this.setFileExtension('ts');
     }
     return new SfdxCommandBuilder()
-      .withDescription(
-        'Create Function...'
-      )
+      .withDescription(nls.localize('force_function_create_text'))
       .withArg('evergreen:function:create')
       .withArg(data.fileName)
       .withFlag('--language', data.language)
@@ -54,21 +49,15 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
 export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
   public async gather(): Promise<CancelResponse | ContinueResponse<FunctionInfo>> {
     const nameInputOptions = {
-      prompt: 'Enter function name',
-      validateInput: value => {
-        return isAlphaNumSpaceString(value) || value === ''
-          ? null
-          : 'Only alphanumeric allowed';
-      }
+      prompt: nls.localize('force_function_enter_function')
     } as vscode.InputBoxOptions;
     const name = await vscode.window.showInputBox(nameInputOptions);
-    // Hitting enter with no alias will use the value of `defaultAlias`
     if (name === undefined) {
       return { type: 'CANCEL' };
     }
 
     const language = await vscode.window.showQuickPick(['javascript', 'typescript'], {
-      placeHolder: 'Select language for your function'
+      placeHolder: nls.localize('force_function_enter_language')
     });
 
     if (language === undefined) {
@@ -85,8 +74,6 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
   }
 }
 
-const fileNameGatherer = new SelectFileName();
-
 const parameterGatherer = new CompositeParametersGatherer(
   new FunctionInfoGatherer()
 );
@@ -96,7 +83,6 @@ export async function forceFunctionCreate() {
     new SfdxWorkspaceChecker(),
     parameterGatherer,
     new ForceFunctionCreateExecutor()
-    // new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }
