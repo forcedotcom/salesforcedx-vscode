@@ -1,9 +1,11 @@
 {
   "devDependencies": {
+    "@commitlint/cli": "^7",
+    "@commitlint/config-conventional": "^7",
     "@salesforce/dev-config": "1.4.1",
     "ajv": "6.1.1",
     "commitizen": "^3.0.5",
-    "cz-conventional-changelog": "^3.2.0",
+    "cz-conventional-changelog": "^3.2.1",
     "eslint": "6.0.1",
     "eslint-config-prettier": "6.0.0",
     "husky": "1.3.1",
@@ -24,7 +26,7 @@
     "webpack-cli": "3.3.5"
   },
   "scripts": {
-    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
+    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier && npm run commit-init",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
