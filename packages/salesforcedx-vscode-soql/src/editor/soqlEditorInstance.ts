@@ -1,3 +1,4 @@
+import { debounce } from 'debounce';
 import * as vscode from 'vscode';
 
 interface SoqlEditorEvent {
@@ -34,8 +35,9 @@ export class SOQLEditorInstance {
     this.onDidRecieveMessageHandler = this.createOnDidRecieveMessageHandler(
       document
     );
-    this.onTextDocumentChangeHandler = this.createDocumentChangeHandler(
-      document
+    this.onTextDocumentChangeHandler = debounce(
+      this.createDocumentChangeHandler(document),
+      1000
     );
 
     // Update the UI when the Text Document is changed, if its the same document.
