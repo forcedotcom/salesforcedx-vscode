@@ -1,7 +1,6 @@
 {
   "devDependencies": {
     "@salesforce/dev-config": "1.4.1",
-    "@salesforce/dev-scripts": "0.3.14",
     "ajv": "6.1.1",
     "commitizen": "^3.0.5",
     "cz-conventional-changelog": "^3.2.0",
@@ -69,7 +68,7 @@
   },
   "husky": {
     "hooks": {
-      "commit-msg": "yarn sfdx-husky-commit-msg",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "pre-push": "npm run lint && npm run reformat"
     }
   },
