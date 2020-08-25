@@ -63,7 +63,7 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     if (language === undefined) {
       return { type: 'CANCEL' };
     }
-    // In order to reuse code used by other templates that have outputdir 
+    // In order to reuse code used by other templates that have outputdir
     // and extends DirFileNameSelection, we are passing an empty outputdir
     return {
       type: 'CONTINUE',
