@@ -38,40 +38,6 @@ interface ExecutionResult {
 }
 
 /**
- * Warpping function exeuction with VS Code interface, such as Output channel and progress
- * @param commandName command name
- * @param fn function to execute
- */
-function wrapExecute(
-  commandName: string,
-  fn: (...args: any[]) => Promise<ExecutionResult>
-) {
-  return async (...args: any[]) => {
-    channelService.showCommandWithTimestamp(`Starting ${commandName}`);
-    const result = await window.withProgress(
-      {
-        title: commandName,
-        location: ProgressLocation.Notification
-      },
-      async () => {
-        return await fn.call(null, ...args);
-      }
-    );
-    if (result.output) {
-      channelService.appendLine(result.output);
-      channelService.showCommandWithTimestamp(`Finished ${commandName}`);
-      notificationService.showSuccessfulExecution(commandName).catch(() => {
-        // ignore
-      });
-    }
-    if (result.error) {
-      channelService.appendLine(result.error.message);
-      notificationService.showFailedExecution(commandName);
-    }
-  };
-}
-
-/**
  * Base class for all template commands
  */
 export abstract class LibraryBaseTemplateCommand<T>
@@ -99,32 +65,54 @@ export abstract class LibraryBaseTemplateCommand<T>
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
-    await wrapExecute(this.executionName, async () => {
-      try {
-        const templateOptions = this.constructTemplateOptions(response.data);
-        const result = await this.createTemplate(
-          this.templateType,
-          templateOptions
-        );
-        const fileName = this.getOutputFileName(response.data);
-        telemetryService.sendCommandEvent(this.telemetryName, startTime, {
-          dirType: this.identifyDirType(result.outputDir),
-          commandExecutor: 'library'
-        });
-        await this.openCreatedTemplateInVSCode(result.outputDir, fileName);
-        return {
-          output: result.rawOutput
-        };
-      } catch (error) {
-        telemetryService.sendException(
-          'force_template_create_library',
-          error.message
-        );
-        return {
-          error
-        };
+    const commandName = this.executionName;
+    channelService.showCommandWithTimestamp(`Starting ${commandName}`);
+    const result: ExecutionResult = await window.withProgress(
+      {
+        title: commandName,
+        location: ProgressLocation.Notification
+      },
+      async () => {
+        try {
+          const templateOptions = this.constructTemplateOptions(response.data);
+          const libraryResult = await this.createTemplate(
+            this.templateType,
+            templateOptions
+          );
+          const fileName = this.getOutputFileName(response.data);
+          telemetryService.sendCommandEvent(this.telemetryName, startTime, {
+            dirType: this.identifyDirType(libraryResult.outputDir),
+            commandExecutor: 'library'
+          });
+          await this.openCreatedTemplateInVSCode(
+            libraryResult.outputDir,
+            fileName
+          );
+          return {
+            output: libraryResult.rawOutput
+          };
+        } catch (error) {
+          telemetryService.sendException(
+            'force_template_create_library',
+            error.message
+          );
+          return {
+            error
+          };
+        }
       }
-    })();
+    );
+    if (result.output) {
+      channelService.appendLine(result.output);
+      channelService.showCommandWithTimestamp(`Finished ${commandName}`);
+      notificationService.showSuccessfulExecution(commandName).catch(() => {
+        // ignore
+      });
+    }
+    if (result.error) {
+      channelService.appendLine(result.error.message);
+      notificationService.showFailedExecution(commandName);
+    }
   }
 
   private async createTemplate(
