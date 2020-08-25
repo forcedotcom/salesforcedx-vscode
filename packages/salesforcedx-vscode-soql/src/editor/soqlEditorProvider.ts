@@ -14,7 +14,7 @@ import {
 } from '../constants';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
-  public static register(context: vscode.ExtensionContext) {
+  public static register(context: vscode.ExtensionContext): vscode.Disposable {
     const provider = new SOQLEditorProvider(context);
     const providerRegistration = vscode.window.registerCustomEditorProvider(
       SOQLEditorProvider.viewType,
@@ -29,6 +29,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
     webviewPanel: vscode.WebviewPanel,
+    // eslint-disable-next-line
     _token: vscode.CancellationToken
   ): Promise<void> {
     webviewPanel.webview.options = {
