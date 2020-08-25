@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -63,6 +63,8 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     if (language === undefined) {
       return { type: 'CANCEL' };
     }
+    // In order to reuse code used by other templates that have outputdir 
+    // and extends DirFileNameSelection, we are passing an empty outputdir
     return {
       type: 'CONTINUE',
       data: {
