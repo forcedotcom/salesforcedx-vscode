@@ -126,6 +126,6 @@ By default, a JVM allocates up to one fourth of the system's physical memory to 
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.memory": "4096"
+  "salesforcedx-vscode-apex.java.memory": 4096
 }
 ```
