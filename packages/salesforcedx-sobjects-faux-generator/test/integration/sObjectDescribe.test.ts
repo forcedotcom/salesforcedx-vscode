@@ -9,8 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { connect } from 'http2';
-import { createSandbox, SinonStub, stub } from 'sinon';
+import { createSandbox, stub } from 'sinon';
 import {
   ForceListSObjectSchemaExecutor,
   SObjectCategory,
@@ -156,17 +155,4 @@ describe('Fetch sObjects', () => {
       expect(err).to.be.equal('Unexpected error');
     }
   });
-
-  // it('Should throw error when authentication errors out', async () => {
-  //   const sobjectTypes = ['ApexPageInfo'];
-  //   authInfo.throws(new Error('Unexpected error in Auth phase'));
-
-  //   try {
-  //     await sobjectdescribe.describeSObjectBatch(sobjectTypes, 0);
-  //     fail('An error was expected');
-  //   } catch (err) {
-  //     expect(err).to.be.equal('Unexpected error in Auth phase');
-  //   }
-  //   expect(authInfo.called).to.equal(true);
-  // });
 });

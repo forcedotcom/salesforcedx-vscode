@@ -96,7 +96,7 @@ export class FauxClassGenerator {
   private static fieldDeclToString(decl: FieldDeclaration): string {
     return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${
       decl.modifier
-      } ${decl.type} ${decl.name};`;
+    } ${decl.type} ${decl.name};`;
   }
 
   // VisibleForTesting
@@ -104,9 +104,9 @@ export class FauxClassGenerator {
     // for some reasons if the comment is on a single line the help context shows the last '*/'
     return comment
       ? `${INDENT}/* ${comment.replace(
-        /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
-        ''
-      )}${EOL}${INDENT}*/${EOL}`
+          /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
+          ''
+        )}${EOL}${INDENT}*/${EOL}`
       : '';
   }
 
