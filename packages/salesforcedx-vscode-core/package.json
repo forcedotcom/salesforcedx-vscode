@@ -25,11 +25,11 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.0.4",
-    "@salesforce/core": "2.5.1",
+    "@salesforce/apex-node": "0.0.9",
+    "@salesforce/core": "2.9.0",
     "@salesforce/salesforcedx-utils-vscode": "49.7.0",
-    "@salesforce/source-deploy-retrieve": "1.0.18",
     "@salesforce/templates": "49.4.4",
+    "@salesforce/source-deploy-retrieve": "1.0.20",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",

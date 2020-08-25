@@ -10,21 +10,25 @@ import { nls } from '../../messages';
 export function formatExecuteResult(
   execAnonResponse: ExecuteAnonymousResponse
 ): string {
-  let outputText: string = '';
-  if (execAnonResponse.result.compiled === true) {
+  let outputText = '';
+  if (execAnonResponse.success) {
     outputText += `${nls.localize('apex_execute_compile_success')}\n`;
-    if (execAnonResponse.result.success === true) {
-      outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
-    } else {
-      outputText += `Error: ${execAnonResponse.result.exceptionMessage}\n`;
-      outputText += `Error: ${execAnonResponse.result.exceptionStackTrace}\n`;
-    }
-    outputText += `\n${execAnonResponse.result.logs}`;
+    outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
+    outputText += `\n${execAnonResponse.logs}`;
   } else {
-    outputText += `Error: Line: ${execAnonResponse.result.line}, Column: ${
-      execAnonResponse.result.column
-    }\n`;
-    outputText += `Error: ${execAnonResponse.result.compileProblem}\n`;
+    const diagnostic = execAnonResponse.diagnostic![0];
+
+    if (!execAnonResponse.compiled) {
+      outputText += `Error: Line: ${diagnostic.lineNumber}, Column: ${
+        diagnostic.columnNumber
+      }\n`;
+      outputText += `Error: ${diagnostic.compileProblem}\n`;
+    } else {
+      outputText += `${nls.localize('apex_execute_compile_success')}\n`;
+      outputText += `Error: ${diagnostic.exceptionMessage}\n`;
+      outputText += `Error: ${diagnostic.exceptionStackTrace}\n`;
+      outputText += `\n${execAnonResponse.logs}`;
+    }
   }
   return outputText;
 }
