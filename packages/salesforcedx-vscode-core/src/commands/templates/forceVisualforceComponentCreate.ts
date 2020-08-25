@@ -6,12 +6,19 @@
  */
 
 import {
+  TemplateType,
+  VisualforceComponentOptions
+} from '@salesforce/templates';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+
+import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -26,6 +33,29 @@ import {
   VISUALFORCE_COMPONENT_DIRECTORY,
   VISUALFORCE_COMPONENT_TYPE
 } from './metadataTypeConstants';
+
+export class LibraryForceVisualForceComponentCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize(
+    'force_visualforce_component_create_text'
+  );
+  public telemetryName = 'force_visualforce_component_create';
+  public metadataTypeName = VISUALFORCE_COMPONENT_TYPE;
+  public templateType = TemplateType.VisualforceComponent;
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const templateOptions: VisualforceComponentOptions = {
+      outputdir: data.outputdir,
+      componentname: data.fileName,
+      label: data.fileName,
+      template: 'DefaultVFComponent'
+    };
+    return templateOptions;
+  }
+}
 
 export class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -51,6 +81,9 @@ const metadataTypeGatherer = new MetadataTypeGatherer(
 );
 
 export async function forceVisualforceComponentCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceVisualForceComponentCreateExecutor()
+    : new ForceVisualForceComponentCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -58,7 +91,7 @@ export async function forceVisualforceComponentCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    new ForceVisualForceComponentCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
