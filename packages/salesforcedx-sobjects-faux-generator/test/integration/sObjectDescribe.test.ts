@@ -108,7 +108,7 @@ describe('Fetch sObjects', () => {
         { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
       ]
     };
-    const requestStub = env.stub(connection, 'requestRaw');
+    const requestStub = env.stub(connection, 'request');
     await sobjectdescribe.runRequest(testBatchReq);
     expect(requestStub.firstCall.args[0]).to.deep.equal({
       method: 'POST',
@@ -123,10 +123,7 @@ describe('Fetch sObjects', () => {
 
   it('Should return sobjects when calling describeSObjectBatch', async () => {
     const sobjectTypes = ['ApexPageInfo'];
-    env.stub(connection, 'requestRaw').resolves({
-      status: 200,
-      body: JSON.stringify(mockDescribeResponse)
-    });
+    env.stub(connection, 'request').resolves(mockDescribeResponse);
 
     const batchResponse = await sobjectdescribe.describeSObjectBatch(
       sobjectTypes,
@@ -141,12 +138,10 @@ describe('Fetch sObjects', () => {
 
   it('Should throw error when response errors out', async () => {
     const sobjectTypes = ['ApexPageInfo'];
-    env.stub(connection, 'requestRaw').returns(
-      Promise.reject({
-        status: 400,
-        body: 'Unexpected error'
-      })
-    );
+    env.stub(connection, 'request').rejects({
+      status: 400,
+      body: 'Unexpected error'
+    });
 
     try {
       await sobjectdescribe.describeSObjectBatch(sobjectTypes, 0);

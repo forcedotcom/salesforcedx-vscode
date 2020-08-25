@@ -153,22 +153,15 @@ describe('Generate faux classes for SObjects', () => {
   describe('Check results', () => {
     beforeEach(() => {
       env.stub(fs, 'existsSync').returns(true);
+      env.stub(Connection.prototype, 'request').resolves(mockDescribeResponse);
+      env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
+      env
+        .stub(SObjectDescribe.prototype, 'describeGlobal')
+        .returns(['ApexPageInfo']);
     });
 
     it('Should emit an exit event with code success code 0 on success', async () => {
       let exitCode = LocalCommandExecution.FAILURE_CODE;
-      env
-        .stub(SObjectDescribe.prototype, 'describeGlobal')
-        .returns(['ApexPageInfo']);
-
-      env.stub(Connection.prototype, 'requestRaw').returns(
-        Promise.resolve({
-          status: 200,
-          body: JSON.stringify(mockDescribeResponse)
-        })
-      );
-
-      env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
 
       const generator = getGenerator();
       emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
@@ -195,18 +188,6 @@ describe('Generate faux classes for SObjects', () => {
         }
       );
 
-      env
-        .stub(SObjectDescribe.prototype, 'describeGlobal')
-        .returns(['ApexPageInfo']);
-
-      env.stub(Connection.prototype, 'requestRaw').returns(
-        Promise.resolve({
-          status: 200,
-          body: JSON.stringify(mockDescribeResponse)
-        })
-      );
-
-      env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
       result = await generator.generate(
         projectPath,
         SObjectCategory.CUSTOM,

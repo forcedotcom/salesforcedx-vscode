@@ -14,7 +14,6 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { JsonMap } from '@salesforce/ts-types';
 import { CLIENT_ID } from '../constants';
 
 export interface SObject {
@@ -264,8 +263,8 @@ export class SObjectDescribe {
     return batchRequest;
   }
 
-  public async runRequest(batchRequest: BatchRequest): Promise<JsonMap> {
-    return this.connection.requestRaw({
+  public async runRequest(batchRequest: BatchRequest): Promise<BatchResponse> {
+    return (this.connection.request({
       method: 'POST',
       url: this.buildBatchRequestURL(),
       body: JSON.stringify(batchRequest),
@@ -273,7 +272,7 @@ export class SObjectDescribe {
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
       }
-    });
+    }) as unknown) as BatchResponse;
   }
 
   public async describeSObjectBatch(
@@ -282,10 +281,7 @@ export class SObjectDescribe {
   ): Promise<SObject[]> {
     try {
       const batchRequest = this.buildBatchRequestBody(types, nextToProcess);
-      const response = await this.runRequest(batchRequest);
-      const batchResponse = JSON.parse(
-        response.body as string
-      ) as BatchResponse;
+      const batchResponse = await this.runRequest(batchRequest);
       const fetchedObjects: SObject[] = [];
       let i = nextToProcess;
       for (const sr of batchResponse.results) {
