@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TemplateService } from '@salesforce/templates';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -115,6 +116,7 @@ describe('Force Apex Class Create', () => {
       await forceApexClassCreate();
 
       // assert
+      const defaultApiVersion = TemplateService.getDefaultApiVersion();
       assert.file([apexClassPath, apexClassMetaPath]);
       assert.fileContent(
         apexClassPath,
@@ -124,7 +126,7 @@ describe('Force Apex Class Create', () => {
         apexClassMetaPath,
         `<?xml version="1.0" encoding="UTF-8"?>
 <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>49.0</apiVersion>
+    <apiVersion>${defaultApiVersion}</apiVersion>
     <status>Active</status>
 </ApexClass>`
       );

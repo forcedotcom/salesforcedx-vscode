@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TemplateService } from '@salesforce/templates';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -111,6 +112,7 @@ describe('Force Apex Trigger Create', () => {
       await forceApexTriggerCreate();
 
       // assert
+      const defaultApiVersion = TemplateService.getDefaultApiVersion();
       assert.file([apexTriggerPath, apexTriggerMetaPath]);
       assert.fileContent(
         apexTriggerPath,
@@ -122,7 +124,7 @@ describe('Force Apex Trigger Create', () => {
         apexTriggerMetaPath,
         `<?xml version='1.0' encoding='UTF-8'?>
 <ApexTrigger xmlns="http://soap.sforce.com/2006/04/metadata">
-  <apiVersion>49.0</apiVersion>
+  <apiVersion>${defaultApiVersion}</apiVersion>
   <status>Active</status>
 </ApexTrigger>`
       );
