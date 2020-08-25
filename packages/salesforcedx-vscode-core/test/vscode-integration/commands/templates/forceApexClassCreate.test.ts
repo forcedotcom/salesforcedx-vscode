@@ -6,6 +6,7 @@
  */
 
 import { TemplateService } from '@salesforce/templates';
+import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -21,6 +22,7 @@ import {
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -63,6 +65,8 @@ describe('Force Apex Class Create', () => {
     let showSuccessfulExecutionStub: SinonStub;
     let showFailedExecutionStub: SinonStub;
     let openTextDocumentStub: SinonStub;
+    let sendCommandEventStub: SinonStub;
+    let sendExceptionStub: SinonStub;
 
     beforeEach(() => {
       // mock experimental setting
@@ -81,6 +85,8 @@ describe('Force Apex Class Create', () => {
         'showFailedExecution'
       );
       openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
+      sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
+      sendExceptionStub = stub(telemetryService, 'sendException');
     });
 
     afterEach(() => {
@@ -91,6 +97,8 @@ describe('Force Apex Class Create', () => {
       showFailedExecutionStub.restore();
       appendLineStub.restore();
       openTextDocumentStub.restore();
+      sendCommandEventStub.restore();
+      sendExceptionStub.restore();
     });
 
     it('Should create Apex Class', async () => {
@@ -132,6 +140,47 @@ describe('Force Apex Class Create', () => {
       );
       sinon.assert.calledOnce(openTextDocumentStub);
       sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
+
+      sinon.assert.calledOnce(sendCommandEventStub);
+      sinon.assert.calledWith(
+        sendCommandEventStub,
+        'force_apex_class_create',
+        sinon.match.array,
+        {
+          dirType: 'defaultDir',
+          commandExecutor: 'library'
+        }
+      );
+
+      // clean up
+      shell.rm('-f', apexClassPath);
+      shell.rm('-f', apexClassMetaPath);
+    });
+
+    it('Should handle error and log telemetry for exceptions', async () => {
+      // arrange
+      const outputPath = 'force-app/main/default/classes';
+      showInputBoxStub.returns('?invalid');
+      quickPickStub.returns(outputPath);
+
+      // act
+      await forceApexClassCreate();
+
+      // assert
+      const errorMessage = templatesNls.localize('AlphaNumericNameError');
+      sinon.assert.calledOnce(appendLineStub);
+      sinon.assert.calledWith(appendLineStub, errorMessage);
+      sinon.assert.calledOnce(showFailedExecutionStub);
+      sinon.assert.calledWith(
+        showFailedExecutionStub,
+        nls.localize('force_apex_class_create_text')
+      );
+      sinon.assert.calledOnce(sendExceptionStub);
+      sinon.assert.calledWith(
+        sendExceptionStub,
+        'force_template_create_library',
+        errorMessage
+      );
     });
   });
 });

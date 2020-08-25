@@ -30,7 +30,6 @@ import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { getRootWorkspacePath } from '../../../src/util';
-import Sinon = require('sinon');
 
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {

@@ -116,6 +116,10 @@ export abstract class LibraryBaseTemplateCommand<T>
           output: result.rawOutput
         };
       } catch (error) {
+        telemetryService.sendException(
+          'force_template_create_library',
+          error.message
+        );
         return {
           error
         };
