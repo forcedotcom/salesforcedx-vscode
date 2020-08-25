@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+
 import {
   Command,
   SfdxCommandBuilder
@@ -29,6 +32,29 @@ import {
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
+
+export class LibraryForceLightningLwcCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize('force_lightning_lwc_create_text');
+  public telemetryName = 'force_lightning_web_component_create';
+  public metadataTypeName = LWC_TYPE;
+  public templateType = TemplateType.LightningComponent;
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const internal = sfdxCoreSettings.getInternalDev();
+    const templateOptions: LightningComponentOptions = {
+      outputdir: data.outputdir,
+      componentname: data.fileName,
+      template: 'DefaultLightningCmp',
+      type: 'lwc',
+      internal
+    };
+    return templateOptions;
+  }
+}
 
 export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -57,6 +83,9 @@ const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 
 export async function forceLightningLwcCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningLwcCreateExecutor()
+    : new ForceLightningLwcCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -64,20 +93,23 @@ export async function forceLightningLwcCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    new ForceLightningLwcCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }
 
 export async function forceInternalLightningLwcCreate(sourceUri: Uri) {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningLwcCreateExecutor()
+    : new ForceLightningLwcCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
       new FileInternalPathGatherer(sourceUri)
     ),
-    new ForceLightningLwcCreateExecutor()
+    createTemplateExecutor
   );
   await commandlet.run();
 }

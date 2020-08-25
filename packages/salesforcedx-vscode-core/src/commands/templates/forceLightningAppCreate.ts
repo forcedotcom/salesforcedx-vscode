@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LightningAppOptions, TemplateType } from '@salesforce/templates';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+
 import {
   Command,
   SfdxCommandBuilder
@@ -33,6 +36,31 @@ import {
   AURA_DIRECTORY,
   AURA_TYPE
 } from './metadataTypeConstants';
+
+export class LibraryForceLightningAppCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize('force_lightning_app_create_text');
+  public telemetryName = 'force_lightning_app_create';
+  public metadataTypeName = AURA_TYPE;
+  public templateType = TemplateType.LightningApp;
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public getFileExtension() {
+    return AURA_APP_EXTENSION;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const internal = sfdxCoreSettings.getInternalDev();
+    const templateOptions: LightningAppOptions = {
+      outputdir: data.outputdir,
+      appname: data.fileName,
+      template: 'DefaultLightningApp',
+      internal
+    };
+    return templateOptions;
+  }
+}
 
 export class ForceLightningAppCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -64,6 +92,9 @@ const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export async function forceLightningAppCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningAppCreateExecutor()
+    : new ForceLightningAppCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -71,20 +102,23 @@ export async function forceLightningAppCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    new ForceLightningAppCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }
 
 export async function forceInternalLightningAppCreate(sourceUri: Uri) {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningAppCreateExecutor()
+    : new ForceLightningAppCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
       new FileInternalPathGatherer(sourceUri)
     ),
-    new ForceLightningAppCreateExecutor()
+    createTemplateExecutor
   );
   await commandlet.run();
 }

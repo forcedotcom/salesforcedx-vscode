@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TemplateType, VisualforcePageOptions } from '@salesforce/templates';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+
 import {
   Command,
   SfdxCommandBuilder
@@ -12,6 +15,7 @@ import {
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -26,6 +30,27 @@ import {
   VISUALFORCE_PAGE_DIRECTORY,
   VISUALFORCE_PAGE_TYPE
 } from './metadataTypeConstants';
+
+export class LibraryForceVisualForcePageCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize('force_visualforce_page_create_text');
+  public telemetryName = 'force_visualforce_page_create';
+  public metadataTypeName = VISUALFORCE_PAGE_TYPE;
+  public templateType = TemplateType.VisualforcePage;
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const templateOptions: VisualforcePageOptions = {
+      outputdir: data.outputdir,
+      pagename: data.fileName,
+      label: data.fileName,
+      template: 'DefaultVFPage'
+    };
+    return templateOptions;
+  }
+}
 
 export class ForceVisualForcePageCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -49,6 +74,9 @@ const outputDirGatherer = new SelectOutputDir(VISUALFORCE_PAGE_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(VISUALFORCE_PAGE_TYPE);
 
 export async function forceVisualforcePageCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceVisualForcePageCreateExecutor()
+    : new ForceVisualForcePageCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -56,7 +84,7 @@ export async function forceVisualforcePageCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    new ForceVisualForcePageCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
