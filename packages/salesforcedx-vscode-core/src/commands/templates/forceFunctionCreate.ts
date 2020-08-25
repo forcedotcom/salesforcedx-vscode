@@ -41,7 +41,7 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       .withArg('evergreen:function:create')
       .withArg(data.fileName)
       .withFlag('--language', data.language)
-      .withLogName('force_org_create_function')
+      .withLogName('force_create_function')
       .build();
   }
 }
