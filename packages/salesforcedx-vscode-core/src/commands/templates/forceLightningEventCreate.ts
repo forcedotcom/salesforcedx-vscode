@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LightningEventOptions, TemplateType } from '@salesforce/templates';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+
 import {
   Command,
   SfdxCommandBuilder
@@ -33,6 +36,31 @@ import {
   AURA_EVENT_EXTENSION,
   AURA_TYPE
 } from './metadataTypeConstants';
+
+export class LibraryForceLightningEventCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize('force_lightning_event_create_text');
+  public telemetryName = 'force_lightning_event_create';
+  public metadataTypeName = AURA_TYPE;
+  public templateType = TemplateType.LightningEvent;
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public getFileExtension() {
+    return AURA_EVENT_EXTENSION;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const internal = sfdxCoreSettings.getInternalDev();
+    const templateOptions: LightningEventOptions = {
+      outputdir: data.outputdir,
+      eventname: data.fileName,
+      template: 'DefaultLightningEvt',
+      internal
+    };
+    return templateOptions;
+  }
+}
 
 export class ForceLightningEventCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -64,6 +92,9 @@ const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export async function forceLightningEventCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningEventCreateExecutor()
+    : new ForceLightningEventCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -71,20 +102,23 @@ export async function forceLightningEventCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    new ForceLightningEventCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }
 
 export async function forceInternalLightningEventCreate(sourceUri: Uri) {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningEventCreateExecutor()
+    : new ForceLightningEventCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
       new FileInternalPathGatherer(sourceUri)
     ),
-    new ForceLightningEventCreateExecutor()
+    createTemplateExecutor
   );
   await commandlet.run();
 }
