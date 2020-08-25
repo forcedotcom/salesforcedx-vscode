@@ -179,7 +179,8 @@ export abstract class LibraryBaseTemplateCommand<T>
   }
 
   private getPathToSource(outputDir: string, fileName: string): string {
-    const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
+    // outputDir from library is an absolute path
+    const sourceDirectory = outputDir;
     return this.getSourcePathStrategy().getPathToSource(
       sourceDirectory,
       fileName,

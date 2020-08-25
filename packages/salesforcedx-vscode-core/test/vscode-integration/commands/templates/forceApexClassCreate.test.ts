@@ -9,6 +9,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import { SinonStub, stub } from 'sinon';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
@@ -60,6 +61,7 @@ describe('Force Apex Class Create', () => {
     let appendLineStub: SinonStub;
     let showSuccessfulExecutionStub: SinonStub;
     let showFailedExecutionStub: SinonStub;
+    let openTextDocumentStub: SinonStub;
 
     beforeEach(() => {
       // mock experimental setting
@@ -77,6 +79,7 @@ describe('Force Apex Class Create', () => {
         notificationService,
         'showFailedExecution'
       );
+      openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
     });
 
     afterEach(() => {
@@ -86,6 +89,7 @@ describe('Force Apex Class Create', () => {
       showSuccessfulExecutionStub.restore();
       showFailedExecutionStub.restore();
       appendLineStub.restore();
+      openTextDocumentStub.restore();
     });
 
     it('Should create Apex Class', async () => {
@@ -124,6 +128,8 @@ describe('Force Apex Class Create', () => {
     <status>Active</status>
 </ApexClass>`
       );
+      sinon.assert.calledOnce(openTextDocumentStub);
+      sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
     });
   });
 });
