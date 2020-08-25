@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AuthInfo, Connection } from '@salesforce/core';
 import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { EventEmitter } from 'events';
@@ -25,6 +26,7 @@ import {
   SObjectCategory,
   SObjectDescribe
 } from '../describe';
+import { ConfigUtil } from '../describe/configUtil';
 import { nls } from '../messages';
 
 export const INDENT = '    ';
@@ -149,7 +151,13 @@ export class FauxClassGenerator {
     }
     this.cleanupSObjectFolders(sobjectsFolderPath, type);
 
-    const describe = new SObjectDescribe();
+    const connection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: await ConfigUtil.getUsername(projectPath)
+      })
+    });
+
+    const describe = new SObjectDescribe(connection);
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
     let fetchedSObjects: SObject[] = [];
@@ -174,7 +182,7 @@ export class FauxClassGenerator {
           return this.cancelExit();
         }
         fetchedSObjects = fetchedSObjects.concat(
-          await describe.describeSObjectBatch(projectPath, filteredSObjects, j)
+          await describe.describeSObjectBatch(filteredSObjects, j)
         );
         j = fetchedSObjects.length;
       } catch (errorMessage) {

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Org } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   CliCommandExecution,
   CliCommandExecutor,
@@ -14,9 +14,8 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { xhr, XHROptions, XHRResponse } from 'request-light';
+import { JsonMap } from '@salesforce/ts-types';
 import { CLIENT_ID } from '../constants';
-import { ConfigUtil } from './configUtil';
 
 export interface SObject {
   actionOverrides: any[];
@@ -191,14 +190,17 @@ export class ForceListSObjectSchemaExecutor {
 }
 
 export class SObjectDescribe {
-  private accessToken?: string;
-  private instanceUrl?: string;
+  private connection: Connection;
   private readonly servicesPath: string = 'services/data';
   // the targetVersion should be consistent with the Cli even if only using REST calls
   private readonly targetVersion = '46.0';
   private readonly versionPrefix = 'v';
   private readonly sobjectsPart: string = 'sobjects';
   private readonly batchPart: string = 'composite/batch';
+
+  constructor(connection: Connection) {
+    this.connection = connection;
+  }
 
   public async describeGlobal(
     projectPath: string,
@@ -233,7 +235,7 @@ export class SObjectDescribe {
 
   public buildBatchRequestURL(): string {
     const batchUrlElements = [
-      this.instanceUrl,
+      this.connection.instanceUrl,
       this.servicesPath,
       this.getVersion(),
       this.batchPart
@@ -262,55 +264,28 @@ export class SObjectDescribe {
     return batchRequest;
   }
 
-  public buildXHROptions(types: string[], nextToProcess: number): XHROptions {
-    const batchRequest = this.buildBatchRequestBody(types, nextToProcess);
-    return {
-      type: 'POST',
+  public async runRequest(batchRequest: BatchRequest): Promise<JsonMap> {
+    return this.connection.requestRaw({
+      method: 'POST',
       url: this.buildBatchRequestURL(),
+      body: JSON.stringify(batchRequest),
       headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        Authorization: `OAuth ${this.accessToken}`,
         'User-Agent': 'salesforcedx-extension',
         'Sforce-Call-Options': `client=${CLIENT_ID}`
-      },
-      data: JSON.stringify(batchRequest)
-    } as XHROptions;
-  }
-
-  public async runRequest(options: XHROptions): Promise<XHRResponse> {
-    return xhr(options);
+      }
+    });
   }
 
   public async describeSObjectBatch(
-    projectPath: string,
     types: string[],
     nextToProcess: number
   ): Promise<SObject[]> {
     try {
-      const org = await Org.create({
-        aliasOrUsername: await ConfigUtil.getUsername(projectPath)
-      });
-
-      if (!this.accessToken || !this.instanceUrl) {
-        await this.getConnectionData(org);
-      }
-
-      let response: XHRResponse;
-      let options: XHROptions;
-      try {
-        options = this.buildXHROptions(types, nextToProcess);
-        response = await this.runRequest(options);
-      } catch (e) {
-        if (e.status !== 401) {
-          throw e;
-        }
-        await this.getConnectionData(org, true);
-        options = this.buildXHROptions(types, nextToProcess);
-        response = await this.runRequest(options);
-      }
-
-      const batchResponse = JSON.parse(response.responseText) as BatchResponse;
+      const batchRequest = this.buildBatchRequestBody(types, nextToProcess);
+      const response = await this.runRequest(batchRequest);
+      const batchResponse = JSON.parse(
+        response.body as string
+      ) as BatchResponse;
       const fetchedObjects: SObject[] = [];
       let i = nextToProcess;
       for (const sr of batchResponse.results) {
@@ -324,20 +299,11 @@ export class SObjectDescribe {
       }
       return Promise.resolve(fetchedObjects);
     } catch (error) {
-      const errorMsg = error.hasOwnProperty('responseText')
-        ? error.responseText
+      const errorMsg = error.hasOwnProperty('body')
+        ? error.body
         : error.message;
       return Promise.reject(errorMsg);
     }
-  }
-
-  public async getConnectionData(org: Org, withRefresh?: boolean) {
-    if (withRefresh) {
-      await org.refreshAuth();
-    }
-    const { accessToken, instanceUrl } = org.getConnection();
-    this.accessToken = accessToken;
-    this.instanceUrl = instanceUrl;
   }
 
   public getVersion(): string {
