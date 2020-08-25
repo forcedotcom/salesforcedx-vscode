@@ -36,3 +36,9 @@ This extension makes working with GitHub even easier.
 Supercharge the Git capabilities built into VS Code: Visualize code authorship at a glance via Git blame annotations and code lenses, navigate and explore Git repositories, gain valuable insights via powerful comparison commands, and more.
 
 <https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens>
+
+## Salesforce Code Snippets
+
+A set of Snippets for Salesforce Component Development. Supports Apex snippets, Aura Snippets, JavaScript snippets, LWC Snippets, SLDS Classes, and an Advanced Mode.
+
+<https://marketplace.visualstudio.com/items?itemName=Audibene.salesforcecodesnippets>
