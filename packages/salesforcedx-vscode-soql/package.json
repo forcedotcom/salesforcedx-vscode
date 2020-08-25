@@ -37,7 +37,7 @@
     "typescript": "3.7.5"
   },
   "scripts": {
-    "build": "yarn compile",
+    "build": "npm run compile",
     "compile": "tsc -p ./",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src",
     "watch": "tsc -watch -p .",
