@@ -49,11 +49,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);
     instance.onDispose(this.disposeInstance.bind(this));
-
-    Array.prototype.push.apply(
-      this.context.subscriptions,
-      instance.subscriptions
-    );
+    this.context.subscriptions.push(...instance.subscriptions);
   }
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToLwcDist = path.join(

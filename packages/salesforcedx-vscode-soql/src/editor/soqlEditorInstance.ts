@@ -13,6 +13,12 @@ interface SoqlEditorEvent {
   message: string;
 }
 
+export enum MessageType {
+  ACTIVATED = 'activated',
+  QUERY = 'query',
+  UPDATE = 'update'
+}
+
 export class SOQLEditorInstance {
   // handlers assigned in constructor
   private updateWebview: () => void;
@@ -70,7 +76,7 @@ export class SOQLEditorInstance {
   ) {
     return function updateWebview() {
       webview.postMessage({
-        type: 'update',
+        type: MessageType.UPDATE,
         message: document.getText()
       });
     };
@@ -87,11 +93,11 @@ export class SOQLEditorInstance {
   private createOnDidRecieveMessageHandler(document: vscode.TextDocument) {
     return (e: SoqlEditorEvent) => {
       switch (e.type) {
-        case 'activated': {
+        case MessageType.ACTIVATED: {
           this.updateWebview();
           break;
         }
-        case 'query': {
+        case MessageType.QUERY: {
           this.updateTextDocument(document, e.message);
           break;
         }
