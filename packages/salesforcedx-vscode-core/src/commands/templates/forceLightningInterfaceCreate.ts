@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LightningInterfaceOptions, TemplateType } from '@salesforce/templates';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
+
 import {
   Command,
   SfdxCommandBuilder
@@ -33,6 +36,31 @@ import {
   AURA_INTERFACE_EXTENSION,
   AURA_TYPE
 } from './metadataTypeConstants';
+
+export class LibraryForceLightningInterfaceCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize('force_lightning_interface_create_text');
+  public telemetryName = 'force_lightning_interface_create';
+  public metadataTypeName = AURA_TYPE;
+  public templateType = TemplateType.LightningInterface;
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public getFileExtension() {
+    return AURA_INTERFACE_EXTENSION;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const internal = sfdxCoreSettings.getInternalDev();
+    const templateOptions: LightningInterfaceOptions = {
+      outputdir: data.outputdir,
+      interfacename: data.fileName,
+      template: 'DefaultLightningIntf',
+      internal
+    };
+    return templateOptions;
+  }
+}
 
 export class ForceLightningInterfaceCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -64,6 +92,9 @@ const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export async function forceLightningInterfaceCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningInterfaceCreateExecutor()
+    : new ForceLightningInterfaceCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -71,20 +102,23 @@ export async function forceLightningInterfaceCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    new ForceLightningInterfaceCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
 }
 
 export async function forceInternalLightningInterfaceCreate(sourceUri: Uri) {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceLightningInterfaceCreateExecutor()
+    : new ForceLightningInterfaceCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(
       fileNameGatherer,
       new FileInternalPathGatherer(sourceUri)
     ),
-    new ForceLightningInterfaceCreateExecutor()
+    createTemplateExecutor
   );
   await commandlet.run();
 }
