@@ -342,7 +342,7 @@ export const messages = {
   CompactLayout: 'Compact Layouts',
   ConnectedApp: 'Connected Apps',
   ContentAsset: 'Content Assets',
-  CorsAllowlistOrigin: 'Cors Allowlist Origins',
+  CorsWhitelistOrigin: 'Cors Whitelist Origins',
   CspTrustedSite: 'Csp Trusted Sites',
   CustomApplication: 'Custom Applications',
   CustomApplicationComponent: 'Custom Application Components',
