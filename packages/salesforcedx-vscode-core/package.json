@@ -511,6 +511,10 @@
         {
           "command": "sfdx.force.conflict.open",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.function.create",
+          "when": "sfdx:functions_enabled"
         }
       ]
     },
@@ -770,6 +774,10 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
+      },
+      {
+        "command": "sfdx.force.function.create",
+        "title": "%force_function_create%"
       }
     ],
     "configuration": {

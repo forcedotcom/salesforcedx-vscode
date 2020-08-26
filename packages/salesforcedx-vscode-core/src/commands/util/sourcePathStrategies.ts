@@ -38,6 +38,16 @@ class WaveTemplateBundlePathStrategy implements SourcePathStrategy {
   }
 }
 
+class FunctionTemplatePathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    return join(dirPath, 'functions', fileName, `index${fileExt}`);
+  }
+}
+
 class LwcTestPathStrategy implements SourcePathStrategy {
   public getPathToSource(
     dirPath: string,
@@ -67,5 +77,9 @@ export class PathStrategyFactory {
 
   public static createWaveTemplateBundleStrategy(): WaveTemplateBundlePathStrategy {
     return new WaveTemplateBundlePathStrategy();
+  }
+
+  public static createFunctionTemplateStrategy(): FunctionTemplatePathStrategy {
+    return new FunctionTemplatePathStrategy();
   }
 }
