@@ -94,8 +94,8 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
         )
       );
       registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///car.bot');
-      const uriTwo = vscode.Uri.parse('file:///bar.bot');
+      const uriOne = vscode.Uri.parse('file:///car.html');
+      const uriTwo = vscode.Uri.parse('file:///bar.html');
       const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
       expect(multipleFileProcessing).to.equal(true);
     });
