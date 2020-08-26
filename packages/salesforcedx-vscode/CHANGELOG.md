@@ -64,7 +64,7 @@
 
 #### docs
 
-- Update allowlist to allowlist ([PR #2323](https://github.com/forcedotcom/salesforcedx-vscode/pull/2323))
+- Update whitelist to allowlist ([PR #2323](https://github.com/forcedotcom/salesforcedx-vscode/pull/2323))
 
 - Update prettier-plugin-apex documentation ([PR #2329](https://github.com/forcedotcom/salesforcedx-vscode/pull/2329), [Issue #2328](https://github.com/forcedotcom/salesforcedx-vscode/issues/2328))-Contribution by [@jefersonchaves](https://github.com/jefersonchaves)
 
