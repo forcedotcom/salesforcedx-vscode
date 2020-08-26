@@ -2,13 +2,9 @@
 
 ## Fixed
 
-#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - Update to the latest version of the Aura and LWC language servers [PR #2380](https://github.com/forcedotcom/salesforcedx-vscode/pull/2380)
-
-#### salesforcedx-vscode-lwc
-
-- Update to the latest version of the LWC language server [PR #2380](https://github.com/forcedotcom/salesforcedx-vscode/pull/2380)
 
 #### docs
 
