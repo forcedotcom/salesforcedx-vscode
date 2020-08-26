@@ -144,7 +144,9 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
 
       let components: SourceComponent[] = [];
       const registryAccess = new RegistryAccess();
-      if (typeof response.data !== 'string') {
+      if (typeof response.data === 'string') {
+        components = registryAccess.getComponentsFromPath(response.data);
+      } else {
         const allComponents: SourceComponent[] = [];
 
         for (const filepath of response.data) {
@@ -153,8 +155,6 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
         components = allComponents.filter(
           (cmp, index) => allComponents.indexOf(cmp) === index
         );
-      } else {
-        components = registryAccess.getComponentsFromPath(response.data);
       }
 
       const projectNamespace = (await SfdxProjectConfig.getValue(

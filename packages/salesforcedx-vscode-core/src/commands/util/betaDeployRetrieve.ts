@@ -14,7 +14,7 @@ import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { sfdxCoreSettings } from '../../settings';
 
-export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
+export function useBetaDeployRetrieve(explorerPaths: vscode.Uri[]): boolean {
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
   const registry = new RegistryAccess();
   const {
@@ -27,7 +27,7 @@ export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
   } = registryData.types;
 
   const components: SourceComponent[] = [];
-  for (const expPath of explorerPath) {
+  for (const expPath of explorerPaths) {
     const filePath = expPath.fsPath;
     components.push(...registry.getComponentsFromPath(filePath));
   }
