@@ -16,6 +16,7 @@ import {
 import {
   DeployStatus,
   RegistryAccess,
+  SourceComponent,
   SourceDeployResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
@@ -71,6 +72,20 @@ export class MultipleSourcePathsGatherer implements ParametersGatherer<string> {
   }
 }
 
+export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
+  private uris: vscode.Uri[];
+  public constructor(uris: vscode.Uri[]) {
+    this.uris = uris;
+  }
+  public async gather(): Promise<ContinueResponse<string[]>> {
+    const sourcePaths = this.uris.map(uri => uri.fsPath);
+    return {
+      type: 'CONTINUE',
+      data: sourcePaths
+    };
+  }
+}
+
 export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
@@ -102,10 +117,13 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
 }
 
 export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
+  const useBeta = useBetaDeployRetrieve(uris);
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new MultipleSourcePathsGatherer(uris),
-    useBetaDeployRetrieve(uris)
+    useBeta
+      ? new LibraryPathsGatherer(uris)
+      : new MultipleSourcePathsGatherer(uris),
+    useBeta
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor()
   );
@@ -113,7 +131,9 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
 }
 
 export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
-  public async execute(response: ContinueResponse<string>): Promise<void> {
+  public async execute(
+    response: ContinueResponse<string | string[]>
+  ): Promise<void> {
     this.setStartTime();
     try {
       await this.build(
@@ -122,8 +142,21 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
       );
       channelService.showCommandWithTimestamp(`Starting ${this.executionName}`);
 
+      let components: SourceComponent[] = [];
       const registryAccess = new RegistryAccess();
-      const components = registryAccess.getComponentsFromPath(response.data);
+      if (typeof response.data !== 'string') {
+        const allComponents: SourceComponent[] = [];
+
+        for (const filepath of response.data) {
+          allComponents.push(...registryAccess.getComponentsFromPath(filepath));
+        }
+        components = allComponents.filter(
+          (cmp, index) => allComponents.indexOf(cmp) === index
+        );
+      } else {
+        components = registryAccess.getComponentsFromPath(response.data);
+      }
+
       const projectNamespace = (await SfdxProjectConfig.getValue(
         'namespace'
       )) as string;

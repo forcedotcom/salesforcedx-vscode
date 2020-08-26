@@ -18,21 +18,37 @@ import { LibraryDeployResultParser } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 
 describe('Deploy Parser', () => {
-  const apexClassPath = path.join('classes', 'test.cls');
-  const apexClassXmlPath = `${apexClassPath}-meta.xml`;
+  const apexClassPathOne = path.join('classes', 'test.cls');
+  const apexClassXmlPathOne = `${apexClassPathOne}-meta.xml`;
+  const apexClassPathTwo = path.join('classes', 'testTwo.cls');
+  const apexClassXmlPathTwo = `${apexClassPathTwo}-meta.xml`;
   const lwcJsPath = path.join('lwc', 'test', 'test.js');
   const lwcXmlPath = `${lwcJsPath}-meta.xml`;
-  const apexComponent = SourceComponent.createVirtualComponent(
+  const apexComponentOne = SourceComponent.createVirtualComponent(
     {
       name: 'test',
       type: registryData.types.apexclass,
-      xml: apexClassXmlPath,
-      content: apexClassPath
+      xml: apexClassXmlPathOne,
+      content: apexClassPathOne
     },
     [
       {
         dirPath: 'classes',
         children: ['test.cls', 'test.cls-meta.xml']
+      }
+    ]
+  );
+  const apexComponentTwo = SourceComponent.createVirtualComponent(
+    {
+      name: 'test',
+      type: registryData.types.apexclass,
+      xml: apexClassXmlPathTwo,
+      content: apexClassPathTwo
+    },
+    [
+      {
+        dirPath: 'classes',
+        children: ['testTwo.cls', 'testTwo.cls-meta.xml']
       }
     ]
   );
@@ -61,7 +77,24 @@ describe('Deploy Parser', () => {
     status: ToolingDeployStatus.Completed,
     components: [
       {
-        component: apexComponent,
+        component: apexComponentOne,
+        status: ComponentStatus.Changed,
+        diagnostics: []
+      }
+    ]
+  };
+  const multipleCmpResult: SourceDeployResult = {
+    success: true,
+    id: '',
+    status: ToolingDeployStatus.Completed,
+    components: [
+      {
+        component: apexComponentOne,
+        status: ComponentStatus.Changed,
+        diagnostics: []
+      },
+      {
+        component: apexComponentTwo,
         status: ComponentStatus.Changed,
         diagnostics: []
       }
@@ -85,20 +118,20 @@ describe('Deploy Parser', () => {
     status: DeployStatus.Failed,
     components: [
       {
-        component: apexComponent,
+        component: apexComponentOne,
         status: ComponentStatus.Created,
         diagnostics: [
           {
             lineNumber: 4,
             columnNumber: 5,
-            filePath: apexClassPath,
+            filePath: apexClassPathOne,
             message: "Missing ';' at '}'",
             type: 'Error'
           },
           {
             lineNumber: 7,
             columnNumber: 9,
-            filePath: apexClassPath,
+            filePath: apexClassPathOne,
             message: "Extra ':' at '}'",
             type: 'Error'
           }
@@ -112,11 +145,11 @@ describe('Deploy Parser', () => {
     status: ToolingDeployStatus.Failed,
     components: [
       {
-        component: apexComponent,
+        component: apexComponentOne,
         status: ComponentStatus.Created,
         diagnostics: [
           {
-            filePath: apexClassPath,
+            filePath: apexClassPathOne,
             message:
               'Could not save testAPI, : managed installed classes cannot be saved',
             type: 'Error'
@@ -124,11 +157,11 @@ describe('Deploy Parser', () => {
         ]
       },
       {
-        component: apexComponent,
+        component: apexComponentOne,
         status: ComponentStatus.Failed,
         diagnostics: [
           {
-            filePath: apexClassXmlPath,
+            filePath: apexClassXmlPathOne,
             message:
               'Could not save testAPI, : managed installed classes cannot be saved',
             type: 'Error'
@@ -151,12 +184,12 @@ describe('Deploy Parser', () => {
     status: ToolingDeployStatus.Error,
     components: [
       {
-        component: apexComponent,
+        component: apexComponentOne,
         status: ComponentStatus.Failed,
         diagnostics: [
           {
             type: 'Error',
-            filePath: apexClassPath,
+            filePath: apexClassPathOne,
             message: 'Unexpected error happened during deploy'
           }
         ]
@@ -235,15 +268,32 @@ describe('Deploy Parser', () => {
 
   it('should create a table with successful results', async () => {
     const parser = new LibraryDeployResultParser(completeApexResult);
-    const { fullName } = apexComponent;
+    const { fullName } = apexComponentOne;
 
     let mockResult = '=== Deployed Source\n';
     mockResult += 'STATE    FULL NAME  TYPE       PROJECT PATH             \n';
     mockResult += '───────  ─────────  ─────────  ─────────────────────────\n';
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPath}         \n`;
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPath}\n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathOne}         \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathOne}\n`;
 
     const results = parser.resultParser(completeApexResult);
+    expect(results).to.equal(mockResult);
+  });
+
+  it('should create a table with successful results for multiple components', async () => {
+    const parser = new LibraryDeployResultParser(completeApexResult);
+    const { fullName } = apexComponentOne;
+
+    let mockResult = '=== Deployed Source\n';
+    mockResult += 'STATE    FULL NAME  TYPE       PROJECT PATH                ';
+    mockResult +=
+      '\n───────  ─────────  ─────────  ────────────────────────────\n';
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathOne}            \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathOne}   \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathTwo}         \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathTwo}\n`;
+
+    const results = parser.resultParser(multipleCmpResult);
     expect(results).to.equal(mockResult);
   });
 
@@ -269,8 +319,8 @@ describe('Deploy Parser', () => {
     let errorResult = '=== Deploy Errors\n';
     errorResult += 'PROJECT PATH      ERRORS                  \n';
     errorResult += '────────────────  ────────────────────────\n';
-    errorResult += `${apexClassPath}  Missing ';' at '}' (4:5)\n`;
-    errorResult += `${apexClassPath}  Extra ':' at '}' (7:9)  \n`;
+    errorResult += `${apexClassPathOne}  Missing ';' at '}' (4:5)\n`;
+    errorResult += `${apexClassPathOne}  Extra ':' at '}' (7:9)  \n`;
 
     const results = parser.resultParser(failedApexResult);
     expect(results).to.equal(errorResult);
@@ -284,8 +334,8 @@ describe('Deploy Parser', () => {
       'PROJECT PATH               ERRORS                                                             \n';
     errorResult +=
       '─────────────────────────  ───────────────────────────────────────────────────────────────────\n';
-    errorResult += `${apexClassPath}           Could not save testAPI, : managed installed classes cannot be saved\n`;
-    errorResult += `${apexClassXmlPath}  Could not save testAPI, : managed installed classes cannot be saved\n`;
+    errorResult += `${apexClassPathOne}           Could not save testAPI, : managed installed classes cannot be saved\n`;
+    errorResult += `${apexClassXmlPathOne}  Could not save testAPI, : managed installed classes cannot be saved\n`;
 
     const results = await parser.resultParser(failedManagedPkgDeployResult);
     expect(results).to.equal(errorResult);
@@ -299,7 +349,7 @@ describe('Deploy Parser', () => {
       'PROJECT PATH      ERRORS                                 \n';
     errorResult +=
       '────────────────  ───────────────────────────────────────\n';
-    errorResult += `${apexClassPath}  Unexpected error happened during deploy\n`;
+    errorResult += `${apexClassPathOne}  Unexpected error happened during deploy\n`;
 
     const results = parser.resultParser(errorDeployResult);
     expect(results).to.equal(errorResult);
