@@ -1,3 +1,15 @@
+# 49.6.0 - August 20, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Prompts the user to remove stale files in an existing project when running the `SFDX: Create and Set Up Project for ISV Debugging` command ([PR #2407](https://github.com/forcedotcom/salesforcedx-vscode/pull/2407))
+
+#### salesforcedx-sobjects-faux-generator
+
+- Fix SObject refresh to ignore entities ending with Share, History, Feed and Event ([PR #2412](https://github.com/forcedotcom/salesforcedx-vscode/pull/2412))
+
 # 49.5.0 - August 13, 2020
 
 ## Fixed
@@ -16,7 +28,7 @@
 
 #### docs
 
-- Add docs for [Using Windows Subsystem for Linux (WSL) 2](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/#using-windows-subsystem-for-linux-wsl-2)  ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
+- Add docs for [Using Windows Subsystem for Linux (WSL) 2](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/#using-windows-subsystem-for-linux-wsl-2) ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
 
 #### salesforcedx-vscode
 
