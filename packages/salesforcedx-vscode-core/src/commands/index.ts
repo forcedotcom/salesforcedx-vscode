@@ -163,3 +163,4 @@ export {
   handleDiffResponse
 } from './forceSourceDiff';
 export { BaseDeployExecutor } from './baseDeployCommand';
+export { forceFunctionCreate } from './templates/forceFunctionCreate';
