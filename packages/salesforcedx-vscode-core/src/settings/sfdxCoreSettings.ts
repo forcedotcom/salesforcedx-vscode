@@ -84,7 +84,7 @@ export class SfdxCoreSettings {
   public getFunctionsEnabled(): boolean {
     return this.getConfigValue(FUNCTIONS_ENABLED, false);
   }
-  
+
   public getTemplatesLibrary(): boolean {
     return this.getConfigValue(USE_TEMPLATES_LIBRARY, true);
   }
