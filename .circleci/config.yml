@@ -365,11 +365,11 @@ jobs:
           command: npm run vscode:publish
       - stage-and-store-artifacts
       - run:
-          name: 'Create git tag (e.g. v48.1.0) & push changes back to master branch'
+          name: 'Create git tag (e.g. v48.1.0) & push changes back to main branch'
           command: |
             git tag v${RELEASE_VERSION}
             git push origin v${RELEASE_VERSION}
-            git push origin master
+            git push origin main
       - sfchangecase/update:
           location: REPO_LOCATION
           release: GUS_RELEASE
@@ -448,7 +448,7 @@ workflows:
           filters:
             branches:
               only:
-                - master
+                - main
 
   create-release-branch-workflow:
     when: << pipeline.parameters.create-release >>
@@ -483,7 +483,7 @@ workflows:
             branches:
               only:
                 - develop
-                - master
+                - main
     jobs:
       - build-all
       - unit-tests
