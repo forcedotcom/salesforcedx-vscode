@@ -1,3 +1,18 @@
+<<<<<<< HEAD
+=======
+# 49.7.0 - August 27, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Update to the latest version of the Aura and LWC language servers [PR #2380](https://github.com/forcedotcom/salesforcedx-vscode/pull/2380)
+
+#### docs
+
+- Fix example under [Advanced Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup/#advanced-setup) on Java Setup page [PR #2426](https://github.com/forcedotcom/salesforcedx-vscode/pull/2426) - Contribution by ([@nabondance](https://github.com/nabondance))
+
+>>>>>>> main
 # 49.6.0 - August 20, 2020
 
 ## Fixed
