@@ -152,8 +152,14 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
         for (const filepath of response.data) {
           allComponents.push(...registryAccess.getComponentsFromPath(filepath));
         }
+
         components = allComponents.filter(
-          (cmp, index) => allComponents.indexOf(cmp) === index
+          (cmp, index, cmpList) =>
+            cmpList.findIndex(
+              comparedCmp =>
+                comparedCmp.fullName === cmp.fullName &&
+                comparedCmp.type.id === cmp.type.id
+            ) === index
         );
       }
 
