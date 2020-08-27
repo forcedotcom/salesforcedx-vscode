@@ -9,13 +9,15 @@ import * as vscode from 'vscode';
 import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
+  FUNCTIONS_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED,
-  USE_APEX_LIBRARY
+  USE_APEX_LIBRARY,
+  USE_TEMPLATES_LIBRARY
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -77,6 +79,14 @@ export class SfdxCoreSettings {
 
   public getApexLibrary(): boolean {
     return this.getConfigValue(USE_APEX_LIBRARY, true);
+  }
+
+  public getFunctionsEnabled(): boolean {
+    return this.getConfigValue(FUNCTIONS_ENABLED, false);
+  }
+
+  public getTemplatesLibrary(): boolean {
+    return this.getConfigValue(USE_TEMPLATES_LIBRARY, true);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

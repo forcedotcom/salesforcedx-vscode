@@ -30,7 +30,7 @@ import {
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
-> {
+  > {
   private metadataType: MetadataInfo;
 
   constructor(type: string) {
@@ -97,6 +97,10 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
 
   public getFileExtension(): string {
     return `.${this.metadataType.suffix}`;
+  }
+
+  public setFileExtension(extension: string): void {
+    this.metadataType.suffix = extension;
   }
 
   public getDefaultDirectory(): string {
