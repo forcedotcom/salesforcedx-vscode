@@ -13,6 +13,11 @@
 1. Send us a pull request when you are done. We'll review your code, suggest any
    needed changes, and merge it in.
 
+### Committing
+
+1. We enforce commit message format. We recommend using [commitizen](https://github.com/commitizen/cz-cli) by installing it with `npm run commit-init`. When you commit, you can either use `git cz` which will prompt you with a series of questions to format the commit message. Or you can use our VSCode Task `Commit`.
+1. Before commit and push, husky will run several hooks to ensure the commit message is in the correct format and that everything lints and compiles properly.
+
 ### CLA
 
 External contributors will be required to sign a Contributor's License
@@ -43,15 +48,15 @@ Agreement. You can do so by going to https://cla.salesforce.com/sign-cla.
 
 ### Merging `develop` into `main`
 
-- When a development cycle finishes, the content of the `develop` branch will become the `master` branch
+- When a development cycle finishes, the content of the `develop` branch will become the `main` branch
 
 ```
-$ git checkout master
+$ git checkout main
 $ git reset --hard develop
 $
 $ # Using a custom commit message for the merge below
-$ git merge -m 'Merge -s our (where _ours_ is develop) releasing stream x.y.z.' -s ours origin/master
-$ git push origin master
+$ git merge -m 'Merge -s our (where _ours_ is develop) releasing stream x.y.z.' -s ours origin/main
+$ git push origin main
 ```
 
 ## Pull Requests
