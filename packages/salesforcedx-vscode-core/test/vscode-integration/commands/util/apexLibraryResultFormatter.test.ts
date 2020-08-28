@@ -11,22 +11,24 @@ import { nls } from '../../../../src/messages';
 describe('Format Execute Anonymous Response', () => {
   it('should format result correctly for a successful execution', async () => {
     const execAnonResponse = {
-      result: {
-        compiled: true,
-        success: true,
-        exceptionMessage: '',
-        exceptionStackTrace: '',
-        line: -1,
-        column: -1,
-        compileProblem: '',
-        logs:
-          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n'
-      }
+      compiled: true,
+      success: true,
+      logs:
+        '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
+      diagnostic: [
+        {
+          lineNumber: -1,
+          columnNumber: -1,
+          compileProblem: '',
+          exceptionMessage: '',
+          exceptionStackTrace: ''
+        }
+      ]
     };
     const formattedResponse = `${nls.localize(
       'apex_execute_compile_success'
     )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
-      execAnonResponse.result.logs
+      execAnonResponse.logs
     }`;
     const result = formatExecuteResult(execAnonResponse);
     expect(result).to.equal(formattedResponse);
@@ -34,21 +36,23 @@ describe('Format Execute Anonymous Response', () => {
 
   it('should format result correctly for a compilation failure', async () => {
     const execAnonResult = {
-      result: {
-        column: 1,
-        line: 6,
-        compiled: false,
-        compileProblem: `Unexpected token '('.`,
-        exceptionMessage: '',
-        exceptionStackTrace: '',
-        success: false,
-        logs: ''
-      }
+      compiled: false,
+      success: false,
+      logs: '',
+      diagnostic: [
+        {
+          columnNumber: 1,
+          lineNumber: 6,
+          compileProblem: `Unexpected token '('.`,
+          exceptionMessage: '',
+          exceptionStackTrace: ''
+        }
+      ]
     };
     const formattedResponse = `Error: Line: ${
-      execAnonResult.result.line
-    }, Column: ${execAnonResult.result.column}\nError: ${
-      execAnonResult.result.compileProblem
+      execAnonResult.diagnostic[0].lineNumber
+    }, Column: ${execAnonResult.diagnostic[0].columnNumber}\nError: ${
+      execAnonResult.diagnostic[0].compileProblem
     }\n`;
 
     const result = formatExecuteResult(execAnonResult);
@@ -57,23 +61,25 @@ describe('Format Execute Anonymous Response', () => {
 
   it('should format result correctly for a runtime failure', async () => {
     const execAnonResult = {
-      result: {
-        column: 1,
-        line: 6,
-        compiled: true,
-        compileProblem: '',
-        exceptionMessage: 'System.AssertException: Assertion Failed',
-        exceptionStackTrace: 'AnonymousBlock: line 1, column 1',
-        success: false,
-        logs:
-          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n'
-      }
+      compiled: true,
+      success: false,
+      logs:
+        '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
+      diagnostic: [
+        {
+          columnNumber: 1,
+          lineNumber: 6,
+          compileProblem: '',
+          exceptionMessage: 'System.AssertException: Assertion Failed',
+          exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
+        }
+      ]
     };
     const formattedResponse = `${nls.localize(
       'apex_execute_compile_success'
-    )}\nError: ${execAnonResult.result.exceptionMessage}\nError: ${
-      execAnonResult.result.exceptionStackTrace
-    }\n\n${execAnonResult.result.logs}`;
+    )}\nError: ${execAnonResult.diagnostic[0].exceptionMessage}\nError: ${
+      execAnonResult.diagnostic[0].exceptionStackTrace
+    }\n\n${execAnonResult.logs}`;
 
     const result = formatExecuteResult(execAnonResult);
     expect(result).to.equal(formattedResponse);

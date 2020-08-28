@@ -54,20 +54,50 @@ describe('Force Source Deploy with Sourcepath Beta', () => {
   });
 
   describe('useBetaDeployRetrieve', () => {
-    it('Should return false for multiple valid URI when beta configuration is enabled', () => {
+    it('Should return false for multiple unsupported type URI when beta configuration is enabled', () => {
       sandboxStub
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
       const components = [];
-      components.push(createComponent(registryData.types.apexclass, 'cls'));
+      components.push(createComponent(registryData.types.bot, 'js', 'car.bot'));
       components.push(
-        createComponent(registryData.types.apextrigger, 'trigger')
+        createComponent(
+          registryData.types.lightningcomponentbundle,
+          'js',
+          'bar.html'
+        )
       );
       registryStub.returns(components);
-      const uriOne = vscode.Uri.parse('file:///bar.cls');
-      const uriTwo = vscode.Uri.parse('file:///bar.trigger');
+      const uriOne = vscode.Uri.parse('file:///car.bot');
+      const uriTwo = vscode.Uri.parse('file:///bar.html');
       const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
       expect(multipleFileProcessing).to.equal(false);
+    });
+
+    it('Should return true for multiple valid URI when beta configuration is enabled', () => {
+      sandboxStub
+        .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
+        .returns(true);
+      const components = [];
+      components.push(
+        createComponent(
+          registryData.types.lightningcomponentbundle,
+          'js',
+          'car.html'
+        )
+      );
+      components.push(
+        createComponent(
+          registryData.types.lightningcomponentbundle,
+          'js',
+          'bar.html'
+        )
+      );
+      registryStub.returns(components);
+      const uriOne = vscode.Uri.parse('file:///car.html');
+      const uriTwo = vscode.Uri.parse('file:///bar.html');
+      const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
+      expect(multipleFileProcessing).to.equal(true);
     });
 
     it('Should return false for URI not part of the beta when the beta configuration is enabled', () => {

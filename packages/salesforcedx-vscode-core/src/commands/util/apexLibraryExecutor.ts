@@ -62,7 +62,7 @@ export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{}> 
       channelService.appendLine(formattedResult);
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
 
-      if (result.result.compiled && result.result.success) {
+      if (result.compiled && result.success) {
         ApexLibraryExecutor.errorCollection.clear();
         await notificationService.showSuccessfulExecution(commandName);
       } else {

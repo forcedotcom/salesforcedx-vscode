@@ -137,21 +137,28 @@ export function handleApexLibraryDiagnostics(
   filePath: string
 ) {
   errorCollection.clear();
-  const range = getRange(
-    apexResult.result.line ? apexResult.result.line.toString() : '1',
-    apexResult.result.column ? apexResult.result.column.toString() : '1'
-  );
+  if (apexResult.diagnostic) {
+    const range = getRange(
+      apexResult.diagnostic[0].lineNumber
+        ? apexResult.diagnostic[0].lineNumber.toString()
+        : '1',
+      apexResult.diagnostic[0].columnNumber
+        ? apexResult.diagnostic[0].columnNumber.toString()
+        : '1'
+    );
 
-  const diagnostic = {
-    message:
-      typeof apexResult.result.compileProblem === 'string'
-        ? apexResult.result.compileProblem
-        : apexResult.result.exceptionMessage,
-    severity: vscode.DiagnosticSeverity.Error,
-    source: filePath,
-    range
-  } as vscode.Diagnostic;
+    const diagnostic = {
+      message:
+        typeof apexResult.diagnostic[0].compileProblem === 'string'
+          ? apexResult.diagnostic[0].compileProblem
+          : apexResult.diagnostic[0].exceptionMessage,
+      severity: vscode.DiagnosticSeverity.Error,
+      source: filePath,
+      range
+    } as vscode.Diagnostic;
 
-  errorCollection.set(vscode.Uri.file(filePath), [diagnostic]);
+    errorCollection.set(vscode.Uri.file(filePath), [diagnostic]);
+  }
+
   return errorCollection;
 }
