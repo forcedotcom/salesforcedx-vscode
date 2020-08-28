@@ -86,23 +86,24 @@ export class LibraryDeployResultParser {
   }
 
   private buildSuccesses(result: SourceDeployResult) {
-    let success: ComponentSuccess[] = [];
+    const successes: ComponentSuccess[] = [];
     const { components: deployments } = result;
 
     if (deployments) {
       for (const deployment of deployments) {
         const { component } = deployment;
         const listOfFiles = [...component.walkContent(), component.xml];
-        success = listOfFiles.map(file => ({
+        const success = listOfFiles.map(file => ({
           state: deployment.status,
           fullName: component.fullName,
           type: component.type.name,
           filePath: file
         }));
+        successes.push(...success);
       }
     }
 
-    return success;
+    return successes;
   }
 
   private buildErrors(result: SourceDeployResult) {
