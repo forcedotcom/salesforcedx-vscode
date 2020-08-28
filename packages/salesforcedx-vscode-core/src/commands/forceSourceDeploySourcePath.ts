@@ -131,6 +131,11 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
 }
 
 export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
+  private hashElement(component: SourceComponent): string {
+    const hashed = `${component.fullName}.${component.type.id}`;
+    return hashed;
+  }
+
   public async execute(
     response: ContinueResponse<string | string[]>
   ): Promise<void> {
@@ -153,14 +158,14 @@ export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecut
           allComponents.push(...registryAccess.getComponentsFromPath(filepath));
         }
 
-        components = allComponents.filter(
-          (cmp, index, cmpList) =>
-            cmpList.findIndex(
-              comparedCmp =>
-                comparedCmp.fullName === cmp.fullName &&
-                comparedCmp.type.id === cmp.type.id
-            ) === index
-        );
+        const hashedCmps = new Set();
+        components = allComponents.filter(component => {
+          const hashed = this.hashElement(component);
+          if (!hashedCmps.has(hashed)) {
+            hashedCmps.add(hashed);
+            return component;
+          }
+        });
       }
 
       const projectNamespace = (await SfdxProjectConfig.getValue(
