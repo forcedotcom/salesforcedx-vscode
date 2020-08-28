@@ -6,8 +6,14 @@
       "label": "Bootstrap",
       "command": "npm",
       "type": "shell",
-      "presentation": { "focus": false, "panel": "shared" },
-      "args": ["run", "bootstrap"],
+      "presentation": {
+        "focus": false,
+        "panel": "shared"
+      },
+      "args": [
+        "run",
+        "bootstrap"
+      ],
       "isBackground": false
     },
     {
@@ -18,7 +24,38 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": ["run", "clean"],
+      "args": [
+        "run",
+        "clean"
+      ],
+      "isBackground": false
+    },
+    {
+      "label": "Commit",
+      "command": "npm",
+      "type": "shell",
+      "presentation": {
+        "focus": true,
+        "panel": "shared",
+      },
+      "args": [
+        "run",
+        "commit"
+      ],
+      "isBackground": false
+    },
+    {
+      "label": "Commitizen Initialization",
+      "command": "npm",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "shared",
+      },
+      "args": [
+        "run",
+        "commit-init"
+      ],
       "isBackground": false
     },
     {
@@ -33,7 +70,10 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "compile"],
+      "args": [
+        "run",
+        "compile"
+      ],
       "isBackground": false,
       "problemMatcher": {
         "owner": "typescript",
@@ -52,7 +92,9 @@
       "label": "Create Release Branch",
       "command": "./scripts/create-release-branch-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}"]
+      "args": [
+        "${input:circleCiId}"
+      ]
     },
     {
       "label": "Lint",
@@ -62,14 +104,19 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "lint"],
+      "args": [
+        "run",
+        "lint"
+      ],
       "isBackground": false
     },
     {
       "label": "Publish Extensions",
       "command": "./scripts/publish-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}"]
+      "args": [
+        "${input:circleCiId}"
+      ]
     },
     {
       "label": "Watch",
@@ -80,7 +127,10 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "watch"],
+      "args": [
+        "run",
+        "watch"
+      ],
       "isBackground": true,
       "problemMatcher": "$tsc-watch"
     }

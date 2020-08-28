@@ -3,6 +3,7 @@
 [![CircleCI](https://circleci.com/gh/forcedotcom/salesforcedx-vscode.svg?style=svg)](https://circleci.com/gh/forcedotcom/salesforcedx-vscode)
 [![Dev Dependencies](https://david-dm.org/forcedotcom/salesforcedx-vscode/dev-status.svg)](contributing/dependencies.md)
 [![codecov](https://codecov.io/gh/forcedotcom/salesforcedx-vscode/branch/develop/graph/badge.svg)](https://codecov.io/gh/forcedotcom/salesforcedx-vscode)
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
 ## Introduction
 
