@@ -82,7 +82,7 @@ Any syntax errors such as a missing semi-colon or a bracket are marked with a re
 
 ## Quick Fix
 
-When you reference a method that isn’t declared in your source, use the Quick Fix widget to automatically declare the method.
+When you reference a method that isn’t declared in your source, use the Quick Fix widget to automatically declare the method. To enable the Quick Fix widget, turn on the `salesforcedx-vscode-apex.enable-semantic-errors` setting.
 
 Declare Missing Methods quick fix can be invoked in the following ways:
 
