@@ -13,7 +13,7 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox } from 'sinon';
-import { SObjectCategory, SObjectDescribe } from '../../src/describe';
+import { SObject, SObjectCategory, SObjectDescribe } from '../../src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshResult,
@@ -85,7 +85,40 @@ describe('Generate faux classes for SObjects', () => {
     expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
   });
 
-  it('Should fail if outside a project', async () => {
+  it('Should emit an error event on failure, generateMin', async () => {
+    let errorMessage = '';
+    let stderrInfo = '';
+    let exitCode: number = LocalCommandExecution.SUCCESS_CODE;
+    let rejectOutput: any;
+    const generator = getGenerator();
+    emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: Error) => {
+      errorMessage = data.message;
+    });
+    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+      exitCode = data;
+    });
+    emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
+      stderrInfo = data;
+    });
+
+    try {
+      await generator.generateMin(projectPath, SObjectRefreshSource.StartupMin);
+    } catch ({ error }) {
+      rejectOutput = error;
+    }
+    expect(rejectOutput.message).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+    expect(errorMessage).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+    expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
+    expect(stderrInfo).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+  });
+
+  it('Should fail if outside a DX project', async () => {
     let result: SObjectRefreshResult;
     const generator = getGenerator();
 
@@ -95,7 +128,25 @@ describe('Generate faux classes for SObjects', () => {
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Manual
       );
-      fail(result, 'undefined', 'generator should have thrown an error');
+      fail('generator should have thrown an error');
+    } catch ({ error }) {
+      expect(error.message).to.contain(
+        nls.localize('no_generate_if_not_in_project', '')
+      );
+      return;
+    }
+  });
+
+  it('Should fail if calling generateMin outside a DX project', async () => {
+    let result: SObjectRefreshResult;
+    const generator = getGenerator();
+
+    try {
+      result = await generator.generateMin(
+        projectPath,
+        SObjectRefreshSource.StartupMin
+      );
+      fail('generator should have thrown an error');
     } catch ({ error }) {
       expect(error.message).to.contain(
         nls.localize('no_generate_if_not_in_project', '')
@@ -121,6 +172,19 @@ describe('Generate faux classes for SObjects', () => {
       projectPath,
       SObjectCategory.CUSTOM,
       SObjectRefreshSource.Manual
+    );
+    expect(result.data.cancelled).to.be.true;
+  });
+
+  it('Should be cancellable, generateMin', async () => {
+    env.stub(fs, 'existsSync').returns(true);
+
+    const generator = getGenerator();
+    cancellationTokenSource.cancel();
+
+    const result = await generator.generateMin(
+      projectPath,
+      SObjectRefreshSource.StartupMin
     );
     expect(result.data.cancelled).to.be.true;
   });
@@ -199,6 +263,43 @@ describe('Generate faux classes for SObjects', () => {
       expect(stdoutInfo).to.contain(
         nls.localize('fetched_sobjects_length_text', 1, 'Standard')
       );
+    });
+  });
+
+  describe('Check generateMin results', () => {
+    beforeEach(() => {
+      env.stub(fs, 'existsSync').returns(true);
+      env.stub(Connection.prototype, 'request').resolves(mockDescribeResponse);
+      env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
+    });
+
+    it('Should log the number of created faux classes on generateMin success', async () => {
+      const generator = getGenerator();
+      let stdoutInfo = '';
+      let result: SObjectRefreshResult;
+      emitter.addListener(
+        LocalCommandExecution.STDOUT_EVENT,
+        (data: string) => {
+          stdoutInfo = data;
+        }
+      );
+      let exitCode = LocalCommandExecution.FAILURE_CODE;
+      emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+        exitCode = data;
+      });
+
+      result = await generator.generateMin(
+        projectPath,
+        SObjectRefreshSource.StartupMin
+      );
+
+      expect(result.error).to.be.undefined;
+      expect(result.data.standardObjects).to.eql(16);
+      expect(result.data.customObjects).to.eql(0);
+      expect(stdoutInfo).to.contain(
+        nls.localize('fetched_sobjects_length_text', 16, 'Standard')
+      );
+      expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
     });
   });
 });
