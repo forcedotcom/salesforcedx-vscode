@@ -541,5 +541,7 @@ export const messages = {
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
-  force_function_enter_language: 'Select a language for your function'
+  force_function_enter_language: 'Select a language for your function',
+  force_function_pull_dependencies_error: "Error pulling dependencies. Try running 'npm install' for the function yourself",
+  force_function_should_run_post_install: 'Should pull dependencies after function creation'
 };

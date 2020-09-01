@@ -46,6 +46,11 @@ export type DirFileNameSelection = {
    * Relative workspace path to save the component
    */
   outputdir: string;
+
+  /**
+   * Option parameter to run post install scripts
+   */
+  postInstall?: string;
 };
 
 /**

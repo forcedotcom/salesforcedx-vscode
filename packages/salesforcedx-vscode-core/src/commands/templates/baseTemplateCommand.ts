@@ -60,6 +60,9 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
           this.getPathToSource(response.data.outputdir, response.data.fileName)
         );
         vscode.window.showTextDocument(document);
+        if (response.data.postInstall === 'yes') {
+          this.runPostCommandTasks(path.dirname(this.getPathToSource(response.data.outputdir, response.data.fileName)));
+        }
       }
     });
 
@@ -70,6 +73,10 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     channelService.streamCommandOutput(execution);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+
+  protected runPostCommandTasks(outputDir: string) {
+    // By default do nothing
   }
 
   private identifyDirType(outputDirectory: string): string {
