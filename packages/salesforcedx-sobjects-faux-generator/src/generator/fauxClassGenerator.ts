@@ -31,14 +31,32 @@ import { nls } from '../messages';
 
 export const INDENT = '    ';
 const MODIFIER = 'global';
-
+const startupMinSObjects = [
+  'Account',
+  'Attachment',
+  'Case',
+  'Contact',
+  'Contract',
+  'Lead',
+  'Note',
+  'Opportunity',
+  'Order',
+  'Pricebook2',
+  'PricebookEntry',
+  'Product2',
+  'RecordType',
+  'Report',
+  'Task',
+  'User'
+];
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
 
 export enum SObjectRefreshSource {
   Manual = 'manual',
-  Startup = 'startup'
+  Startup = 'startup',
+  StartupMin = 'startupmin'
 }
 
 export interface FieldDeclaration {
@@ -214,6 +232,82 @@ export class FauxClassGenerator {
 
     try {
       this.generateFauxClasses(customSObjects, customSObjectsFolderPath);
+    } catch (errorMessage) {
+      return this.errorExit(errorMessage);
+    }
+
+    return this.successExit();
+  }
+
+  public async generateMin(
+    projectPath: string,
+    source: SObjectRefreshSource
+  ): Promise<SObjectRefreshResult> {
+    this.result = {
+      data: { category: SObjectCategory.STANDARD, source, cancelled: false }
+    };
+    const sobjectsFolderPath = path.join(
+      projectPath,
+      SFDX_DIR,
+      TOOLS_DIR,
+      SOBJECTS_DIR
+    );
+    const standardSObjectsFolderPath = path.join(
+      sobjectsFolderPath,
+      STANDARDOBJECTS_DIR
+    );
+
+    if (
+      !fs.existsSync(projectPath) ||
+      !fs.existsSync(path.join(projectPath, SFDX_PROJECT_FILE))
+    ) {
+      return this.errorExit(
+        nls.localize('no_generate_if_not_in_project', sobjectsFolderPath)
+      );
+    }
+    this.cleanupSObjectFolders(sobjectsFolderPath, SObjectCategory.STANDARD);
+
+    const connection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: await ConfigUtil.getUsername(projectPath)
+      })
+    });
+
+    const describe = new SObjectDescribe(connection);
+    const standardSObjects: SObject[] = [];
+    let fetchedSObjects: SObject[] = [];
+    let j = 0;
+    while (j < startupMinSObjects.length) {
+      try {
+        if (
+          this.cancellationToken &&
+          this.cancellationToken.isCancellationRequested
+        ) {
+          return this.cancelExit();
+        }
+        fetchedSObjects = fetchedSObjects.concat(
+          await describe.describeSObjectBatch(startupMinSObjects, j)
+        );
+        j = fetchedSObjects.length;
+      } catch (errorMessage) {
+        return this.errorExit(
+          nls.localize('failure_in_sobject_describe_text', errorMessage)
+        );
+      }
+    }
+
+    // tslint:disable-next-line:prefer-for-of
+    for (let i = 0; i < fetchedSObjects.length; i++) {
+      standardSObjects.push(fetchedSObjects[i]);
+    }
+
+    this.result.data.standardObjects = standardSObjects.length;
+    this.result.data.customObjects = 0;
+
+    this.logFetchedObjects(standardSObjects, []);
+
+    try {
+      this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
     } catch (errorMessage) {
       return this.errorExit(errorMessage);
     }
