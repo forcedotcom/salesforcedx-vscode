@@ -33,8 +33,6 @@ export class TypeUtils {
   public static readonly UNSUPPORTED_TYPES = new Set([
     'InstalledPackage',
     'Profile',
-    'ProfilePasswordPolicy',
-    'ProfileSessionSetting',
     'Scontrol'
   ]);
 
