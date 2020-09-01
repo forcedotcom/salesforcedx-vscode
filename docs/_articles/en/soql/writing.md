@@ -11,11 +11,11 @@ To learn about how to use the Salesforce Object Query Language (SOQL), see [SOQL
 
 ## SOQL Files
 
-VS Code supports writing SOQL in both Apex files and stand-alone `.soql` files. When writing `.soql` files, it is recommended, that the file is located outside the directories registered in your `sfdx-project.json` because this is not a file to deploy to your org. The purpose of the `.soql` file is to provide a way to build and test SOQL query before you import it to your Apex code. By default, a new project has a folder `scripts/soql` that contains an example `accounts.soql` file. You can use this folder to save all of your SOQL Queries.
+VS Code supports writing SOQL in both Apex files and standalone `.soql` files. When writing `.soql` files, we recommend that the file is located outside the directories registered in your `sfdx-project.json` because this is not a file to deploy to your org. The purpose of the `.soql` file is to provide a way to build and test a SOQL query before you import it to your Apex code. By default, a new project has a folder `scripts/soql` that contains an example `accounts.soql` file. You can use this folder to save all of your SOQL queries.
 
 ## Code Completions
 
-VS Code supports code completions for SOQL `.soql` files (and will eventually support code completion in Apex files). In order to use this feature, you must refresh the SObject definitions so that the SOQL language server can provide code completion suggestions. Run `SFDX: Refresh SObject Definitions` from the Command Palette.
+VS Code supports code completions for SOQL `.soql` files (and will eventually support code completion in Apex files). To use this feature, you must refresh the SObject definitions so that the SOQL language server can provide code completion suggestions. Run `SFDX: Refresh SObject Definitions` from the Command Palette.
 
 - To see code completion suggestions, press Ctrl+space when you’re working in a `.soql` file.
 - To navigate between the suggestions, use the arrow keys.
@@ -25,16 +25,16 @@ VS Code supports code completions for SOQL `.soql` files (and will eventually su
 
 ## Execute SOQL Text
 
-In order to execute SOQL you can simply select the text and run the command `SFDX: Execute SOQL Query with Currently Selected Text`. You can choose to execute your query against the REST or Tooling APIs.
+To execute SOQL you can simply select the text and run the command `SFDX: Execute SOQL Query with Currently Selected Text`. You can choose to execute your query against the REST or Tooling APIs.
 
 ![SFDX: Execute SOQL Query with Currently Selected Text](./images/soql_text.png)
 
-After the query is executed the results will display in the output pane.
+After the query is executed the results display in the output pane.
 
 ![SFDX: Execute SOQL Query with Currently Selected Text](./images/soql_results.png)
 
 ## Execute SOQL Inline
 
-If you simply want to write a query and execute it without saving it to a file, you can use the command `SFDX: Execute SOQL Query...` and enter the SOQL directly into the command bar. The results will display in the output pane.
+To write a query and execute it without saving it to a file, you can use the command `SFDX: Execute SOQL Query...` and enter the SOQL directly into the command bar. The results display in the output pane.
 
 ![SFDX: Execute SOQL Query...](./images/soql_command.png)
