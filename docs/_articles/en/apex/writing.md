@@ -19,7 +19,7 @@ If you want to change how suggestions are pre-selected, see [IntelliSense - Sugg
 
 ## Code Snippets
 
-Code snippets are available for scaffolding class and interface definitions, a variety of statements such as loops and conditional statements etc. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code completion suggestions.
+Code snippets are available for scaffolding class and interface definitions, and a variety of statements such as loops and conditional statements, and so on. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code completion suggestions.
 
 If you want to define your own code snippets, read [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
 
@@ -98,8 +98,8 @@ Declare Missing Methods quick fix can be invoked in the following ways:
 
 ## Anonymous Apex
 
-You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways. First, just select any Apex code and run the command `SFDX: Execute Anonymous Apex with Currently Selected Text`. Additionally, if you want to execute the entire context of a file you can run the command `SFDX: Execute Anonymous Apex with Editor Contents`. In either case, the result of the executed code will be printed to the output pane.
+You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways. First, just select any Apex code and run the command `SFDX: Execute Anonymous Apex with Currently Selected Text`. Additionally, if you want to execute the entire context of a file, you can run the command `SFDX: Execute Anonymous Apex with Editor Contents`. In either case, the result of the executed code is printed to the output pane.
 
 ![SFDX: Execute Anonymous Apex with Currently Selected Text](./images/apex_execute_selected.png)
 
-It is common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/apex` that contains an example `hello.apex` file. It is recommneded that you use this folder to create your anonymous apex files using the `.apex` file extension.
+It is common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/apex` that contains an example `hello.apex` file. It's recommneded that you use this folder to create your anonymous Apex files using the `.apex` file extension.
