@@ -11,7 +11,7 @@ Features Provided by the Visualforce Extension
   - HTML tags
   - CSS
   - JavaScript
-    ![Code-completion options and associated documentation in a .page file](./images/visualforce_completion.png)
+    ![Code completion options and associated documentation in a .page file](./images/visualforce_completion.png)
 
 - Syntax highlighting in some sections of various files (`.page`, `.component`, `.app`, and so on)
 
