@@ -10,9 +10,12 @@ import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
 
-const sfdxCoreExports = vscode.extensions.getExtension(
+const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
-)!.exports;
+);
+const sfdxCoreExports = sfdxCoreExtension
+  ? sfdxCoreExtension.exports
+  : undefined;
 const { OrgAuthInfo } = sfdxCoreExports;
 
 interface SoqlEditorEvent {
@@ -141,11 +144,15 @@ export class SOQLEditorInstance {
           break;
         }
         case MessageType.SOBJECT_METADATA_REQUEST: {
-          this.retrieveSObject(e.message).catch(() => {});
+          this.retrieveSObject(e.message).catch(() => {
+            // TODO: telemetry
+          });
           break;
         }
         case MessageType.SOBJECTS_REQUEST: {
-          this.retrieveSObjects().catch(() => {});
+          this.retrieveSObjects().catch(() => {
+            // TODO: telemetry
+          });
           break;
         }
         default: {
