@@ -37,9 +37,9 @@ Supercharge the Git capabilities built into VS Code: Visualize code authorship a
 
 <https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens>
 
-## Salesforce Code Snippets
+## Code Snippets for Salesforce
 
-A set of Snippets for Salesforce Component Development
+A set of Snippets for Salesforce Component Development. We bring HTML, JavaScript, SLDS Component Blueprints, Aura and LWC specific Blueprints, and SLDS classes directly to your Visual Studio Code editor.
 
 <https://marketplace.visualstudio.com/items?itemName=Audibene.salesforcecodesnippets>
 
