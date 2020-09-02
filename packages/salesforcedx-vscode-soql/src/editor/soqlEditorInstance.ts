@@ -5,8 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Connection } from '@salesforce/core';
+import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
+
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const { OrgAuthInfo } = sfdxCoreExports;
 
 interface SoqlEditorEvent {
   type: string;
@@ -16,6 +23,10 @@ interface SoqlEditorEvent {
 export enum MessageType {
   ACTIVATED = 'activated',
   QUERY = 'query',
+  SOBJECT_METADATA_REQUEST = 'sobject_metadata_request',
+  SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
+  SOBJECTS_REQUEST = 'sobjects_request',
+  SOBJECTS_RESPONSE = 'sobjects_response',
   UPDATE = 'update'
 }
 
@@ -26,6 +37,8 @@ export class SOQLEditorInstance {
   private onTextDocumentChangeHandler: (
     e: vscode.TextDocumentChangeEvent
   ) => void;
+  private updateSObjects: (sobjectNames: string[]) => void;
+  private updateSObjectMetadata: (sobject: SObject) => void;
 
   // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
@@ -50,6 +63,10 @@ export class SOQLEditorInstance {
     this.onTextDocumentChangeHandler = debounce(
       this.createDocumentChangeHandler(document),
       1000
+    );
+    this.updateSObjects = this.createSObjectsUpdater(webviewPanel.webview);
+    this.updateSObjectMetadata = this.createSObjectMetadataUpdater(
+      webviewPanel.webview
     );
 
     // Update the UI when the Text Document is changed, if its the same document.
@@ -82,6 +99,28 @@ export class SOQLEditorInstance {
     };
   }
 
+  private createSObjectsUpdater(
+    webview: vscode.Webview
+  ): (sobjectNames: string[]) => void {
+    return (sobjectNames: string[]) => {
+      webview.postMessage({
+        type: MessageType.SOBJECTS_RESPONSE,
+        message: sobjectNames
+      });
+    };
+  }
+
+  private createSObjectMetadataUpdater(
+    webview: vscode.Webview
+  ): (sobject: SObject) => void {
+    return (sobject: SObject) => {
+      webview.postMessage({
+        type: MessageType.SOBJECT_METADATA_RESPONSE,
+        message: sobject
+      });
+    };
+  }
+
   private createDocumentChangeHandler(document: vscode.TextDocument) {
     return (e: vscode.TextDocumentChangeEvent) => {
       if (e.document.uri.toString() === document.uri.toString()) {
@@ -101,11 +140,41 @@ export class SOQLEditorInstance {
           this.updateTextDocument(document, e.message);
           break;
         }
+        case MessageType.SOBJECT_METADATA_REQUEST: {
+          this.retrieveSObject(e.message).catch(() => {});
+          break;
+        }
+        case MessageType.SOBJECTS_REQUEST: {
+          this.retrieveSObjects().catch(() => {});
+          break;
+        }
         default: {
           console.log('message type is not supported');
         }
       }
     };
+  }
+
+  private async retrieveSObjects(): Promise<void> {
+    const conn = await this.getConnection();
+    if (!conn) {
+      // TODO: NLS
+      throw Error('!!! error no connection !!!');
+    }
+    const sobjectService = new SObjectService(conn);
+    const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
+    this.updateSObjects(sobjectNames);
+  }
+
+  private async retrieveSObject(sobjectName: string): Promise<void> {
+    const conn = await this.getConnection();
+    if (!conn) {
+      // TODO: NLS
+      throw Error('!!! error no connection !!!');
+    }
+    const sobjectService = new SObjectService(conn);
+    const sobject: SObject = await sobjectService.describeSObject(sobjectName);
+    this.updateSObjectMetadata(sobject);
   }
 
   // Write out the json to a given document. //
@@ -131,5 +200,14 @@ export class SOQLEditorInstance {
 
   public onDispose(callback: (instance: SOQLEditorInstance) => void): void {
     this.disposedCallback = callback;
+  }
+
+  private async getConnection(): Promise<Connection> {
+    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+    if (!usernameOrAlias) {
+      // TODO: NLS
+      throw new Error('!!! error_no_default_username !!!');
+    }
+    return await OrgAuthInfo.getConnection(usernameOrAlias);
   }
 }
