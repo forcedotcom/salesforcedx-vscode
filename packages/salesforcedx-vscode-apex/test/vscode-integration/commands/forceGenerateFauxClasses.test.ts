@@ -8,6 +8,7 @@
 import {
   SFDX_DIR,
   SOBJECTS_DIR,
+  STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
@@ -17,9 +18,10 @@ import {
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import { create } from 'domain';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as sinon from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { ProgressLocation } from 'vscode';
 import {
@@ -29,21 +31,26 @@ import {
   SObjectRefreshGatherer,
   verifyUsernameAndInitSObjectDefinitions
 } from '../../../src/commands/forceGenerateFauxClasses';
-import * as forceGenerateFauxClasses from '../../../src/commands/forceGenerateFauxClasses';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const { OrgAuthInfo, ProgressNotification, SfdxCommandlet, notificationService } = sfdxCoreExports;
+const {
+  OrgAuthInfo,
+  ProgressNotification,
+  SfdxCommandlet,
+  notificationService
+} = sfdxCoreExports;
 
 describe('ForceGenerateFauxClasses', () => {
   describe('initSObjectDefinitions', () => {
-    let existsSyncStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
-    let commandletSpy: sinon.SinonSpy;
-    let notificationStub: sinon.SinonStub;
+    let sandboxStub: SinonSandbox;
+    let existsSyncStub: SinonStub;
+    let getUsernameStub: SinonStub;
+    let commandletSpy: SinonStub;
+    let notificationStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
@@ -54,17 +61,21 @@ describe('ForceGenerateFauxClasses', () => {
     );
 
     beforeEach(() => {
-      existsSyncStub = sinon.stub(fs, 'existsSync');
-      getUsernameStub = sinon.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
-      commandletSpy = sinon.stub(SfdxCommandlet.prototype, 'run');
-      notificationStub = sinon.stub(notificationService, 'showInformationMessage');
+      sandboxStub = createSandbox();
+      existsSyncStub = sandboxStub.stub(fs, 'existsSync');
+      getUsernameStub = sandboxStub.stub(
+        OrgAuthInfo,
+        'getDefaultUsernameOrAlias'
+      );
+      commandletSpy = sandboxStub.stub(SfdxCommandlet.prototype, 'run');
+      notificationStub = sandboxStub.stub(
+        notificationService,
+        'showInformationMessage'
+      );
     });
 
     afterEach(() => {
-      existsSyncStub.restore();
-      getUsernameStub.restore();
-      commandletSpy.restore();
-      notificationStub.restore();
+      sandboxStub.restore();
     });
 
     it('Should execute sobject refresh if no sobjects folder is present', async () => {
@@ -103,28 +114,35 @@ describe('ForceGenerateFauxClasses', () => {
   });
 
   describe('checkSObjectsAndRefresh', () => {
-    let existsSyncStub: sinon.SinonStub;
-    let notificationStub: sinon.SinonStub;
-    let getUsernameStub: sinon.SinonStub;
+    let sandboxStub: SinonSandbox;
+    let existsSyncStub: SinonStub;
+    let notificationStub: SinonStub;
+    let getUsernameStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
       projectPath,
       SFDX_DIR,
       TOOLS_DIR,
-      SOBJECTS_DIR
+      SOBJECTS_DIR,
+      STANDARDOBJECTS_DIR
     );
 
     beforeEach(() => {
-      existsSyncStub = sinon.stub(fs, 'existsSync');
-      notificationStub = sinon.stub(notificationService, 'showInformationMessage');
-      getUsernameStub = sinon.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
+      sandboxStub = createSandbox();
+      existsSyncStub = sandboxStub.stub(fs, 'existsSync');
+      notificationStub = sandboxStub.stub(
+        notificationService,
+        'showInformationMessage'
+      );
+      getUsernameStub = sandboxStub.stub(
+        OrgAuthInfo,
+        'getDefaultUsernameOrAlias'
+      );
     });
 
     afterEach(() => {
-      existsSyncStub.restore();
-      notificationStub.restore();
-      getUsernameStub.restore();
+      sandboxStub.restore();
     });
 
     it('Should call notification service when sobjects already exist', async () => {
@@ -160,10 +178,11 @@ describe('ForceGenerateFauxClasses', () => {
   });
 
   describe('ForceGenerateFauxClassesExecutor', () => {
-    let progressStub: sinon.SinonStub;
-    let generatorStub: sinon.SinonStub;
-    let logStub: sinon.SinonStub;
-    let errorStub: sinon.SinonStub;
+    let sandboxStub: SinonSandbox;
+    let progressStub: SinonStub;
+    let generatorStub: SinonStub;
+    let logStub: SinonStub;
+    let errorStub: SinonStub;
 
     const expectedData: any = {
       cancelled: false,
@@ -172,22 +191,20 @@ describe('ForceGenerateFauxClasses', () => {
     };
 
     beforeEach(() => {
-      progressStub = sinon.stub(ProgressNotification, 'show');
-      generatorStub = sinon
+      sandboxStub = createSandbox();
+      progressStub = sandboxStub.stub(ProgressNotification, 'show');
+      generatorStub = sandboxStub
         .stub(FauxClassGenerator.prototype, 'generate')
         .returns({ data: expectedData });
-      logStub = sinon.stub(
+      logStub = sandboxStub.stub(
         ForceGenerateFauxClassesExecutor.prototype,
         'logMetric'
       );
-      errorStub = sinon.stub(telemetryService, 'sendErrorEvent');
+      errorStub = sandboxStub.stub(telemetryService, 'sendErrorEvent');
     });
 
     afterEach(() => {
-      progressStub.restore();
-      generatorStub.restore();
-      logStub.restore();
-      errorStub.restore();
+      sandboxStub.restore();
     });
 
     it('Should pass response data to generator', async () => {
@@ -195,6 +212,30 @@ describe('ForceGenerateFauxClasses', () => {
       expect(generatorStub.firstCall.args.slice(1)).to.eql([
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Startup
+      ]);
+    });
+
+    it('Should pass response data to generatorMin', async () => {
+      // await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
+      const generatorMinStub = sandboxStub
+        .stub(FauxClassGenerator.prototype, 'generateMin')
+        .returns({
+          data: {
+            cancelled: false,
+            standardObjects: 16,
+            customObjects: 0
+          }
+        });
+      const executor = new ForceGenerateFauxClassesExecutor();
+      await executor.execute({
+        type: 'CONTINUE',
+        data: {
+          category: SObjectCategory.STANDARD,
+          source: SObjectRefreshSource.StartupMin
+        }
+      });
+      expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
+        SObjectRefreshSource.StartupMin
       ]);
     });
 
@@ -236,15 +277,17 @@ describe('ForceGenerateFauxClasses', () => {
 
   describe('SObjectRefreshGatherer', () => {
     let gatherer: SObjectRefreshGatherer;
-    let quickPickStub: sinon.SinonStub;
+    let sandboxStub: SinonSandbox;
+    let quickPickStub: SinonStub;
 
     beforeEach(() => {
+      sandboxStub = createSandbox();
       gatherer = new SObjectRefreshGatherer();
-      quickPickStub = sinon.stub(vscode.window, 'showQuickPick');
+      quickPickStub = sandboxStub.stub(vscode.window, 'showQuickPick');
       quickPickStub.returns(nls.localize('sobject_refresh_all'));
     });
 
-    afterEach(() => quickPickStub.restore());
+    afterEach(() => sandboxStub.restore());
 
     it('Should return All sObjects', async () => {
       quickPickStub.returns(nls.localize('sobject_refresh_all'));
