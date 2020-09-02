@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ApexTriggerOptions, TemplateType } from '@salesforce/templates';
+
 import {
   Command,
   SfdxCommandBuilder
@@ -12,6 +14,7 @@ import {
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -22,10 +25,33 @@ import {
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import {
   APEX_TRIGGER_DIRECTORY,
   APEX_TRIGGER_TYPE
 } from './metadataTypeConstants';
+
+export class LibraryForceApexTriggerCreateExecutor extends LibraryBaseTemplateCommand<
+  DirFileNameSelection
+> {
+  public executionName = nls.localize('force_apex_trigger_create_text');
+  public telemetryName = 'force_apex_trigger_create';
+  public metadataTypeName = APEX_TRIGGER_TYPE;
+  public templateType = TemplateType.ApexTrigger;
+  public getOutputFileName(data: DirFileNameSelection) {
+    return data.fileName;
+  }
+  public constructTemplateOptions(data: DirFileNameSelection) {
+    const templateOptions: ApexTriggerOptions = {
+      outputdir: data.outputdir,
+      triggername: data.fileName,
+      triggerevents: ['before insert'],
+      sobject: 'SOBJECT',
+      template: 'ApexTrigger'
+    };
+    return templateOptions;
+  }
+}
 
 export class ForceApexTriggerCreateExecutor extends BaseTemplateCommand {
   constructor() {
@@ -48,6 +74,9 @@ const outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(APEX_TRIGGER_TYPE);
 
 export async function forceApexTriggerCreate() {
+  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
+    ? new LibraryForceApexTriggerCreateExecutor()
+    : new ForceApexTriggerCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -55,7 +84,7 @@ export async function forceApexTriggerCreate() {
       fileNameGatherer,
       outputDirGatherer
     ),
-    new ForceApexTriggerCreateExecutor(),
+    createTemplateExecutor,
     new OverwriteComponentPrompt()
   );
   await commandlet.run();

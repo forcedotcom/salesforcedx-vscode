@@ -7,21 +7,16 @@
 
 import {
   RegistryAccess,
-  registryData
+  registryData,
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { MetadataComponent } from '@salesforce/source-deploy-retrieve/lib/types';
+import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { sfdxCoreSettings } from '../../settings';
 
-export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
-  if (explorerPath.length > 1) {
-    return false;
-  }
-  const filePath = explorerPath[0].fsPath;
+export function useBetaDeployRetrieve(explorerPaths: vscode.Uri[]): boolean {
   const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
   const registry = new RegistryAccess();
-  const component = registry.getComponentsFromPath(filePath)[0];
-  const typeName = component.type.name;
   const {
     auradefinitionbundle,
     lightningcomponentbundle,
@@ -31,14 +26,27 @@ export function useBetaDeployRetrieve(explorerPath: vscode.Uri[]): boolean {
     apextrigger
   } = registryData.types;
 
-  const supportedType =
-    typeName === auradefinitionbundle.name ||
-    typeName === lightningcomponentbundle.name ||
-    typeName === apexclass.name ||
-    typeName === apexcomponent.name ||
-    typeName === apexpage.name ||
-    typeName === apextrigger.name;
-  return betaDeployRetrieve && supportedType;
+  const components: SourceComponent[] = [];
+  for (const expPath of explorerPaths) {
+    const filePath = expPath.fsPath;
+    components.push(...registry.getComponentsFromPath(filePath));
+  }
+  for (const cmp of components) {
+    const typeName = cmp.type.name;
+    if (
+      !(
+        typeName === auradefinitionbundle.name ||
+        typeName === lightningcomponentbundle.name ||
+        typeName === apexclass.name ||
+        typeName === apexcomponent.name ||
+        typeName === apexpage.name ||
+        typeName === apextrigger.name
+      )
+    ) {
+      return false;
+    }
+  }
+  return betaDeployRetrieve;
 }
 
 export function createComponentCount(components: MetadataComponent[]) {

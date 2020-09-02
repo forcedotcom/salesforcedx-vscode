@@ -4,273 +4,256 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import {
-  DeployResult,
-  DeployStatusEnum
+  ComponentStatus,
+  DeployStatus,
+  registryData,
+  SourceComponent,
+  SourceDeployResult,
+  ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { LibraryDeployResultParser } from '../../../../src/commands/util/libraryDeployResultParser';
+import { LibraryDeployResultParser } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 
-describe('Tooling Deploy Parser', () => {
-  const completeDeployResult: DeployResult = {
-    State: DeployStatusEnum.Completed,
-    ErrorMsg: null,
-    isDeleted: false,
-    outboundFiles: ['classes/testAPI.cls', 'classes/testAPI.cls-meta.xml'],
-    DeployDetails: {
-      componentFailures: [],
-      componentSuccesses: [
-        {
-          problem: 'null',
-          problemType: 'null',
-          fileName: 'classes/testAPI.cls',
-          fullName: 'testAPI',
-          componentType: 'ApexClass',
-          success: true,
-          changed: true,
-          created: false,
-          deleted: false
-        }
-      ]
+describe('Deploy Parser', () => {
+  const apexClassPathOne = path.join('classes', 'test.cls');
+  const apexClassXmlPathOne = `${apexClassPathOne}-meta.xml`;
+  const apexClassPathTwo = path.join('classes', 'testTwo.cls');
+  const apexClassXmlPathTwo = `${apexClassPathTwo}-meta.xml`;
+  const lwcJsPath = path.join('lwc', 'test', 'test.js');
+  const lwcXmlPath = `${lwcJsPath}-meta.xml`;
+  const apexComponentOne = SourceComponent.createVirtualComponent(
+    {
+      name: 'test',
+      type: registryData.types.apexclass,
+      xml: apexClassXmlPathOne,
+      content: apexClassPathOne
     },
-    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
-  };
+    [
+      {
+        dirPath: 'classes',
+        children: ['test.cls', 'test.cls-meta.xml']
+      }
+    ]
+  );
+  const apexComponentTwo = SourceComponent.createVirtualComponent(
+    {
+      name: 'test',
+      type: registryData.types.apexclass,
+      xml: apexClassXmlPathTwo,
+      content: apexClassPathTwo
+    },
+    [
+      {
+        dirPath: 'classes',
+        children: ['testTwo.cls', 'testTwo.cls-meta.xml']
+      }
+    ]
+  );
+  const lwcComponent = SourceComponent.createVirtualComponent(
+    {
+      name: 'test',
+      type: registryData.types.lightningcomponentbundle,
+      xml: lwcXmlPath,
+      content: path.join('lwc', 'test')
+    },
+    [
+      {
+        dirPath: 'lwc',
+        children: ['test']
+      },
+      {
+        dirPath: path.join('lwc', 'test'),
+        children: ['test.js', 'test.js-meta.xml']
+      }
+    ]
+  );
 
-  const lwcCompleteDeployResult: DeployResult = {
-    State: DeployStatusEnum.Completed,
-    ErrorMsg: null,
-    isDeleted: false,
-    outboundFiles: [
-      'classes/testAPI.js',
-      'classes/testAPI.js-meta.xml',
-      'classes/testAPI.html'
-    ],
-    DeployDetails: {
-      componentFailures: [],
-      componentSuccesses: [
-        {
-          problem: 'null',
-          problemType: 'null',
-          fileName: 'classes/testAPI.js',
-          fullName: 'testAPI',
-          componentType: 'LightningComponentBundle',
-          success: true,
-          changed: true,
-          created: false,
-          deleted: false
-        }
-      ]
-    },
-    metadataFile: path.join('file', 'path', 'classes', 'testAPI.js-meta.xml')
+  const completeApexResult: SourceDeployResult = {
+    success: true,
+    id: '',
+    status: ToolingDeployStatus.Completed,
+    components: [
+      {
+        component: apexComponentOne,
+        status: ComponentStatus.Changed,
+        diagnostics: []
+      }
+    ]
   };
-
-  const failedDeployResult: DeployResult = {
-    State: DeployStatusEnum.Failed,
-    ErrorMsg: null,
-    isDeleted: false,
-    DeployDetails: {
-      componentFailures: [
-        {
-          columnNumber: 5,
-          lineNumber: 4,
-          problem: "Missing ';' at '}'",
-          problemType: 'Error',
-          fileName: 'classes/testAPI.cls',
-          fullName: 'testAPI',
-          componentType: 'ApexClass',
-          success: false,
-          changed: false,
-          created: false,
-          deleted: false
-        },
-        {
-          columnNumber: 5,
-          lineNumber: 4,
-          problem: 'Variable does not exist: waa',
-          problemType: 'Error',
-          fileName: 'classes/testAPI.cls',
-          fullName: 'testAPI',
-          componentType: 'ApexClass',
-          success: false,
-          changed: false,
-          created: false,
-          deleted: false
-        }
-      ],
-      componentSuccesses: []
-    },
-    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
+  const multipleCmpResult: SourceDeployResult = {
+    success: true,
+    id: '',
+    status: ToolingDeployStatus.Completed,
+    components: [
+      {
+        component: apexComponentOne,
+        status: ComponentStatus.Changed,
+        diagnostics: []
+      },
+      {
+        component: apexComponentTwo,
+        status: ComponentStatus.Changed,
+        diagnostics: []
+      }
+    ]
   };
-
-  const failedManagedPkgDeployResult: DeployResult = {
-    State: DeployStatusEnum.Failed,
-    ErrorMsg:
-      'Could not save testAPI, : managed installed classes cannot be saved',
-    isDeleted: false,
-    DeployDetails: {
-      componentFailures: [],
-      componentSuccesses: []
-    },
-    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml'),
-    outboundFiles: [
-      path.join('file', 'path', 'classes', 'testAPI.cls'),
-      path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
+  const succeededLwcResult: SourceDeployResult = {
+    success: true,
+    id: '',
+    status: DeployStatus.Succeeded,
+    components: [
+      {
+        component: lwcComponent,
+        status: ComponentStatus.Created,
+        diagnostics: []
+      }
+    ]
+  };
+  const failedApexResult: SourceDeployResult = {
+    success: false,
+    id: '',
+    status: DeployStatus.Failed,
+    components: [
+      {
+        component: apexComponentOne,
+        status: ComponentStatus.Created,
+        diagnostics: [
+          {
+            lineNumber: 4,
+            columnNumber: 5,
+            filePath: apexClassPathOne,
+            message: "Missing ';' at '}'",
+            type: 'Error'
+          },
+          {
+            lineNumber: 7,
+            columnNumber: 9,
+            filePath: apexClassPathOne,
+            message: "Extra ':' at '}'",
+            type: 'Error'
+          }
+        ]
+      }
+    ]
+  };
+  const failedManagedPkgDeployResult: SourceDeployResult = {
+    success: false,
+    id: '',
+    status: ToolingDeployStatus.Failed,
+    components: [
+      {
+        component: apexComponentOne,
+        status: ComponentStatus.Created,
+        diagnostics: [
+          {
+            filePath: apexClassPathOne,
+            message:
+              'Could not save testAPI, : managed installed classes cannot be saved',
+            type: 'Error'
+          }
+        ]
+      },
+      {
+        component: apexComponentOne,
+        status: ComponentStatus.Failed,
+        diagnostics: [
+          {
+            filePath: apexClassXmlPathOne,
+            message:
+              'Could not save testAPI, : managed installed classes cannot be saved',
+            type: 'Error'
+          }
+        ]
+      }
     ]
   };
 
-  const queuedDeployResult: DeployResult = {
-    State: DeployStatusEnum.Queued,
-    isDeleted: false,
-    DeployDetails: null,
-    ErrorMsg: null,
-    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
+  const queuedDeployResult: SourceDeployResult = {
+    id: '',
+    status: ToolingDeployStatus.Queued,
+    components: [],
+    success: true
   };
 
-  const errorDeployResult: DeployResult = {
-    State: DeployStatusEnum.Error,
-    ErrorMsg: 'Unexpected error happened during deploy',
-    isDeleted: false,
-    DeployDetails: { componentFailures: [], componentSuccesses: [] },
-    metadataFile: path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
+  const errorDeployResult: SourceDeployResult = {
+    id: '',
+    success: false,
+    status: ToolingDeployStatus.Error,
+    components: [
+      {
+        component: apexComponentOne,
+        status: ComponentStatus.Failed,
+        diagnostics: [
+          {
+            type: 'Error',
+            filePath: apexClassPathOne,
+            message: 'Unexpected error happened during deploy'
+          }
+        ]
+      }
+    ]
   };
-
-  it('should create array of success info for updated class', async () => {
-    const parser = new LibraryDeployResultParser(completeDeployResult);
-    const successInfo = parser.buildSuccesses(
-      completeDeployResult.DeployDetails!.componentSuccesses[0]
-    );
-    expect(successInfo).to.be.an('array');
-    expect(successInfo.length).to.be.equal(2);
-    expect(successInfo[0]).to.be.an('object');
-    expect(successInfo[0].state).to.equal('Updated');
-    expect(successInfo[0].fullName).to.equal('testAPI');
-    expect(successInfo[0].type).to.equal('ApexClass');
-    expect(successInfo[0].filePath).to.equal('classes/testAPI.cls');
-
-    expect(successInfo[1]).to.be.an('object');
-    expect(successInfo[1].state).to.equal('Updated');
-    expect(successInfo[1].fullName).to.equal('testAPI');
-    expect(successInfo[1].type).to.equal('ApexClass');
-    expect(successInfo[1].filePath).to.equal('classes/testAPI.cls-meta.xml');
-  });
-
-  it('should create array of success info for created class', async () => {
-    const parser = new LibraryDeployResultParser(completeDeployResult);
-    const successInfo = parser.buildSuccesses({
-      problem: 'null',
-      problemType: 'null',
-      fileName: 'classes/testAPI.cls',
-      fullName: 'testAPI',
-      componentType: 'ApexClass',
-      success: true,
-      changed: false,
-      created: true,
-      deleted: false
-    });
-    expect(successInfo).to.be.an('array');
-    expect(successInfo.length).to.be.equal(2);
-    expect(successInfo[0]).to.be.an('object');
-    expect(successInfo[0].state).to.equal('Created');
-    expect(successInfo[0].fullName).to.equal('testAPI');
-    expect(successInfo[0].type).to.equal('ApexClass');
-    expect(successInfo[0].filePath).to.equal('classes/testAPI.cls');
-
-    expect(successInfo[1]).to.be.an('object');
-    expect(successInfo[1].state).to.equal('Created');
-    expect(successInfo[1].fullName).to.equal('testAPI');
-    expect(successInfo[1].type).to.equal('ApexClass');
-    expect(successInfo[1].filePath).to.equal('classes/testAPI.cls-meta.xml');
-  });
-
-  it('should create array of error info for apex class', async () => {
-    const parser = new LibraryDeployResultParser(failedDeployResult);
-    const errorsInfo = parser.buildErrors(failedDeployResult);
-    expect(errorsInfo).to.be.an('array');
-    expect(errorsInfo.length).to.be.equal(2);
-    expect(errorsInfo[0]).to.be.an('object');
-    expect(errorsInfo[0].filePath).to.equal('classes/testAPI.cls');
-    expect(errorsInfo[0].error).to.equal("Missing ';' at '}' (4:5)");
-
-    expect(errorsInfo[1]).to.be.an('object');
-    expect(errorsInfo[1].filePath).to.equal('classes/testAPI.cls');
-    expect(errorsInfo[1].error).to.equal('Variable does not exist: waa (4:5)');
-  });
-
-  it('should create array of error info for managed package deploy error', async () => {
-    const parser = new LibraryDeployResultParser(failedManagedPkgDeployResult);
-    const errorsInfo = parser.buildErrors(failedManagedPkgDeployResult);
-    expect(errorsInfo).to.be.an('array');
-    expect(errorsInfo.length).to.be.equal(2);
-    expect(errorsInfo[0]).to.be.an('object');
-    expect(errorsInfo[0].filePath).to.equal(
-      path.join('file', 'path', 'classes', 'testAPI.cls')
-    );
-    expect(errorsInfo[0].error).to.equal(
-      'Could not save testAPI, : managed installed classes cannot be saved'
-    );
-
-    expect(errorsInfo[1]).to.be.an('object');
-    expect(errorsInfo[1].filePath).to.equal(
-      path.join('file', 'path', 'classes', 'testAPI.cls-meta.xml')
-    );
-    expect(errorsInfo[1].error).to.equal(
-      'Could not save testAPI, : managed installed classes cannot be saved'
-    );
-  });
 
   it('should create a table with successful results', async () => {
-    const parser = new LibraryDeployResultParser(completeDeployResult);
+    const parser = new LibraryDeployResultParser(completeApexResult);
+    const { fullName } = apexComponentOne;
 
     let mockResult = '=== Deployed Source\n';
-    mockResult +=
-      'STATE    FULL NAME  TYPE       PROJECT PATH                \n';
-    mockResult +=
-      '───────  ─────────  ─────────  ────────────────────────────\n';
-    mockResult +=
-      'Updated  testAPI    ApexClass  classes/testAPI.cls         \n';
-    mockResult +=
-      'Updated  testAPI    ApexClass  classes/testAPI.cls-meta.xml\n';
+    mockResult += 'STATE    FULL NAME  TYPE       PROJECT PATH             \n';
+    mockResult += '───────  ─────────  ─────────  ─────────────────────────\n';
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathOne}         \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathOne}\n`;
 
-    const results = await parser.outputResult();
+    const results = parser.resultParser(completeApexResult);
+    expect(results).to.equal(mockResult);
+  });
+
+  it('should create a table with successful results for multiple components', async () => {
+    const parser = new LibraryDeployResultParser(completeApexResult);
+    const { fullName } = apexComponentOne;
+
+    let mockResult = '=== Deployed Source\n';
+    mockResult += 'STATE    FULL NAME  TYPE       PROJECT PATH                ';
+    mockResult +=
+      '\n───────  ─────────  ─────────  ────────────────────────────\n';
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathOne}            \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathOne}   \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathTwo}         \n`;
+    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathTwo}\n`;
+
+    const results = parser.resultParser(multipleCmpResult);
     expect(results).to.equal(mockResult);
   });
 
   it('should create a table with successful results for LWC', async () => {
-    const parser = new LibraryDeployResultParser(lwcCompleteDeployResult);
+    const parser = new LibraryDeployResultParser(succeededLwcResult);
+    const { fullName } = lwcComponent;
 
     let mockResult = '=== Deployed Source\n';
     mockResult +=
-      'STATE    FULL NAME  TYPE                      PROJECT PATH               \n';
+      'STATE    FULL NAME  TYPE                      PROJECT PATH             \n';
     mockResult +=
-      '───────  ─────────  ────────────────────────  ───────────────────────────\n';
-    mockResult +=
-      'Updated  testAPI    LightningComponentBundle  classes/testAPI.js         \n';
-    mockResult +=
-      'Updated  testAPI    LightningComponentBundle  classes/testAPI.js-meta.xml\n';
-    mockResult +=
-      'Updated  testAPI    LightningComponentBundle  classes/testAPI.html       \n';
+      '───────  ─────────  ────────────────────────  ─────────────────────────\n';
+    mockResult += `Created  ${fullName}       LightningComponentBundle  ${lwcJsPath}         \n`;
+    mockResult += `Created  ${fullName}       LightningComponentBundle  ${lwcXmlPath}\n`;
 
-    const results = await parser.outputResult();
+    const results = parser.resultParser(succeededLwcResult);
     expect(results).to.equal(mockResult);
   });
 
   it('should create a table with failed results', async () => {
-    const parser = new LibraryDeployResultParser(failedDeployResult);
+    const parser = new LibraryDeployResultParser(failedApexResult);
 
     let errorResult = '=== Deploy Errors\n';
-    errorResult +=
-      'PROJECT PATH         ERRORS                                  \n';
-    errorResult +=
-      '───────────────────  ────────────────────────────────────────\n';
-    errorResult +=
-      "classes/testAPI.cls  Missing ';' at '}' (4:5) (4:5)          \n";
-    errorResult +=
-      'classes/testAPI.cls  Variable does not exist: waa (4:5) (4:5)\n';
+    errorResult += 'PROJECT PATH      ERRORS                  \n';
+    errorResult += '────────────────  ────────────────────────\n';
+    errorResult += `${apexClassPathOne}  Missing ';' at '}' (4:5)\n`;
+    errorResult += `${apexClassPathOne}  Extra ':' at '}' (7:9)  \n`;
 
-    const results = await parser.outputResult();
+    const results = parser.resultParser(failedApexResult);
     expect(results).to.equal(errorResult);
   });
 
@@ -279,23 +262,13 @@ describe('Tooling Deploy Parser', () => {
 
     let errorResult = '=== Deploy Errors\n';
     errorResult +=
-      'PROJECT PATH                            ERRORS                                                             \n';
+      'PROJECT PATH               ERRORS                                                             \n';
     errorResult +=
-      '──────────────────────────────────────  ───────────────────────────────────────────────────────────────────\n';
-    errorResult += `${path.join(
-      'file',
-      'path',
-      'classes',
-      'testAPI.cls'
-    )}           Could not save testAPI, : managed installed classes cannot be saved\n`;
-    errorResult += `${path.join(
-      'file',
-      'path',
-      'classes',
-      'testAPI.cls-meta.xml'
-    )}  Could not save testAPI, : managed installed classes cannot be saved\n`;
+      '─────────────────────────  ───────────────────────────────────────────────────────────────────\n';
+    errorResult += `${apexClassPathOne}           Could not save testAPI, : managed installed classes cannot be saved\n`;
+    errorResult += `${apexClassXmlPathOne}  Could not save testAPI, : managed installed classes cannot be saved\n`;
 
-    const results = await parser.outputResult();
+    const results = await parser.resultParser(failedManagedPkgDeployResult);
     expect(results).to.equal(errorResult);
   });
 
@@ -304,19 +277,18 @@ describe('Tooling Deploy Parser', () => {
 
     let errorResult = '=== Deploy Errors\n';
     errorResult +=
-      'PROJECT PATH         ERRORS                                 \n';
+      'PROJECT PATH      ERRORS                                 \n';
     errorResult +=
-      '───────────────────  ───────────────────────────────────────\n';
-    errorResult +=
-      'classes/testAPI.cls  Unexpected error happened during deploy\n';
+      '────────────────  ───────────────────────────────────────\n';
+    errorResult += `${apexClassPathOne}  Unexpected error happened during deploy\n`;
 
-    const results = await parser.outputResult('classes/testAPI.cls');
+    const results = parser.resultParser(errorDeployResult);
     expect(results).to.equal(errorResult);
   });
 
   it('should create a table with queued results', async () => {
     const parser = new LibraryDeployResultParser(queuedDeployResult);
-    const results = await parser.outputResult();
+    const results = await parser.resultParser(queuedDeployResult);
     expect(results).to.equal(nls.localize('beta_tapi_queue_status'));
   });
 });

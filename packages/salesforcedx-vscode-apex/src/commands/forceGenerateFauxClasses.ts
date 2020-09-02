@@ -8,6 +8,7 @@
 import {
   SFDX_DIR,
   SOBJECTS_DIR,
+  STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
@@ -148,11 +149,19 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
 
     const commandName = execution.command.logName;
     try {
-      const result = await gen.generate(
-        vscode.workspace.workspaceFolders![0].uri.fsPath,
-        response.data.category,
-        response.data.source
-      );
+      let result;
+      if (response.data.source === SObjectRefreshSource.StartupMin) {
+        result = await gen.generateMin(
+          vscode.workspace.workspaceFolders![0].uri.fsPath,
+          response.data.source
+        );
+      } else {
+        result = await gen.generate(
+          vscode.workspace.workspaceFolders![0].uri.fsPath,
+          response.data.category,
+          response.data.source
+        );
+      }
 
       console.log('Generate success ' + result.data);
       this.logMetric(commandName, startTime, result.data);
@@ -187,20 +196,89 @@ export async function forceGenerateFauxClassesCreate(
   await commandlet.run();
 }
 
-export async function initSObjectDefinitions(projectPath: string) {
+export async function verifyUsernameAndInitSObjectDefinitions(
+  projectPath: string
+) {
   const hasDefaultUsernameSet =
     (await getDefaultUsernameOrAlias()) !== undefined;
-  if (projectPath && hasDefaultUsernameSet) {
-    const sobjectFolder = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR
+  if (hasDefaultUsernameSet) {
+    initSObjectDefinitions(projectPath).catch(e =>
+      telemetryService.sendErrorEvent({
+        message: e.message,
+        stack: e.stack
+      })
     );
+  }
+}
+
+export async function initSObjectDefinitions(projectPath: string) {
+  if (projectPath) {
+    const sobjectFolder = getSObjectsDirectory(projectPath);
     if (!fs.existsSync(sobjectFolder)) {
       forceGenerateFauxClassesCreate(SObjectRefreshSource.Startup).catch(e => {
         throw e;
       });
+    }
+  }
+}
+
+function getSObjectsDirectory(projectPath: string) {
+  return path.join(projectPath, SFDX_DIR, TOOLS_DIR, SOBJECTS_DIR);
+}
+
+function getStandardSObjectsDirectory(projectPath: string) {
+  return path.join(
+    projectPath,
+    SFDX_DIR,
+    TOOLS_DIR,
+    SOBJECTS_DIR,
+    STANDARDOBJECTS_DIR
+  );
+}
+
+export async function checkSObjectsAndRefresh(projectPath: string) {
+  const hasDefaultUsernameSet = await getDefaultUsernameOrAlias();
+  if (projectPath && hasDefaultUsernameSet) {
+    if (!fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
+      telemetryService.sendEventData(
+        'sObjectRefreshNotification',
+        { type: 'No SObjects' },
+        undefined
+      );
+      const message = nls.localize('sobjects_refresh_needed');
+      const buttonTxt = nls.localize('sobjects_refresh_now');
+      const shouldRefreshNow = await notificationService.showInformationMessage(
+        message,
+        buttonTxt
+      );
+      if (shouldRefreshNow && shouldRefreshNow === buttonTxt) {
+        telemetryService.sendEventData(
+          'sObjectRefreshNotification',
+          { type: 'Requested Refresh' },
+          undefined
+        );
+        forceGenerateFauxClassesCreate(SObjectRefreshSource.StartupMin).catch(
+          e => {
+            telemetryService.sendErrorEvent({
+              message: e.message,
+              stack: e.stack
+            });
+            throw e;
+          }
+        );
+      } else {
+        telemetryService.sendEventData(
+          'sObjectRefreshNotification',
+          { type: 'Refresh Request Cancelled' },
+          undefined
+        );
+      }
+    } else {
+      telemetryService.sendEventData(
+        'sObjectRefreshNotification',
+        { type: 'SObjects exist' },
+        undefined
+      );
     }
   }
 }

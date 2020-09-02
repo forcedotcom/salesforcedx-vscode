@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -22,6 +21,7 @@ import {
   forceConfigSet,
   forceDataSoqlQuery,
   forceDebuggerStop,
+  forceFunctionCreate,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
   forceInternalLightningEventCreate,
@@ -59,7 +59,7 @@ import {
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
-import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
+import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
@@ -321,6 +321,11 @@ function registerCommands(
     forceSourceDiff
   );
 
+  const forceFunctionCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.create',
+    forceFunctionCreate
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -496,6 +501,14 @@ export async function activate(context: vscode.ExtensionContext) {
     console.log('SFDX CLI Extension Activated (internal dev mode)');
     return internalApi;
   }
+
+  // Set functions enabled context
+  const functionsEnabled = sfdxCoreSettings.getFunctionsEnabled();
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:functions_enabled',
+    functionsEnabled
+  );
 
   // Context
   let sfdxProjectOpened = false;

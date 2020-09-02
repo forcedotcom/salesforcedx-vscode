@@ -6,7 +6,7 @@
  */
 import { ExecuteAnonymousResponse } from '@salesforce/apex-node';
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DeployResult } from '@salesforce/source-deploy-retrieve';
+import { SourceDeployResult } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -82,40 +82,51 @@ export function handleDiagnosticErrors(
 }
 
 export function handleDeployRetrieveLibraryDiagnostics(
-  deployResult: DeployResult,
+  deployResult: SourceDeployResult,
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
   errorCollection.clear();
+
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 
-  deployResult.DeployDetails!.componentFailures.forEach(err => {
-    const range = getRange(
-      err.lineNumber ? err.lineNumber.toString() : '1',
-      err.columnNumber ? err.columnNumber.toString() : '1'
-    );
+  if (deployResult.components) {
+    for (const deployment of deployResult.components) {
+      for (const diagnostic of deployment.diagnostics) {
+        const {
+          message,
+          lineNumber,
+          columnNumber,
+          type,
+          filePath
+        } = diagnostic;
+        const range = getRange(
+          lineNumber ? lineNumber.toString() : '1',
+          columnNumber ? columnNumber.toString() : '1'
+        );
+        const severity =
+          type === 'Error'
+            ? vscode.DiagnosticSeverity.Error
+            : vscode.DiagnosticSeverity.Warning;
+        const vscDiagnostic: vscode.Diagnostic = {
+          message,
+          range,
+          severity,
+          source: filePath
+        };
 
-    const diagnostic = {
-      message: err.problem,
-      severity: vscode.DiagnosticSeverity.Error,
-      source: err.fileName,
-      range
-    } as vscode.Diagnostic;
-
-    // NOTE: This is a workaround while we fix DeployResults not providing full
-    // path info
-    const fileUri = deployResult.metadataFile.replace('-meta.xml', '');
-
-    if (!diagnosticMap.has(fileUri)) {
-      diagnosticMap.set(fileUri, []);
+        if (filePath) {
+          if (!diagnosticMap.has(filePath)) {
+            diagnosticMap.set(filePath, []);
+          }
+          diagnosticMap.get(filePath)!.push(vscDiagnostic);
+        }
+      }
     }
+  }
 
-    diagnosticMap.get(fileUri)!.push(diagnostic);
-  });
-
-  diagnosticMap.forEach((diagMap: vscode.Diagnostic[], file) => {
-    const fileUri = vscode.Uri.file(file);
-    errorCollection.set(fileUri, diagMap);
-  });
+  diagnosticMap.forEach((diagnostics, file) =>
+    errorCollection.set(vscode.Uri.file(file), diagnostics)
+  );
 
   return errorCollection;
 }
@@ -126,21 +137,28 @@ export function handleApexLibraryDiagnostics(
   filePath: string
 ) {
   errorCollection.clear();
-  const range = getRange(
-    apexResult.result.line ? apexResult.result.line.toString() : '1',
-    apexResult.result.column ? apexResult.result.column.toString() : '1'
-  );
+  if (apexResult.diagnostic) {
+    const range = getRange(
+      apexResult.diagnostic[0].lineNumber
+        ? apexResult.diagnostic[0].lineNumber.toString()
+        : '1',
+      apexResult.diagnostic[0].columnNumber
+        ? apexResult.diagnostic[0].columnNumber.toString()
+        : '1'
+    );
 
-  const diagnostic = {
-    message:
-      typeof apexResult.result.compileProblem === 'string'
-        ? apexResult.result.compileProblem
-        : apexResult.result.exceptionMessage,
-    severity: vscode.DiagnosticSeverity.Error,
-    source: filePath,
-    range
-  } as vscode.Diagnostic;
+    const diagnostic = {
+      message:
+        typeof apexResult.diagnostic[0].compileProblem === 'string'
+          ? apexResult.diagnostic[0].compileProblem
+          : apexResult.diagnostic[0].exceptionMessage,
+      severity: vscode.DiagnosticSeverity.Error,
+      source: filePath,
+      range
+    } as vscode.Diagnostic;
 
-  errorCollection.set(vscode.Uri.file(filePath), [diagnostic]);
+    errorCollection.set(vscode.Uri.file(filePath), [diagnostic]);
+  }
+
   return errorCollection;
 }

@@ -7,10 +7,8 @@
 
 import { expect } from 'chai';
 import * as path from 'path';
-import { SinonStub, stub } from 'sinon';
-import { ForceLightningLwcTestCreateExecutor } from '../../../../src/commands/templates/forceLightningLwcTestCreate';
+import { ForceLightningLwcTestCreateExecutor } from '../../../../src/commands/templates';
 import { nls } from '../../../../src/messages';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { getRootWorkspacePath } from '../../../../src/util';
 
 describe('Force Lightning Web Component Test Create', () => {

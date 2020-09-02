@@ -29,7 +29,7 @@ You may also use the GitHub Action to run this process in a CI environment and a
 {
   "event_type": "create_release_branch",
   "client_payload": {
-    "version": "xx.yy.zz",
+    "version": "xx.yy.zz"
   }
 }
 ```
@@ -131,7 +131,7 @@ $ vsce login (publisher name)
 It's **crucial** that you publish the .vsix that you had before so that the
 SHA256 match. If you were to repackage, the SHA256 would be different.
 
-## Merging back from the release branch into develop and master
+## Merging back from the release branch into develop and main
 
 ### Prerequisite
 
@@ -143,7 +143,7 @@ See this
 [guide](https://www.atlassian.com/git/tutorials/comparing-workflows#gitflow-workflow)
 from Atlassian on the flow. These steps are manual because you might encounter merge conflicts.
 
-1. `git checkout master`
+1. `git checkout main`
 1. `git pull` to get the latest changes (there shouldn't be any since you are
    the person releasing).
 1. `git merge release/vxx.y.z`

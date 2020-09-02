@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "49.1.0",
+  "version": "49.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,10 +25,11 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "2.5.1",
-    "@salesforce/salesforcedx-utils-vscode": "49.1.0",
-    "@salesforce/source-deploy-retrieve": "1.0.15",
-    "@salesforce/apex-node": "0.0.2",
+    "@salesforce/apex-node": "0.0.9",
+    "@salesforce/core": "2.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "49.8.0",
+    "@salesforce/source-deploy-retrieve": "1.0.20",
+    "@salesforce/templates": "49.4.4",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -38,7 +39,7 @@
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "49.1.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "49.8.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -49,6 +50,7 @@
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
     "@types/vscode": "1.40.0",
+    "@types/yeoman-assert": "^3.1.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
@@ -57,7 +59,8 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "sinon": "^7.3.1",
-    "typescript": "3.7.5"
+    "typescript": "3.7.5",
+    "yeoman-assert": "^3.1.1"
   },
   "scripts": {
     "vscode:prepublish": "npm prune --production",
@@ -508,6 +511,10 @@
         {
           "command": "sfdx.force.conflict.open",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.function.create",
+          "when": "sfdx:functions_enabled"
         }
       ]
     },
@@ -767,6 +774,10 @@
           "light": "resources/light/go-to-file.svg",
           "dark": "resources/dark/go-to-file.svg"
         }
+      },
+      {
+        "command": "sfdx.force.function.create",
+        "title": "%force_function_create%"
       }
     ],
     "configuration": {
@@ -807,6 +818,11 @@
           "type": "boolean",
           "default": true,
           "description": "%experimental_apex_library_description%"
+        },
+        "salesforcedx-vscode-core.experimental.useTemplatesLibrary": {
+          "type": "boolean",
+          "default": true,
+          "description": "%experimental_templates_library_description%"
         }
       }
     },

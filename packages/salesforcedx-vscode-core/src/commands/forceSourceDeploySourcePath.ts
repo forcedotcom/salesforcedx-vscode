@@ -13,9 +13,16 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  DeployStatus,
+  RegistryAccess,
+  SourceComponent,
+  SourceDeployResult,
+  ToolingDeployStatus
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
@@ -33,6 +40,7 @@ import {
   createComponentCount,
   useBetaDeployRetrieve
 } from './util/betaDeployRetrieve';
+import { LibraryDeployResultParser } from './util/libraryDeployResultParser';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -57,6 +65,20 @@ export class MultipleSourcePathsGatherer implements ParametersGatherer<string> {
   }
   public async gather(): Promise<ContinueResponse<string>> {
     const sourcePaths = this.uris.map(uri => uri.fsPath).join(',');
+    return {
+      type: 'CONTINUE',
+      data: sourcePaths
+    };
+  }
+}
+
+export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
+  private uris: vscode.Uri[];
+  public constructor(uris: vscode.Uri[]) {
+    this.uris = uris;
+  }
+  public async gather(): Promise<ContinueResponse<string[]>> {
+    const sourcePaths = this.uris.map(uri => uri.fsPath);
     return {
       type: 'CONTINUE',
       data: sourcePaths
@@ -95,10 +117,13 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
 }
 
 export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
+  const useBeta = useBetaDeployRetrieve(uris);
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    new MultipleSourcePathsGatherer(uris),
-    useBetaDeployRetrieve(uris)
+    useBeta
+      ? new LibraryPathsGatherer(uris)
+      : new MultipleSourcePathsGatherer(uris),
+    useBeta
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor()
   );
@@ -106,41 +131,95 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
 }
 
 export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
-  public async execute(response: ContinueResponse<string>): Promise<void> {
-    this.setStartTime();
+  private hashElement(component: SourceComponent): string {
+    const hashed = `${component.fullName}.${component.type.id}`;
+    return hashed;
+  }
 
+  public async execute(
+    response: ContinueResponse<string | string[]>
+  ): Promise<void> {
+    this.setStartTime();
     try {
       await this.build(
         'Deploy (Beta)',
         'force_source_deploy_with_sourcepath_beta'
       );
+      channelService.showCommandWithTimestamp(`Starting ${this.executionName}`);
+
+      let components: SourceComponent[] = [];
+      const registryAccess = new RegistryAccess();
+      if (typeof response.data === 'string') {
+        components = registryAccess.getComponentsFromPath(response.data);
+      } else {
+        const allComponents: SourceComponent[] = [];
+
+        for (const filepath of response.data) {
+          allComponents.push(...registryAccess.getComponentsFromPath(filepath));
+        }
+
+        const hashedCmps = new Set();
+        components = allComponents.filter(component => {
+          const hashed = this.hashElement(component);
+          if (!hashedCmps.has(hashed)) {
+            hashedCmps.add(hashed);
+            return component;
+          }
+        });
+      }
+
+      const projectNamespace = (await SfdxProjectConfig.getValue(
+        'namespace'
+      )) as string;
 
       if (this.sourceClient === undefined) {
         throw new Error('SourceClient is not established');
       }
 
-      this.sourceClient.tooling.deploy = this.deployWrapper(
-        this.sourceClient.tooling.deploy
-      );
+      let deploy: Promise<SourceDeployResult>;
+      let api: string;
+      if (projectNamespace) {
+        deploy = this.sourceClient.tooling.deploy(components, {
+          namespace: projectNamespace
+        });
+        api = 'tooling';
+      } else {
+        deploy = this.sourceClient.metadata.deploy(components);
+        api = 'metadata';
+      }
 
-      const projectNamespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
-      const registryAccess = new RegistryAccess();
-      const components = registryAccess.getComponentsFromPath(response.data);
-      const deployPromise = this.sourceClient.tooling.deploy({
-        components,
-        namespace: projectNamespace
-      });
       const metadataCount = JSON.stringify(createComponentCount(components));
-      await deployPromise;
-
-      this.logMetric({ metadataCount });
-    } catch (e) {
-      telemetryService.sendException(
-        'force_source_deploy_with_sourcepath_beta',
-        e.message
+      const result = await vscode.window.withProgress(
+        {
+          title: this.executionName,
+          location: vscode.ProgressLocation.Notification
+        },
+        () => deploy
       );
+
+      const parser = new LibraryDeployResultParser(result);
+      const outputResult = parser.resultParser(result);
+      channelService.appendLine(outputResult);
+
+      channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
+
+      this.logMetric({ metadataCount, api });
+
+      if (
+        result.status === DeployStatus.Succeeded ||
+        result.status === ToolingDeployStatus.Completed
+      ) {
+        DeployRetrieveLibraryExecutor.errorCollection.clear();
+        await notificationService.showSuccessfulExecution(this.executionName);
+      } else {
+        handleDeployRetrieveLibraryDiagnostics(
+          result,
+          DeployRetrieveLibraryExecutor.errorCollection
+        );
+        notificationService.showFailedExecution(this.executionName);
+      }
+    } catch (e) {
+      telemetryService.sendException(e.name, e.message);
       notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
     } finally {

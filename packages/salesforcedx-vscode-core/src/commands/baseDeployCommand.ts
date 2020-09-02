@@ -14,6 +14,7 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -23,6 +24,7 @@ import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
+import { createComponentCount } from './util/betaDeployRetrieve';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export enum DeployType {
@@ -48,7 +50,6 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       cwd: workspacePath,
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
-
     channelService.streamCommandStartStop(execution);
 
     let stdOut = '';
@@ -57,7 +58,23 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      this.logMetric(execution.command.logName, startTime);
+      let properties;
+      const registryAccess = new RegistryAccess();
+      try {
+        const components = registryAccess.getComponentsFromPath(
+          execFilePathOrPaths
+        );
+        const metadataCount = JSON.stringify(createComponentCount(components));
+        properties = { metadataCount };
+        // registry does not handle multiple paths. only log component count for single paths
+      } catch (e) {
+        telemetryService.sendException(
+          e.name,
+          'error detecting deploy components'
+        );
+      }
+      this.logMetric(execution.command.logName, startTime, properties);
+
       try {
         if (stdOut) {
           const deployParser = new ForceDeployResultParser(stdOut);

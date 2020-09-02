@@ -74,6 +74,7 @@ export const messages = {
     'forceide:// URL from Setup',
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
+  parameter_gatherer_enter_function: 'Enter function details',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -135,6 +136,7 @@ export const messages = {
   force_lightning_component_create_text: 'SFDX: Create Aura Component',
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
+  force_function_create_text: 'SFDX: Create Function',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
@@ -202,13 +204,14 @@ export const messages = {
     'SFDX: ISV Debugger Setup, Step 7 of 7: Converting package: %s',
   isv_debug_bootstrap_processing_package: 'Processing package: %s',
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
-  isv_debug_bootstrap_open_project:
-    'Opening project in new Visual Studio Code window',
+  isv_debug_bootstrap_open_project: 'Opening project in Visual Studio Code',
 
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   force_apex_log_list_text: 'Getting Apex debug logs',
+  force_apex_log_get_library: 'Apex Library: Get Logs',
+  apex_log_get_text: 'Get Apex Logs',
 
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
@@ -300,7 +303,7 @@ export const messages = {
   error_org_browser_init: 'Org Browser has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
-    'No scratch definition files found. These files must be in the "config" folder and have file names that end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
+    'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   force_list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
@@ -492,6 +495,22 @@ export const messages = {
   WebLink: 'Web Links',
   Workflow: 'Workflows',
   XOrgHub: 'X Org Hubs',
+  LightningMessageChannel: 'Lightning Message Channels',
+  InboundNetworkConnection: 'Inbound Network Connections',
+  OutboundNetworkConnection: 'Outbound Network Connections',
+  MutingPermissionSet: 'Muting Permission Sets',
+  MyDomainDiscoverableLogin: 'MyDomain Discoverable Login',
+  UserProvisioningConfig: 'User Provisioning Configs',
+  ApexEmailNotifications: 'Apex Email Notifications',
+  PlatformEventChannelMember: 'Platform Event Channel Members',
+  CanvasMetadata: 'Canvas Metadatas',
+  MobileApplicationDetail: 'Mobile Application Details',
+  NotificationTypeConfig: 'Notification Type Configs',
+  LightningOnboardingConfig: 'Lightning Onboarding Configs',
+  ManagedContentType: 'Managed Content Types',
+  PaymentGatewayProvider: 'Payment Gateway Providers',
+  EmbeddedServiceMenuSettings: 'Embedded Service Menu Settings',
+  CallCoachingMediaProvider: 'Call Coaching Media Providers',
 
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
@@ -536,5 +555,7 @@ export const messages = {
     'Not able to parse current results. Raw result: %s',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
-  package_id_gatherer_placeholder: '04t...'
+  package_id_gatherer_placeholder: '04t...',
+  force_function_enter_function: 'Enter a name for the function',
+  force_function_enter_language: 'Select a language for your function'
 };

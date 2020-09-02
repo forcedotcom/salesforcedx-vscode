@@ -37,7 +37,8 @@ GEM
       jekyll (>= 3.7, < 5.0)
     jekyll-watch (2.2.1)
       listen (~> 3.0)
-    kramdown (2.1.0)
+    kramdown (2.3.0)
+      rexml
     kramdown-parser-gfm (1.1.0)
       kramdown (~> 2.0)
     liquid (4.0.3)
@@ -57,6 +58,7 @@ GEM
     rb-fsevent (0.10.3)
     rb-inotify (0.10.0)
       ffi (~> 1.0)
+    rexml (3.2.4)
     rouge (3.10.0)
     ruby_dep (1.5.0)
     safe_yaml (1.0.5)
@@ -77,8 +79,8 @@ PLATFORMS
 
 DEPENDENCIES
   jekyll (~> 4.0.0)
-  jekyll-feed (~> 0.12)
-  jekyll-sitemap
+  jekyll-feed (~> 0.12.1)
+  jekyll-sitemap (~> 1.3.1)
   octicons
   tzinfo (~> 1.2)
   tzinfo-data

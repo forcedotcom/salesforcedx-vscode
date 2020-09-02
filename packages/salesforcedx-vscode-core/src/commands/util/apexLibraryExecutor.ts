@@ -6,7 +6,9 @@
  */
 import { ExecuteAnonymousResponse } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
+import * as path from 'path';
 import { languages, ProgressLocation, window } from 'vscode';
+import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { handleApexLibraryDiagnostics } from '../../diagnostics';
 import { nls } from '../../messages';
@@ -15,9 +17,7 @@ import { OrgAuthInfo } from '../../util';
 import { formatExecuteResult } from './apexLibraryResultFormatter';
 import { LibraryCommandletExecutor } from './libraryCommandlet';
 
-export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{
-  fileName: string;
-}> {
+export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{}> {
   public static errorCollection = languages.createDiagnosticCollection(
     'apex-errors'
   );
@@ -62,7 +62,7 @@ export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{
       channelService.appendLine(formattedResult);
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
 
-      if (result.result.compiled && result.result.success) {
+      if (result.compiled && result.success) {
         ApexLibraryExecutor.errorCollection.clear();
         await notificationService.showSuccessfulExecution(commandName);
       } else {
@@ -78,6 +78,33 @@ export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{
         notificationService.showFailedExecution(commandName);
       }
 
+      return result;
+    };
+  }
+
+  public getLogsWrapper(fn: (...args: any[]) => Promise<string[]>) {
+    const commandName = this.executionName;
+
+    return async function(...args: any[]): Promise<string[]> {
+      channelService.showCommandWithTimestamp(`Starting ${commandName}`);
+
+      const result = await vscode.window.withProgress(
+        {
+          title: commandName,
+          location: vscode.ProgressLocation.Notification
+        },
+        async () => {
+          // @ts-ignore
+          return (await fn.call(this, ...args)) as string[];
+        }
+      );
+
+      channelService.showCommandWithTimestamp(`Finished ${commandName}`);
+
+      const logPath = path.join(`${args[0].outputDir}`, `${args[0].logId}.log`);
+      const document = await vscode.workspace.openTextDocument(logPath);
+      vscode.window.showTextDocument(document);
+      await notificationService.showSuccessfulExecution(commandName);
       return result;
     };
   }

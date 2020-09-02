@@ -5,17 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Org } from '@salesforce/core';
+import { AuthInfo, Connection, Org } from '@salesforce/core';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
-import { XHRResponse } from 'request-light';
-import { SinonStub, stub } from 'sinon';
-import { SObjectCategory, SObjectDescribe } from '../../src/describe';
-import { ConfigUtil } from '../../src/describe/configUtil';
+import { createSandbox } from 'sinon';
+import { SObject, SObjectCategory, SObjectDescribe } from '../../src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshResult,
@@ -30,6 +28,8 @@ const CONNECTION_DATA = {
   accessToken: '00Dxx000thisIsATestToken',
   instanceUrl: 'https://na1.salesforce.com'
 };
+
+const env = createSandbox();
 
 // tslint:disable:no-unused-expression
 describe('Generate faux classes for SObjects', () => {
@@ -48,7 +48,12 @@ describe('Generate faux classes for SObjects', () => {
 
   beforeEach(() => {
     cancellationTokenSource = new CancellationTokenSource();
+    env.stub(AuthInfo, 'create').returns({
+      getConnectionOptions: () => CONNECTION_DATA
+    });
   });
+
+  afterEach(() => env.restore());
 
   it('Should emit an error event on failure', async () => {
     let errorMessage = '';
@@ -80,7 +85,40 @@ describe('Generate faux classes for SObjects', () => {
     expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
   });
 
-  it('Should fail if outside a project', async () => {
+  it('Should emit an error event on failure, generateMin', async () => {
+    let errorMessage = '';
+    let stderrInfo = '';
+    let exitCode: number = LocalCommandExecution.SUCCESS_CODE;
+    let rejectOutput: any;
+    const generator = getGenerator();
+    emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: Error) => {
+      errorMessage = data.message;
+    });
+    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+      exitCode = data;
+    });
+    emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
+      stderrInfo = data;
+    });
+
+    try {
+      await generator.generateMin(projectPath, SObjectRefreshSource.StartupMin);
+    } catch ({ error }) {
+      rejectOutput = error;
+    }
+    expect(rejectOutput.message).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+    expect(errorMessage).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+    expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
+    expect(stderrInfo).to.contain(
+      nls.localize('no_generate_if_not_in_project', '')
+    );
+  });
+
+  it('Should fail if outside a DX project', async () => {
     let result: SObjectRefreshResult;
     const generator = getGenerator();
 
@@ -90,7 +128,25 @@ describe('Generate faux classes for SObjects', () => {
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Manual
       );
-      fail(result, 'undefined', 'generator should have thrown an error');
+      fail('generator should have thrown an error');
+    } catch ({ error }) {
+      expect(error.message).to.contain(
+        nls.localize('no_generate_if_not_in_project', '')
+      );
+      return;
+    }
+  });
+
+  it('Should fail if calling generateMin outside a DX project', async () => {
+    let result: SObjectRefreshResult;
+    const generator = getGenerator();
+
+    try {
+      result = await generator.generateMin(
+        projectPath,
+        SObjectRefreshSource.StartupMin
+      );
+      fail('generator should have thrown an error');
     } catch ({ error }) {
       expect(error.message).to.contain(
         nls.localize('no_generate_if_not_in_project', '')
@@ -100,15 +156,14 @@ describe('Generate faux classes for SObjects', () => {
   });
 
   it('Should be cancellable', async () => {
-    const describeGlobalStub = stub(
-      SObjectDescribe.prototype,
-      'describeGlobal'
-    ).returns([
-      'MyCustomObject2__c',
-      'MyCustomObject3__c',
-      'MyCustomObject__c'
-    ]);
-    const fsExistSyncStub = stub(fs, 'existsSync').returns(true);
+    env
+      .stub(SObjectDescribe.prototype, 'describeGlobal')
+      .returns([
+        'MyCustomObject2__c',
+        'MyCustomObject3__c',
+        'MyCustomObject__c'
+      ]);
+    env.stub(fs, 'existsSync').returns(true);
 
     const generator = getGenerator();
     cancellationTokenSource.cancel();
@@ -119,9 +174,19 @@ describe('Generate faux classes for SObjects', () => {
       SObjectRefreshSource.Manual
     );
     expect(result.data.cancelled).to.be.true;
+  });
 
-    describeGlobalStub.restore();
-    fsExistSyncStub.restore();
+  it('Should be cancellable, generateMin', async () => {
+    env.stub(fs, 'existsSync').returns(true);
+
+    const generator = getGenerator();
+    cancellationTokenSource.cancel();
+
+    const result = await generator.generateMin(
+      projectPath,
+      SObjectRefreshSource.StartupMin
+    );
+    expect(result.data.cancelled).to.be.true;
   });
 
   it('Should emit message to stderr on failure', async () => {
@@ -150,53 +215,17 @@ describe('Generate faux classes for SObjects', () => {
   });
 
   describe('Check results', () => {
-    let fsExistSyncStub: SinonStub;
-    let getUsername: SinonStub;
-    let authInfo: SinonStub;
-    let xhrMock: SinonStub;
-    let connection: SinonStub;
-    let refreshAuth: SinonStub;
-
     beforeEach(() => {
-      getUsername = stub(ConfigUtil, 'getUsername').returns('test@example.com');
-      authInfo = stub(AuthInfo, 'create').returns({
-        getConnectionOptions: () => CONNECTION_DATA
-      });
-      connection = stub(Org.prototype, 'getConnection').returns(
-        CONNECTION_DATA
-      );
-      xhrMock = stub(SObjectDescribe.prototype, 'runRequest');
-      fsExistSyncStub = stub(fs, 'existsSync').returns(true);
-      refreshAuth = stub(Org.prototype, 'refreshAuth');
-    });
-
-    afterEach(() => {
-      fsExistSyncStub.restore();
-      getUsername.restore();
-      authInfo.restore();
-      xhrMock.restore();
-      connection.restore();
-      refreshAuth.restore();
+      env.stub(fs, 'existsSync').returns(true);
+      env.stub(Connection.prototype, 'request').resolves(mockDescribeResponse);
+      env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
+      env
+        .stub(SObjectDescribe.prototype, 'describeGlobal')
+        .returns(['ApexPageInfo']);
     });
 
     it('Should emit an exit event with code success code 0 on success', async () => {
       let exitCode = LocalCommandExecution.FAILURE_CODE;
-      const describeGlobalStub = stub(
-        SObjectDescribe.prototype,
-        'describeGlobal'
-      ).returns(['ApexPageInfo']);
-
-      xhrMock.returns(
-        Promise.resolve({
-          status: 200,
-          responseText: JSON.stringify(mockDescribeResponse)
-        } as XHRResponse)
-      );
-
-      const genFauxClass = stub(
-        FauxClassGenerator.prototype,
-        'generateFauxClass'
-      );
 
       const generator = getGenerator();
       emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
@@ -210,8 +239,6 @@ describe('Generate faux classes for SObjects', () => {
       );
       expect(result.error).to.be.undefined;
       expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
-      describeGlobalStub.restore();
-      genFauxClass.restore();
     });
 
     it('Should log the number of created faux classes on success', async () => {
@@ -225,22 +252,6 @@ describe('Generate faux classes for SObjects', () => {
         }
       );
 
-      const describeGlobalStub = stub(
-        SObjectDescribe.prototype,
-        'describeGlobal'
-      ).returns(['ApexPageInfo']);
-
-      xhrMock.returns(
-        Promise.resolve({
-          status: 200,
-          responseText: JSON.stringify(mockDescribeResponse)
-        } as XHRResponse)
-      );
-
-      const genFauxClass = stub(
-        FauxClassGenerator.prototype,
-        'generateFauxClass'
-      );
       result = await generator.generate(
         projectPath,
         SObjectCategory.CUSTOM,
@@ -252,8 +263,43 @@ describe('Generate faux classes for SObjects', () => {
       expect(stdoutInfo).to.contain(
         nls.localize('fetched_sobjects_length_text', 1, 'Standard')
       );
-      describeGlobalStub.restore();
-      genFauxClass.restore();
+    });
+  });
+
+  describe('Check generateMin results', () => {
+    beforeEach(() => {
+      env.stub(fs, 'existsSync').returns(true);
+      env.stub(Connection.prototype, 'request').resolves(mockDescribeResponse);
+      env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
+    });
+
+    it('Should log the number of created faux classes on generateMin success', async () => {
+      const generator = getGenerator();
+      let stdoutInfo = '';
+      let result: SObjectRefreshResult;
+      emitter.addListener(
+        LocalCommandExecution.STDOUT_EVENT,
+        (data: string) => {
+          stdoutInfo = data;
+        }
+      );
+      let exitCode = LocalCommandExecution.FAILURE_CODE;
+      emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+        exitCode = data;
+      });
+
+      result = await generator.generateMin(
+        projectPath,
+        SObjectRefreshSource.StartupMin
+      );
+
+      expect(result.error).to.be.undefined;
+      expect(result.data.standardObjects).to.eql(16);
+      expect(result.data.customObjects).to.eql(0);
+      expect(stdoutInfo).to.contain(
+        nls.localize('fetched_sobjects_length_text', 16, 'Standard')
+      );
+      expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
     });
   });
 });

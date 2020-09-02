@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AuthInfo, Connection } from '@salesforce/core';
 import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { EventEmitter } from 'events';
@@ -25,18 +26,37 @@ import {
   SObjectCategory,
   SObjectDescribe
 } from '../describe';
+import { ConfigUtil } from '../describe/configUtil';
 import { nls } from '../messages';
 
 export const INDENT = '    ';
 const MODIFIER = 'global';
-
+const startupMinSObjects = [
+  'Account',
+  'Attachment',
+  'Case',
+  'Contact',
+  'Contract',
+  'Lead',
+  'Note',
+  'Opportunity',
+  'Order',
+  'Pricebook2',
+  'PricebookEntry',
+  'Product2',
+  'RecordType',
+  'Report',
+  'Task',
+  'User'
+];
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
 
 export enum SObjectRefreshSource {
   Manual = 'manual',
-  Startup = 'startup'
+  Startup = 'startup',
+  StartupMin = 'startupmin'
 }
 
 export interface FieldDeclaration {
@@ -149,7 +169,13 @@ export class FauxClassGenerator {
     }
     this.cleanupSObjectFolders(sobjectsFolderPath, type);
 
-    const describe = new SObjectDescribe();
+    const connection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: await ConfigUtil.getUsername(projectPath)
+      })
+    });
+
+    const describe = new SObjectDescribe(connection);
     const standardSObjects: SObject[] = [];
     const customSObjects: SObject[] = [];
     let fetchedSObjects: SObject[] = [];
@@ -163,8 +189,9 @@ export class FauxClassGenerator {
         err.stack
       );
     }
+    const filteredSObjects = sobjects.filter(this.isRequiredSObject);
     let j = 0;
-    while (j < sobjects.length) {
+    while (j < filteredSObjects.length) {
       try {
         if (
           this.cancellationToken &&
@@ -173,7 +200,7 @@ export class FauxClassGenerator {
           return this.cancelExit();
         }
         fetchedSObjects = fetchedSObjects.concat(
-          await describe.describeSObjectBatch(projectPath, sobjects, j)
+          await describe.describeSObjectBatch(filteredSObjects, j)
         );
         j = fetchedSObjects.length;
       } catch (errorMessage) {
@@ -210,6 +237,88 @@ export class FauxClassGenerator {
     }
 
     return this.successExit();
+  }
+
+  public async generateMin(
+    projectPath: string,
+    source: SObjectRefreshSource
+  ): Promise<SObjectRefreshResult> {
+    this.result = {
+      data: { category: SObjectCategory.STANDARD, source, cancelled: false }
+    };
+    const sobjectsFolderPath = path.join(
+      projectPath,
+      SFDX_DIR,
+      TOOLS_DIR,
+      SOBJECTS_DIR
+    );
+    const standardSObjectsFolderPath = path.join(
+      sobjectsFolderPath,
+      STANDARDOBJECTS_DIR
+    );
+
+    if (
+      !fs.existsSync(projectPath) ||
+      !fs.existsSync(path.join(projectPath, SFDX_PROJECT_FILE))
+    ) {
+      return this.errorExit(
+        nls.localize('no_generate_if_not_in_project', sobjectsFolderPath)
+      );
+    }
+    this.cleanupSObjectFolders(sobjectsFolderPath, SObjectCategory.STANDARD);
+
+    const connection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: await ConfigUtil.getUsername(projectPath)
+      })
+    });
+
+    const describe = new SObjectDescribe(connection);
+    const standardSObjects: SObject[] = [];
+    let fetchedSObjects: SObject[] = [];
+    let j = 0;
+    while (j < startupMinSObjects.length) {
+      try {
+        if (
+          this.cancellationToken &&
+          this.cancellationToken.isCancellationRequested
+        ) {
+          return this.cancelExit();
+        }
+        fetchedSObjects = fetchedSObjects.concat(
+          await describe.describeSObjectBatch(startupMinSObjects, j)
+        );
+        j = fetchedSObjects.length;
+      } catch (errorMessage) {
+        return this.errorExit(
+          nls.localize('failure_in_sobject_describe_text', errorMessage)
+        );
+      }
+    }
+
+    // tslint:disable-next-line:prefer-for-of
+    for (let i = 0; i < fetchedSObjects.length; i++) {
+      standardSObjects.push(fetchedSObjects[i]);
+    }
+
+    this.result.data.standardObjects = standardSObjects.length;
+    this.result.data.customObjects = 0;
+
+    this.logFetchedObjects(standardSObjects, []);
+
+    try {
+      this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
+    } catch (errorMessage) {
+      return this.errorExit(errorMessage);
+    }
+
+    return this.successExit();
+  }
+
+  // VisibleForTesting
+  public isRequiredSObject(sobject: string): boolean {
+    // Ignore all sobjects that end with Share or History or Feed or Event
+    return !/Share$|History$|Feed$|Event$/.test(sobject);
   }
 
   // VisibleForTesting
