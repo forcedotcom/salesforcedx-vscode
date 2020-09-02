@@ -15,10 +15,11 @@ import {
   FunctionInfo,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { exec } from 'child_process';
+import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   SfdxCommandlet,
@@ -48,11 +49,13 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
   }
 
   public runPostCommandTasks(outputDir: string) {
-    exec('npm install', { cwd: outputDir }, err => {
-      if (err) {
-        notificationService.showWarningMessage(nls.localize('force_function_pull_dependencies_error'));
-      }
-    });
+    if (sfdxCoreSettings.getFunctionsPullDependencies()) {
+      cp.exec('npm install', { cwd: outputDir }, err => {
+        if (err) {
+          notificationService.showWarningMessage(nls.localize('force_function_pull_dependencies_error'));
+        }
+      });
+    }
   }
 }
 
@@ -74,14 +77,6 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
       return { type: 'CANCEL' };
     }
 
-    const postInstall = await vscode.window.showQuickPick(['yes', 'no'], {
-      placeHolder: nls.localize('force_function_should_run_post_install')
-    });
-
-    if (postInstall === undefined) {
-      return { type: 'CANCEL' };
-    }
-
     // In order to reuse code used by other templates that have outputdir
     // and extends DirFileNameSelection, we are passing an empty outputdir
     return {
@@ -89,8 +84,7 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
       data: {
         fileName: name,
         language,
-        outputdir: '',
-        postInstall
+        outputdir: ''
       }
     };
   }

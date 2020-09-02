@@ -823,6 +823,11 @@
           "type": "boolean",
           "default": true,
           "description": "%experimental_templates_library_description%"
+        },
+        "salesforcedx-vscode-core.functions_pull_dependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "%functions_pull_dependencies%"
         }
       }
     },

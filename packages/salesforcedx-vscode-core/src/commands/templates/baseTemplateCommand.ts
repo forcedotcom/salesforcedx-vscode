@@ -60,9 +60,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
           this.getPathToSource(response.data.outputdir, response.data.fileName)
         );
         vscode.window.showTextDocument(document);
-        if (response.data.postInstall === 'yes') {
-          this.runPostCommandTasks(path.dirname(this.getPathToSource(response.data.outputdir, response.data.fileName)));
-        }
+        this.runPostCommandTasks(path.dirname(this.getPathToSource(response.data.outputdir, response.data.fileName)));
       }
     });
 
@@ -77,6 +75,8 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
 
   protected runPostCommandTasks(outputDir: string) {
     // By default do nothing
+    // This method is overridden in child classes to run any post command tasks
+    // Currently only Functions uses this to run "npm install"
   }
 
   private identifyDirType(outputDirectory: string): string {
