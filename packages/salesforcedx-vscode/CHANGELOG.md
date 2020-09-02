@@ -1,3 +1,18 @@
+# 49.8.0 - September 2, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Support deploying multiple components in [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2450](https://github.com/forcedotcom/salesforcedx-vscode/pull/2450))
+
+## Fixed
+
+#### salesforce-vscode-core
+
+- Add `ProfilePasswordPolicy` and `ProfileSessionSetting` to Org Browser ([PR #2466](https://github.com/forcedotcom/salesforcedx-vscode/pull/2466), [Issue #2400](https://github.com/forcedotcom/salesforcedx-vscode/issues/2400))
+- Reduce the number of SObjects being refreshed through the information message during startup ([PR #2467](https://github.com/forcedotcom/salesforcedx-vscode/pull/2467), [Issue #2410](https://github.com/forcedotcom/salesforcedx-vscode/issues/2410))
+
 # 49.7.0 - August 27, 2020
 
 ## Fixed
