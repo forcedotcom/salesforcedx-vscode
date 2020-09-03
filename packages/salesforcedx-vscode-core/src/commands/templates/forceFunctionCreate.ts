@@ -52,7 +52,7 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
     if (sfdxCoreSettings.getFunctionsPullDependencies()) {
       cp.exec('npm install', { cwd: outputDir }, err => {
         if (err) {
-          notificationService.showWarningMessage(nls.localize('force_function_pull_dependencies_error'));
+          notificationService.showWarningMessage(nls.localize('force_function_pull_dependencies_error', err.message));
         }
       });
     }

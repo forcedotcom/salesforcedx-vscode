@@ -542,6 +542,5 @@ export const messages = {
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
   force_function_enter_language: 'Select a language for your function',
-  force_function_pull_dependencies_error: "Error pulling dependencies. Try running 'npm install' for the function yourself",
-  force_function_should_run_post_install: 'Should pull dependencies after function creation'
+  force_function_pull_dependencies_error: "%s. Run 'npm install' to pull dependencies from package.json"
 };
