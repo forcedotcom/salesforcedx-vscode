@@ -195,6 +195,58 @@ describe('Filter Authorization Info', async () => {
     const authList = await orgList.filterAuthInfo(authInfoObjects);
     expect(authList[0]).to.equal('alias1 - test-username1@gmail.com');
   });
+
+  it('should flag the org as expired if expiration date has passed', async () => {
+    const oneDayMillis = 60 * 60 * 24 * 1000;
+    const today = new Date();
+    const yesterday = new Date(today.getTime() - oneDayMillis);
+    const tomorrow = new Date(today.getTime() + oneDayMillis);
+
+    const authInfoObjects: FileInfo[] = [
+      JSON.parse(
+        JSON.stringify({
+          orgId: '000',
+          username: 'test-scratchorg-today@gmail.com',
+          devHubUsername: 'test-devhub1@gmail.com',
+          expirationDate: today.toISOString().split('T')[0]
+        })
+      ),
+      JSON.parse(
+        JSON.stringify({
+          orgId: '111',
+          username: 'test-scratchorg-yesterday@gmail.com',
+          devHubUsername: 'test-devhub1@gmail.com',
+          expirationDate: yesterday.toISOString().split('T')[0]
+        })
+      ),
+      JSON.parse(
+        JSON.stringify({
+          orgId: '222',
+          username: 'test-scratchorg-tomorrow@gmail.com',
+          devHubUsername: 'test-devhub1@gmail.com',
+          expirationDate: tomorrow.toISOString().split('T')[0]
+        })
+      )
+    ];
+    defaultDevHubStub.returns('test-devhub1@gmail.com');
+    getUsernameStub.returns('test-devhub1@gmail.com');
+    aliasCreateStub.returns(Aliases.prototype);
+    aliasKeysStub.returns([]);
+    const authList = await orgList.filterAuthInfo(authInfoObjects);
+    expect(authList[0]).to.equal(
+      'test-scratchorg-today@gmail.com - ' +
+        nls.localize('org_expired') +
+        ' ' +
+        String.fromCodePoint(0x274c)
+    );
+    expect(authList[1]).to.equal(
+      'test-scratchorg-yesterday@gmail.com - ' +
+        nls.localize('org_expired') +
+        ' ' +
+        String.fromCodePoint(0x274c)
+    );
+    expect(authList[2]).to.equal('test-scratchorg-tomorrow@gmail.com');
+  });
 });
 
 describe('Set Default Org', () => {
