@@ -35,26 +35,26 @@ export enum MessageType {
 
 export class SOQLEditorInstance {
   // handlers assigned in constructor
-  private updateWebview: () => void;
-  private onDidRecieveMessageHandler: (e: SoqlEditorEvent) => void;
-  private onTextDocumentChangeHandler: (
+  protected updateWebview: () => void;
+  protected onDidRecieveMessageHandler: (e: SoqlEditorEvent) => void;
+  protected onTextDocumentChangeHandler: (
     e: vscode.TextDocumentChangeEvent
   ) => void;
-  private updateSObjects: (sobjectNames: string[]) => void;
-  private updateSObjectMetadata: (sobject: SObject) => void;
+  protected updateSObjects: (sobjectNames: string[]) => void;
+  protected updateSObjectMetadata: (sobject: SObject) => void;
 
   // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
 
   // Notify soqlEditorProvider when destroyed
-  private disposedCallback:
+  protected disposedCallback:
     | ((instance: SOQLEditorInstance) => void)
     | undefined;
 
   constructor(
-    private document: vscode.TextDocument,
-    private webviewPanel: vscode.WebviewPanel,
-    private _token: vscode.CancellationToken
+    protected document: vscode.TextDocument,
+    protected webviewPanel: vscode.WebviewPanel,
+    protected _token: vscode.CancellationToken
   ) {
     this.updateWebview = this.createWebviewUpdater(
       webviewPanel.webview,
@@ -90,7 +90,7 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  private createWebviewUpdater(
+  protected createWebviewUpdater(
     webview: vscode.Webview,
     document: vscode.TextDocument
   ) {
@@ -102,7 +102,7 @@ export class SOQLEditorInstance {
     };
   }
 
-  private createSObjectsUpdater(
+  protected createSObjectsUpdater(
     webview: vscode.Webview
   ): (sobjectNames: string[]) => void {
     return (sobjectNames: string[]) => {
@@ -113,7 +113,7 @@ export class SOQLEditorInstance {
     };
   }
 
-  private createSObjectMetadataUpdater(
+  protected createSObjectMetadataUpdater(
     webview: vscode.Webview
   ): (sobject: SObject) => void {
     return (sobject: SObject) => {
@@ -124,7 +124,7 @@ export class SOQLEditorInstance {
     };
   }
 
-  private createDocumentChangeHandler(document: vscode.TextDocument) {
+  protected createDocumentChangeHandler(document: vscode.TextDocument) {
     return (e: vscode.TextDocumentChangeEvent) => {
       if (e.document.uri.toString() === document.uri.toString()) {
         this.updateWebview();
@@ -132,7 +132,7 @@ export class SOQLEditorInstance {
     };
   }
 
-  private createOnDidRecieveMessageHandler(document: vscode.TextDocument) {
+  protected createOnDidRecieveMessageHandler(document: vscode.TextDocument) {
     return (e: SoqlEditorEvent) => {
       switch (e.type) {
         case MessageType.ACTIVATED: {
@@ -162,7 +162,7 @@ export class SOQLEditorInstance {
     };
   }
 
-  private async retrieveSObjects(): Promise<void> {
+  protected async retrieveSObjects(): Promise<void> {
     const conn = await this.getConnection();
     if (!conn) {
       // TODO: NLS
@@ -173,7 +173,7 @@ export class SOQLEditorInstance {
     this.updateSObjects(sobjectNames);
   }
 
-  private async retrieveSObject(sobjectName: string): Promise<void> {
+  protected async retrieveSObject(sobjectName: string): Promise<void> {
     const conn = await this.getConnection();
     if (!conn) {
       // TODO: NLS
@@ -185,7 +185,7 @@ export class SOQLEditorInstance {
   }
 
   // Write out the json to a given document. //
-  private updateTextDocument(document: vscode.TextDocument, message: string) {
+  protected updateTextDocument(document: vscode.TextDocument, message: string) {
     const edit = new vscode.WorkspaceEdit();
 
     edit.replace(
@@ -198,7 +198,7 @@ export class SOQLEditorInstance {
     return vscode.workspace.applyEdit(edit);
   }
 
-  private dispose() {
+  protected dispose() {
     this.subscriptions.forEach(dispposable => dispposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);
@@ -209,7 +209,7 @@ export class SOQLEditorInstance {
     this.disposedCallback = callback;
   }
 
-  private async getConnection(): Promise<Connection> {
+  protected async getConnection(): Promise<Connection> {
     const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
     if (!usernameOrAlias) {
       // TODO: NLS
