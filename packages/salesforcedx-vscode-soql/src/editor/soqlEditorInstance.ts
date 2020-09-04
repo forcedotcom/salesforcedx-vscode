@@ -16,7 +16,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { OrgAuthInfo } = sfdxCoreExports;
+const { OrgAuthInfo, channelService } = sfdxCoreExports;
 
 interface SoqlEditorEvent {
   type: string;
@@ -94,7 +94,7 @@ export class SOQLEditorInstance {
     webview: vscode.Webview,
     document: vscode.TextDocument
   ) {
-    return function updateWebview() {
+    return function updateWebview(): void {
       webview.postMessage({
         type: MessageType.UPDATE,
         message: document.getText()
@@ -125,7 +125,7 @@ export class SOQLEditorInstance {
   }
 
   protected createDocumentChangeHandler(document: vscode.TextDocument) {
-    return (e: vscode.TextDocumentChangeEvent) => {
+    return (e: vscode.TextDocumentChangeEvent): void => {
       if (e.document.uri.toString() === document.uri.toString()) {
         this.updateWebview();
       }
@@ -133,7 +133,7 @@ export class SOQLEditorInstance {
   }
 
   protected createOnDidRecieveMessageHandler(document: vscode.TextDocument) {
-    return (e: SoqlEditorEvent) => {
+    return (e: SoqlEditorEvent): void => {
       switch (e.type) {
         case MessageType.ACTIVATED: {
           this.updateWebview();
@@ -145,13 +145,19 @@ export class SOQLEditorInstance {
         }
         case MessageType.SOBJECT_METADATA_REQUEST: {
           this.retrieveSObject(e.message).catch(() => {
-            // TODO: telemetry
+            channelService.appendLine(
+              `An error occurred while handling a request for object metadata for the ${
+                e.message
+              } object.`
+            );
           });
           break;
         }
         case MessageType.SOBJECTS_REQUEST: {
           this.retrieveSObjects().catch(() => {
-            // TODO: telemetry
+            channelService.appendLine(
+              `An error occurred while handling a request for object names.`
+            );
           });
           break;
         }
@@ -163,29 +169,34 @@ export class SOQLEditorInstance {
   }
 
   protected async retrieveSObjects(): Promise<void> {
-    const conn = await this.getConnection();
-    if (!conn) {
-      // TODO: NLS
-      throw Error('!!! error no connection !!!');
+    try {
+      const conn = await this.getConnection();
+      const sobjectService = new SObjectService(conn);
+      const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
+      this.updateSObjects(sobjectNames);
+    } catch (e) {
+      channelService.appendLine(e);
     }
-    const sobjectService = new SObjectService(conn);
-    const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
-    this.updateSObjects(sobjectNames);
   }
 
   protected async retrieveSObject(sobjectName: string): Promise<void> {
-    const conn = await this.getConnection();
-    if (!conn) {
-      // TODO: NLS
-      throw Error('!!! error no connection !!!');
+    try {
+      const conn = await this.getConnection();
+      const sobjectService = new SObjectService(conn);
+      const sobject: SObject = await sobjectService.describeSObject(
+        sobjectName
+      );
+      this.updateSObjectMetadata(sobject);
+    } catch (e) {
+      channelService.appendLine(e);
     }
-    const sobjectService = new SObjectService(conn);
-    const sobject: SObject = await sobjectService.describeSObject(sobjectName);
-    this.updateSObjectMetadata(sobject);
   }
 
   // Write out the json to a given document. //
-  protected updateTextDocument(document: vscode.TextDocument, message: string) {
+  protected updateTextDocument(
+    document: vscode.TextDocument,
+    message: string
+  ): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
 
     edit.replace(
@@ -198,7 +209,7 @@ export class SOQLEditorInstance {
     return vscode.workspace.applyEdit(edit);
   }
 
-  protected dispose() {
+  protected dispose(): void {
     this.subscriptions.forEach(dispposable => dispposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);
@@ -213,7 +224,9 @@ export class SOQLEditorInstance {
     const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
     if (!usernameOrAlias) {
       // TODO: NLS
-      throw new Error('!!! error_no_default_username !!!');
+      throw new Error(
+        'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
+      );
     }
     return await OrgAuthInfo.getConnection(usernameOrAlias);
   }
