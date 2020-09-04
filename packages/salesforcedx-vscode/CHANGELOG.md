@@ -5,6 +5,19 @@
 #### salesforcedx-vscode-core
 
 - Support deploying multiple components in [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2450](https://github.com/forcedotcom/salesforcedx-vscode/pull/2450))
+- Scaffolding commands using the new `@salesforce/templates` library ([PR #2428](https://github.com/forcedotcom/salesforcedx-vscode/pull/2428), [PR #2437](https://github.com/forcedotcom/salesforcedx-vscode/pull/2437))
+  - `SFDX: Create Apex Class`
+  - `SFDX: Create Apex Trigger`
+  - `SFDX: Create Aura App`
+  - `SFDX: Create Aura Component`
+  - `SFDX: Create Aura Event`
+  - `SFDX: Create Aura Interface`
+  - `SFDX: Create Lightning Web Component`
+  - `SFDX: Create Project`
+  - `SFDX: Create Project with Manifest`
+  - `SFDX: Create and Set Up Project for ISV Debugger`
+  - `SFDX: Create Visualforce Component`
+  - `SFDX: Create Visualforce Page`
 
 ## Fixed
 
