@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ModelDeserializer, ModelSerializer } from '@salesforce/soql-model';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
+import { convertSoqlToUiModel, convertUiModelToSoql } from './soqlUtils';
 
 interface SoqlEditorEvent {
   type: string;
@@ -21,7 +23,7 @@ export enum MessageType {
 
 export class SOQLEditorInstance {
   // handlers assigned in constructor
-  private updateWebview: () => void;
+  private updateWebview: (document: vscode.TextDocument) => void;
   private onDidRecieveMessageHandler: (e: SoqlEditorEvent) => void;
   private onTextDocumentChangeHandler: (
     e: vscode.TextDocumentChangeEvent
@@ -40,10 +42,7 @@ export class SOQLEditorInstance {
     private webviewPanel: vscode.WebviewPanel,
     private _token: vscode.CancellationToken
   ) {
-    this.updateWebview = this.createWebviewUpdater(
-      webviewPanel.webview,
-      document
-    );
+    this.updateWebview = this.createWebviewUpdater(webviewPanel.webview);
     this.onDidRecieveMessageHandler = this.createOnDidRecieveMessageHandler(
       document
     );
@@ -70,14 +69,12 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  private createWebviewUpdater(
-    webview: vscode.Webview,
-    document: vscode.TextDocument
-  ) {
-    return function updateWebview() {
+  private createWebviewUpdater(webview: vscode.Webview) {
+    return function updateWebview(document: vscode.TextDocument) {
+      const uimodel = convertSoqlToUiModel(document.getText());
       webview.postMessage({
         type: MessageType.UPDATE,
-        message: document.getText()
+        message: JSON.stringify(uimodel)
       });
     };
   }
@@ -85,7 +82,7 @@ export class SOQLEditorInstance {
   private createDocumentChangeHandler(document: vscode.TextDocument) {
     return (e: vscode.TextDocumentChangeEvent) => {
       if (e.document.uri.toString() === document.uri.toString()) {
-        this.updateWebview();
+        this.updateWebview(document);
       }
     };
   }
@@ -94,11 +91,12 @@ export class SOQLEditorInstance {
     return (e: SoqlEditorEvent) => {
       switch (e.type) {
         case MessageType.ACTIVATED: {
-          this.updateWebview();
+          this.updateWebview(document);
           break;
         }
         case MessageType.QUERY: {
-          this.updateTextDocument(document, e.message);
+          const soql = convertUiModelToSoql(JSON.parse(e.message));
+          this.updateTextDocument(document, soql);
           break;
         }
         default: {

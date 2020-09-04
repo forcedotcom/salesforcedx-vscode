@@ -14,7 +14,7 @@ import {
   VIEW_TYPE,
   WEBVIEW_RESOURCE_ROOTS_PATH
 } from '../constants';
-import { EditorUtils } from './editorUtils';
+import { EditorUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
