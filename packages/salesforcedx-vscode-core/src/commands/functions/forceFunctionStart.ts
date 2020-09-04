@@ -24,6 +24,7 @@ export class ForceFunctionStart extends SfdxCommandletExecutor<string> {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_function_start_text'))
       .withArg('evergreen:function:start')
+      .withArg('--json')
       .withLogName('force_function_start')
       .build();
   }
@@ -33,4 +34,11 @@ export class ForceFunctionStart extends SfdxCommandletExecutor<string> {
  * Executes sfdx evergreen:function:start --verbose
  * @param sourceUri
  */
-export async function forceFunctionStart(sourceUri: Uri) {}
+export async function forceFunctionStart(sourceUri: Uri) {
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new FilePathGatherer(sourceUri),
+    new ForceFunctionStart()
+  );
+  await commandlet.run();
+}
