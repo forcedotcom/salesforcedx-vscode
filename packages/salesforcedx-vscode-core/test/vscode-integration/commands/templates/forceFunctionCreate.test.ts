@@ -72,7 +72,7 @@ describe('Force Apex Function', () => {
       funcCreate.runPostCommandTasks('some/dir');
       sinon.assert.calledOnce(execStub);
       sinon.assert.calledWith(execStub, 'npm install', { cwd: 'some/dir' });
-      sinon.assert.calledWith(notificationServiceStub, nls.localize('force_function_pull_dependencies_error', errorText))
+      sinon.assert.calledWith(notificationServiceStub, nls.localize('force_function_pull_dependencies_error', errorText));
     });
 
     afterEach(() => {
