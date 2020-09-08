@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { ModelDeserializer, ModelSerializer } from '@salesforce/soql-model';
 import { Impl, Soql, SoqlModelUtils } from '@salesforce/soql-model/lib';
 import { JsonMap } from '@salesforce/ts-types';
@@ -15,9 +22,7 @@ export function convertSoqlToUiModel(soql: string): ToolingModelJson {
   return uimodel;
 }
 
-function convertSoqlModelToUiModel(
-  queryModel: Soql.Query
-): ToolingModelJson {
+function convertSoqlModelToUiModel(queryModel: Soql.Query): ToolingModelJson {
   const fields =
     queryModel.select &&
     (queryModel.select as Soql.SelectExprs).selectExpressions
