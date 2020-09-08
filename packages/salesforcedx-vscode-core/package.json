@@ -851,6 +851,11 @@
           "type": "boolean",
           "default": true,
           "description": "%experimental_templates_library_description%"
+        },
+        "salesforcedx-vscode-core.experimental.functions_install_dependencies": {
+          "type": "boolean",
+          "default": true,
+          "description": "%experimental_functions_install_dependencies%"
         }
       }
     },
