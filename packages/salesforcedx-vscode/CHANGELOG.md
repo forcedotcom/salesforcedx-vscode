@@ -1,3 +1,43 @@
+# 49.8.0 - September 2, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Support deploying multiple components in [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2450](https://github.com/forcedotcom/salesforcedx-vscode/pull/2450))
+- Scaffolding commands using the new `@salesforce/templates` library ([PR #2428](https://github.com/forcedotcom/salesforcedx-vscode/pull/2428), [PR #2437](https://github.com/forcedotcom/salesforcedx-vscode/pull/2437))
+  - `SFDX: Create Apex Class`
+  - `SFDX: Create Apex Trigger`
+  - `SFDX: Create Aura App`
+  - `SFDX: Create Aura Component`
+  - `SFDX: Create Aura Event`
+  - `SFDX: Create Aura Interface`
+  - `SFDX: Create Lightning Web Component`
+  - `SFDX: Create Project`
+  - `SFDX: Create Project with Manifest`
+  - `SFDX: Create and Set Up Project for ISV Debugger`
+  - `SFDX: Create Visualforce Component`
+  - `SFDX: Create Visualforce Page`
+
+## Fixed
+
+#### salesforce-vscode-core
+
+- Add `ProfilePasswordPolicy` and `ProfileSessionSetting` to Org Browser ([PR #2466](https://github.com/forcedotcom/salesforcedx-vscode/pull/2466), [Issue #2400](https://github.com/forcedotcom/salesforcedx-vscode/issues/2400))
+- Reduce the number of SObjects being refreshed through the information message during startup ([PR #2467](https://github.com/forcedotcom/salesforcedx-vscode/pull/2467), [Issue #2410](https://github.com/forcedotcom/salesforcedx-vscode/issues/2410))
+
+# 49.7.0 - August 27, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Update to the latest version of the Aura and LWC language servers [PR #2380](https://github.com/forcedotcom/salesforcedx-vscode/pull/2380)
+
+#### docs
+
+- Fix example under [Advanced Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup/#advanced-setup) on Java Setup page [PR #2426](https://github.com/forcedotcom/salesforcedx-vscode/pull/2426) - Contribution by ([@nabondance](https://github.com/nabondance))
+
 # 49.6.0 - August 20, 2020
 
 ## Fixed
@@ -76,7 +116,7 @@
 
 #### docs
 
-- Update whitelist to allowlist ([PR #2323](https://github.com/forcedotcom/salesforcedx-vscode/pull/2323))
+- Replaced non-inclusive content ([PR #2323](https://github.com/forcedotcom/salesforcedx-vscode/pull/2323))
 
 - Update prettier-plugin-apex documentation ([PR #2329](https://github.com/forcedotcom/salesforcedx-vscode/pull/2329), [Issue #2328](https://github.com/forcedotcom/salesforcedx-vscode/issues/2328))-Contribution by [@jefersonchaves](https://github.com/jefersonchaves)
 

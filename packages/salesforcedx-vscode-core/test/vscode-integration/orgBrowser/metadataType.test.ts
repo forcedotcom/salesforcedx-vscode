@@ -85,7 +85,7 @@ describe('build metadata types list', () => {
     }
   });
 
-  it('should filter out blacklisted metadata types', async () => {
+  it('should filter out blocklisted metadata types', async () => {
     const data = JSON.stringify({
       status: 0,
       result: {
