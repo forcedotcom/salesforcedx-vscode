@@ -164,3 +164,8 @@ export {
 } from './forceSourceDiff';
 export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
+export {
+  forceFunctionStart,
+  forceFunctionStop,
+  forceFunctionInvoke
+} from './functions';

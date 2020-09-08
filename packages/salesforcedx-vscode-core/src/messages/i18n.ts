@@ -137,6 +137,9 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
+  force_function_start_text: 'SFDX: Start Function',
+  force_function_invoke_text: 'SFDX: Invoke Function',
+  force_function_stop_text: 'SFDX: Stop Function',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:

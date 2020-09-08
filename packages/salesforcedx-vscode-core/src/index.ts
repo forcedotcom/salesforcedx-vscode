@@ -22,6 +22,9 @@ import {
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceFunctionCreate,
+  forceFunctionInvoke,
+  forceFunctionStart,
+  forceFunctionStop,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
   forceInternalLightningEventCreate,
@@ -326,6 +329,21 @@ function registerCommands(
     forceFunctionCreate
   );
 
+  const forceFunctionStartCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.start',
+    forceFunctionStart
+  );
+
+  const forceFunctionInvokeCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.invoke',
+    forceFunctionInvoke
+  );
+
+  const forceFunctionStopCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.stop',
+    forceFunctionStop
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -336,6 +354,10 @@ function registerCommands(
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceDiffFile,
+    forceFunctionCreateCmd,
+    forceFunctionInvokeCmd,
+    forceFunctionStartCmd,
+    forceFunctionStopCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceSourceDeleteCmd,
