@@ -15,8 +15,11 @@ import {
   FunctionInfo,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { notificationService } from '../../notifications';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   SfdxCommandlet,
@@ -44,6 +47,16 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_create_function')
       .build();
   }
+
+  public runPostCommandTasks(targetDir: string) {
+    if (sfdxCoreSettings.getFunctionsPullDependencies()) {
+      cp.exec('npm install', { cwd: targetDir }, err => {
+        if (err) {
+          notificationService.showWarningMessage(nls.localize('force_function_pull_dependencies_error', err.message));
+        }
+      });
+    }
+  }
 }
 
 export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
@@ -63,6 +76,7 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     if (language === undefined) {
       return { type: 'CANCEL' };
     }
+
     // In order to reuse code used by other templates that have outputdir
     // and extends DirFileNameSelection, we are passing an empty outputdir
     return {

@@ -33,3 +33,4 @@ export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const USE_APEX_LIBRARY = 'experimental.useApexLibrary';
 export const FUNCTIONS_ENABLED = 'experimental.supportFunctions';
 export const USE_TEMPLATES_LIBRARY = 'experimental.useTemplatesLibrary';
+export const FUNCTIONS_INSTALL_DEPENDENCIES = 'experimental.functions_install_dependencies';
