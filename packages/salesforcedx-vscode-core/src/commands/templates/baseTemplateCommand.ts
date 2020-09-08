@@ -74,7 +74,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  protected runPostCommandTasks(outputDir: string) {
+  protected runPostCommandTasks(targetDir: string) {
     // By default do nothing
     // This method is overridden in child classes to run any post command tasks
     // Currently only Functions uses this to run "npm install"

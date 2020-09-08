@@ -10,7 +10,7 @@ import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
   FUNCTIONS_ENABLED,
-  FUNCTIONS_PULL_DEPENDENCIES,
+  FUNCTIONS_INSTALL_DEPENDENCIES,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
@@ -83,15 +83,11 @@ export class SfdxCoreSettings {
   }
 
   public getFunctionsEnabled(): boolean {
-    return this.getConfigValue(FUNCTIONS_ENABLED, false);
-  }
-
-  public async updateFunctionsPullDependencies(value: boolean) {
-    await this.setConfigValue(FUNCTIONS_PULL_DEPENDENCIES, value);
+    return this.getConfigValue(FUNCTIONS_ENABLED, true);
   }
 
   public getFunctionsPullDependencies(): boolean {
-    return this.getConfigValue(FUNCTIONS_PULL_DEPENDENCIES, true);
+    return this.getConfigValue(FUNCTIONS_INSTALL_DEPENDENCIES, true);
   }
 
   public getTemplatesLibrary(): boolean {

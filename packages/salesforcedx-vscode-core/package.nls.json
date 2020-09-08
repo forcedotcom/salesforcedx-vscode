@@ -67,5 +67,5 @@
   "experimental_apex_library_description": "Use Apex Library for Apex CLI commands",
   "force_function_create": "SFDX: Create Function",
   "experimental_templates_library_description": "Use Templates Library for Templates CLI commands",
-  "functions_pull_dependencies": "Pull dependencies from package.json after creating a function"
+  "experimental_functions_install_dependencies": "Install dependencies from package.json after creating a function"
 }

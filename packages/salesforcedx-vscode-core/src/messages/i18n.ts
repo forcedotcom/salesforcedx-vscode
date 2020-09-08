@@ -542,5 +542,5 @@ export const messages = {
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
   force_function_enter_language: 'Select a language for your function',
-  force_function_pull_dependencies_error: "%s. Run 'npm install' to pull dependencies from package.json"
+  force_function_pull_dependencies_error: "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
 };

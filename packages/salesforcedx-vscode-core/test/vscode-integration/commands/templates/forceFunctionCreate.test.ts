@@ -11,6 +11,7 @@ import { SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import { ForceFunctionCreateExecutor } from '../../../../src/commands/templates/forceFunctionCreate';
 import { nls } from '../../../../src/messages';
+import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
 // tslint:disable:no-unused-expression
@@ -40,10 +41,12 @@ describe('Force Apex Function', () => {
   describe('Pull Dependencies', () => {
     let execStub: SinonStub;
     let settings: SinonStub;
+    let notificationServiceStub: SinonStub;
 
     beforeEach(() => {
       execStub = stub(cp, 'exec');
       settings = stub(SfdxCoreSettings.prototype, 'getFunctionsPullDependencies');
+      notificationServiceStub = stub(notificationService, 'showWarningMessage');
     });
 
     it('Should pull dependencies when settings on', async () => {
@@ -61,9 +64,21 @@ describe('Force Apex Function', () => {
       sinon.assert.notCalled(execStub);
     });
 
+    it('Should call notification service when errored', async () => {
+      const funcCreate = new ForceFunctionCreateExecutor();
+      settings.returns(true);
+      const errorText = 'custom error text';
+      execStub.yields(new Error(errorText));
+      funcCreate.runPostCommandTasks('some/dir');
+      sinon.assert.calledOnce(execStub);
+      sinon.assert.calledWith(execStub, 'npm install', { cwd: 'some/dir' });
+      sinon.assert.calledWith(notificationServiceStub, nls.localize('force_function_pull_dependencies_error', errorText))
+    });
+
     afterEach(() => {
       execStub.restore();
       settings.restore();
+      notificationServiceStub.restore();
     });
   });
 });

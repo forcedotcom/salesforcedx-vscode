@@ -48,9 +48,9 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       .build();
   }
 
-  public runPostCommandTasks(outputDir: string) {
+  public runPostCommandTasks(targetDir: string) {
     if (sfdxCoreSettings.getFunctionsPullDependencies()) {
-      cp.exec('npm install', { cwd: outputDir }, err => {
+      cp.exec('npm install', { cwd: targetDir }, err => {
         if (err) {
           notificationService.showWarningMessage(nls.localize('force_function_pull_dependencies_error', err.message));
         }

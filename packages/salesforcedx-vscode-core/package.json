@@ -824,10 +824,10 @@
           "default": true,
           "description": "%experimental_templates_library_description%"
         },
-        "salesforcedx-vscode-core.functions_pull_dependencies": {
+        "salesforcedx-vscode-core.experimental.functions_install_dependencies": {
           "type": "boolean",
           "default": true,
-          "description": "%functions_pull_dependencies%"
+          "description": "%experimental_functions_install_dependencies%"
         }
       }
     },
