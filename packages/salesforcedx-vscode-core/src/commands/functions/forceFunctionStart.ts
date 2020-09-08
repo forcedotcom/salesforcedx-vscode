@@ -24,7 +24,7 @@ export class ForceFunctionStart extends SfdxCommandletExecutor<string> {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_function_start_text'))
       .withArg('evergreen:function:start')
-      .withArg('--json')
+      .withArg('--verbose')
       .withLogName('force_function_start')
       .build();
   }
