@@ -66,6 +66,8 @@
   "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience.",
   "experimental_apex_library_description": "Use Apex Library for Apex CLI commands",
   "force_function_create": "SFDX: Create Function",
+  "experimental_templates_library_description": "Use Templates Library for Templates CLI commands",
+  "experimental_functions_install_dependencies": "Install dependencies from package.json after creating a function",
   "force_function_start": "SFDX: Start Function",
   "force_function_invoke": "SFDX: Invoke Function",
   "force_function_stop": "SFDX: Stop Function",
