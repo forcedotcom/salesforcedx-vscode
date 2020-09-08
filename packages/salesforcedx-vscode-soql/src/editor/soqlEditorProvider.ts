@@ -14,7 +14,7 @@ import {
   VIEW_TYPE,
   WEBVIEW_RESOURCE_ROOTS_PATH
 } from '../constants';
-import { EditorUtils } from './htmlUtils';
+import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
@@ -58,7 +58,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     );
     const pathToHtml = path.join(pathToLwcDist, HTML_FILE);
     let html = fs.readFileSync(pathToHtml).toString();
-    html = EditorUtils.transformHtml(html, pathToLwcDist, webview);
+    html = HtmlUtils.transformHtml(html, pathToLwcDist, webview);
     return html;
   }
   private disposeInstance(instance: SOQLEditorInstance) {
