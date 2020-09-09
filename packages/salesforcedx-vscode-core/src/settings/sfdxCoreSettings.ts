@@ -83,7 +83,7 @@ export class SfdxCoreSettings {
   }
 
   public getFunctionsEnabled(): boolean {
-    return this.getConfigValue(FUNCTIONS_ENABLED, true);
+    return this.getConfigValue(FUNCTIONS_ENABLED, false);
   }
 
   public getFunctionsPullDependencies(): boolean {
