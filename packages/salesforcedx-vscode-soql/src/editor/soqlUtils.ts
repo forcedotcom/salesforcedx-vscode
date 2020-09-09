@@ -16,10 +16,8 @@ export interface ToolingModelJson extends JsonMap {
 
 export class SoqlUtils {
   public static convertSoqlToUiModel(soql: string): ToolingModelJson {
-    console.log('converting soql to ui model');
     const queryModel = new ModelDeserializer(soql).deserialize();
     const uimodel = SoqlUtils.convertSoqlModelToUiModel(queryModel);
-    console.log('uimodel: ', JSON.stringify(uimodel));
     return uimodel;
   }
 
@@ -34,11 +32,9 @@ export class SoqlUtils {
             .map(expr => ((expr as unknown) as Soql.FieldRef).fieldName)
         : undefined;
     const sObject = queryModel.from ? queryModel.from.sobjectName : undefined;
-    const errors = queryModel.errors;
-    console.log(`Query:   ${queryModel}`);
-    console.log(`SObject: ${sObject}`);
-    console.log(`Fields:  ${fields}`);
-    console.log(`Errors:  ${JSON.stringify(errors)}`);
+    // Working on errors in next work item.
+    // const errors = queryModel.errors;
+    // console.log(`Errors:  ${JSON.stringify(errors)}`);
 
     const toolingModelTemplate: ToolingModelJson = {
       sObject: sObject || '',
@@ -49,12 +45,8 @@ export class SoqlUtils {
   }
 
   public static convertUiModelToSoql(uiModel: ToolingModelJson): string {
-    console.log('converting ui model to soql');
-    console.log('uiModel: ', uiModel);
     const soqlModel = SoqlUtils.convertUiModelToSoqlModel(uiModel);
-    console.log('soqlModel: ', soqlModel);
     const soql = SoqlUtils.convertSoqlModelToSoql(soqlModel);
-    console.log('soql', soql);
     return soql;
   }
 

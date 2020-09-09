@@ -22,7 +22,7 @@ const { OrgAuthInfo, channelService } = sfdxCoreExports;
 // This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  message: string;
+  message?: string;
 }
 
 // This should be shared with soql-builder-ui

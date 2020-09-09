@@ -7,8 +7,8 @@
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { SObject, SObjectService } from '@salesforce/sobject-metadata';
-import { assert, expect } from 'chai';
+import { SObjectService } from '@salesforce/sobject-metadata';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -62,7 +62,6 @@ describe('SoqlEditorInstance should', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    // clock = sandbox.useFakeTimers();
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -118,7 +117,7 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobjects_request' } as SoqlEditorEvent);
+    instance.sendEvent({ type: 'sobjects_request' });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -141,7 +140,7 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobject_metadata_request' } as SoqlEditorEvent);
+    instance.sendEvent({ type: 'sobject_metadata_request' });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -172,7 +171,7 @@ describe('SoqlEditorInstance should', () => {
     const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
     instance.sendEvent({
       type: MessageType.ACTIVATED
-    } as SoqlEditorEvent);
+    });
     assert(
       updateWebviewSpy.callCount === 1,
       `updateWebviewSpy callcount expected 1, but got ${
@@ -184,7 +183,9 @@ describe('SoqlEditorInstance should', () => {
 
 class MockTextDocumentProvider implements vscode.TextDocumentContentProvider {
   public provideTextDocumentContent(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     uri: vscode.Uri,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token: vscode.CancellationToken
   ): string {
     return 'SELECT A FROM B';
