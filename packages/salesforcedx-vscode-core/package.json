@@ -521,6 +521,14 @@
           "when": "sfdx:functions_enabled"
         },
         {
+          "command": "sfdx.force.function.start",
+          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/"
+        },
+        {
+          "command": "sfdx.force.function.invoke",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.function.stop",
           "when": "sfdx:functions_enabled"
         }
