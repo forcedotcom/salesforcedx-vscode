@@ -32,9 +32,6 @@ export class SoqlUtils {
             .map(expr => ((expr as unknown) as Soql.FieldRef).fieldName)
         : undefined;
     const sObject = queryModel.from ? queryModel.from.sobjectName : undefined;
-    // Working on errors in next work item.
-    // const errors = queryModel.errors;
-    // console.log(`Errors:  ${JSON.stringify(errors)}`);
 
     const toolingModelTemplate: ToolingModelJson = {
       sObject: sObject || '',
