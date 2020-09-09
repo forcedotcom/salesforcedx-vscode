@@ -38,6 +38,7 @@ import {
   forceLightningLwcTestCreate,
   forceOrgCreate,
   forceOrgDisplay,
+  forceOrgList,
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
@@ -253,6 +254,10 @@ function registerCommands(
     'sfdx.force.org.display.username',
     forceOrgDisplay,
     { flag: '--targetusername' }
+  );
+  const forceOrgListCleanCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.list.clean',
+    forceOrgList
   );
   const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
     'sfdx.force.data.soql.query.input',
