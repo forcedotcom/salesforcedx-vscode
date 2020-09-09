@@ -30,7 +30,6 @@ describe('SoqlEditorInstance should', () => {
   const $$ = testSetup();
   const testData = new MockTestOrgData();
 
-  // let clock: sinon.SinonFakeTimers;
   let mockConnection: Connection;
   let mockWebviewPanel: vscode.WebviewPanel;
   let docProviderDisposable: vscode.Disposable;

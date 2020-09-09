@@ -103,12 +103,14 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.QUERY: {
-        const soql = SoqlUtils.convertUiModelToSoql(JSON.parse(e.message));
+        const soql = SoqlUtils.convertUiModelToSoql(
+          JSON.parse(e.message as string)
+        );
         this.updateTextDocument(this.document, soql);
         break;
       }
       case MessageType.SOBJECT_METADATA_REQUEST: {
-        this.retrieveSObject(e.message).catch(() => {
+        this.retrieveSObject(e.message as string).catch(() => {
           channelService.appendLine(
             `An error occurred while handling a request for object metadata for the ${
               e.message
