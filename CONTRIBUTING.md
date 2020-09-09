@@ -15,9 +15,9 @@
 
 ### Committing
 
-1. We enforce commit message format. We recommend using [commitizen](https://github.com/commitizen/cz-cli) by installing it with `npm install -g commitizen` and running `npm run commit-init`. When you commit, we recommend that you use `npm run commit` which will prompt you with a series of questions to format the commit message. Or you can use our VS Code Task `Commit`.
+1. We enforce commit message format. We recommend using [commitizen](https://github.com/commitizen/cz-cli) by installing it with `npm install -g commitizen` and running `npm run commit-init`. When you commit, we recommend that you use `npm run commit`, which prompts you with a series of questions to format the commit message. Or you can use our VS Code Task `Commit`.
 1. The commit message format that we expect is: `type: commit message`. Valid types are: feat, fix, improvement, docs, style, refactor, perf, test, build, ci, chore and revert.
-1. Before commit and push, husky will run several hooks to ensure the commit message is in the correct format and that everything lints and compiles properly.
+1. Before commit and push, Husky runs several hooks to ensure the commit message is in the correct format and that everything lints and compiles properly.
 
 ### CLA
 
@@ -49,7 +49,7 @@ Agreement. You can do so by going to https://cla.salesforce.com/sign-cla.
 
 ### Merging `develop` into `main`
 
-- When a development cycle finishes, the content of the `develop` branch will become the `main` branch
+- When a development cycle finishes, the content of the `develop` branch becomes the `main` branch.
 
 ```
 $ git checkout main

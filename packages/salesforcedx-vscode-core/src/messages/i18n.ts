@@ -137,6 +137,9 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
+  force_function_start_text: 'SFDX: Start Function',
+  force_function_invoke_text: 'SFDX: Invoke Function',
+  force_function_stop_text: 'SFDX: Stop Function',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
@@ -557,5 +560,6 @@ export const messages = {
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
-  force_function_enter_language: 'Select a language for your function'
+  force_function_enter_language: 'Select a language for your function',
+  force_function_pull_dependencies_error: "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
 };
