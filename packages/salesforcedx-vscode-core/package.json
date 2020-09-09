@@ -664,6 +664,10 @@
         "title": "%force_org_display_username_text%"
       },
       {
+        "command": "sfdx.force.org.list.clean",
+        "title": "%force_org_list_clean_text%"
+      },
+      {
         "command": "sfdx.force.data.soql.query.input",
         "title": "%force_data_soql_query_input_text%"
       },

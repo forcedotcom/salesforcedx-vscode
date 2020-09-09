@@ -76,6 +76,10 @@ export const messages = {
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
   parameter_gatherer_enter_function: 'Enter function details',
 
+  parameter_gatherer_prompt_confirm_option: 'yes',
+  parameter_gatherer_prompt_cancel_option: 'no',
+  parameter_gatherer_prompt_confirm_placeholder: 'Confirm the operation?',
+
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
   force_org_create_result_parsing_error:
@@ -161,6 +165,7 @@ export const messages = {
   force_alias_list_text: 'SFDX: List All Aliases',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
+  force_org_list_clean_text: 'SFDX: Remove All Expired Orgs',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   force_debugger_stop_none_found_text: 'No Apex Debugger session found.',

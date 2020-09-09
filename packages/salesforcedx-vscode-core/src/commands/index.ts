@@ -162,6 +162,7 @@ export {
   ForceSourceDiffExecutor,
   handleDiffResponse
 } from './forceSourceDiff';
+export { forceOrgList } from './forceOrgList';
 export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
