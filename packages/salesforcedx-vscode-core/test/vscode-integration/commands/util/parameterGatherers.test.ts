@@ -380,7 +380,7 @@ describe('Parameter Gatherers', () => {
     it('Should return CONTINUE if confirmation to proceed is positive', async () => {
       const promptConfirm = new PromptConfirmGatherer();
       const showMenuStub = sinon.stub(promptConfirm, 'showMenu');
-      const choice = nls.localize('prompt_confirm_option');
+      const choice = nls.localize('parameter_gatherer_prompt_confirm_option');
       showMenuStub.onFirstCall().returns(choice);
       const response = await promptConfirm.gather();
       expect(response).to.eql({
@@ -394,7 +394,7 @@ describe('Parameter Gatherers', () => {
     it('Should return CANCEL if confirmation to proceed is negative', async () => {
       const promptConfirm = new PromptConfirmGatherer();
       const showMenuStub = sinon.stub(promptConfirm, 'showMenu');
-      const choice = nls.localize('prompt_cancel_option');
+      const choice = nls.localize('parameter_gatherer_prompt_cancel_option');
       showMenuStub.onFirstCall().returns(choice);
       const response = await promptConfirm.gather();
       expect(response).to.eql({
