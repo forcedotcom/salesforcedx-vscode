@@ -1,3 +1,25 @@
+# 49.9.0 - September 10, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-lightning
+
+- chore: update to latest lwc/aura lang server version ([PR #2495](https://github.com/forcedotcom/salesforcedx-vscode/pull/2495))
+
+#### salesforcedx-vscode-lwc
+
+- chore: update to latest lwc/aura lang server version ([PR #2495](https://github.com/forcedotcom/salesforcedx-vscode/pull/2495))
+
+#### salesforcedx-vscode
+
+- chore: changelog 49.8.0 updates ([PR #2486](https://github.com/forcedotcom/salesforcedx-vscode/pull/2486))
+
+#### docs
+
+- Updates to Nate's code completion updates (minor edits) ([PR #2471](https://github.com/forcedotcom/salesforcedx-vscode/pull/2471))
+
+- Added link to community extensions ([PR #2477](https://github.com/forcedotcom/salesforcedx-vscode/pull/2477))
+
 # 49.8.0 - September 2, 2020
 
 ## Added
