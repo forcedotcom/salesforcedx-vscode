@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import stripAnsi from 'strip-ansi';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -36,6 +37,16 @@ export class ChannelService {
     );
     execution.stdoutSubject.subscribe(data =>
       this.channel.append(data.toString())
+    );
+  }
+
+  public streamCommandOutputWithoutColor(execution: CommandExecution) {
+    this.streamCommandStartStop(execution);
+    execution.stderrSubject.subscribe(data =>
+      this.channel.append(stripAnsi(data.toString()))
+    );
+    execution.stdoutSubject.subscribe(data =>
+      this.channel.append(stripAnsi(data.toString()))
     );
   }
 

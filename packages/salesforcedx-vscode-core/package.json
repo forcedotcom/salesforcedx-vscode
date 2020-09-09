@@ -36,6 +36,7 @@
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.3",
+    "strip-ansi": "^5.2.0",
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
