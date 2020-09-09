@@ -15,8 +15,10 @@ describe('html utilities', () => {
   let mockWebviewPanel: vscode.WebviewPanel;
   const pathToLwcDist = SOQL_BUILDER_UI_PATH;
   const html = `
+  <!-- CSP TAG -->'
   <script src="./0.app.js"></script><script src="./app.js"></script>
   `;
+
   beforeEach(() => {
     mockWebviewPanel = vscode.window.createWebviewPanel(
       'mockWebviewPanel',
@@ -26,7 +28,7 @@ describe('html utilities', () => {
     );
   });
   it('transforms script tags appropriately', () => {
-    const transformed = HtmlUtils.transformScriptTags(
+    const transformedHtml = HtmlUtils.transformHtml(
       html,
       pathToLwcDist,
       mockWebviewPanel.webview
@@ -37,13 +39,16 @@ describe('html utilities', () => {
     const appZeroUri = mockWebviewPanel.webview.asWebviewUri(
       vscode.Uri.file(path.join(pathToLwcDist, '0.app.js'))
     );
-    expect(transformed).to.contain(appUri);
-    expect(transformed).to.contain(appZeroUri);
+    expect(transformedHtml).to.contain(appUri);
+    expect(transformedHtml).to.contain(appZeroUri);
   });
   it('transforms Content-Security-Policy appropriately', () => {
-    expect(HtmlUtils.replaceCspMetaTag);
-  });
-  it('transforms html appropriately', () => {
-    expect(HtmlUtils.transformHtml);
+    const transformedHtml = HtmlUtils.transformHtml(
+      html,
+      pathToLwcDist,
+      mockWebviewPanel.webview
+    );
+    expect(transformedHtml).to.contain('meta');
+    expect(transformedHtml).to.contain(mockWebviewPanel.webview.cspSource);
   });
 });

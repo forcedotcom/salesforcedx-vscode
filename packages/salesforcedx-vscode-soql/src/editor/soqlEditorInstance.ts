@@ -19,11 +19,13 @@ const sfdxCoreExports = sfdxCoreExtension
   : undefined;
 const { OrgAuthInfo, channelService } = sfdxCoreExports;
 
-interface SoqlEditorEvent {
+// This should be exported from soql-builder-ui
+export interface SoqlEditorEvent {
   type: string;
   message: string;
 }
 
+// This should be shared with soql-builder-ui
 export enum MessageType {
   ACTIVATED = 'activated',
   QUERY = 'query',
@@ -35,15 +37,6 @@ export enum MessageType {
 }
 
 export class SOQLEditorInstance {
-  // handlers assigned in constructor
-  protected updateWebview: (document: vscode.TextDocument) => void;
-  protected onDidRecieveMessageHandler: (e: SoqlEditorEvent) => void;
-  protected onTextDocumentChangeHandler: (
-    e: vscode.TextDocumentChangeEvent
-  ) => void;
-  protected updateSObjects: (sobjectNames: string[]) => void;
-  protected updateSObjectMetadata: (sobject: SObject) => void;
-
   // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
 
@@ -57,22 +50,9 @@ export class SOQLEditorInstance {
     protected webviewPanel: vscode.WebviewPanel,
     protected _token: vscode.CancellationToken
   ) {
-    this.updateWebview = this.createWebviewUpdater(webviewPanel.webview);
-    this.onDidRecieveMessageHandler = this.createOnDidRecieveMessageHandler(
-      document
-    );
-    this.onTextDocumentChangeHandler = debounce(
-      this.createDocumentChangeHandler(document),
-      1000
-    );
-    this.updateSObjects = this.createSObjectsUpdater(webviewPanel.webview);
-    this.updateSObjectMetadata = this.createSObjectMetadataUpdater(
-      webviewPanel.webview
-    );
-
     // Update the UI when the Text Document is changed, if its the same document.
     vscode.workspace.onDidChangeTextDocument(
-      this.onTextDocumentChangeHandler,
+      debounce(this.onDocumentChangeHandler, 1000),
       this,
       this.subscriptions
     );
@@ -88,81 +68,67 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  protected createWebviewUpdater(webview: vscode.Webview) {
-    return function updateWebview(document: vscode.TextDocument): void {
-      const uimodel = SoqlUtils.convertSoqlToUiModel(document.getText());
-      webview.postMessage({
-        type: MessageType.UPDATE,
-        message: JSON.stringify(uimodel)
-      });
-    };
+  protected updateWebview(document: vscode.TextDocument): void {
+    const uimodel = SoqlUtils.convertSoqlToUiModel(document.getText());
+    this.webviewPanel.webview.postMessage({
+      type: MessageType.UPDATE,
+      message: JSON.stringify(uimodel)
+    });
   }
 
-  protected createSObjectsUpdater(
-    webview: vscode.Webview
-  ): (sobjectNames: string[]) => void {
-    return (sobjectNames: string[]) => {
-      webview.postMessage({
-        type: MessageType.SOBJECTS_RESPONSE,
-        message: sobjectNames
-      });
-    };
+  protected updateSObjects(sobjectNames: string[]): void {
+    this.webviewPanel.webview.postMessage({
+      type: MessageType.SOBJECTS_RESPONSE,
+      message: sobjectNames
+    });
   }
 
-  protected createSObjectMetadataUpdater(
-    webview: vscode.Webview
-  ): (sobject: SObject) => void {
-    return (sobject: SObject) => {
-      webview.postMessage({
-        type: MessageType.SOBJECT_METADATA_RESPONSE,
-        message: sobject
-      });
-    };
+  protected updateSObjectMetadata(sobject: SObject): void {
+    this.webviewPanel.webview.postMessage({
+      type: MessageType.SOBJECT_METADATA_RESPONSE,
+      message: sobject
+    });
   }
 
-  protected createDocumentChangeHandler(document: vscode.TextDocument) {
-    return (e: vscode.TextDocumentChangeEvent): void => {
-      if (e.document.uri.toString() === document.uri.toString()) {
-        this.updateWebview(document);
+  protected onDocumentChangeHandler(e: vscode.TextDocumentChangeEvent): void {
+    if (e.document.uri.toString() === this.document.uri.toString()) {
+      this.updateWebview(this.document);
+    }
+  }
+
+  protected onDidRecieveMessageHandler(e: SoqlEditorEvent): void {
+    switch (e.type) {
+      case MessageType.ACTIVATED: {
+        this.updateWebview(this.document);
+        break;
       }
-    };
-  }
-
-  protected createOnDidRecieveMessageHandler(document: vscode.TextDocument) {
-    return (e: SoqlEditorEvent): void => {
-      switch (e.type) {
-        case MessageType.ACTIVATED: {
-          this.updateWebview(document);
-          break;
-        }
-        case MessageType.QUERY: {
-          const soql = SoqlUtils.convertUiModelToSoql(JSON.parse(e.message));
-          this.updateTextDocument(document, soql);
-          break;
-        }
-        case MessageType.SOBJECT_METADATA_REQUEST: {
-          this.retrieveSObject(e.message).catch(() => {
-            channelService.appendLine(
-              `An error occurred while handling a request for object metadata for the ${
-                e.message
-              } object.`
-            );
-          });
-          break;
-        }
-        case MessageType.SOBJECTS_REQUEST: {
-          this.retrieveSObjects().catch(() => {
-            channelService.appendLine(
-              `An error occurred while handling a request for object names.`
-            );
-          });
-          break;
-        }
-        default: {
-          console.log('message type is not supported');
-        }
+      case MessageType.QUERY: {
+        const soql = SoqlUtils.convertUiModelToSoql(JSON.parse(e.message));
+        this.updateTextDocument(this.document, soql);
+        break;
       }
-    };
+      case MessageType.SOBJECT_METADATA_REQUEST: {
+        this.retrieveSObject(e.message).catch(() => {
+          channelService.appendLine(
+            `An error occurred while handling a request for object metadata for the ${
+              e.message
+            } object.`
+          );
+        });
+        break;
+      }
+      case MessageType.SOBJECTS_REQUEST: {
+        this.retrieveSObjects().catch(() => {
+          channelService.appendLine(
+            `An error occurred while handling a request for object names.`
+          );
+        });
+        break;
+      }
+      default: {
+        console.log('message type is not supported');
+      }
+    }
   }
 
   protected async retrieveSObjects(): Promise<void> {
@@ -192,15 +158,14 @@ export class SOQLEditorInstance {
   // Write out the json to a given document. //
   protected updateTextDocument(
     document: vscode.TextDocument,
-    message: string
+    soqlQuery: string
   ): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
 
     edit.replace(
       document.uri,
       new vscode.Range(0, 0, document.lineCount, 0),
-      // NOTE: Instead we would convert the UImodel JSON into a Query String before applyEdit
-      message
+      soqlQuery
     );
 
     return vscode.workspace.applyEdit(edit);

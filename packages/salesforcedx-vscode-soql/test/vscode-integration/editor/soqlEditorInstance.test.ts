@@ -11,7 +11,12 @@ import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
+import {
+  MessageType,
+  SoqlEditorEvent,
+  SOQLEditorInstance
+} from '../../../src/editor/soqlEditorInstance';
+import { ToolingModelJson } from '../../../src/editor/soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -25,12 +30,18 @@ describe('SoqlEditorInstance should', () => {
   const $$ = testSetup();
   const testData = new MockTestOrgData();
 
+  // let clock: sinon.SinonFakeTimers;
   let mockConnection: Connection;
   let mockWebviewPanel: vscode.WebviewPanel;
   let docProviderDisposable: vscode.Disposable;
   let mockTextDocument: vscode.TextDocument;
   let instance: TestSoqlEditorInstance;
   let sandbox: sinon.SinonSandbox;
+
+  const uiModelOne: ToolingModelJson = {
+    sObject: 'Account',
+    fields: ['Name', 'Id']
+  };
 
   const createMessagingWebviewContent = () => {
     return `<!DOCTYPE html>
@@ -51,6 +62,7 @@ describe('SoqlEditorInstance should', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
+    // clock = sandbox.useFakeTimers();
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -106,7 +118,7 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobjects_request' });
+    instance.sendEvent({ type: 'sobjects_request' } as SoqlEditorEvent);
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -129,15 +141,44 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobject_metadata_request' });
+    instance.sendEvent({ type: 'sobject_metadata_request' } as SoqlEditorEvent);
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
     assert(postMessageSpy.calledWith(expectedMessage));
   });
 
-  it('handles query event and updates text document with soql', () => {
-    // fill this out
+  it('handles query event and updates text document with soql', async () => {
+    const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
+    instance.sendEvent({
+      type: MessageType.QUERY,
+      message: JSON.stringify(uiModelOne)
+    });
+    assert(
+      updateDocumentSpy.callCount === 1,
+      `updateDocumentSpy callcount expected 1, but got ${
+        updateDocumentSpy.callCount
+      }`
+    );
+    assert(
+      updateDocumentSpy.getCall(0).args[1].indexOf(uiModelOne.sObject) > -1,
+      `updateDocumentSpy was called with ${
+        updateDocumentSpy.getCall(0).args[1]
+      } but does not include ${uiModelOne.sObject}`
+    );
+  });
+
+  it('handles activation event and updates the webview', async () => {
+    const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
+    instance.sendEvent({
+      type: MessageType.ACTIVATED
+    } as SoqlEditorEvent);
+    assert(
+      updateWebviewSpy.callCount === 1,
+      `updateWebviewSpy callcount expected 1, but got ${
+        updateWebviewSpy.callCount
+      }`
+    );
   });
 });
 
@@ -151,10 +192,17 @@ class MockTextDocumentProvider implements vscode.TextDocumentContentProvider {
 }
 
 class TestSoqlEditorInstance extends SOQLEditorInstance {
-  public sendEvent(event: any) {
-    this.onDidRecieveMessageHandler({
-      type: event.type,
-      message: event.message
-    });
+  public sendEvent(event: SoqlEditorEvent) {
+    this.onDidRecieveMessageHandler(event);
+  }
+  public updateWebview(document: vscode.TextDocument) {
+    super.updateWebview(document);
+  }
+
+  public updateTextDocument(
+    document: vscode.TextDocument,
+    soql: string
+  ): Thenable<boolean> {
+    return super.updateTextDocument(document, soql);
   }
 }
