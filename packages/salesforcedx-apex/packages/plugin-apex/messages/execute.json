@@ -3,7 +3,7 @@
     "longDescription": "Executes one or more lines of anonymous Apex code entered on the command line, or executes the code in a local file.\nIf you don’t run this command from within a Salesforce DX project, —-targetusername is required.\nTo execute your code interactively, run this command with no parameters. At the prompt, enter all your Apex code; press CTRL-D when you're finished. Your code is then executed in a single execute anonymous request.\nFor more information, see \"Anonymous Blocks\" in the Apex Developer Guide.\n\n",
     "apexCodeFileDescription": "path to a local file that contains Apex code",
     "logLevelDescription": "logging level for this command invocation",
-    "logLevelLongDescription": "Permissible values are: trace, debug, info, warn, error, fatal, TRACE, DEBUG, INFO, WARN, ERROR, FATAL",
+    "logLevelLongDescription": "The logging level for this command invocation. Logs are stored in $HOME/.sfdx/sfdx.log.",
     "execute_compile_success": "Compiled successfully.",
     "execute_runtime_success": "Executed successfully.",
     "missing_auth_error": "Must pass a username and/or OAuth options when creating an AuthInfo instance."
