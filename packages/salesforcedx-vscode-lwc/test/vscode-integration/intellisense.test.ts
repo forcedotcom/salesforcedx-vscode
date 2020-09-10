@@ -71,7 +71,7 @@ describe('LWC Intellisense Test Suite', function() {
     }
   });
 
-  it('LWC JS @Salesforce Import Intellisense', async function() {
+  xit('LWC JS @Salesforce Import Intellisense', async function() {
     this.timeout(10000);
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
@@ -163,7 +163,7 @@ describe('LWC Intellisense Test Suite', function() {
     }
   });
 
-  it('LWC JS Lightning Import Intellisense', async function() {
+  xit('LWC JS Lightning Import Intellisense', async function() {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
