@@ -2,21 +2,14 @@
 ## Added
 
 #### salesforcedx-vscode-apex
+
 - Added support for the new [Safe Navigation Operator](https://releasenotes.docs.salesforce.com/en-us/winter21/release-notes/rn_apex_SafeNavigationOperator.htm) within the Apex Language Server Protocol ([PR #2507](https://github.com/forcedotcom/salesforcedx-vscode/pull/2507))
 
 ## Fixed
 
-#### salesforcedx-vscode-lightning
-
-- chore: update to latest lwc/aura lang server version ([PR #2495](https://github.com/forcedotcom/salesforcedx-vscode/pull/2495))
-
-#### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - Update to the latest version of the Aura and LWC language servers ([PR #2495](https://github.com/forcedotcom/salesforcedx-vscode/pull/2495))
-
-#### salesforcedx-vscode
-
-- chore: changelog 49.8.0 updates ([PR #2486](https://github.com/forcedotcom/salesforcedx-vscode/pull/2486))
 
 #### docs
 
