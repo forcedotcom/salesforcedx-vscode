@@ -20,7 +20,7 @@
 
 #### docs
 
-- Updates to Nate's [code completion](https://developer.salesforce.com/tools/vscode/en/apex/writing) documentation updates (minor edits) ([PR #2471](https://github.com/forcedotcom/salesforcedx-vscode/pull/2471))
+- Updates to [Code Completion](https://developer.salesforce.com/tools/vscode/en/apex/writing) documentation ([PR #2471](https://github.com/forcedotcom/salesforcedx-vscode/pull/2471))
 
 - Added [Community Extensions](https://developer.salesforce.com/tools/vscode/en/getting-started/recommended-extensions/#community-extensions) section ([PR #2477](https://github.com/forcedotcom/salesforcedx-vscode/pull/2477))
 
