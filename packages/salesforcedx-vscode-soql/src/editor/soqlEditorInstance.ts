@@ -69,10 +69,10 @@ export class SOQLEditorInstance {
   }
 
   protected updateWebview(document: vscode.TextDocument): void {
-    const uimodel = SoqlUtils.convertSoqlToUiModel(document.getText());
+    const uiModel = SoqlUtils.convertSoqlToUiModel(document.getText());
     this.webviewPanel.webview.postMessage({
       type: MessageType.UPDATE,
-      message: JSON.stringify(uimodel)
+      message: JSON.stringify(uiModel)
     });
   }
 

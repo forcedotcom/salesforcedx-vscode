@@ -8,7 +8,7 @@
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { SObjectService } from '@salesforce/sobject-metadata';
-import { assert } from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -120,7 +120,7 @@ describe('SoqlEditorInstance should', () => {
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
-    assert(postMessageSpy.calledWith(expectedMessage));
+    expect(postMessageSpy.calledWith(expectedMessage));
   });
 
   it('responds to sobject_metadata_request with SObject metadata', async () => {
@@ -143,7 +143,7 @@ describe('SoqlEditorInstance should', () => {
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
-    assert(postMessageSpy.calledWith(expectedMessage));
+    expect(postMessageSpy.calledWith(expectedMessage));
   });
 
   it('handles query event and updates text document with soql', async () => {
@@ -152,13 +152,13 @@ describe('SoqlEditorInstance should', () => {
       type: MessageType.QUERY,
       message: JSON.stringify(uiModelOne)
     });
-    assert(
+    expect(
       updateDocumentSpy.callCount === 1,
       `updateDocumentSpy callcount expected 1, but got ${
         updateDocumentSpy.callCount
       }`
     );
-    assert(
+    expect(
       updateDocumentSpy.getCall(0).args[1].indexOf(uiModelOne.sObject) > -1,
       `updateDocumentSpy was called with ${
         updateDocumentSpy.getCall(0).args[1]
@@ -171,7 +171,7 @@ describe('SoqlEditorInstance should', () => {
     instance.sendEvent({
       type: MessageType.ACTIVATED
     });
-    assert(
+    expect(
       updateWebviewSpy.callCount === 1,
       `updateWebviewSpy callcount expected 1, but got ${
         updateWebviewSpy.callCount
