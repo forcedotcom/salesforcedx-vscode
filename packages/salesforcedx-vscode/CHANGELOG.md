@@ -1,4 +1,8 @@
 # 49.9.0 - September 10, 2020
+## Added
+
+#### salesforcedx-vscode-apex
+- Added support for the new [Safe Navigation Operator](https://releasenotes.docs.salesforce.com/en-us/winter21/release-notes/rn_apex_SafeNavigationOperator.htm) within the Apex Language Server Protocol ([PR #2507](https://github.com/forcedotcom/salesforcedx-vscode/pull/2507))
 
 ## Fixed
 
