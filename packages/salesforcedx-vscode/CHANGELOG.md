@@ -12,7 +12,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- chore: update to latest lwc/aura lang server version ([PR #2495](https://github.com/forcedotcom/salesforcedx-vscode/pull/2495))
+- Update to the latest version of the Aura and LWC language servers ([PR #2495](https://github.com/forcedotcom/salesforcedx-vscode/pull/2495))
 
 #### salesforcedx-vscode
 
