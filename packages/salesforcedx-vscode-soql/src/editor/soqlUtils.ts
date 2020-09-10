@@ -31,6 +31,7 @@ export class SoqlUtils {
             .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
             .map(expr => ((expr as unknown) as Soql.FieldRef).fieldName)
         : undefined;
+    // eslint-disable-next-line prettier/prettier
     const sObject = queryModel.from?.sobjectName;
 
     const toolingModelTemplate: ToolingModelJson = {
