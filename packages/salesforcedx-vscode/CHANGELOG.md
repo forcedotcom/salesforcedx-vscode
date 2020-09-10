@@ -1,4 +1,5 @@
 # 49.9.0 - September 10, 2020
+
 ## Added
 
 #### salesforcedx-vscode-apex
