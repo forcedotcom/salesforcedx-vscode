@@ -656,6 +656,14 @@
         "title": "%force_alias_list_text%"
       },
       {
+        "command": "sfdx.force.org.delete.default",
+        "title": "%force_org_delete_default_text%"
+      },
+      {
+        "command": "sfdx.force.org.delete.username",
+        "title": "%force_org_delete_username_text%"
+      },
+      {
         "command": "sfdx.force.org.display.default",
         "title": "%force_org_display_default_text%"
       },
