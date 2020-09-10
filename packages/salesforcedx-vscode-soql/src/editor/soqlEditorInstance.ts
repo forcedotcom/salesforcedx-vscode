@@ -9,7 +9,7 @@ import { Connection } from '@salesforce/core';
 import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
-import { SoqlUtils } from './soqlUtils';
+import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -22,7 +22,7 @@ const { OrgAuthInfo, channelService } = sfdxCoreExports;
 // This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  message?: string;
+  message?: string | string[] | ToolingModelJson;
 }
 
 // This should be shared with soql-builder-ui
@@ -34,6 +34,27 @@ export enum MessageType {
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
   UPDATE = 'update'
+}
+
+// TODO: move to shared module
+async function getConnection(): Promise<Connection> {
+  const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+  if (!usernameOrAlias) {
+    // TODO: NLS
+    throw new Error(
+      'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
+    );
+  }
+  return await OrgAuthInfo.getConnection(usernameOrAlias);
+}
+
+async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
+  try {
+    const conn = await getConnection();
+    f(conn);
+  } catch (e) {
+    channelService.appendLine(e);
+  }
 }
 
 export class SOQLEditorInstance {
@@ -72,7 +93,7 @@ export class SOQLEditorInstance {
     const uiModel = SoqlUtils.convertSoqlToUiModel(document.getText());
     this.webviewPanel.webview.postMessage({
       type: MessageType.UPDATE,
-      message: JSON.stringify(uiModel)
+      message: uiModel
     });
   }
 
@@ -104,7 +125,7 @@ export class SOQLEditorInstance {
       }
       case MessageType.QUERY: {
         const soql = SoqlUtils.convertUiModelToSoql(
-          JSON.parse(e.message as string)
+          e.message as ToolingModelJson
         );
         this.updateTextDocument(this.document, soql);
         break;
@@ -134,27 +155,20 @@ export class SOQLEditorInstance {
   }
 
   protected async retrieveSObjects(): Promise<void> {
-    try {
-      const conn = await this.getConnection();
+    return withSFConnection(async conn => {
       const sobjectService = new SObjectService(conn);
       const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
       this.updateSObjects(sobjectNames);
-    } catch (e) {
-      channelService.appendLine(e);
-    }
+    });
   }
-
   protected async retrieveSObject(sobjectName: string): Promise<void> {
-    try {
-      const conn = await this.getConnection();
+    return withSFConnection(async conn => {
       const sobjectService = new SObjectService(conn);
       const sobject: SObject = await sobjectService.describeSObject(
         sobjectName
       );
       this.updateSObjectMetadata(sobject);
-    } catch (e) {
-      channelService.appendLine(e);
-    }
+    });
   }
 
   // Write out the json to a given document. //
@@ -182,16 +196,5 @@ export class SOQLEditorInstance {
 
   public onDispose(callback: (instance: SOQLEditorInstance) => void): void {
     this.disposedCallback = callback;
-  }
-
-  protected async getConnection(): Promise<Connection> {
-    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
-    if (!usernameOrAlias) {
-      // TODO: NLS
-      throw new Error(
-        'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
-      );
-    }
-    return await OrgAuthInfo.getConnection(usernameOrAlias);
   }
 }
