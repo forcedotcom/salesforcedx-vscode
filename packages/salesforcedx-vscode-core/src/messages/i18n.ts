@@ -75,7 +75,6 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
   parameter_gatherer_enter_function: 'Enter function details',
-
   parameter_gatherer_prompt_confirm_option: 'yes',
   parameter_gatherer_prompt_cancel_option: 'no',
   parameter_gatherer_prompt_confirm_placeholder: 'Confirm the operation?',
