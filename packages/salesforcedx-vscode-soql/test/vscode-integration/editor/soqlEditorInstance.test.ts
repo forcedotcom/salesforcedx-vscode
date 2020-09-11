@@ -150,7 +150,7 @@ describe('SoqlEditorInstance should', () => {
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
     instance.sendEvent({
       type: MessageType.QUERY,
-      message: JSON.stringify(uiModelOne)
+      message: uiModelOne
     });
     expect(
       updateDocumentSpy.callCount === 1,
