@@ -22,18 +22,18 @@ const { OrgAuthInfo, channelService } = sfdxCoreExports;
 // This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  message?: string | string[] | ToolingModelJson;
+  payload?: string | string[] | ToolingModelJson;
 }
 
 // This should be shared with soql-builder-ui
 export enum MessageType {
-  ACTIVATED = 'activated',
-  QUERY = 'query',
+  UI_ACTIVATED = 'ui_activated',
+  UI_SOQL_CHANGED = 'ui_soql_changed',
   SOBJECT_METADATA_REQUEST = 'sobject_metadata_request',
   SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
-  UPDATE = 'update'
+  TEXT_SOQL_CHANGED = 'text_soql_changed'
 }
 
 // TODO: move to shared module
@@ -92,22 +92,22 @@ export class SOQLEditorInstance {
   protected updateWebview(document: vscode.TextDocument): void {
     const uiModel = SoqlUtils.convertSoqlToUiModel(document.getText());
     this.webviewPanel.webview.postMessage({
-      type: MessageType.UPDATE,
-      message: uiModel
+      type: MessageType.TEXT_SOQL_CHANGED,
+      payload: uiModel
     });
   }
 
   protected updateSObjects(sobjectNames: string[]): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.SOBJECTS_RESPONSE,
-      message: sobjectNames
+      payload: sobjectNames
     });
   }
 
   protected updateSObjectMetadata(sobject: SObject): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.SOBJECT_METADATA_RESPONSE,
-      message: sobject
+      payload: sobject
     });
   }
 
@@ -119,22 +119,22 @@ export class SOQLEditorInstance {
 
   protected onDidRecieveMessageHandler(e: SoqlEditorEvent): void {
     switch (e.type) {
-      case MessageType.ACTIVATED: {
+      case MessageType.UI_ACTIVATED: {
         this.updateWebview(this.document);
         break;
       }
-      case MessageType.QUERY: {
+      case MessageType.UI_SOQL_CHANGED: {
         const soql = SoqlUtils.convertUiModelToSoql(
-          e.message as ToolingModelJson
+          e.payload as ToolingModelJson
         );
         this.updateTextDocument(this.document, soql);
         break;
       }
       case MessageType.SOBJECT_METADATA_REQUEST: {
-        this.retrieveSObject(e.message as string).catch(() => {
+        this.retrieveSObject(e.payload as string).catch(() => {
           channelService.appendLine(
             `An error occurred while handling a request for object metadata for the ${
-              e.message
+              e.payload
             } object.`
           );
         });
