@@ -112,7 +112,7 @@ describe('SoqlEditorInstance should', () => {
 
     const expectedMessage = {
       type: 'sobjects_response',
-      message: sobjectNames
+      payload: sobjectNames
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -135,7 +135,7 @@ describe('SoqlEditorInstance should', () => {
 
     const expectedMessage = {
       type: 'sobject_metadata_response',
-      message: fakeSObject
+      payload: fakeSObject
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -149,8 +149,8 @@ describe('SoqlEditorInstance should', () => {
   it('handles query event and updates text document with soql', async () => {
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
     instance.sendEvent({
-      type: MessageType.QUERY,
-      message: uiModelOne
+      type: MessageType.UI_SOQL_CHANGED,
+      payload: uiModelOne
     });
     expect(
       updateDocumentSpy.callCount === 1,
@@ -169,7 +169,7 @@ describe('SoqlEditorInstance should', () => {
   it('handles activation event and updates the webview', async () => {
     const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
     instance.sendEvent({
-      type: MessageType.ACTIVATED
+      type: MessageType.UI_ACTIVATED
     });
     expect(
       updateWebviewSpy.callCount === 1,
