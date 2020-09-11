@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
 describe('LWC Intellisense Test Suite', function() {
   let lwcDir: string;
 
-  before(function() {
+  before(() => {
     lwcDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -22,7 +22,7 @@ describe('LWC Intellisense Test Suite', function() {
     );
   });
 
-  afterEach(async function() {
+  afterEach(async () => {
     try {
       await vscode.commands.executeCommand(
         'workbench.action.closeActiveEditor'
@@ -35,7 +35,7 @@ describe('LWC Intellisense Test Suite', function() {
   /**
    * Test that lwc markup intellisense includes standard lwc tags and custom lwc tags
    */
-  it('LWC Markup Intellisense', async function() {
+  it('LWC Markup Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
@@ -71,8 +71,7 @@ describe('LWC Intellisense Test Suite', function() {
     }
   });
 
-  it('LWC JS @Salesforce Import Intellisense', async function() {
-    this.timeout(10000);
+  xit('LWC JS @Salesforce Import Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
@@ -96,15 +95,14 @@ describe('LWC Intellisense Test Suite', function() {
             label: '@salesforce/apex',
             kind: vscode.CompletionItemKind.Module
           },
-          // TODO add these back once we determine why Apex language server isn't working on windows
-          // {
-          //   label: '@salesforce/apex/AccountController.getAccountList',
-          //   kind: vscode.CompletionItemKind.Module
-          // },
-          // {
-          //   label: '@salesforce/apex/ContactController.findContacts',
-          //   kind: vscode.CompletionItemKind.Module
-          // },
+          {
+            label: '@salesforce/apex/AccountController.getAccountList',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/apex/ContactController.findContacts',
+            kind: vscode.CompletionItemKind.Module
+          },
           {
             label: '@salesforce/contentAssetUrl/Cookpatternv1',
             kind: vscode.CompletionItemKind.Module
@@ -130,9 +128,9 @@ describe('LWC Intellisense Test Suite', function() {
     } catch (error) {
       throw error;
     }
-  });
+  }).timeout(10000);
 
-  it('LWC JS Module Import Intellisense', async function() {
+  it('LWC JS Module Import Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
@@ -161,9 +159,9 @@ describe('LWC Intellisense Test Suite', function() {
     } catch (error) {
       throw error;
     }
-  });
+  }).timeout(5000);
 
-  it('LWC JS Lightning Import Intellisense', async function() {
+  xit('LWC JS Lightning Import Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
@@ -211,8 +209,8 @@ async function testCompletion(
     position
   )) as vscode.CompletionList;
 
-  expectedCompletionList.items.forEach(function(expectedItem) {
-    const actualItem = actualCompletionList.items.find(function(obj) {
+  expectedCompletionList.items.forEach(expectedItem => {
+    const actualItem = actualCompletionList.items.find(obj => {
       if (obj.label) {
         return obj.label === expectedItem.label;
       }

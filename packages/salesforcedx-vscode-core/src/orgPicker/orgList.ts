@@ -23,6 +23,7 @@ export interface FileInfo {
   isDevHub?: boolean;
   username: string;
   devHubUsername?: string;
+  expirationDate?: string;
 }
 export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
@@ -87,16 +88,28 @@ export class OrgList implements vscode.Disposable {
       );
     }
 
-    const authUsernames = authInfoObjects.map(file => file.username);
     const aliases = await Aliases.create(Aliases.getDefaultOptions());
     const authList = [];
-    for (const username of authUsernames) {
-      const alias = await aliases.getKeysByValue(username);
-      if (alias.length > 0) {
-        authList.push(alias + ' - ' + username);
-      } else {
-        authList.push(username);
+    const today = new Date();
+    for (const authInfo of authInfoObjects) {
+      const alias = await aliases.getKeysByValue(authInfo.username);
+      const isExpired = authInfo.expirationDate
+        ? today >= new Date(authInfo.expirationDate)
+        : false;
+      let authListItem =
+        alias.length > 0
+          ? alias + ' - ' + authInfo.username
+          : authInfo.username;
+
+      if (isExpired) {
+        authListItem +=
+          ' - ' +
+          nls.localize('org_expired') +
+          ' ' +
+          String.fromCodePoint(0x274c); // cross-mark
       }
+
+      authList.push(authListItem);
     }
     return authList;
   }
