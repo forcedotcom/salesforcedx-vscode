@@ -5,8 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Connection } from '@salesforce/core';
+import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
+
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
+const sfdxCoreExports = sfdxCoreExtension
+  ? sfdxCoreExtension.exports
+  : undefined;
+const { OrgAuthInfo, channelService } = sfdxCoreExports;
 
 interface SoqlEditorEvent {
   type: string;
@@ -16,29 +26,35 @@ interface SoqlEditorEvent {
 export enum MessageType {
   ACTIVATED = 'activated',
   QUERY = 'query',
+  SOBJECT_METADATA_REQUEST = 'sobject_metadata_request',
+  SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
+  SOBJECTS_REQUEST = 'sobjects_request',
+  SOBJECTS_RESPONSE = 'sobjects_response',
   UPDATE = 'update'
 }
 
 export class SOQLEditorInstance {
   // handlers assigned in constructor
-  private updateWebview: () => void;
-  private onDidRecieveMessageHandler: (e: SoqlEditorEvent) => void;
-  private onTextDocumentChangeHandler: (
+  protected updateWebview: () => void;
+  protected onDidRecieveMessageHandler: (e: SoqlEditorEvent) => void;
+  protected onTextDocumentChangeHandler: (
     e: vscode.TextDocumentChangeEvent
   ) => void;
+  protected updateSObjects: (sobjectNames: string[]) => void;
+  protected updateSObjectMetadata: (sobject: SObject) => void;
 
   // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
 
   // Notify soqlEditorProvider when destroyed
-  private disposedCallback:
+  protected disposedCallback:
     | ((instance: SOQLEditorInstance) => void)
     | undefined;
 
   constructor(
-    private document: vscode.TextDocument,
-    private webviewPanel: vscode.WebviewPanel,
-    private _token: vscode.CancellationToken
+    protected document: vscode.TextDocument,
+    protected webviewPanel: vscode.WebviewPanel,
+    protected _token: vscode.CancellationToken
   ) {
     this.updateWebview = this.createWebviewUpdater(
       webviewPanel.webview,
@@ -50,6 +66,10 @@ export class SOQLEditorInstance {
     this.onTextDocumentChangeHandler = debounce(
       this.createDocumentChangeHandler(document),
       1000
+    );
+    this.updateSObjects = this.createSObjectsUpdater(webviewPanel.webview);
+    this.updateSObjectMetadata = this.createSObjectMetadataUpdater(
+      webviewPanel.webview
     );
 
     // Update the UI when the Text Document is changed, if its the same document.
@@ -70,11 +90,11 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
-  private createWebviewUpdater(
+  protected createWebviewUpdater(
     webview: vscode.Webview,
     document: vscode.TextDocument
   ) {
-    return function updateWebview() {
+    return function updateWebview(): void {
       webview.postMessage({
         type: MessageType.UPDATE,
         message: document.getText()
@@ -82,16 +102,38 @@ export class SOQLEditorInstance {
     };
   }
 
-  private createDocumentChangeHandler(document: vscode.TextDocument) {
-    return (e: vscode.TextDocumentChangeEvent) => {
+  protected createSObjectsUpdater(
+    webview: vscode.Webview
+  ): (sobjectNames: string[]) => void {
+    return (sobjectNames: string[]) => {
+      webview.postMessage({
+        type: MessageType.SOBJECTS_RESPONSE,
+        message: sobjectNames
+      });
+    };
+  }
+
+  protected createSObjectMetadataUpdater(
+    webview: vscode.Webview
+  ): (sobject: SObject) => void {
+    return (sobject: SObject) => {
+      webview.postMessage({
+        type: MessageType.SOBJECT_METADATA_RESPONSE,
+        message: sobject
+      });
+    };
+  }
+
+  protected createDocumentChangeHandler(document: vscode.TextDocument) {
+    return (e: vscode.TextDocumentChangeEvent): void => {
       if (e.document.uri.toString() === document.uri.toString()) {
         this.updateWebview();
       }
     };
   }
 
-  private createOnDidRecieveMessageHandler(document: vscode.TextDocument) {
-    return (e: SoqlEditorEvent) => {
+  protected createOnDidRecieveMessageHandler(document: vscode.TextDocument) {
+    return (e: SoqlEditorEvent): void => {
       switch (e.type) {
         case MessageType.ACTIVATED: {
           this.updateWebview();
@@ -101,6 +143,24 @@ export class SOQLEditorInstance {
           this.updateTextDocument(document, e.message);
           break;
         }
+        case MessageType.SOBJECT_METADATA_REQUEST: {
+          this.retrieveSObject(e.message).catch(() => {
+            channelService.appendLine(
+              `An error occurred while handling a request for object metadata for the ${
+                e.message
+              } object.`
+            );
+          });
+          break;
+        }
+        case MessageType.SOBJECTS_REQUEST: {
+          this.retrieveSObjects().catch(() => {
+            channelService.appendLine(
+              `An error occurred while handling a request for object names.`
+            );
+          });
+          break;
+        }
         default: {
           console.log('message type is not supported');
         }
@@ -108,8 +168,35 @@ export class SOQLEditorInstance {
     };
   }
 
+  protected async retrieveSObjects(): Promise<void> {
+    try {
+      const conn = await this.getConnection();
+      const sobjectService = new SObjectService(conn);
+      const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
+      this.updateSObjects(sobjectNames);
+    } catch (e) {
+      channelService.appendLine(e);
+    }
+  }
+
+  protected async retrieveSObject(sobjectName: string): Promise<void> {
+    try {
+      const conn = await this.getConnection();
+      const sobjectService = new SObjectService(conn);
+      const sobject: SObject = await sobjectService.describeSObject(
+        sobjectName
+      );
+      this.updateSObjectMetadata(sobject);
+    } catch (e) {
+      channelService.appendLine(e);
+    }
+  }
+
   // Write out the json to a given document. //
-  private updateTextDocument(document: vscode.TextDocument, message: string) {
+  protected updateTextDocument(
+    document: vscode.TextDocument,
+    message: string
+  ): Thenable<boolean> {
     const edit = new vscode.WorkspaceEdit();
 
     edit.replace(
@@ -122,7 +209,7 @@ export class SOQLEditorInstance {
     return vscode.workspace.applyEdit(edit);
   }
 
-  private dispose() {
+  protected dispose(): void {
     this.subscriptions.forEach(dispposable => dispposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);
@@ -131,5 +218,16 @@ export class SOQLEditorInstance {
 
   public onDispose(callback: (instance: SOQLEditorInstance) => void): void {
     this.disposedCallback = callback;
+  }
+
+  protected async getConnection(): Promise<Connection> {
+    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+    if (!usernameOrAlias) {
+      // TODO: NLS
+      throw new Error(
+        'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
+      );
+    }
+    return await OrgAuthInfo.getConnection(usernameOrAlias);
   }
 }
