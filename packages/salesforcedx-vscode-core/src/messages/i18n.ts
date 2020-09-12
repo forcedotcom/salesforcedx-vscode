@@ -138,6 +138,8 @@ export const messages = {
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_start_text: 'SFDX: Start Function',
+  force_function_start_warning_no_toml:
+    'No function.toml found. Create function.toml or intialize a new function folder using SFDX: Create Function.',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_stop_text: 'SFDX: Stop Function',
   force_source_status_local_text: 'SFDX: View Local Changes',
