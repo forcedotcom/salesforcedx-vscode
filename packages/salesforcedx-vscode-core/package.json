@@ -457,6 +457,18 @@
           "when": "false"
         },
         {
+          "command": "sfdx.force.org.delete.default",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.delete.username",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.list.clean",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.source.delete.current.file",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
