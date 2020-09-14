@@ -69,12 +69,12 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       sourceFsPath
     );
     if (!functionDirPath) {
+      notificationService.showWarningMessage(
+        nls.localize('force_function_start_warning_no_toml')
+      );
       telemetryService.sendException(
         'force_function_start',
         'force_function_start_no_toml'
-      );
-      notificationService.showWarningMessage(
-        nls.localize('force_function_start_warning_no_toml')
       );
       return;
     }

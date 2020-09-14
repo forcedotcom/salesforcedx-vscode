@@ -26,6 +26,7 @@ import {
   ProgressNotification
 } from '../../../../src/notifications';
 import { taskViewService } from '../../../../src/statuses';
+import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
 
 class MockExecution implements CommandExecution {
@@ -87,6 +88,9 @@ describe('Force Function Start', () => {
     const notificationServiceStubs: {
       [key: string]: SinonStub;
     } = {};
+    const telemetryServiceStubs: {
+      [key: string]: SinonStub;
+    } = {};
     let logMetricStub: SinonStub;
     let hrtimeStub: SinonStub;
     beforeEach(() => {
@@ -119,6 +123,10 @@ describe('Force Function Start', () => {
       notificationServiceStubs.showSuccessfulExecutionStub.returns(
         Promise.resolve()
       );
+      notificationServiceStubs.showWarningMessageStub = sandbox.stub(
+        notificationService,
+        'showWarningMessage'
+      );
       notificationServiceStubs.reportCommandExecutionStatus = sandbox.stub(
         notificationService,
         'reportCommandExecutionStatus'
@@ -126,6 +134,10 @@ describe('Force Function Start', () => {
       notificationServiceStubs.progressNotificationShowStub = sandbox.stub(
         ProgressNotification,
         'show'
+      );
+      telemetryServiceStubs.sendExceptionStub = sandbox.stub(
+        telemetryService,
+        'sendException'
       );
       logMetricStub = sandbox.stub(
         ForceFunctionStartExecutor.prototype,
@@ -138,7 +150,7 @@ describe('Force Function Start', () => {
       sandbox.restore();
     });
 
-    it('Should start function', async () => {
+    it('Should start function from folder', async () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
@@ -149,6 +161,48 @@ describe('Force Function Start', () => {
       await forceFunctionStart(srcUri);
 
       assert.calledOnce(cliCommandExecutorStub);
+    });
+
+    it('Should start function from file', async () => {
+      const srcUri = Uri.file(
+        path.join(
+          getRootWorkspacePath(),
+          'functions',
+          'demoJavaScriptFunction',
+          'index.js'
+        )
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+
+      assert.calledOnce(cliCommandExecutorStub);
+    });
+
+    it('Should show warning and log telemetry if start function from a non-function folder', async () => {
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'force-app/main/default/lwc')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+
+      assert.notCalled(cliCommandExecutorStub);
+      assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showWarningMessageStub,
+        nls.localize('force_function_start_warning_no_toml')
+      );
+      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendExceptionStub,
+        'force_function_start',
+        'force_function_start_no_toml'
+      );
     });
 
     it('Should stream output to channel', async () => {
