@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -32,7 +32,9 @@ export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 
 export async function forceOrgList() {
-  const parameterGatherer = new PromptConfirmGatherer();
+  const parameterGatherer = new PromptConfirmGatherer(
+    nls.localize('parameter_gatherer_placeholder_org_list_clean')
+  );
   const executor = new ForceOrgListExecutor();
   const commandlet = new SfdxCommandlet(
     workspaceChecker,

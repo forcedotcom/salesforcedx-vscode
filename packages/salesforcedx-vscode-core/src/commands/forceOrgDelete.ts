@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2020, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -38,6 +38,7 @@ export class ForceOrgDeleteExecutor extends SfdxCommandletExecutor<{}> {
     if (this.flag === '--targetusername' && data.username) {
       builder
         .withDescription(nls.localize('force_org_delete_username_text'))
+        .withLogName('force_org_delete_username')
         .withFlag(this.flag, data.username);
     }
     return builder.build();
@@ -53,9 +54,13 @@ export async function forceOrgDelete(this: FlagParameter<string>) {
   const parameterGatherer = flag
     ? new CompositeParametersGatherer(
         new SelectUsername(),
-        new PromptConfirmGatherer()
+        new PromptConfirmGatherer(
+          nls.localize('parameter_gatherer_placeholder_delete_selected_org')
+        )
       )
-    : new PromptConfirmGatherer();
+    : new PromptConfirmGatherer(
+        nls.localize('parameter_gatherer_placeholder_delete_default_org')
+      );
 
   const executor = new ForceOrgDeleteExecutor(flag);
   const commandlet = new SfdxCommandlet(

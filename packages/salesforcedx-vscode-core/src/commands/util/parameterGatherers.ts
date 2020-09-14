@@ -343,6 +343,11 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
 
 export class PromptConfirmGatherer
   implements ParametersGatherer<{ choice: string }> {
+  private question: string;
+
+  constructor(question: string) {
+    this.question = question;
+  }
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ choice: string }>
   > {
@@ -356,7 +361,7 @@ export class PromptConfirmGatherer
 
   public async showMenu(options: string[]): Promise<string | undefined> {
     return await vscode.window.showQuickPick(options, {
-      placeHolder: nls.localize('parameter_gatherer_prompt_confirm_placeholder')
+      placeHolder: this.question
     } as vscode.QuickPickOptions);
   }
 }

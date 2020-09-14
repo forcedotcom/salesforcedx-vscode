@@ -75,9 +75,14 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
   parameter_gatherer_enter_function: 'Enter function details',
-  parameter_gatherer_prompt_confirm_option: 'yes',
-  parameter_gatherer_prompt_cancel_option: 'no',
-  parameter_gatherer_prompt_confirm_placeholder: 'Confirm the operation?',
+  parameter_gatherer_prompt_confirm_option: 'Continue',
+  parameter_gatherer_prompt_cancel_option: 'Cancel',
+  parameter_gatherer_placeholder_org_list_clean:
+    'Confirm to continue removing all expired scratch orgs',
+  parameter_gatherer_placeholder_delete_selected_org:
+    'Confirm to continue deleting the selected org',
+  parameter_gatherer_placeholder_delete_default_org:
+    'Confirm to continue deleting the default org',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -571,5 +576,6 @@ export const messages = {
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
   force_function_enter_language: 'Select a language for your function',
-  force_function_pull_dependencies_error: "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
+  force_function_pull_dependencies_error:
+    "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
 };
