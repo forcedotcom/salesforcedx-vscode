@@ -14,7 +14,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { Subject } from 'rxjs/Subject';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { Uri } from 'vscode';
+import { Uri, window } from 'vscode';
 import { channelService } from '../../../../src/channels';
 import {
   forceFunctionStart,
@@ -91,6 +91,7 @@ describe('Force Function Start', () => {
     const telemetryServiceStubs: {
       [key: string]: SinonStub;
     } = {};
+    let activeTextEditorStub: SinonStub;
     let logMetricStub: SinonStub;
     let hrtimeStub: SinonStub;
     beforeEach(() => {
@@ -139,6 +140,7 @@ describe('Force Function Start', () => {
         telemetryService,
         'sendException'
       );
+      activeTextEditorStub = sandbox.stub(window, 'activeTextEditor');
       logMetricStub = sandbox.stub(
         ForceFunctionStartExecutor.prototype,
         'logMetric'
@@ -179,6 +181,71 @@ describe('Force Function Start', () => {
       await forceFunctionStart(srcUri);
 
       assert.calledOnce(cliCommandExecutorStub);
+    });
+
+    it('Should start function from active text editor if sourceUri not specified', async () => {
+      const srcUri = Uri.file(
+        path.join(
+          getRootWorkspacePath(),
+          'functions',
+          'demoJavaScriptFunction',
+          'index.js'
+        )
+      );
+      activeTextEditorStub.get(() => {
+        return {
+          document: {
+            uri: srcUri,
+            languageId: 'javascript'
+          }
+        };
+      });
+
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart();
+
+      assert.calledOnce(cliCommandExecutorStub);
+    });
+
+    it('Should show warning and log telemetry if sourceUri not specified and not actively editing a function file', async () => {
+      const srcUri = Uri.file(
+        path.join(
+          getRootWorkspacePath(),
+          'functions',
+          'demoJavaScriptFunction',
+          'index.js'
+        )
+      );
+      activeTextEditorStub.get(() => {
+        return {
+          document: {
+            uri: undefined,
+            languageId: 'javascript'
+          }
+        };
+      });
+
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart();
+
+      assert.notCalled(cliCommandExecutorStub);
+      assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showWarningMessageStub,
+        nls.localize('force_function_start_warning_not_in_function_folder')
+      );
+      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendExceptionStub,
+        'force_function_start',
+        'force_function_start_not_in_function_folder'
+      );
     });
 
     it('Should show warning and log telemetry if start function from a non-function folder', async () => {

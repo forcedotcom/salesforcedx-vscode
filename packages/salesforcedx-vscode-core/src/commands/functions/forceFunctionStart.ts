@@ -129,7 +129,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
  * Executes sfdx evergreen:function:start --verbose
  * @param sourceUri
  */
-export async function forceFunctionStart(sourceUri: Uri) {
+export async function forceFunctionStart(sourceUri?: Uri) {
   if (!sourceUri) {
     // Try to start function from current active editor, if running SFDX: start function from command palette
     sourceUri = window.activeTextEditor?.document.uri!;
@@ -137,6 +137,10 @@ export async function forceFunctionStart(sourceUri: Uri) {
   if (!sourceUri) {
     notificationService.showWarningMessage(
       nls.localize('force_function_start_warning_not_in_function_folder')
+    );
+    telemetryService.sendException(
+      'force_function_start',
+      'force_function_start_not_in_function_folder'
     );
     return;
   }
