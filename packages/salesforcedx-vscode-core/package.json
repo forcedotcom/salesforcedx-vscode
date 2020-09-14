@@ -158,6 +158,10 @@
       ],
       "editor/context": [
         {
+          "command": "sfdx.force.function.start",
+          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/"
+        },
+        {
           "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },

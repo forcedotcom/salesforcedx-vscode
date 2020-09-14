@@ -27,7 +27,7 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 
-import { Uri } from 'vscode';
+import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
 
 export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
@@ -130,6 +130,17 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
  * @param sourceUri
  */
 export async function forceFunctionStart(sourceUri: Uri) {
+  if (!sourceUri) {
+    // Try to start function from current active editor, if running SFDX: start function from command palette
+    sourceUri = window.activeTextEditor?.document.uri!;
+  }
+  if (!sourceUri) {
+    notificationService.showWarningMessage(
+      nls.localize('force_function_start_warning_not_in_function_folder')
+    );
+    return;
+  }
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),

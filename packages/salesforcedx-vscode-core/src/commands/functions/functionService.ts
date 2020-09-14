@@ -29,14 +29,19 @@ export class FunctionService {
     this.startedExecutions.add(terminable);
   }
 
+  public isFunctionStarted() {
+    return this.startedExecutions.size > 0;
+  }
+
   /**
    * Stop all started function containers
    */
   public async stopFunction() {
-    return Promise.all(
+    await Promise.all(
       [...this.startedExecutions].map(terminable => {
         return terminable.terminate();
       })
     );
+    this.startedExecutions.clear();
   }
 }
