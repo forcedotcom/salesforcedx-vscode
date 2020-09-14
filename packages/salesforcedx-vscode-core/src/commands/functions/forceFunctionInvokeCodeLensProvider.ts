@@ -66,7 +66,8 @@ export async function provideFunctionInvokeCodeLens(
   document: TextDocument,
   token: CancellationToken
 ): Promise<CodeLens[]> {
-  if (path.basename(document.uri.fsPath) === 'package.json') {
+  const nonpayloadJsons = ['package.json', 'package-lock.json', 'tslint.json', 'lerna.json', 'tsconfig.json'];
+  if (nonpayloadJsons.includes(path.basename(document.uri.fsPath))) {
     return [];
   }
   const range = new Range(
