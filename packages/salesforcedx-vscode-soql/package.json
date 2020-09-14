@@ -20,8 +20,9 @@
   ],
   "dependencies": {
     "@salesforce/sobject-metadata": "0.1.4",
-    "@salesforce/soql-builder-ui": "0.0.2",
+    "@salesforce/soql-builder-ui": "0.0.3",
     "@salesforce/soql-language-server": "0.2.1",
+    "@salesforce/soql-model": "0.1.0",
     "debounce": "^1.2.0",
     "vscode-extension-telemetry": "0.1.6",
     "vscode-languageclient": "^6.1.3"
