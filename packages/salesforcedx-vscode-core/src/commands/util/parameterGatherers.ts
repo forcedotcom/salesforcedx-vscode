@@ -353,7 +353,7 @@ export class PromptConfirmGatherer
   > {
     const confirmOpt = nls.localize('parameter_gatherer_prompt_confirm_option');
     const cancelOpt = nls.localize('parameter_gatherer_prompt_cancel_option');
-    const choice = await this.showMenu([confirmOpt, cancelOpt]);
+    const choice = await this.showMenu([cancelOpt, confirmOpt]);
     return confirmOpt === choice
       ? { type: 'CONTINUE', data: { choice } }
       : { type: 'CANCEL' };
