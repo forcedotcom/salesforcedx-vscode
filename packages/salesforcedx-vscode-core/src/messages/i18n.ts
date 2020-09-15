@@ -181,6 +181,8 @@ export const messages = {
   force_project_create_analytics_template_display_text: 'Analytics',
   force_project_create_empty_template: 'Empty project template',
   force_project_create_analytics_template: 'Analytics project template',
+  force_project_create_functions_template_display_text: 'Functions',
+  force_project_create_functions_template: 'Functions project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
     'SFDX: Turn On Apex Debug Log for Replay Debugger',
@@ -563,5 +565,6 @@ export const messages = {
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
   force_function_enter_language: 'Select a language for your function',
-  force_function_pull_dependencies_error: "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
+  force_function_pull_dependencies_error:
+    "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
 };
