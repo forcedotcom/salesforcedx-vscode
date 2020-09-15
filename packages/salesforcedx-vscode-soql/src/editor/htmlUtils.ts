@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
  * uses a custom protocol ( vscode-webview-resource instead of http ) to load resources
  * so the html needs to be manipulated dynamcially to run inside of vscode.
  */
-export class EditorUtils {
+export class HtmlUtils {
   /**
    * This regex will match tags in a string like this
    * <script src="./0.app.js"></script><script src="./app.js"></script>
@@ -33,8 +33,8 @@ export class EditorUtils {
     pathToLwcDist: string,
     webview: vscode.Webview
   ): string {
-    html = EditorUtils.transformScriptTags(html, pathToLwcDist, webview);
-    html = EditorUtils.replaceCspMetaTag(html, webview);
+    html = HtmlUtils.transformScriptTags(html, pathToLwcDist, webview);
+    html = HtmlUtils.replaceCspMetaTag(html, webview);
     return html;
   }
 
@@ -64,7 +64,7 @@ export class EditorUtils {
     let matches;
     let newScriptSrc;
     // tslint:disable-next-line:no-conditional-assignment
-    while ((matches = EditorUtils.scriptRegex.exec(html)) !== null) {
+    while ((matches = HtmlUtils.scriptRegex.exec(html)) !== null) {
       newScriptSrc = webview.asWebviewUri(
         vscode.Uri.file(path.join(pathToLwcDist, matches[1]))
       );
