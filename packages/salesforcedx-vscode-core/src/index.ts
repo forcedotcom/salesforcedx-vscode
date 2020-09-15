@@ -58,6 +58,7 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
+  registerFunctionInvokeCodeLensProvider,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
@@ -615,6 +616,8 @@ export async function activate(context: vscode.ExtensionContext) {
     taskViewService,
     telemetryService
   };
+
+  registerFunctionInvokeCodeLensProvider(context);
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
