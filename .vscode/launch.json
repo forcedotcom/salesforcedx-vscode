@@ -87,6 +87,25 @@
       "preLaunchTask": "Compile"
     },
     {
+      "name": "Launch Current Integration Test with sfdx-simple",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "env": {
+        "SFDX_TEST_FILE_PATH": "${file}"
+      },
+      "args": [
+        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages",
+        "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-core/out/test/vscode-integration"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "smartStep": true,
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Launch Tests - Utils - Unit Tests",
