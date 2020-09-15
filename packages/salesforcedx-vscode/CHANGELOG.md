@@ -1,18 +1,10 @@
 # 49.10.0 - September 16, 2020
 
-## Fixed
-
-#### salesforcedx-vscode-soql
-
-- Fix a compile error by adding type for mkdirp ([PR #2524](https://github.com/forcedotcom/salesforcedx-vscode/pull/2524))
-
 ## Added
 
 #### salesforcedx-vscode-soql
 
 - Soql Builder - Transform soql to ui and back to soql ([PR #2501](https://github.com/forcedotcom/salesforcedx-vscode/pull/2501))
-
-- SOQL SObject Integration ([PR #2488](https://github.com/forcedotcom/salesforcedx-vscode/pull/2488))
 
 #### salesforcedx-vscode-core
 
