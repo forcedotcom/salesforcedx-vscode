@@ -5,14 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandExecution
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as path from 'path';
-import { Subject } from 'rxjs/Subject';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri, window } from 'vscode';
 import { channelService } from '../../../../src/channels';
@@ -28,28 +23,7 @@ import {
 import { taskViewService } from '../../../../src/statuses';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
-
-class MockExecution implements CommandExecution {
-  public command: Command;
-  public processExitSubject: Subject<number>;
-  public processErrorSubject: Subject<Error>;
-  public stdoutSubject: Subject<string>;
-  public stderrSubject: Subject<string>;
-  private readonly childProcessPid: any;
-
-  constructor(command: Command) {
-    this.command = command;
-    this.processExitSubject = new Subject<number>();
-    this.processErrorSubject = new Subject<Error>();
-    this.stdoutSubject = new Subject<string>();
-    this.stderrSubject = new Subject<string>();
-    this.childProcessPid = '';
-  }
-
-  public killExecution(signal?: string): Promise<void> {
-    return Promise.resolve();
-  }
-}
+import { MockExecution } from './mockExecution';
 
 describe('Force Function Start', () => {
   describe('build', () => {
