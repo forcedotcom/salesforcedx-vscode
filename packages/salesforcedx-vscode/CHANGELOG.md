@@ -1,3 +1,25 @@
+# 49.10.0 - September 16, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-soql
+
+- Fix a compile error by adding type for mkdirp ([PR #2524](https://github.com/forcedotcom/salesforcedx-vscode/pull/2524))
+
+## Added
+
+#### salesforcedx-vscode-soql
+
+- Soql Builder - Transform soql to ui and back to soql ([PR #2501](https://github.com/forcedotcom/salesforcedx-vscode/pull/2501))
+
+- SOQL SObject Integration ([PR #2488](https://github.com/forcedotcom/salesforcedx-vscode/pull/2488))
+
+#### salesforcedx-vscode-core
+
+- Added expanded extension pack ([PR #2517](https://github.com/forcedotcom/salesforcedx-vscode/pull/2517))
+
+- Show expired orgs in orgpicker ([PR #2506](https://github.com/forcedotcom/salesforcedx-vscode/pull/2506)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
+
 # 49.9.0 - September 10, 2020
 
 ## Added
