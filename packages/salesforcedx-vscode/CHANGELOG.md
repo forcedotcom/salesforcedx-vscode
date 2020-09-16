@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-soql
 
-- Soql Builder - Transform soql to ui and back to soql ([PR #2501](https://github.com/forcedotcom/salesforcedx-vscode/pull/2501))
+- SOQL SObject Integration ([PR #2488](https://github.com/forcedotcom/salesforcedx-vscode/pull/2488))
 
 #### salesforcedx-vscode-core
 
