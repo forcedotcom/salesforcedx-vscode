@@ -86,6 +86,24 @@ function _readCoverOptions(testsRoot: string): ITestRunnerOptions | undefined {
 }
 
 function run(testsRoot: any, clb: any): any {
+  let testGlobPath;
+  const testFilePath = process.env.SFDX_TEST_FILE_PATH;
+  if (testFilePath) {
+    const { name: testFileBasenameNoExtension } = paths.parse(testFilePath);
+    const testFilePathSegments = testFilePath.split(paths.sep);
+    const packagesDirIndex = testFilePathSegments.findIndex(
+      s => s === 'packages'
+    );
+    testsRoot = paths.join(
+      ...testFilePathSegments.slice(0, packagesDirIndex + 2),
+      'out/test'
+    );
+    if (!/^win32/.test(process.platform)) {
+      testsRoot = paths.join('/', testsRoot);
+    }
+    testGlobPath = `**/${testFileBasenameNoExtension}.js`;
+  }
+
   // Enable source map support
   require('source-map-support').install();
 
@@ -102,7 +120,7 @@ function run(testsRoot: any, clb: any): any {
 
   // Glob test files
   glob(
-    '**/**.test.js',
+    testGlobPath ? testGlobPath : '**/**.test.js',
     { cwd: testsRoot },
     (error, files): any => {
       if (error) {
