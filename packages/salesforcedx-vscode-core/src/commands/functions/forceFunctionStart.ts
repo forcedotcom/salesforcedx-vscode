@@ -20,6 +20,7 @@ import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
+import { getRootWorkspacePath } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -53,7 +54,8 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       ? sourceFsPath
       : path.dirname(sourceFsPath);
     const { root } = path.parse(sourceFsPath);
-    while (current !== root) {
+    const rootWorkspacePath = getRootWorkspacePath();
+    while (current !== rootWorkspacePath && current !== root) {
       const tomlPath = path.join(current, 'function.toml');
       if (fs.existsSync(tomlPath)) {
         return current;
