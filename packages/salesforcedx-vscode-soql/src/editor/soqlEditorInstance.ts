@@ -9,6 +9,7 @@ import { Connection } from '@salesforce/core';
 import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
+import { QueryRunner } from './queryRunner';
 import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
@@ -138,13 +139,24 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.RUN_SOQL_QUERY: {
-        console.log('RUN THE QUERY!');
+        this.handleRunQuery().catch(() => {
+          channelService.appendLine(
+            `An error occurred while running the SOQL query.`
+          );
+        });
         break;
       }
       default: {
         console.log('message type is not supported');
       }
     }
+  }
+
+  protected handleRunQuery() {
+    const queryText = this.document.getText();
+    return withSFConnection(async conn => {
+      await new QueryRunner(conn).runQuery(queryText);
+    });
   }
 
   protected async retrieveSObjects(): Promise<void> {
