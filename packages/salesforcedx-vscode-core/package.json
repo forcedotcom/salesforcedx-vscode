@@ -159,7 +159,7 @@
       "editor/context": [
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/"
+          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
@@ -289,7 +289,7 @@
         },
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/"
+          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         }
       ],
       "commandPalette": [
