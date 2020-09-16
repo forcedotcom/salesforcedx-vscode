@@ -93,7 +93,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       }
     });
 
-    channelService.streamCommandOutputWithoutColor(execution);
+    channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
 
     const progress = new Subject();

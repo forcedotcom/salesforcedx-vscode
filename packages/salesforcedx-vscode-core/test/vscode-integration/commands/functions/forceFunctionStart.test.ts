@@ -75,9 +75,9 @@ describe('Force Function Start', () => {
         CliCommandExecutor.prototype,
         'execute'
       );
-      channelServiceStubs.streamCommandOutputWithoutColorStub = sandbox.stub(
+      channelServiceStubs.streamCommandOutputStub = sandbox.stub(
         channelService,
-        'streamCommandOutputWithoutColor'
+        'streamCommandOutput'
       );
       channelServiceStubs.showChannelOutputStub = sandbox.stub(
         channelService,
@@ -256,9 +256,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      assert.calledOnce(
-        channelServiceStubs.streamCommandOutputWithoutColorStub
-      );
+      assert.calledOnce(channelServiceStubs.streamCommandOutputStub);
       assert.calledOnce(channelServiceStubs.showChannelOutputStub);
     });
 
