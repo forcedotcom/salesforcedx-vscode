@@ -2,10 +2,6 @@
 
 ## Added
 
-#### salesforcedx-vscode-soql
-
-- SOQL SObject Integration ([PR #2488](https://github.com/forcedotcom/salesforcedx-vscode/pull/2488))
-
 #### salesforcedx-vscode-core
 
 - Added expanded extension pack ([PR #2517](https://github.com/forcedotcom/salesforcedx-vscode/pull/2517))
