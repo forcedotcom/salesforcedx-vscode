@@ -147,29 +147,29 @@ describe('Source Retrieve Beta', () => {
     sb.restore();
   });
 
-  it('should get the namespace value from sfdx-project.json', async () => {
-    sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
-      testData.username
-    );
-    sb.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
-    const getNamespace = sb.stub(SfdxProjectConfig, 'getValue').returns('diFf');
-    const getComponentsStub = sb.stub(
-      RegistryAccess.prototype,
-      'getComponentsFromPath'
-    );
-    const executor = new LibraryRetrieveSourcePathExecutor();
-    const filePath = path.join(
-      'test',
-      'file',
-      'path',
-      'classes',
-      'apexTest.cls'
-    );
-    await executor.execute({ type: 'CONTINUE', data: filePath });
-    // tslint:disable-next-line:no-unused-expression
-    expect(getComponentsStub.calledWith(filePath)).to.be.true;
-    expect(getNamespace.calledOnce).to.equal(true);
-    // NOTE: There's currently a limitation on source deploy retrieve that prevents
-    // us mocking SourceClinet.tooling.deploy. We'll look into updating the library and this test.
-  });
+  // it('should get the namespace value from sfdx-project.json', async () => {
+  //   sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
+  //     testData.username
+  //   );
+  //   sb.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
+  //   const getNamespace = sb.stub(SfdxProjectConfig, 'getValue').returns('diFf');
+  //   const getComponentsStub = sb.stub(
+  //     RegistryAccess.prototype,
+  //     'getComponentsFromPath'
+  //   );
+  //   const executor = new LibraryRetrieveSourcePathExecutor();
+  //   const filePath = path.join(
+  //     'test',
+  //     'file',
+  //     'path',
+  //     'classes',
+  //     'apexTest.cls'
+  //   );
+  //   await executor.execute({ type: 'CONTINUE', data: filePath });
+  //   // tslint:disable-next-line:no-unused-expression
+  //   expect(getComponentsStub.calledWith(filePath)).to.be.true;
+  //   expect(getNamespace.calledOnce).to.equal(true);
+  //   // NOTE: There's currently a limitation on source deploy retrieve that prevents
+  //   // us mocking SourceClinet.tooling.deploy. We'll look into updating the library and this test.
+  // });
 });
