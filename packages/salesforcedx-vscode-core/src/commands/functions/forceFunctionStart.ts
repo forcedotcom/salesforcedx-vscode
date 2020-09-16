@@ -42,7 +42,10 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
   }
 
   /**
-   * Locate the directory that has function.toml
+   * Locate the directory that has function.toml.
+   * If sourceFsPath is the function folder that has function.toml, or a subdirectory
+   * or file within that folder, this method returns the function folder by recursively looking up.
+   * Otherwise, it returns undefined.
    * @param sourceFsPath path to start function from
    */
   public static getFunctionDir(sourceFsPath: string) {
