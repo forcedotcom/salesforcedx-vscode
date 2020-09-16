@@ -19,13 +19,13 @@ const sfdxCoreExports = sfdxCoreExtension
   : undefined;
 const { OrgAuthInfo, channelService } = sfdxCoreExports;
 
-// This should be exported from soql-builder-ui
+// TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
   payload?: string | string[] | ToolingModelJson;
 }
 
-// This should be shared with soql-builder-ui
+// TODO: This should be shared with soql-builder-ui
 export enum MessageType {
   UI_ACTIVATED = 'ui_activated',
   UI_SOQL_CHANGED = 'ui_soql_changed',
@@ -33,7 +33,8 @@ export enum MessageType {
   SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
-  TEXT_SOQL_CHANGED = 'text_soql_changed'
+  TEXT_SOQL_CHANGED = 'text_soql_changed',
+  RUN_SOQL_QUERY = 'run_query'
 }
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
@@ -136,6 +137,10 @@ export class SOQLEditorInstance {
         });
         break;
       }
+      case MessageType.RUN_SOQL_QUERY: {
+        console.log('RUN THE QUERY!');
+        break;
+      }
       default: {
         console.log('message type is not supported');
       }
@@ -149,6 +154,7 @@ export class SOQLEditorInstance {
       this.updateSObjects(sobjectNames);
     });
   }
+
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
       const sobjectService = new SObjectService(conn);
@@ -158,7 +164,6 @@ export class SOQLEditorInstance {
       this.updateSObjectMetadata(sobject);
     });
   }
-
   // Write out the json to a given document. //
   protected updateTextDocument(
     document: vscode.TextDocument,
