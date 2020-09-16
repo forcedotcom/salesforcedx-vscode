@@ -106,7 +106,7 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
-      "name": "Launch Current Integration Test with lwc-recipes",
+      "name": "Launch Current LWC Integration Test with lwc-recipes",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
