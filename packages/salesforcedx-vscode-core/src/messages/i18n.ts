@@ -143,6 +143,7 @@ export const messages = {
   force_function_start_warning_not_in_function_folder:
     'Please open a function file to run SFDX: Start Function',
   force_function_invoke_text: 'SFDX: Invoke Function',
+  force_function_invoke_tooltip: 'Send Request',
   force_function_stop_text: 'SFDX: Stop Function',
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
