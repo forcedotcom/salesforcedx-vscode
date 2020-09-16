@@ -139,9 +139,9 @@ export const messages = {
   force_function_create_text: 'SFDX: Create Function',
   force_function_start_text: 'SFDX: Start Function',
   force_function_start_warning_no_toml:
-    'No function.toml found. Create function.toml or intialize a new function folder using SFDX: Create Function.',
+    'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
   force_function_start_warning_not_in_function_folder:
-    'Please open a function file to run SFDX: Start Function',
+    'Open a function file to run SFDX: Start Function',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Send Request',
   force_function_stop_text: 'SFDX: Stop Function',
