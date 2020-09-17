@@ -16,11 +16,14 @@ This extension pack includes tools for developing on the Salesforce platform in 
 - [Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
 - [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
 
-## Dreamforce Session Videos
+## Videos
 
-- [Salesforce Development with Visual Studio Code](https://www.youtube.com/watch?v=lQ-ZpCRKYM0)
-- [Be An Efficient Salesforce Developer with VS Code](https://www.youtube.com/watch?v=hw9LBvjo4PQ)
-- [Moving to Visual Studio Code for Force.com IDE Developers](https://www.youtube.com/watch?v=J-9ILFRqcwg)
+- [Quick Tour of the Extensions](https://www.youtube.com/watch?v=njKzjOTzEjo&list=PLgIMQe2PKPSIVPDsaiYIMGnFxtcrUus6M&index=6&t=0s) - Shown in Code Builder (pilot).  All functionality is the same on desktop.
+- [Language Support](https://youtu.be/s5X4yGBRWTM)
+- [Accessing Orgs and Source](https://youtu.be/pi5Zho9ft3s)
+- [Test and Debug](https://youtu.be/f6OacBmQk1g)
+- [Best Practices for Building with VS Code](https://www.youtube.com/watch?v=jn91h69qC-o)
+- [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=11)
 
 ### Open Source
 
