@@ -30,7 +30,7 @@
   "force_org_delete_username_text": "SFDX: Delete Org...",
   "force_org_display_default_text": "SFDX: Display Org Details for Default Org",
   "force_org_display_username_text": "SFDX: Display Org Details...",
-  "force_org_list_clean_text": "SFDX: Remove All Expired Orgs",
+  "force_org_list_clean_text": "SFDX: Remove Deleted and Expired Orgs",
   "force_data_soql_query_input_text": "SFDX: Execute SOQL Query...",
   "force_data_soql_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text",
   "force_apex_execute_document_text": "SFDX: Execute Anonymous Apex with Editor Contents",

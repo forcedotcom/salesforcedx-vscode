@@ -78,7 +78,7 @@ export const messages = {
   parameter_gatherer_prompt_confirm_option: 'Continue',
   parameter_gatherer_prompt_cancel_option: 'Cancel',
   parameter_gatherer_placeholder_org_list_clean:
-    'Confirm to continue removing all expired scratch orgs',
+    'Confirm to continue removing deleted and expired scratch orgs',
   parameter_gatherer_placeholder_delete_selected_org:
     'Confirm to continue deleting the selected org',
   parameter_gatherer_placeholder_delete_default_org:
@@ -171,7 +171,7 @@ export const messages = {
   force_org_delete_username_text: 'SFDX: Delete Org...',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
-  force_org_list_clean_text: 'SFDX: Remove All Expired Orgs',
+  force_org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   force_debugger_stop_none_found_text: 'No Apex Debugger session found.',
