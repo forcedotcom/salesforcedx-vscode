@@ -75,6 +75,14 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
   parameter_gatherer_enter_function: 'Enter function details',
+  parameter_gatherer_prompt_confirm_option: 'Continue',
+  parameter_gatherer_prompt_cancel_option: 'Cancel',
+  parameter_gatherer_placeholder_org_list_clean:
+    'Confirm to continue removing deleted and expired scratch orgs',
+  parameter_gatherer_placeholder_delete_selected_org:
+    'Confirm to continue deleting the selected org',
+  parameter_gatherer_placeholder_delete_default_org:
+    'Confirm to continue deleting the default org',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -165,8 +173,11 @@ export const messages = {
   warning_prompt_other_not_shown: '...%s other components not shown\n',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
+  force_org_delete_default_text: 'SFDX: Delete Default Org',
+  force_org_delete_username_text: 'SFDX: Delete Org...',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
+  force_org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   force_debugger_stop_none_found_text: 'No Apex Debugger session found.',
