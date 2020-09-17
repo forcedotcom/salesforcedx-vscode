@@ -221,8 +221,8 @@ describe('Force Function Start', () => {
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
         telemetryServiceStubs.sendExceptionStub,
-        'force_function_start',
-        'force_function_start_not_in_function_folder'
+        'force_function_start_not_in_function_folder',
+        nls.localize('force_function_start_warning_not_in_function_folder')
       );
     });
 
@@ -245,8 +245,8 @@ describe('Force Function Start', () => {
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
         telemetryServiceStubs.sendExceptionStub,
-        'force_function_start',
-        'force_function_start_no_toml'
+        'force_function_start_no_toml',
+        nls.localize('force_function_start_warning_no_toml')
       );
     });
 

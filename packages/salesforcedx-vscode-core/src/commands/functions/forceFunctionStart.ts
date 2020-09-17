@@ -105,12 +105,13 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       sourceFsPath
     );
     if (!functionDirPath) {
-      notificationService.showWarningMessage(
-        nls.localize('force_function_start_warning_no_toml')
+      const warningMessage = nls.localize(
+        'force_function_start_warning_no_toml'
       );
+      notificationService.showWarningMessage(warningMessage);
       telemetryService.sendException(
-        'force_function_start',
-        'force_function_start_no_toml'
+        'force_function_start_no_toml',
+        warningMessage
       );
       return;
     }
@@ -214,12 +215,13 @@ export async function forceFunctionStart(sourceUri?: Uri) {
     sourceUri = window.activeTextEditor?.document.uri!;
   }
   if (!sourceUri) {
-    notificationService.showWarningMessage(
-      nls.localize('force_function_start_warning_not_in_function_folder')
+    const warningMessage = nls.localize(
+      'force_function_start_warning_not_in_function_folder'
     );
+    notificationService.showWarningMessage(warningMessage);
     telemetryService.sendException(
-      'force_function_start',
-      'force_function_start_not_in_function_folder'
+      'force_function_start_not_in_function_folder',
+      warningMessage
     );
     return;
   }
