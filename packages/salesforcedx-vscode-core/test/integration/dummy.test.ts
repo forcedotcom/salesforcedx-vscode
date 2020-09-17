@@ -1,2 +1,0 @@
-describe('No tests yet', () => {
-});
