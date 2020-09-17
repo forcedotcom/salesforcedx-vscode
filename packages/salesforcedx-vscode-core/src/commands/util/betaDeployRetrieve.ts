@@ -7,9 +7,7 @@
 
 import {
   MetadataType,
-  RegistryAccess,
-  registryData,
-  SourceComponent
+  RegistryAccess
 } from '@salesforce/source-deploy-retrieve';
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';

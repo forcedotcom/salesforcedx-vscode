@@ -10,33 +10,14 @@ import {
   registryData
 } from '@salesforce/source-deploy-retrieve';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
-import { MetadataType } from '@salesforce/source-deploy-retrieve/lib/src/common';
 import { expect } from 'chai';
-import { join } from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import {
   createComponentCount,
   useBetaDeployRetrieve
 } from '../../../../src/commands/util';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-
-// function createComponent(type: MetadataType, ext: string, extrafile?: string) {
-//   const props = {
-//     name: 'bar',
-//     type,
-//     xml: `bar.${ext}-meta.xml`,
-//     content: `bar.${ext}`
-//   };
-//   const virtualFs = {
-//     dirPath: '',
-//     children: [`bar.${ext}`, `bar.${ext}-meta.xml`]
-//   };
-//   if (extrafile) {
-//     virtualFs.children.push(extrafile);
-//   }
-//   return SourceComponent.createVirtualComponent(props, [virtualFs]);
-// }
 
 const env = createSandbox();
 
@@ -85,13 +66,13 @@ describe('Deploy/Retrieve Performance Beta Utils', () => {
 
     it('should return true when beta configuration is enabled', () => {
       expect(useBetaDeployRetrieve([uriOne])).to.equal(true);
-      expect(settingStub.calledImmediatelyBefore(registryStub)).to.equal(true);
+      expect(settingStub.calledBefore(registryStub)).to.equal(true);
     });
 
     it('should return false when beta configuration is disabled', () => {
       settingStub.returns(false);
 
-      expect(useBetaDeployRetrieve([uriOne])).to.equal(true);
+      expect(useBetaDeployRetrieve([uriOne])).to.equal(false);
       expect(registryStub.notCalled).to.equal(true);
     });
 
@@ -103,265 +84,26 @@ describe('Deploy/Retrieve Performance Beta Utils', () => {
 
     it("should return false if a component's type is not marked as supported", () => {
       expect(
-        useBetaDeployRetrieve([uriOne, uriTwo], [registryData.types.apexclass])
+        useBetaDeployRetrieve([uriTwo], [registryData.types.apexclass])
       ).to.equal(false);
-      expect(registryStub.calledTwice).to.equal(true);
     });
 
-    // it('Should return false for multiple unsupported type URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(createComponent(registryData.types.bot, 'js', 'car.bot'));
-    //   components.push(
-    //     createComponent(
-    //       registryData.types.lightningcomponentbundle,
-    //       'js',
-    //       'bar.html'
-    //     )
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///car.bot');
-    //   const uriTwo = vscode.Uri.parse('file:///bar.html');
-    //   const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
-    //   expect(multipleFileProcessing).to.equal(false);
-    // });
-
-    // it('Should return true for multiple valid URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(
-    //     createComponent(
-    //       registryData.types.lightningcomponentbundle,
-    //       'js',
-    //       'car.html'
-    //     )
-    //   );
-    //   components.push(
-    //     createComponent(
-    //       registryData.types.lightningcomponentbundle,
-    //       'js',
-    //       'bar.html'
-    //     )
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///car.html');
-    //   const uriTwo = vscode.Uri.parse('file:///bar.html');
-    //   const multipleFileProcessing = useBetaDeployRetrieve([uriOne, uriTwo]);
-    //   expect(multipleFileProcessing).to.equal(true);
-    // });
-
-    // it('Should return false for URI not part of the beta when the beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(
-    //     createComponent(
-    //       registryData.types.lightningcomponentbundle,
-    //       'js',
-    //       'bar.html'
-    //     )
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.html');
-    //   const fileProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(fileProcessing).to.equal(true);
-    // });
-
-    // it('Should return true for ApexClass URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(createComponent(registryData.types.apexclass, 'cls'));
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.cls');
-    //   const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(apexClassProcessing).to.equal(true);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
-    //   const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(apexClassMetaProcessing).to.equal(true);
-    // });
-
-    // it('Should return false for ApexClass URI when beta configuration is disabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(false);
-    //   const components = [];
-    //   components.push(createComponent(registryData.types.apexclass, 'cls'));
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.cls');
-    //   const apexClassProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(apexClassProcessing).to.equal(false);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.cls-meta.xml');
-    //   const apexClassMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(apexClassMetaProcessing).to.equal(false);
-    // });
-
-    // it('Should return true for ApexTrigger URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(
-    //     createComponent(registryData.types.apextrigger, 'trigger')
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.trigger');
-    //   const triggerProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(triggerProcessing).to.equal(true);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
-    //   const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(triggerMetaProcessing).to.equal(true);
-    // });
-
-    // it('Should return false for ApexTrigger URI when beta configuration is disabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(false);
-    //   const components = [];
-    //   components.push(
-    //     createComponent(registryData.types.apextrigger, 'trigger')
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.trigger');
-    //   const triggerProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(triggerProcessing).to.equal(false);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.trigger-meta.xml');
-    //   const triggerMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(triggerMetaProcessing).to.equal(false);
-    // });
-
-    // it('Should return true for VF Page URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(createComponent(registryData.types.apexpage, 'page'));
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.page');
-    //   const pageProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(pageProcessing).to.equal(true);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
-    //   const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(pageMetaProcessing).to.equal(true);
-    // });
-
-    // it('Should return false for VF Page URI when beta configuration is disabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(false);
-    //   const components = [];
-    //   components.push(createComponent(registryData.types.apexpage, 'page'));
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.page');
-    //   const pageProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(pageProcessing).to.equal(false);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.page-meta.xml');
-    //   const pageMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(pageMetaProcessing).to.equal(false);
-    // });
-
-    // it('Should return true for VF Component URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(
-    //     createComponent(registryData.types.apexcomponent, 'component')
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.component');
-    //   const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(cmpProcessing).to.equal(true);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-    //   const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(cmpMetaProcessing).to.equal(true);
-    // });
-
-    // it('Should return false for VF Component URI when beta configuration is disabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(false);
-    //   const components = [];
-    //   components.push(
-    //     createComponent(registryData.types.apexcomponent, 'component')
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.component');
-    //   const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(cmpProcessing).to.equal(false);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-    //   const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(cmpMetaProcessing).to.equal(false);
-    // });
-
-    // it('Should return true for LWC URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(true);
-    //   const components = [];
-    //   components.push(
-    //     createComponent(
-    //       registryData.types.lightningcomponentbundle,
-    //       'js',
-    //       'bar.html'
-    //     )
-    //   );
-    //   registryStub.returns(components);
-    //   const uriOne = vscode.Uri.parse('file:///bar.component');
-    //   const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(cmpProcessing).to.equal(true);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.component-meta.xml');
-    //   const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(cmpMetaProcessing).to.equal(true);
-    // });
-
-    // it('Should return false for LWC URI when beta configuration is enabled', () => {
-    //   sandboxStub
-    //     .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
-    //     .returns(false);
-    //   const component = SourceComponent.createVirtualComponent(
-    //     {
-    //       name: 'test',
-    //       type: registryData.types.lightningcomponentbundle,
-    //       xml: join('lwc', 'test', 'test.js-meta.xml')
-    //     },
-    //     []
-    //   );
-    //   registryStub.returns([component]);
-    //   const uriOne = vscode.Uri.parse('file:///bar.js');
-    //   const cmpProcessing = useBetaDeployRetrieve([uriOne]);
-    //   expect(cmpProcessing).to.equal(false);
-
-    //   const uriTwo = vscode.Uri.parse('file:///bar.js-meta.xml');
-    //   const cmpMetaProcessing = useBetaDeployRetrieve([uriTwo]);
-    //   expect(cmpMetaProcessing).to.equal(false);
-    // });
+    it('should return as expected for multiple uris', () => {
+      const permittedTypes = [
+        registryData.types.apexclass,
+        registryData.types.channellayout
+      ];
+      expect(useBetaDeployRetrieve([uriOne, uriTwo], permittedTypes)).to.equal(
+        true
+      );
+      expect(useBetaDeployRetrieve([uriOne, uriTwo], [])).to.equal(false);
+    });
   });
 
   describe('createComponentCount', () => {
     it('should correctly generate rows for telemetry', () => {
       const { name: apexClassName } = registryData.types.apexclass;
       const { name: channelLayoutName } = registryData.types.channellayout;
-      // const components = [];
-      // components.push(createComponent(registryData.types.layout, 'layout'));
-      // components.push(
-      //   createComponent(registryData.types.customapplication, 'app')
-      // );
       const rows = createComponentCount(testComponents);
       expect(rows).to.deep.equal([
         { type: apexClassName, quantity: 1 },

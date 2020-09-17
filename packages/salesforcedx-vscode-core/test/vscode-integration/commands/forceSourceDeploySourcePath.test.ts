@@ -63,65 +63,65 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       sb.restore();
     });
 
-    // it('should get the namespace value from sfdx-project.json and deploy using tooling API', async () => {
-    //   sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
-    //     testData.username
-    //   );
-    //   sb.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
-    //   const getNamespace = sb
-    //     .stub(SfdxProjectConfig, 'getValue')
-    //     .returns('diFf');
-    //   const getComponentsStub = sb.stub(
-    //     RegistryAccess.prototype,
-    //     'getComponentsFromPath'
-    //   );
-    //   const executor = new LibraryDeploySourcePathExecutor();
-    //   const filePath = path.join(
-    //     'test',
-    //     'file',
-    //     'path',
-    //     'classes',
-    //     'apexTest.cls'
-    //   );
-    //   const mockToolingDeploy = sb
-    //     .stub(ToolingApi.prototype, `deploy`)
-    //     .resolves('');
-    //   await executor.execute({ type: 'CONTINUE', data: filePath });
-    //   expect(mockToolingDeploy.calledOnce).to.equal(true);
+    it('should get the namespace value from sfdx-project.json and deploy using tooling API', async () => {
+      sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
+        testData.username
+      );
+      sb.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
+      const getNamespace = sb
+        .stub(SfdxProjectConfig, 'getValue')
+        .returns('diFf');
+      const getComponentsStub = sb.stub(
+        RegistryAccess.prototype,
+        'getComponentsFromPath'
+      );
+      const executor = new LibraryDeploySourcePathExecutor();
+      const filePath = path.join(
+        'test',
+        'file',
+        'path',
+        'classes',
+        'apexTest.cls'
+      );
+      const mockToolingDeploy = sb
+        .stub(ToolingApi.prototype, `deploy`)
+        .resolves('');
+      await executor.execute({ type: 'CONTINUE', data: filePath });
+      expect(mockToolingDeploy.calledOnce).to.equal(true);
 
-    //   // tslint:disable-next-line:no-unused-expression
-    //   expect(getComponentsStub.calledWith(filePath)).to.be.true;
-    //   expect(getNamespace.calledOnce).to.equal(true);
-    //   // NOTE: There's currently a limitation on source deploy retrieve that prevents
-    //   // us from mocking SourceClient.tooling.deploy. We'll look into updating the library and this test.
-    // });
+      // tslint:disable-next-line:no-unused-expression
+      expect(getComponentsStub.calledWith(filePath)).to.be.true;
+      expect(getNamespace.calledOnce).to.equal(true);
+      // NOTE: There's currently a limitation on source deploy retrieve that prevents
+      // us from mocking SourceClient.tooling.deploy. We'll look into updating the library and this test.
+    });
 
-    // it('should get the namespace value from sfdx-project.json and deploy using metadata API', async () => {
-    //   sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
-    //     testData.username
-    //   );
-    //   sb.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
-    //   const getNamespace = sb.stub(SfdxProjectConfig, 'getValue').returns('');
-    //   const getComponentsStub = sb.stub(
-    //     RegistryAccess.prototype,
-    //     'getComponentsFromPath'
-    //   );
-    //   const executor = new LibraryDeploySourcePathExecutor();
-    //   const filePath = path.join(
-    //     'test',
-    //     'file',
-    //     'path',
-    //     'classes',
-    //     'apexTest.cls'
-    //   );
-    //   const mockToolingDeploy = sb
-    //     .stub(MetadataApi.prototype, `deploy`)
-    //     .resolves('');
-    //   await executor.execute({ type: 'CONTINUE', data: filePath });
-    //   expect(mockToolingDeploy.calledOnce).to.equal(true);
-    //   // tslint:disable-next-line:no-unused-expression
-    //   expect(getComponentsStub.calledWith(filePath)).to.be.true;
-    //   expect(getNamespace.calledOnce).to.equal(true);
-    // });
+    it('should get the namespace value from sfdx-project.json and deploy using metadata API', async () => {
+      sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
+        testData.username
+      );
+      sb.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
+      const getNamespace = sb.stub(SfdxProjectConfig, 'getValue').returns('');
+      const getComponentsStub = sb.stub(
+        RegistryAccess.prototype,
+        'getComponentsFromPath'
+      );
+      const executor = new LibraryDeploySourcePathExecutor();
+      const filePath = path.join(
+        'test',
+        'file',
+        'path',
+        'classes',
+        'apexTest.cls'
+      );
+      const mockToolingDeploy = sb
+        .stub(MetadataApi.prototype, `deploy`)
+        .resolves('');
+      await executor.execute({ type: 'CONTINUE', data: filePath });
+      expect(mockToolingDeploy.calledOnce).to.equal(true);
+      // tslint:disable-next-line:no-unused-expression
+      expect(getComponentsStub.calledWith(filePath)).to.be.true;
+      expect(getNamespace.calledOnce).to.equal(true);
+    });
   });
 });
