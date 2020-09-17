@@ -146,9 +146,15 @@ export const messages = {
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_start_text: 'SFDX: Start Function',
+  force_function_start_warning_no_toml:
+    'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
+  force_function_start_warning_not_in_function_folder:
+    'Open a function file to run SFDX: Start Function',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Send Request',
   force_function_stop_text: 'SFDX: Stop Function',
+  force_function_stop_in_progress: 'Stopping Function',
+  force_function_stop_not_started: 'No Function is running locally',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
