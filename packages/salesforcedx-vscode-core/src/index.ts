@@ -37,7 +37,9 @@ import {
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
   forceOrgCreate,
+  forceOrgDelete,
   forceOrgDisplay,
+  forceOrgList,
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
@@ -246,6 +248,15 @@ function registerCommands(
     'sfdx.force.alias.list',
     forceAliasList
   );
+  const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.delete.default',
+    forceOrgDelete
+  );
+  const forceOrgDeleteUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.delete.username',
+    forceOrgDelete,
+    { flag: '--targetusername' }
+  );
   const forceOrgDisplayDefaultCmd = vscode.commands.registerCommand(
     'sfdx.force.org.display.default',
     forceOrgDisplay
@@ -254,6 +265,10 @@ function registerCommands(
     'sfdx.force.org.display.username',
     forceOrgDisplay,
     { flag: '--targetusername' }
+  );
+  const forceOrgListCleanCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.list.clean',
+    forceOrgList
   );
   const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
     'sfdx.force.data.soql.query.input',

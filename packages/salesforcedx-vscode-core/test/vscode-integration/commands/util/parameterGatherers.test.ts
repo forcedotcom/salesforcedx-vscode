@@ -31,7 +31,11 @@ import {
   SfdxCommandlet,
   SimpleGatherer
 } from '../../../../src/commands/util';
-import { SelectLwcComponentDir } from '../../../../src/commands/util/parameterGatherers';
+import {
+  PromptConfirmGatherer,
+  SelectLwcComponentDir
+} from '../../../../src/commands/util/parameterGatherers';
+import { nls } from '../../../../src/messages';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';
 
@@ -368,6 +372,33 @@ describe('Parameter Gatherers', () => {
       expect(response).to.eql({
         type: 'CONTINUE',
         data: input
+      });
+    });
+  });
+
+  describe('PromptConfirmGatherer', () => {
+    it('Should return CONTINUE if confirmation to proceed is positive', async () => {
+      const promptConfirm = new PromptConfirmGatherer('question');
+      const showMenuStub = sinon.stub(promptConfirm, 'showMenu');
+      const choice = nls.localize('parameter_gatherer_prompt_confirm_option');
+      showMenuStub.onFirstCall().returns(choice);
+      const response = await promptConfirm.gather();
+      expect(response).to.eql({
+        type: 'CONTINUE',
+        data: {
+          choice
+        }
+      });
+    });
+
+    it('Should return CANCEL if confirmation to proceed is negative', async () => {
+      const promptConfirm = new PromptConfirmGatherer('question');
+      const showMenuStub = sinon.stub(promptConfirm, 'showMenu');
+      const choice = nls.localize('parameter_gatherer_prompt_cancel_option');
+      showMenuStub.onFirstCall().returns(choice);
+      const response = await promptConfirm.gather();
+      expect(response).to.eql({
+        type: 'CANCEL'
       });
     });
   });

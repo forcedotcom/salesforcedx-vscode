@@ -462,6 +462,18 @@
           "when": "false"
         },
         {
+          "command": "sfdx.force.org.delete.default",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.delete.username",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.list.clean",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.source.delete.current.file",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
@@ -661,12 +673,24 @@
         "title": "%force_alias_list_text%"
       },
       {
+        "command": "sfdx.force.org.delete.default",
+        "title": "%force_org_delete_default_text%"
+      },
+      {
+        "command": "sfdx.force.org.delete.username",
+        "title": "%force_org_delete_username_text%"
+      },
+      {
         "command": "sfdx.force.org.display.default",
         "title": "%force_org_display_default_text%"
       },
       {
         "command": "sfdx.force.org.display.username",
         "title": "%force_org_display_username_text%"
+      },
+      {
+        "command": "sfdx.force.org.list.clean",
+        "title": "%force_org_list_clean_text%"
       },
       {
         "command": "sfdx.force.data.soql.query.input",
