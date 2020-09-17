@@ -340,3 +340,28 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
     super({ type: metadataType });
   }
 }
+
+export class PromptConfirmGatherer
+  implements ParametersGatherer<{ choice: string }> {
+  private question: string;
+
+  constructor(question: string) {
+    this.question = question;
+  }
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<{ choice: string }>
+  > {
+    const confirmOpt = nls.localize('parameter_gatherer_prompt_confirm_option');
+    const cancelOpt = nls.localize('parameter_gatherer_prompt_cancel_option');
+    const choice = await this.showMenu([cancelOpt, confirmOpt]);
+    return confirmOpt === choice
+      ? { type: 'CONTINUE', data: { choice } }
+      : { type: 'CANCEL' };
+  }
+
+  public async showMenu(options: string[]): Promise<string | undefined> {
+    return await vscode.window.showQuickPick(options, {
+      placeHolder: this.question
+    } as vscode.QuickPickOptions);
+  }
+}
