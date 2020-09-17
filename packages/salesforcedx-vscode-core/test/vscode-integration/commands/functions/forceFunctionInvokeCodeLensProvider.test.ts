@@ -11,35 +11,42 @@ import { provideFunctionInvokeCodeLens } from '../../../../src/commands/function
 import { getRootWorkspacePath } from '../../../../src/util';
 
 describe('Force Function Invoke Codelens', () => {
-
   it('should create codelens for a json payload file', async () => {
     const cancellationTokenSource = new CancellationTokenSource();
-    workspace.openTextDocument({
-      language: 'json'
-    }).then(async payloadDoc => {
-      const codeLens = await provideFunctionInvokeCodeLens(payloadDoc, cancellationTokenSource.token);
-      expect(codeLens).to.have.lengthOf(1);
-      const [invokeCodeLens] = codeLens;
-      expect(invokeCodeLens.range.start.line).to.equal(0);
-      expect(invokeCodeLens.range.start.character).to.equal(0);
-      expect(invokeCodeLens.range.end.line).to.equal(0);
-      expect(invokeCodeLens.range.end.character).to.equal(1);
-      expect(invokeCodeLens.command!.command).to.equal(
-        'sfdx.force.function.invoke'
-      );
-    });
+    workspace
+      .openTextDocument({
+        language: 'json'
+      })
+      .then(async payloadDoc => {
+        const codeLens = await provideFunctionInvokeCodeLens(
+          payloadDoc,
+          cancellationTokenSource.token
+        );
+        expect(codeLens).to.have.lengthOf(1);
+        const [invokeCodeLens] = codeLens;
+        expect(invokeCodeLens.range.start.line).to.equal(0);
+        expect(invokeCodeLens.range.start.character).to.equal(0);
+        expect(invokeCodeLens.range.end.line).to.equal(0);
+        expect(invokeCodeLens.range.end.character).to.equal(1);
+        expect(invokeCodeLens.command!.command).to.equal(
+          'sfdx.force.function.invoke'
+        );
+      });
   });
 
   it('should not create codelens for non payload jsons', async () => {
     const files = await workspace.findFiles(
       new RelativePattern(
         getRootWorkspacePath(),
-        'functions/demoFunction/package.json'
+        'functions/demoJavaScriptFunction/package.json'
       )
     );
     const cancellationTokenSource = new CancellationTokenSource();
     const payloadDoc = await workspace.openTextDocument(files[0]);
-    const codeLens = await provideFunctionInvokeCodeLens(payloadDoc, cancellationTokenSource.token);
+    const codeLens = await provideFunctionInvokeCodeLens(
+      payloadDoc,
+      cancellationTokenSource.token
+    );
     expect(codeLens).to.have.lengthOf(0);
   });
 });
