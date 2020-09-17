@@ -31,6 +31,37 @@ import {
 import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
 
+/**
+ * Error types when running SFDX: Start Function
+ * This is also used as the telemetry log name.
+ */
+type ForceFunctionStartErrorType =
+  | 'force_function_start_plugin_not_installed'
+  | 'force_function_start_docker_plugin_not_installed_or_started';
+
+const forceFunctionStartErrorInfo: {
+  [key in ForceFunctionStartErrorType]: {
+    cliMessage: string;
+    cliExitCode: number;
+    errorNotificationMessage: string;
+  }
+} = {
+  force_function_start_plugin_not_installed: {
+    cliMessage: 'is not a sfdx command',
+    cliExitCode: 127,
+    errorNotificationMessage: nls.localize(
+      'force_function_start_warning_plugin_not_installed'
+    )
+  },
+  force_function_start_docker_plugin_not_installed_or_started: {
+    cliMessage: 'Cannot connect to the Docker daemon',
+    cliExitCode: 1,
+    errorNotificationMessage: nls.localize(
+      'force_function_start_warning_docker_not_installed_or_not_started'
+    )
+  }
+};
+
 export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
   public build(functionDirPath: string): Command {
     this.executionCwd = functionDirPath;
@@ -89,11 +120,13 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     }).execute(cancellationToken);
     const executionName = execution.command.toString();
 
-    FunctionService.instance.registerStartedFunction({
-      terminate: () => {
-        return execution.killExecution('SIGTERM');
+    const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
+      {
+        terminate: () => {
+          return execution.killExecution('SIGTERM');
+        }
       }
-    });
+    );
 
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
@@ -121,7 +154,48 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       }
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {});
+    // Adding error messages here during command execution
+    const errorMessages = new Set();
+    execution.stderrSubject.subscribe(data => {
+      (Object.keys(
+        forceFunctionStartErrorInfo
+      ) as ForceFunctionStartErrorType[]).forEach(errorType => {
+        const { cliMessage } = forceFunctionStartErrorInfo[errorType];
+        if (data.toString().includes(cliMessage)) {
+          errorMessages.add(cliMessage);
+        }
+      });
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      if (exitCode !== 0) {
+        (Object.keys(
+          forceFunctionStartErrorInfo
+        ) as ForceFunctionStartErrorType[]).forEach(errorType => {
+          const {
+            cliMessage,
+            cliExitCode,
+            errorNotificationMessage
+          } = forceFunctionStartErrorInfo[errorType];
+          // Matches error message and exit code
+          if (exitCode === cliExitCode && errorMessages.has(cliMessage)) {
+            telemetryService.sendException(errorType, errorNotificationMessage);
+            notificationService.showErrorMessage(errorNotificationMessage);
+
+            channelService.appendLine(`Error: ${errorNotificationMessage}`);
+            channelService.showChannelOutput();
+          }
+        });
+        notificationService.showErrorMessage(
+          nls.localize(
+            'notification_unsuccessful_execution_text',
+            nls.localize('force_function_start_text')
+          )
+        );
+      }
+      progress.complete();
+      registeredStartedFunctionDisposable.dispose();
+    });
 
     notificationService.reportCommandExecutionStatus(
       execution,
