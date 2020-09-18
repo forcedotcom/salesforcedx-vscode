@@ -82,6 +82,7 @@ import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
+import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
@@ -549,14 +550,8 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Context
-  let sfdxProjectOpened = false;
-  if (hasRootWorkspace()) {
-    const files = await vscode.workspace.findFiles(
-      '**/sfdx-project.json',
-      '**/{node_modules,out}/**'
-    );
-    sfdxProjectOpened = files && files.length > 0;
-  }
+  const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
+
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
   if (
@@ -578,31 +573,25 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  let defaultUsernameorAlias: string | undefined;
-  if (hasRootWorkspace()) {
-    defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-  }
+  if (sfdxProjectOpened) {
+    const defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+      false
+    );
 
-  // register org picker commands and set up filewatcher for defaultusername
-  const orgList = new OrgList();
-  orgList.displayDefaultUsername(defaultUsernameorAlias);
-  context.subscriptions.push(registerOrgPickerCommands(orgList));
+    // register org picker commands and set up filewatcher for defaultusername
+    const orgList = new OrgList();
+    orgList.displayDefaultUsername(defaultUsernameorAlias);
+    context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  await setupOrgBrowser(context);
-  await setupConflictView(context);
-  // Set context for defaultusername org
-  await setupWorkspaceOrgType(defaultUsernameorAlias);
-  await orgList.registerDefaultUsernameWatcher(context);
+    await setupOrgBrowser(context);
+    await setupConflictView(context);
+    // Set context for defaultusername org
+    await setupWorkspaceOrgType(defaultUsernameorAlias);
+    await orgList.registerDefaultUsernameWatcher(context);
 
-  // Register filewatcher for push or deploy on save
-  await registerPushOrDeployOnSave();
-  // Commands
-  const commands = registerCommands(context);
-  context.subscriptions.push(commands);
-  context.subscriptions.push(registerConflictView());
+    // Register filewatcher for push or deploy on save
 
-  // Scratch Org Decorator
-  if (hasRootWorkspace()) {
+    await registerPushOrDeployOnSave();
     decorators.showOrg();
     decorators.monitorOrgConfigChanges();
 
@@ -611,6 +600,11 @@ export async function activate(context: vscode.ExtensionContext) {
       decorators.showDemoMode();
     }
   }
+
+  // Commands
+  const commands = registerCommands(context);
+  context.subscriptions.push(commands);
+  context.subscriptions.push(registerConflictView());
 
   const api: any = {
     channelService,
