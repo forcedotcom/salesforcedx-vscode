@@ -18,11 +18,11 @@ Apex commands
 <!-- install -->
 <!-- usage -->
 ```sh-session
-$ npm install -g salesforcedx-apex
+$ npm install -g @salesforce/plugin-apex
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-salesforcedx-apex/0.0.1 darwin-x64 node-v10.2.0
+@salesforce/plugin-apex/0.0.11 darwin-x64 node-v12.4.0
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -30,7 +30,92 @@ USAGE
 ```
 <!-- usagestop -->
 <!-- commands -->
+* [`sfdx force:apex:execute [-f <filepath>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-forceapexexecute--f-filepath--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
+* [`sfdx force:apex:log:get [-i <id>] [-n <number>] [-d <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`](#sfdx-forceapexlogget--i-id--n-number--d-string--u-string---apiversion-string---json---loglevel-tracedebuginfowarnerrorfataltracedebuginfowarnerrorfatal)
 
+## `sfdx force:apex:execute [-f <filepath>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
+executes anonymous Apex code
+
+```
+USAGE
+  $ sfdx force:apex:execute [-f <filepath>] [-u <string>] [--apiversion <string>] [--json] [--loglevel 
+  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+
+OPTIONS
+  -f, --apexcodefile=apexcodefile                                                   path to a local file that contains
+                                                                                    Apex code
+
+  -u, --targetusername=targetusername                                               username or alias for the target
+                                                                                    org; overrides default target org
+
+  --apiversion=apiversion                                                           override the api version used for
+                                                                                    api requests made by this command
+
+  --json                                                                            format output as json
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging level for
+                                                                                    this command invocation
+
+DESCRIPTION
+  Executes one or more lines of anonymous Apex code entered on the command line, or executes the code in a local file.
+  If you don’t run this command from within a Salesforce DX project, —-targetusername is required.
+  To execute your code interactively, run this command with no parameters. At the prompt, enter all your Apex code; 
+  press CTRL-D when you're finished. Your code is then executed in a single execute anonymous request.
+  For more information, see "Anonymous Blocks" in the Apex Developer Guide.
+
+EXAMPLES
+  $ sfdx force:apex:execute -u testusername@salesforce.org -f ~/test.apex
+  $ sfdx force:apex:execute -f ~/test.apex
+  $ sfdx force:apex:execute 
+  Start typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.
+```
+
+_See code: [src/commands/force/apex/execute.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/v0.0.11/src/commands/force/apex/execute.ts)_
+
+## `sfdx force:apex:log:get [-i <id>] [-n <number>] [-d <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
+
+fetch debug logs
+
+```
+USAGE
+  $ sfdx force:apex:log:get [-i <id>] [-n <number>] [-d <string>] [-u <string>] [--apiversion <string>] [--json] 
+  [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]
+
+OPTIONS
+  -d, --outputdir=outputdir                                                         directory for saving the log files
+  -i, --logid=logid                                                                 id of the log to display
+
+  -n, --number=number                                                               number of most recent logs to
+                                                                                    display
+
+  -u, --targetusername=targetusername                                               username or alias for the target
+                                                                                    org; overrides default target org
+
+  --apiversion=apiversion                                                           override the api version used for
+                                                                                    api requests made by this command
+
+  --json                                                                            format output as JSON
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)  [default: warn] logging level for
+                                                                                    this command invocation
+
+DESCRIPTION
+  Fetches the specified log or given number of most recent logs from the scratch org. 
+  To get the IDs for your debug logs, run "sfdx force:apex:log:list". 
+  Use the --logid parameter to return a specific log. 
+  Use the --number parameter to return the specified number of recent logs.
+  Use the --outputdir parameter to specify the directory to store the logs in.
+  Executing this command without parameters returns the most recent log.
+
+EXAMPLES
+  $ sfdx force:apex:log:get -i <log id>
+  $ sfdx force:apex:log:get -i <log id> -u me@my.org
+  $ sfdx force:apex:log:get -n 2 -c
+  $ sfdx force:apex:log:get -d Users/Desktop/logs -n 2
+```
+
+_See code: [src/commands/force/apex/log/get.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/v0.0.11/src/commands/force/apex/log/get.ts)_
 <!-- commandsstop -->
 <!-- debugging-your-plugin -->
 # Debugging your plugin
