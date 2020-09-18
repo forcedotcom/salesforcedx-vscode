@@ -7,6 +7,7 @@
 
 import { Connection } from '@salesforce/core';
 import { SObject, SObjectService } from '@salesforce/sobject-metadata';
+import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
 import { QueryRunner } from './queryRunner';
@@ -155,28 +156,17 @@ export class SOQLEditorInstance {
   protected handleRunQuery() {
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
-      const { filePath } = await new QueryRunner(
+      const records = await new QueryRunner(
         conn,
         this.document
       ).runAndSaveQuery(queryText);
-      this.openQueryResults(filePath);
+      this.openQueryResults(records);
     });
   }
 
-  protected openQueryResults(filePath: string) {
-    const dataPreviewExtension = vscode.extensions.getExtension(
-      'RandomFractalsInc.vscode-data-preview'
-    );
-
-    if (!dataPreviewExtension?.isActive) {
-      dataPreviewExtension?.activate();
-    }
-
-    vscode.workspace.openTextDocument(filePath).then(doc => {
-      vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside).then((editor) => {
-        vscode.commands.executeCommand('data.preview');
-      });
-    });
+  protected openQueryResults(records: JsonMap[]) {
+    console.log('OPEN WEBVIEW');
+    // open the webview and post message with query data
   }
 
   protected async retrieveSObjects(): Promise<void> {

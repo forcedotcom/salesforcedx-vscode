@@ -6,11 +6,6 @@ import * as path from 'path';
 import * as vscode from 'vscode'; // TODO: only import what we need from vscode
 import { QUERY_DATA_DIR_NAME, QUERY_DATA_EXT } from '../constants';
 
-// const sfdxCoreExports = vscode.extensions.getExtension(
-//   'salesforce.salesforcedx-vscode-core'
-// )!.exports;
-// const notificationService = sfdxCoreExports.notificationService;
-
 export class QueryRunner {
   constructor(
     private connection: Connection,
@@ -26,18 +21,12 @@ export class QueryRunner {
         queryText
       )) as QueryResult<JsonMap>;
       const cleanQueryRecords = this.flattenQueryData(rawQueryData);
-      const queryDataWithDocumentPath = this.saveQueryDataToFile(
-        cleanQueryRecords
-      );
 
-      return {
-        records: cleanQueryRecords,
-        filePath: queryDataWithDocumentPath
-      };
+      return cleanQueryRecords;
     } catch (error) {
       error = JSON.stringify(error, null, 2);
       console.log('runQuery error', error);
-      vscode.window.showErrorMessage(`Could not run the Query \n ${error}`); // TODO: handle errors from running query results
+      vscode.window.showErrorMessage(`Could not run the Query \n ${error}`); // TODO: handle errors from running query results with vscode core ext.
       throw error;
     }
   }
