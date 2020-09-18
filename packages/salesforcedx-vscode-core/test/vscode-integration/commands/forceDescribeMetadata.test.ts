@@ -30,7 +30,7 @@ describe('Force Describe Metadata', () => {
     );
     const writeFileStub = sinon.stub(fs, 'writeFileSync');
 
-    const outputFolder = '/test/folder/';
+    const outputFolder = './test/folder/';
     const resultData = '{status: 0}';
     const cmdOutputStub = sinon
       .stub(CommandOutput.prototype, 'getCmdResult')
