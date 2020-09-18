@@ -9,7 +9,7 @@ import { Connection } from '@salesforce/core';
 import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
-import { SoqlUtils } from './soqlUtils';
+import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -22,18 +22,27 @@ const { OrgAuthInfo, channelService } = sfdxCoreExports;
 // This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  message?: string;
+  payload?: string | string[] | ToolingModelJson;
 }
 
 // This should be shared with soql-builder-ui
 export enum MessageType {
-  ACTIVATED = 'activated',
-  QUERY = 'query',
+  UI_ACTIVATED = 'ui_activated',
+  UI_SOQL_CHANGED = 'ui_soql_changed',
   SOBJECT_METADATA_REQUEST = 'sobject_metadata_request',
   SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
-  UPDATE = 'update'
+  TEXT_SOQL_CHANGED = 'text_soql_changed'
+}
+
+async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
+  const conn = await OrgAuthInfo.getConnection();
+  try {
+    f(conn);
+  } catch (e) {
+    channelService.appendLine(e);
+  }
 }
 
 export class SOQLEditorInstance {
@@ -71,22 +80,22 @@ export class SOQLEditorInstance {
   protected updateWebview(document: vscode.TextDocument): void {
     const uiModel = SoqlUtils.convertSoqlToUiModel(document.getText());
     this.webviewPanel.webview.postMessage({
-      type: MessageType.UPDATE,
-      message: JSON.stringify(uiModel)
+      type: MessageType.TEXT_SOQL_CHANGED,
+      payload: uiModel
     });
   }
 
   protected updateSObjects(sobjectNames: string[]): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.SOBJECTS_RESPONSE,
-      message: sobjectNames
+      payload: sobjectNames
     });
   }
 
   protected updateSObjectMetadata(sobject: SObject): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.SOBJECT_METADATA_RESPONSE,
-      message: sobject
+      payload: sobject
     });
   }
 
@@ -98,22 +107,22 @@ export class SOQLEditorInstance {
 
   protected onDidRecieveMessageHandler(e: SoqlEditorEvent): void {
     switch (e.type) {
-      case MessageType.ACTIVATED: {
+      case MessageType.UI_ACTIVATED: {
         this.updateWebview(this.document);
         break;
       }
-      case MessageType.QUERY: {
+      case MessageType.UI_SOQL_CHANGED: {
         const soql = SoqlUtils.convertUiModelToSoql(
-          JSON.parse(e.message as string)
+          e.payload as ToolingModelJson
         );
         this.updateTextDocument(this.document, soql);
         break;
       }
       case MessageType.SOBJECT_METADATA_REQUEST: {
-        this.retrieveSObject(e.message as string).catch(() => {
+        this.retrieveSObject(e.payload as string).catch(() => {
           channelService.appendLine(
             `An error occurred while handling a request for object metadata for the ${
-              e.message
+              e.payload
             } object.`
           );
         });
@@ -134,27 +143,20 @@ export class SOQLEditorInstance {
   }
 
   protected async retrieveSObjects(): Promise<void> {
-    try {
-      const conn = await this.getConnection();
+    return withSFConnection(async conn => {
       const sobjectService = new SObjectService(conn);
       const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
       this.updateSObjects(sobjectNames);
-    } catch (e) {
-      channelService.appendLine(e);
-    }
+    });
   }
-
   protected async retrieveSObject(sobjectName: string): Promise<void> {
-    try {
-      const conn = await this.getConnection();
+    return withSFConnection(async conn => {
       const sobjectService = new SObjectService(conn);
       const sobject: SObject = await sobjectService.describeSObject(
         sobjectName
       );
       this.updateSObjectMetadata(sobject);
-    } catch (e) {
-      channelService.appendLine(e);
-    }
+    });
   }
 
   // Write out the json to a given document. //
@@ -182,16 +184,5 @@ export class SOQLEditorInstance {
 
   public onDispose(callback: (instance: SOQLEditorInstance) => void): void {
     this.disposedCallback = callback;
-  }
-
-  protected async getConnection(): Promise<Connection> {
-    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
-    if (!usernameOrAlias) {
-      // TODO: NLS
-      throw new Error(
-        'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
-      );
-    }
-    return await OrgAuthInfo.getConnection(usernameOrAlias);
   }
 }

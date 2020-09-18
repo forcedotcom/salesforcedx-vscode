@@ -31,11 +31,7 @@ export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{}> 
     this.executionName = execName;
     this.telemetryName = telemetryLogName;
 
-    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
-    if (!usernameOrAlias) {
-      throw new Error(nls.localize('error_no_default_username'));
-    }
-    const conn = await OrgAuthInfo.getConnection(usernameOrAlias);
+    const conn = await OrgAuthInfo.getConnection();
     this.createService(conn);
   }
 
