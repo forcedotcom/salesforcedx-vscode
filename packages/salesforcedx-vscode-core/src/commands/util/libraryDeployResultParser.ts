@@ -19,7 +19,7 @@ type ComponentSuccess = {
   state: string;
   fullName: string;
   type: string;
-  filePath: string;
+  filePath?: string;
 };
 
 type ComponentFailure = {

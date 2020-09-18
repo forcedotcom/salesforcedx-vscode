@@ -28,7 +28,7 @@
     "@salesforce/apex-node": "0.0.9",
     "@salesforce/core": "2.9.0",
     "@salesforce/salesforcedx-utils-vscode": "49.10.0",
-    "@salesforce/source-deploy-retrieve": "1.0.20",
+    "@salesforce/source-deploy-retrieve": "1.1.2",
     "@salesforce/templates": "49.9.1",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
