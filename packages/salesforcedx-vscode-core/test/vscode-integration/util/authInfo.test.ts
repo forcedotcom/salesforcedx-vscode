@@ -8,6 +8,7 @@
 import { Aliases } from '@salesforce/core';
 import { expect } from 'chai';
 import { sandbox } from 'sinon';
+import * as util from 'util';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
@@ -77,6 +78,26 @@ describe('OrgAuthInfo', () => {
       expect(infoMessageStub.calledOnce).to.be.false;
       configUtilStub.restore();
       infoMessageStub.restore();
+    });
+  });
+
+  describe('getConnection', () => {
+    const username = 'user@test.test';
+    const alias = 'TestOrg';
+
+    it('with argument', async () => {
+      const connection = await OrgAuthInfo.getConnection(username);
+      expect(connection.getUsername()).to.equal(username);
+    });
+
+    it('without argument. Use default', async () => {
+      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      configUtilStub.returns('defaultUsername');
+
+      const connection = await OrgAuthInfo.getConnection();
+      expect(connection.getUsername()).to.equal('defaultUsername');
+
+      configUtilStub.restore();
     });
   });
 });

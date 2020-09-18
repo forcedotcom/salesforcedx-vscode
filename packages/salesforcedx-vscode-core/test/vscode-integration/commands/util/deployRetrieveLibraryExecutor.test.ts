@@ -81,9 +81,6 @@ describe('DeployRetrieveLibraryExecutor', () => {
   });
 
   it('Should create connection on build phase', async () => {
-    const orgAuthMock = sb
-      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
-      .returns(testData.username);
     const orgAuthConnMock = sb
       .stub(OrgAuthInfo, 'getConnection')
       .returns(mockConnection);
@@ -92,7 +89,6 @@ describe('DeployRetrieveLibraryExecutor', () => {
     }();
 
     await commandlet.build('Test name', 'telemetry_test');
-    expect(orgAuthMock.calledOnce).to.equal(true);
     expect(orgAuthConnMock.calledOnce).to.equal(true);
   });
 
@@ -100,7 +96,6 @@ describe('DeployRetrieveLibraryExecutor', () => {
     const orgAuthMock = sb
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(undefined);
-    const orgAuthConnMock = sb.stub(OrgAuthInfo, 'getConnection');
     const commandlet = new class extends DeployRetrieveLibraryExecutor {
       public async execute(response: ContinueResponse<{}>): Promise<void> {}
     }();
@@ -110,7 +105,6 @@ describe('DeployRetrieveLibraryExecutor', () => {
     } catch (e) {
       expect(e.message).to.equal(nls.localize('error_no_default_username'));
       expect(orgAuthMock.calledOnce).to.equal(true);
-      expect(orgAuthConnMock.calledOnce).to.equal(false);
     }
   });
 });
