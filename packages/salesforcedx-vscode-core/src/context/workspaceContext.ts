@@ -1,5 +1,5 @@
 import { AuthInfo, Connection } from '@salesforce/core';
-import path = require('path');
+import { join } from 'path';
 import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '.';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../constants';
@@ -30,7 +30,7 @@ export class WorkspaceContext {
     const sfdxProjectPath = getRootWorkspacePath();
     instance.cliConfigWatcher?.dispose();
     instance.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
-      path.join(sfdxProjectPath, SFDX_FOLDER, SFDX_CONFIG_FILE)
+      join(sfdxProjectPath, SFDX_FOLDER, SFDX_CONFIG_FILE)
     );
     instance.cliConfigWatcher.onDidChange(() => instance.handleCliConfigChange());
     instance.cliConfigWatcher.onDidCreate(() =>
