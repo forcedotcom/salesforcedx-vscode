@@ -22,7 +22,7 @@ $ npm install -g @salesforce/plugin-apex
 $ sfdx COMMAND
 running command...
 $ sfdx (-v|--version|version)
-@salesforce/plugin-apex/0.0.11 darwin-x64 node-v12.4.0
+@salesforce/plugin-apex/0.0.12 darwin-x64 node-v12.4.0
 $ sfdx --help [COMMAND]
 USAGE
   $ sfdx COMMAND
@@ -71,7 +71,7 @@ EXAMPLES
   Start typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.
 ```
 
-_See code: [src/commands/force/apex/execute.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/v0.0.11/src/commands/force/apex/execute.ts)_
+_See code: [src/commands/force/apex/execute.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/v0.0.12/src/commands/force/apex/execute.ts)_
 
 ## `sfdx force:apex:log:get [-i <id>] [-n <number>] [-d <string>] [-u <string>] [--apiversion <string>] [--json] [--loglevel trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]`
 
@@ -115,7 +115,7 @@ EXAMPLES
   $ sfdx force:apex:log:get -d Users/Desktop/logs -n 2
 ```
 
-_See code: [src/commands/force/apex/log/get.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/v0.0.11/src/commands/force/apex/log/get.ts)_
+_See code: [src/commands/force/apex/log/get.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/v0.0.12/src/commands/force/apex/log/get.ts)_
 <!-- commandsstop -->
 <!-- debugging-your-plugin -->
 # Debugging your plugin
