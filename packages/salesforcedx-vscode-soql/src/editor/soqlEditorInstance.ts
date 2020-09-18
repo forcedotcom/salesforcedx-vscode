@@ -37,8 +37,8 @@ export enum MessageType {
 }
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
+  const conn = await OrgAuthInfo.getConnection();
   try {
-    const conn = await OrgAuthInfo.getConnection();
     f(conn);
   } catch (e) {
     channelService.appendLine(e);
