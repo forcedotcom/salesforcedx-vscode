@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteService } from '@salesforce/apex-node';
-import { Connection } from '@salesforce/core';
 import {
   Command,
   SfdxCommandBuilder
@@ -19,18 +18,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { WorkspaceContext } from '../context';
+import { handleApexLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
-import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
-  ApexLibraryExecutor,
   CommandletExecutor,
+  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import { formatExecuteResult } from './util/apexLibraryResultFormatter';
 
 export class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: TempFile): Command {
@@ -97,10 +97,15 @@ export function writeFileAsync(fileName: string, inputText: string) {
   });
 }
 
+interface ApexExecuteParameters {
+  apexCode?: string;
+  fileName?: string;
+}
+
 export class AnonApexGatherer
-  implements ParametersGatherer<{ fileName?: string; apexCode?: string }> {
+  implements ParametersGatherer<ApexExecuteParameters> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<{ fileName?: string; apexCode?: string }>
+    CancelResponse | ContinueResponse<ApexExecuteParameters>
   > {
     if (hasRootWorkspace()) {
       const editor = vscode.window.activeTextEditor;
@@ -126,41 +131,40 @@ export class AnonApexGatherer
   }
 }
 
-export class ApexLibraryExecuteExecutor extends ApexLibraryExecutor {
-  protected executeService: ExecuteService | undefined;
+export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
+  protected executionName = nls.localize('apex_execute_text');
+  protected logName = 'force_apex_execute_library';
 
-  public createService(conn: Connection): void {
-    this.executeService = new ExecuteService(conn);
-  }
+  private diagnostics = vscode.languages.createDiagnosticCollection(
+    'apex-errors'
+  );
 
-  public async execute(
-    response: ContinueResponse<{ fileName?: string; apexCode?: string }>
-  ): Promise<void> {
-    this.setStartTime();
+  protected async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
+    const connection = await WorkspaceContext.get().getConnection();
+    const executeService = new ExecuteService(connection);
+    const { apexCode, fileName: apexFilePath } = response.data;
 
-    try {
-      await this.build(
-        nls.localize('apex_execute_text'),
-        nls.localize('force_apex_execute_library')
+    const result = await executeService.executeAnonymous({ apexFilePath, apexCode });
+
+    const success = result.compiled && result.success;
+    const formattedResult = formatExecuteResult(result);
+    channelService.appendLine(formattedResult);
+
+    if (success) {
+      this.diagnostics.clear();
+    } else {
+      const editor = vscode.window.activeTextEditor;
+      const document = editor!.document;
+      const filePath = apexFilePath || document.uri.fsPath;
+
+      handleApexLibraryDiagnostics(
+        result,
+        this.diagnostics,
+        filePath
       );
-
-      if (this.executeService === undefined) {
-        throw new Error('ExecuteService is not established');
-      }
-
-      this.executeService.executeAnonymous = this.executeWrapper(
-        this.executeService.executeAnonymous
-      );
-
-      await this.executeService.executeAnonymous({
-        ...(response.data.fileName && { apexFilePath: response.data.fileName }),
-        ...(response.data.apexCode && { apexCode: response.data.apexCode })
-      });
-    } catch (e) {
-      telemetryService.sendException('force_apex_execute_library', e.message);
-      notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
     }
+
+    return success;
   }
 }
 

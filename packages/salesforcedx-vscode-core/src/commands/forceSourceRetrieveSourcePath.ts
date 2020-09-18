@@ -16,18 +16,21 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   RegistryAccess,
-  registryData
+  registryData,
+  SourceClient
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
   createComponentCount,
-  DeployRetrieveLibraryExecutor,
   FilePathGatherer,
+  LibraryCommandletExecutor,
+  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -126,44 +129,31 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   await commandlet.run();
 }
 
-export class LibraryRetrieveSourcePathExecutor extends DeployRetrieveLibraryExecutor {
-  public async execute(response: ContinueResponse<string>): Promise<void> {
-    this.setStartTime();
+export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
+  string
+> {
+  protected logName = 'force_source_retrieve_with_sourcepath_beta';
+  protected executionName = 'Retrieve (Beta)';
 
-    try {
-      await this.build(
-        'Retrieve (Beta)',
-        'force_source_retrieve_with_sourcepath_beta'
-      );
+  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+    const getConnection = WorkspaceContext.get().getConnection();
+    const registryAccess = new RegistryAccess();
+    const components = registryAccess.getComponentsFromPath(response.data);
+    const projectNamespace = (await SfdxProjectConfig.getValue(
+      'namespace'
+    )) as string;
+    const client = new SourceClient(await getConnection);
+    const retrieve = client.tooling.retrieve({
+      components,
+      namespace: projectNamespace
+    });
+    const metadataCount = JSON.stringify(createComponentCount(components));
+    this.telemetry.addProperty('metadataCount', metadataCount);
 
-      if (this.sourceClient === undefined) {
-        throw new Error('SourceClient is not established');
-      }
+    const result = await retrieve;
 
-      this.sourceClient.tooling.retrieve = this.retrieveWrapper(
-        this.sourceClient.tooling.retrieve
-      );
+    channelService.appendLine(outputRetrieveTable(result));
 
-      const projectNamespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
-      const registryAccess = new RegistryAccess();
-      const components = registryAccess.getComponentsFromPath(response.data);
-      const retrievePromise = this.sourceClient.tooling.retrieve({
-        components,
-        namespace: projectNamespace
-      });
-      const metadataCount = JSON.stringify(createComponentCount(components));
-      await retrievePromise;
-
-      this.logMetric({ metadataCount });
-    } catch (e) {
-      telemetryService.sendException(
-        'force_source_retrieve_with_sourcepath_beta',
-        e.message
-      );
-      notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
-    }
+    return result.success;
   }
 }
