@@ -169,7 +169,8 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      if (exitCode !== 0) {
+      if (typeof exitCode === 'number' && exitCode !== 0) {
+        let unexpectedError = true;
         (Object.keys(
           forceFunctionStartErrorInfo
         ) as ForceFunctionStartErrorType[]).forEach(errorType => {
@@ -180,13 +181,27 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
           } = forceFunctionStartErrorInfo[errorType];
           // Matches error message and exit code
           if (exitCode === cliExitCode && errorMessages.has(cliMessage)) {
+            unexpectedError = false;
             telemetryService.sendException(errorType, errorNotificationMessage);
             notificationService.showErrorMessage(errorNotificationMessage);
-
             channelService.appendLine(`Error: ${errorNotificationMessage}`);
             channelService.showChannelOutput();
           }
         });
+
+        if (unexpectedError) {
+          const errorNotificationMessage = nls.localize(
+            'force_function_start_unexpected_error',
+            exitCode
+          );
+          telemetryService.sendException(
+            'force_function_start_unexpected_error',
+            errorNotificationMessage
+          );
+          notificationService.showErrorMessage(errorNotificationMessage);
+          channelService.appendLine(`Error: ${errorNotificationMessage}`);
+          channelService.showChannelOutput();
+        }
         notificationService.showErrorMessage(
           nls.localize(
             'notification_unsuccessful_execution_text',

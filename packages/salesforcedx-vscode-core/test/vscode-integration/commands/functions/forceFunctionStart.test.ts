@@ -352,5 +352,36 @@ describe('Force Function Start', () => {
         )
       );
     });
+
+    it('Should show error message and send telemetry if error is not expected', async () => {
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+      mockExecution.processExitSubject.next(99);
+
+      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendExceptionStub,
+        'force_function_start_unexpected_error',
+        nls.localize('force_function_start_unexpected_error', 99)
+      );
+      assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize('force_function_start_unexpected_error', 99)
+      );
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize(
+          'notification_unsuccessful_execution_text',
+          nls.localize('force_function_start_text')
+        )
+      );
+    });
   });
 });
