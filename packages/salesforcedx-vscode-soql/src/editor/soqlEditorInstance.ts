@@ -10,6 +10,7 @@ import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
+import { QueryDataViewService as queryDataView } from '../queryResultsView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
@@ -166,6 +167,7 @@ export class SOQLEditorInstance {
 
   protected openQueryResults(records: JsonMap[]) {
     console.log('OPEN WEBVIEW');
+    queryDataView.createOrShowWebView(this.subscriptions);
     // open the webview and post message with query data
   }
 
