@@ -155,7 +155,27 @@ export class SOQLEditorInstance {
   protected handleRunQuery() {
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
-      await new QueryRunner(conn).runQuery(queryText);
+      const { filePath } = await new QueryRunner(
+        conn,
+        this.document
+      ).runAndSaveQuery(queryText);
+      this.openQueryResults(filePath);
+    });
+  }
+
+  protected openQueryResults(filePath: string) {
+    const dataPreviewExtension = vscode.extensions.getExtension(
+      'RandomFractalsInc.vscode-data-preview'
+    );
+
+    if (!dataPreviewExtension?.isActive) {
+      dataPreviewExtension?.activate();
+    }
+
+    vscode.workspace.openTextDocument(filePath).then(doc => {
+      vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside).then((editor) => {
+        vscode.commands.executeCommand('data.preview');
+      });
     });
   }
 

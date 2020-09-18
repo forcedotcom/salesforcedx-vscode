@@ -11,3 +11,5 @@ export const SOQL_BUILDER_UI_PATH =
   'node_modules/@salesforce/soql-builder-ui/dist';
 export const HTML_FILE = 'index.html';
 export const VIEW_TYPE = 'soqlCustom.soql';
+export const QUERY_DATA_EXT = 'data.json';
+export const QUERY_DATA_DIR_NAME = 'query-results';
