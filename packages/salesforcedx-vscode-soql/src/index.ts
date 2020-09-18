@@ -8,11 +8,13 @@
 import * as vscode from 'vscode';
 import { startLanguageClient, stopLanguageClient } from './client/client';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
+import { QueryDataViewService } from './queryResultsView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
 
 export function activate(context: vscode.ExtensionContext): void {
   const extensionHRStart = process.hrtime();
   context.subscriptions.push(SOQLEditorProvider.register(context));
+  QueryDataViewService.register(context);
   startLanguageClient(context);
   startTelemetry(extensionHRStart);
 }
