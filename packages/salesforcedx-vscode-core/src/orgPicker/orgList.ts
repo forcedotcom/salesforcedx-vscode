@@ -13,10 +13,9 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import { setupWorkspaceOrgType } from '../context/index';
+import { OrgSubscriber } from '../context';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -25,7 +24,7 @@ export interface FileInfo {
   devHubUsername?: string;
   expirationDate?: string;
 }
-export class OrgList implements vscode.Disposable {
+export class OrgList implements vscode.Disposable, OrgSubscriber {
   private statusBarItem: vscode.StatusBarItem;
 
   constructor() {
@@ -182,31 +181,7 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.dispose();
   }
 
-  public async onSfdxConfigEvent() {
-    let defaultUsernameorAlias: string | undefined;
-    if (hasRootWorkspace()) {
-      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-        false
-      );
-    }
-    telemetryService.sendEventData(
-      'Sfdx-config file updated with default username',
-      undefined,
-      { timestamp: new Date().getTime() }
-    );
-    await setupWorkspaceOrgType(defaultUsernameorAlias);
-    this.displayDefaultUsername(defaultUsernameorAlias);
-  }
-
-  public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {
-    if (hasRootWorkspace()) {
-      const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
-        path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
-      );
-      sfdxConfigWatcher.onDidChange(uri => this.onSfdxConfigEvent());
-      sfdxConfigWatcher.onDidCreate(uri => this.onSfdxConfigEvent());
-      sfdxConfigWatcher.onDidDelete(uri => this.onSfdxConfigEvent());
-      context.subscriptions.push(sfdxConfigWatcher);
-    }
+  public async onOrgChange(username?: string, alias?: string) {
+    this.displayDefaultUsername(alias || username);
   }
 }
