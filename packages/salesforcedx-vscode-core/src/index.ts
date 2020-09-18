@@ -581,10 +581,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
   await WorkspaceContext.initialize(context);
 
-  // register org picker commands and set up filewatcher for defaultusername
+  // register org picker commands and subscribe to org changes
   const orgList = new OrgList();
   context.subscriptions.push(registerOrgPickerCommands(orgList));
-  WorkspaceContext.get().subscribe(orgList);
+  WorkspaceContext.get().subscribe(orgList, true);
 
   await setupOrgBrowser(context);
   await setupConflictView(context);
