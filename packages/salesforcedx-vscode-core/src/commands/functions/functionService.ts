@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Disposable } from 'vscode';
+
 /**
  * A running task that can be terminated
  */
@@ -24,9 +26,17 @@ export class FunctionService {
 
   /**
    * Register started functions, in order to terminate the container.
+   * Returns a disposable to unregister in case an error happens when starting function
+   *
+   * @returns {Disposable} disposable to unregister
    */
-  public registerStartedFunction(terminable: Terminable) {
+  public registerStartedFunction(terminable: Terminable): Disposable {
     this.startedExecutions.add(terminable);
+    return {
+      dispose: () => {
+        this.startedExecutions.delete(terminable);
+      }
+    };
   }
 
   public isFunctionStarted() {
