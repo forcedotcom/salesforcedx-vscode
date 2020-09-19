@@ -102,6 +102,10 @@ describe('Force Function Start', () => {
         notificationService,
         'showWarningMessage'
       );
+      notificationServiceStubs.showErrorMessageStub = sandbox.stub(
+        notificationService,
+        'showErrorMessage'
+      );
       notificationServiceStubs.reportCommandExecutionStatus = sandbox.stub(
         notificationService,
         'reportCommandExecutionStatus'
@@ -217,8 +221,8 @@ describe('Force Function Start', () => {
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
         telemetryServiceStubs.sendExceptionStub,
-        'force_function_start',
-        'force_function_start_not_in_function_folder'
+        'force_function_start_not_in_function_folder',
+        nls.localize('force_function_start_warning_not_in_function_folder')
       );
     });
 
@@ -241,8 +245,8 @@ describe('Force Function Start', () => {
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
         telemetryServiceStubs.sendExceptionStub,
-        'force_function_start',
-        'force_function_start_no_toml'
+        'force_function_start_no_toml',
+        nls.localize('force_function_start_warning_no_toml')
       );
     });
 
@@ -275,6 +279,109 @@ describe('Force Function Start', () => {
       mockExecution.stdoutSubject.next('Ready to process signals');
       assert.calledOnce(logMetricStub);
       assert.calledWith(logMetricStub, 'force_function_start', mockStartTime);
+    });
+
+    it('Should show error message and send telemetry if plugin is not installed', async () => {
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+      mockExecution.stderrSubject.next(
+        ' ›   Warning: evergreen:function:start is not a sfdx command.'
+      );
+      mockExecution.processExitSubject.next(127);
+
+      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendExceptionStub,
+        'force_function_start_plugin_not_installed',
+        nls.localize('force_function_start_warning_plugin_not_installed')
+      );
+      assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize('force_function_start_warning_plugin_not_installed')
+      );
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize(
+          'notification_unsuccessful_execution_text',
+          nls.localize('force_function_start_text')
+        )
+      );
+    });
+
+    it('Should show error message and send telemetry if docker is not installed or started', async () => {
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+      mockExecution.stderrSubject.next(
+        ' ›   Error: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?'
+      );
+      mockExecution.processExitSubject.next(1);
+
+      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendExceptionStub,
+        'force_function_start_docker_plugin_not_installed_or_started',
+        nls.localize(
+          'force_function_start_warning_docker_not_installed_or_not_started'
+        )
+      );
+      assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize(
+          'force_function_start_warning_docker_not_installed_or_not_started'
+        )
+      );
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize(
+          'notification_unsuccessful_execution_text',
+          nls.localize('force_function_start_text')
+        )
+      );
+    });
+
+    it('Should show error message and send telemetry if error is not expected', async () => {
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+      mockExecution.processExitSubject.next(99);
+
+      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendExceptionStub,
+        'force_function_start_unexpected_error',
+        nls.localize('force_function_start_unexpected_error', 99)
+      );
+      assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize('force_function_start_unexpected_error', 99)
+      );
+      assert.calledWith(
+        notificationServiceStubs.showErrorMessageStub,
+        nls.localize(
+          'notification_unsuccessful_execution_text',
+          nls.localize('force_function_start_text')
+        )
+      );
     });
   });
 });

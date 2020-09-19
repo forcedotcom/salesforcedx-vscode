@@ -31,6 +31,37 @@ import {
 import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
 
+/**
+ * Error types when running SFDX: Start Function
+ * This is also used as the telemetry log name.
+ */
+type ForceFunctionStartErrorType =
+  | 'force_function_start_plugin_not_installed'
+  | 'force_function_start_docker_plugin_not_installed_or_started';
+
+const forceFunctionStartErrorInfo: {
+  [key in ForceFunctionStartErrorType]: {
+    cliMessage: string;
+    cliExitCode: number;
+    errorNotificationMessage: string;
+  }
+} = {
+  force_function_start_plugin_not_installed: {
+    cliMessage: 'is not a sfdx command',
+    cliExitCode: 127,
+    errorNotificationMessage: nls.localize(
+      'force_function_start_warning_plugin_not_installed'
+    )
+  },
+  force_function_start_docker_plugin_not_installed_or_started: {
+    cliMessage: 'Cannot connect to the Docker daemon',
+    cliExitCode: 1,
+    errorNotificationMessage: nls.localize(
+      'force_function_start_warning_docker_not_installed_or_not_started'
+    )
+  }
+};
+
 export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
   public build(functionDirPath: string): Command {
     this.executionCwd = functionDirPath;
@@ -74,12 +105,13 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       sourceFsPath
     );
     if (!functionDirPath) {
-      notificationService.showWarningMessage(
-        nls.localize('force_function_start_warning_no_toml')
+      const warningMessage = nls.localize(
+        'force_function_start_warning_no_toml'
       );
+      notificationService.showWarningMessage(warningMessage);
       telemetryService.sendException(
-        'force_function_start',
-        'force_function_start_no_toml'
+        'force_function_start_no_toml',
+        warningMessage
       );
       return;
     }
@@ -89,11 +121,13 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     }).execute(cancellationToken);
     const executionName = execution.command.toString();
 
-    FunctionService.instance.registerStartedFunction({
-      terminate: () => {
-        return execution.killExecution('SIGTERM');
+    const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
+      {
+        terminate: () => {
+          return execution.killExecution('SIGTERM');
+        }
       }
-    });
+    );
 
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
@@ -121,7 +155,63 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       }
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {});
+    // Adding error messages here during command execution
+    const errorMessages = new Set();
+    execution.stderrSubject.subscribe(data => {
+      (Object.keys(
+        forceFunctionStartErrorInfo
+      ) as ForceFunctionStartErrorType[]).forEach(errorType => {
+        const { cliMessage } = forceFunctionStartErrorInfo[errorType];
+        if (data.toString().includes(cliMessage)) {
+          errorMessages.add(cliMessage);
+        }
+      });
+    });
+
+    execution.processExitSubject.subscribe(async exitCode => {
+      if (typeof exitCode === 'number' && exitCode !== 0) {
+        let unexpectedError = true;
+        (Object.keys(
+          forceFunctionStartErrorInfo
+        ) as ForceFunctionStartErrorType[]).forEach(errorType => {
+          const {
+            cliMessage,
+            cliExitCode,
+            errorNotificationMessage
+          } = forceFunctionStartErrorInfo[errorType];
+          // Matches error message and exit code
+          if (exitCode === cliExitCode && errorMessages.has(cliMessage)) {
+            unexpectedError = false;
+            telemetryService.sendException(errorType, errorNotificationMessage);
+            notificationService.showErrorMessage(errorNotificationMessage);
+            channelService.appendLine(`Error: ${errorNotificationMessage}`);
+            channelService.showChannelOutput();
+          }
+        });
+
+        if (unexpectedError) {
+          const errorNotificationMessage = nls.localize(
+            'force_function_start_unexpected_error',
+            exitCode
+          );
+          telemetryService.sendException(
+            'force_function_start_unexpected_error',
+            errorNotificationMessage
+          );
+          notificationService.showErrorMessage(errorNotificationMessage);
+          channelService.appendLine(`Error: ${errorNotificationMessage}`);
+          channelService.showChannelOutput();
+        }
+        notificationService.showErrorMessage(
+          nls.localize(
+            'notification_unsuccessful_execution_text',
+            nls.localize('force_function_start_text')
+          )
+        );
+      }
+      progress.complete();
+      registeredStartedFunctionDisposable.dispose();
+    });
 
     notificationService.reportCommandExecutionStatus(
       execution,
@@ -140,12 +230,13 @@ export async function forceFunctionStart(sourceUri?: Uri) {
     sourceUri = window.activeTextEditor?.document.uri!;
   }
   if (!sourceUri) {
-    notificationService.showWarningMessage(
-      nls.localize('force_function_start_warning_not_in_function_folder')
+    const warningMessage = nls.localize(
+      'force_function_start_warning_not_in_function_folder'
     );
+    notificationService.showWarningMessage(warningMessage);
     telemetryService.sendException(
-      'force_function_start',
-      'force_function_start_not_in_function_folder'
+      'force_function_start_not_in_function_folder',
+      warningMessage
     );
     return;
   }
