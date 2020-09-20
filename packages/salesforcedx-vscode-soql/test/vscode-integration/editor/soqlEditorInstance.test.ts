@@ -39,7 +39,9 @@ describe('SoqlEditorInstance should', () => {
 
   const uiModelOne: ToolingModelJson = {
     sObject: 'Account',
-    fields: ['Name', 'Id']
+    fields: ['Name', 'Id'],
+    errors: [],
+    unsupported: []
   };
 
   const createMessagingWebviewContent = () => {

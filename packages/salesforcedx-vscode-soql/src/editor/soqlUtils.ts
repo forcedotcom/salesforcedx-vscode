@@ -12,6 +12,8 @@ import { JsonMap } from '@salesforce/ts-types';
 export interface ToolingModelJson extends JsonMap {
   sObject: string;
   fields: string[];
+  errors: JsonMap[];
+  unsupported: string[];
 }
 
 export class SoqlUtils {
@@ -33,11 +35,29 @@ export class SoqlUtils {
         : undefined;
     // eslint-disable-next-line prettier/prettier
     const sObject = queryModel.from?.sobjectName;
+    const errors = queryModel.errors as unknown as JsonMap[];
+    const unsupported = [];
+    for (const key in queryModel) {
+      if (queryModel.hasOwnProperty(key)) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const prop = queryModel[key];
+        if (typeof prop === 'object') {
+          if (SoqlModelUtils.containsUnmodeledSyntax(prop)) {
+            unsupported.push(prop.unmodeledSyntax);
+          }
+        }
+      }
+    }
 
     const toolingModelTemplate: ToolingModelJson = {
       sObject: sObject || '',
-      fields: fields || []
+      fields: fields || [],
+      errors: errors || [],
+      unsupported: unsupported || []
     };
+
+    console.log('toolingModel: ', toolingModelTemplate);
 
     return toolingModelTemplate;
   }
