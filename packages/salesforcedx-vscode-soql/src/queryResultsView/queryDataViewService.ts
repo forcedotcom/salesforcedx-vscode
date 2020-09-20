@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { html } from './queryDataHtml';
+import { JsonMap } from '@salesforce/ts-types';
 
 export class QueryDataViewService {
   public static currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -11,15 +12,22 @@ export class QueryDataViewService {
     QueryDataViewService.extensionPath = context.extensionPath;
   }
 
-  public static createOrShowWebView(subscriptions: vscode.Disposable[]) {
+  public static createOrShowWebView(
+    subscriptions: vscode.Disposable[],
+    queryData: JsonMap[]
+  ) {
     const columnToShowIn = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
 
+    // if (QueryDataViewService.currentPanel) {
+    //   QueryDataViewService.currentPanel.reveal(columnToShowIn);
+    //   return;
+    // } else {
     QueryDataViewService.currentPanel = vscode.window.createWebviewPanel(
       QueryDataViewService.viewType,
       'SOQL Query Results',
-      vscode.ViewColumn.Three,
+      columnToShowIn || vscode.ViewColumn.Two,
       {
         // And restrict the webview to only loading content from our extension's `media` directory.
         localResourceRoots: [
@@ -30,9 +38,18 @@ export class QueryDataViewService {
         enableScripts: true
       }
     );
+    // }
 
     const webview = QueryDataViewService.currentPanel.webview;
     webview.html = QueryDataViewService.getWebViewContent(webview);
+
+    function updateWebview() {
+      console.log('Update Webview');
+      webview.postMessage({
+        type: 'update',
+        text: queryData
+      });
+    }
 
     QueryDataViewService.currentPanel.onDidDispose(
       () => {
@@ -41,6 +58,8 @@ export class QueryDataViewService {
       null,
       subscriptions
     );
+
+    updateWebview();
   }
 
   private static getWebViewContent(webview: vscode.Webview): string {

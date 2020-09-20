@@ -167,8 +167,8 @@ export class SOQLEditorInstance {
 
   protected openQueryResults(records: JsonMap[]) {
     console.log('OPEN WEBVIEW');
-    queryDataView.createOrShowWebView(this.subscriptions);
     // open the webview and post message with query data
+    queryDataView.createOrShowWebView(this.subscriptions, records);
   }
 
   protected async retrieveSObjects(): Promise<void> {
