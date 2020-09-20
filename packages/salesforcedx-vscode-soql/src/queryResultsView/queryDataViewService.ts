@@ -1,6 +1,6 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { html } from './queryDataHtml';
-import * as path from 'path';
 
 export class QueryDataViewService {
   public static currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -21,7 +21,13 @@ export class QueryDataViewService {
       'SOQL Query Results',
       vscode.ViewColumn.Three,
       {
-        enableCommandUris: true
+        // And restrict the webview to only loading content from our extension's `media` directory.
+        localResourceRoots: [
+          vscode.Uri.file(
+            path.join(this.extensionPath, 'src', 'queryResultsView', 'media')
+          )
+        ],
+        enableScripts: true
       }
     );
 
@@ -38,12 +44,29 @@ export class QueryDataViewService {
   }
 
   private static getWebViewContent(webview: vscode.Webview): string {
-    const baseStyles = webview.asWebviewUri(
+    const styleUri = webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(this.extensionPath, 'src/queryResultsView', 'queryData.css')
+        path.join(
+          this.extensionPath,
+          'src',
+          'queryResultsView',
+          'media',
+          'queryData.css'
+        )
+      )
+    );
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(
+          this.extensionPath,
+          'src',
+          'queryResultsView',
+          'media',
+          'queryDataViewController.js'
+        )
       )
     );
 
-    return html([baseStyles]);
+    return html(styleUri, scriptUri);
   }
 }
