@@ -57,8 +57,6 @@ export class SoqlUtils {
       unsupported: unsupported || []
     };
 
-    console.log('toolingModel: ', toolingModelTemplate);
-
     return toolingModelTemplate;
   }
 
