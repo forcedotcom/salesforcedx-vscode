@@ -75,6 +75,14 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
   parameter_gatherer_enter_function: 'Enter function details',
+  parameter_gatherer_prompt_confirm_option: 'Continue',
+  parameter_gatherer_prompt_cancel_option: 'Cancel',
+  parameter_gatherer_placeholder_org_list_clean:
+    'Confirm to continue removing deleted and expired scratch orgs',
+  parameter_gatherer_placeholder_delete_selected_org:
+    'Confirm to continue deleting the selected org',
+  parameter_gatherer_placeholder_delete_default_org:
+    'Confirm to continue deleting the default org',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -138,9 +146,21 @@ export const messages = {
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_start_text: 'SFDX: Start Function',
+  force_function_start_warning_no_toml:
+    'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
+  force_function_start_warning_not_in_function_folder:
+    'Open a function file to run SFDX: Start Function',
+  force_function_start_warning_plugin_not_installed:
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://github.com/forcedotcom/evergreen-docs/blob/master/Getting%20Started%20Guide/Evergreen%20Getting%20Started%20Guide.md#installing-the-salesforce-functions-sfdx-plugin).',
+  force_function_start_warning_docker_not_installed_or_not_started:
+    'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
+  force_function_start_unexpected_error:
+    'SFDX: Start Function exited unexpectedly with code %s',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Send Request',
   force_function_stop_text: 'SFDX: Stop Function',
+  force_function_stop_in_progress: 'Stopping Function',
+  force_function_stop_not_started: 'No Function is running locally',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
@@ -159,8 +179,11 @@ export const messages = {
   warning_prompt_other_not_shown: '...%s other components not shown\n',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
+  force_org_delete_default_text: 'SFDX: Delete Default Org',
+  force_org_delete_username_text: 'SFDX: Delete Org...',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
+  force_org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   force_debugger_stop_none_found_text: 'No Apex Debugger session found.',

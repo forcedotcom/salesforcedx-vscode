@@ -40,7 +40,7 @@ export function outputRetrieveTable(retrieveResult: ApiResult) {
       resultRows.push({
         fullName,
         type: type.name,
-        filePath: component.xml
+        filePath: component.xml || ''
       });
     }
     outputResult = table.createTable(

@@ -14,7 +14,10 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  RegistryAccess,
+  registryData
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -99,10 +102,23 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     }
   }
 
+  const { types } = registryData;
+  const useBeta = useBetaDeployRetrieve(
+    [explorerPath],
+    [
+      types.auradefinitionbundle,
+      types.lightningcomponentbundle,
+      types.apexclass,
+      types.apexcomponent,
+      types.apexpage,
+      types.apextrigger
+    ]
+  );
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    useBetaDeployRetrieve([explorerPath])
+    useBeta
       ? new LibraryRetrieveSourcePathExecutor()
       : new ForceSourceRetrieveSourcePathExecutor(),
     new SourcePathChecker()

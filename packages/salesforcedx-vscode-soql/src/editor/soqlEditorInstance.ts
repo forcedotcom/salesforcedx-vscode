@@ -36,21 +36,9 @@ export enum MessageType {
   TEXT_SOQL_CHANGED = 'text_soql_changed'
 }
 
-// TODO: move to shared module
-async function getConnection(): Promise<Connection> {
-  const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
-  if (!usernameOrAlias) {
-    // TODO: NLS
-    throw new Error(
-      'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.'
-    );
-  }
-  return await OrgAuthInfo.getConnection(usernameOrAlias);
-}
-
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
+  const conn = await OrgAuthInfo.getConnection();
   try {
-    const conn = await getConnection();
     f(conn);
   } catch (e) {
     channelService.appendLine(e);
