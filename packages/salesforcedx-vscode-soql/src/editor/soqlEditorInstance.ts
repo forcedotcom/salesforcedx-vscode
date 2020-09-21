@@ -117,9 +117,7 @@ export class SOQLEditorInstance {
       case MessageType.SOBJECT_METADATA_REQUEST: {
         this.retrieveSObject(e.payload as string).catch(() => {
           channelService.appendLine(
-            `An error occurred while handling a request for object metadata for the ${
-              e.payload
-            } object.`
+            `An error occurred while handling a request for object metadata for the ${e.payload} object.`
           );
         });
         break;
