@@ -14,9 +14,6 @@
     switch (postMessage.type) {
       case 'update':
         renderTableWith(postMessage.text);
-
-        // Then persist state information.
-        // TODO: This state is returned in the call to `vscode.getState` below when a webview is reloaded.
         vscode.setState({
           text: postMessage.text
         });
@@ -28,10 +25,10 @@
 
   function renderTableWith(tableData) {
     new Tabulator('#data-table', {
-      data: tableData, //assign data to table
-      autoColumns: true, //create columns from data field names
+      data: tableData,
+      autoColumns: true,
       pagination: 'local',
-      paginationSize: 6,
+      paginationSize: 10,
       layout: 'fitColumns',
       maxHeight: '100%'
     });
