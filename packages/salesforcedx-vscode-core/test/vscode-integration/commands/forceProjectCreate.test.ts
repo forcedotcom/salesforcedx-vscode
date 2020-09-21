@@ -521,5 +521,81 @@ describe('Force Project Create', () => {
       // clean up
       shell.rm('-rf', projectPath);
     });
+
+    it('Should Create Functions Project', async () => {
+      // arrange
+      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      shell.rm('-rf', projectPath);
+      assert.noFile(projectPath);
+
+      quickPickStub.returns({
+        label: nls.localize(
+          'force_project_create_functions_template_display_text'
+        )
+      });
+      showInputBoxStub.returns('TestProject');
+      openDialogStub.returns([
+        vscode.Uri.file(path.join(getRootWorkspacePath()))
+      ]);
+
+      // act
+      await forceSfdxProjectCreate();
+
+      assert.file([
+        path.join(getRootWorkspacePath(), 'TestProject', 'functions')
+      ]);
+      assert.fileContent(
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject/config/project-scratch-def.json'
+        ),
+        '"Functions"'
+      );
+
+      // clean up
+      shell.rm('-rf', projectPath);
+    });
+
+    it('Should Create Functions Project with manifest', async () => {
+      // arrange
+      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      shell.rm('-rf', projectPath);
+      assert.noFile(projectPath);
+
+      quickPickStub.returns({
+        label: nls.localize(
+          'force_project_create_functions_template_display_text'
+        )
+      });
+      showInputBoxStub.returns('TestProject');
+      openDialogStub.returns([
+        vscode.Uri.file(path.join(getRootWorkspacePath()))
+      ]);
+
+      // act
+      await forceProjectWithManifestCreate();
+
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'manifest',
+          'package.xml'
+        )
+      ]);
+      assert.file([
+        path.join(getRootWorkspacePath(), 'TestProject', 'functions')
+      ]);
+      assert.fileContent(
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject/config/project-scratch-def.json'
+        ),
+        '"Functions"'
+      );
+
+      // clean up
+      shell.rm('-rf', projectPath);
+    });
   });
 });

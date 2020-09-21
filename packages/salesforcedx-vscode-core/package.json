@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "49.9.0",
+  "version": "49.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,19 +27,20 @@
   "dependencies": {
     "@salesforce/apex-node": "0.0.9",
     "@salesforce/core": "2.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "49.9.0",
-    "@salesforce/source-deploy-retrieve": "1.0.20",
-    "@salesforce/templates": "49.4.4",
+    "@salesforce/salesforcedx-utils-vscode": "49.10.0",
+    "@salesforce/source-deploy-retrieve": "1.1.2",
+    "@salesforce/templates": "49.9.1",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.3",
+    "strip-ansi": "^5.2.0",
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "49.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "49.10.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -71,8 +72,7 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:integration && npm run test:vscode-integration",
-    "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json",
+    "test": "npm run test:vscode-integration",
     "test:vscode-integration": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ../../scripts/run-vscode-integration-tests",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
@@ -156,6 +156,10 @@
         }
       ],
       "editor/context": [
+        {
+          "command": "sfdx.force.function.start",
+          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
@@ -284,7 +288,7 @@
         },
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/"
+          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         }
       ],
       "commandPalette": [
@@ -455,6 +459,18 @@
         {
           "command": "sfdx.force.source.delete",
           "when": "false"
+        },
+        {
+          "command": "sfdx.force.org.delete.default",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.delete.username",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.org.list.clean",
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
@@ -656,12 +672,24 @@
         "title": "%force_alias_list_text%"
       },
       {
+        "command": "sfdx.force.org.delete.default",
+        "title": "%force_org_delete_default_text%"
+      },
+      {
+        "command": "sfdx.force.org.delete.username",
+        "title": "%force_org_delete_username_text%"
+      },
+      {
         "command": "sfdx.force.org.display.default",
         "title": "%force_org_display_default_text%"
       },
       {
         "command": "sfdx.force.org.display.username",
         "title": "%force_org_display_username_text%"
+      },
+      {
+        "command": "sfdx.force.org.list.clean",
+        "title": "%force_org_list_clean_text%"
       },
       {
         "command": "sfdx.force.data.soql.query.input",

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "49.9.0",
+  "version": "49.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,7 @@
     "@salesforce/eslint-config-lwc": "0.3.0",
     "@salesforce/lightning-lsp-common": "3.0.5",
     "@salesforce/lwc-language-server": "3.0.5",
-    "@salesforce/salesforcedx-utils-vscode": "49.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "49.10.0",
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
     "jest-editor-support": "^26.0.0-beta",
@@ -39,7 +39,7 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "49.9.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "49.10.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",

@@ -1,3 +1,33 @@
+# 49.10.0 - September 16, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added expanded extension pack ([PR #2517](https://github.com/forcedotcom/salesforcedx-vscode/pull/2517))
+
+- Show expired orgs in orgpicker ([PR #2506](https://github.com/forcedotcom/salesforcedx-vscode/pull/2506)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
+
+# 49.9.0 - September 10, 2020
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Added support for the new [Safe Navigation Operator](https://releasenotes.docs.salesforce.com/en-us/winter21/release-notes/rn_apex_SafeNavigationOperator.htm) within the Apex Language Server Protocol ([PR #2507](https://github.com/forcedotcom/salesforcedx-vscode/pull/2507))
+
+## Fixed
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+- Update to the latest version of the Aura and LWC language servers ([PR #2495](https://github.com/forcedotcom/salesforcedx-vscode/pull/2495))
+
+#### docs
+
+- Updates to [Code Completion](https://developer.salesforce.com/tools/vscode/en/apex/writing) documentation ([PR #2471](https://github.com/forcedotcom/salesforcedx-vscode/pull/2471))
+
+- Added [Community Extensions](https://developer.salesforce.com/tools/vscode/en/getting-started/recommended-extensions/#community-extensions) section ([PR #2477](https://github.com/forcedotcom/salesforcedx-vscode/pull/2477))
+
 # 49.8.0 - September 2, 2020
 
 ## Added
