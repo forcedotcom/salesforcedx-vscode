@@ -6,8 +6,8 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
+import { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
@@ -92,7 +92,7 @@ export class SOQLEditorInstance {
     });
   }
 
-  protected updateSObjectMetadata(sobject: SObject): void {
+  protected updateSObjectMetadata(sobject: DescribeSObjectResult): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.SOBJECT_METADATA_RESPONSE,
       payload: sobject
@@ -121,8 +121,7 @@ export class SOQLEditorInstance {
       case MessageType.SOBJECT_METADATA_REQUEST: {
         this.retrieveSObject(e.payload as string).catch(() => {
           channelService.appendLine(
-            `An error occurred while handling a request for object metadata for the ${
-              e.payload
+            `An error occurred while handling a request for object metadata for the ${e.payload
             } object.`
           );
         });
@@ -144,17 +143,14 @@ export class SOQLEditorInstance {
 
   protected async retrieveSObjects(): Promise<void> {
     return withSFConnection(async conn => {
-      const sobjectService = new SObjectService(conn);
-      const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
+      const describeGlobalResult = await conn.describeGlobal();
+      const sobjectNames: string[] = describeGlobalResult.sobjects.map(sobject => sobject.name);
       this.updateSObjects(sobjectNames);
     });
   }
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
-      const sobjectService = new SObjectService(conn);
-      const sobject: SObject = await sobjectService.describeSObject(
-        sobjectName
-      );
+      const sobject = await conn.describe(sobjectName);
       this.updateSObjectMetadata(sobject);
     });
   }

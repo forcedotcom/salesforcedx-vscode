@@ -105,14 +105,16 @@ describe('SoqlEditorInstance should', () => {
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(testData.username);
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
-    const sobjectNames = ['A', 'B'];
+    const describeGlobalResponse = {
+      sobjects: [{ name: 'A' }, { name: 'B' }]
+    };
     sandbox
-      .stub(SObjectService.prototype, 'retrieveSObjectNames')
-      .resolves(sobjectNames);
+      .stub(mockConnection, 'describeGlobal')
+      .resolves(describeGlobalResponse);
 
     const expectedMessage = {
       type: 'sobjects_response',
-      payload: sobjectNames
+      payload: ['A', 'B']
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -130,7 +132,7 @@ describe('SoqlEditorInstance should', () => {
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
     const fakeSObject = { name: 'A' };
     sandbox
-      .stub(SObjectService.prototype, 'describeSObject')
+      .stub(mockConnection, 'describe')
       .resolves(fakeSObject);
 
     const expectedMessage = {
@@ -154,14 +156,12 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateDocumentSpy.callCount === 1,
-      `updateDocumentSpy callcount expected 1, but got ${
-        updateDocumentSpy.callCount
+      `updateDocumentSpy callcount expected 1, but got ${updateDocumentSpy.callCount
       }`
     );
     expect(
       updateDocumentSpy.getCall(0).args[1].indexOf(uiModelOne.sObject) > -1,
-      `updateDocumentSpy was called with ${
-        updateDocumentSpy.getCall(0).args[1]
+      `updateDocumentSpy was called with ${updateDocumentSpy.getCall(0).args[1]
       } but does not include ${uiModelOne.sObject}`
     );
   });
@@ -173,8 +173,7 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateWebviewSpy.callCount === 1,
-      `updateWebviewSpy callcount expected 1, but got ${
-        updateWebviewSpy.callCount
+      `updateWebviewSpy callcount expected 1, but got ${updateWebviewSpy.callCount
       }`
     );
   });
