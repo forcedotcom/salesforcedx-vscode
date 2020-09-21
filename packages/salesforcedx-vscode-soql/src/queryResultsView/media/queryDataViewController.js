@@ -1,13 +1,11 @@
 (function() {
-  console.log('controller is loaded!');
   const vscode = acquireVsCodeApi();
-  const dataTableEl = document.getElementById('data-table');
 
   function loadState() {
-    console.log('load state');
     const state = vscode.getState();
     if (state) {
-      dataTableEl.innerText = JSON.stringify(state.text, null, 2);
+      console.log('From State', state.text);
+      renderTableWith(state.text);
     }
   }
 
@@ -18,7 +16,7 @@
     switch (postMessage.type) {
       case 'update':
         console.log('Update message sent!', postMessage.text);
-        dataTableEl.innerText = JSON.stringify(postMessage.text, null, 2);
+        renderTableWith(postMessage.text);
 
         // Then persist state information.
         // TODO: This state is returned in the call to `vscode.getState` below when a webview is reloaded.
@@ -30,4 +28,15 @@
         console.log('oops! No message type');
     }
   });
+
+  function renderTableWith(tableData) {
+    const dataTable = new Tabulator('#data-table', {
+      data: tableData, //assign data to table
+      autoColumns: true, //create columns from data field names
+      pagination: 'local',
+      paginationSize: 6,
+      layout: 'fitColumns',
+      maxHeight: '100%'
+    });
+  }
 })();

@@ -1,7 +1,8 @@
+import { JsonMap } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { DATA_VIEW_MEDIA_PATH } from '../constants';
 import { html } from './queryDataHtml';
-import { JsonMap } from '@salesforce/ts-types';
 
 export class QueryDataViewService {
   public static currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -63,29 +64,38 @@ export class QueryDataViewService {
   }
 
   private static getWebViewContent(webview: vscode.Webview): string {
-    const styleUri = webview.asWebviewUri(
+    const baseStyleUri = webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(
-          this.extensionPath,
-          'src',
-          'queryResultsView',
-          'media',
-          'queryData.css'
-        )
+        path.join(this.extensionPath, DATA_VIEW_MEDIA_PATH, 'queryData.css')
       )
     );
-    const scriptUri = webview.asWebviewUri(
+    const tabulatorStyleUri = webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(this.extensionPath, DATA_VIEW_MEDIA_PATH, 'tabulator.min.css')
+      )
+    );
+    const viewControllerUri = webview.asWebviewUri(
       vscode.Uri.file(
         path.join(
           this.extensionPath,
-          'src',
-          'queryResultsView',
-          'media',
+          DATA_VIEW_MEDIA_PATH,
           'queryDataViewController.js'
         )
       )
     );
+    const tabulatorUri = webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(this.extensionPath, DATA_VIEW_MEDIA_PATH, 'tabulator.min.js')
+      )
+    );
 
-    return html(styleUri, scriptUri);
+    const staticAssets = {
+      baseStyleUri,
+      tabulatorStyleUri,
+      viewControllerUri,
+      tabulatorUri
+    };
+
+    return html(staticAssets);
   }
 }
