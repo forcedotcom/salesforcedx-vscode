@@ -1,13 +1,21 @@
 import { JsonMap } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { DATA_VIEW_MEDIA_PATH } from '../constants';
+import {
+  DATA_VIEW_MEDIA_PATH,
+  QUERY_DATA_VIEW_PANEL_TITLE,
+  QUERY_DATA_VIEW_SCRIPT_FILENAME,
+  QUERY_DATA_VIEW_STYLE_FILENAME,
+  QUERY_DATA_VIEW_TYPE,
+  TABULATOR_SCRIPT_FILENAME,
+  TABULATOR_STYLE_FILENAME
+} from '../constants';
 import { SoqlUtils } from '../editor/soqlUtils';
 import { html } from './queryDataHtml';
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
-  public readonly viewType = 'welcomePage';
+  public readonly viewType = QUERY_DATA_VIEW_TYPE;
   private static extensionPath: string;
 
   constructor(
@@ -31,18 +39,12 @@ export class QueryDataViewService {
   public createOrShowWebView() {
     this.currentPanel = vscode.window.createWebviewPanel(
       this.viewType,
-      'SOQL Query Results',
+      QUERY_DATA_VIEW_PANEL_TITLE,
       vscode.ViewColumn.Two,
       {
         localResourceRoots: [
           vscode.Uri.file(
-            path.join(
-              // TODO: constants
-              QueryDataViewService.extensionPath,
-              'src',
-              'queryResultsView',
-              'media'
-            )
+            path.join(QueryDataViewService.extensionPath, DATA_VIEW_MEDIA_PATH)
           )
         ],
         enableScripts: true
@@ -69,7 +71,7 @@ export class QueryDataViewService {
         path.join(
           QueryDataViewService.extensionPath,
           DATA_VIEW_MEDIA_PATH,
-          'queryData.css'
+          QUERY_DATA_VIEW_STYLE_FILENAME
         )
       )
     );
@@ -78,7 +80,7 @@ export class QueryDataViewService {
         path.join(
           QueryDataViewService.extensionPath,
           DATA_VIEW_MEDIA_PATH,
-          'tabulator.min.css'
+          TABULATOR_STYLE_FILENAME
         )
       )
     );
@@ -87,7 +89,7 @@ export class QueryDataViewService {
         path.join(
           QueryDataViewService.extensionPath,
           DATA_VIEW_MEDIA_PATH,
-          'queryDataViewController.js'
+          QUERY_DATA_VIEW_SCRIPT_FILENAME
         )
       )
     );
@@ -96,7 +98,7 @@ export class QueryDataViewService {
         path.join(
           QueryDataViewService.extensionPath,
           DATA_VIEW_MEDIA_PATH,
-          'tabulator.min.js'
+          TABULATOR_SCRIPT_FILENAME
         )
       )
     );

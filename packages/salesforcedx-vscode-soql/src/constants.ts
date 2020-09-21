@@ -12,9 +12,13 @@ export const WEBVIEW_RESOURCE_ROOTS_PATH =
 export const SOQL_BUILDER_UI_PATH =
   'node_modules/@salesforce/soql-builder-ui/dist';
 export const HTML_FILE = 'index.html';
-export const VIEW_TYPE = 'soqlCustom.soql';
-export const QUERY_DATA_EXT = 'data.json';
-export const QUERY_DATA_DIR_NAME = 'query-results';
+export const EDITOR_VIEW_TYPE = 'soqlCustom.soql';
+export const QUERY_DATA_VIEW_TYPE = 'queryDataView';
+export const QUERY_DATA_VIEW_PANEL_TITLE = 'SOQL Query Results';
+export const QUERY_DATA_VIEW_SCRIPT_FILENAME = 'queryDataViewController.js';
+export const QUERY_DATA_VIEW_STYLE_FILENAME = 'queryDataView.css';
+export const TABULATOR_SCRIPT_FILENAME = 'tabulator.min.js';
+export const TABULATOR_STYLE_FILENAME = 'tabulator.min.css';
 export const DATA_VIEW_MEDIA_PATH = path.join(
   'src',
   'queryResultsView',
