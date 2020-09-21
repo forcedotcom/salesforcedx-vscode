@@ -85,7 +85,7 @@ export class ExecuteService {
       const timeout = setTimeout(() => {
         reject(new Error(nls.localize('exec_anon_input_timeout')));
         readInterface.close();
-      }, 10000);
+      }, 60000);
 
       let apexCode = '';
       readInterface.on('line', (input: string) => {
