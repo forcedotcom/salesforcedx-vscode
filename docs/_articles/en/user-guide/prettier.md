@@ -17,7 +17,9 @@ To install the Prettier Apex plugin:
 
 1. Check if your project contains the `package.json` file. If not, run: `npm init` and accept all the default options.
 
-1. Run: `npm install --save-dev --save-exact prettier prettier-plugin-apex`.
+1. Run:
+
+   `npm install --save-dev --save-exact prettier prettier-plugin-apex`
 
 You must create a configuration file `.prettierrc` in the root of your project. If you’d like to know more about formatting options of Prettier, read [other config options](https://prettier.io/docs/en/options.html).
 
