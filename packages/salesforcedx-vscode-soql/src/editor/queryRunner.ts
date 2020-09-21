@@ -19,7 +19,7 @@ export class QueryRunner {
 
       return cleanQueryRecords;
     } catch (error) {
-      vscode.window.showErrorMessage(`Could not run the Query \n ${error}`); // TODO: handle errors from running query results with vscode core ext.
+      vscode.window.showErrorMessage(`Could not run the Query \n ${error}`); // TODO: Needs Doc Review handle errors from running query results with vscode core ext.
       throw error;
     }
   }
