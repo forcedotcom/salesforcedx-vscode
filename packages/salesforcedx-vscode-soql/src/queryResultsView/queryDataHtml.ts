@@ -20,7 +20,7 @@ export function html(assets: { [index: string]: Uri }): string {
   </head>
   <body>
     <div>
-      <h3>Query Results</h3>
+      <h3 id="webview-title"></h3>
       <div id="data-table"></div>
     </div>
   </body>

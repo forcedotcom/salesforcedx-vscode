@@ -8,6 +8,7 @@
 import { ModelDeserializer, ModelSerializer } from '@salesforce/soql-model';
 import { Impl, Soql, SoqlModelUtils } from '@salesforce/soql-model/lib';
 import { JsonMap } from '@salesforce/ts-types';
+import { TextDocument } from 'vscode';
 
 export interface ToolingModelJson extends JsonMap {
   sObject: string;
@@ -65,5 +66,10 @@ export class SoqlUtils {
     const serializer = new ModelSerializer(soqlModel);
     const query = serializer.serialize();
     return query;
+  }
+
+  public static getDocumentName(document: TextDocument) {
+    const documentPath = document.uri.fsPath;
+    return documentPath.split('/').pop();
   }
 }

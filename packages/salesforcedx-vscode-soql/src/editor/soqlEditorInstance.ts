@@ -166,7 +166,11 @@ export class SOQLEditorInstance {
   }
 
   protected openQueryResults(records: JsonMap[]) {
-    const webview = new queryDataView(this.subscriptions, records);
+    const webview = new queryDataView(
+      this.subscriptions,
+      records,
+      this.document
+    );
     webview.createOrShowWebView();
   }
 

@@ -2,6 +2,7 @@ import { JsonMap } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DATA_VIEW_MEDIA_PATH } from '../constants';
+import { SoqlUtils } from '../editor/soqlUtils';
 import { html } from './queryDataHtml';
 
 export class QueryDataViewService {
@@ -11,7 +12,8 @@ export class QueryDataViewService {
 
   constructor(
     private subscriptions: vscode.Disposable[],
-    private queryData: JsonMap[]
+    private queryData: JsonMap[],
+    private document: vscode.TextDocument
   ) {}
 
   public static register(context: vscode.ExtensionContext) {
@@ -21,7 +23,8 @@ export class QueryDataViewService {
   private updateWebviewWith(webview: vscode.Webview, queryData: JsonMap[]) {
     webview.postMessage({
       type: 'update',
-      text: queryData
+      data: queryData,
+      documentName: SoqlUtils.getDocumentName(this.document)
     });
   }
 
