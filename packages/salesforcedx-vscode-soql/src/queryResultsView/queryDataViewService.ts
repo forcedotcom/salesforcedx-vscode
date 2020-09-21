@@ -10,6 +10,7 @@ import {
   TABULATOR_SCRIPT_FILENAME,
   TABULATOR_STYLE_FILENAME
 } from '../constants';
+import { HtmlUtils } from '../editor/htmlUtils';
 import { SoqlUtils } from '../editor/soqlUtils';
 import { html } from './queryDataHtml';
 
@@ -66,6 +67,7 @@ export class QueryDataViewService {
   }
 
   private getWebViewContent(webview: vscode.Webview): string {
+    let _html: string;
     const baseStyleUri = webview.asWebviewUri(
       vscode.Uri.file(
         path.join(
@@ -110,6 +112,9 @@ export class QueryDataViewService {
       tabulatorUri
     };
 
-    return html(staticAssets);
+    _html = html(staticAssets);
+    _html = HtmlUtils.replaceCspMetaTag(_html, webview);
+
+    return _html;
   }
 }

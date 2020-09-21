@@ -16,7 +16,8 @@ export function html(assets: { [index: string]: Uri }): string {
     <link href="${tabulatorStyleUri}" rel="stylesheet" />
     <link href="${baseStyleUri}" rel="stylesheet" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SOQL Query</title>
+    <!-- CSP TAG -->
+    <title>SOQL Query Data View</title>
   </head>
   <body>
     <div>
