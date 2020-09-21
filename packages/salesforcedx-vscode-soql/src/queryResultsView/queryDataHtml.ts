@@ -24,8 +24,8 @@ export function html(assets: { [index: string]: Uri }): string {
       <div id="data-table"></div>
     </div>
   </body>
-  <script src="${viewControllerUri}"></script>
   <script src="${tabulatorUri}"></script>
+  <script src="${viewControllerUri}"></script>
 </html>
 `;
 }

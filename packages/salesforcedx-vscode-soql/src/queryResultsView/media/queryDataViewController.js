@@ -1,10 +1,8 @@
 (function() {
   const vscode = acquireVsCodeApi();
-
   function loadState() {
     const state = vscode.getState();
     if (state) {
-      console.log('From State', state.text);
       renderTableWith(state.text);
     }
   }
@@ -15,7 +13,6 @@
     const postMessage = event.data;
     switch (postMessage.type) {
       case 'update':
-        console.log('Update message sent!', postMessage.text);
         renderTableWith(postMessage.text);
 
         // Then persist state information.
@@ -30,7 +27,7 @@
   });
 
   function renderTableWith(tableData) {
-    const dataTable = new Tabulator('#data-table', {
+    new Tabulator('#data-table', {
       data: tableData, //assign data to table
       autoColumns: true, //create columns from data field names
       pagination: 'local',
