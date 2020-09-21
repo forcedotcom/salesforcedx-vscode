@@ -5,79 +5,84 @@ import { DATA_VIEW_MEDIA_PATH } from '../constants';
 import { html } from './queryDataHtml';
 
 export class QueryDataViewService {
-  public static currentPanel: vscode.WebviewPanel | undefined = undefined;
-  public static readonly viewType = 'welcomePage';
+  public currentPanel: vscode.WebviewPanel | undefined = undefined;
+  public readonly viewType = 'welcomePage';
   private static extensionPath: string;
+
+  constructor(
+    private subscriptions: vscode.Disposable[],
+    private queryData: JsonMap[]
+  ) {}
 
   public static register(context: vscode.ExtensionContext) {
     QueryDataViewService.extensionPath = context.extensionPath;
   }
 
-  public static createOrShowWebView(
-    subscriptions: vscode.Disposable[],
-    queryData: JsonMap[]
-  ) {
-    const columnToShowIn = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : undefined;
+  private updateWebviewWith(webview: vscode.Webview, queryData: JsonMap[]) {
+    webview.postMessage({
+      type: 'update',
+      text: queryData
+    });
+  }
 
-    // if (QueryDataViewService.currentPanel) {
-    //   QueryDataViewService.currentPanel.reveal(columnToShowIn);
-    //   return;
-    // } else {
-    QueryDataViewService.currentPanel = vscode.window.createWebviewPanel(
-      QueryDataViewService.viewType,
+  public createOrShowWebView() {
+    this.currentPanel = vscode.window.createWebviewPanel(
+      this.viewType,
       'SOQL Query Results',
-      columnToShowIn || vscode.ViewColumn.Two,
+      vscode.ViewColumn.Two,
       {
-        // And restrict the webview to only loading content from our extension's `media` directory.
         localResourceRoots: [
           vscode.Uri.file(
-            path.join(this.extensionPath, 'src', 'queryResultsView', 'media')
+            path.join(
+              // TODO: constants
+              QueryDataViewService.extensionPath,
+              'src',
+              'queryResultsView',
+              'media'
+            )
           )
         ],
         enableScripts: true
       }
     );
-    // }
 
-    const webview = QueryDataViewService.currentPanel.webview;
-    webview.html = QueryDataViewService.getWebViewContent(webview);
-
-    function updateWebview() {
-      console.log('Update Webview');
-      webview.postMessage({
-        type: 'update',
-        text: queryData
-      });
-    }
-
-    QueryDataViewService.currentPanel.onDidDispose(
+    this.currentPanel.onDidDispose(
       () => {
         this.currentPanel = undefined;
       },
       null,
-      subscriptions
+      this.subscriptions
     );
 
-    updateWebview();
+    const webview = this.currentPanel.webview;
+    webview.html = this.getWebViewContent(webview);
+
+    this.updateWebviewWith(webview, this.queryData);
   }
 
-  private static getWebViewContent(webview: vscode.Webview): string {
+  private getWebViewContent(webview: vscode.Webview): string {
     const baseStyleUri = webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(this.extensionPath, DATA_VIEW_MEDIA_PATH, 'queryData.css')
+        path.join(
+          QueryDataViewService.extensionPath,
+          DATA_VIEW_MEDIA_PATH,
+          'queryData.css'
+        )
       )
     );
     const tabulatorStyleUri = webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(this.extensionPath, DATA_VIEW_MEDIA_PATH, 'tabulator.min.css')
+        path.join(
+          QueryDataViewService.extensionPath,
+          DATA_VIEW_MEDIA_PATH,
+          'tabulator.min.css'
+        )
       )
     );
     const viewControllerUri = webview.asWebviewUri(
       vscode.Uri.file(
         path.join(
-          this.extensionPath,
+          QueryDataViewService.extensionPath,
           DATA_VIEW_MEDIA_PATH,
           'queryDataViewController.js'
         )
@@ -85,7 +90,11 @@ export class QueryDataViewService {
     );
     const tabulatorUri = webview.asWebviewUri(
       vscode.Uri.file(
-        path.join(this.extensionPath, DATA_VIEW_MEDIA_PATH, 'tabulator.min.js')
+        path.join(
+          QueryDataViewService.extensionPath,
+          DATA_VIEW_MEDIA_PATH,
+          'tabulator.min.js'
+        )
       )
     );
 
