@@ -121,7 +121,8 @@ export class SOQLEditorInstance {
       case MessageType.SOBJECT_METADATA_REQUEST: {
         this.retrieveSObject(e.payload as string).catch(() => {
           channelService.appendLine(
-            `An error occurred while handling a request for object metadata for the ${e.payload
+            `An error occurred while handling a request for object metadata for the ${
+              e.payload
             } object.`
           );
         });
@@ -144,7 +145,9 @@ export class SOQLEditorInstance {
   protected async retrieveSObjects(): Promise<void> {
     return withSFConnection(async conn => {
       const describeGlobalResult = await conn.describeGlobal();
-      const sobjectNames: string[] = describeGlobalResult.sobjects.map(sobject => sobject.name);
+      const sobjectNames: string[] = describeGlobalResult.sobjects.map(
+        sobject => sobject.name
+      );
       this.updateSObjects(sobjectNames);
     });
   }
