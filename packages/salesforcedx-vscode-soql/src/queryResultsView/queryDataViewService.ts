@@ -32,7 +32,7 @@ export class QueryDataViewService {
     private document: vscode.TextDocument
   ) {}
 
-  public static register(context: vscode.ExtensionContext) {
+  public static register(context: vscode.ExtensionContext): void {
     QueryDataViewService.extensionPath = context.extensionPath;
   }
 
@@ -44,7 +44,7 @@ export class QueryDataViewService {
     });
   }
 
-  public createOrShowWebView() {
+  public createOrShowWebView(): vscode.Webview {
     this.currentPanel = vscode.window.createWebviewPanel(
       this.viewType,
       QUERY_DATA_VIEW_PANEL_TITLE,
@@ -71,6 +71,7 @@ export class QueryDataViewService {
     webview.html = this.getWebViewContent(webview);
 
     this.updateWebviewWith(webview, this.queryData);
+    return webview;
   }
 
   private getWebViewContent(webview: vscode.Webview): string {

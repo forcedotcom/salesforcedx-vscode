@@ -148,7 +148,7 @@ export class SOQLEditorInstance {
     }
   }
 
-  protected handleRunQuery() {
+  protected handleRunQuery(): Promise<void> {
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
       const records = await new QueryRunner(conn, this.document).runQuery(
@@ -158,7 +158,7 @@ export class SOQLEditorInstance {
     });
   }
 
-  protected openQueryResults(records: JsonMap[]) {
+  protected openQueryResults(records: JsonMap[]): void {
     const webview = new QueryDataView(
       this.subscriptions,
       records,
