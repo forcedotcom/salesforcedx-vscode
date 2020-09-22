@@ -9,7 +9,6 @@ import { Connection } from '@salesforce/core';
 import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
-import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -22,7 +21,7 @@ const { OrgAuthInfo, channelService } = sfdxCoreExports;
 // This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  payload?: string | string[] | ToolingModelJson;
+  payload?: string | string[];
 }
 
 // This should be shared with soql-builder-ui
@@ -78,10 +77,9 @@ export class SOQLEditorInstance {
   }
 
   protected updateWebview(document: vscode.TextDocument): void {
-    const uiModel = SoqlUtils.convertSoqlToUiModel(document.getText());
     this.webviewPanel.webview.postMessage({
       type: MessageType.TEXT_SOQL_CHANGED,
-      payload: uiModel
+      payload: document.getText()
     });
   }
 
@@ -112,18 +110,14 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.UI_SOQL_CHANGED: {
-        const soql = SoqlUtils.convertUiModelToSoql(
-          e.payload as ToolingModelJson
-        );
+        const soql = e.payload as string;
         this.updateTextDocument(this.document, soql);
         break;
       }
       case MessageType.SOBJECT_METADATA_REQUEST: {
         this.retrieveSObject(e.payload as string).catch(() => {
           channelService.appendLine(
-            `An error occurred while handling a request for object metadata for the ${
-              e.payload
-            } object.`
+            `An error occurred while handling a request for object metadata for the ${e.payload} object.`
           );
         });
         break;
