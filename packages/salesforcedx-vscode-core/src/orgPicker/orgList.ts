@@ -13,10 +13,9 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import { setupWorkspaceOrgType } from '../context/index';
+import { OrgInfo, WorkspaceContext } from '../context';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -36,6 +35,12 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.command = 'sfdx.force.set.default.org';
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
+
+    WorkspaceContext.get().onOrgChange((orgInfo: OrgInfo) =>
+      this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
+    );
+    const { username, alias } = WorkspaceContext.get();
+    this.displayDefaultUsername(alias || username);
   }
 
   public displayDefaultUsername(defaultUsernameorAlias?: string) {
@@ -180,33 +185,5 @@ export class OrgList implements vscode.Disposable {
 
   public dispose() {
     this.statusBarItem.dispose();
-  }
-
-  public async onSfdxConfigEvent() {
-    let defaultUsernameorAlias: string | undefined;
-    if (hasRootWorkspace()) {
-      defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-        false
-      );
-    }
-    telemetryService.sendEventData(
-      'Sfdx-config file updated with default username',
-      undefined,
-      { timestamp: new Date().getTime() }
-    );
-    await setupWorkspaceOrgType(defaultUsernameorAlias);
-    this.displayDefaultUsername(defaultUsernameorAlias);
-  }
-
-  public registerDefaultUsernameWatcher(context: vscode.ExtensionContext) {
-    if (hasRootWorkspace()) {
-      const sfdxConfigWatcher = vscode.workspace.createFileSystemWatcher(
-        path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
-      );
-      sfdxConfigWatcher.onDidChange(uri => this.onSfdxConfigEvent());
-      sfdxConfigWatcher.onDidCreate(uri => this.onSfdxConfigEvent());
-      sfdxConfigWatcher.onDidDelete(uri => this.onSfdxConfigEvent());
-      context.subscriptions.push(sfdxConfigWatcher);
-    }
   }
 }

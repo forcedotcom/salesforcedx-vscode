@@ -11,3 +11,4 @@ export {
   OrgType,
   setupWorkspaceOrgType
 } from './workspaceOrgType';
+export { WorkspaceContext, OrgInfo } from './workspaceContext';
