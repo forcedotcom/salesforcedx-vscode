@@ -27,20 +27,18 @@ export class WorkspaceContext {
 
   public static async initialize(context: vscode.ExtensionContext) {
     const instance = new WorkspaceContext();
-    const sfdxProjectPath = getRootWorkspacePath();
+    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
+    const bindedHandler = () => instance.handleCliConfigChange();
+
     instance.cliConfigWatcher?.dispose();
-    instance.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
-      join(sfdxProjectPath, SFDX_FOLDER, SFDX_CONFIG_FILE)
-    );
-    instance.cliConfigWatcher.onDidChange(() => instance.handleCliConfigChange());
-    instance.cliConfigWatcher.onDidCreate(() =>
-      instance.handleCliConfigChange()
-    );
-    instance.cliConfigWatcher.onDidDelete(() =>
-      instance.handleCliConfigChange()
-    );
+    instance.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
+    instance.cliConfigWatcher.onDidChange(bindedHandler);
+    instance.cliConfigWatcher.onDidCreate(bindedHandler);
+    instance.cliConfigWatcher.onDidDelete(bindedHandler);
     context.subscriptions.push(instance.cliConfigWatcher);
+
     await instance.handleCliConfigChange();
+
     this.instance = instance;
   }
 
