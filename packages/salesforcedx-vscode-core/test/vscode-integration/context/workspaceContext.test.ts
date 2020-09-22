@@ -5,14 +5,13 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import * as wsContext from '../../../src/context';
-import { TelemetryService } from '../../../src/telemetry/telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 const { WorkspaceContext } = wsContext;
 
 const env = createSandbox();
 
-class MockFileWatcher {
+class MockFileWatcher implements vscode.Disposable {
   private watchUri: vscode.Uri;
   private changeSubscribers: Array<(uri: vscode.Uri) => void> = [];
   private createSubscribers: Array<(uri: vscode.Uri) => void> = [];
@@ -21,6 +20,8 @@ class MockFileWatcher {
   constructor(fsPath: string) {
     this.watchUri = vscode.Uri.file(fsPath);
   }
+
+  public dispose() {}
 
   public onDidChange(f: (uri: vscode.Uri) => void) {
     this.changeSubscribers.push(f);
@@ -96,8 +97,8 @@ describe('WorkspaceContext', () => {
   afterEach(() => env.restore());
 
   it('should load the default username and alias upon initialization', () => {
-    expect(WorkspaceContext.get().orgUsername).to.equal(testUser);
-    expect(WorkspaceContext.get().orgAlias).to.equal(testAlias);
+    expect(WorkspaceContext.get().username).to.equal(testUser);
+    expect(WorkspaceContext.get().alias).to.equal(testAlias);
     expect(orgTypeStub.called).to.equal(true);
   });
 
@@ -108,59 +109,33 @@ describe('WorkspaceContext', () => {
     await mockFileWatcher.fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
-    expect(WorkspaceContext.get().orgUsername).to.equal(testUser2);
-    expect(WorkspaceContext.get().orgAlias).to.equal(undefined);
+    expect(WorkspaceContext.get().username).to.equal(testUser2);
+    expect(WorkspaceContext.get().alias).to.equal(undefined);
   });
 
-  describe('subscribe', () => {
+  it('should update default username and alias to undefined if one is not set', async () => {
+    getUsernameOrAliasStub.returns(undefined);
+    getUsernameStub.returns(undefined);
+
+    await mockFileWatcher.fire('change');
+
+    expect(orgTypeStub.called).to.equal(true);
+    expect(WorkspaceContext.get().username).to.equal(undefined);
+    expect(WorkspaceContext.get().alias).to.equal(undefined);
+  });
+
+  it('should notify subscribers that the default org may have changed', async () => {
     const someLogic = env.stub();
-
-    class TestSubscriber implements wsContext.OrgSubscriber {
-      public async onOrgChange(username?: string, alias?: string) {
-        someLogic(username, alias);
-      }
-    }
-
-    afterEach(() => someLogic.reset());
-
-    it('should notify subscribers that the default org may have changed', async () => {
-      WorkspaceContext.get().subscribe(new TestSubscriber());
-
-      // awaiting to validate that subscriber implementations were called
-      await mockFileWatcher.fire('change');
-      await mockFileWatcher.fire('create');
-      await mockFileWatcher.fire('delete');
-
-      expect(someLogic.callCount).to.equal(3);
+    WorkspaceContext.get().onOrgChange((orgInfo: wsContext.OrgInfo) => {
+      someLogic(orgInfo);
     });
 
-    it('should notify a subscriber upon subscribing if notifyNow is true', () => {
-      WorkspaceContext.get().subscribe(new TestSubscriber(), true);
+    // awaiting to validate that subscribers
+    await mockFileWatcher.fire('change');
+    await mockFileWatcher.fire('create');
+    await mockFileWatcher.fire('delete');
 
-      expect(someLogic.callCount).to.equal(1);
-    });
-
-    it('should log exception if subscriber throws an error', () => {
-      const sendExceptionStub = env.stub(
-        TelemetryService.getInstance(),
-        'sendException'
-      );
-      const error = new Error('waah');
-      class SadSubscriber implements wsContext.OrgSubscriber {
-        public async onOrgChange(username?: string, alias?: string) {
-          throw error;
-        }
-      }
-
-      WorkspaceContext.get().subscribe(new SadSubscriber(), true);
-
-      process.nextTick(() => {
-        expect(sendExceptionStub.getCall(0).args).to.deep.equal([
-          'WorkspaceContextError',
-          'Error in callback for subscriber SadSubscriber: waah'
-        ]);
-      });
-    });
+    expect(someLogic.callCount).to.equal(3);
   });
 
   describe('getConnection', () => {

@@ -7,35 +7,40 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../util';
 
-export interface OrgSubscriber {
-  onOrgChange(username?: string, alias?: string): Promise<void>;
+export interface OrgInfo {
+  username?: string;
+  alias?: string;
 }
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
  */
 export class WorkspaceContext {
-  private subscribers = new Set<OrgSubscriber>();
+  private static instance?: WorkspaceContext;
+
   private cliConfigWatcher?: vscode.FileSystemWatcher;
   private sessionConnections = new Map<string, Connection>();
-  private _orgUsername?: string;
-  private _orgAlias?: string;
+  private _username?: string;
+  private _alias?: string;
+  private readonly onOrgChangeEmitter = new vscode.EventEmitter<OrgInfo>();
 
-  private static instance?: WorkspaceContext;
+  public readonly onOrgChange = this.onOrgChangeEmitter.event;
 
   private constructor() {}
 
   public static async initialize(context: vscode.ExtensionContext) {
-    const instance = new WorkspaceContext();
-    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
-    const bindedHandler = () => instance.handleCliConfigChange();
+    this.instance?.onOrgChangeEmitter.dispose();
+    this.instance?.cliConfigWatcher?.dispose();
 
-    instance.cliConfigWatcher?.dispose();
+    const instance = new WorkspaceContext();
+    const bindedHandler = () => instance.handleCliConfigChange();
+    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
+
     instance.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
     instance.cliConfigWatcher.onDidChange(bindedHandler);
     instance.cliConfigWatcher.onDidCreate(bindedHandler);
     instance.cliConfigWatcher.onDidDelete(bindedHandler);
-    context.subscriptions.push(instance.cliConfigWatcher);
+    context.subscriptions.push(instance.cliConfigWatcher, instance.onOrgChangeEmitter, instance.cliConfigWatcher);
 
     await instance.handleCliConfigChange();
 
@@ -53,30 +58,17 @@ export class WorkspaceContext {
     return this.instance;
   }
 
-  /**
-   * Subscribe to when the default org is set.
-   *
-   * @param subscriber Object to be notified
-   * @param notifyNow Notify the subscriber immediately after subscribing
-   */
-  public subscribe(subscriber: OrgSubscriber, notifyNow = false) {
-    this.subscribers.add(subscriber);
-    if (notifyNow) {
-      this.notifySubscriber(subscriber);
-    }
-  }
-
   public async getConnection(): Promise<Connection> {
-    if (!this._orgUsername) {
+    if (!this._username) {
       throw new Error(nls.localize('error_no_default_username'));
     }
 
-    let connection = this.sessionConnections.get(this._orgUsername);
+    let connection = this.sessionConnections.get(this._username);
     if (!connection) {
       connection = await Connection.create({
-        authInfo: await AuthInfo.create({ username: this._orgUsername })
+        authInfo: await AuthInfo.create({ username: this._username })
       });
-      this.sessionConnections.set(this._orgUsername, connection);
+      this.sessionConnections.set(this._username, connection);
     }
 
     return connection;
@@ -86,38 +78,27 @@ export class WorkspaceContext {
     const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
 
     if (usernameOrAlias) {
-      this._orgUsername = await OrgAuthInfo.getUsername(usernameOrAlias);
-      this._orgAlias =
-        usernameOrAlias !== this._orgUsername ? usernameOrAlias : undefined;
+      this._username = await OrgAuthInfo.getUsername(usernameOrAlias);
+      this._alias =
+        usernameOrAlias !== this._username ? usernameOrAlias : undefined;
     } else {
-      this._orgUsername = undefined;
-      this._orgAlias = undefined;
+      this._username = undefined;
+      this._alias = undefined;
     }
 
-    setupWorkspaceOrgType(this._orgUsername)
-      .catch(e => console.error('Error setting VS Code org type context'));
+    setupWorkspaceOrgType(this._username).catch(e =>
+      // error reported by setupWorkspaceOrgType
+      console.error(e)
+    );
 
-    for (const subscriber of this.subscribers) {
-      this.notifySubscriber(subscriber);
-    }
+    this.onOrgChangeEmitter.fire({ username: this._username, alias: this._alias });
   }
 
-  private notifySubscriber(subscriber: OrgSubscriber): void {
-    subscriber
-      .onOrgChange(this._orgUsername, this._orgAlias)
-      .catch(e => {
-        const subscriberName = subscriber.constructor.name;
-        const message = `Error in callback for subscriber ${subscriberName}: ${e.message}`;
-        telemetryService.sendException('WorkspaceContextError', message);
-        console.error(message);
-      });
+  get username(): string | undefined {
+    return this._username;
   }
 
-  get orgUsername(): string | undefined {
-    return this._orgUsername;
-  }
-
-  get orgAlias(): string | undefined {
-    return this._orgAlias;
+  get alias(): string | undefined {
+    return this._alias;
   }
 }

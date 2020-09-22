@@ -13,7 +13,7 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import { OrgSubscriber } from '../context';
+import { OrgInfo, WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
@@ -24,7 +24,7 @@ export interface FileInfo {
   devHubUsername?: string;
   expirationDate?: string;
 }
-export class OrgList implements vscode.Disposable, OrgSubscriber {
+export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
   constructor() {
@@ -35,6 +35,12 @@ export class OrgList implements vscode.Disposable, OrgSubscriber {
     this.statusBarItem.command = 'sfdx.force.set.default.org';
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
+
+    WorkspaceContext.get().onOrgChange((orgInfo: OrgInfo) =>
+      this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
+    );
+    const { username, alias } = WorkspaceContext.get();
+    this.displayDefaultUsername(alias || username);
   }
 
   public displayDefaultUsername(defaultUsernameorAlias?: string) {
@@ -179,9 +185,5 @@ export class OrgList implements vscode.Disposable, OrgSubscriber {
 
   public dispose() {
     this.statusBarItem.dispose();
-  }
-
-  public async onOrgChange(username?: string, alias?: string) {
-    this.displayDefaultUsername(alias || username);
   }
 }

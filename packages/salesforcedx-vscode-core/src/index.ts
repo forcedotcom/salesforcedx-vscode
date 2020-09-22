@@ -584,7 +584,6 @@ export async function activate(context: vscode.ExtensionContext) {
   // register org picker commands and subscribe to org changes
   const orgList = new OrgList();
   context.subscriptions.push(registerOrgPickerCommands(orgList));
-  WorkspaceContext.get().subscribe(orgList, true);
 
   await setupOrgBrowser(context);
   await setupConflictView(context);
