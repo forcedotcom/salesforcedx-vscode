@@ -11,11 +11,11 @@ import { SObjectService } from '@salesforce/sobject-metadata';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
-  MessageType,
-  SoqlEditorEvent,
-  SOQLEditorInstance
-} from '../../../src/editor/soqlEditorInstance';
+  MockTextDocumentProvider,
+  TestSoqlEditorInstance
+} from '../testUtilities';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -169,30 +169,3 @@ describe('SoqlEditorInstance should', () => {
     );
   });
 });
-
-class MockTextDocumentProvider implements vscode.TextDocumentContentProvider {
-  public provideTextDocumentContent(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    uri: vscode.Uri,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    token: vscode.CancellationToken
-  ): string {
-    return 'SELECT A FROM B';
-  }
-}
-
-class TestSoqlEditorInstance extends SOQLEditorInstance {
-  public sendEvent(event: SoqlEditorEvent) {
-    this.onDidRecieveMessageHandler(event);
-  }
-  public updateWebview(document: vscode.TextDocument) {
-    super.updateWebview(document);
-  }
-
-  public updateTextDocument(
-    document: vscode.TextDocument,
-    soql: string
-  ): Thenable<boolean> {
-    return super.updateTextDocument(document, soql);
-  }
-}
