@@ -4,7 +4,7 @@ version: 2.1
 orbs:
   win: circleci/windows@2.2.0
   slack: circleci/slack@3.4.2
-  npm-release-management: salesforce/npm-release-management@2.0.0
+  npm-release-management: salesforce/npm-release-management@3.4.1
 
 _refs:
   defaults: &defaults
@@ -72,8 +72,17 @@ commands:
       - npm-release-management/publish:
           use_tarfile: true
       - npm-release-management/verify-signed-package
-      - npm-release-management/create-git-tag
-
+  create-git-tag:
+    steps:
+      - run:
+          name: Current git tags
+          command: git tag
+      - run:
+          name: Create new git tag
+          command: |
+            PKG_TAG="v$(cat package.json | jq -r .version)"
+            git tag -a $PKG_TAG -m "Releasing ${PKG_TAG}"
+            git push origin $PKG_TAG
 
 parameters:
   publish:
@@ -175,6 +184,7 @@ jobs:
       - add_ssh_keys: *ssh-config
       - run: ssh-keyscan -H github.com >> ~/.ssh/known_hosts
       - release-management-commands
+      - create-git-tag
       - run: git push origin main
       - slack/notify:
           channel: 'pdt_releases'
