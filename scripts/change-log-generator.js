@@ -53,7 +53,7 @@ const PR_ALREADY_EXISTS_ERROR =
   'Filtered PR number %s. An entry already exists in the changelog.';
 
 // Commit Map Keys
-const PR_NUM = 'PR NUM';
+const PR_NUM = 'PR_NUM';
 const COMMIT = 'COMMIT';
 const TYPE = 'TYPE';
 const MESSAGE = 'MESSAGE';
@@ -64,7 +64,7 @@ const PACKAGES = 'PACKAGES';
 const RELEASE_REGEX = new RegExp(/^origin\/release\/v\d{2}\.\d{1,2}\.\d/);
 const PR_REGEX = new RegExp(/(\(#\d+\))/);
 const COMMIT_REGEX = new RegExp(/^([\da-zA-Z]+)/);
-const TYPE_REGEX = new RegExp(/([a-zA-Z]+):/);
+const TYPE_REGEX = new RegExp(/([a-zA-Z]+(?:\([a-zA-Z]+\))?):/);
 
 /**
  * Checks if the user has provided a release branch override. If they
