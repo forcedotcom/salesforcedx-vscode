@@ -16,7 +16,7 @@ export class QueryRunner {
     private document?: vscode.TextDocument
   ) {}
 
-  public async runQuery(queryText: string) {
+  public async runQuery(queryText: string): Promise<JsonMap[]> {
     try {
       const rawQueryData = (await this.connection.query(
         queryText
