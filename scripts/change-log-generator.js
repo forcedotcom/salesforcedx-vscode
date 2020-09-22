@@ -55,6 +55,7 @@ const PR_ALREADY_EXISTS_ERROR =
 // Commit Map Keys
 const PR_NUM = 'PR NUM';
 const COMMIT = 'COMMIT';
+const TYPE = 'TYPE';
 const MESSAGE = 'MESSAGE';
 const FILES_CHANGED = 'FILES_CHANGED';
 const PACKAGES = 'PACKAGES';
@@ -63,6 +64,7 @@ const PACKAGES = 'PACKAGES';
 const RELEASE_REGEX = new RegExp(/^origin\/release\/v\d{2}\.\d{1,2}\.\d/);
 const PR_REGEX = new RegExp(/(\(#\d+\))/);
 const COMMIT_REGEX = new RegExp(/^([\da-zA-Z]+)/);
+const TYPE_REGEX = new RegExp(/([a-zA-Z]+):/);
 
 /**
  * Checks if the user has provided a release branch override. If they
@@ -153,10 +155,18 @@ function buildMapFromCommit(commit) {
     var pr = PR_REGEX.exec(commit);
     var commitNum = COMMIT_REGEX.exec(commit);
     if (pr && commitNum) {
-      var message = commit.replace(commitNum[0], '').replace(pr[0], '');
+      var message = commit
+        .replace(commitNum[0], '')
+        .replace(pr[0], '')
+        .trim();
+      var type = TYPE_REGEX.exec(message);
       map[PR_NUM] = pr[0].replace(/[^\d]/g, '');
       map[COMMIT] = commitNum[0];
-      map[MESSAGE] = message.trim();
+      if (type) {
+        map[TYPE] = type[0];
+        message = message.replace(type[0], '');
+      }
+      map[MESSAGE] = message;
       map[FILES_CHANGED] = getFilesChanged(map[COMMIT]);
       map[PACKAGES] = getPackageHeaders(map[FILES_CHANGED]);
     }
@@ -292,7 +302,7 @@ let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
 var releaseBranch = getReleaseBranch();
 var previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
-getNewChangeLogBranch(releaseBranch);
+// getNewChangeLogBranch(releaseBranch);
 
 var parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
 var groupedMessages = getMessagesGroupedByPackage(parsedCommits);
