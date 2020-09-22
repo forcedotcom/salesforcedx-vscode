@@ -74,6 +74,7 @@ commands:
       - npm-release-management/verify-signed-package
   create-git-tag:
     steps:
+      - run: *gh-config
       - run:
           name: Current git tags
           command: git tag
