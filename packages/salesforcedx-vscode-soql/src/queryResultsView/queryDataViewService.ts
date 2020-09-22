@@ -18,7 +18,7 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
-import { SoqlUtils } from '../editor/soqlUtils';
+import { getDocumentName } from '../utils';
 import { html } from './queryDataHtml';
 
 export class QueryDataViewService {
@@ -40,7 +40,7 @@ export class QueryDataViewService {
     webview.postMessage({
       type: 'update',
       data: queryData,
-      documentName: SoqlUtils.getDocumentName(this.document)
+      documentName: getDocumentName(this.document)
     });
   }
 

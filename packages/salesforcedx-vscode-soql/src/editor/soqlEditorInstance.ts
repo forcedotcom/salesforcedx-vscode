@@ -12,7 +12,6 @@ import { debounce } from 'debounce';
 import * as vscode from 'vscode';
 import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
-import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
