@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
@@ -10,7 +17,7 @@ export class QueryRunner {
   ) {}
 
   // TODO: provide some feedback to the user that the query is runing?
-  public async runAndSaveQuery(queryText: string) {
+  public async runQuery(queryText: string) {
     try {
       const rawQueryData = (await this.connection.query(
         queryText

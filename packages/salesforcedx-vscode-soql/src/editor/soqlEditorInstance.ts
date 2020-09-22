@@ -10,7 +10,7 @@ import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import * as vscode from 'vscode';
-import { QueryDataViewService as queryDataView } from '../queryResultsView/queryDataViewService';
+import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
@@ -157,16 +157,15 @@ export class SOQLEditorInstance {
   protected handleRunQuery() {
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
-      const records = await new QueryRunner(
-        conn,
-        this.document
-      ).runAndSaveQuery(queryText);
+      const records = await new QueryRunner(conn, this.document).runQuery(
+        queryText
+      );
       this.openQueryResults(records);
     });
   }
 
   protected openQueryResults(records: JsonMap[]) {
-    const webview = new queryDataView(
+    const webview = new QueryDataView(
       this.subscriptions,
       records,
       this.document
