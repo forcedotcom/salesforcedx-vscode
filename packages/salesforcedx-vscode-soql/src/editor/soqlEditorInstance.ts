@@ -7,7 +7,7 @@
 
 import { Connection } from '@salesforce/core';
 import { debounce } from 'debounce';
-import { DescribeSObjectResult } from 'jsforce';
+import { DescribeGlobalSObjectResult, DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { SoqlUtils, ToolingModelJson } from './soqlUtils';
 
@@ -146,7 +146,7 @@ export class SOQLEditorInstance {
     return withSFConnection(async conn => {
       const describeGlobalResult = await conn.describeGlobal();
       const sobjectNames: string[] = describeGlobalResult.sobjects.map(
-        sobject => sobject.name
+        (sobject: DescribeGlobalSObjectResult) => sobject.name
       );
       this.updateSObjects(sobjectNames);
     });
