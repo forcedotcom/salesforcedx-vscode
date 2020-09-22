@@ -16,7 +16,6 @@ export class QueryRunner {
     private document: vscode.TextDocument
   ) {}
 
-  // TODO: provide some feedback to the user that the query is runing?
   public async runQuery(queryText: string) {
     try {
       const rawQueryData = (await this.connection.query(
@@ -26,7 +25,8 @@ export class QueryRunner {
 
       return cleanQueryRecords;
     } catch (error) {
-      vscode.window.showErrorMessage(`Could not run the Query \n ${error}`); // TODO: Needs Doc Review handle errors from running query results with vscode core ext.
+      // TODO: Doc Review, i18n
+      vscode.window.showErrorMessage(`Could not run the Query ${error}`);
       throw error;
     }
   }
