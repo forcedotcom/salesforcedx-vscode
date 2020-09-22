@@ -8,6 +8,7 @@
 import { JsonMap } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_MEDIA_PATH,
   QUERY_DATA_VIEW_PANEL_TITLE,
@@ -18,7 +19,6 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
-import { getDocumentName } from '../utils';
 import { html } from './queryDataHtml';
 
 export class QueryDataViewService {
