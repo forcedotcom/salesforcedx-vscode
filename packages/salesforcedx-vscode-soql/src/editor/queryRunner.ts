@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 export class QueryRunner {
   constructor(
     private connection: Connection,
-    private document: vscode.TextDocument
+    private document?: vscode.TextDocument
   ) {}
 
   public async runQuery(queryText: string) {
