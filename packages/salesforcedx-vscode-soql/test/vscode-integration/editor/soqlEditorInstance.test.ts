@@ -16,7 +16,6 @@ import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../../src/editor/soqlEditorInstance';
-import { ToolingModelJson } from '../../../src/editor/soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -36,11 +35,6 @@ describe('SoqlEditorInstance should', () => {
   let mockTextDocument: vscode.TextDocument;
   let instance: TestSoqlEditorInstance;
   let sandbox: sinon.SinonSandbox;
-
-  const uiModelOne: ToolingModelJson = {
-    sObject: 'Account',
-    fields: ['Name', 'Id']
-  };
 
   const createMessagingWebviewContent = () => {
     return `<!DOCTYPE html>
@@ -147,10 +141,11 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('handles query event and updates text document with soql', async () => {
+    const aQuery = 'select a,b,c from somewhere';
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
     instance.sendEvent({
       type: MessageType.UI_SOQL_CHANGED,
-      payload: uiModelOne
+      payload: aQuery
     });
     expect(
       updateDocumentSpy.callCount === 1,
@@ -158,12 +153,7 @@ describe('SoqlEditorInstance should', () => {
         updateDocumentSpy.callCount
       }`
     );
-    expect(
-      updateDocumentSpy.getCall(0).args[1].indexOf(uiModelOne.sObject) > -1,
-      `updateDocumentSpy was called with ${
-        updateDocumentSpy.getCall(0).args[1]
-      } but does not include ${uiModelOne.sObject}`
-    );
+    expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
   });
 
   it('handles activation event and updates the webview', async () => {

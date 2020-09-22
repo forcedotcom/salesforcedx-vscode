@@ -18,6 +18,7 @@ export {
   FileSelector,
   FilePathGatherer,
   MetadataTypeGatherer,
+  PromptConfirmGatherer,
   SelectOutputDir,
   SelectFileName,
   SelectUsername

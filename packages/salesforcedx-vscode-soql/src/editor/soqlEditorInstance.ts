@@ -25,7 +25,7 @@ const { OrgAuthInfo, channelService } = sfdxCoreExports;
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  payload?: string | string[] | ToolingModelJson;
+  payload?: string | string[];
 }
 
 // TODO: This should be shared with soql-builder-ui
@@ -82,10 +82,9 @@ export class SOQLEditorInstance {
   }
 
   protected updateWebview(document: vscode.TextDocument): void {
-    const uiModel = SoqlUtils.convertSoqlToUiModel(document.getText());
     this.webviewPanel.webview.postMessage({
       type: MessageType.TEXT_SOQL_CHANGED,
-      payload: uiModel
+      payload: document.getText()
     });
   }
 
@@ -116,9 +115,7 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.UI_SOQL_CHANGED: {
-        const soql = SoqlUtils.convertUiModelToSoql(
-          e.payload as ToolingModelJson
-        );
+        const soql = e.payload as string;
         this.updateTextDocument(this.document, soql);
         break;
       }
@@ -180,7 +177,6 @@ export class SOQLEditorInstance {
       this.updateSObjects(sobjectNames);
     });
   }
-
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
       const sobjectService = new SObjectService(conn);

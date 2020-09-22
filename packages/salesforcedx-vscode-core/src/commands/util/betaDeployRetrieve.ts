@@ -6,47 +6,35 @@
  */
 
 import {
-  RegistryAccess,
-  registryData,
-  SourceComponent
+  MetadataType,
+  RegistryAccess
 } from '@salesforce/source-deploy-retrieve';
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { sfdxCoreSettings } from '../../settings';
 
-export function useBetaDeployRetrieve(explorerPaths: vscode.Uri[]): boolean {
-  const betaDeployRetrieve = sfdxCoreSettings.getBetaDeployRetrieve();
-  const registry = new RegistryAccess();
-  const {
-    auradefinitionbundle,
-    lightningcomponentbundle,
-    apexclass,
-    apexcomponent,
-    apexpage,
-    apextrigger
-  } = registryData.types;
-
-  const components: SourceComponent[] = [];
-  for (const expPath of explorerPaths) {
-    const filePath = expPath.fsPath;
-    components.push(...registry.getComponentsFromPath(filePath));
+export function useBetaDeployRetrieve(uris: vscode.Uri[], supportedTypes?: MetadataType[]): boolean {
+  const betaSettingOn = sfdxCoreSettings.getBetaDeployRetrieve();
+  if (!betaSettingOn) {
+    return false;
   }
-  for (const cmp of components) {
-    const typeName = cmp.type.name;
-    if (
-      !(
-        typeName === auradefinitionbundle.name ||
-        typeName === lightningcomponentbundle.name ||
-        typeName === apexclass.name ||
-        typeName === apexcomponent.name ||
-        typeName === apexpage.name ||
-        typeName === apextrigger.name
-      )
-    ) {
-      return false;
+
+  const registry = new RegistryAccess();
+  const permittedTypeNames = new Set();
+  supportedTypes?.forEach(type => permittedTypeNames.add(type.name));
+
+  for (const { fsPath } of uris) {
+    const componentsForPath = registry.getComponentsFromPath(fsPath);
+    if (supportedTypes) {
+      for (const component of componentsForPath) {
+        if (!permittedTypeNames.has(component.type.name)) {
+          return false;
+        }
+      }
     }
   }
-  return betaDeployRetrieve;
+
+  return true;
 }
 
 export function createComponentCount(components: MetadataComponent[]) {
