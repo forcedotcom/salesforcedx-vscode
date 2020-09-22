@@ -50,17 +50,39 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
 
   public runPostCommandTasks(targetDir: string) {
     if (sfdxCoreSettings.getFunctionsPullDependencies()) {
-      cp.exec('npm install', { cwd: targetDir }, err => {
-        if (err) {
-          notificationService.showWarningMessage(nls.localize('force_function_pull_dependencies_error', err.message));
+      vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Window,
+          title: nls.localize(
+            'force_function_install_npm_dependencies_progress'
+          ),
+          cancellable: true
+        },
+        () => {
+          return new Promise((resolve, reject) => {
+            cp.exec('npm install', { cwd: targetDir }, err => {
+              if (err) {
+                notificationService.showWarningMessage(
+                  nls.localize(
+                    'force_function_install_npm_dependencies_error',
+                    err.message
+                  )
+                );
+                reject(err);
+              }
+              resolve();
+            });
+          });
         }
-      });
+      );
     }
   }
 }
 
 export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<FunctionInfo>> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<FunctionInfo>
+  > {
     const nameInputOptions = {
       prompt: nls.localize('force_function_enter_function')
     } as vscode.InputBoxOptions;
@@ -69,9 +91,12 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
       return { type: 'CANCEL' };
     }
 
-    const language = await vscode.window.showQuickPick(['javascript', 'typescript'], {
-      placeHolder: nls.localize('force_function_enter_language')
-    });
+    const language = await vscode.window.showQuickPick(
+      ['javascript', 'typescript'],
+      {
+        placeHolder: nls.localize('force_function_enter_language')
+      }
+    );
 
     if (language === undefined) {
       return { type: 'CANCEL' };
