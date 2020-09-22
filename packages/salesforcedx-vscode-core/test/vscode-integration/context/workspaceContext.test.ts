@@ -130,7 +130,7 @@ describe('WorkspaceContext', () => {
       someLogic(orgInfo);
     });
 
-    // awaiting to validate that subscribers
+    // awaiting to ensure subscribers run their logic
     await mockFileWatcher.fire('change');
     await mockFileWatcher.fire('create');
     await mockFileWatcher.fire('delete');
