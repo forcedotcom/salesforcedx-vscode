@@ -24,7 +24,7 @@ import { html } from './queryDataHtml';
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
   public readonly viewType = QUERY_DATA_VIEW_TYPE;
-  private static extensionPath: string;
+  public static extensionPath: string;
 
   constructor(
     private subscriptions: vscode.Disposable[],

@@ -10,41 +10,13 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { QueryRunner } from '../../../src/editor/queryRunner';
+import { mockQueryData, mockQueryText } from '../testUtilities';
 
 describe('Query Runner Should', () => {
   const $$ = testSetup();
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
   let sandbox: sinon.SinonSandbox;
-  const queryText = 'SELECT A, B FROM C';
-  const mockQueryData = {
-    records: [
-      {
-        attributes: {
-          type: 'C',
-          url: ''
-        },
-        A: '',
-        B: false
-      },
-      {
-        attributes: {
-          type: 'C',
-          url: ''
-        },
-        A: '',
-        B: false
-      },
-      {
-        attributes: {
-          type: 'C',
-          url: ''
-        },
-        A: '',
-        B: false
-      }
-    ]
-  };
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
@@ -70,7 +42,7 @@ describe('Query Runner Should', () => {
   it('returns query data without attribute properties', async () => {
     sandbox.stub(mockConnection, 'query').returns(mockQueryData);
     const queryRunner = new QueryRunner(mockConnection);
-    const queryData = await queryRunner.runQuery(queryText);
+    const queryData = await queryRunner.runQuery(mockQueryText);
     queryData.forEach(result => {
       expect(result).to.not.have.key('attributes');
     });
@@ -81,7 +53,7 @@ describe('Query Runner Should', () => {
     sandbox.stub(mockConnection, 'query').throws(errorName);
     const queryRunner = new QueryRunner(mockConnection);
     try {
-      await queryRunner.runQuery(queryText);
+      await queryRunner.runQuery(mockQueryText);
     } catch (error) {
       expect(error.name).equal(errorName);
     }

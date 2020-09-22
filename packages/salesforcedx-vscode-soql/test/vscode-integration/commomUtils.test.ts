@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { getDocumentName } from '../../src/commonUtils';
 import { MockTextDocumentProvider } from './testUtilities';
 
-describe.only('Common SOQL Builder Utilities', () => {
+describe('Common SOQL Builder Utilities', () => {
   let mockTextDocument: vscode.TextDocument;
   let docProviderDisposable: vscode.Disposable;
 
