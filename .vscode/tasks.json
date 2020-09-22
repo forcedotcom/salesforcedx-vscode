@@ -80,6 +80,12 @@
       "args": ["${input:circleCiId}"]
     },
     {
+      "label": "Create Change Log",
+      "command": "./scripts/change-log-generator.js",
+      "type": "shell",
+      "args": ["-v", "${input:verboseOutput}", "-r", "${input:releaseOverride}"]
+    },
+    {
       "label": "Lint",
       "command": "npm",
       "type": "shell",
@@ -114,6 +120,18 @@
       "id": "circleCiId",
       "type": "promptString",
       "description": "CircleCi Token"
+    },
+    {
+      "id": "verboseOutput",
+      "type": "pickString",
+      "description": "Output verbose logging?",
+      "options": ["Yes", "No"],
+      "default": "Yes"
+    },
+    {
+      "id": "releaseOverride",
+      "type": "promptString",
+      "description": "Enter the release number or leave blank to run with the current branch's release number."
     }
   ]
 }

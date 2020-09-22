@@ -43,9 +43,9 @@ const CHANGE_LOG_BRANCH = 'changeLog-v';
 
 // Text Values
 const RELEASE_MESSAGE = 'Using Release Branch: %s\nPrevious Release Branch: %s';
-const LOG_HEADER =
-  '# %s - (INSERT RELEASE DATE [Month Day, Year])\n' +
-  '\n## Fixed\nMOVE ENTRIES FROM BELOW\n\n## Added\nMOVE ENTRIES FROM BELOW\n';
+const LOG_HEADER = '# %s - Month DD, YYYY\n';
+const FIXED_HEADER = '\n## Fixed\n';
+const ADDED_HEADER = '\n\n## Added\n';
 const SECTION_HEADER = '\n#### %s\n';
 const MESSAGE_FORMAT =
   '\n- %s ([PR #%s](https://github.com/forcedotcom/salesforcedx-vscode/pull/%s))\n';
@@ -71,7 +71,7 @@ const COMMIT_REGEX = new RegExp(/^([\da-zA-Z]+)/);
 function getReleaseBranch() {
   var releaseIndex = process.argv.indexOf('-r');
   var releaseBranch =
-    releaseIndex > -1
+    releaseIndex > -1 && process.argv[releaseIndex + 1]
       ? 'origin/release/v' + process.argv[releaseIndex + 1]
       : getReleaseBranches()[0];
   validateReleaseBranch(releaseBranch);
