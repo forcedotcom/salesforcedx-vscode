@@ -24,6 +24,10 @@ describe.only('Common SOQL Builder Utilities', () => {
     );
   });
 
+  afterEach(() => {
+    docProviderDisposable.dispose();
+  });
+
   it('gets the document name form path', () => {
     const documentName = getDocumentName(mockTextDocument);
     expect(documentName).equals('mocksoql.soql');
