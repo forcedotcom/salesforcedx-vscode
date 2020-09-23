@@ -7,7 +7,6 @@
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { SObjectService } from '@salesforce/sobject-metadata';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -16,7 +15,6 @@ import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../../src/editor/soqlEditorInstance';
-import { ToolingModelJson } from '../../../src/editor/soqlUtils';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -37,10 +35,8 @@ describe('SoqlEditorInstance should', () => {
   let instance: TestSoqlEditorInstance;
   let sandbox: sinon.SinonSandbox;
 
-  const uiModelOne: ToolingModelJson = {
-    sObject: 'Account',
-    fields: ['Name', 'Id']
-  };
+
+
 
   const createMessagingWebviewContent = () => {
     return `<!DOCTYPE html>
@@ -105,14 +101,16 @@ describe('SoqlEditorInstance should', () => {
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(testData.username);
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
-    const sobjectNames = ['A', 'B'];
+    const describeGlobalResponse = {
+      sobjects: [{ name: 'A' }, { name: 'B' }]
+    };
     sandbox
-      .stub(SObjectService.prototype, 'retrieveSObjectNames')
-      .resolves(sobjectNames);
+      .stub(mockConnection, 'describeGlobal')
+      .resolves(describeGlobalResponse);
 
     const expectedMessage = {
       type: 'sobjects_response',
-      message: sobjectNames
+      payload: ['A', 'B']
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -130,12 +128,12 @@ describe('SoqlEditorInstance should', () => {
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
     const fakeSObject = { name: 'A' };
     sandbox
-      .stub(SObjectService.prototype, 'describeSObject')
+      .stub(mockConnection, 'describe')
       .resolves(fakeSObject);
 
     const expectedMessage = {
       type: 'sobject_metadata_response',
-      message: fakeSObject
+      payload: fakeSObject
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -147,34 +145,28 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('handles query event and updates text document with soql', async () => {
+    const aQuery = 'select a,b,c from somewhere';
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
     instance.sendEvent({
-      type: MessageType.QUERY,
-      message: JSON.stringify(uiModelOne)
+      type: MessageType.UI_SOQL_CHANGED,
+      payload: aQuery
     });
     expect(
       updateDocumentSpy.callCount === 1,
-      `updateDocumentSpy callcount expected 1, but got ${
-        updateDocumentSpy.callCount
+      `updateDocumentSpy callcount expected 1, but got ${updateDocumentSpy.callCount
       }`
     );
-    expect(
-      updateDocumentSpy.getCall(0).args[1].indexOf(uiModelOne.sObject) > -1,
-      `updateDocumentSpy was called with ${
-        updateDocumentSpy.getCall(0).args[1]
-      } but does not include ${uiModelOne.sObject}`
-    );
+    expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
   });
 
   it('handles activation event and updates the webview', async () => {
     const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
     instance.sendEvent({
-      type: MessageType.ACTIVATED
+      type: MessageType.UI_ACTIVATED
     });
     expect(
       updateWebviewSpy.callCount === 1,
-      `updateWebviewSpy callcount expected 1, but got ${
-        updateWebviewSpy.callCount
+      `updateWebviewSpy callcount expected 1, but got ${updateWebviewSpy.callCount
       }`
     );
   });

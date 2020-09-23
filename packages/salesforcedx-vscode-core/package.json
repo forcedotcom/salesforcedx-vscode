@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "49.10.0",
+  "version": "49.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,8 +27,8 @@
   "dependencies": {
     "@salesforce/apex-node": "0.0.9",
     "@salesforce/core": "2.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "49.10.0",
-    "@salesforce/source-deploy-retrieve": "1.0.20",
+    "@salesforce/salesforcedx-utils-vscode": "49.11.0",
+    "@salesforce/source-deploy-retrieve": "1.1.2",
     "@salesforce/templates": "49.9.1",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
@@ -40,7 +40,7 @@
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "49.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "49.11.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -72,8 +72,7 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:integration && npm run test:vscode-integration",
-    "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json",
+    "test": "npm run test:vscode-integration",
     "test:vscode-integration": "cross-env CODE_TESTS_WORKSPACE='../system-tests/assets/sfdx-simple' node ../../scripts/run-vscode-integration-tests",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },

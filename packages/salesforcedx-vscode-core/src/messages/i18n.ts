@@ -150,6 +150,12 @@ export const messages = {
     'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
+  force_function_start_warning_plugin_not_installed:
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://github.com/forcedotcom/evergreen-docs/blob/master/Getting%20Started%20Guide/Evergreen%20Getting%20Started%20Guide.md#installing-the-salesforce-functions-sfdx-plugin).',
+  force_function_start_warning_docker_not_installed_or_not_started:
+    'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
+  force_function_start_unexpected_error:
+    'SFDX: Start Function exited unexpectedly with code %s',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Send Request',
   force_function_stop_text: 'SFDX: Stop Function',
@@ -325,6 +331,7 @@ export const messages = {
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
   error_org_browser_init: 'Org Browser has not been initialized',
+  error_workspace_context_init: 'WorkspaceContext has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
