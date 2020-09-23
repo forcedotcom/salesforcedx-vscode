@@ -72,4 +72,8 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
   ): Thenable<boolean> {
     return super.updateTextDocument(document, soql);
   }
+
+  public openQueryResults(results: JsonMap[]) {
+    super.openQueryResults(results);
+  }
 }

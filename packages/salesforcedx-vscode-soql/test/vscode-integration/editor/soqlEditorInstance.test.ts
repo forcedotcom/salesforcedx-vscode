@@ -149,9 +149,7 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateDocumentSpy.callCount === 1,
-      `updateDocumentSpy callcount expected 1, but got ${
-        updateDocumentSpy.callCount
-      }`
+      `updateDocumentSpy callcount expected 1, but got ${updateDocumentSpy.callCount}`
     );
     expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
   });
@@ -163,9 +161,18 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateWebviewSpy.callCount === 1,
-      `updateWebviewSpy callcount expected 1, but got ${
-        updateWebviewSpy.callCount
-      }`
+      `updateWebviewSpy callcount expected 1, but got ${updateWebviewSpy.callCount}`
+    );
+  });
+
+  it('handles run query event and opens the webview', async () => {
+    const openQueryResultsSpy = sandbox.spy(instance, 'openQueryResults');
+    instance.sendEvent({
+      type: MessageType.RUN_SOQL_QUERY
+    });
+    expect(
+      openQueryResultsSpy.callCount === 1,
+      `openQueryResultsSpy callcount expected 1, but got ${openQueryResultsSpy.callCount}`
     );
   });
 });
