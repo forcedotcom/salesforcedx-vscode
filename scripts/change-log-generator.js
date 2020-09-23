@@ -243,6 +243,7 @@ function filterExistingPREntries(parsedCommits) {
  */
 function getMessagesGroupedByPackage(parsedCommits) {
   var groupedMessages = {};
+  var sortedMessages = {};
   parsedCommits.forEach(function(map) {
     map[PACKAGES].forEach(function(packageName) {
       var key = generateKey(packageName, map[TYPE]);
@@ -258,7 +259,16 @@ function getMessagesGroupedByPackage(parsedCommits) {
     console.log('\nMessages grouped by package:');
     console.log(groupedMessages);
   }
-  return groupedMessages;
+  Object.keys(groupedMessages)
+    .sort()
+    .forEach(function(key) {
+      sortedMessages[key] = groupedMessages[key];
+    });
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nSorted messages:');
+    console.log(sortedMessages);
+  }
+  return sortedMessages;
 }
 
 /**
@@ -299,6 +309,7 @@ function getChangeLogText(releaseBranch, groupedMessages) {
     LOG_HEADER,
     releaseBranch.toString().replace('origin/release/v', '')
   );
+  // TODO - want to sort the keys of the map. Right now Fixed/Added are in different places.
   Object.keys(groupedMessages).forEach(function(packageName) {
     changeLogText += util.format(SECTION_HEADER, packageName);
     groupedMessages[packageName].forEach(function(message) {
