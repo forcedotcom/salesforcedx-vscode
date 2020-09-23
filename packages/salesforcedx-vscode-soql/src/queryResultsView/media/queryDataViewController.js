@@ -29,9 +29,8 @@
       data: tableData,
       autoColumns: true,
       pagination: 'local',
-      paginationSize: 10,
       layout: 'fitColumns',
-      maxHeight: '100%'
+      height: '60vh'
     });
   }
 
