@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Update apex syntax highlighting for Safe Navigation Operator ([PR #2557](https://github.com/forcedotcom/salesforcedx-vscode/pull/2557))
+- Update Apex syntax highlighting for Safe Navigation Operator ([PR #2557](https://github.com/forcedotcom/salesforcedx-vscode/pull/2557))
 
 #### docs
 
-- Update [Dreamforce Session Videos](https://developer.salesforce.com/tools/vscode/#dreamforce-session-videos) in documentation site ([PR #2537](https://github.com/forcedotcom/salesforcedx-vscode/pull/2537))
+- Update [Dreamforce Session Videos](https://developer.salesforce.com/tools/vscode/#dreamforce-session-videos) on documentation site ([PR #2537](https://github.com/forcedotcom/salesforcedx-vscode/pull/2537))
 
 ## Added
 
