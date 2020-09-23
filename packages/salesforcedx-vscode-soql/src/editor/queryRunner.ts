@@ -35,8 +35,8 @@ export class QueryRunner {
   we will need to flatten the results of nested values
   in order to be parsed and diplayed correctly
   */
-  private flattenQueryData(rawqQueryData: QueryResult<JsonMap>) {
-    const records = rawqQueryData.records;
+  private flattenQueryData(rawQueryData: QueryResult<JsonMap>) {
+    const records = rawQueryData.records;
     // filter out the attributes key
     records.forEach(result => delete result.attributes);
     return records;
