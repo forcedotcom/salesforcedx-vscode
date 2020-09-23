@@ -22,7 +22,7 @@ import {
 } from '../../../../src/notifications';
 import { taskViewService } from '../../../../src/statuses';
 import { telemetryService } from '../../../../src/telemetry';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 import { MockExecution } from './mockExecution';
 
 describe('Force Function Start', () => {
@@ -68,6 +68,7 @@ describe('Force Function Start', () => {
     let activeTextEditorStub: SinonStub;
     let logMetricStub: SinonStub;
     let hrtimeStub: SinonStub;
+    let getDefaultUsernameOrAliasStub: SinonStub;
     beforeEach(() => {
       sandbox = createSandbox();
 
@@ -98,6 +99,10 @@ describe('Force Function Start', () => {
       notificationServiceStubs.showSuccessfulExecutionStub.returns(
         Promise.resolve()
       );
+      notificationServiceStubs.showInformationMessageStub = sandbox.stub(
+        notificationService,
+        'showInformationMessage'
+      );
       notificationServiceStubs.showWarningMessageStub = sandbox.stub(
         notificationService,
         'showWarningMessage'
@@ -124,6 +129,13 @@ describe('Force Function Start', () => {
         'logMetric'
       );
       hrtimeStub = sandbox.stub(process, 'hrtime');
+      getDefaultUsernameOrAliasStub = sandbox.stub(
+        OrgAuthInfo,
+        'getDefaultUsernameOrAlias'
+      );
+      getDefaultUsernameOrAliasStub.returns(
+        Promise.resolve('test@example.com')
+      );
     });
 
     afterEach(() => {
@@ -381,6 +393,42 @@ describe('Force Function Start', () => {
           'notification_unsuccessful_execution_text',
           nls.localize('force_function_start_text')
         )
+      );
+    });
+
+    it('Should not show informational message when default org is set', async () => {
+      getDefaultUsernameOrAliasStub.returns(
+        Promise.resolve('test@example.com')
+      );
+
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+
+      assert.notCalled(notificationServiceStubs.showInformationMessageStub);
+    });
+
+    it('Should show informational message when no default org is set', async () => {
+      getDefaultUsernameOrAliasStub.returns(Promise.resolve(undefined));
+
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionStart(srcUri);
+
+      assert.calledOnce(notificationServiceStubs.showInformationMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showInformationMessageStub,
+        nls.localize('force_function_start_no_org_auth')
       );
     });
   });
