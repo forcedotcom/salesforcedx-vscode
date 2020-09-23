@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import { TextDocument } from 'vscode';
 
 export function getDocumentName(document: TextDocument): string {
   const documentPath = document.uri.fsPath;
-  return documentPath.split('/').pop() || '';
+  return path.basename(documentPath) || '';
 }
