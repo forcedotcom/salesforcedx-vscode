@@ -23,9 +23,7 @@
     "@salesforce/soql-builder-ui": "0.0.4",
     "@salesforce/soql-language-server": "^0.2.1",
     "debounce": "^1.2.0",
-    "immutable": "^3.8.2",
     "jsforce": "^1.10.0",
-    "rxjs": "^6.6.3",
     "vscode-extension-telemetry": "^0.1.6",
     "vscode-languageclient": "^6.1.3"
   },
