@@ -44,8 +44,7 @@ const CHANGE_LOG_BRANCH = 'changeLog-v';
 // Text Values
 const RELEASE_MESSAGE = 'Using Release Branch: %s\nPrevious Release Branch: %s';
 const LOG_HEADER = '# %s - Month DD, YYYY\n';
-const ADDED_HEADER = '\n\n## Added\n';
-const FIXED_HEADER = '\n## Fixed\n';
+const TYPE_HEADER = '\n## %s\n';
 const SECTION_HEADER = '\n#### %s\n';
 const MESSAGE_FORMAT =
   '\n- %s ([PR #%s](https://github.com/forcedotcom/salesforcedx-vscode/pull/%s))\n';
@@ -255,17 +254,13 @@ function getMessagesGroupedByPackage(parsedCommits) {
       }
     });
   });
-  if (ADD_VERBOSE_LOGGING) {
-    console.log('\nMessages grouped by package:');
-    console.log(groupedMessages);
-  }
   Object.keys(groupedMessages)
     .sort()
     .forEach(function(key) {
       sortedMessages[key] = groupedMessages[key];
     });
   if (ADD_VERBOSE_LOGGING) {
-    console.log('\nSorted messages:');
+    console.log('\nSorted messages by package name and type:');
     console.log(sortedMessages);
   }
   return sortedMessages;
@@ -309,10 +304,16 @@ function getChangeLogText(releaseBranch, groupedMessages) {
     LOG_HEADER,
     releaseBranch.toString().replace('origin/release/v', '')
   );
-  // TODO - want to sort the keys of the map. Right now Fixed/Added are in different places.
-  Object.keys(groupedMessages).forEach(function(packageName) {
+  var lastType = '';
+  Object.keys(groupedMessages).forEach(function(typeAndPackageName) {
+    var type = typeAndPackageName.split('|')[0];
+    var packageName = typeAndPackageName.split('|')[1];
+    if (!lastType || lastType != type) {
+      changeLogText += util.format(TYPE_HEADER, type);
+      lastType = type;
+    }
     changeLogText += util.format(SECTION_HEADER, packageName);
-    groupedMessages[packageName].forEach(function(message) {
+    groupedMessages[typeAndPackageName].forEach(function(message) {
       changeLogText += message;
     });
   });
