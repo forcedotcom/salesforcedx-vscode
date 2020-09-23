@@ -346,7 +346,9 @@ function writeChangeLog(textToInsert) {
 }
 
 function writeAdditionalInfo() {
-  console.log('\nStep 6: Write results to the change log.');
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nStep 6: Write results to the change log.');
+  }
   console.log('Change log written to: ' + CHANGE_LOG_PATH);
   console.log('\nNext Steps:');
   console.log("  1) Remove entries that shouldn't be included in the release.");
@@ -364,7 +366,7 @@ let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
 var releaseBranch = getReleaseBranch();
 var previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
-getNewChangeLogBranch(releaseBranch);
+// getNewChangeLogBranch(releaseBranch);
 
 var parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
 var groupedMessages = getMessagesGroupedByPackage(parsedCommits);

@@ -83,7 +83,7 @@
       "label": "Create Change Log",
       "command": "./scripts/change-log-generator.js",
       "type": "shell",
-      "args": ["-v", "${input:verboseOutput}", "-r", "${input:releaseOverride}"]
+      "args": ["${input:verboseOutput}", "-r", "${input:releaseOverride}"]
     },
     {
       "label": "Lint",
@@ -124,9 +124,9 @@
     {
       "id": "verboseOutput",
       "type": "pickString",
-      "description": "Output verbose logging?",
-      "options": ["Yes", "No"],
-      "default": "Yes"
+      "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
+      "options": ["", "-v"],
+      "default": "-v"
     },
     {
       "id": "releaseOverride",
