@@ -25,8 +25,10 @@ export class QueryRunner {
 
       return cleanQueryRecords;
     } catch (error) {
-      // TODO: Doc Review, i18n
-      vscode.window.showErrorMessage(`Could not run the Query ${error}`);
+      // TODO: i18n
+      vscode.window.showErrorMessage(
+        `Your query contains invalid or incomplete syntax. Fix the syntax errors and try again.`
+      );
       throw error;
     }
   }

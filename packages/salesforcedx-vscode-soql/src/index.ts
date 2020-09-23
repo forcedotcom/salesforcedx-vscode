@@ -12,6 +12,7 @@ import { QueryDataViewService } from './queryResultsView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
 
 export function activate(context: vscode.ExtensionContext): void {
+  console.log('SOQL Extension Activated');
   const extensionHRStart = process.hrtime();
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
