@@ -70,6 +70,9 @@ const TYPE_REGEX = new RegExp(/([a-zA-Z]+)(?:\([a-zA-Z]+\))?:/);
  * have not, returns the latest release branch.
  */
 function getReleaseBranch() {
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nStep 1: Determine release branch.');
+  }
   var releaseIndex = process.argv.indexOf('-r');
   var releaseBranch =
     releaseIndex > -1 && process.argv[releaseIndex + 1]
@@ -112,6 +115,9 @@ function validateReleaseBranch(releaseBranch) {
 }
 
 function getNewChangeLogBranch(releaseBranch) {
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nStep 2: Create new change log branch.');
+  }
   var changeLogBranch =
     CHANGE_LOG_BRANCH + releaseBranch.replace('origin/release/v', '');
   shell.exec(util.format(GIT_CHECKOUT, changeLogBranch, releaseBranch));
@@ -123,7 +129,12 @@ function getNewChangeLogBranch(releaseBranch) {
  * commits relevant only to the new branch.
  */
 function getCommits(releaseBranch, previousBranch) {
-  if (ADD_VERBOSE_LOGGING) console.log('\nCommits:');
+  if (ADD_VERBOSE_LOGGING) {
+    console.log(
+      '\nStep 3: Determine differences between current release branch and previous release branch.' +
+        '\nCommits:'
+    );
+  }
   var commits = shell
     .exec(util.format(GIT_LOG, releaseBranch, previousBranch), {
       silent: !ADD_VERBOSE_LOGGING
@@ -137,7 +148,10 @@ function getCommits(releaseBranch, previousBranch) {
  * Parse the commits and return them as a list of hashmaps.
  */
 function parseCommits(commits) {
-  if (ADD_VERBOSE_LOGGING) console.log('\nCommit Parsing Results...');
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nStep 4: Parse commits and gather required information.');
+    console.log('Commit Parsing Results...');
+  }
   var commitMaps = [];
   for (var i = 0; i < commits.length; i++) {
     var commitMap = buildMapFromCommit(commits[i]);
@@ -261,7 +275,8 @@ function getMessagesGroupedByPackage(parsedCommits) {
       sortedMessages[key] = groupedMessages[key];
     });
   if (ADD_VERBOSE_LOGGING) {
-    console.log('\nSorted messages by package name and type:');
+    console.log('\nStep 5: Group results by type and package name.');
+    console.log('Sorted messages by package name and type:');
     console.log(sortedMessages);
   }
   return sortedMessages;
@@ -331,8 +346,9 @@ function writeChangeLog(textToInsert) {
 }
 
 function writeAdditionalInfo() {
-  console.log('\nChange log written to: ' + CHANGE_LOG_PATH + '\n');
-  console.log('Next Steps:');
+  console.log('\nStep 6: Write results to the change log.');
+  console.log('Change log written to: ' + CHANGE_LOG_PATH);
+  console.log('\nNext Steps:');
   console.log("  1) Remove entries that shouldn't be included in the release.");
   console.log('  2) Add documentation links as needed.');
   console.log(
@@ -348,7 +364,7 @@ let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
 var releaseBranch = getReleaseBranch();
 var previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
-// getNewChangeLogBranch(releaseBranch);
+getNewChangeLogBranch(releaseBranch);
 
 var parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
 var groupedMessages = getMessagesGroupedByPackage(parsedCommits);
