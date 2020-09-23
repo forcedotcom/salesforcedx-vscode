@@ -147,7 +147,7 @@ export const messages = {
   force_function_create_text: 'SFDX: Create Function',
   force_function_start_text: 'SFDX: Start Function',
   force_function_start_no_org_auth:
-    'No default org is set. SFDX: Start Function will continue without org features. Run "SFDX: Set a Default Org" to select an active scratch org, or run "SFDX: Authorize a Dev Hub" and "SFDX: Create a Default Scratch Org" to authenticate to a Dev Hub and create a default scratch org.',
+    'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
     'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
   force_function_start_warning_not_in_function_folder:
