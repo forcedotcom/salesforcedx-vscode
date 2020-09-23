@@ -366,7 +366,7 @@ let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
 var releaseBranch = getReleaseBranch();
 var previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
-// getNewChangeLogBranch(releaseBranch);
+getNewChangeLogBranch(releaseBranch);
 
 var parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
 var groupedMessages = getMessagesGroupedByPackage(parsedCommits);
