@@ -14,7 +14,7 @@
 
 #### salesforcedx-vscode-core
 
-- Allow deploying of all types for [performance enhancements beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements) ([PR #2542](https://github.com/forcedotcom/salesforcedx-vscode/pull/2542))
+- Allow deployment of all types for [performance enhancements beta](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/perf-enhancements) ([PR #2542](https://github.com/forcedotcom/salesforcedx-vscode/pull/2542))
 
 - Added new commands to delete and clean expired scratch orgs ([PR #2523](https://github.com/forcedotcom/salesforcedx-vscode/pull/2523)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
 
