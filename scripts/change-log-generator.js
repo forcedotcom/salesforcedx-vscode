@@ -44,8 +44,8 @@ const CHANGE_LOG_BRANCH = 'changeLog-v';
 // Text Values
 const RELEASE_MESSAGE = 'Using Release Branch: %s\nPrevious Release Branch: %s';
 const LOG_HEADER = '# %s - Month DD, YYYY\n';
-const FIXED_HEADER = '\n## Fixed\n';
 const ADDED_HEADER = '\n\n## Added\n';
+const FIXED_HEADER = '\n## Fixed\n';
 const SECTION_HEADER = '\n#### %s\n';
 const MESSAGE_FORMAT =
   '\n- %s ([PR #%s](https://github.com/forcedotcom/salesforcedx-vscode/pull/%s))\n';
@@ -64,7 +64,7 @@ const PACKAGES = 'PACKAGES';
 const RELEASE_REGEX = new RegExp(/^origin\/release\/v\d{2}\.\d{1,2}\.\d/);
 const PR_REGEX = new RegExp(/(\(#\d+\))/);
 const COMMIT_REGEX = new RegExp(/^([\da-zA-Z]+)/);
-const TYPE_REGEX = new RegExp(/([a-zA-Z]+(?:\([a-zA-Z]+\))?):/);
+const TYPE_REGEX = new RegExp(/([a-zA-Z]+)(?:\([a-zA-Z]+\))?:/);
 
 /**
  * Checks if the user has provided a release branch override. If they
@@ -155,18 +155,15 @@ function buildMapFromCommit(commit) {
     var pr = PR_REGEX.exec(commit);
     var commitNum = COMMIT_REGEX.exec(commit);
     if (pr && commitNum) {
-      var message = commit
-        .replace(commitNum[0], '')
-        .replace(pr[0], '')
-        .trim();
+      var message = commit.replace(commitNum[0], '').replace(pr[0], '');
       var type = TYPE_REGEX.exec(message);
       map[PR_NUM] = pr[0].replace(/[^\d]/g, '');
       map[COMMIT] = commitNum[0];
       if (type) {
-        map[TYPE] = type[0];
+        map[TYPE] = type[1];
         message = message.replace(type[0], '');
       }
-      map[MESSAGE] = message;
+      map[MESSAGE] = message.trim();
       map[FILES_CHANGED] = getFilesChanged(map[COMMIT]);
       map[PACKAGES] = getPackageHeaders(map[FILES_CHANGED]);
     }
@@ -248,10 +245,13 @@ function getMessagesGroupedByPackage(parsedCommits) {
   var groupedMessages = {};
   parsedCommits.forEach(function(map) {
     map[PACKAGES].forEach(function(packageName) {
-      groupedMessages[packageName] = groupedMessages[packageName] || [];
-      groupedMessages[packageName].push(
-        util.format(MESSAGE_FORMAT, map[MESSAGE], map[PR_NUM], map[PR_NUM])
-      );
+      var key = generateKey(packageName, map[TYPE]);
+      if (key) {
+        groupedMessages[key] = groupedMessages[key] || [];
+        groupedMessages[key].push(
+          util.format(MESSAGE_FORMAT, map[MESSAGE], map[PR_NUM], map[PR_NUM])
+        );
+      }
     });
   });
   if (ADD_VERBOSE_LOGGING) {
@@ -259,6 +259,39 @@ function getMessagesGroupedByPackage(parsedCommits) {
     console.log(groupedMessages);
   }
   return groupedMessages;
+}
+
+/**
+ * Generate the key to be used in the grouped messages map. This will help us
+ * determine whether this is an addition or fix, along with the package header
+ * that the commit should be inserted under.
+ *
+ * If we have a type that should be ignored, return an empty key.
+ */
+function generateKey(packageName, type) {
+  const typesToIgnore = [
+    'chore',
+    'style',
+    'refactor',
+    'test',
+    'build',
+    'ci',
+    'revert'
+  ];
+  if (typesToIgnore.includes(type)) {
+    return '';
+  }
+  var key = packageName;
+  if (type) {
+    if (type == 'feat') {
+      key = 'Added|' + packageName;
+    } else {
+      key = 'Fixed|' + packageName;
+    }
+  } else {
+    key = 'Fixed|' + packageName; // If no type is specified, assume this is a fix.
+  }
+  return key;
 }
 
 function getChangeLogText(releaseBranch, groupedMessages) {

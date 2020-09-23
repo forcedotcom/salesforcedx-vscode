@@ -131,7 +131,7 @@
     {
       "id": "releaseOverride",
       "type": "promptString",
-      "description": "Enter the release number or leave blank to run with the current branch's release number."
+      "description": "Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 49.11.0)"
     }
   ]
 }
