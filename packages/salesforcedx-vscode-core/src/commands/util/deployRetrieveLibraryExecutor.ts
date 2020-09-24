@@ -7,7 +7,7 @@
 import { ApiResult, SourceClient } from '@salesforce/source-deploy-retrieve';
 import { languages, ProgressLocation, window } from 'vscode';
 import { channelService } from '../../channels';
-import { WorkspaceContext } from '../../context';
+import { workspaceContext } from '../../context';
 import { notificationService } from '../../notifications';
 import { LibraryCommandletExecutor } from './libraryCommandlet';
 import { outputRetrieveTable } from './retrieveParser';
@@ -27,7 +27,7 @@ export class DeployRetrieveLibraryExecutor extends LibraryCommandletExecutor<
   ): Promise<void> {
     this.executionName = execName;
     this.telemetryName = telemetryLogName;
-    const conn = await WorkspaceContext.get().getConnection();
+    const conn = await workspaceContext.getConnection();
     this.sourceClient = new SourceClient(conn);
   }
 
