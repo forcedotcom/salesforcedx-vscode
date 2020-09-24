@@ -22,7 +22,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
-import { getRootWorkspacePath } from '../../util';
+import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
@@ -89,19 +89,26 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
 
-    //execution.processExitSubject.subscribe(() => {
-    //this.logMetric(execution.command.logName, startTime);
-    //});
-
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0 && this.OpenAfterRetrieve) {
-      const filePath = path.join(
-        getRootWorkspacePath(),
-        resultJson.result.inboundFiles[0].filePath
+      const extensions = MetadataDictionary.getInfo(
+        resultJson.result.inboundFiles[0].type
+      )?.extensions;
+
+      resultJson.result.inboundFiles.map( async (item:any) => {
+        let fileToOpen;
+        if(extensions?.includes( '.' + item.filePath.split('.').slice(-1) )){
+          fileToOpen = path.join(
+            getRootWorkspacePath(),
+            item.filePath
+          );
+          const showOptions: TextDocumentShowOptions = { preview: false};
+          const document = await vscode.workspace.openTextDocument(fileToOpen);
+          vscode.window.showTextDocument(document, showOptions);
+        }
+      }
       );
-      const document = await vscode.workspace.openTextDocument(filePath);
-      vscode.window.showTextDocument(document);
     }
   }
 
@@ -132,4 +139,9 @@ export async function forceSourceRetrieveCmp(
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
+}
+
+export type TextDocumentShowOptions = {
+  preserveFocus?: boolean;
+  preview?: boolean
 }
