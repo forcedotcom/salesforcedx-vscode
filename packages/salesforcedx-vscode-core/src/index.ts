@@ -76,8 +76,8 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
-import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import { WorkspaceContext } from './context';
+import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -622,6 +622,7 @@ export async function activate(context: vscode.ExtensionContext) {
     SfdxCommandletExecutor,
     sfdxCoreSettings,
     SfdxWorkspaceChecker,
+    WorkspaceContext,
     taskViewService,
     telemetryService
   };
