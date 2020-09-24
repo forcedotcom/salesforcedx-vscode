@@ -16,7 +16,7 @@ import {
   ForceSourceDeploySourcePathExecutor,
   LibraryDeploySourcePathExecutor
 } from '../../../src/commands';
-import { WorkspaceContext } from '../../../src/context';
+import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { SfdxProjectConfig } from '../../../src/sfdxProject';
 import { OrgAuthInfo } from '../../../src/util';
@@ -67,7 +67,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
         testData.username
       );
-      sb.stub(WorkspaceContext.get(), 'getConnection').returns(mockConnection);
+      sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
       const getNamespace = sb
         .stub(SfdxProjectConfig, 'getValue')
         .returns('diFf');

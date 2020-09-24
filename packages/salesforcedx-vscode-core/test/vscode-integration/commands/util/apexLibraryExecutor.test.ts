@@ -19,7 +19,7 @@ import {
   SfdxCommandlet
 } from '../../../../src/commands/util';
 import { ApexLibraryExecutor } from '../../../../src/commands/util';
-import { WorkspaceContext } from '../../../../src/context';
+import { workspaceContext } from '../../../../src/context';
 import { nls } from '../../../../src/messages';
 
 // tslint:disable:no-unused-expression
@@ -85,7 +85,7 @@ describe('ApexLibraryExecutor', () => {
 
   it('Should create connection on build phase', async () => {
     const orgAuthConnMock = sb
-      .stub(WorkspaceContext.get(), 'getConnection')
+      .stub(workspaceContext, 'getConnection')
       .returns(mockConnection);
 
     const commandlet = new class extends ApexLibraryExecutor {

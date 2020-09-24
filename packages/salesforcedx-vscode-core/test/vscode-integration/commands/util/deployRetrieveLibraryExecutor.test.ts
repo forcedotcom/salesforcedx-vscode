@@ -20,7 +20,7 @@ import {
   SfdxCommandlet
 } from '../../../../src/commands/util';
 import { DeployRetrieveLibraryExecutor } from '../../../../src/commands/util/deployRetrieveLibraryExecutor';
-import { WorkspaceContext } from '../../../../src/context';
+import { workspaceContext } from '../../../../src/context';
 import { nls } from '../../../../src/messages';
 import { OrgAuthInfo } from '../../../../src/util';
 
@@ -83,7 +83,7 @@ describe('DeployRetrieveLibraryExecutor', () => {
 
   it('Should create connection on build phase', async () => {
     const getConnectionStub = sb
-      .stub(WorkspaceContext.get(), 'getConnection')
+      .stub(workspaceContext, 'getConnection')
       .returns(mockConnection);
     const commandlet = new class extends DeployRetrieveLibraryExecutor {
       public async execute(response: ContinueResponse<{}>): Promise<void> {}
@@ -97,6 +97,8 @@ describe('DeployRetrieveLibraryExecutor', () => {
     const orgAuthMock = sb
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(undefined);
+    // @ts-ignore just need subscriptions in extension context
+    await workspaceContext.initialize({ subscriptions: [] });
     const commandlet = new class extends DeployRetrieveLibraryExecutor {
       public async execute(response: ContinueResponse<{}>): Promise<void> {}
     }();

@@ -18,42 +18,35 @@ export interface OrgInfo {
 export class WorkspaceContext {
   private static instance?: WorkspaceContext;
 
-  private cliConfigWatcher?: vscode.FileSystemWatcher;
-  private sessionConnections = new Map<string, Connection>();
+  private cliConfigWatcher: vscode.FileSystemWatcher;
+  private sessionConnections: Map<string, Connection>;
+  private onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
   private _username?: string;
   private _alias?: string;
-  private readonly onOrgChangeEmitter = new vscode.EventEmitter<OrgInfo>();
 
-  public readonly onOrgChange = this.onOrgChangeEmitter.event;
+  public readonly onOrgChange: vscode.Event<OrgInfo>;
 
-  private constructor() {}
+  private constructor() {
+    this.sessionConnections = new Map<string, Connection>();
+    this.onOrgChangeEmitter = new vscode.EventEmitter<OrgInfo>();
+    this.onOrgChange = this.onOrgChangeEmitter.event;
 
-  public static async initialize(context: vscode.ExtensionContext) {
-    this.instance?.onOrgChangeEmitter.dispose();
-    this.instance?.cliConfigWatcher?.dispose();
-
-    const instance = new WorkspaceContext();
-    const bindedHandler = () => instance.handleCliConfigChange();
+    const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
-
-    instance.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
-    instance.cliConfigWatcher.onDidChange(bindedHandler);
-    instance.cliConfigWatcher.onDidCreate(bindedHandler);
-    instance.cliConfigWatcher.onDidDelete(bindedHandler);
-    context.subscriptions.push(instance.cliConfigWatcher, instance.onOrgChangeEmitter, instance.cliConfigWatcher);
-
-    await instance.handleCliConfigChange();
-
-    this.instance = instance;
+    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
+    this.cliConfigWatcher.onDidChange(bindedHandler);
+    this.cliConfigWatcher.onDidCreate(bindedHandler);
+    this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
-  public static get(): WorkspaceContext {
-    if (!this.instance) {
-      telemetryService.sendException(
-        'WorkspaceContextException',
-        'Workspace context has not been initialized'
-      );
-      throw new Error(nls.localize('error_workspace_context_init'));
+  public async initialize(context: vscode.ExtensionContext) {
+    context.subscriptions.push(this.cliConfigWatcher, this.onOrgChangeEmitter, this.cliConfigWatcher);
+    await this.handleCliConfigChange();
+  }
+
+  public static getInstance(forceNew = false): WorkspaceContext {
+    if (!this.instance || forceNew) {
+      this.instance = new WorkspaceContext();
     }
     return this.instance;
   }

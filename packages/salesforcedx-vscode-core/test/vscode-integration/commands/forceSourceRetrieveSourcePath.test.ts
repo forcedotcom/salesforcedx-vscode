@@ -21,7 +21,7 @@ import {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from '../../../src/commands';
-import { WorkspaceContext } from '../../../src/context';
+import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import {
@@ -152,7 +152,7 @@ describe('Source Retrieve Beta', () => {
     sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
       testData.username
     );
-    sb.stub(WorkspaceContext.get(), 'getConnection').returns(mockConnection);
+    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const getNamespace = sb.stub(SfdxProjectConfig, 'getValue').returns('diFf');
     const getComponentsStub = sb.stub(
       RegistryAccess.prototype,
