@@ -22,7 +22,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { WorkspaceContext } = sfdxCoreExports;
+const { workspaceContext } = sfdxCoreExports;
 
 describe('SoqlEditorInstance should', () => {
   const $$ = testSetup();
@@ -94,9 +94,7 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('responds to sobjects_request with a list of sobjects', async () => {
-    sandbox
-      .stub(WorkspaceContext.get(), 'getConnection')
-      .returns(mockConnection);
+    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const describeGlobalResponse = {
       sobjects: [{ name: 'A' }, { name: 'B' }]
     };
@@ -118,9 +116,7 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('responds to sobject_metadata_request with SObject metadata', async () => {
-    sandbox
-      .stub(WorkspaceContext.get(), 'getConnection')
-      .returns(mockConnection);
+    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const fakeSObject = { name: 'A' };
     sandbox.stub(mockConnection, 'describe').resolves(fakeSObject);
 

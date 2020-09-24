@@ -23,7 +23,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { channelService, WorkspaceContext } = sfdxCoreExports;
+const { channelService, workspaceContext } = sfdxCoreExports;
 
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
@@ -45,7 +45,7 @@ export enum MessageType {
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
   try {
-    const conn = await WorkspaceContext.get().getConnection();
+    const conn = await workspaceContext.getConnection();
     f(conn);
   } catch (e) {
     channelService.appendLine(e);
