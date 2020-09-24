@@ -132,7 +132,7 @@ function getCommits(releaseBranch, previousBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log(
       '\nStep 3: Determine differences between current release branch and previous release branch.' +
-        '\nCommits:'
+      '\nCommits:'
     );
   }
   var commits = shell
@@ -202,7 +202,7 @@ function getFilesChanged(commitNumber) {
 
 function getPackageHeaders(filesChanged) {
   var packageHeaders = new Set();
-  filesChanged.split(',').forEach(function(filePath) {
+  filesChanged.split(',').forEach(function (filePath) {
     var packageName = getPackageName(filePath);
     if (packageName) {
       packageHeaders.add(packageName);
@@ -229,7 +229,7 @@ function getPackageName(filePath) {
 function filterPackageNames(packageHeaders) {
   var filteredHeaders = new Set(packageHeaders);
   if (packageHeaders.has('salesforcedx-vscode-core')) {
-    packageHeaders.forEach(function(packageName) {
+    packageHeaders.forEach(function (packageName) {
       if (packageName != 'salesforcedx-vscode-core' && packageName != 'docs') {
         filteredHeaders.delete(packageName);
       }
@@ -241,7 +241,7 @@ function filterPackageNames(packageHeaders) {
 function filterExistingPREntries(parsedCommits) {
   var currentChangeLog = fs.readFileSync(CHANGE_LOG_PATH);
   var filteredResults = [];
-  parsedCommits.forEach(function(map) {
+  parsedCommits.forEach(function (map) {
     if (!currentChangeLog.includes('PR #' + map[PR_NUM])) {
       filteredResults.push(map);
     } else if (ADD_VERBOSE_LOGGING) {
@@ -258,8 +258,8 @@ function filterExistingPREntries(parsedCommits) {
 function getMessagesGroupedByPackage(parsedCommits) {
   var groupedMessages = {};
   var sortedMessages = {};
-  parsedCommits.forEach(function(map) {
-    map[PACKAGES].forEach(function(packageName) {
+  parsedCommits.forEach(function (map) {
+    map[PACKAGES].forEach(function (packageName) {
       var key = generateKey(packageName, map[TYPE]);
       if (key) {
         groupedMessages[key] = groupedMessages[key] || [];
@@ -271,7 +271,7 @@ function getMessagesGroupedByPackage(parsedCommits) {
   });
   Object.keys(groupedMessages)
     .sort()
-    .forEach(function(key) {
+    .forEach(function (key) {
       sortedMessages[key] = groupedMessages[key];
     });
   if (ADD_VERBOSE_LOGGING) {
@@ -302,17 +302,8 @@ function generateKey(packageName, type) {
   if (typesToIgnore.includes(type)) {
     return '';
   }
-  var key = packageName;
-  if (type) {
-    if (type == 'feat') {
-      key = 'Added|' + packageName;
-    } else {
-      key = 'Fixed|' + packageName;
-    }
-  } else {
-    key = 'Fixed|' + packageName; // If no type is specified, assume this is a fix.
-  }
-  return key;
+  const keyPrefix = type === 'feat' ? 'Added' : 'Fixed';
+  return `${keyPrefix}|${packageName}`;
 }
 
 function getChangeLogText(releaseBranch, groupedMessages) {
@@ -321,15 +312,14 @@ function getChangeLogText(releaseBranch, groupedMessages) {
     releaseBranch.toString().replace('origin/release/v', '')
   );
   var lastType = '';
-  Object.keys(groupedMessages).forEach(function(typeAndPackageName) {
-    var type = typeAndPackageName.split('|')[0];
-    var packageName = typeAndPackageName.split('|')[1];
+  Object.keys(groupedMessages).forEach(function (typeAndPackageName) {
+    var [type, packageName] = typeAndPackageName.split('|');
     if (!lastType || lastType != type) {
       changeLogText += util.format(TYPE_HEADER, type);
       lastType = type;
     }
     changeLogText += util.format(SECTION_HEADER, packageName);
-    groupedMessages[typeAndPackageName].forEach(function(message) {
+    groupedMessages[typeAndPackageName].forEach(function (message) {
       changeLogText += message;
     });
   });
