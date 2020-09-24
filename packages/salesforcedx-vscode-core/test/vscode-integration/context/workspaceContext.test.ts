@@ -5,9 +5,8 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import * as wsContext from '../../../src/context';
+import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
-
-const { WorkspaceContext } = wsContext;
 
 const env = createSandbox();
 
@@ -70,6 +69,7 @@ describe('WorkspaceContext', () => {
   let orgTypeStub: SinonStub;
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
+  let workspaceContext: WorkspaceContext;
 
   beforeEach(async () => {
     mockFileWatcher = new MockFileWatcher(cliConfigPath);
@@ -91,14 +91,15 @@ describe('WorkspaceContext', () => {
       subscriptions: []
     } as unknown) as vscode.ExtensionContext;
 
-    await WorkspaceContext.initialize(context);
+    workspaceContext = WorkspaceContext.getInstance(true);
+    await workspaceContext.initialize(context);
   });
 
   afterEach(() => env.restore());
 
   it('should load the default username and alias upon initialization', () => {
-    expect(WorkspaceContext.get().username).to.equal(testUser);
-    expect(WorkspaceContext.get().alias).to.equal(testAlias);
+    expect(workspaceContext.username).to.equal(testUser);
+    expect(workspaceContext.alias).to.equal(testAlias);
     expect(orgTypeStub.called).to.equal(true);
   });
 
@@ -109,8 +110,8 @@ describe('WorkspaceContext', () => {
     await mockFileWatcher.fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
-    expect(WorkspaceContext.get().username).to.equal(testUser2);
-    expect(WorkspaceContext.get().alias).to.equal(undefined);
+    expect(workspaceContext.username).to.equal(testUser2);
+    expect(workspaceContext.alias).to.equal(undefined);
   });
 
   it('should update default username and alias to undefined if one is not set', async () => {
@@ -120,13 +121,13 @@ describe('WorkspaceContext', () => {
     await mockFileWatcher.fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
-    expect(WorkspaceContext.get().username).to.equal(undefined);
-    expect(WorkspaceContext.get().alias).to.equal(undefined);
+    expect(workspaceContext.username).to.equal(undefined);
+    expect(workspaceContext.alias).to.equal(undefined);
   });
 
   it('should notify subscribers that the default org may have changed', async () => {
     const someLogic = env.stub();
-    WorkspaceContext.get().onOrgChange((orgInfo: wsContext.OrgInfo) => {
+    workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
       someLogic(orgInfo);
     });
 
@@ -156,14 +157,14 @@ describe('WorkspaceContext', () => {
     });
 
     it('should return connection for the default org', async () => {
-      const connection = await WorkspaceContext.get().getConnection();
+      const connection = await workspaceContext.getConnection();
 
       expect(connection).to.deep.equal(mockConnection);
     });
 
     it('should return a cached connection for the default org if there is one', async () => {
-      await WorkspaceContext.get().getConnection();
-      await WorkspaceContext.get().getConnection();
+      await workspaceContext.getConnection();
+      await workspaceContext.getConnection();
 
       expect(createConnectionStub.callCount).to.equal(1);
     });
