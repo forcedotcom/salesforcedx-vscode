@@ -98,7 +98,7 @@ describe('DeployRetrieveLibraryExecutor', () => {
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(undefined);
     // @ts-ignore just need subscriptions in extension context
-    workspaceContext.initialize({ subscriptions: [] });
+    await workspaceContext.initialize({ subscriptions: [] });
     const commandlet = new class extends DeployRetrieveLibraryExecutor {
       public async execute(response: ContinueResponse<{}>): Promise<void> {}
     }();
