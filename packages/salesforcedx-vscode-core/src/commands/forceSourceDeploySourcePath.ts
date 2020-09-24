@@ -24,7 +24,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { WorkspaceContext } from '../context';
+import { workspaceContext } from '../context';
 import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -146,7 +146,7 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     response: ContinueResponse<string | string[]>
   ): Promise<boolean> {
     try {
-      const getConnection = WorkspaceContext.get().getConnection();
+      const getConnection = workspaceContext.getConnection();
       const components = this.getComponents(response.data);
       const namespace = (await SfdxProjectConfig.getValue(
         'namespace'

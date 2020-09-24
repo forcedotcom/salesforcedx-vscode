@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { WorkspaceContext } from '../context';
+import { workspaceContext } from '../context';
 import { handleApexLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
@@ -140,7 +140,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
   );
 
   protected async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
-    const connection = await WorkspaceContext.get().getConnection();
+    const connection = await workspaceContext.getConnection();
     const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath } = response.data;
 

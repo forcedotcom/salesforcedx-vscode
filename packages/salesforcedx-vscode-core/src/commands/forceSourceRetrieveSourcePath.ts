@@ -21,7 +21,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { WorkspaceContext } from '../context';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
@@ -136,7 +136,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   protected executionName = 'Retrieve (Beta)';
 
   protected async run(response: ContinueResponse<string>): Promise<boolean> {
-    const getConnection = WorkspaceContext.get().getConnection();
+    const getConnection = workspaceContext.getConnection();
     const registryAccess = new RegistryAccess();
     const components = registryAccess.getComponentsFromPath(response.data);
     const projectNamespace = (await SfdxProjectConfig.getValue(

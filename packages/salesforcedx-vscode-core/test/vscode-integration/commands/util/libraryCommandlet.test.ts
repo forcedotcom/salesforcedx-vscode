@@ -7,7 +7,7 @@
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
-import { createSandbox, match } from 'sinon';
+import { createSandbox } from 'sinon';
 import { channelService } from '../../../../src/channels';
 import { LibraryCommandletExecutor } from '../../../../src/commands/util';
 import { notificationService } from '../../../../src/notifications';
@@ -68,13 +68,14 @@ describe('LibraryCommandletExecutor', () => {
     await executor.execute({ data: { success: false }, type: 'CONTINUE' });
 
     expect(sendCommandEventStub.called).to.equal(true);
-    expect(sendCommandEventStub.getCall(0).args).to.deep.equal([
+    const { args } = sendCommandEventStub.getCall(0);
+    expect(args[0]).to.equal(
       // @ts-ignore allow public getter for testing
-      executor.logName,
-      match([match.number, match.number]),
-      { success: false },
-      undefined
-    ]);
+      executor.logName
+    );
+    expect(typeof(args[1][0]) === 'number' && typeof(args[1][1]) === 'number').to.equal(true);
+    expect(args[2]).to.deep.equal({ success: 'false' });
+    expect(args[3]).to.equal(undefined);
   });
 
   describe('Handling Unexpected Errors', () => {

@@ -29,7 +29,7 @@ import * as vscode from 'vscode';
 import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../channels';
 import { SFDX_FOLDER } from '../constants';
-import { WorkspaceContext } from '../context';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -218,7 +218,7 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: 
   protected logName: string = 'force_apex_log_get_library';
 
   protected async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
-    const connection = await WorkspaceContext.get().getConnection();
+    const connection = await workspaceContext.getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;
     const outputDir = path.join(getRootWorkspacePath(), SFDX_FOLDER, 'tools', 'debug', 'logs');
