@@ -166,7 +166,7 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('handles run query event and opens the webview', async () => {
-    const openQueryResultsSpy = sandbox.spy(instance, 'openQueryResults');
+    const openQueryResultsSpy = sandbox.spy(instance, 'openQueryDataView');
     instance.sendEvent({
       type: MessageType.RUN_SOQL_QUERY
     });

@@ -6,11 +6,21 @@
  */
 
 (function() {
+  /* interface queryData {
+    done: boolean;
+    nextRecordsUrl?: string;
+    totalSize: number;
+    records: T[];
+  } */
   const vscode = acquireVsCodeApi();
 
   function updateUIWith(queryData, documentName) {
-    const title = document.getElementById('webview-title');
-    title.innerText = documentName;
+    // Display the .soql file name as the title
+    const titleEl = document.getElementById('webview-title');
+    titleEl.innerText = documentName;
+
+    const totalRecordsSizeEl = document.getElementById('total-records-size');
+    totalRecordsSizeEl.innerText = `Returned ${queryData.records.length} of ${queryData.totalSize} total records`;
 
     renderTableWith(queryData);
   }
@@ -26,7 +36,7 @@
 
   function renderTableWith(tableData) {
     new Tabulator('#data-table', {
-      data: tableData,
+      data: tableData.records,
       autoColumns: true,
       pagination: 'local',
       layout: 'fitColumns',

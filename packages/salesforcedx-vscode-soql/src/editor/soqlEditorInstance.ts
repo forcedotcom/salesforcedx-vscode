@@ -9,6 +9,7 @@ import { Connection } from '@salesforce/core';
 import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
+import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
@@ -19,7 +20,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { OrgAuthInfo, channelService } = sfdxCoreExports;
+const { OrgAuthInfo, channelService, WorkspaceContext } = sfdxCoreExports; // TODO: Need to export workspaceContext
 
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
@@ -42,6 +43,7 @@ export enum MessageType {
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
   try {
     const conn = await OrgAuthInfo.getConnection();
+    // const conn = await WorkspaceContext.get().getConnection();
     f(conn);
   } catch (e) {
     channelService.appendLine(e);
@@ -151,17 +153,17 @@ export class SOQLEditorInstance {
   protected handleRunQuery(): Promise<void> {
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
-      const records = await new QueryRunner(conn, this.document).runQuery(
+      const queryData = await new QueryRunner(conn, this.document).runQuery(
         queryText
       );
-      this.openQueryResults(records);
+      this.openQueryDataView(queryData);
     });
   }
 
-  protected openQueryResults(records: JsonMap[]): void {
+  protected openQueryDataView(queryData: QueryResult<JsonMap>): void {
     const webview = new QueryDataView(
       this.subscriptions,
-      records,
+      queryData,
       this.document
     );
     webview.createOrShowWebView();

@@ -43,7 +43,7 @@ describe('Query Runner Should', () => {
     sandbox.stub(mockConnection, 'query').returns(mockQueryData);
     const queryRunner = new QueryRunner(mockConnection);
     const queryData = await queryRunner.runQuery(mockQueryText);
-    queryData.forEach(result => {
+    queryData.records.forEach(result => {
       expect(result).to.not.have.key('attributes');
     });
   });

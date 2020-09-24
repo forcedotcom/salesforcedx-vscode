@@ -28,7 +28,10 @@ export function html(assets: { [index: string]: Uri }): string {
   </head>
   <body>
     <div>
-      <h3 id="webview-title"></h3>
+      <div>
+        <h3 id="webview-title"></h3>
+        <p id="total-records-size"></p>
+      </div>
       <div id="data-table"></div>
     </div>
   </body>

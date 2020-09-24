@@ -16,14 +16,16 @@ export class QueryRunner {
     private document?: vscode.TextDocument
   ) {}
 
-  public async runQuery(queryText: string): Promise<JsonMap[]> {
+  public async runQuery(queryText: string): Promise<QueryResult<JsonMap>> {
     try {
       const rawQueryData = (await this.connection.query(
         queryText
       )) as QueryResult<JsonMap>;
-      const cleanQueryRecords = this.flattenQueryData(rawQueryData);
-
-      return cleanQueryRecords;
+      const cleanQueryData = {
+        ...rawQueryData,
+        records: this.flattenQueryRecords(rawQueryData.records)
+      };
+      return cleanQueryData;
     } catch (error) {
       // TODO: i18n
       vscode.window.showErrorMessage(
@@ -37,10 +39,10 @@ export class QueryRunner {
   we will need to flatten the results of nested values
   in order to be parsed and diplayed correctly
   */
-  private flattenQueryData(rawQueryData: QueryResult<JsonMap>) {
-    const records = rawQueryData.records;
+  private flattenQueryRecords(rawQueryRecords: JsonMap[]) {
     // filter out the attributes key
-    records.forEach(result => delete result.attributes);
-    return records;
+    return rawQueryRecords.map(
+      ({ attributes, ...cleanRecords }) => cleanRecords
+    );
   }
 }

@@ -42,7 +42,7 @@ describe('Query Data View Service', () => {
   });
 
   it('should post message to webview with query data', () => {
-    const queryRecords = mockQueryData.records;
+    const queryRecords = mockQueryData;
     const dataViewService = new QueryDataViewService(
       mockSubscription,
       queryRecords,
@@ -55,7 +55,7 @@ describe('Query Data View Service', () => {
     dataViewService.createOrShowWebView();
     expect(postMessageSpy.callCount).equal(1);
     const postMessageArgs = postMessageSpy.args[0][0];
-    expect(postMessageArgs.data).to.eql(mockQueryData.records);
+    expect(postMessageArgs.data).to.eql(mockQueryData);
     expect(postMessageArgs.documentName).equal(
       getDocumentName(mockTextDocument)
     );

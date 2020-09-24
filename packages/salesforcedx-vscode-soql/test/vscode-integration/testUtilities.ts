@@ -6,18 +6,17 @@
  */
 
 import { JsonMap } from '@salesforce/ts-types';
+import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../src/editor/soqlEditorInstance';
 
-interface MockQueryData {
-  records: JsonMap[];
-}
-
 export const mockQueryText = 'SELECT A, B FROM C';
-export const mockQueryData: MockQueryData = {
+export const mockQueryData: QueryResult<JsonMap> = {
+  done: true,
+  totalSize: 2000,
   records: [
     {
       attributes: {
@@ -73,7 +72,7 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
     return super.updateTextDocument(document, soql);
   }
 
-  public openQueryResults(results: JsonMap[]) {
-    super.openQueryResults(results);
+  public openQueryDataView(queryData: QueryResult<JsonMap>) {
+    super.openQueryDataView(queryData);
   }
 }

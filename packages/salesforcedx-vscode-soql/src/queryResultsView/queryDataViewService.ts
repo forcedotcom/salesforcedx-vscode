@@ -6,6 +6,7 @@
  */
 
 import { JsonMap } from '@salesforce/ts-types';
+import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../commonUtils';
@@ -28,7 +29,7 @@ export class QueryDataViewService {
 
   constructor(
     private subscriptions: vscode.Disposable[],
-    private queryData: JsonMap[],
+    private queryData: QueryResult<JsonMap>,
     private document: vscode.TextDocument
   ) {}
 
@@ -36,7 +37,10 @@ export class QueryDataViewService {
     QueryDataViewService.extensionPath = context.extensionPath;
   }
 
-  private updateWebviewWith(webview: vscode.Webview, queryData: JsonMap[]) {
+  private updateWebviewWith(
+    webview: vscode.Webview,
+    queryData: QueryResult<JsonMap>
+  ) {
     webview.postMessage({
       type: 'update',
       data: queryData,
