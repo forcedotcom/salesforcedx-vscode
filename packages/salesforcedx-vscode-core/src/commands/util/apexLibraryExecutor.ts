@@ -10,7 +10,7 @@ import * as path from 'path';
 import { languages, ProgressLocation, window } from 'vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
-import { WorkspaceContext } from '../../context';
+import { workspaceContext } from '../../context';
 import { handleApexLibraryDiagnostics } from '../../diagnostics';
 import { notificationService } from '../../notifications';
 import { formatExecuteResult } from './apexLibraryResultFormatter';
@@ -29,7 +29,7 @@ export abstract class ApexLibraryExecutor extends LibraryCommandletExecutor<{}> 
   ): Promise<void> {
     this.executionName = execName;
     this.telemetryName = telemetryLogName;
-    const conn = await WorkspaceContext.get().getConnection();
+    const conn = await workspaceContext.getConnection();
     this.createService(conn);
   }
 
