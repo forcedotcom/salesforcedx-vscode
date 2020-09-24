@@ -5,45 +5,45 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Command,
-  SfdxCommandBuilder,
   CliCommandExecutor,
-  CommandOutput
+  Command,
+  CommandOutput,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ContinueResponse,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
+import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
+import { channelService } from '../../channels';
 import { nls } from '../../messages';
+import { notificationService, ProgressNotification } from '../../notifications';
+import { taskViewService } from '../../statuses';
 import { TelemetryData } from '../../telemetry';
+import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
-import { getRootWorkspacePath, MetadataDictionary } from '../../util';
-import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import { channelService } from '../../channels';
-import { notificationService, ProgressNotification } from '../../notifications';
-import { taskViewService } from '../../statuses';
-import * as vscode from 'vscode';
-import * as path from 'path';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   LocalComponent[]
 > {
   private describer: RetrieveDescriber;
-  private OpenAfterRetrieve: boolean = false;
+  private openAfterRetrieve: boolean = false;
   constructor(
     describer: RetrieveDescriber,
-    OpenAfterRetrieve: boolean = false
+    openAfterRetrieve: boolean = false
   ) {
     super();
     this.describer = describer;
-    this.OpenAfterRetrieve = OpenAfterRetrieve;
+    this.openAfterRetrieve = openAfterRetrieve;
   }
 
   public build(data?: LocalComponent[]): Command {
@@ -81,7 +81,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     return quantities;
   }
 
-  public async execute(response: any): Promise<void> {
+  public async execute(response: ContinueResponse<ApexDebugLogIdStartTime>): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response), {
@@ -91,14 +91,14 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
-    if (resultJson.status === 0 && this.OpenAfterRetrieve) {
+    if (resultJson.status === 0 && this.openAfterRetrieve) {
       const extensions = MetadataDictionary.getInfo(
         resultJson.result.inboundFiles[0].type
       )?.extensions;
 
-      resultJson.result.inboundFiles.map( async (item:any) => {
+      resultJson.result.inboundFiles.map( async (item: any) => {
         let fileToOpen;
-        if(extensions?.includes( '.' + item.filePath.split('.').slice(-1) )){
+        if (extensions?.includes( '.' + item.filePath.split('.').slice(-1) )) {
           fileToOpen = path.join(
             getRootWorkspacePath(),
             item.filePath
@@ -129,13 +129,13 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 
 export async function forceSourceRetrieveCmp(
   trigger: RetrieveMetadataTrigger,
-  OpenAfterRetrieve: boolean = false
+  openAfterRetrieve: boolean = false
 ) {
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
-    new ForceSourceRetrieveExecutor(retrieveDescriber, OpenAfterRetrieve),
+    new ForceSourceRetrieveExecutor(retrieveDescriber, openAfterRetrieve),
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
@@ -144,4 +144,9 @@ export async function forceSourceRetrieveCmp(
 export type TextDocumentShowOptions = {
   preserveFocus?: boolean;
   preview?: boolean
-}
+};
+
+export type ApexDebugLogIdStartTime = {
+  id: string;
+  startTime: string;
+};
