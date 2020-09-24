@@ -18,9 +18,9 @@
     // Display the .soql file name as the title
     const titleEl = document.getElementById('webview-title');
     titleEl.innerText = documentName;
-
+    // Display the total number of records returned from the query
     const totalRecordsSizeEl = document.getElementById('total-records-size');
-    totalRecordsSizeEl.innerText = `Returned ${queryData.records.length} of ${queryData.totalSize} total records`;
+    totalRecordsSizeEl.innerText = `Returned ${queryData.records.length} of ${queryData.totalSize} total records`; // TODO: i18n
 
     renderTableWith(queryData);
   }
