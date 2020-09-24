@@ -74,5 +74,5 @@
   "force_function_start": "SFDX: Start Function",
   "force_function_invoke": "SFDX: Invoke Function",
   "force_function_stop": "SFDX: Stop Function",
-  "experimental_templates_library_description": "Use Templates Library for Templates CLI commands"
+  "experimental_support_functions": "Enable building and managing Salesforce functions from VS Code"
 }
