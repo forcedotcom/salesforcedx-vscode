@@ -53,7 +53,7 @@ export abstract class LibraryCommandletExecutor<T>
       this.telemetry.addProperty('success', String(success));
       const { properties, measurements } = this.telemetry.build();
       telemetryService.sendCommandEvent(
-        this.executionName,
+        this.logName,
         startTime,
         properties,
         measurements
