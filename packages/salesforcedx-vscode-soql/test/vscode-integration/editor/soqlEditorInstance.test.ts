@@ -7,7 +7,6 @@
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { SObjectService } from '@salesforce/sobject-metadata';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -99,14 +98,16 @@ describe('SoqlEditorInstance should', () => {
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(testData.username);
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
-    const sobjectNames = ['A', 'B'];
+    const describeGlobalResponse = {
+      sobjects: [{ name: 'A' }, { name: 'B' }]
+    };
     sandbox
-      .stub(SObjectService.prototype, 'retrieveSObjectNames')
-      .resolves(sobjectNames);
+      .stub(mockConnection, 'describeGlobal')
+      .resolves(describeGlobalResponse);
 
     const expectedMessage = {
       type: 'sobjects_response',
-      payload: sobjectNames
+      payload: ['A', 'B']
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -123,9 +124,7 @@ describe('SoqlEditorInstance should', () => {
       .returns(testData.username);
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
     const fakeSObject = { name: 'A' };
-    sandbox
-      .stub(SObjectService.prototype, 'describeSObject')
-      .resolves(fakeSObject);
+    sandbox.stub(mockConnection, 'describe').resolves(fakeSObject);
 
     const expectedMessage = {
       type: 'sobject_metadata_response',

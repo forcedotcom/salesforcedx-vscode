@@ -7,12 +7,9 @@
 import { ApiResult, SourceClient } from '@salesforce/source-deploy-retrieve';
 import { languages, ProgressLocation, window } from 'vscode';
 import { channelService } from '../../channels';
-import { handleDeployRetrieveLibraryDiagnostics } from '../../diagnostics';
-import { nls } from '../../messages';
+import { WorkspaceContext } from '../../context';
 import { notificationService } from '../../notifications';
-import { OrgAuthInfo } from '../../util';
 import { LibraryCommandletExecutor } from './libraryCommandlet';
-import { LibraryDeployResultParser } from './libraryDeployResultParser';
 import { outputRetrieveTable } from './retrieveParser';
 
 export class DeployRetrieveLibraryExecutor extends LibraryCommandletExecutor<
@@ -30,8 +27,7 @@ export class DeployRetrieveLibraryExecutor extends LibraryCommandletExecutor<
   ): Promise<void> {
     this.executionName = execName;
     this.telemetryName = telemetryLogName;
-
-    const conn = await OrgAuthInfo.getConnection();
+    const conn = await WorkspaceContext.get().getConnection();
     this.sourceClient = new SourceClient(conn);
   }
 

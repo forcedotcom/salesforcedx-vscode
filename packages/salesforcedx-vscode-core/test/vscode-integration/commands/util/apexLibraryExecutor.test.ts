@@ -19,8 +19,8 @@ import {
   SfdxCommandlet
 } from '../../../../src/commands/util';
 import { ApexLibraryExecutor } from '../../../../src/commands/util';
+import { WorkspaceContext } from '../../../../src/context';
 import { nls } from '../../../../src/messages';
-import { OrgAuthInfo } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('ApexLibraryExecutor', () => {
@@ -85,7 +85,7 @@ describe('ApexLibraryExecutor', () => {
 
   it('Should create connection on build phase', async () => {
     const orgAuthConnMock = sb
-      .stub(OrgAuthInfo, 'getConnection')
+      .stub(WorkspaceContext.get(), 'getConnection')
       .returns(mockConnection);
 
     const commandlet = new class extends ApexLibraryExecutor {
@@ -100,9 +100,6 @@ describe('ApexLibraryExecutor', () => {
   });
 
   it('Should fail build phase if username cannot be found', async () => {
-    const orgAuthMock = sb
-      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
-      .returns(undefined);
     const commandlet = new class extends ApexLibraryExecutor {
       public createService(conn: Connection): void {}
       public async execute(response: ContinueResponse<{}>): Promise<void> {}
@@ -113,7 +110,6 @@ describe('ApexLibraryExecutor', () => {
       fail('build phase should throw an error');
     } catch (e) {
       expect(e.message).to.equal(nls.localize('error_no_default_username'));
-      expect(orgAuthMock.calledOnce).to.equal(true);
       expect(createServiceStub.calledOnce).to.equal(false);
     }
   });

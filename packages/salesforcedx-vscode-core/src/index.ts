@@ -77,6 +77,7 @@ import {
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
+import { WorkspaceContext } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -578,21 +579,14 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  let defaultUsernameorAlias: string | undefined;
-  if (hasRootWorkspace()) {
-    defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-  }
+  await WorkspaceContext.initialize(context);
 
-  // register org picker commands and set up filewatcher for defaultusername
+  // register org picker commands
   const orgList = new OrgList();
-  orgList.displayDefaultUsername(defaultUsernameorAlias);
   context.subscriptions.push(registerOrgPickerCommands(orgList));
 
   await setupOrgBrowser(context);
   await setupConflictView(context);
-  // Set context for defaultusername org
-  await setupWorkspaceOrgType(defaultUsernameorAlias);
-  await orgList.registerDefaultUsernameWatcher(context);
 
   // Register filewatcher for push or deploy on save
   await registerPushOrDeployOnSave();

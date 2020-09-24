@@ -6,10 +6,13 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { SObject, SObjectService } from '@salesforce/sobject-metadata';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
-import { QueryResult } from 'jsforce';
+import {
+  DescribeGlobalSObjectResult,
+  DescribeSObjectResult,
+  QueryResult
+} from 'jsforce';
 import * as vscode from 'vscode';
 import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
@@ -96,7 +99,7 @@ export class SOQLEditorInstance {
     });
   }
 
-  protected updateSObjectMetadata(sobject: SObject): void {
+  protected updateSObjectMetadata(sobject: DescribeSObjectResult): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.SOBJECT_METADATA_RESPONSE,
       payload: sobject
@@ -171,17 +174,16 @@ export class SOQLEditorInstance {
 
   protected async retrieveSObjects(): Promise<void> {
     return withSFConnection(async conn => {
-      const sobjectService = new SObjectService(conn);
-      const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
+      const describeGlobalResult = await conn.describeGlobal();
+      const sobjectNames: string[] = describeGlobalResult.sobjects.map(
+        (sobject: DescribeGlobalSObjectResult) => sobject.name
+      );
       this.updateSObjects(sobjectNames);
     });
   }
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
-      const sobjectService = new SObjectService(conn);
-      const sobject: SObject = await sobjectService.describeSObject(
-        sobjectName
-      );
+      const sobject = await conn.describe(sobjectName);
       this.updateSObjectMetadata(sobject);
     });
   }
