@@ -22,7 +22,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { OrgAuthInfo } = sfdxCoreExports;
+const { WorkspaceContext } = sfdxCoreExports;
 
 describe('SoqlEditorInstance should', () => {
   const $$ = testSetup();
@@ -95,9 +95,8 @@ describe('SoqlEditorInstance should', () => {
 
   it('responds to sobjects_request with a list of sobjects', async () => {
     sandbox
-      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
-      .returns(testData.username);
-    sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
+      .stub(WorkspaceContext.get(), 'getConnection')
+      .returns(mockConnection);
     const describeGlobalResponse = {
       sobjects: [{ name: 'A' }, { name: 'B' }]
     };
@@ -120,9 +119,8 @@ describe('SoqlEditorInstance should', () => {
 
   it('responds to sobject_metadata_request with SObject metadata', async () => {
     sandbox
-      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
-      .returns(testData.username);
-    sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
+      .stub(WorkspaceContext.get(), 'getConnection')
+      .returns(mockConnection);
     const fakeSObject = { name: 'A' };
     sandbox.stub(mockConnection, 'describe').resolves(fakeSObject);
 
