@@ -81,7 +81,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     return quantities;
   }
 
-  public async execute(response: ContinueResponse<ApexDebugLogIdStartTime>): Promise<void> {
+  public async execute(response: any): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response), {
@@ -146,7 +146,9 @@ export type TextDocumentShowOptions = {
   preview?: boolean
 };
 
-export type ApexDebugLogIdStartTime = {
-  id: string;
-  startTime: string;
+export type MetadataResponse = {
+  fileName: string;
+  outputdir: string;
+  suffix: string;
+  type: string
 };
