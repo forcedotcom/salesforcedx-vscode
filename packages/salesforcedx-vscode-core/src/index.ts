@@ -77,7 +77,7 @@ import {
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
 import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
-import { WorkspaceContext } from './context';
+import { workspaceContext } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -575,7 +575,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   if (sfdxProjectOpened) {
-    await WorkspaceContext.initialize(context);
+    await workspaceContext.initialize(context);
 
     // register org picker commands
     const orgList = new OrgList();
