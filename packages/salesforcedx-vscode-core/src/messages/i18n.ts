@@ -146,6 +146,8 @@ export const messages = {
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
   force_function_start_text: 'SFDX: Start Function',
+  force_function_start_no_org_auth:
+    'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
     'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
   force_function_start_warning_not_in_function_folder:
@@ -331,6 +333,7 @@ export const messages = {
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
   error_org_browser_init: 'Org Browser has not been initialized',
+  error_workspace_context_init: 'WorkspaceContext has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',

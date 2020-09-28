@@ -7,7 +7,6 @@
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { SObjectService } from '@salesforce/sobject-metadata';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -102,14 +101,16 @@ describe('SoqlEditorInstance should', () => {
       .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
       .returns(testData.username);
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
-    const sobjectNames = ['A', 'B'];
+    const describeGlobalResponse = {
+      sobjects: [{ name: 'A' }, { name: 'B' }]
+    };
     sandbox
-      .stub(SObjectService.prototype, 'retrieveSObjectNames')
-      .resolves(sobjectNames);
+      .stub(mockConnection, 'describeGlobal')
+      .resolves(describeGlobalResponse);
 
     const expectedMessage = {
       type: 'sobjects_response',
-      payload: sobjectNames
+      payload: ['A', 'B']
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -127,7 +128,7 @@ describe('SoqlEditorInstance should', () => {
     sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
     const fakeSObject = { name: 'A' };
     sandbox
-      .stub(SObjectService.prototype, 'describeSObject')
+      .stub(mockConnection, 'describe')
       .resolves(fakeSObject);
 
     const expectedMessage = {
@@ -152,8 +153,7 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateDocumentSpy.callCount === 1,
-      `updateDocumentSpy callcount expected 1, but got ${
-        updateDocumentSpy.callCount
+      `updateDocumentSpy callcount expected 1, but got ${updateDocumentSpy.callCount
       }`
     );
     expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
@@ -166,8 +166,7 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateWebviewSpy.callCount === 1,
-      `updateWebviewSpy callcount expected 1, but got ${
-        updateWebviewSpy.callCount
+      `updateWebviewSpy callcount expected 1, but got ${updateWebviewSpy.callCount
       }`
     );
   });
