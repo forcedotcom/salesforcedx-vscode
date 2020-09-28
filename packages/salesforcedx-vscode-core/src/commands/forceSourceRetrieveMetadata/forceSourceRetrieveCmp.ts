@@ -98,7 +98,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 
       resultJson.result.inboundFiles.map( async (item: any) => {
         let fileToOpen;
-        if (extensions?.includes( '.' + item.filePath.split('.').slice(-1) )) {
+        if (extensions?.includes( path.extname(item.filePath))) {
           fileToOpen = path.join(
             getRootWorkspacePath(),
             item.filePath
