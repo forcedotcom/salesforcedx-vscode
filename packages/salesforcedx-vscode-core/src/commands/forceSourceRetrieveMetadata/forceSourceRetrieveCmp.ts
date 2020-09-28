@@ -111,20 +111,6 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
       );
     }
   }
-
-  protected attachExecution(
-    execution: CommandExecution,
-    cancellationTokenSource: vscode.CancellationTokenSource,
-    cancellationToken: vscode.CancellationToken
-  ) {
-    channelService.streamCommandStartStop(execution);
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
-  }
 }
 
 export async function forceSourceRetrieveCmp(
