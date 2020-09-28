@@ -143,7 +143,7 @@ describe('forceLightningLwcPreview', () => {
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
   let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
   let showErrorMessageStub: sinon.SinonStub<any[], any>;
-  const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
+  const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';
   const mockLwcFileDirectory = path.join(
     root,
     'project',
@@ -689,9 +689,9 @@ describe('forceLightningLwcPreview', () => {
     ]);
     expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
       '-d',
-      mockLwcFileDirectoryUri.path.substring(
+      mockLwcFileDirectoryUri.fsPath.substring(
         0,
-        mockLwcFileDirectoryUri.path.lastIndexOf(path.sep)
+        mockLwcFileDirectoryUri.fsPath.lastIndexOf(path.sep)
       )
     ]);
     expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
@@ -1238,9 +1238,9 @@ describe('forceLightningLwcPreview', () => {
     const deviceName = isAndroid
       ? androidPickedDevice.label
       : iOSPickedDevice.label;
-    const projectRootDir = mockLwcFileDirectoryUri.path.substring(
+    const projectRootDir = mockLwcFileDirectoryUri.fsPath.substring(
       0,
-      mockLwcFileDirectoryUri.path.lastIndexOf(path.sep)
+      mockLwcFileDirectoryUri.fsPath.lastIndexOf(path.sep)
     );
     const configFile = path.join(projectRootDir, 'mobile-apps.json');
 
