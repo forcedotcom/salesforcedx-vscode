@@ -27,7 +27,7 @@ describe('Force Source Retrieve', () => {
   it('Should build source retrieve command', async () => {
     const forceSourceRetrieveCmd = forceSourceRetrieveExec.build();
     expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-      `sfdx force:source:retrieve -m TestType:Test1`
+      `sfdx force:source:retrieve --json --loglevel fatal -m TestType:Test1`
     );
   });
 
@@ -35,7 +35,7 @@ describe('Force Source Retrieve', () => {
     const data = [{ fileName: 'Test2', outputdir: '', type: 'TestType2' }];
     const forceSourceRetrieveCmd = forceSourceRetrieveExec.build(data);
     expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-      `sfdx force:source:retrieve -m TestType2:Test2`
+      `sfdx force:source:retrieve --json --loglevel fatal -m TestType2:Test2`
     );
   });
 });
