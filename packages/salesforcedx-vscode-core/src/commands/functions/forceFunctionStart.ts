@@ -20,7 +20,7 @@ import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath } from '../../util';
+import { getRootWorkspacePath, OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -44,7 +44,7 @@ const forceFunctionStartErrorInfo: {
     cliMessage: string;
     cliExitCode: number;
     errorNotificationMessage: string;
-  }
+  };
 } = {
   force_function_start_plugin_not_installed: {
     cliMessage: 'is not a sfdx command',
@@ -120,6 +120,19 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
     const executionName = execution.command.toString();
+
+    OrgAuthInfo.getDefaultUsernameOrAlias(false)
+      .then(defaultUsernameorAlias => {
+        if (!defaultUsernameorAlias) {
+          const message = nls.localize('force_function_start_no_org_auth');
+          channelService.appendLine(message);
+          channelService.showChannelOutput();
+          notificationService.showInformationMessage(message);
+        }
+      })
+      .catch(error => {
+        // ignore, getDefaultUsernameOrAlias catches the error and logs telemetry
+      });
 
     const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
       {

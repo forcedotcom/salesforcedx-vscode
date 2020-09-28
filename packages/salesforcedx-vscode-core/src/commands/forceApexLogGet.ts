@@ -6,7 +6,6 @@
  */
 
 import { LogService } from '@salesforce/apex-node';
-import { Connection } from '@salesforce/core';
 import {
   CliCommandExecutor,
   Command,
@@ -29,15 +28,15 @@ import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../channels';
+import { SFDX_FOLDER } from '../constants';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { taskViewService } from '../statuses';
-import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import {
-  ApexLibraryExecutor,
-  CommandletExecutor,
+  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -214,47 +213,23 @@ export class ForceApexLogList {
   }
 }
 
-export class ApexLibraryGetLogsExecutor extends ApexLibraryExecutor {
-  protected logService: LogService | undefined;
+export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: string }> {
+  protected executionName: string = nls.localize('apex_log_get_text');
+  protected logName: string = 'force_apex_log_get_library';
 
-  public createService(conn: Connection): void {
-    this.logService = new LogService(conn);
-  }
+  protected async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
+    const connection = await workspaceContext.getConnection();
+    const logService = new LogService(connection);
+    const { id: logId } = response.data;
+    const outputDir = path.join(getRootWorkspacePath(), SFDX_FOLDER, 'tools', 'debug', 'logs');
 
-  public async execute(
-    response: ContinueResponse<{ id: string }>
-  ): Promise<void> {
-    try {
-      await this.build(
-        nls.localize('apex_log_get_text'),
-        nls.localize('force_apex_log_get_library')
-      );
+    await logService.getLogs({ logId, outputDir });
 
-      if (this.logService === undefined) {
-        throw new Error('Log Service is not established.');
-      }
+    const logPath = path.join(outputDir, `${logId}.log`);
+    const document = await vscode.workspace.openTextDocument(logPath);
+    vscode.window.showTextDocument(document);
 
-      this.logService.getLogs = this.getLogsWrapper(this.logService.getLogs);
-      const id = response.data.id;
-      const logDir = path.join(
-        getRootWorkspacePath(),
-        '.sfdx',
-        'tools',
-        'debug',
-        'logs'
-      );
-      await this.logService.getLogs({
-        logId: id,
-        outputDir: logDir
-      });
-    } catch (e) {
-      telemetryService.sendException(
-        nls.localize('force_apex_log_get_library'),
-        e.message
-      );
-      notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
-    }
+    return true;
   }
 }
 
