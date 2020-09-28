@@ -146,7 +146,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
 
     const result = await executeService.executeAnonymous({ apexFilePath, apexCode });
 
-    const success = result.compiled && result.success;
+    const { success } = result;
     const formattedResult = formatExecuteResult(result);
     channelService.appendLine(formattedResult);
 
