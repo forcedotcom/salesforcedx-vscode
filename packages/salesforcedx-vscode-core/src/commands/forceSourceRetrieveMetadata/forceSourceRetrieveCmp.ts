@@ -145,10 +145,3 @@ export type TextDocumentShowOptions = {
   preserveFocus?: boolean;
   preview?: boolean
 };
-
-export type MetadataResponse = {
-  fileName: string;
-  outputdir: string;
-  suffix: string;
-  type: string
-};
