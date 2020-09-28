@@ -35,6 +35,28 @@ export interface TelemetryData {
   measurements?: Measurements;
 }
 
+export class TelemetryBuilder {
+  private properties?: Properties;
+  private measurements?: Measurements;
+
+  public addProperty(key: string, value: string) {
+    this.properties = this.properties || {};
+    this.properties[key] = value;
+  }
+
+  public addMeasurement(key: string, value: number) {
+    this.measurements = this.measurements || {};
+    this.measurements[key] = value;
+  }
+
+  public build(): TelemetryData {
+    return {
+      properties: this.properties,
+      measurements: this.measurements
+    };
+  }
+}
+
 export class TelemetryService {
   private static instance: TelemetryService;
   private context: ExtensionContext | undefined;

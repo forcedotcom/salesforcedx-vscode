@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import { assert, match, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
-import { TelemetryService } from '../../../src/telemetry/telemetry';
+import { TelemetryBuilder, TelemetryService } from '../../../src/telemetry/telemetry';
 import TelemetryReporter from '../../../src/telemetry/telemetryReporter';
 import { MockContext } from './MockContext';
 
@@ -365,6 +365,44 @@ describe('Telemetry', () => {
       telemetryService.sendCommandEvent('create_apex_class_command', [0, 123]);
       assert.notCalled(reporter);
       expect(teleStub.firstCall.args).to.eql([false]);
+    });
+  });
+
+  describe('TelemetryBuilder', () => {
+    it('should build object with a property set', () => {
+      const builder = new TelemetryBuilder();
+
+      builder.addProperty('test', 'a');
+
+      expect(builder.build()).to.deep.equal(Object({
+        properties: { test: 'a' },
+        measurements: undefined
+      }));
+    });
+
+    it('should build object with a measurement set', () => {
+      const builder = new TelemetryBuilder();
+
+      builder.addMeasurement('test', 10);
+
+      expect(builder.build()).to.deep.equal(Object({
+        properties: undefined,
+        measurements: { test: 10 }
+      }));
+    });
+
+    it('should build object with multiple set', () => {
+      const builder = new TelemetryBuilder();
+
+      builder.addProperty('prop1', 'a');
+      builder.addProperty('prop2', 'b');
+      builder.addMeasurement('measure1', 1);
+      builder.addMeasurement('measure2', 2);
+
+      expect(builder.build()).to.deep.equal(Object({
+        properties: { prop1: 'a', prop2: 'b' },
+        measurements: { measure1: 1, measure2: 2 }
+      }));
     });
   });
 });
