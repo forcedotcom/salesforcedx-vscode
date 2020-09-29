@@ -445,7 +445,7 @@ async function selectTargetApp(
   let targetApp: string | undefined = 'browser';
   const options: vscode.QuickPickItem[] = [];
 
-  if (configFile === undefined) {
+  if (configFile === undefined || fs.existsSync(configFile) === false) {
     return targetApp;
   }
 
@@ -612,10 +612,12 @@ function getProjectRootDirectory(startPath: string): string | undefined {
  * @returns path to a directory that is one level up, or undefined if cannot go one level up.
  */
 function directoryLevelUp(directory: string): string | undefined {
-  const idx = directory.lastIndexOf(path.sep);
-  if (idx > 0) {
-    return directory.substring(0, idx);
-  } else {
+  const levelUp = path.dirname(directory);
+
+  if (levelUp === directory) {
+    // we're at the root and can't go any further up
     return undefined;
   }
+
+  return levelUp;
 }
