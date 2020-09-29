@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
+  getMockConnection,
+  MockConnection,
   MockTextDocumentProvider,
   TestSoqlEditorInstance
 } from '../testUtilities';
@@ -25,10 +25,7 @@ const sfdxCoreExports = sfdxCoreExtension
 const { workspaceContext } = sfdxCoreExports;
 
 describe('SoqlEditorInstance should', () => {
-  const $$ = testSetup();
-  const testData = new MockTestOrgData();
-
-  let mockConnection: Connection;
+  let mockConnection: MockConnection;
   let mockWebviewPanel: vscode.WebviewPanel;
   let docProviderDisposable: vscode.Disposable;
   let mockTextDocument: vscode.TextDocument;
@@ -54,18 +51,7 @@ describe('SoqlEditorInstance should', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
-    });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
-    sandbox
-      .stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
-      .returns(testData.username);
+    mockConnection = getMockConnection(sandbox);
     docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
       'sfdc-test',
       new MockTextDocumentProvider()
@@ -89,7 +75,6 @@ describe('SoqlEditorInstance should', () => {
   afterEach(() => {
     mockWebviewPanel.dispose();
     docProviderDisposable.dispose();
-    $$.SANDBOX.restore();
     sandbox.restore();
   });
 

@@ -5,13 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
+import { DescribeSObjectResult, QueryResult } from 'jsforce';
+import { SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../src/editor/soqlEditorInstance';
+
+export interface MockConnection {
+  authInfo: object;
+  describeGlobal: () => Promise<void>;
+  describe: () => Promise<void>;
+  query: () => Promise<QueryResult<JsonMap>>;
+}
 
 export const mockQueryText = 'SELECT A, B FROM C';
 export const mockQueryData: QueryResult<JsonMap> = {
@@ -44,6 +53,29 @@ export const mockQueryData: QueryResult<JsonMap> = {
     }
   ]
 };
+
+export function getMockConnection(
+  sandbox: SinonSandbox,
+  testUserName = 'test@test.com'
+) {
+  const mockAuthInfo = { test: 'test' };
+  const mockConnection = {
+    authInfo: mockAuthInfo,
+    describeGlobal: () => Promise.resolve(),
+    describe: () => Promise.resolve(),
+    query: () => Promise.resolve(mockQueryData)
+  };
+
+  sandbox
+    .stub(AuthInfo, 'create')
+    .withArgs({ username: testUserName })
+    .resolves(mockAuthInfo);
+  sandbox
+    .stub(Connection, 'create')
+    .withArgs({ authInfo: mockAuthInfo })
+    .returns(mockConnection);
+  return mockConnection;
+}
 
 export class MockTextDocumentProvider
   implements vscode.TextDocumentContentProvider {

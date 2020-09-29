@@ -5,45 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { QueryRunner } from '../../../src/editor/queryRunner';
-import { mockQueryData, mockQueryText } from '../testUtilities';
+import {
+  getMockConnection,
+  MockConnection,
+  mockQueryText
+} from '../testUtilities';
 
 describe('Query Runner Should', () => {
-  const $$ = testSetup();
-  const testData = new MockTestOrgData();
-  let mockConnection: Connection;
+  let mockConnection: MockConnection;
   let sandbox: sinon.SinonSandbox;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     sandbox = sinon.createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
-    });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
-    sandbox
-      .stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
-      .returns(testData.username);
+    mockConnection = getMockConnection(sandbox);
   });
 
   afterEach(() => {
-    $$.SANDBOX.restore();
     sandbox.restore();
   });
 
   it('returns query data without attribute properties', async () => {
-    sandbox.stub(mockConnection, 'query').returns(mockQueryData);
+    // @ts-ignore
     const queryRunner = new QueryRunner(mockConnection);
     const queryData = await queryRunner.runQuery(mockQueryText);
-    queryData.records.forEach(result => {
+    queryData.records.forEach((result: {}) => {
       expect(result).to.not.have.key('attributes');
     });
   });
@@ -51,6 +39,7 @@ describe('Query Runner Should', () => {
   it('throws error with conection.query() exception', async () => {
     const errorName = 'Bad Query';
     sandbox.stub(mockConnection, 'query').throws(errorName);
+    // @ts-ignore
     const queryRunner = new QueryRunner(mockConnection);
     try {
       await queryRunner.runQuery(mockQueryText);
