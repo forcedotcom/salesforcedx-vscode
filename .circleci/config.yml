@@ -48,6 +48,52 @@ parameters:
     default: false
 
 commands:
+  build-artifacts:
+    description: 'Building and archiving extension artifacts.'
+    steps:
+      - checkout
+      - restore_dependency_cache
+      - install
+      - compile
+      - package-extensions
+      - stage-and-store-artifacts
+      - save_dependency_cache
+
+  build-win:
+    description: 'Build for Windows.'
+    steps:
+      - run: git config --global core.autocrlf false
+      - checkout
+      - restore_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
+      - run:
+          name: 'Install node'
+          shell: bash.exe
+          command: |
+            nvm install $NODE_VERSION
+            nvm use $NODE_VERSION
+            nvm install-latest-npm
+      - run:
+          name: 'Install dependent modules'
+          shell: bash.exe
+          command: |
+            npm config set scripts-prepend-node-path true
+            npm install
+            npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
+            npm install -g codecov
+            npm install -g junit-merge
+      - run:
+          name: 'Compile'
+          shell: bash.exe
+          command: npm run compile
+      - save_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
+      - run:
+          name: 'Run lint'
+          shell: bash.exe
+          command: |
+            npm run lint
+
   compile:
     parameters:
       compile-mode:
@@ -188,52 +234,6 @@ commands:
           command: |
             git add SHA256.md
             git commit -m "Updated SHA256 v${RELEASE_VERSION}"
-
-  build-artifacts:
-    description: 'Building and archiving extension artifacts.'
-    steps:
-      - checkout
-      - restore_dependency_cache
-      - install
-      - compile
-      - package-extensions
-      - stage-and-store-artifacts
-      - save_dependency_cache
-
-  build-win:
-    description: 'Build for Windows.'
-    steps:
-      - run: git config --global core.autocrlf false
-      - checkout
-      - restore_dependency_cache:
-          base-cache-path: << pipeline.parameters.cache-version >>-win
-      - run:
-          name: 'Install node'
-          shell: bash.exe
-          command: |
-            nvm install $NODE_VERSION
-            nvm use $NODE_VERSION
-            nvm install-latest-npm
-      - run:
-          name: 'Install dependent modules'
-          shell: bash.exe
-          command: |
-            npm config set scripts-prepend-node-path true
-            npm install
-            npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
-            npm install -g codecov
-            npm install -g junit-merge
-      - run:
-          name: 'Compile'
-          shell: bash.exe
-          command: npm run compile
-      - save_dependency_cache:
-          base-cache-path: << pipeline.parameters.cache-version >>-win
-      - run:
-          name: 'Run lint'
-          shell: bash.exe
-          command: |
-            npm run lint
 
 executors:
   default-executor:
