@@ -83,25 +83,6 @@ commands:
             git config user.email "<< parameters.gh_email >>"
             git config user.name "<< parameters.gh_username >>"
 
-  gus-prepare-environment-variables:
-    parameters:
-      package-json-path:
-        type: string
-        default: './packages/salesforcedx-vscode/package.json'
-      release-tag-name:
-        type: string
-        default: 'offcore.tooling'
-    steps:
-      - run:
-          name: 'Prepare environment variables for GUS Change Case Management'
-          command: |
-            export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
-            echo "export RELEASE_VERSION=$GUS_BUILD" >> $BASH_ENV
-            echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
-            source $BASH_ENV
-            echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
-            echo "GUS_RELEASE is: ${GUS_RELEASE}"
-
   install:
     description: 'Installing dependencies'
     steps:
@@ -114,6 +95,36 @@ commands:
       - run:
           name: 'Packaging extensions'
           command: npm run vscode:package
+
+  prepare-gus-environment-variables:
+    parameters:
+      package-json-path:
+        type: string
+        default: './packages/salesforcedx-vscode/package.json'
+      release-tag-name:
+        type: string
+        default: 'offcore.tooling'
+    steps:
+      - run:
+          name: 'Prepare environment variables for GUS Change Case Management'
+          command: |
+            export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
+            echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
+            source $BASH_ENV
+            echo "GUS_RELEASE is: ${GUS_RELEASE}"
+
+  prepare-release-environment-variables:
+    parameters:
+      package-json-path:
+        type: string
+        default: './packages/salesforcedx-vscode/package.json'
+    steps:
+      - run:
+          name: 'Prepare release branch environment variable'
+          command: |
+            echo "export RELEASE_VERSION="$(node -pe "require('<< parameters.package-json-path >>').version")"" >> $BASH_ENV
+            source $BASH_ENV
+            echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
 
   restore_dependency_cache:
     # This logic cannot be done within the node orb currently. This is due to the fact that we use
@@ -349,7 +360,7 @@ jobs:
           message: 'Starting publish for VSCode Extensions'
       - ssh-config
       - checkout
-      - gus-prepare-environment-variables
+      - prepare-gus-environment-variables
       - restore_dependency_cache
       - run:
           name: 'Setup gus case management'
