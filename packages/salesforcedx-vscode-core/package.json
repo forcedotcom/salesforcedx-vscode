@@ -28,6 +28,7 @@
     "@salesforce/apex-node": "0.0.9",
     "@salesforce/core": "2.9.0",
     "@salesforce/salesforcedx-utils-vscode": "49.12.0",
+    "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "1.1.2",
     "@salesforce/templates": "49.9.1",
     "adm-zip": "0.4.13",
@@ -895,11 +896,11 @@
     "jsonValidation": [
       {
         "fileMatch": "sfdx-project.json",
-        "url": "https://forcedotcom.github.io/schemas/schemas/sfdx-project.schema.json"
+        "url": "./node_modules/@salesforce/schemas/sfdx-project.schema.json"
       },
       {
         "fileMatch": "*-scratch-def.json",
-        "url": "https://forcedotcom.github.io/schemas/schemas/project-scratch-def.schema.json"
+        "url": "./node_modules/@salesforce/schemas/project-scratch-def.schema.json"
       }
     ],
     "languages": [
