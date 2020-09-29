@@ -85,8 +85,6 @@ describe('Force Source Retrieve and open', () => {
     expect(forceSourceRetrieveCmd.toCommand()).to.equal(
       `sfdx force:source:retrieve --json --loglevel fatal -m TestType:Test1`
     );
-    expect(forceSourceRetrieveStub.called).to.be.true;
-    // expect(openTextDocumentStub.called).to.be.true;
-    // expect(showTextDocumentStub.called).to.be.true;
+    expect(forceSourceRetrieveStub.called).to.equal(true);
   });
 });
