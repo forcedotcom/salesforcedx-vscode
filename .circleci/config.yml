@@ -15,15 +15,20 @@ orbs:
   slack: circleci/slack@3.4.2
 
 parameters:
+  # Configurable Versions
   cli-version:
     type: string
     default: '7.45.1'
-  node-version:
-    type: string
-    default: '12.4.0'
   lerna-version:
     type: string
     default: '3.13.1'
+  node-version:
+    type: string
+    default: '12.4.0'
+  # Constants
+  cache-version:
+    type: string
+    default: 'dependency-cache-v4-'
   domain-retry:
     description: 'SFDX Domain Retry Wait in Seconds'
     type: integer
@@ -31,15 +36,16 @@ parameters:
   fingerprint:
     type: string
     default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
-  publish:
-    type: boolean
-    default: false
+  # Workflow Triggers
   create-release:
     type: boolean
     default: false
-  cache-version:
-    type: string
-    default: 'dependency-cache-v4-'
+  merge-release:
+    type: boolean
+    default: false
+  publish:
+    type: boolean
+    default: false
 
 commands:
   compile:
