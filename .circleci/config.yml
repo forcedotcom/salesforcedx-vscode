@@ -40,10 +40,10 @@ parameters:
   create-release:
     type: boolean
     default: false
-  merge-release:
+  publish:
     type: boolean
     default: false
-  publish:
+  pre-publish:
     type: boolean
     default: false
 
@@ -135,6 +135,28 @@ commands:
       - run: npm install
       - run: npm --version
       - run: node --version
+
+  merge-validation:
+    description: 'Verify the release branch is not older than main'
+    parameters:
+      package-json-path:
+        type: string
+        default: './packages/salesforcedx-vscode/package.json'
+    steps:
+      - run:
+          name: 'Validate release version against main'
+          command: |
+            git checkout main
+            echo "export MAIN_RELEASE_VERSION="$(node -pe "require('<< parameters.package-json-path >>').version")"" >> $BASH_ENV
+            source $BASH_ENV
+            echo "MAIN_RELEASE_VERSION is: ${MAIN_RELEASE_VERSION}"
+            LOWER_VERSION="`echo -e "${MAIN_RELEASE_VERSION}\n${RELEASE_VERSION}" | sort -V | cut --delimiter $'\n' --fields 1`"
+            echo "Lower version was: ${LOWER_VERSION}"
+            if [ ${LOWER_VERSION} != ${MAIN_RELEASE_VERSION} ]
+            then
+              echo "The release branch is older than main. We do not want to rebase off of an old branch. Exiting."
+              exit 1;
+            fi
 
   package-extensions:
     steps:
@@ -348,6 +370,35 @@ jobs:
               $host.SetShouldExit(1)
             }
 
+  merge-release-branch:
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
+    steps:
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#FFDEAD'
+          message: 'Merging release branch into main'
+      - ssh-config
+      - checkout
+      - prepare-release-environment-variables
+      - merge-validation
+      - run:
+          name: 'Rebasing main off of release branch'
+          command: |
+            git checkout main
+            echo "Rebasing main off of release branch ${RELEASE_VERSION}"
+            git rebase release/v${RELEASE_VERSION}
+            git push
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#d8bfd8'
+          message: 'Main should now be rebased off of the release branch ${RELEASE_VERSION}'
+      - slack/status:
+          channel: 'pdt_releases'
+          fail_only: true
+
   publish:
     parameters:
       e:
@@ -436,12 +487,37 @@ workflows:
   commit-workflow:
     when:
       and:
-        - not: << pipeline.parameters.publish >>
         - not: << pipeline.parameters.create-release >>
+        - not: << pipeline.parameters.publish >>
+        - not: << pipeline.parameters.pre-publish >>
     jobs:
       - build-all
       - unit-tests
       - integration-tests
+
+  pre-publish-workflow:
+    when: << pipeline.parameters.pre-publish >>
+    jobs:
+      - slack/approval-notification:
+          message: Pending Approval for merge of release branch into main
+          channel: 'pdt_releases'
+          color: '#0E1111'
+      - build-all
+      - unit-tests
+      - integration-tests
+      - hold: # Requires manual approval in Circle Ci
+          type: approval
+      - merge-release-branch:
+          e: default-executor
+          requires:
+            - build-all
+            - unit-tests
+            - integration-tests
+            - hold
+          filters:
+            branches:
+              only:
+                - /^release/v.*/
 
   publish-workflow:
     when: << pipeline.parameters.publish >>
