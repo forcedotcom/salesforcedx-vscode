@@ -7,6 +7,9 @@
 
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import Sinon = require('sinon');
+import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { ForceSourceRetrieveExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 
@@ -37,5 +40,53 @@ describe('Force Source Retrieve', () => {
     expect(forceSourceRetrieveCmd.toCommand()).to.equal(
       `sfdx force:source:retrieve --json --loglevel fatal -m TestType2:Test2`
     );
+  });
+});
+
+describe('Force Source Retrieve and open', () => {
+  let sb: SinonSandbox;
+  let forceSourceRetrieveStub: SinonStub;
+  let openTextDocumentStub: SinonStub;
+  let showTextDocumentStub: SinonStub;
+  const openAfterRetrieve: boolean = true;
+
+  beforeEach(async () => {
+    sb = createSandbox();
+    forceSourceRetrieveStub = sb.stub(
+      ForceSourceRetrieveExecutor.prototype,
+      'execute'
+    );
+    openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
+    showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
+  });
+
+  afterEach(async () => {
+    sb.restore();
+  });
+
+  it('Should build source retrieve command', async () => {
+    const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
+      new TestDescriber(),
+      openAfterRetrieve
+    );
+    const forceSourceRetrieveCmd = await forceSourceRetrieveExec.build();
+    const response = {
+      type: 'CONTINUE',
+      data: [
+        {
+          fileName: 'Test1',
+          outputdir: 'force-app/main/default/classes',
+          type: 'TestType',
+          suffix: 'cls'
+        }
+      ]
+    };
+    const exeEesponse = await forceSourceRetrieveExec.execute(response);
+    expect(forceSourceRetrieveCmd.toCommand()).to.equal(
+      `sfdx force:source:retrieve --json --loglevel fatal -m TestType:Test1`
+    );
+    expect(forceSourceRetrieveStub.called).to.be.true;
+    // expect(openTextDocumentStub.called).to.be.true;
+    // expect(showTextDocumentStub.called).to.be.true;
   });
 });
