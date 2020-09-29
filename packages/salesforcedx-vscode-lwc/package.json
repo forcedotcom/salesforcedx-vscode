@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/eslint-config-lwc": "0.3.0",
-    "@salesforce/lightning-lsp-common": "3.0.5",
-    "@salesforce/lwc-language-server": "3.0.5",
+    "@salesforce/lightning-lsp-common": "3.0.8",
+    "@salesforce/lwc-language-server": "3.0.8",
     "@salesforce/salesforcedx-utils-vscode": "49.11.0",
     "ajv": "^6.1.1",
     "eslint": "5.0.0",
