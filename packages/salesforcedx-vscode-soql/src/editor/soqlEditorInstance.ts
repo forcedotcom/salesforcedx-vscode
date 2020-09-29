@@ -6,9 +6,16 @@
  */
 
 import { Connection } from '@salesforce/core';
+import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
-import { DescribeGlobalSObjectResult, DescribeSObjectResult } from 'jsforce';
+import {
+  DescribeGlobalSObjectResult,
+  DescribeSObjectResult,
+  QueryResult
+} from 'jsforce';
 import * as vscode from 'vscode';
+import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
+import { QueryRunner } from './queryRunner';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -16,15 +23,15 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { OrgAuthInfo, channelService } = sfdxCoreExports;
+const { channelService, workspaceContext } = sfdxCoreExports;
 
-// This should be exported from soql-builder-ui
+// TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
   payload?: string | string[];
 }
 
-// This should be shared with soql-builder-ui
+// TODO: This should be shared with soql-builder-ui
 export enum MessageType {
   UI_ACTIVATED = 'ui_activated',
   UI_SOQL_CHANGED = 'ui_soql_changed',
@@ -32,12 +39,13 @@ export enum MessageType {
   SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
-  TEXT_SOQL_CHANGED = 'text_soql_changed'
+  TEXT_SOQL_CHANGED = 'text_soql_changed',
+  RUN_SOQL_QUERY = 'run_query'
 }
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
-  const conn = await OrgAuthInfo.getConnection();
   try {
+    const conn = await workspaceContext.getConnection();
     f(conn);
   } catch (e) {
     channelService.appendLine(e);
@@ -130,10 +138,37 @@ export class SOQLEditorInstance {
         });
         break;
       }
+      case MessageType.RUN_SOQL_QUERY: {
+        this.handleRunQuery().catch(() => {
+          channelService.appendLine(
+            `An error occurred while running the SOQL query.`
+          );
+        });
+        break;
+      }
       default: {
         console.log('message type is not supported');
       }
     }
+  }
+
+  protected handleRunQuery(): Promise<void> {
+    const queryText = this.document.getText();
+    return withSFConnection(async conn => {
+      const queryData = await new QueryRunner(conn, this.document).runQuery(
+        queryText
+      );
+      this.openQueryDataView(queryData);
+    });
+  }
+
+  protected openQueryDataView(queryData: QueryResult<JsonMap>): void {
+    const webview = new QueryDataView(
+      this.subscriptions,
+      queryData,
+      this.document
+    );
+    webview.createOrShowWebView();
   }
 
   protected async retrieveSObjects(): Promise<void> {
@@ -151,7 +186,6 @@ export class SOQLEditorInstance {
       this.updateSObjectMetadata(sobject);
     });
   }
-
   // Write out the json to a given document. //
   protected updateTextDocument(
     document: vscode.TextDocument,

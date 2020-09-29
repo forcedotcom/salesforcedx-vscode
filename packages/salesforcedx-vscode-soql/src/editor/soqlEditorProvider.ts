@@ -9,9 +9,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
+  EDITOR_VIEW_TYPE,
   HTML_FILE,
   SOQL_BUILDER_UI_PATH,
-  VIEW_TYPE,
   WEBVIEW_RESOURCE_ROOTS_PATH
 } from '../constants';
 import { HtmlUtils } from './htmlUtils';
@@ -21,7 +21,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
     const provider = new SOQLEditorProvider(context);
     const providerRegistration = vscode.window.registerCustomEditorProvider(
-      VIEW_TYPE,
+      EDITOR_VIEW_TYPE,
       provider
     );
     return providerRegistration;
