@@ -388,7 +388,7 @@ jobs:
       - run:
           name: 'Rebasing main off of release branch'
           command: |
-            echo "Merging release branch ${RELEASE_VERSION} into main"
+            echo "Rebasing main off of release branch ${RELEASE_VERSION}"
             git checkout main
             git rebase -Xtheirs release/v${RELEASE_VERSION}
             git push -f
