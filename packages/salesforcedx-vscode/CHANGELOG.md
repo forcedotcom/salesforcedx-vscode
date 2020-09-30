@@ -1,3 +1,11 @@
+# 49.12.0 - September 30, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Manage org context through WorkspaceContext object ([PR #2549](https://github.com/forcedotcom/salesforcedx-vscode/pull/2549))
+
 # 49.11.0 - September 23, 2020
 
 ## Fixed
