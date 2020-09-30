@@ -85,12 +85,12 @@ describe('OrgAuthInfo', () => {
     const username = 'user@test.test';
     const alias = 'TestOrg';
 
-    it('with argument', async () => {
+    it('should use username/alias when passed as argument', async () => {
       const connection = await OrgAuthInfo.getConnection(username);
       expect(connection.getUsername()).to.equal(username);
     });
 
-    it('without argument. Use default', async () => {
+    it('should use default username/alias when invoked without argument', async () => {
       const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns('defaultUsername');
 

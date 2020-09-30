@@ -6,10 +6,16 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { SObject, SObjectService } from '@salesforce/sobject-metadata';
+import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
+import {
+  DescribeGlobalSObjectResult,
+  DescribeSObjectResult,
+  QueryResult
+} from 'jsforce';
 import * as vscode from 'vscode';
-import { SoqlUtils, ToolingModelJson } from './soqlUtils';
+import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
+import { QueryRunner } from './queryRunner';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -17,15 +23,15 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { OrgAuthInfo, channelService } = sfdxCoreExports;
+const { channelService, workspaceContext } = sfdxCoreExports;
 
-// This should be exported from soql-builder-ui
+// TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  payload?: string | string[] | ToolingModelJson;
+  payload?: string | string[];
 }
 
-// This should be shared with soql-builder-ui
+// TODO: This should be shared with soql-builder-ui
 export enum MessageType {
   UI_ACTIVATED = 'ui_activated',
   UI_SOQL_CHANGED = 'ui_soql_changed',
@@ -33,12 +39,13 @@ export enum MessageType {
   SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
-  TEXT_SOQL_CHANGED = 'text_soql_changed'
+  TEXT_SOQL_CHANGED = 'text_soql_changed',
+  RUN_SOQL_QUERY = 'run_query'
 }
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
-  const conn = await OrgAuthInfo.getConnection();
   try {
+    const conn = await workspaceContext.getConnection();
     f(conn);
   } catch (e) {
     channelService.appendLine(e);
@@ -78,10 +85,9 @@ export class SOQLEditorInstance {
   }
 
   protected updateWebview(document: vscode.TextDocument): void {
-    const uiModel = SoqlUtils.convertSoqlToUiModel(document.getText());
     this.webviewPanel.webview.postMessage({
       type: MessageType.TEXT_SOQL_CHANGED,
-      payload: uiModel
+      payload: document.getText()
     });
   }
 
@@ -92,7 +98,7 @@ export class SOQLEditorInstance {
     });
   }
 
-  protected updateSObjectMetadata(sobject: SObject): void {
+  protected updateSObjectMetadata(sobject: DescribeSObjectResult): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.SOBJECT_METADATA_RESPONSE,
       payload: sobject
@@ -112,18 +118,14 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.UI_SOQL_CHANGED: {
-        const soql = SoqlUtils.convertUiModelToSoql(
-          e.payload as ToolingModelJson
-        );
+        const soql = e.payload as string;
         this.updateTextDocument(this.document, soql);
         break;
       }
       case MessageType.SOBJECT_METADATA_REQUEST: {
         this.retrieveSObject(e.payload as string).catch(() => {
           channelService.appendLine(
-            `An error occurred while handling a request for object metadata for the ${
-              e.payload
-            } object.`
+            `An error occurred while handling a request for object metadata for the ${e.payload} object.`
           );
         });
         break;
@@ -136,29 +138,54 @@ export class SOQLEditorInstance {
         });
         break;
       }
+      case MessageType.RUN_SOQL_QUERY: {
+        this.handleRunQuery().catch(() => {
+          channelService.appendLine(
+            `An error occurred while running the SOQL query.`
+          );
+        });
+        break;
+      }
       default: {
         console.log('message type is not supported');
       }
     }
   }
 
+  protected handleRunQuery(): Promise<void> {
+    const queryText = this.document.getText();
+    return withSFConnection(async conn => {
+      const queryData = await new QueryRunner(conn, this.document).runQuery(
+        queryText
+      );
+      this.openQueryDataView(queryData);
+    });
+  }
+
+  protected openQueryDataView(queryData: QueryResult<JsonMap>): void {
+    const webview = new QueryDataView(
+      this.subscriptions,
+      queryData,
+      this.document
+    );
+    webview.createOrShowWebView();
+  }
+
   protected async retrieveSObjects(): Promise<void> {
     return withSFConnection(async conn => {
-      const sobjectService = new SObjectService(conn);
-      const sobjectNames: string[] = await sobjectService.retrieveSObjectNames();
+      const describeGlobalResult = await conn.describeGlobal();
+      const sobjectNames: string[] = describeGlobalResult.sobjects.map(
+        (sobject: DescribeGlobalSObjectResult) => sobject.name
+      );
       this.updateSObjects(sobjectNames);
     });
   }
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
-      const sobjectService = new SObjectService(conn);
-      const sobject: SObject = await sobjectService.describeSObject(
-        sobjectName
-      );
+      const sobject = await conn.describe(sobjectName);
       this.updateSObjectMetadata(sobject);
     });
   }
-
   // Write out the json to a given document. //
   protected updateTextDocument(
     document: vscode.TextDocument,
