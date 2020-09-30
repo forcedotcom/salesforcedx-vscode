@@ -391,7 +391,7 @@ jobs:
             echo "Rebasing main off of release branch ${RELEASE_VERSION}"
             git checkout main
             git rebase -Xtheirs release/v${RELEASE_VERSION}
-            git push -f
+            git push
       - slack/notify:
           channel: 'pdt_releases'
           color: '#d8bfd8'
