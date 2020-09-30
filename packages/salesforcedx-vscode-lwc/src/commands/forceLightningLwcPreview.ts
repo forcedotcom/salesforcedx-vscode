@@ -162,7 +162,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
 /**
  * Performs the action of previewing the LWC. It takes care of prompting the user
  * and gathering all info needed to preview the LWC. This includes prompting the user
- * to select a platform, a target device, a target native app (or borwser), etc.
+ * to select a platform, a target device, a target native app (or browser), etc.
  * Previewing on Android or iOS are handled by the @salesforce/lwc-dev-mobile sfdx package.
  *
  * @param startTime start time of the preview command
@@ -174,12 +174,14 @@ async function executePreview(
   componentName: string,
   resourcePath: string
 ) {
+  const commandCancelledMessage = nls.localize(
+    'force_lightning_lwc_operation_cancelled'
+  );
+
   // 1. Prompt user to select a platform
   const platformSelection = await selectPlatform();
   if (!platformSelection) {
-    vscode.window.showWarningMessage(
-      nls.localize('force_lightning_lwc_operation_cancelled')
-    );
+    vscode.window.showWarningMessage(commandCancelledMessage);
     return;
   }
 
@@ -187,10 +189,6 @@ async function executePreview(
     await startServer(true, componentName, startTime);
     return;
   }
-
-  const commandCancelledMessage = nls.localize(
-    'force_lightning_lwc_operation_cancelled'
-  );
 
   // 2. Prompt user to select a target device
   let targetDevice: string;
@@ -297,15 +295,6 @@ async function selectTargetDevice(
   platformSelection: PreviewQuickPickItem
 ): Promise<string | undefined> {
   const isAndroid = platformSelection.id === PreviewPlatformType.Android;
-  const createDeviceLabelText = nls.localize(
-    'force_lightning_lwc_preview_create_virtual_device_label'
-  );
-  const createDeviceDetailText = nls.localize(
-    'force_lightning_lwc_preview_create_virtual_device_detail'
-  );
-  const selectDevicePlaceholderText = nls.localize(
-    'force_lightning_lwc_preview_select_virtual_device'
-  );
   const lastTarget = PreviewService.instance.getRememberedDevice(
     platformSelection.platformName
   );
@@ -341,7 +330,15 @@ async function selectTargetDevice(
     deviceListExecutionExitCode = exitCode;
   });
 
-  const options: vscode.QuickPickItem[] = [];
+  const items: vscode.QuickPickItem[] = [];
+  const createNewDeviceItem: vscode.QuickPickItem = {
+    label: nls.localize(
+      'force_lightning_lwc_preview_create_virtual_device_label'
+    ),
+    detail: nls.localize(
+      'force_lightning_lwc_preview_create_virtual_device_detail'
+    )
+  };
   let targetName: string | undefined;
 
   try {
@@ -357,7 +354,7 @@ async function selectTargetDevice(
       devices.forEach(device => {
         const label: string = device.displayName;
         const detail: string = `${device.target}, ${device.api}`;
-        options.push({ label, detail });
+        items.push({ label, detail });
       });
     } else {
       const devices: IOSSimulatorDevice[] = JSON.parse(jsonString)
@@ -365,7 +362,7 @@ async function selectTargetDevice(
       devices.forEach(device => {
         const label: string = device.name;
         const detail: string = device.runtimeId;
-        options.push({ label, detail });
+        items.push({ label, detail });
       });
     }
   } catch (e) {
@@ -388,26 +385,27 @@ async function selectTargetDevice(
   }
 
   // if there are any devices available, show a pick list.
-  if (options.length > 0) {
-    options.unshift({
-      label: createDeviceLabelText,
-      detail: createDeviceDetailText
+  let selectedItem: vscode.QuickPickItem | undefined;
+  if (items.length > 0) {
+    items.unshift(createNewDeviceItem);
+
+    selectedItem = await vscode.window.showQuickPick(items, {
+      placeHolder: nls.localize(
+        'force_lightning_lwc_preview_select_virtual_device'
+      )
     });
 
-    const selectedItem = await vscode.window.showQuickPick(options, {
-      placeHolder: selectDevicePlaceholderText
-    });
-    targetName = selectedItem && selectedItem.label;
-
-    if (targetName === undefined) {
+    if (selectedItem === undefined) {
       // user cancelled operation
       return undefined;
+    } else {
+      targetName = selectedItem.label;
     }
   }
 
   // if there are no devices available or user chooses to create
   // a new device then show an inputbox and ask for further info.
-  if (targetName === undefined || targetName === createDeviceLabelText) {
+  if (targetName === undefined || selectedItem === createNewDeviceItem) {
     targetName = await vscode.window.showInputBox({
       placeHolder: createDevicePlaceholderText
     });
@@ -443,7 +441,11 @@ async function selectTargetApp(
   configFile: string | undefined
 ): Promise<string | undefined> {
   let targetApp: string | undefined = 'browser';
-  const options: vscode.QuickPickItem[] = [];
+  const items: vscode.QuickPickItem[] = [];
+  const browserItem: vscode.QuickPickItem = {
+    label: nls.localize('force_lightning_lwc_browserapp_label'),
+    detail: nls.localize('force_lightning_lwc_browserapp_description')
+  };
 
   if (configFile === undefined || fs.existsSync(configFile) === false) {
     return targetApp;
@@ -462,30 +464,24 @@ async function selectTargetApp(
     apps.forEach(app => {
       const label: string = app.name;
       const detail: string = app.id;
-      options.push({ label, detail });
+      items.push({ label, detail });
     });
   } catch {
     // silengtly fail and default to previewing on browser
   }
 
   // if there are any devices available, show a pick list.
-  if (options.length > 0) {
-    options.unshift({
-      label: nls.localize('force_lightning_lwc_browserapp_label'),
-      detail: nls.localize('force_lightning_lwc_browserapp_description')
-    });
+  if (items.length > 0) {
+    items.unshift(browserItem);
 
-    const selectedItem = await vscode.window.showQuickPick(options, {
+    const selectedItem = await vscode.window.showQuickPick(items, {
       placeHolder: nls.localize('force_lightning_lwc_preview_select_target_app')
     });
 
     if (selectedItem) {
       // if user did not select the browser option then take the app id
       // from the detail property of the selected item
-      if (
-        selectedItem.label !==
-        nls.localize('force_lightning_lwc_browserapp_label')
-      ) {
+      if (selectedItem !== browserItem) {
         targetApp = selectedItem.detail;
       }
     } else {
@@ -589,9 +585,14 @@ async function executeMobilePreview(
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
 function getProjectRootDirectory(startPath: string): string | undefined {
-  const searchingForFile = 'sfdx-project.json';
+  if (!fs.existsSync(startPath)) {
+    return undefined;
+  }
 
-  let dir: string | undefined = path.parse(startPath).dir;
+  const searchingForFile = 'sfdx-project.json';
+  let dir: string | undefined = fs.lstatSync(startPath).isDirectory()
+    ? startPath
+    : path.dirname(startPath);
   while (dir) {
     const fileName = path.join(dir, searchingForFile);
     if (fs.existsSync(fileName)) {

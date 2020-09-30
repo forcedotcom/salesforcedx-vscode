@@ -689,10 +689,7 @@ describe('forceLightningLwcPreview', () => {
     ]);
     expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
       '-d',
-      mockLwcFileDirectoryUri.fsPath.substring(
-        0,
-        mockLwcFileDirectoryUri.fsPath.lastIndexOf(path.sep)
-      )
+      mockLwcFileDirectoryUri.fsPath
     ]);
     expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
       '--loglevel',
@@ -1125,15 +1122,6 @@ describe('forceLightningLwcPreview', () => {
   });
 
   async function doNewDeviceQuickPickTest(isAndroid: Boolean) {
-    const createNewDeviceOption: vscode.QuickPickItem = {
-      label: nls.localize(
-        'force_lightning_lwc_preview_create_virtual_device_label'
-      ),
-      detail: nls.localize(
-        'force_lightning_lwc_preview_create_virtual_device_detail'
-      )
-    };
-
     const deviceName = isAndroid ? 'androidtestname' : 'iostestname';
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
     devServiceStub.isServerHandlerRegistered.returns(true);
@@ -1150,7 +1138,7 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub
       .onFirstCall()
       .resolves(isAndroid ? androidQuickPick : iOSQuickPick);
-    showQuickPickStub.onSecondCall().resolves(createNewDeviceOption);
+    showQuickPickStub.onSecondCall().resolvesArg(0);
     showInputBoxStub.resolves(deviceName);
     commandOutputStub.returns(
       Promise.resolve(isAndroid ? androidDeviceListJson : iOSDeviceListJson)
@@ -1192,15 +1180,29 @@ describe('forceLightningLwcPreview', () => {
     );
   }
 
-  it('Shows app pick list for Android apps', async () => {
-    await doAppListQuickPickTest(true);
+  it('Picks an app from app pick list for Android apps', async () => {
+    await doAppListQuickPickTest(true, pickedApp);
   });
 
-  it('Shows app pick list for iOS apps', async () => {
-    await doAppListQuickPickTest(false);
+  it('Picks an app from app pick list for iOS apps', async () => {
+    await doAppListQuickPickTest(false, pickedApp);
   });
 
-  async function doAppListQuickPickTest(isAndroid: Boolean) {
+  it('Picks browser from app pick list for Android apps', async () => {
+    await doAppListQuickPickTest(true, 'browser');
+  });
+
+  it('Picks browser from app pick list for iOS apps', async () => {
+    await doAppListQuickPickTest(false, 'browser');
+  });
+
+  async function doAppListQuickPickTest(
+    isAndroid: Boolean,
+    selectedApp: vscode.QuickPickItem | 'browser'
+  ) {
+    const targetApp =
+      selectedApp === 'browser' ? 'browser' : selectedApp.detail;
+
     devServiceStub.isServerHandlerRegistered.returns(true);
     mockFileExists(mockLwcFileDirectory);
     existsSyncStub.returns(true);
@@ -1219,7 +1221,14 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub
       .onSecondCall()
       .resolves(isAndroid ? androidPickedDevice : iOSPickedDevice);
-    showQuickPickStub.onThirdCall().resolves(pickedApp);
+    if (selectedApp === 'browser') {
+      showQuickPickStub.onThirdCall().callsFake(args => {
+        const items = args as vscode.QuickPickItem[];
+        return Promise.resolve(items[0]);
+      });
+    } else {
+      showQuickPickStub.onThirdCall().resolves(selectedApp);
+    }
     commandOutputStub.returns(
       Promise.resolve(isAndroid ? androidDeviceListJson : iOSDeviceListJson)
     );
@@ -1238,10 +1247,7 @@ describe('forceLightningLwcPreview', () => {
     const deviceName = isAndroid
       ? androidPickedDevice.label
       : iOSPickedDevice.label;
-    const projectRootDir = mockLwcFileDirectoryUri.fsPath.substring(
-      0,
-      mockLwcFileDirectoryUri.fsPath.lastIndexOf(path.sep)
-    );
+    const projectRootDir = mockLwcFileDirectoryUri.fsPath;
     const configFile = path.join(projectRootDir, 'mobile-apps.json');
 
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
@@ -1262,20 +1268,28 @@ describe('forceLightningLwcPreview', () => {
     ]);
     expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
       '-a',
-      pickedApp.detail
+      targetApp
     ]);
     expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
       '-d',
       projectRootDir
     ]);
-    expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
-      '-f',
-      configFile
-    ]);
-    expect(cmdWithFlagSpy.getCall(7).args).to.have.same.members([
-      '--loglevel',
-      'warn'
-    ]);
+
+    if (selectedApp === 'browser') {
+      expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
+        '--loglevel',
+        'warn'
+      ]);
+    } else {
+      expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
+        '-f',
+        configFile
+      ]);
+      expect(cmdWithFlagSpy.getCall(7).args).to.have.same.members([
+        '--loglevel',
+        'warn'
+      ]);
+    }
 
     sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
 
