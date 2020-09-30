@@ -5,10 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  CliCommandExecutor,
+  CommandOutput
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import Sinon = require('sinon');
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { ForceSourceRetrieveExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
@@ -44,47 +47,57 @@ describe('Force Source Retrieve', () => {
 });
 
 describe('Force Source Retrieve and open', () => {
-  let sb: SinonSandbox;
-  let forceSourceRetrieveStub: SinonStub;
-  let openTextDocumentStub: SinonStub;
-  let showTextDocumentStub: SinonStub;
+  const sb: SinonSandbox = createSandbox();
   const openAfterRetrieve: boolean = true;
-
-  beforeEach(async () => {
-    sb = createSandbox();
-    forceSourceRetrieveStub = sb.stub(
-      ForceSourceRetrieveExecutor.prototype,
-      'execute'
-    );
-    openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
-    showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
-  });
+  const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
+    new TestDescriber(),
+    openAfterRetrieve
+  );
+  const openTextDocumentStub: SinonStub = sb.stub(
+    vscode.workspace,
+    'openTextDocument'
+  );
+  const showTextDocumentStub: SinonStub = sb.stub(
+    vscode.window,
+    'showTextDocument'
+  );
+  const resultData = `{
+    "status": 0,
+    "result": {
+      "inboundFiles": [
+        {
+          "state": "Add",
+          "fullName": "TestClass",
+          "type": "ApexClass",
+          "filePath": "force-app/main/default/classes/TestClass.cls"}
+  ] }}`;
+  const getCmdResultStub: SinonStub = sb
+    .stub(CommandOutput.prototype, 'getCmdResult')
+    .returns(resultData);
 
   afterEach(async () => {
     sb.restore();
   });
 
   it('Should build source retrieve command', async () => {
-    const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
-      new TestDescriber(),
-      openAfterRetrieve
-    );
-    const forceSourceRetrieveCmd = await forceSourceRetrieveExec.build();
-    const response = {
-      type: 'CONTINUE',
-      data: [
-        {
-          fileName: 'Test1',
-          outputdir: 'force-app/main/default/classes',
-          type: 'TestType',
-          suffix: 'cls'
-        }
-      ]
-    };
+    const response = [
+      {
+        type: 'CONTINUE',
+        data: [
+          {
+            fileName: 'DemoController',
+            outputdir:
+              '/Users/testUser/testProject/force-app/main/default/classes/DemoController.cls',
+            type: 'ApexClass',
+            suffix: 'cls'
+          }
+        ]
+      }
+    ];
     const exeEesponse = await forceSourceRetrieveExec.execute(response);
-    expect(forceSourceRetrieveCmd.toCommand()).to.equal(
-      `sfdx force:source:retrieve --json --loglevel fatal -m TestType:Test1`
-    );
-    expect(forceSourceRetrieveStub.called).to.equal(true);
+
+    expect(getCmdResultStub.called).to.equal(true);
+    expect(openTextDocumentStub.called).to.equal(true);
+    expect(showTextDocumentStub.called).to.equal(true);
   });
 });

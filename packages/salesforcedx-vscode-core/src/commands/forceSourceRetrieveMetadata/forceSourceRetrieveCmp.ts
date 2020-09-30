@@ -84,11 +84,10 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   public async execute(response: any): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response), {
+    const execution = await new CliCommandExecutor(this.build(response), {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0 && this.openAfterRetrieve) {
