@@ -382,15 +382,16 @@ jobs:
           message: 'Merging release branch into main'
       - ssh-config
       - checkout
+      - gh-config
       - prepare-release-environment-variables
       - merge-validation
       - run:
           name: 'Rebasing main off of release branch'
           command: |
+            echo "Merging release branch ${RELEASE_VERSION} into main"
             git checkout main
-            echo "Rebasing main off of release branch ${RELEASE_VERSION}"
-            git rebase release/v${RELEASE_VERSION}
-            git push
+            git rebase -Xtheirs release/v${RELEASE_VERSION}
+            git push -f
       - slack/notify:
           channel: 'pdt_releases'
           color: '#d8bfd8'
@@ -441,6 +442,12 @@ jobs:
       - sfchangecase/update:
           location: REPO_LOCATION
           release: GUS_RELEASE
+      - run:
+          name: 'Merge changes from main back into develop'
+          command: |
+            git checkout develop
+            git merge main
+            git push origin develop
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
