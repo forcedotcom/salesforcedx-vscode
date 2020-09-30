@@ -1181,34 +1181,40 @@ describe('forceLightningLwcPreview', () => {
   }
 
   it('Picks an app from app pick list for Android apps', async () => {
-    await doAppListQuickPickTest(true, pickedApp);
+    await doAppListQuickPickTest(true, pickedApp, false);
   });
 
   it('Picks an app from app pick list for iOS apps', async () => {
-    await doAppListQuickPickTest(false, pickedApp);
+    await doAppListQuickPickTest(false, pickedApp, false);
   });
 
   it('Picks browser from app pick list for Android apps', async () => {
-    await doAppListQuickPickTest(true, 'browser');
+    await doAppListQuickPickTest(true, 'browser', true);
   });
 
   it('Picks browser from app pick list for iOS apps', async () => {
-    await doAppListQuickPickTest(false, 'browser');
+    await doAppListQuickPickTest(false, 'browser', true);
   });
 
   async function doAppListQuickPickTest(
     isAndroid: Boolean,
-    selectedApp: vscode.QuickPickItem | 'browser'
+    selectedApp: vscode.QuickPickItem | 'browser',
+    lwcLocationIsDirectory: boolean
   ) {
     const targetApp =
       selectedApp === 'browser' ? 'browser' : selectedApp.detail;
 
     devServiceStub.isServerHandlerRegistered.returns(true);
-    mockFileExists(mockLwcFileDirectory);
+    if (lwcLocationIsDirectory) {
+      mockFileExists(mockLwcFileDirectory);
+    } else {
+      mockFileExists(mockLwcFilePath);
+    }
+
     existsSyncStub.returns(true);
     lstatSyncStub.returns({
       isDirectory() {
-        return true;
+        return lwcLocationIsDirectory;
       }
     } as fs.Stats);
     sinon.stub(fs, 'readFileSync').returns(appConfigFileJson);
@@ -1233,7 +1239,9 @@ describe('forceLightningLwcPreview', () => {
       Promise.resolve(isAndroid ? androidDeviceListJson : iOSDeviceListJson)
     );
 
-    await forceLightningLwcPreview(mockLwcFileDirectoryUri);
+    await forceLightningLwcPreview(
+      lwcLocationIsDirectory ? mockLwcFileDirectoryUri : mockLwcFilePathUri
+    );
 
     if (isAndroid) {
       mockExecution.stdoutSubject.next(androidSuccessString);
