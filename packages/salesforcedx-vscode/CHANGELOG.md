@@ -1,30 +1,10 @@
 # 49.12.0 - September 30, 2020
 
-## Added
-
-#### salesforcedx-vscode-core
-
-- Show progress bar when installing dependencies for Function Create ([PR #2563](https://github.com/forcedotcom/salesforcedx-vscode/pull/2563))
-
-- Add feature flag for Functions ([PR #2572](https://github.com/forcedotcom/salesforcedx-vscode/pull/2572))
-
-- Show message if no default org is set when starting Function ([PR #2560](https://github.com/forcedotcom/salesforcedx-vscode/pull/2560))
-
-#### salesforcedx-vscode-soql
-
-- Add textmate grammar for SOQL files ([PR #2562](https://github.com/forcedotcom/salesforcedx-vscode/pull/2562))
-
 ## Fixed
 
 #### salesforcedx-vscode-core
 
 - Manage org context through WorkspaceContext object ([PR #2549](https://github.com/forcedotcom/salesforcedx-vscode/pull/2549))
-
-#### salesforcedx-vscode-soql
-
-- We fixed some minor under-the-hood bugs.
-
-- Lock soql-builder-ui and soql-language-server versons ([PR #2568](https://github.com/forcedotcom/salesforcedx-vscode/pull/2568))
 
 # 49.11.0 - September 23, 2020
 
