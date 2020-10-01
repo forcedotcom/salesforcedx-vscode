@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../../../src/commonUtils';
-import { QueryDataViewService } from '../../../src/queryResultsView/queryDataViewService';
+import { QueryDataViewService } from '../../../src/queryDataView/queryDataViewService';
 import { mockQueryData, MockTextDocumentProvider } from '../testUtilities';
 
 describe('Query Data View Service', () => {

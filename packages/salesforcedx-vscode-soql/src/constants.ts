@@ -19,8 +19,4 @@ export const QUERY_DATA_VIEW_SCRIPT_FILENAME = 'queryDataViewController.js';
 export const QUERY_DATA_VIEW_STYLE_FILENAME = 'queryDataView.css';
 export const TABULATOR_SCRIPT_FILENAME = 'tabulator.min.js';
 export const TABULATOR_STYLE_FILENAME = 'tabulator.min.css';
-export const DATA_VIEW_MEDIA_PATH = path.join(
-  'src',
-  'queryResultsView',
-  'media'
-);
+export const DATA_VIEW_MEDIA_PATH = path.join('src', 'queryDataView', 'media');

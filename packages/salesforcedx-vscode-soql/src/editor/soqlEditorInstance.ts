@@ -14,7 +14,7 @@ import {
   QueryResult
 } from 'jsforce';
 import * as vscode from 'vscode';
-import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
+import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
