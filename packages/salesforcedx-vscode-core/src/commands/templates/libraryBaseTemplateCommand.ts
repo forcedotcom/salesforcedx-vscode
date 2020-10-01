@@ -64,7 +64,7 @@ export abstract class LibraryBaseTemplateCommand<T>
   public abstract constructTemplateOptions(data: T): TemplateOptions;
 
   /**
-   * Additional telemetry properties to log on sucessful exectution
+   * Additional telemetry properties to log on successful execution
    */
   protected telemetryProperties: Properties = {};
 
