@@ -15,15 +15,20 @@ orbs:
   slack: circleci/slack@3.4.2
 
 parameters:
+  # Configurable Versions
   cli-version:
     type: string
     default: '7.45.1'
-  node-version:
-    type: string
-    default: '12.4.0'
   lerna-version:
     type: string
     default: '3.13.1'
+  node-version:
+    type: string
+    default: '12.4.0'
+  # Constants
+  cache-version:
+    type: string
+    default: 'dependency-cache-v4-'
   domain-retry:
     description: 'SFDX Domain Retry Wait in Seconds'
     type: integer
@@ -31,17 +36,64 @@ parameters:
   fingerprint:
     type: string
     default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
-  publish:
-    type: boolean
-    default: false
+  # Workflow Triggers
   create-release:
     type: boolean
     default: false
-  cache-version:
-    type: string
-    default: 'dependency-cache-v4-'
+  publish:
+    type: boolean
+    default: false
+  pre-publish:
+    type: boolean
+    default: false
 
 commands:
+  build-artifacts:
+    description: 'Building and archiving extension artifacts.'
+    steps:
+      - checkout
+      - restore_dependency_cache
+      - install
+      - compile
+      - package-extensions
+      - stage-and-store-artifacts
+      - save_dependency_cache
+
+  build-win:
+    description: 'Build for Windows.'
+    steps:
+      - run: git config --global core.autocrlf false
+      - checkout
+      - restore_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
+      - run:
+          name: 'Install node'
+          shell: bash.exe
+          command: |
+            nvm install $NODE_VERSION
+            nvm use $NODE_VERSION
+            nvm install-latest-npm
+      - run:
+          name: 'Install dependent modules'
+          shell: bash.exe
+          command: |
+            npm config set scripts-prepend-node-path true
+            npm install
+            npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
+            npm install -g codecov
+            npm install -g junit-merge
+      - run:
+          name: 'Compile'
+          shell: bash.exe
+          command: npm run compile
+      - save_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
+      - run:
+          name: 'Run lint'
+          shell: bash.exe
+          command: |
+            npm run lint
+
   compile:
     parameters:
       compile-mode:
@@ -77,7 +129,42 @@ commands:
             git config user.email "<< parameters.gh_email >>"
             git config user.name "<< parameters.gh_username >>"
 
-  gus-prepare-environment-variables:
+  install:
+    description: 'Installing dependencies'
+    steps:
+      - run: npm install
+      - run: npm --version
+      - run: node --version
+
+  merge-validation:
+    description: 'Verify the release branch is not older than main'
+    parameters:
+      package-json-path:
+        type: string
+        default: './packages/salesforcedx-vscode/package.json'
+    steps:
+      - run:
+          name: 'Validate release version against main'
+          command: |
+            git checkout main
+            echo "export MAIN_RELEASE_VERSION="$(node -pe "require('<< parameters.package-json-path >>').version")"" >> $BASH_ENV
+            source $BASH_ENV
+            echo "MAIN_RELEASE_VERSION is: ${MAIN_RELEASE_VERSION}"
+            LOWER_VERSION="`echo -e "${MAIN_RELEASE_VERSION}\n${RELEASE_VERSION}" | sort -V | cut --delimiter $'\n' --fields 1`"
+            echo "Lower version was: ${LOWER_VERSION}"
+            if [ ${LOWER_VERSION} != ${MAIN_RELEASE_VERSION} ]
+            then
+              echo "The release branch is older than main. We do not want to rebase off of an old branch. Exiting."
+              exit 1;
+            fi
+
+  package-extensions:
+    steps:
+      - run:
+          name: 'Packaging extensions'
+          command: npm run vscode:package
+
+  prepare-gus-environment-variables:
     parameters:
       package-json-path:
         type: string
@@ -90,24 +177,22 @@ commands:
           name: 'Prepare environment variables for GUS Change Case Management'
           command: |
             export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
-            echo "export RELEASE_VERSION=$GUS_BUILD" >> $BASH_ENV
             echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
             source $BASH_ENV
-            echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
             echo "GUS_RELEASE is: ${GUS_RELEASE}"
 
-  install:
-    description: 'Installing dependencies'
-    steps:
-      - run: npm install
-      - run: npm --version
-      - run: node --version
-
-  package-extensions:
+  prepare-release-environment-variables:
+    parameters:
+      package-json-path:
+        type: string
+        default: './packages/salesforcedx-vscode/package.json'
     steps:
       - run:
-          name: 'Packaging extensions'
-          command: npm run vscode:package
+          name: 'Prepare release branch environment variable'
+          command: |
+            echo "export RELEASE_VERSION="$(node -pe "require('<< parameters.package-json-path >>').version")"" >> $BASH_ENV
+            source $BASH_ENV
+            echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
 
   restore_dependency_cache:
     # This logic cannot be done within the node orb currently. This is due to the fact that we use
@@ -171,52 +256,6 @@ commands:
           command: |
             git add SHA256.md
             git commit -m "Updated SHA256 v${RELEASE_VERSION}"
-
-  build-artifacts:
-    description: 'Building and archiving extension artifacts.'
-    steps:
-      - checkout
-      - restore_dependency_cache
-      - install
-      - compile
-      - package-extensions
-      - stage-and-store-artifacts
-      - save_dependency_cache
-
-  build-win:
-    description: 'Build for Windows.'
-    steps:
-      - run: git config --global core.autocrlf false
-      - checkout
-      - restore_dependency_cache:
-          base-cache-path: << pipeline.parameters.cache-version >>-win
-      - run:
-          name: 'Install node'
-          shell: bash.exe
-          command: |
-            nvm install $NODE_VERSION
-            nvm use $NODE_VERSION
-            nvm install-latest-npm
-      - run:
-          name: 'Install dependent modules'
-          shell: bash.exe
-          command: |
-            npm config set scripts-prepend-node-path true
-            npm install
-            npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
-            npm install -g codecov
-            npm install -g junit-merge
-      - run:
-          name: 'Compile'
-          shell: bash.exe
-          command: npm run compile
-      - save_dependency_cache:
-          base-cache-path: << pipeline.parameters.cache-version >>-win
-      - run:
-          name: 'Run lint'
-          shell: bash.exe
-          command: |
-            npm run lint
 
 executors:
   default-executor:
@@ -331,6 +370,36 @@ jobs:
               $host.SetShouldExit(1)
             }
 
+  merge-release-branch:
+    parameters:
+      e:
+        type: executor
+    executor: << parameters.e >>
+    steps:
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#FFDEAD'
+          message: 'Merging release branch into main'
+      - ssh-config
+      - checkout
+      - gh-config
+      - prepare-release-environment-variables
+      - merge-validation
+      - run:
+          name: 'Rebasing main off of release branch'
+          command: |
+            echo "Rebasing main off of release branch ${RELEASE_VERSION}"
+            git checkout main
+            git rebase -Xtheirs release/v${RELEASE_VERSION}
+            git push
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#d8bfd8'
+          message: 'Main should now be rebased off of the release branch ${RELEASE_VERSION}'
+      - slack/status:
+          channel: 'pdt_releases'
+          fail_only: true
+
   publish:
     parameters:
       e:
@@ -343,7 +412,7 @@ jobs:
           message: 'Starting publish for VSCode Extensions'
       - ssh-config
       - checkout
-      - gus-prepare-environment-variables
+      - prepare-gus-environment-variables
       - restore_dependency_cache
       - run:
           name: 'Setup gus case management'
@@ -373,6 +442,12 @@ jobs:
       - sfchangecase/update:
           location: REPO_LOCATION
           release: GUS_RELEASE
+      - run:
+          name: 'Merge changes from main back into develop'
+          command: |
+            git checkout develop
+            git merge main
+            git push origin develop
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
@@ -419,12 +494,37 @@ workflows:
   commit-workflow:
     when:
       and:
-        - not: << pipeline.parameters.publish >>
         - not: << pipeline.parameters.create-release >>
+        - not: << pipeline.parameters.publish >>
+        - not: << pipeline.parameters.pre-publish >>
     jobs:
       - build-all
       - unit-tests
       - integration-tests
+
+  pre-publish-workflow:
+    when: << pipeline.parameters.pre-publish >>
+    jobs:
+      - slack/approval-notification:
+          message: Pending Approval for merge of release branch into main
+          channel: 'pdt_releases'
+          color: '#0E1111'
+      - build-all
+      - unit-tests
+      - integration-tests
+      - hold: # Requires manual approval in Circle Ci
+          type: approval
+      - merge-release-branch:
+          e: default-executor
+          requires:
+            - build-all
+            - unit-tests
+            - integration-tests
+            - hold
+          filters:
+            branches:
+              only:
+                - /^release/v.*/
 
   publish-workflow:
     when: << pipeline.parameters.publish >>
