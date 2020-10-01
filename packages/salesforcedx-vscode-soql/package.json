@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^2.12.1",
-    "@salesforce/soql-builder-ui": "0.0.4",
+    "@salesforce/soql-builder-ui": "0.0.10",
     "@salesforce/soql-language-server": "0.2.1",
     "@salesforce/soql-tmlanguage": "0.1.1",
     "debounce": "^1.2.0",
