@@ -9,3 +9,12 @@
 This file can be used to override Tabulator CSS
 for custom styling http://tabulator.info/docs/4.8/style
 */
+header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.save-btn {
+  align-self: flex-end;
+  margin-bottom: 1em;
+}
