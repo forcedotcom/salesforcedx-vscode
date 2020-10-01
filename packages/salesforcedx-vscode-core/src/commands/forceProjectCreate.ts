@@ -91,6 +91,7 @@ export class LibraryForceProjectCreateExecutor extends LibraryBaseTemplateComman
       defaultpackagedir: 'force-app',
       manifest: this.options.isProjectWithManifest
     };
+    this.telemetryProperties = { projectTemplate: data.projectTemplate };
     return templateOptions;
   }
 }
