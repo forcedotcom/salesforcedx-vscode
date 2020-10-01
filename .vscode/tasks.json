@@ -10,7 +10,10 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": ["run", "bootstrap"],
+      "args": [
+        "run",
+        "bootstrap"
+      ],
       "isBackground": false
     },
     {
@@ -21,7 +24,10 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": ["run", "clean"],
+      "args": [
+        "run",
+        "clean"
+      ],
       "isBackground": false
     },
     {
@@ -32,7 +38,10 @@
         "focus": true,
         "panel": "shared"
       },
-      "args": ["run", "commit"],
+      "args": [
+        "run",
+        "commit"
+      ],
       "isBackground": false
     },
     {
@@ -43,7 +52,10 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": ["run", "commit-init"],
+      "args": [
+        "run",
+        "commit-init"
+      ],
       "isBackground": false
     },
     {
@@ -58,7 +70,10 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "compile"],
+      "args": [
+        "run",
+        "compile"
+      ],
       "isBackground": false,
       "problemMatcher": {
         "owner": "typescript",
@@ -77,13 +92,19 @@
       "label": "Create Release Branch",
       "command": "./scripts/create-release-branch-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}"]
+      "args": [
+        "${input:circleCiId}"
+      ]
     },
     {
       "label": "Create Change Log",
       "command": "./scripts/change-log-generator.js",
       "type": "shell",
-      "args": ["${input:verboseOutput}", "-r", "${input:releaseOverride}"]
+      "args": [
+        "${input:verboseOutput}",
+        "-r",
+        "${input:releaseOverride}"
+      ]
     },
     {
       "label": "Lint",
@@ -93,14 +114,28 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "lint"],
+      "args": [
+        "run",
+        "lint"
+      ],
       "isBackground": false
+    },
+    {
+      "label": "Launch Pre-Publish Steps",
+      "command": "./scripts/pre-publish-workflow.sh",
+      "type": "shell",
+      "args": [
+        "${input:circleCiId}",
+        "${input:releaseBranch}"
+      ]
     },
     {
       "label": "Publish Extensions",
       "command": "./scripts/publish-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}"]
+      "args": [
+        "${input:circleCiId}"
+      ]
     },
     {
       "label": "Watch",
@@ -110,7 +145,10 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "watch"],
+      "args": [
+        "run",
+        "watch"
+      ],
       "isBackground": false,
       "problemMatcher": "$tsc-watch"
     }
@@ -125,13 +163,21 @@
       "id": "verboseOutput",
       "type": "pickString",
       "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
-      "options": ["", "-v"],
+      "options": [
+        "",
+        "-v"
+      ],
       "default": "-v"
     },
     {
       "id": "releaseOverride",
       "type": "promptString",
       "description": "Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 49.11.0)"
+    },
+    {
+      "id": "releaseBranch",
+      "type": "promptString",
+      "description": "Provide the release version (Ex 49.11.0)"
     }
   ]
 }
