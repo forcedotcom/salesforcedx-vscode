@@ -19,7 +19,7 @@ import {
 
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
-import { telemetryService } from '../../telemetry';
+import { Properties, telemetryService } from '../../telemetry';
 import {
   getRootWorkspacePath,
   hasRootWorkspace,
@@ -63,6 +63,11 @@ export abstract class LibraryBaseTemplateCommand<T>
    */
   public abstract constructTemplateOptions(data: T): TemplateOptions;
 
+  /**
+   * Additional telemetry properties to log on sucessful exectution
+   */
+  protected telemetryProperties: Properties = {};
+
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
     const commandName = this.executionName;
@@ -82,7 +87,8 @@ export abstract class LibraryBaseTemplateCommand<T>
           const fileName = this.getOutputFileName(response.data);
           telemetryService.sendCommandEvent(this.telemetryName, startTime, {
             dirType: this.identifyDirType(libraryResult.outputDir),
-            commandExecutor: 'library'
+            commandExecutor: 'library',
+            ...this.telemetryProperties
           });
           await this.openCreatedTemplateInVSCode(
             libraryResult.outputDir,
