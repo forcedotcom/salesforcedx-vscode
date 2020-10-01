@@ -1,3 +1,15 @@
+# 49.12.0 - September 30, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Manage org context through WorkspaceContext object ([PR #2549](https://github.com/forcedotcom/salesforcedx-vscode/pull/2549))
+
+#### docs
+
+- Format prettier install command for easier copy and paste ([PR #2586](https://github.com/forcedotcom/salesforcedx-vscode/pull/2586)) - Contribution by [@thejohncotton](https://github.com/thejohncotton)
+
 # 49.11.0 - September 23, 2020
 
 ## Fixed
