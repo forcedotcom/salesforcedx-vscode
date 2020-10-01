@@ -14,6 +14,18 @@
   } */
   const vscode = acquireVsCodeApi();
 
+  // load previous state is webview was moved from background.
+  function loadState() {
+    const state = vscode.getState();
+    if (state) {
+      updateUIWith(state.data, state.documentName);
+    }
+  }
+
+  loadState();
+
+  // ---- RENDER THE WEBVIEW CONTENT ---- //
+
   function updateUIWith(queryData, documentName) {
     // Display the .soql file name as the title
     const titleEl = document.getElementById('webview-title');
@@ -25,15 +37,6 @@
     renderTableWith(queryData);
   }
 
-  function loadState() {
-    const state = vscode.getState();
-    if (state) {
-      updateUIWith(state.data, state.documentName);
-    }
-  }
-
-  loadState();
-
   function renderTableWith(tableData) {
     new Tabulator('#data-table', {
       data: tableData.records,
@@ -44,6 +47,16 @@
     });
   }
 
+  // ---- EVENT LISTENERS ---- //
+
+  const saveCsvButtonEl = document.getElementById('save-csv-button');
+  saveCsvButtonEl.addEventListener('click', () => {
+    vscode.postMessage({
+      type: 'save_records',
+      format: 'csv'
+    });
+  });
+  // incoming messages from VS Code
   window.addEventListener('message', event => {
     const { type, data, documentName } = event.data;
     switch (type) {

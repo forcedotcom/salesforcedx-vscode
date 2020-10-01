@@ -74,8 +74,29 @@ export class QueryDataViewService {
     const webview = this.currentPanel.webview;
     webview.html = this.getWebViewContent(webview);
 
+    webview.onDidReceiveMessage(message => {
+      const { type, format } = message;
+      switch (type) {
+        case 'save_records':
+          this.handleSaveRecords(format);
+          break;
+        default:
+          break;
+      }
+    });
+
     this.updateWebviewWith(webview, this.queryData);
     return webview;
+  }
+
+  private handleSaveRecords(format: string) {
+    switch (format) {
+      case 'csv':
+        console.log('GET MY CSV!!!', this.queryData);
+        break;
+      default:
+        break;
+    }
   }
 
   private getWebViewContent(webview: vscode.Webview): string {
