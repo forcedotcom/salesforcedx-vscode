@@ -340,6 +340,7 @@ async function selectTargetDevice(
     )
   };
   let targetName: string | undefined;
+  let devices: IOSSimulatorDevice[] | AndroidVirtualDevice[] | undefined;
 
   try {
     const result: string = await deviceListOutput.getCmdResult(
@@ -349,21 +350,9 @@ async function selectTargetDevice(
     const jsonString: string = result.substring(result.indexOf('{'));
 
     if (isAndroid) {
-      const devices: AndroidVirtualDevice[] = JSON.parse(jsonString)
-        .result as AndroidVirtualDevice[];
-      devices.forEach(device => {
-        const label: string = device.displayName;
-        const detail: string = `${device.target}, ${device.api}`;
-        items.push({ label, detail });
-      });
+      devices = JSON.parse(jsonString).result as AndroidVirtualDevice[];
     } else {
-      const devices: IOSSimulatorDevice[] = JSON.parse(jsonString)
-        .result as IOSSimulatorDevice[];
-      devices.forEach(device => {
-        const label: string = device.name;
-        const detail: string = device.runtimeId;
-        items.push({ label, detail });
-      });
+      devices = JSON.parse(jsonString).result as IOSSimulatorDevice[];
     }
   } catch (e) {
     // If device enumeration fails due to exit code 127
@@ -381,6 +370,23 @@ async function selectTargetDevice(
         commandName
       );
       throw e;
+    }
+  }
+
+  // populate quick pick list of devices from the parsed JSON data
+  if (devices && devices.length > 0) {
+    if (isAndroid) {
+      (devices as AndroidVirtualDevice[]).forEach(device => {
+        const label: string = device.displayName;
+        const detail: string = `${device.target}, ${device.api}`;
+        items.push({ label, detail });
+      });
+    } else {
+      (devices as IOSSimulatorDevice[]).forEach(device => {
+        const label: string = device.name;
+        const detail: string = device.runtimeId;
+        items.push({ label, detail });
+      });
     }
   }
 
@@ -413,6 +419,14 @@ async function selectTargetDevice(
     if (targetName === undefined) {
       // user cancelled operation
       return undefined;
+    }
+  } else {
+    // for android, map the device's user friendly display name to its actual name
+    if (isAndroid) {
+      const match = (devices as AndroidVirtualDevice[]).find(
+        device => device.displayName === targetName
+      );
+      targetName = match && match.name;
     }
   }
 

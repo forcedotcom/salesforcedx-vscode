@@ -75,8 +75,8 @@ const iOSDeviceListJson = `
 `;
 
 const androidPickedDevice: vscode.QuickPickItem = {
-  label: 'emu2',
-  detail: 'Default Android System Image'
+  label: 'Pixel API 29',
+  detail: 'Google APIs, API 29'
 };
 const androidDeviceListJson = `
   {
@@ -1084,9 +1084,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.notCalled(showInputBoxStub);
 
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
-    const deviceName = isAndroid
-      ? androidPickedDevice.label
-      : iOSPickedDevice.label;
+    const deviceName = isAndroid ? 'Pixel_API_29' : 'iPhone 8';
 
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
@@ -1252,9 +1250,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledThrice(showQuickPickStub); // platform + device list + app list
 
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
-    const deviceName = isAndroid
-      ? androidPickedDevice.label
-      : iOSPickedDevice.label;
+    const deviceName = isAndroid ? 'Pixel_API_29' : 'iPhone 8';
     const projectRootDir = mockLwcFileDirectoryUri.fsPath;
     const configFile = path.join(projectRootDir, 'mobile-apps.json');
 
