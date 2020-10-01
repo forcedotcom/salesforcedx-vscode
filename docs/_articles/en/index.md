@@ -22,6 +22,7 @@ This extension pack includes tools for developing on the Salesforce platform in 
 - [Language Support](https://youtu.be/s5X4yGBRWTM)
 - [Accessing Orgs and Source](https://youtu.be/pi5Zho9ft3s)
 - [Test and Debug](https://youtu.be/f6OacBmQk1g)
+- [LWC Local Development](https://www.youtube.com/watch?v=8eRFE4t2VyU&list=PLgIMQe2PKPSJdFGHjGpjd1FbCsOqq5H8t&index=4)
 - [Best Practices for Building with VS Code](https://www.youtube.com/watch?v=jn91h69qC-o)
 - [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=11)
 
