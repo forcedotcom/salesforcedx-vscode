@@ -5,16 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
-  MessageType,
-  SoqlEditorEvent,
-  SOQLEditorInstance
-} from '../../../src/editor/soqlEditorInstance';
+  getMockConnection,
+  MockConnection,
+  MockTextDocumentProvider,
+  TestSoqlEditorInstance
+} from '../testUtilities';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
@@ -22,21 +22,15 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { OrgAuthInfo } = sfdxCoreExports;
+const { workspaceContext } = sfdxCoreExports;
 
 describe('SoqlEditorInstance should', () => {
-  const $$ = testSetup();
-  const testData = new MockTestOrgData();
-
-  let mockConnection: Connection;
+  let mockConnection: MockConnection;
   let mockWebviewPanel: vscode.WebviewPanel;
   let docProviderDisposable: vscode.Disposable;
   let mockTextDocument: vscode.TextDocument;
   let instance: TestSoqlEditorInstance;
   let sandbox: sinon.SinonSandbox;
-
-
-
 
   const createMessagingWebviewContent = () => {
     return `<!DOCTYPE html>
@@ -57,18 +51,7 @@ describe('SoqlEditorInstance should', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
-    });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
-    sandbox
-      .stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
-      .returns(testData.username);
+    mockConnection = getMockConnection(sandbox);
     docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
       'sfdc-test',
       new MockTextDocumentProvider()
@@ -92,15 +75,11 @@ describe('SoqlEditorInstance should', () => {
   afterEach(() => {
     mockWebviewPanel.dispose();
     docProviderDisposable.dispose();
-    $$.SANDBOX.restore();
     sandbox.restore();
   });
 
   it('responds to sobjects_request with a list of sobjects', async () => {
-    sandbox
-      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
-      .returns(testData.username);
-    sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
+    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const describeGlobalResponse = {
       sobjects: [{ name: 'A' }, { name: 'B' }]
     };
@@ -122,14 +101,9 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('responds to sobject_metadata_request with SObject metadata', async () => {
-    sandbox
-      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
-      .returns(testData.username);
-    sandbox.stub(OrgAuthInfo, 'getConnection').returns(mockConnection);
+    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const fakeSObject = { name: 'A' };
-    sandbox
-      .stub(mockConnection, 'describe')
-      .resolves(fakeSObject);
+    sandbox.stub(mockConnection, 'describe').resolves(fakeSObject);
 
     const expectedMessage = {
       type: 'sobject_metadata_response',
@@ -153,8 +127,7 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateDocumentSpy.callCount === 1,
-      `updateDocumentSpy callcount expected 1, but got ${updateDocumentSpy.callCount
-      }`
+      `updateDocumentSpy callcount expected 1, but got ${updateDocumentSpy.callCount}`
     );
     expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
   });
@@ -166,35 +139,18 @@ describe('SoqlEditorInstance should', () => {
     });
     expect(
       updateWebviewSpy.callCount === 1,
-      `updateWebviewSpy callcount expected 1, but got ${updateWebviewSpy.callCount
-      }`
+      `updateWebviewSpy callcount expected 1, but got ${updateWebviewSpy.callCount}`
+    );
+  });
+
+  it('handles run query event and opens the webview', async () => {
+    const openQueryResultsSpy = sandbox.spy(instance, 'openQueryDataView');
+    instance.sendEvent({
+      type: MessageType.RUN_SOQL_QUERY
+    });
+    expect(
+      openQueryResultsSpy.callCount === 1,
+      `openQueryResultsSpy callcount expected 1, but got ${openQueryResultsSpy.callCount}`
     );
   });
 });
-
-class MockTextDocumentProvider implements vscode.TextDocumentContentProvider {
-  public provideTextDocumentContent(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    uri: vscode.Uri,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    token: vscode.CancellationToken
-  ): string {
-    return 'SELECT A FROM B';
-  }
-}
-
-class TestSoqlEditorInstance extends SOQLEditorInstance {
-  public sendEvent(event: SoqlEditorEvent) {
-    this.onDidRecieveMessageHandler(event);
-  }
-  public updateWebview(document: vscode.TextDocument) {
-    super.updateWebview(document);
-  }
-
-  public updateTextDocument(
-    document: vscode.TextDocument,
-    soql: string
-  ): Thenable<boolean> {
-    return super.updateTextDocument(document, soql);
-  }
-}
