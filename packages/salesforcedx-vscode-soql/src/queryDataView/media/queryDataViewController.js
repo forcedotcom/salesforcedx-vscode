@@ -12,6 +12,10 @@
     totalSize: number;
     records: T[];
   } */
+  const FileType = {
+    JSON: 'json',
+    CSV: 'csv'
+  };
   const vscode = acquireVsCodeApi();
 
   // load previous state is webview was moved from background.
@@ -53,7 +57,7 @@
   saveCsvButtonEl.addEventListener('click', () => {
     vscode.postMessage({
       type: 'save_records',
-      format: 'csv'
+      format: FileType.CSV
     });
   });
   // incoming messages from VS Code

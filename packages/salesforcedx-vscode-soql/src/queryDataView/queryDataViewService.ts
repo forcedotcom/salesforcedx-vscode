@@ -20,6 +20,10 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { HtmlUtils } from '../editor/htmlUtils';
+import {
+  FileFormat,
+  QueryDataFileService as FileService
+} from './queryDataFileService';
 import { html } from './queryDataHtml';
 
 export class QueryDataViewService {
@@ -89,14 +93,9 @@ export class QueryDataViewService {
     return webview;
   }
 
-  private handleSaveRecords(format: string) {
-    switch (format) {
-      case 'csv':
-        console.log('GET MY CSV!!!', this.queryData);
-        break;
-      default:
-        break;
-    }
+  private handleSaveRecords(format: FileFormat) {
+    const fileService = new FileService(this.queryData, format);
+    fileService.save();
   }
 
   private getWebViewContent(webview: vscode.Webview): string {
