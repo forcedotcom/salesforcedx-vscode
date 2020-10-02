@@ -72,8 +72,6 @@ interface PreviewQuickPickItem extends vscode.QuickPickItem {
 }
 
 export interface DeviceQuickPickItem extends vscode.QuickPickItem {
-  label: string;
-  detail: string;
   name: string;
 }
 
