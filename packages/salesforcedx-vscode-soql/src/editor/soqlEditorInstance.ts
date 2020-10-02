@@ -155,9 +155,7 @@ export class SOQLEditorInstance {
   protected handleRunQuery(): Promise<void> {
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
-      const queryData = await new QueryRunner(conn, this.document).runQuery(
-        queryText
-      );
+      const queryData = await new QueryRunner(conn).runQuery(queryText);
       this.openQueryDataView(queryData);
     });
   }
