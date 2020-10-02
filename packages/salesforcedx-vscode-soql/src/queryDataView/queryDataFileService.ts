@@ -8,6 +8,7 @@
 import { JsonMap } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
+import * as Papa from 'papaparse';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DATA_CSV_EXT, DATA_JSON_EXT, QUERY_DATA_DIR_NAME } from '../constants';
@@ -41,10 +42,9 @@ export class QueryDataFileService {
 
     switch (this.format) {
       case FileFormat.CSV:
-        console.log('GET MY CSV!!!', this.queryData);
+        this.saveCsvToFs();
         break;
       case FileFormat.JSON:
-        console.log('SAVE MY JSON FILE!');
         this.saveJsonToFs();
       default:
         break;
@@ -60,7 +60,21 @@ export class QueryDataFileService {
     );
   }
 
+  private saveCsvToFs() {
+    // TODO: try catch
+    const queryRecordsCsv = Papa.unparse(this.queryData.records, {
+      header: true,
+      delimiter: ','
+    });
+    const queryDataFilePath = path.join(
+      this.getRecordsDirectoryPath(),
+      `${this.documentName}.${DATA_CSV_EXT}`
+    );
+    fs.writeFileSync(queryDataFilePath, queryRecordsCsv);
+  }
+
   private saveJsonToFs() {
+    // TODO: try catch
     const queryRecordsJson = JSON.stringify(this.queryData.records);
     const queryDataFilePath = path.join(
       this.getRecordsDirectoryPath(),
