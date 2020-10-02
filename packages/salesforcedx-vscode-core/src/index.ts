@@ -86,7 +86,7 @@ import { OrgList } from './orgPicker';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { hasRootWorkspace, isCLIInstalled } from './util';
+import { getRootWorkspacePath, hasRootWorkspace, isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 function registerCommands(
@@ -612,6 +612,7 @@ export async function activate(context: vscode.ExtensionContext) {
     EmptyParametersGatherer,
     getDefaultUsernameOrAlias,
     getUserId,
+    getRootWorkspacePath,
     isCLIInstalled,
     notificationService,
     OrgAuthInfo,
