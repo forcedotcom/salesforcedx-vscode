@@ -1398,9 +1398,12 @@ describe('forceLightningLwcPreview', () => {
   });
 
   it('Directory Level Up', async () => {
-    expect(directoryLevelUp('/my/path') === '/my').to.be.true;
-    expect(directoryLevelUp('/my') === '/').to.be.true;
-    expect(directoryLevelUp('/') === undefined).to.be.true;
+    expect(
+      directoryLevelUp(path.normalize('/my/path')) === path.normalize('/my')
+    ).to.be.true;
+    expect(directoryLevelUp(path.normalize('/my')) === path.normalize('/')).to
+      .be.true;
+    expect(directoryLevelUp(path.normalize('/')) === undefined).to.be.true;
   });
 
   it('Project Root Directory', async () => {
@@ -1411,16 +1414,26 @@ describe('forceLightningLwcPreview', () => {
     } as fs.Stats);
 
     // returns undefined for invalid path
-    expect(getProjectRootDirectory('/invalidpath') === undefined).to.be.true;
+    expect(
+      getProjectRootDirectory(path.normalize('/invalidpath')) === undefined
+    ).to.be.true;
 
     // returns undefined when path is valid but sfdx-project.json not found
-    existsSyncStub.callsFake(fsPath => fsPath === '/my/path');
+    existsSyncStub.callsFake(
+      fsPath => path.normalize(fsPath as string) === path.normalize('/my/path')
+    );
 
     // returns correct path when path is valid and sfdx-project.json is found
     existsSyncStub.reset();
     existsSyncStub.callsFake(
-      fsPath => fsPath === '/my/path' || fsPath === '/my/sfdx-project.json'
+      fsPath =>
+        path.normalize(fsPath as string) === path.normalize('/my/path') ||
+        path.normalize(fsPath as string) ===
+          path.normalize('/my/sfdx-project.json')
     );
-    expect(getProjectRootDirectory('/my/path') === '/my').to.be.true;
+    expect(
+      getProjectRootDirectory(path.normalize('/my/path')) ===
+        path.normalize('/my')
+    ).to.be.true;
   });
 });
