@@ -71,6 +71,12 @@ interface PreviewQuickPickItem extends vscode.QuickPickItem {
   platformName: keyof typeof PlatformName;
 }
 
+export interface DeviceQuickPickItem extends vscode.QuickPickItem {
+  label: string;
+  detail: string;
+  name: string;
+}
+
 export const platformOptions: PreviewQuickPickItem[] = [
   {
     label: nls.localize('force_lightning_lwc_preview_desktop_label'),
@@ -330,17 +336,19 @@ async function selectTargetDevice(
     deviceListExecutionExitCode = exitCode;
   });
 
-  const items: vscode.QuickPickItem[] = [];
-  const createNewDeviceItem: vscode.QuickPickItem = {
+  const items: DeviceQuickPickItem[] = [];
+  const createNewDeviceItem: DeviceQuickPickItem = {
     label: nls.localize(
       'force_lightning_lwc_preview_create_virtual_device_label'
     ),
     detail: nls.localize(
       'force_lightning_lwc_preview_create_virtual_device_detail'
+    ),
+    name: nls.localize(
+      'force_lightning_lwc_preview_create_virtual_device_label'
     )
   };
   let targetName: string | undefined;
-  let devices: IOSSimulatorDevice[] | AndroidVirtualDevice[] | undefined;
 
   try {
     const result: string = await deviceListOutput.getCmdResult(
@@ -349,10 +357,25 @@ async function selectTargetDevice(
 
     const jsonString: string = result.substring(result.indexOf('{'));
 
+    // populate quick pick list of devices from the parsed JSON data
     if (isAndroid) {
-      devices = JSON.parse(jsonString).result as AndroidVirtualDevice[];
+      const devices: AndroidVirtualDevice[] = JSON.parse(jsonString)
+        .result as AndroidVirtualDevice[];
+      devices.forEach(device => {
+        const label: string = device.displayName;
+        const detail: string = `${device.target}, ${device.api}`;
+        const name: string = device.name;
+        items.push({ label, detail, name });
+      });
     } else {
-      devices = JSON.parse(jsonString).result as IOSSimulatorDevice[];
+      const devices: IOSSimulatorDevice[] = JSON.parse(jsonString)
+        .result as IOSSimulatorDevice[];
+      devices.forEach(device => {
+        const label: string = device.name;
+        const detail: string = device.runtimeId;
+        const name: string = device.name;
+        items.push({ label, detail, name });
+      });
     }
   } catch (e) {
     // If device enumeration fails due to exit code 127
@@ -373,25 +396,8 @@ async function selectTargetDevice(
     }
   }
 
-  // populate quick pick list of devices from the parsed JSON data
-  if (devices && devices.length > 0) {
-    if (isAndroid) {
-      (devices as AndroidVirtualDevice[]).forEach(device => {
-        const label: string = device.displayName;
-        const detail: string = `${device.target}, ${device.api}`;
-        items.push({ label, detail });
-      });
-    } else {
-      (devices as IOSSimulatorDevice[]).forEach(device => {
-        const label: string = device.name;
-        const detail: string = device.runtimeId;
-        items.push({ label, detail });
-      });
-    }
-  }
-
   // if there are any devices available, show a pick list.
-  let selectedItem: vscode.QuickPickItem | undefined;
+  let selectedItem: DeviceQuickPickItem | undefined;
   if (items.length > 0) {
     items.unshift(createNewDeviceItem);
 
@@ -405,7 +411,7 @@ async function selectTargetDevice(
       // user cancelled operation
       return undefined;
     } else {
-      targetName = selectedItem.label;
+      targetName = selectedItem.name;
     }
   }
 
@@ -419,14 +425,6 @@ async function selectTargetDevice(
     if (targetName === undefined) {
       // user cancelled operation
       return undefined;
-    }
-  } else {
-    // for android, map the device's user friendly display name to its actual name
-    if (isAndroid) {
-      const match = (devices as AndroidVirtualDevice[]).find(
-        device => device.displayName === targetName
-      );
-      targetName = match && match.name;
     }
   }
 
@@ -598,7 +596,7 @@ async function executeMobilePreview(
  * @param startPath starting path to search for the config file.
  * @returns the path to the folder containing the config file, or undefined if config file not found
  */
-function getProjectRootDirectory(startPath: string): string | undefined {
+export function getProjectRootDirectory(startPath: string): string | undefined {
   if (!fs.existsSync(startPath)) {
     return undefined;
   }
@@ -626,7 +624,7 @@ function getProjectRootDirectory(startPath: string): string | undefined {
  * @param directory path to a directory
  * @returns path to a directory that is one level up, or undefined if cannot go one level up.
  */
-function directoryLevelUp(directory: string): string | undefined {
+export function directoryLevelUp(directory: string): string | undefined {
   const levelUp = path.dirname(directory);
 
   if (levelUp === directory) {

@@ -29,7 +29,10 @@ import {
 } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
+  DeviceQuickPickItem,
+  directoryLevelUp,
   forceLightningLwcPreview,
+  getProjectRootDirectory,
   PlatformName,
   platformOptions
 } from '../../../src/commands/forceLightningLwcPreview';
@@ -48,9 +51,10 @@ const logLevelKey = 'preview.logLevel';
 const defaultLogLevel = 'warn';
 const androidSuccessString = 'Launching... Opening Browser';
 
-const iOSPickedDevice: vscode.QuickPickItem = {
+const iOSPickedDevice: DeviceQuickPickItem = {
   label: 'iPhone 8',
-  detail: 'iOS 13.3'
+  detail: 'iOS 13.3',
+  name: 'iPhone 8'
 };
 const iOSDeviceListJson = `
   {
@@ -74,9 +78,10 @@ const iOSDeviceListJson = `
   }
 `;
 
-const androidPickedDevice: vscode.QuickPickItem = {
+const androidPickedDevice: DeviceQuickPickItem = {
   label: 'Pixel API 29',
-  detail: 'Google APIs, API 29'
+  detail: 'Google APIs, API 29',
+  name: 'Pixel_API_29'
 };
 const androidDeviceListJson = `
   {
@@ -1084,7 +1089,9 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.notCalled(showInputBoxStub);
 
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
-    const deviceName = isAndroid ? 'Pixel_API_29' : 'iPhone 8';
+    const deviceName = isAndroid
+      ? androidPickedDevice.name
+      : iOSPickedDevice.name;
 
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
@@ -1250,7 +1257,9 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledThrice(showQuickPickStub); // platform + device list + app list
 
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
-    const deviceName = isAndroid ? 'Pixel_API_29' : 'iPhone 8';
+    const deviceName = isAndroid
+      ? androidPickedDevice.name
+      : iOSPickedDevice.name;
     const projectRootDir = mockLwcFileDirectoryUri.fsPath;
     const configFile = path.join(projectRootDir, 'mobile-apps.json');
 
@@ -1306,4 +1315,112 @@ describe('forceLightningLwcPreview', () => {
       )
     );
   }
+
+  it('Cancels Preview if user cancels platform selection', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    getConfigurationStub.returns(new MockWorkspace(false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.resolves(undefined);
+
+    await forceLightningLwcPreview(mockLwcFilePathUri);
+
+    sinon.assert.calledOnce(showQuickPickStub); // platform
+    sinon.assert.notCalled(cmdWithFlagSpy);
+    expect(
+      showWarningMessageSpy.calledWith(
+        nls.localize('force_lightning_lwc_operation_cancelled')
+      )
+    );
+  });
+
+  it('Cancels Preview if user cancels selecting target device', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    getConfigurationStub.returns(new MockWorkspace(false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.onFirstCall().resolves(androidQuickPick);
+    showQuickPickStub.onSecondCall().resolves(undefined);
+
+    await forceLightningLwcPreview(mockLwcFilePathUri);
+
+    sinon.assert.calledOnce(showQuickPickStub); // platform
+    sinon.assert.calledOnce(cmdWithFlagSpy); // device list
+    expect(
+      showWarningMessageSpy.calledWith(
+        nls.localize('force_lightning_lwc_operation_cancelled')
+      )
+    );
+  });
+
+  it('Cancels Preview if user cancels selecting target app', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    getConfigurationStub.returns(new MockWorkspace(false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.onFirstCall().resolves(androidQuickPick);
+    showQuickPickStub.onSecondCall().resolves(androidPickedDevice);
+    showQuickPickStub.onThirdCall().resolves(undefined);
+
+    await forceLightningLwcPreview(mockLwcFilePathUri);
+
+    sinon.assert.calledOnce(showQuickPickStub); // platform + device list
+    sinon.assert.calledOnce(cmdWithFlagSpy); // device list
+    expect(
+      showWarningMessageSpy.calledWith(
+        nls.localize('force_lightning_lwc_operation_cancelled')
+      )
+    );
+  });
+
+  it('Directory Level Up', async () => {
+    expect(directoryLevelUp('/my/path') === '/my').to.be.true;
+    expect(directoryLevelUp('/my') === '/').to.be.true;
+    expect(directoryLevelUp('/') === undefined).to.be.true;
+  });
+
+  it('Project Root Directory', async () => {
+    lstatSyncStub.returns({
+      isDirectory() {
+        return true;
+      }
+    } as fs.Stats);
+
+    // returns undefined for invalid path
+    expect(getProjectRootDirectory('/invalidpath') === undefined).to.be.true;
+
+    // returns undefined when path is valid but sfdx-project.json not found
+    existsSyncStub.callsFake(fsPath => fsPath === '/my/path');
+
+    // returns correct path when path is valid and sfdx-project.json is found
+    existsSyncStub.reset();
+    existsSyncStub.callsFake(
+      fsPath => fsPath === '/my/path' || fsPath === '/my/sfdx-project.json'
+    );
+    expect(getProjectRootDirectory('/my/path') === '/my').to.be.true;
+  });
 });
