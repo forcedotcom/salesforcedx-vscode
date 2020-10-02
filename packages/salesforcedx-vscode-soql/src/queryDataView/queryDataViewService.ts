@@ -94,7 +94,11 @@ export class QueryDataViewService {
   }
 
   private handleSaveRecords(format: FileFormat) {
-    const fileService = new FileService(this.queryData, format);
+    const fileService = new FileService(
+      this.queryData,
+      format,
+      getDocumentName(this.document)
+    );
     fileService.save();
   }
 
