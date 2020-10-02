@@ -17,12 +17,9 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
-import { CommandExecution } from '../../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService, ProgressNotification } from '../../notifications';
-import { taskViewService } from '../../statuses';
-import { TelemetryData } from '../../telemetry';
+import { TelemetryData, telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   SfdxCommandlet,
@@ -89,25 +86,32 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     const result = await new CommandOutput().getCmdResult(execution);
-    const resultJson = JSON.parse(result);
+    let resultJson: any;
+    try {
+      resultJson = JSON.parse(result);
+    } catch (error) {
+      channelService.appendLine(
+        nls.localize('force_org_open_default_scratch_org_container_error')
+      );
+      telemetryService.sendException(
+        'force_org_open_container',
+        `There was an error when parsing the org open response ${error}`
+      );
+    }
+
     if (resultJson.status === 0 && this.openAfterRetrieve) {
       const extensions = MetadataDictionary.getInfo(
         resultJson.result.inboundFiles[0].type
       )?.extensions;
 
-      resultJson.result.inboundFiles.map( async (item: any) => {
-        let fileToOpen;
-        if (extensions?.includes( path.extname(item.filePath))) {
-          fileToOpen = path.join(
-            getRootWorkspacePath(),
-            item.filePath
-          );
-          const showOptions: TextDocumentShowOptions = { preview: false};
+      for (const item of resultJson.result.inboundFiles) {
+        if (extensions?.includes(path.extname(item.filePath))) {
+          const fileToOpen = path.join(getRootWorkspacePath(), item.filePath);
+          const showOptions: TextDocumentShowOptions = { preview: false };
           const document = await vscode.workspace.openTextDocument(fileToOpen);
           vscode.window.showTextDocument(document, showOptions);
         }
       }
-      );
     }
   }
 }
@@ -128,5 +132,5 @@ export async function forceSourceRetrieveCmp(
 
 export type TextDocumentShowOptions = {
   preserveFocus?: boolean;
-  preview?: boolean
+  preview?: boolean;
 };
