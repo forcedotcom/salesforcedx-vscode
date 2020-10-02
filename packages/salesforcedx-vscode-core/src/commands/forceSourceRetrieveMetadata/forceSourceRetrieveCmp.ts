@@ -102,7 +102,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
             getRootWorkspacePath(),
             item.filePath
           );
-          const showOptions: TextDocumentShowOptions = { preview: false};
+          const showOptions: TextDocumentShowOptions = { preview: false };
           const document = await vscode.workspace.openTextDocument(fileToOpen);
           vscode.window.showTextDocument(document, showOptions);
         }
