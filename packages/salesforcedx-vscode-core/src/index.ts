@@ -76,7 +76,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
-import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
+import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
@@ -87,7 +87,7 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { hasRootWorkspace, isCLIInstalled } from './util';
+import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 function registerCommands(
@@ -378,6 +378,9 @@ function registerCommands(
     forceFunctionStopCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceOrgDeleteDefaultCmd,
+    forceOrgDeleteUsernameCmd,
+    forceOrgListCleanCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
