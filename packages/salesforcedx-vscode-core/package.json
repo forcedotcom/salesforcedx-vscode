@@ -814,7 +814,7 @@
       },
       {
         "command": "sfdx.force.source.retrieve.open.component",
-        "title": "%force_source_retrieve_display_text%",
+        "title": "%force_source_retrieve_and_open_display_text%",
         "icon": {
           "light": "resources/light/code.svg",
           "dark": "resources/dark/code.svg"
