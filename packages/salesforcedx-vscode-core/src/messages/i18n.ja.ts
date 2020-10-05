@@ -94,7 +94,7 @@ export const messages = {
     'マニフェストファイル上でのみ SFDX マニフェストのソースを組織へデプロイ を実行できます。',
   force_source_retrieve_text: 'SFDX: 組織からソースを取得',
   force_source_retrieve_display_text: 'SFDX: 組織からソースを取得',
-  force_source_retrieve_and_open_display_text: 'Retrieve and open',
+  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
   force_source_retrieve_select_file_or_directory:
     'ソースファイルかディレクトリ上でのみ SFDX: 組織からソースを取得 を実行できます。',
   force_source_retrieve_select_manifest:

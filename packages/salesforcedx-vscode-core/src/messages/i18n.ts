@@ -112,7 +112,7 @@ export const messages = {
     'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
   force_source_retrieve_display_text: 'Retrieve Source from Org',
-  force_source_retrieve_and_open_display_text: 'Retrieve and open',
+  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
   force_source_retrieve_select_file_or_directory:
     'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
   force_source_retrieve_select_manifest:
