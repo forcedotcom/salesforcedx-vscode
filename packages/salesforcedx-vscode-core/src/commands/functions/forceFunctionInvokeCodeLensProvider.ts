@@ -89,8 +89,7 @@ export async function provideFunctionInvokeCodeLens(
   };
   const invokeCodeLens = new CodeLens(range, functionInvokeCommand);
 
-  // TODO: i18n
-  const debugCommandTitle = 'Debug Send Request';
+  const debugCommandTitle = nls.localize('force_function_debug_invoke_tooltip');
   const functionDebugInvokeCommand: Command = {
     command: 'sfdx.force.function.debugInvoke',
     title: debugCommandTitle,

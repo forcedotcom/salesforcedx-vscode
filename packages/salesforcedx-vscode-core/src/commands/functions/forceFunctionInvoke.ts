@@ -14,7 +14,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { telemetryService } from '../../telemetry';
 import {
   FilePathGatherer,
   SfdxCommandlet,

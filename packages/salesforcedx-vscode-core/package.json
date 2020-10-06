@@ -837,7 +837,7 @@
       },
       {
         "command": "sfdx.force.function.debugInvoke",
-        "title": "%force_function_debugInvoke%"
+        "title": "%force_function_debug_invoke%"
       },
       {
         "command": "sfdx.force.function.stop",

@@ -17,6 +17,9 @@ interface Terminable {
   terminate: () => Promise<void>;
 }
 
+/**
+ * Tracking locally running functions
+ */
 export interface FunctionExecution extends Terminable {
   /**
    * root dir where function.toml is located
@@ -140,7 +143,7 @@ export class FunctionService {
   }
 
   /**
-   * Register listener for debug session start/stop events and keep track of active sessions
+   * Register listeners for debug session start/stop events and keep track of active debug sessions
    * @param context extension context
    */
   public handleDidStartTerminateDebugSessions(
