@@ -35,11 +35,6 @@ export class QueryDataFileService {
 
   public save() {
     // TODO: only create dir if there is data?
-    // will create the directory if it does not exist
-    fs.mkdirSync(this.getRecordsDirectoryPath(), {
-      recursive: true
-    });
-
     switch (this.format) {
       case FileFormat.CSV:
         this.saveCsvToFs();
@@ -60,21 +55,55 @@ export class QueryDataFileService {
     );
   }
 
-  private saveCsvToFs() {
-    // TODO: try catch
-    const queryRecordsCsv = Papa.unparse(this.queryData.records, {
-      header: true,
-      delimiter: ','
+  private createRecordsDirectoryIfDoesNotExist() {
+    // will create the directory if it does not exist
+    const recordsDirPath = fs.mkdirSync(this.getRecordsDirectoryPath(), {
+      recursive: true
     });
-    const queryDataFilePath = path.join(
-      this.getRecordsDirectoryPath(),
-      `${this.documentName}.${DATA_CSV_EXT}`
+    return recordsDirPath;
+  }
+
+  private showFileInExporer(targetPath: string) {
+    vscode.commands.executeCommand(
+      'revealInExplorer',
+      vscode.Uri.parse(targetPath)
     );
-    fs.writeFileSync(queryDataFilePath, queryRecordsCsv);
+  }
+
+  private showSaveSuccessMessage(savedFileName: string) {
+    vscode.window.showInformationMessage(
+      // TODO: i18n and CCX
+      `Your data has been saved in this workspace as: ${savedFileName}`
+    );
+  }
+
+  private saveCsvToFs() {
+    const savedFileName = `${this.documentName}.${DATA_CSV_EXT}`;
+    try {
+      const queryRecordsCsv = Papa.unparse(this.queryData.records, {
+        header: true,
+        delimiter: ','
+      });
+      const queryDataFilePath = path.join(
+        this.getRecordsDirectoryPath(),
+        savedFileName
+      );
+
+      this.createRecordsDirectoryIfDoesNotExist();
+      fs.writeFileSync(queryDataFilePath, queryRecordsCsv);
+      this.showSaveSuccessMessage(savedFileName);
+      this.showFileInExporer(queryDataFilePath);
+    } catch (error) {
+      // TODO: i18n, CCX
+      vscode.window.showErrorMessage(
+        `Your data could not be saved. Run the query and try again.`
+      );
+      throw error;
+    }
   }
 
   private saveJsonToFs() {
-    // TODO: try catch
+    // TODO: try catch, format the json string with prittier?
     const queryRecordsJson = JSON.stringify(this.queryData.records);
     const queryDataFilePath = path.join(
       this.getRecordsDirectoryPath(),
