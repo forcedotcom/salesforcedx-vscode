@@ -8,10 +8,6 @@
 
 ## Added
 
-#### salesforcedx-vscode-core
-
-- Run and view SOQL query data ([PR #2565](https://github.com/forcedotcom/salesforcedx-vscode/pull/2565))
-
 #### salesforcedx-vscode-lwc
 
 - Update preview command to launch a native app or the browser ([PR #2585](https://github.com/forcedotcom/salesforcedx-vscode/pull/2585))
