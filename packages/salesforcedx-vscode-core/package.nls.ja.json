@@ -59,6 +59,7 @@
   "refresh_types_text": "メタデータ型を更新",
   "refresh_components_text": "コンポーネントを更新",
   "force_source_retrieve_display_text": "組織からソースを取得",
+  "force_source_retrieve_and_open_display_text": "Retrieve and Open Source",
   "org_browser_enabled_description": "(ベータ) デフォルトの組織が非スクラッチ組織の場合に、組織ブラウザビューを表示するかどうかを指定します。組織ブラウザの [ドキュメント] (https://forcedotcom.github.io/salesforcedx-vscode/user-guide/org-browser) を参照してください。",
   "force_diff_against_org": "組織のファイルとの差分を表示",
   "force_analytics_template_create_text": "SFDX: サンプルの Analytics テンプレートを作成",

@@ -495,6 +495,13 @@ async function setupOrgBrowser(
       await forceSourceRetrieveCmp(trigger);
     }
   );
+
+  vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.open.component',
+    async (trigger: RetrieveMetadataTrigger) => {
+      await forceSourceRetrieveCmp(trigger, true);
+    }
+  );
 }
 
 export async function activate(context: vscode.ExtensionContext) {

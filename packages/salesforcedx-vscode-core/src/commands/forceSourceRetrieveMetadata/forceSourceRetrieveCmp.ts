@@ -5,16 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  CliCommandExecutor,
   Command,
+  CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ContinueResponse,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
+import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { TelemetryData } from '../../telemetry';
+import { TelemetryData, telemetryService } from '../../telemetry';
+import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -27,10 +33,14 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   LocalComponent[]
 > {
   private describer: RetrieveDescriber;
-
-  constructor(describer: RetrieveDescriber) {
+  private openAfterRetrieve: boolean = false;
+  constructor(
+    describer: RetrieveDescriber,
+    openAfterRetrieve: boolean = false
+  ) {
     super();
     this.describer = describer;
+    this.openAfterRetrieve = openAfterRetrieve;
   }
 
   public build(data?: LocalComponent[]): Command {
@@ -38,6 +48,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
       .withDescription(nls.localize('force_source_retrieve_text'))
       .withLogName('force_source_retrieve')
       .withArg('force:source:retrieve')
+      .withJson()
       .withArg('-m')
       .withArg(this.describer.buildMetadataArg(data))
       .build();
@@ -66,14 +77,56 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     });
     return quantities;
   }
+
+  public async execute(response: any): Promise<void> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = await new CliCommandExecutor(this.build(response), {
+      cwd: getRootWorkspacePath()
+    }).execute(cancellationToken);
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    const result = await new CommandOutput().getCmdResult(execution);
+    let resultJson: any;
+    try {
+      resultJson = JSON.parse(result);
+    } catch (error) {
+      channelService.appendLine(
+        nls.localize('force_org_open_default_scratch_org_container_error')
+      );
+      telemetryService.sendException(
+        'force_org_open_container',
+        `There was an error when parsing the org open response ${error}`
+      );
+    }
+
+    if (resultJson.status === 0 && this.openAfterRetrieve) {
+      const extensions = MetadataDictionary.getInfo(
+        resultJson.result.inboundFiles[0].type
+      )?.extensions;
+
+      for (const item of resultJson.result.inboundFiles) {
+        if (extensions?.includes(path.extname(item.filePath))) {
+          const fileToOpen = path.join(getRootWorkspacePath(), item.filePath);
+          const showOptions: vscode.TextDocumentShowOptions = {
+            preview: false
+          };
+          const document = await vscode.workspace.openTextDocument(fileToOpen);
+          vscode.window.showTextDocument(document, showOptions);
+        }
+      }
+    }
+  }
 }
 
-export async function forceSourceRetrieveCmp(trigger: RetrieveMetadataTrigger) {
+export async function forceSourceRetrieveCmp(
+  trigger: RetrieveMetadataTrigger,
+  openAfterRetrieve: boolean = false
+) {
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
-    new ForceSourceRetrieveExecutor(retrieveDescriber),
+    new ForceSourceRetrieveExecutor(retrieveDescriber, openAfterRetrieve),
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
