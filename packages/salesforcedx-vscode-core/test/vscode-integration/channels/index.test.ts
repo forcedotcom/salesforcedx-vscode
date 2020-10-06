@@ -143,7 +143,7 @@ describe('Channel', () => {
         {}
       ).execute();
       channelService.streamCommandOutput(execution);
-      expect(ensureDoubleDigitsStub.called).to.be.true;
+      expect(ensureDoubleDigitsStub.called).equals(true);
     });
   });
 });
