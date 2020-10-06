@@ -8,10 +8,14 @@
 import { JsonMap } from '@salesforce/ts-types';
 import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
-import * as Papa from 'papaparse';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { DATA_CSV_EXT, DATA_JSON_EXT, QUERY_DATA_DIR_NAME } from '../constants';
+import { QUERY_DATA_DIR_NAME } from '../constants';
+import {
+  CsvDataProvider,
+  DataProvider,
+  JsonDataProvider
+} from './dataProviders';
 
 export enum FileFormat {
   JSON = 'json',
@@ -27,22 +31,49 @@ const sfdxCoreExports = sfdxCoreExtension
 const { getRootWorkspacePath } = sfdxCoreExports;
 
 export class QueryDataFileService {
+  private dataProvider: DataProvider;
+
   constructor(
     private queryData: QueryResult<JsonMap>,
     private format: FileFormat,
     private documentName: string
-  ) {}
+  ) {
+    this.dataProvider = this.getDataProvider();
+  }
 
-  public save() {
-    // TODO: only create dir if there is data?
+  // can use a look up instead of switch case if providers are registered
+  private getDataProvider(): DataProvider {
     switch (this.format) {
       case FileFormat.CSV:
-        this.saveCsvToFs();
-        break;
+        return new CsvDataProvider(this.documentName);
       case FileFormat.JSON:
-        this.saveJsonToFs();
+        return new JsonDataProvider(this.documentName);
       default:
-        break;
+        throw new Error('No DataProvider Found');
+    }
+  }
+
+  public save() {
+    try {
+      const fileContent = this.dataProvider.getFileContent(
+        this.queryData.records
+      );
+      const savedFileName = this.dataProvider.getFileName();
+      const queryDataFilePath = path.join(
+        this.getRecordsDirectoryPath(),
+        savedFileName
+      );
+
+      this.createRecordsDirectoryIfDoesNotExist();
+      fs.writeFileSync(queryDataFilePath, fileContent);
+      this.showSaveSuccessMessage(savedFileName);
+      this.showFileInExporer(queryDataFilePath);
+    } catch (error) {
+      // TODO: i18n, CCX
+      vscode.window.showErrorMessage(
+        `Your data could not be saved. Run the query and try again.`
+      );
+      throw error;
     }
   }
 
@@ -75,40 +106,5 @@ export class QueryDataFileService {
       // TODO: i18n and CCX
       `Your data has been saved in this workspace as: ${savedFileName}`
     );
-  }
-
-  private saveCsvToFs() {
-    const savedFileName = `${this.documentName}.${DATA_CSV_EXT}`;
-    try {
-      const queryRecordsCsv = Papa.unparse(this.queryData.records, {
-        header: true,
-        delimiter: ','
-      });
-      const queryDataFilePath = path.join(
-        this.getRecordsDirectoryPath(),
-        savedFileName
-      );
-
-      this.createRecordsDirectoryIfDoesNotExist();
-      fs.writeFileSync(queryDataFilePath, queryRecordsCsv);
-      this.showSaveSuccessMessage(savedFileName);
-      this.showFileInExporer(queryDataFilePath);
-    } catch (error) {
-      // TODO: i18n, CCX
-      vscode.window.showErrorMessage(
-        `Your data could not be saved. Run the query and try again.`
-      );
-      throw error;
-    }
-  }
-
-  private saveJsonToFs() {
-    // TODO: try catch, format the json string with prittier?
-    const queryRecordsJson = JSON.stringify(this.queryData.records);
-    const queryDataFilePath = path.join(
-      this.getRecordsDirectoryPath(),
-      `${this.documentName}.${DATA_JSON_EXT}`
-    );
-    fs.writeFileSync(queryDataFilePath, queryRecordsJson);
   }
 }
