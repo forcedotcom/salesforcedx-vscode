@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Fix initializing core extension features when a non-Salesforce project is opened ([PR #2601](https://github.com/forcedotcom/salesforcedx-vscode/pull/2601))
+- Fix initializing core extension features when a non-Salesforce project is opened ([PR #2601](https://github.com/forcedotcom/salesforcedx-vscode/pull/2601)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
 
 ## Added
 
