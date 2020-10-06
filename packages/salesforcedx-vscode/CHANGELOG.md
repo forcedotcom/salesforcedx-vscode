@@ -1,3 +1,25 @@
+# 49.13.0 - October 8, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix initializing core extension features when a non-Salesforce project is opened ([PR #2601](https://github.com/forcedotcom/salesforcedx-vscode/pull/2601))
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Run and view SOQL query data ([PR #2565](https://github.com/forcedotcom/salesforcedx-vscode/pull/2565))
+
+#### salesforcedx-vscode-lwc
+
+- Update preview command to launch a native app or the browser ([PR #2585](https://github.com/forcedotcom/salesforcedx-vscode/pull/2585))
+
+#### docs
+
+- Added video for LWC local development to doc [homepage](https://developer.salesforce.com/tools/vscode) ([PR #2596](https://github.com/forcedotcom/salesforcedx-vscode/pull/2596))
+
 # 49.12.0 - September 30, 2020
 
 ## Fixed
