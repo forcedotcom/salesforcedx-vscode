@@ -53,7 +53,9 @@ export const functionInvokeCodeLensProvider = new ForceFunctionInvokeCodeLensPro
  * Register Code Lens Provider with the extension context
  * @param context Extension context
  */
-export function registerFunctionInvokeCodeLensProvider(context: ExtensionContext) {
+export function registerFunctionInvokeCodeLensProvider(
+  context: ExtensionContext
+) {
   context.subscriptions.push(
     languages.registerCodeLensProvider(
       FUNCTION_PAYLOAD_DOCUMENT_SELECTOR,
@@ -66,14 +68,17 @@ export async function provideFunctionInvokeCodeLens(
   document: TextDocument,
   token: CancellationToken
 ): Promise<CodeLens[]> {
-  const nonpayloadJsons = ['package.json', 'package-lock.json', 'tslint.json', 'lerna.json', 'tsconfig.json'];
+  const nonpayloadJsons = [
+    'package.json',
+    'package-lock.json',
+    'tslint.json',
+    'lerna.json',
+    'tsconfig.json'
+  ];
   if (nonpayloadJsons.includes(path.basename(document.uri.fsPath))) {
     return [];
   }
-  const range = new Range(
-    new Position(0, 0),
-    new Position(0, 1)
-  );
+  const range = new Range(new Position(0, 0), new Position(0, 1));
 
   const commandTitle = nls.localize('force_function_invoke_tooltip');
   const functionInvokeCommand: Command = {
@@ -82,7 +87,17 @@ export async function provideFunctionInvokeCodeLens(
     tooltip: commandTitle,
     arguments: [document.uri]
   };
-
   const invokeCodeLens = new CodeLens(range, functionInvokeCommand);
-  return [invokeCodeLens];
+
+  // TODO: i18n
+  const debugCommandTitle = 'Debug Send Request';
+  const functionDebugInvokeCommand: Command = {
+    command: 'sfdx.force.function.debugInvoke',
+    title: debugCommandTitle,
+    tooltip: debugCommandTitle,
+    arguments: [document.uri]
+  };
+  const debugInvokeCodeLens = new CodeLens(range, functionDebugInvokeCommand);
+
+  return [invokeCodeLens, debugInvokeCodeLens];
 }

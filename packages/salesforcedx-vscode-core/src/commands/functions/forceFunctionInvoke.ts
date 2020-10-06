@@ -12,14 +12,17 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
+import { getRootWorkspace } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
+import { FunctionService } from './functionService';
 
 export class ForceFunctionInvoke extends SfdxCommandletExecutor<string> {
   public build(payloadUri: string): Command {
@@ -40,4 +43,11 @@ export async function forceFunctionInvoke(sourceUri: Uri) {
     new ForceFunctionInvoke()
   );
   await commandlet.run();
+}
+
+export async function forceFunctionDebugInvoke(sourceUri: Uri) {
+  // TODO: telemetry
+  const localRoot = FunctionService.getFunctionDir(sourceUri.fsPath);
+  await FunctionService.instance.debugFunction(localRoot);
+  await forceFunctionInvoke(sourceUri);
 }

@@ -73,6 +73,7 @@
   "experimental_functions_install_dependencies": "Install dependencies from package.json after creating a function",
   "force_function_start": "SFDX: Start Function",
   "force_function_invoke": "SFDX: Invoke Function",
+  "force_function_debugInvoke": "SFDX: Debug Invoke Function",
   "force_function_stop": "SFDX: Stop Function",
   "experimental_support_functions": "Enable building and managing Salesforce functions from VS Code"
 }
