@@ -14,7 +14,11 @@ header {
   justify-content: space-between;
 }
 
-.button__save {
+.button__save--group {
   align-self: flex-end;
   margin-bottom: 1em;
+}
+
+.button__save {
+  margin-left: 0.5em;
 }

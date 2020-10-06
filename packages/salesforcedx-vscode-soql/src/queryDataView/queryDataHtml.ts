@@ -33,7 +33,10 @@ export function html(assets: { [index: string]: Uri }): string {
           <h3 id="webview-title"></h3>
           <p id="total-records-size"></p>
         </div>
-        <button id="save-csv-button" class="button__save">Save Records (csv)</button>
+        <div class="button__save--group">
+          <button id="save-csv-button" class="button__save">csv</button>
+          <button id="save-json-button" class="button__save">json</button>
+        </div>
       </header>
       <div id="data-table"></div>
     </div>

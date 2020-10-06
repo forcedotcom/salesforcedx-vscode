@@ -60,6 +60,14 @@
       format: FileType.CSV
     });
   });
+
+  const saveJsonButtonEl = document.getElementById('save-json-button');
+  saveJsonButtonEl.addEventListener('click', () => {
+    vscode.postMessage({
+      type: 'save_records',
+      format: FileType.JSON
+    });
+  });
   // incoming messages from VS Code
   window.addEventListener('message', event => {
     const { type, data, documentName } = event.data;
