@@ -18,6 +18,7 @@ import {
   DEFAULT_SFDX_CHANNEL
 } from '../../../src/channels/channelService';
 import { nls } from '../../../src/messages';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 
 class MockChannel implements OutputChannel {
   public readonly name = 'MockChannel';
@@ -50,10 +51,16 @@ describe('Channel', () => {
   describe('Default SFDX channel', () => {
     let mChannel: MockChannel;
     let channelService: ChannelService;
+    let sb: SinonSandbox;
 
     beforeEach(() => {
       mChannel = new MockChannel();
       channelService = new ChannelService(mChannel);
+      sb = createSandbox();
+    });
+
+    afterEach(async () => {
+      sb.restore();
     });
     // Commenting out this because of current issue in vscode 1.33.0 and above
     // https://github.com/Microsoft/vscode/issues/71947
@@ -69,7 +76,6 @@ describe('Channel', () => {
           .build(),
         {}
       ).execute();
-
       channelService.streamCommandOutput(execution);
 
       await new Promise<string>((resolve, reject) => {
@@ -122,6 +128,22 @@ describe('Channel', () => {
       expect(mChannel.value).to.contain(
         nls.localize('channel_end_with_sfdx_not_found')
       );
+    });
+
+    it('should test ensureDoubleDigits functions', async () => {
+      const ensureDoubleDigitsStub: SinonStub = sb.stub(
+        ChannelService.prototype,
+        'ensureDoubleDigits' as any
+      );
+      const execution = new CliCommandExecutor(
+        new SfdxCommandBuilder()
+          .withArg('force')
+          .withArg('--help')
+          .build(),
+        {}
+      ).execute();
+      channelService.streamCommandOutput(execution);
+      expect(ensureDoubleDigitsStub.called).to.be.true;
     });
   });
 });
