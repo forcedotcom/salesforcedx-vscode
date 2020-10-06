@@ -107,7 +107,9 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
       for (const item of resultJson.result.inboundFiles) {
         if (extensions?.includes(path.extname(item.filePath))) {
           const fileToOpen = path.join(getRootWorkspacePath(), item.filePath);
-          const showOptions: TextDocumentShowOptions = { preview: false };
+          const showOptions: vscode.TextDocumentShowOptions = {
+            preview: false
+          };
           const document = await vscode.workspace.openTextDocument(fileToOpen);
           vscode.window.showTextDocument(document, showOptions);
         }
@@ -129,8 +131,3 @@ export async function forceSourceRetrieveCmp(
   );
   await commandlet.run();
 }
-
-export type TextDocumentShowOptions = {
-  preserveFocus?: boolean;
-  preview?: boolean;
-};
