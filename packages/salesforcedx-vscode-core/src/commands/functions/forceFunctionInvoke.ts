@@ -12,10 +12,9 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as vscode from 'vscode';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
-import { getRootWorkspace } from '../../util';
+import { telemetryService } from '../../telemetry';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -46,7 +45,6 @@ export async function forceFunctionInvoke(sourceUri: Uri) {
 }
 
 export async function forceFunctionDebugInvoke(sourceUri: Uri) {
-  // TODO: telemetry
   const localRoot = FunctionService.getFunctionDir(sourceUri.fsPath);
   await FunctionService.instance.debugFunction(localRoot);
   await forceFunctionInvoke(sourceUri);

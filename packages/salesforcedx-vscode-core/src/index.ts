@@ -66,6 +66,7 @@ import {
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
+import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
   CompositeParametersGatherer,
@@ -555,6 +556,9 @@ export async function activate(context: vscode.ExtensionContext) {
     'sfdx:functions_enabled',
     functionsEnabled
   );
+  if (functionsEnabled) {
+    FunctionService.instance.handleDidStartTerminateDebugSessions(context);
+  }
 
   // Context
   let sfdxProjectOpened = false;

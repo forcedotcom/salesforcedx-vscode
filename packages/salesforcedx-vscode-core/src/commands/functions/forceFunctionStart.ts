@@ -30,6 +30,10 @@ import {
 
 import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
+import {
+  FUNCTION_DEFAULT_DEBUG_PORT,
+  FUNCTION_DEFAULT_PORT
+} from './types/constants';
 
 /**
  * Error types when running SFDX: Start Function
@@ -121,6 +125,11 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     }).execute(cancellationToken);
     const executionName = execution.command.toString();
 
+    cancellationToken.onCancellationRequested(async () => {
+      await execution.killExecution('SIGTERM');
+      this.logMetric('force_function_start_cancelled', startTime);
+    });
+
     OrgAuthInfo.getDefaultUsernameOrAlias(false)
       .then(defaultUsernameorAlias => {
         if (!defaultUsernameorAlias) {
@@ -136,6 +145,9 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
 
     const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
       {
+        rootDir: functionDirPath,
+        port: FUNCTION_DEFAULT_PORT,
+        debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
         terminate: () => {
           return execution.killExecution('SIGTERM');
         }
