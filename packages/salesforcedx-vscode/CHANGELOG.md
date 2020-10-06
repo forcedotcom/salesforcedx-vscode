@@ -18,7 +18,7 @@
 
 #### docs
 
-- Added video for LWC local development to doc [homepage](https://developer.salesforce.com/tools/vscode) ([PR #2596](https://github.com/forcedotcom/salesforcedx-vscode/pull/2596))
+- Added video for LWC local development to docsite [homepage](https://developer.salesforce.com/tools/vscode) ([PR #2596](https://github.com/forcedotcom/salesforcedx-vscode/pull/2596))
 
 # 49.12.0 - September 30, 2020
 
