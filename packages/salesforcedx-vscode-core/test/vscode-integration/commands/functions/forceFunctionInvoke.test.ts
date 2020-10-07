@@ -7,6 +7,7 @@
 
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import { assert, createSandbox, match, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
@@ -16,6 +17,7 @@ import {
 } from '../../../../src/commands/functions/forceFunctionInvoke';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
+import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
 import { MockExecution } from './mockExecution';
@@ -37,6 +39,9 @@ describe('Force Function Invoke', () => {
   describe('Debug Invoke', () => {
     let sandbox: SinonSandbox;
     let cliCommandExecutorStub: SinonStub;
+    const notificationServiceStubs: {
+      [key: string]: SinonStub;
+    } = {};
     const telemetryServiceStubs: {
       [key: string]: SinonStub;
     } = {};
@@ -46,22 +51,57 @@ describe('Force Function Invoke', () => {
         CliCommandExecutor.prototype,
         'execute'
       );
+      notificationServiceStubs.showWarningMessageStub = sandbox.stub(
+        notificationService,
+        'showWarningMessage'
+      );
       telemetryServiceStubs.sendCommandEventStub = sandbox.stub(
         telemetryService,
         'sendCommandEvent'
+      );
+      telemetryServiceStubs.sendExceptionStub = sandbox.stub(
+        telemetryService,
+        'sendException'
       );
     });
     afterEach(() => {
       sandbox.restore();
     });
 
+    it('Should show warning and log telemetry if debugged function does not have toml', async () => {
+      const srcUri = Uri.file(
+        path.join(
+          getRootWorkspacePath(),
+          'functions/demoJavaScriptFunction/payload.json'
+        )
+      );
+      const existsSyncStub = sandbox.stub(fs, 'existsSync');
+      existsSyncStub.returns(false);
+      const executor = new ForceFunctionInvoke();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionDebugInvoke(srcUri);
+
+      assert.notCalled(cliCommandExecutorStub);
+      assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
+      assert.calledWith(
+        notificationServiceStubs.showWarningMessageStub,
+        nls.localize('force_function_start_warning_no_toml')
+      );
+      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendExceptionStub,
+        'force_function_debug_invoke_no_toml',
+        nls.localize('force_function_start_warning_no_toml')
+      );
+    });
+
     it('Should stop debugging and log telemetry when invoke finishes', async () => {
       const srcUri = Uri.file(
         path.join(
           getRootWorkspacePath(),
-          'functions',
-          'demoJavaScriptFunction',
-          'payload.json'
+          'functions/demoJavaScriptFunction/payload.json'
         )
       );
       const executor = new ForceFunctionInvoke();
