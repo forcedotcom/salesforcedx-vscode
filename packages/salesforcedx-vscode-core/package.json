@@ -145,6 +145,11 @@
           "group": "inline"
         },
         {
+          "command": "sfdx.force.source.retrieve.open.component",
+          "when": "view == metadata && viewItem == component",
+          "group": "inline"
+        },
+        {
           "command": "sfdx.force.source.retrieve.component",
           "when": "view == metadata && viewItem =~ /(type|component)/",
           "group": "inline"
@@ -805,6 +810,14 @@
         "icon": {
           "light": "resources/light/retrieve.svg",
           "dark": "resources/dark/retrieve.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.source.retrieve.open.component",
+        "title": "%force_source_retrieve_and_open_display_text%",
+        "icon": {
+          "light": "resources/light/code.svg",
+          "dark": "resources/dark/code.svg"
         }
       },
       {
