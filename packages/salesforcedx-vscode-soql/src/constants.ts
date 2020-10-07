@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
-
 /* SOQL BUILDER */
 export const WEBVIEW_RESOURCE_ROOTS_PATH =
   'node_modules/@salesforce/soql-builder-ui';
@@ -22,7 +20,9 @@ export const QUERY_DATA_VIEW_SCRIPT_FILENAME = 'queryDataViewController.js';
 export const QUERY_DATA_VIEW_STYLE_FILENAME = 'queryDataView.css';
 export const TABULATOR_SCRIPT_FILENAME = 'tabulator.min.js';
 export const TABULATOR_STYLE_FILENAME = 'tabulator.min.css';
-export const DATA_VIEW_MEDIA_PATH = path.join('src', 'queryDataView', 'media');
+export const DATA_VIEW_RESOURCE_ROOTS_PATH =
+  'node_modules/@salesforce/soql-data-view';
+export const DATA_VIEW_UI_PATH = 'node_modules/@salesforce/soql-data-view/web';
 
 /* QUERY DATA FILE SERVICE */
 // The name of the directory query data is saved

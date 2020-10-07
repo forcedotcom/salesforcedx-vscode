@@ -11,7 +11,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../commonUtils';
 import {
-  DATA_VIEW_MEDIA_PATH,
+  DATA_VIEW_RESOURCE_ROOTS_PATH,
+  DATA_VIEW_UI_PATH,
   QUERY_DATA_VIEW_PANEL_TITLE,
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
   QUERY_DATA_VIEW_STYLE_FILENAME,
@@ -19,12 +20,11 @@ import {
   TABULATOR_SCRIPT_FILENAME,
   TABULATOR_STYLE_FILENAME
 } from '../constants';
-import { HtmlUtils } from '../editor/htmlUtils';
 import {
   FileFormat,
   QueryDataFileService as FileService
 } from './queryDataFileService';
-import { html } from './queryDataHtml';
+import { getHtml } from './queryDataHtml';
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -60,7 +60,10 @@ export class QueryDataViewService {
       {
         localResourceRoots: [
           vscode.Uri.file(
-            path.join(QueryDataViewService.extensionPath, DATA_VIEW_MEDIA_PATH)
+            path.join(
+              QueryDataViewService.extensionPath,
+              DATA_VIEW_RESOURCE_ROOTS_PATH
+            )
           )
         ],
         enableScripts: true
@@ -81,15 +84,18 @@ export class QueryDataViewService {
     webview.onDidReceiveMessage(message => {
       const { type, format } = message;
       switch (type) {
+        case 'activate':
+          this.updateWebviewWith(webview, this.queryData);
+          break;
         case 'save_records':
           this.handleSaveRecords(format);
           break;
         default:
+          console.log('unknown message type from data view');
           break;
       }
     });
 
-    this.updateWebviewWith(webview, this.queryData);
     return webview;
   }
 
@@ -103,12 +109,11 @@ export class QueryDataViewService {
   }
 
   private getWebViewContent(webview: vscode.Webview): string {
-    let _html: string;
     const baseStyleUri = webview.asWebviewUri(
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           QUERY_DATA_VIEW_STYLE_FILENAME
         )
       )
@@ -117,7 +122,7 @@ export class QueryDataViewService {
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           TABULATOR_STYLE_FILENAME
         )
       )
@@ -126,7 +131,7 @@ export class QueryDataViewService {
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           QUERY_DATA_VIEW_SCRIPT_FILENAME
         )
       )
@@ -135,7 +140,7 @@ export class QueryDataViewService {
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           TABULATOR_SCRIPT_FILENAME
         )
       )
@@ -148,9 +153,6 @@ export class QueryDataViewService {
       tabulatorUri
     };
 
-    _html = html(staticAssets);
-    _html = HtmlUtils.replaceCspMetaTag(_html, webview);
-
-    return _html;
+    return getHtml(staticAssets, QueryDataViewService.extensionPath, webview);
   }
 }

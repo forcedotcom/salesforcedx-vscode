@@ -5,9 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Uri } from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import { Uri, Webview } from 'vscode';
+import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
+import { HtmlUtils } from '../editor/htmlUtils';
 
-export function html(assets: { [index: string]: Uri }): string {
+export function getHtml(
+  assets: { [index: string]: Uri },
+  extensionPath: string,
+  webview: Webview
+): string {
   const {
     baseStyleUri,
     tabulatorStyleUri,
@@ -15,34 +23,18 @@ export function html(assets: { [index: string]: Uri }): string {
     tabulatorUri
   } = assets;
 
-  return `
-  <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link href="${tabulatorStyleUri}" rel="stylesheet" />
-    <link href="${baseStyleUri}" rel="stylesheet" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- CSP TAG -->
-    <title>SOQL Query Data View</title>
-  </head>
-  <body>
-    <div>
-      <header>
-        <div>
-          <h3 id="webview-title"></h3>
-          <p id="total-records-size"></p>
-        </div>
-        <div class="button__save--group">
-          <button id="save-csv-button" class="button__save">csv</button>
-          <button id="save-json-button" class="button__save">json</button>
-        </div>
-      </header>
-      <div id="data-table"></div>
-    </div>
-  </body>
-  <script src="${tabulatorUri}"></script>
-  <script src="${viewControllerUri}"></script>
-</html>
-`;
+  const pathToDataViewDist = path.join(extensionPath, DATA_VIEW_UI_PATH);
+  const pathToHtml = path.join(pathToDataViewDist, HTML_FILE);
+  let html = fs.readFileSync(pathToHtml).toString();
+  /*
+  We need to replace the hrefs with webviewUris,
+  this will need to change once we need a standalone data view.
+   */
+  html = HtmlUtils.replaceCspMetaTag(html, webview);
+  html = html.replace('${tabulatorStyleUri}', tabulatorStyleUri.toString());
+  html = html.replace('${baseStyleUri}', baseStyleUri.toString());
+  html = html.replace('${tabulatorUri}', tabulatorUri.toString());
+  html = html.replace('${viewControllerUri}', viewControllerUri.toString());
+
+  return html;
 }
