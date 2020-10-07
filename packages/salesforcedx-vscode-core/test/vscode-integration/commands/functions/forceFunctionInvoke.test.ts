@@ -45,6 +45,9 @@ describe('Force Function Invoke', () => {
     const telemetryServiceStubs: {
       [key: string]: SinonStub;
     } = {};
+    const functionServiceStubs: {
+      [key: string]: SinonStub;
+    } = {};
     beforeEach(() => {
       sandbox = createSandbox();
       cliCommandExecutorStub = sandbox.stub(
@@ -63,9 +66,38 @@ describe('Force Function Invoke', () => {
         telemetryService,
         'sendException'
       );
+      functionServiceStubs.debugFunctionStub = sandbox.stub(
+        FunctionService.prototype,
+        'debugFunction'
+      );
+      functionServiceStubs.stopDebuggingFunctionStub = sandbox.stub(
+        FunctionService.prototype,
+        'stopDebuggingFunction'
+      );
     });
     afterEach(() => {
       sandbox.restore();
+    });
+
+    it('Should start a debug session and attach to debug port', async () => {
+      const srcUri = Uri.file(
+        path.join(
+          getRootWorkspacePath(),
+          'functions/demoJavaScriptFunction/payload.json'
+        )
+      );
+      const rootDir = path.join(
+        getRootWorkspacePath(),
+        'functions/demoJavaScriptFunction'
+      );
+      const executor = new ForceFunctionInvoke();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+
+      await forceFunctionDebugInvoke(srcUri);
+
+      assert.calledOnce(functionServiceStubs.debugFunctionStub);
+      assert.calledWith(functionServiceStubs.debugFunctionStub, rootDir);
     });
 
     it('Should show warning and log telemetry if debugged function does not have toml', async () => {
@@ -107,18 +139,12 @@ describe('Force Function Invoke', () => {
       const executor = new ForceFunctionInvoke();
       const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
       cliCommandExecutorStub.returns(mockExecution);
-      sandbox.stub(FunctionService.prototype, 'debugFunction');
-      const stopDebuggingFunctionStub = sandbox.stub(
-        FunctionService.prototype,
-        'stopDebuggingFunction'
-      );
-
       await forceFunctionDebugInvoke(srcUri);
       mockExecution.processExitSubject.next(0);
 
       return new Promise(resolve => {
         process.nextTick(() => {
-          assert.calledOnce(stopDebuggingFunctionStub);
+          assert.calledOnce(functionServiceStubs.stopDebuggingFunctionStub);
           assert.calledTwice(telemetryServiceStubs.sendCommandEventStub);
           assert.calledWith(
             telemetryServiceStubs.sendCommandEventStub,
