@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "49.12.0",
+  "version": "49.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,7 +27,7 @@
   "dependencies": {
     "@salesforce/apex-node": "0.0.9",
     "@salesforce/core": "2.9.0",
-    "@salesforce/salesforcedx-utils-vscode": "49.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "49.13.0",
     "@salesforce/source-deploy-retrieve": "1.1.2",
     "@salesforce/templates": "49.9.1",
     "adm-zip": "0.4.13",
@@ -40,7 +40,7 @@
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "49.12.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "49.13.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -142,6 +142,11 @@
         {
           "command": "sfdx.force.metadata.view.component.refresh",
           "when": "view == metadata && viewItem =~ /(folder|type)/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdx.force.source.retrieve.open.component",
+          "when": "view == metadata && viewItem == component",
           "group": "inline"
         },
         {
@@ -809,6 +814,14 @@
         "icon": {
           "light": "resources/light/retrieve.svg",
           "dark": "resources/dark/retrieve.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.source.retrieve.open.component",
+        "title": "%force_source_retrieve_and_open_display_text%",
+        "icon": {
+          "light": "resources/light/code.svg",
+          "dark": "resources/dark/code.svg"
         }
       },
       {
