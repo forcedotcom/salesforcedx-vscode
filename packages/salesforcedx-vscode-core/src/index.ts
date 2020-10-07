@@ -76,17 +76,18 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
-import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
+import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
+import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { hasRootWorkspace, isCLIInstalled } from './util';
+import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 function registerCommands(
@@ -377,6 +378,9 @@ function registerCommands(
     forceFunctionStopCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceOrgDeleteDefaultCmd,
+    forceOrgDeleteUsernameCmd,
+    forceOrgListCleanCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
@@ -491,6 +495,13 @@ async function setupOrgBrowser(
       await forceSourceRetrieveCmp(trigger);
     }
   );
+
+  vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.open.component',
+    async (trigger: RetrieveMetadataTrigger) => {
+      await forceSourceRetrieveCmp(trigger, true);
+    }
+  );
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -550,14 +561,8 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Context
-  let sfdxProjectOpened = false;
-  if (hasRootWorkspace()) {
-    const files = await vscode.workspace.findFiles(
-      '**/sfdx-project.json',
-      '**/{node_modules,out}/**'
-    );
-    sfdxProjectOpened = files && files.length > 0;
-  }
+  const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
+
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
   if (
@@ -579,24 +584,19 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  await workspaceContext.initialize(context);
+  if (sfdxProjectOpened) {
+    await workspaceContext.initialize(context);
 
-  // register org picker commands
-  const orgList = new OrgList();
-  context.subscriptions.push(registerOrgPickerCommands(orgList));
+    // register org picker commands
+    const orgList = new OrgList();
+    context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  await setupOrgBrowser(context);
-  await setupConflictView(context);
+    await setupOrgBrowser(context);
+    await setupConflictView(context);
 
-  // Register filewatcher for push or deploy on save
-  await registerPushOrDeployOnSave();
-  // Commands
-  const commands = registerCommands(context);
-  context.subscriptions.push(commands);
-  context.subscriptions.push(registerConflictView());
+    // Register filewatcher for push or deploy on save
 
-  // Scratch Org Decorator
-  if (hasRootWorkspace()) {
+    await registerPushOrDeployOnSave();
     decorators.showOrg();
     decorators.monitorOrgConfigChanges();
 
@@ -605,6 +605,11 @@ export async function activate(context: vscode.ExtensionContext) {
       decorators.showDemoMode();
     }
   }
+
+  // Commands
+  const commands = registerCommands(context);
+  context.subscriptions.push(commands);
+  context.subscriptions.push(registerConflictView());
 
   const api: any = {
     channelService,
