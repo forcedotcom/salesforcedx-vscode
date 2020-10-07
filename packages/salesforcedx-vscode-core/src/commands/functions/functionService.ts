@@ -34,9 +34,9 @@ export interface FunctionExecution extends Terminable {
    */
   debugPort: number;
   /**
-   * Is there a debug session attached
+   * Active debug session attached
    */
-  isDebugging?: boolean;
+  debugSession?: vscode.DebugSession;
 }
 
 export class FunctionService {
@@ -115,11 +115,9 @@ export class FunctionService {
    * Return if VS Code already has a debug session attached.
    * @param rootDir functions root directory
    */
-  public async debugFunction(rootDir?: string) {
+  public async debugFunction(rootDir: string) {
     // TODO: telemetry
-    // TODO: edge cases: rootDir doesn't exist; function execution doesn't exist.
-    const localRoot = rootDir || '';
-    const functionExecution = this.getStartedFunction(localRoot);
+    const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const { debugPort } = functionExecution;
       const debugConfiguration: vscode.DebugConfiguration = {
@@ -129,16 +127,27 @@ export class FunctionService {
         resolveSourceMapLocations: ['**', '!**/node_modules/**'],
         console: 'integratedTerminal',
         internalConsoleOptions: 'openOnSessionStart',
-        localRoot,
+        localRoot: rootDir,
         remoteRoot: '/workspace',
         port: debugPort
       };
-      if (!functionExecution.isDebugging) {
+      if (!functionExecution.debugSession) {
         await vscode.debug.startDebugging(
           getRootWorkspace(),
           debugConfiguration
         );
       }
+    }
+  }
+
+  public async stopDebuggingFunction(rootDir: string) {
+    const functionExecution = this.getStartedFunction(rootDir);
+    if (functionExecution) {
+      const { debugSession } = functionExecution;
+      await debugSession?.customRequest('disconnect');
+      // When we update VS Code engine to 1.49 we should use stopDebugging
+      // https://code.visualstudio.com/updates/v1_49
+      // await vscode.debug.stopDebugging(debugSession);
     }
   }
 
@@ -155,7 +164,7 @@ export class FunctionService {
         const { localRoot } = configuration;
         const functionExecution = this.getStartedFunction(localRoot);
         if (functionExecution) {
-          functionExecution.isDebugging = true;
+          functionExecution.debugSession = session;
         }
       }
     );
@@ -165,7 +174,7 @@ export class FunctionService {
         const { localRoot } = configuration;
         const functionExecution = this.getStartedFunction(localRoot);
         if (functionExecution) {
-          functionExecution.isDebugging = false;
+          functionExecution.debugSession = undefined;
         }
       }
     );
