@@ -1,6 +1,7 @@
 # Salesforce Apex
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
 Typescript Library and Oclif plugin to support the Salesforce Apex commands.
 
