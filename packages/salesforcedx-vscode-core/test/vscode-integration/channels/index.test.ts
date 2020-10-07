@@ -12,13 +12,13 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import { EOL } from 'os';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { OutputChannel, ViewColumn } from 'vscode';
 import {
   ChannelService,
   DEFAULT_SFDX_CHANNEL
 } from '../../../src/channels/channelService';
 import { nls } from '../../../src/messages';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 
 class MockChannel implements OutputChannel {
   public readonly name = 'MockChannel';
