@@ -69,6 +69,10 @@ export async function forceFunctionDebugInvoke(sourceUri: Uri) {
   if (commandlet.onDidFinishExecution) {
     commandlet.onDidFinishExecution(async startTime => {
       await FunctionService.instance.stopDebuggingFunction(localRoot);
+      telemetryService.sendCommandEvent(
+        'force_function_debug_invoke',
+        startTime
+      );
     });
   }
 }

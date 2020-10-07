@@ -116,7 +116,6 @@ export class FunctionService {
    * @param rootDir functions root directory
    */
   public async debugFunction(rootDir: string) {
-    // TODO: telemetry
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const { debugPort } = functionExecution;
@@ -140,6 +139,10 @@ export class FunctionService {
     }
   }
 
+  /**
+   * Detach the debugger
+   * @param rootDir functions root directory
+   */
   public async stopDebuggingFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
