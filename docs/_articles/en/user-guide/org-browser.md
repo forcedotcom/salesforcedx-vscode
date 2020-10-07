@@ -17,6 +17,7 @@ The Org Browser displays the available metadata types and their corresponding co
 6. Refresh components for metadata type
 7. Retrieve source for metadata component
 8. Retrieve source for all components of metadata type
+9. Retrieve source for metadata component and open it in VS Code
 
 To open the Org Browser, click the cloud icon in the side bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./en/user-guide/default-org/) is set to a non-scratch org.
 
