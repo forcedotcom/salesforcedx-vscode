@@ -63,11 +63,20 @@ export class QueryDataFileService {
         this.getRecordsDirectoryPath(),
         savedFileName
       );
-
-      this.createRecordsDirectoryIfDoesNotExist();
-      fs.writeFileSync(queryDataFilePath, fileContent);
-      this.showSaveSuccessMessage(savedFileName);
-      this.showFileInExporer(queryDataFilePath);
+      const filePathUri = vscode.Uri.parse(queryDataFilePath);
+      const saveDialogOptions = {
+        defaultUri: filePathUri
+      };
+      vscode.window.showSaveDialog({ ...saveDialogOptions }).then(fileInfo => {
+        console.log('FILE INFO', fileInfo);
+        if (fileInfo) {
+          fs.writeFileSync(fileInfo.path, fileContent);
+        }
+      });
+      // this.createRecordsDirectoryIfDoesNotExist();
+      // fs.writeFileSync(queryDataFilePath, fileContent);
+      // this.showSaveSuccessMessage(savedFileName);
+      // this.showFileInExporer(queryDataFilePath);
     } catch (error) {
       // TODO: i18n, CCX
       vscode.window.showErrorMessage(

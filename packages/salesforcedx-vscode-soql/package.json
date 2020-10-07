@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^2.12.1",
-    "@salesforce/soql-builder-ui": "0.0.10",
+    "@salesforce/soql-builder-ui": "0.0.14",
     "@salesforce/soql-language-server": "0.2.1",
     "@salesforce/soql-tmlanguage": "0.1.1",
     "@types/papaparse": "^5.2.3",

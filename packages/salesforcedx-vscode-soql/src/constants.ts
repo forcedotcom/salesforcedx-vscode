@@ -26,6 +26,6 @@ export const DATA_VIEW_MEDIA_PATH = path.join('src', 'queryDataView', 'media');
 
 /* QUERY DATA FILE SERVICE */
 // The name of the directory query data is saved
-export const QUERY_DATA_DIR_NAME = 'query-records';
-export const DATA_CSV_EXT = 'data.csv';
-export const DATA_JSON_EXT = 'data.json';
+export const QUERY_DATA_DIR_NAME = 'query-results';
+export const DATA_CSV_EXT = 'csv';
+export const DATA_JSON_EXT = 'json';
