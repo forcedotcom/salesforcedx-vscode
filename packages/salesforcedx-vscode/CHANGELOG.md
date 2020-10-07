@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Update preview command to launch a native app or the browser ([PR #2585](https://github.com/forcedotcom/salesforcedx-vscode/pull/2585))
+- Update `SFDX: Preview Component Locally` command to launch a native app or the browser ([PR #2585](https://github.com/forcedotcom/salesforcedx-vscode/pull/2585))
 
 #### docs
 
