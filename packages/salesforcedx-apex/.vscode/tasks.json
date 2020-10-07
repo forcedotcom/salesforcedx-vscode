@@ -76,6 +76,12 @@
       }
     },
     {
+      "label": "Create Port PR for Publishing",
+      "command": "./scripts/port-changes.js",
+      "type": "shell",
+      "args": ["${input:verboseOutput}", "-r", "${input:publishType}"]
+    },
+    {
       "label": "Publish Packages",
       "command": "./scripts/publish-workflow.sh",
       "type": "shell",
@@ -94,6 +100,16 @@
       "description": "Type of version to publish",
       "options": ["minor", "patch", "major"],
       "default": "patch"
+    },
+    {
+      "id": "verboseOutput",
+      "type": "pickString",
+      "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
+      "options": [
+        "",
+        "-v"
+      ],
+      "default": "-v"
     }
   ]
 }
