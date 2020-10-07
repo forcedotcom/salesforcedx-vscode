@@ -8,7 +8,7 @@
 import { JsonMap } from '@salesforce/ts-types';
 import * as Papa from 'papaparse';
 import { DATA_CSV_EXT } from '../../constants';
-import { DataProvider } from './IDataProvider';
+import { DataProvider } from './iDataProvider';
 
 export class CsvDataProvider implements DataProvider {
   public readonly fileExtension = DATA_CSV_EXT;

@@ -7,7 +7,7 @@
 
 import { JsonMap } from '@salesforce/ts-types';
 import { DATA_JSON_EXT } from '../../constants';
-import { DataProvider } from './IDataProvider';
+import { DataProvider } from './iDataProvider';
 
 export class JsonDataProvider implements DataProvider {
   public readonly fileExtension = DATA_JSON_EXT;
