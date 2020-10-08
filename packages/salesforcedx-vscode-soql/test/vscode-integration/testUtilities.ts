@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { DescribeSObjectResult, QueryResult } from 'jsforce';
+import { QueryResult } from 'jsforce';
 import { SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {

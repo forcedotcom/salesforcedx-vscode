@@ -5,24 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  FileFormat,
-  QueryDataFileService
-} from '../../../src/queryDataView/queryDataFileService';
+import { expect } from 'chai';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { QUERY_RESULTS_DIR_PATH } from '../../../src/constants';
 import {
   CsvDataProvider,
   JsonDataProvider
 } from '../../../src/queryDataView/dataProviders';
-import * as sinon from 'sinon';
-import * as vscode from 'vscode';
+import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
 import { mockQueryData, TestFileService } from '../testUtilities';
-import { expect } from 'chai';
 
 describe('Query Data File Service', () => {
   const documentName = 'example.soql';
-  beforeEach(() => {});
+  const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
+  const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
+
   afterEach(() => {
-    // delete all the files created or just the query dir.
+    // delete the query-results directory and its files.
+    // @ts-ignore
+    fs.rmdirSync(testResultsDirPath, { recursive: true });
   });
 
   it('should use the correct data provider', () => {
@@ -39,5 +42,17 @@ describe('Query Data File Service', () => {
       documentName
     );
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
+  });
+
+  it('will save json file to disk on save', () => {
+    const jsonFileService = new TestFileService(
+      mockQueryData,
+      FileFormat.JSON,
+      documentName
+    );
+
+    const savedFilePath = jsonFileService.save();
+    const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
+    expect(JSON.parse(savedFileContent)).to.eql(mockQueryData.records);
   });
 });

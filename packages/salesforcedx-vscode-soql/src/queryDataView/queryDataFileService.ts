@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { QUERY_RESULTS_DIR_NAME } from '../constants';
+import { QUERY_RESULTS_DIR_PATH } from '../constants';
 import {
   CsvDataProvider,
   DataProvider,
@@ -52,7 +52,7 @@ export class QueryDataFileService {
     }
   }
 
-  public save(): void {
+  public save(): string {
     try {
       const fileContent = this.dataProvider.getFileContent(
         this.queryData.records
@@ -68,6 +68,8 @@ export class QueryDataFileService {
       fs.writeFileSync(queryDataFilePath, fileContent);
       this.showSaveSuccessMessage(savedFileName);
       this.showFileInExplorer(queryDataFilePath);
+
+      return queryDataFilePath;
     } catch (error) {
       // TODO: i18n, CCX
       vscode.window.showErrorMessage(
@@ -77,13 +79,8 @@ export class QueryDataFileService {
     }
   }
 
-  private getResultsDirectoryPath() {
-    return path.join(
-      getRootWorkspacePath(),
-      'scripts',
-      'soql',
-      QUERY_RESULTS_DIR_NAME
-    );
+  protected getResultsDirectoryPath() {
+    return path.join(getRootWorkspacePath(), QUERY_RESULTS_DIR_PATH);
   }
 
   private createResultsDirectoryIfDoesNotExist() {

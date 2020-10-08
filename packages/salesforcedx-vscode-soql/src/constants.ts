@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'path';
 
 /* SOQL BUILDER */
 export const WEBVIEW_RESOURCE_ROOTS_PATH =
@@ -27,5 +28,10 @@ export const DATA_VIEW_UI_PATH = 'node_modules/@salesforce/soql-data-view/web';
 /* QUERY DATA FILE SERVICE */
 // The name of the directory query data is saved
 export const QUERY_RESULTS_DIR_NAME = 'query-results';
+export const QUERY_RESULTS_DIR_PATH = path.join(
+  'scripts',
+  'soql',
+  QUERY_RESULTS_DIR_NAME
+);
 export const DATA_CSV_EXT = 'csv';
 export const DATA_JSON_EXT = 'json';
