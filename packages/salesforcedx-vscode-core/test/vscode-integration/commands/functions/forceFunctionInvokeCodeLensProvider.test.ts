@@ -13,7 +13,7 @@ import { getRootWorkspacePath } from '../../../../src/util';
 describe('Force Function Invoke Codelens', () => {
   it('should create codelens for a json payload file', async () => {
     const cancellationTokenSource = new CancellationTokenSource();
-    workspace
+    return workspace
       .openTextDocument({
         language: 'json'
       })
@@ -22,14 +22,22 @@ describe('Force Function Invoke Codelens', () => {
           payloadDoc,
           cancellationTokenSource.token
         );
-        expect(codeLens).to.have.lengthOf(1);
-        const [invokeCodeLens] = codeLens;
+        expect(codeLens).to.have.lengthOf(2);
+        const [invokeCodeLens, debugInvokeCodeLens] = codeLens;
         expect(invokeCodeLens.range.start.line).to.equal(0);
         expect(invokeCodeLens.range.start.character).to.equal(0);
         expect(invokeCodeLens.range.end.line).to.equal(0);
         expect(invokeCodeLens.range.end.character).to.equal(1);
         expect(invokeCodeLens.command!.command).to.equal(
           'sfdx.force.function.invoke'
+        );
+
+        expect(debugInvokeCodeLens.range.start.line).to.equal(0);
+        expect(debugInvokeCodeLens.range.start.character).to.equal(0);
+        expect(debugInvokeCodeLens.range.end.line).to.equal(0);
+        expect(debugInvokeCodeLens.range.end.character).to.equal(1);
+        expect(debugInvokeCodeLens.command!.command).to.equal(
+          'sfdx.force.function.debugInvoke'
         );
       });
   });
