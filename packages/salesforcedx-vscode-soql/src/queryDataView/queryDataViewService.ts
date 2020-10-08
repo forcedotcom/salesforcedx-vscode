@@ -108,7 +108,7 @@ export class QueryDataViewService {
     }
   }
 
-  private handleSaveRecords(format: FileFormat) {
+  protected handleSaveRecords(format: FileFormat) {
     const fileService = new FileService(
       this.queryData,
       format,

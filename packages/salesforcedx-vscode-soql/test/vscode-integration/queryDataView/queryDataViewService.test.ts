@@ -5,10 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
+import { QueryResult } from 'jsforce';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../../../src/commonUtils';
+import {
+  FileFormat,
+  QueryDataFileService
+} from '../../../src/queryDataView/queryDataFileService';
 import { QueryDataViewService } from '../../../src/queryDataView/queryDataViewService';
 import {
   mockQueryData,
@@ -22,6 +28,7 @@ describe('Query Data View Service', () => {
   let mockSubscription: vscode.Disposable[];
   let mockWebviewPanel: vscode.WebviewPanel;
   let sandbox: sinon.SinonSandbox;
+  let queryRecords: QueryResult<JsonMap>;
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
@@ -39,6 +46,7 @@ describe('Query Data View Service', () => {
       vscode.ViewColumn.One,
       { enableScripts: true }
     );
+    queryRecords = mockQueryData;
   });
 
   afterEach(() => {
@@ -47,7 +55,6 @@ describe('Query Data View Service', () => {
   });
 
   it('should post message to webview with query data on activation event ', () => {
-    const queryRecords = mockQueryData;
     const dataViewService = new TestQueryDataViewService(
       mockSubscription,
       queryRecords,
@@ -68,5 +75,27 @@ describe('Query Data View Service', () => {
       getDocumentName(mockTextDocument)
     );
     expect(postMessageArgs.type).equal('update');
+  });
+
+  it('should handle save_records event', () => {
+    const dataViewService = new TestQueryDataViewService(
+      mockSubscription,
+      queryRecords,
+      mockTextDocument
+    );
+    const saveRecordsSpy = sandbox.spy(dataViewService, 'handleSaveRecords');
+    const fileServiceStub = sandbox.stub(
+      QueryDataFileService.prototype,
+      'save'
+    );
+    QueryDataViewService.extensionPath = '';
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
+    dataViewService.createOrShowWebView();
+    dataViewService.sendEvent({ type: 'save_records', format: FileFormat.CSV });
+
+    expect(saveRecordsSpy.callCount).equal(1);
+    const postMessageArgs = saveRecordsSpy.args[0][0];
+    expect(postMessageArgs).to.eql(FileFormat.CSV);
+    expect(fileServiceStub.callCount).equal(1);
   });
 });

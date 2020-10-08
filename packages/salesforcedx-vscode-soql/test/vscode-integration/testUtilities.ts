@@ -14,6 +14,7 @@ import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../src/editor/soqlEditorInstance';
+import { FileFormat } from '../../src/queryDataView/queryDataFileService';
 import {
   DataViewEvent,
   QueryDataViewService
@@ -121,5 +122,9 @@ export class TestQueryDataViewService extends QueryDataViewService {
 
   public createOrShowWebView() {
     return super.createOrShowWebView();
+  }
+
+  public handleSaveRecords(format: FileFormat) {
+    super.handleSaveRecords(format);
   }
 }
