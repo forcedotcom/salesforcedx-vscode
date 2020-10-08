@@ -14,7 +14,11 @@ import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../src/editor/soqlEditorInstance';
-import { FileFormat } from '../../src/queryDataView/queryDataFileService';
+import { DataProvider } from '../../src/queryDataView/dataProviders';
+import {
+  FileFormat,
+  QueryDataFileService
+} from '../../src/queryDataView/queryDataFileService';
 import {
   DataViewEvent,
   QueryDataViewService
@@ -126,5 +130,11 @@ export class TestQueryDataViewService extends QueryDataViewService {
 
   public handleSaveRecords(format: FileFormat) {
     super.handleSaveRecords(format);
+  }
+}
+
+export class TestFileService extends QueryDataFileService {
+  public getDataProvider(): DataProvider {
+    return super.getDataProvider();
   }
 }

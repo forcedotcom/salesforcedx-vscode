@@ -77,7 +77,7 @@ describe('Query Data View Service', () => {
     expect(postMessageArgs.type).equal('update');
   });
 
-  it('should handle save_records event', () => {
+  it('should save with save_records event', () => {
     const dataViewService = new TestQueryDataViewService(
       mockSubscription,
       queryRecords,

@@ -41,7 +41,7 @@ export class QueryDataFileService {
     this.dataProvider = this.getDataProvider();
   }
 
-  private getDataProvider(): DataProvider {
+  protected getDataProvider(): DataProvider {
     switch (this.format) {
       case FileFormat.CSV:
         return new CsvDataProvider(this.documentName);
