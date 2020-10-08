@@ -127,9 +127,6 @@ describe('LWC Intellisense Test Suite', function() {
     await editor.edit(editBuilder => {
       editBuilder.replace(rangeReplace, text);
     });
-    const modifiedDoc = await vscode.window.showTextDocument(doc);
-    console.log('modifiedDoc ===> ', modifiedDoc);
-    console.log('text at line 1 ====> ',doc.lineAt(1));
     try {
       await testCompletion(docUri, endPosition, {
         items: [
