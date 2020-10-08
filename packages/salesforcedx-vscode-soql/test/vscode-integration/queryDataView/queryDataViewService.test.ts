@@ -39,6 +39,7 @@ describe('Query Data View Service', () => {
 
   afterEach(() => {
     docProviderDisposable.dispose();
+    sandbox.restore();
   });
 
   it('should post message to webview with query data', () => {
