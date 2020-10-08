@@ -30,12 +30,18 @@ export interface FlagParameter<T> {
 
 export interface CommandletExecutor<T> {
   execute(response: ContinueResponse<T>): void;
+  readonly onDidFinishExecution?: vscode.Event<[number, number]>;
 }
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
+    [number, number]
+  >();
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
+    .onDidFinishExecutionEventEmitter.event;
 
   protected attachExecution(
     execution: CommandExecution,
@@ -102,6 +108,7 @@ export abstract class SfdxCommandletExecutor<T>
         properties,
         measurements
       );
+      this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
   }
@@ -122,6 +129,7 @@ export class SfdxCommandlet<T> {
   private readonly postchecker: PostconditionChecker<T>;
   private readonly gatherer: ParametersGatherer<T>;
   private readonly executor: CommandletExecutor<T>;
+  public readonly onDidFinishExecution?: vscode.Event<[number, number]>;
 
   constructor(
     checker: PreconditionChecker,
@@ -133,6 +141,9 @@ export class SfdxCommandlet<T> {
     this.gatherer = gatherer;
     this.executor = executor;
     this.postchecker = postchecker;
+    if (this.executor.onDidFinishExecution) {
+      this.onDidFinishExecution = this.executor.onDidFinishExecution;
+    }
   }
 
   public async run(): Promise<void> {

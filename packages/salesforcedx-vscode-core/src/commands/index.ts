@@ -169,6 +169,7 @@ export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
   forceFunctionStart,
   forceFunctionStop,
+  forceFunctionDebugInvoke,
   forceFunctionInvoke,
   registerFunctionInvokeCodeLensProvider
 } from './functions';

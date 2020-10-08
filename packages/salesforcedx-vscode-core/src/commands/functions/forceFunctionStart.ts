@@ -10,8 +10,6 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as fs from 'fs';
-import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
@@ -20,7 +18,7 @@ import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../util';
+import { OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -30,6 +28,10 @@ import {
 
 import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
+import {
+  FUNCTION_DEFAULT_DEBUG_PORT,
+  FUNCTION_DEFAULT_PORT
+} from './types/constants';
 
 /**
  * Error types when running SFDX: Start Function
@@ -73,37 +75,12 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       .build();
   }
 
-  /**
-   * Locate the directory that has function.toml.
-   * If sourceFsPath is the function folder that has function.toml, or a subdirectory
-   * or file within that folder, this method returns the function folder by recursively looking up.
-   * Otherwise, it returns undefined.
-   * @param sourceFsPath path to start function from
-   */
-  public static getFunctionDir(sourceFsPath: string) {
-    let current = fs.lstatSync(sourceFsPath).isDirectory()
-      ? sourceFsPath
-      : path.dirname(sourceFsPath);
-    const { root } = path.parse(sourceFsPath);
-    const rootWorkspacePath = getRootWorkspacePath();
-    while (current !== rootWorkspacePath && current !== root) {
-      const tomlPath = path.join(current, 'function.toml');
-      if (fs.existsSync(tomlPath)) {
-        return current;
-      }
-      current = path.dirname(current);
-    }
-    return undefined;
-  }
-
   public execute(response: ContinueResponse<string>) {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const sourceFsPath = response.data;
-    const functionDirPath = ForceFunctionStartExecutor.getFunctionDir(
-      sourceFsPath
-    );
+    const functionDirPath = FunctionService.getFunctionDir(sourceFsPath);
     if (!functionDirPath) {
       const warningMessage = nls.localize(
         'force_function_start_warning_no_toml'
@@ -121,6 +98,11 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     }).execute(cancellationToken);
     const executionName = execution.command.toString();
 
+    cancellationToken.onCancellationRequested(async () => {
+      await execution.killExecution('SIGTERM');
+      this.logMetric('force_function_start_cancelled', startTime);
+    });
+
     OrgAuthInfo.getDefaultUsernameOrAlias(false)
       .then(defaultUsernameorAlias => {
         if (!defaultUsernameorAlias) {
@@ -136,6 +118,9 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
 
     const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
       {
+        rootDir: functionDirPath,
+        port: FUNCTION_DEFAULT_PORT,
+        debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
         terminate: () => {
           return execution.killExecution('SIGTERM');
         }

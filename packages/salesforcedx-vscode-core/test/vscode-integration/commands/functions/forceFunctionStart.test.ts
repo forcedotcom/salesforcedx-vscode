@@ -9,7 +9,7 @@ import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/sr
 import { expect } from 'chai';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { Uri, window } from 'vscode';
+import { CancellationTokenSource, Uri, window } from 'vscode';
 import { channelService } from '../../../../src/channels';
 import {
   forceFunctionStart,
@@ -430,6 +430,45 @@ describe('Force Function Start', () => {
         notificationServiceStubs.showInformationMessageStub,
         nls.localize('force_function_start_no_org_auth')
       );
+    });
+
+    it('Should handle cancellation requested', async () => {
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      const killExecutionStub = sandbox.stub(mockExecution, 'killExecution');
+      const mockStartTime = [1234, 5678];
+      cliCommandExecutorStub.returns(mockExecution);
+      hrtimeStub.returns(mockStartTime);
+
+      let cancellationTokenSource: CancellationTokenSource | undefined;
+      notificationServiceStubs.progressNotificationShowStub.callsFake(
+        (execution, source) => {
+          cancellationTokenSource = source;
+        }
+      );
+
+      await forceFunctionStart(srcUri);
+
+      if (cancellationTokenSource) {
+        cancellationTokenSource.cancel();
+      }
+
+      assert.calledOnce(killExecutionStub);
+      assert.calledWith(killExecutionStub, 'SIGTERM');
+      return new Promise(resolve => {
+        process.nextTick(() => {
+          assert.calledOnce(logMetricStub);
+          assert.calledWith(
+            logMetricStub,
+            'force_function_start_cancelled',
+            mockStartTime
+          );
+          resolve();
+        });
+      });
     });
   });
 });
