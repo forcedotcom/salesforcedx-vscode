@@ -55,4 +55,20 @@ describe('Query Data File Service', () => {
     const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
     expect(JSON.parse(savedFileContent)).to.eql(mockQueryData.records);
   });
+
+  it('will save csv to file to disk on save', () => {
+    const csvFileService = new TestFileService(
+      mockQueryData,
+      FileFormat.CSV,
+      documentName
+    );
+
+    const savedFilePath = csvFileService.save();
+    const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
+    const mockCsvData = csvFileService
+      .getDataProvider()
+      .getFileContent(mockQueryData.records);
+
+    expect(savedFileContent).to.equal(mockCsvData);
+  });
 });
