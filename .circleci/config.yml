@@ -516,6 +516,7 @@ workflows:
           type: approval
       - merge-release-branch:
           e: default-executor
+          context: pdt-publish-restricted-context
           requires:
             - build-all
             - unit-tests
@@ -540,6 +541,7 @@ workflows:
           type: approval
       - publish:
           e: default-executor
+          context: pdt-publish-restricted-context
           requires:
             - build-all
             - unit-tests
@@ -564,6 +566,7 @@ workflows:
           type: approval
       - create-release-branch:
           e: default-executor
+          context: pdt-publish-restricted-context
           requires:
             - build-all
             - unit-tests
