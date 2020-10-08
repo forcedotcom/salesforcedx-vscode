@@ -47,20 +47,14 @@ describe('Force Source Retrieve', () => {
 });
 
 describe('Force Source Retrieve and open', () => {
-  const sb: SinonSandbox = createSandbox();
+  let sb: SinonSandbox;
   const openAfterRetrieve: boolean = true;
   const forceSourceRetrieveExec = new ForceSourceRetrieveExecutor(
     new TestDescriber(),
     openAfterRetrieve
   );
-  const openTextDocumentStub: SinonStub = sb.stub(
-    vscode.workspace,
-    'openTextDocument'
-  );
-  const showTextDocumentStub: SinonStub = sb.stub(
-    vscode.window,
-    'showTextDocument'
-  );
+  let openTextDocumentStub: SinonStub;
+  let showTextDocumentStub: SinonStub;
   const resultData = `{
     "status": 0,
     "result": {
@@ -71,11 +65,18 @@ describe('Force Source Retrieve and open', () => {
           "type": "ApexClass",
           "filePath": "force-app/main/default/classes/TestClass.cls"}
   ] }}`;
-  const getCmdResultStub: SinonStub = sb
-    .stub(CommandOutput.prototype, 'getCmdResult')
-    .returns(resultData);
+  let getCmdResultStub: SinonStub;
 
-  afterEach(async () => {
+  beforeEach(() => {
+    sb = createSandbox();
+    openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
+    showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
+    getCmdResultStub = sb
+      .stub(CommandOutput.prototype, 'getCmdResult')
+      .returns(resultData);
+  });
+
+  afterEach(() => {
     sb.restore();
   });
 
@@ -95,7 +96,6 @@ describe('Force Source Retrieve and open', () => {
       }
     ];
     const exeEesponse = await forceSourceRetrieveExec.execute(response);
-
     expect(getCmdResultStub.called).to.equal(true);
     expect(openTextDocumentStub.called).to.equal(true);
     expect(showTextDocumentStub.called).to.equal(true);
