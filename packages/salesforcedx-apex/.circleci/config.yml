@@ -226,9 +226,11 @@ workflows:
       - hold: # Requires manual approval in Circle Ci
           type: approval
       - prepublish:
+          context: pdt-publish-restricted-context
           requires:
               - hold
       - publish-apex-node:
+          context: pdt-publish-restricted-context
           filters:
             branches:
               only:
@@ -241,6 +243,7 @@ workflows:
               - hold
               - prepublish
       - publish-plugin-apex:
+          context: pdt-publish-restricted-context
           filters:
             branches:
               only:
