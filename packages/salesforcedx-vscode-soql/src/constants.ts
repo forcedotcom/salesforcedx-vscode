@@ -26,6 +26,6 @@ export const DATA_VIEW_UI_PATH = 'node_modules/@salesforce/soql-data-view/web';
 
 /* QUERY DATA FILE SERVICE */
 // The name of the directory query data is saved
-export const QUERY_DATA_DIR_NAME = 'query-results';
+export const QUERY_RESULTS_DIR_NAME = 'query-results';
 export const DATA_CSV_EXT = 'csv';
 export const DATA_JSON_EXT = 'json';

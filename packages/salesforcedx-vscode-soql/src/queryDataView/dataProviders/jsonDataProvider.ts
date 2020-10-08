@@ -16,7 +16,6 @@ export class JsonDataProvider implements DataProvider {
 
   public getFileContent(data: JsonMap[]) {
     const queryRecordsJson = JSON.stringify(data, null, 2);
-    // TODO: format the JSON with Prettier?
     return queryRecordsJson;
   }
 

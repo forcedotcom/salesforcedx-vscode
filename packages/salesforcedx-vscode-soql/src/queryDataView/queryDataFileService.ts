@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { QUERY_DATA_DIR_NAME } from '../constants';
+import { QUERY_RESULTS_DIR_NAME } from '../constants';
 import {
   CsvDataProvider,
   DataProvider,
@@ -41,7 +41,6 @@ export class QueryDataFileService {
     this.dataProvider = this.getDataProvider();
   }
 
-  // can use a look up instead of switch case if providers are registered
   private getDataProvider(): DataProvider {
     switch (this.format) {
       case FileFormat.CSV:
@@ -60,23 +59,15 @@ export class QueryDataFileService {
       );
       const savedFileName = this.dataProvider.getFileName();
       const queryDataFilePath = path.join(
-        this.getRecordsDirectoryPath(),
+        this.getResultsDirectoryPath(),
         savedFileName
       );
-      const filePathUri = vscode.Uri.parse(queryDataFilePath);
-      const saveDialogOptions = {
-        defaultUri: filePathUri
-      };
-      vscode.window.showSaveDialog({ ...saveDialogOptions }).then(fileInfo => {
-        console.log('FILE INFO', fileInfo);
-        if (fileInfo) {
-          fs.writeFileSync(fileInfo.path, fileContent);
-        }
-      });
-      // this.createRecordsDirectoryIfDoesNotExist();
-      // fs.writeFileSync(queryDataFilePath, fileContent);
-      // this.showSaveSuccessMessage(savedFileName);
-      // this.showFileInExporer(queryDataFilePath);
+
+      this.createResultsDirectoryIfDoesNotExist();
+      // Save query results to disk
+      fs.writeFileSync(queryDataFilePath, fileContent);
+      this.showSaveSuccessMessage(savedFileName);
+      this.showFileInExplorer(queryDataFilePath);
     } catch (error) {
       // TODO: i18n, CCX
       vscode.window.showErrorMessage(
@@ -86,24 +77,22 @@ export class QueryDataFileService {
     }
   }
 
-  private getRecordsDirectoryPath() {
+  private getResultsDirectoryPath() {
     return path.join(
       getRootWorkspacePath(),
       'scripts',
       'soql',
-      QUERY_DATA_DIR_NAME
+      QUERY_RESULTS_DIR_NAME
     );
   }
 
-  private createRecordsDirectoryIfDoesNotExist() {
-    // will create the directory if it does not exist
-    const recordsDirPath = fs.mkdirSync(this.getRecordsDirectoryPath(), {
+  private createResultsDirectoryIfDoesNotExist() {
+    fs.mkdirSync(this.getResultsDirectoryPath(), {
       recursive: true
     });
-    return recordsDirPath;
   }
 
-  private showFileInExporer(targetPath: string) {
+  private showFileInExplorer(targetPath: string) {
     vscode.commands.executeCommand(
       'revealInExplorer',
       vscode.Uri.parse(targetPath)
