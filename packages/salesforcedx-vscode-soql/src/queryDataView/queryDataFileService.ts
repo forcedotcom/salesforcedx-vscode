@@ -79,7 +79,7 @@ export class QueryDataFileService {
     }
   }
 
-  protected getResultsDirectoryPath() {
+  private getResultsDirectoryPath() {
     return path.join(getRootWorkspacePath(), QUERY_RESULTS_DIR_PATH);
   }
 
