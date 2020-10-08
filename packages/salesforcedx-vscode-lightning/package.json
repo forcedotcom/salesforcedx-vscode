@@ -24,9 +24,9 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/aura-language-server": "3.0.8",
-    "@salesforce/lightning-lsp-common": "3.0.8",
-    "@salesforce/lwc-language-server": "3.0.8",
+    "@salesforce/aura-language-server": "3.0.9",
+    "@salesforce/lightning-lsp-common": "3.0.9",
+    "@salesforce/lwc-language-server": "3.0.9",
     "@salesforce/salesforcedx-utils-vscode": "49.13.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1"
