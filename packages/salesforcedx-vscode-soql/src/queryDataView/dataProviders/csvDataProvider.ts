@@ -14,7 +14,7 @@ export class CsvDataProvider implements DataProvider {
   public readonly fileExtension = DATA_CSV_EXT;
   constructor(public readonly documentName: string) {}
 
-  public getFileContent(data: JsonMap[]) {
+  public getFileContent(data: JsonMap[]): string {
     const queryRecordsCsv = Papa.unparse(data, {
       header: true,
       delimiter: ','
@@ -23,7 +23,7 @@ export class CsvDataProvider implements DataProvider {
     return queryRecordsCsv;
   }
 
-  public getFileName() {
+  public getFileName(): string {
     return `${this.documentName}.${this.fileExtension}`;
   }
 }

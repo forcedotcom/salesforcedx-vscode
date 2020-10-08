@@ -52,7 +52,7 @@ export class QueryDataFileService {
     }
   }
 
-  public save() {
+  public save(): void {
     try {
       const fileContent = this.dataProvider.getFileContent(
         this.queryData.records

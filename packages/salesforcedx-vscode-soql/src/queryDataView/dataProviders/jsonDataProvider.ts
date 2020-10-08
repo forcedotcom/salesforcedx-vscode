@@ -14,12 +14,12 @@ export class JsonDataProvider implements DataProvider {
 
   constructor(public readonly documentName: string) {}
 
-  public getFileContent(data: JsonMap[]) {
+  public getFileContent(data: JsonMap[]): string {
     const queryRecordsJson = JSON.stringify(data, null, 2);
     return queryRecordsJson;
   }
 
-  public getFileName() {
+  public getFileName(): string {
     return `${this.documentName}.${this.fileExtension}`;
   }
 }
