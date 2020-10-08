@@ -14,6 +14,10 @@ import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../src/editor/soqlEditorInstance';
+import {
+  DataViewEvent,
+  QueryDataViewService
+} from '../../src/queryDataView/queryDataViewService';
 
 export interface MockConnection {
   authInfo: object;
@@ -93,6 +97,7 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
   public sendEvent(event: SoqlEditorEvent) {
     this.onDidRecieveMessageHandler(event);
   }
+
   public updateWebview(document: vscode.TextDocument) {
     super.updateWebview(document);
   }
@@ -106,5 +111,15 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
 
   public openQueryDataView(queryData: QueryResult<JsonMap>) {
     super.openQueryDataView(queryData);
+  }
+}
+
+export class TestQueryDataViewService extends QueryDataViewService {
+  public sendEvent(event: DataViewEvent) {
+    this.onDidRecieveMessageHandler(event);
+  }
+
+  public createOrShowWebView() {
+    return super.createOrShowWebView();
   }
 }

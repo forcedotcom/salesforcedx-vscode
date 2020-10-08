@@ -10,7 +10,11 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../../../src/commonUtils';
 import { QueryDataViewService } from '../../../src/queryDataView/queryDataViewService';
-import { mockQueryData, MockTextDocumentProvider } from '../testUtilities';
+import {
+  mockQueryData,
+  MockTextDocumentProvider,
+  TestQueryDataViewService
+} from '../testUtilities';
 
 describe('Query Data View Service', () => {
   let mockTextDocument: vscode.TextDocument;
@@ -42,19 +46,22 @@ describe('Query Data View Service', () => {
     sandbox.restore();
   });
 
-  it('should post message to webview with query data', () => {
+  it('should post message to webview with query data on activation event ', () => {
     const queryRecords = mockQueryData;
-    const dataViewService = new QueryDataViewService(
+    const dataViewService = new TestQueryDataViewService(
       mockSubscription,
       queryRecords,
       mockTextDocument
     );
-
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+
     QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
+    dataViewService.sendEvent({ type: 'activate' });
+
     expect(postMessageSpy.callCount).equal(1);
+
     const postMessageArgs = postMessageSpy.args[0][0];
     expect(postMessageArgs.data).to.eql(mockQueryData);
     expect(postMessageArgs.documentName).equal(

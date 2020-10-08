@@ -26,6 +26,11 @@ import {
 } from './queryDataFileService';
 import { getHtml } from './queryDataHtml';
 
+export interface DataViewEvent {
+  type: string;
+  format?: FileFormat;
+}
+
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
   public readonly viewType = QUERY_DATA_VIEW_TYPE;
@@ -41,11 +46,8 @@ export class QueryDataViewService {
     QueryDataViewService.extensionPath = context.extensionPath;
   }
 
-  private updateWebviewWith(
-    webview: vscode.Webview,
-    queryData: QueryResult<JsonMap>
-  ) {
-    webview.postMessage({
+  private updateWebviewWith(queryData: QueryResult<JsonMap>) {
+    this.currentPanel!.webview.postMessage({
       type: 'update',
       data: queryData,
       documentName: getDocumentName(this.document)
@@ -78,25 +80,32 @@ export class QueryDataViewService {
       this.subscriptions
     );
 
-    const webview = this.currentPanel.webview;
-    webview.html = this.getWebViewContent(webview);
+    this.currentPanel.webview.html = this.getWebViewContent(
+      this.currentPanel.webview
+    );
 
-    webview.onDidReceiveMessage(message => {
-      const { type, format } = message;
-      switch (type) {
-        case 'activate':
-          this.updateWebviewWith(webview, this.queryData);
-          break;
-        case 'save_records':
-          this.handleSaveRecords(format);
-          break;
-        default:
-          console.log('unknown message type from data view');
-          break;
-      }
-    });
+    this.currentPanel.webview.onDidReceiveMessage(
+      this.onDidRecieveMessageHandler,
+      this,
+      this.subscriptions
+    );
 
-    return webview;
+    return this.currentPanel.webview;
+  }
+
+  protected onDidRecieveMessageHandler(message: DataViewEvent) {
+    const { type, format } = message;
+    switch (type) {
+      case 'activate':
+        this.updateWebviewWith(this.queryData);
+        break;
+      case 'save_records':
+        this.handleSaveRecords(format!);
+        break;
+      default:
+        console.log('unknown message type from data view');
+        break;
+    }
   }
 
   private handleSaveRecords(format: FileFormat) {
