@@ -40,7 +40,7 @@
     "vscode": "^1.40.0"
   },
   "scripts": {
-    "compile": "webpack",
+    "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
