@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
 describe('LWC Intellisense Test Suite', function() {
   let lwcDir: string;
-
-  before(() => {
+  let lwcExtension: vscode.Extension<any>;
+  before(async() => {
     lwcDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -20,6 +20,11 @@ describe('LWC Intellisense Test Suite', function() {
       'default',
       'lwc'
     );
+
+    lwcExtension = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-lwc'
+    ) as vscode.Extension<any>;
+    await lwcExtension.activate();
   });
 
   afterEach(async () => {
@@ -31,6 +36,10 @@ describe('LWC Intellisense Test Suite', function() {
       throw e;
     }
   });
+
+  it('lwc extension activation', async function() {
+    expect(lwcExtension.isActive);
+  }).timeout(10000);
 
   /**
    * Test that lwc markup intellisense includes standard lwc tags and custom lwc tags
@@ -71,6 +80,37 @@ describe('LWC Intellisense Test Suite', function() {
     }
   });
 
+  it('LWC JS Module Import Intellisense', async () => {
+    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
+
+    // We have to have some text or we'll just get generic completions
+    const text = "import {} from 'c";
+    const startPosition = new vscode.Position(1, 0);
+    const endPosition = new vscode.Position(
+      startPosition.line,
+      startPosition.character + text.length
+    );
+    const rangeReplace = new vscode.Range(startPosition, endPosition);
+    await editor.edit(editBuilder => {
+      editBuilder.replace(rangeReplace, text);
+    });
+
+    try {
+      await testCompletion(docUri, endPosition, {
+        items: [
+          {
+            label: 'c/helloBinding',
+            kind: vscode.CompletionItemKind.Folder
+          }
+        ]
+      });
+    } catch (error) {
+      throw error;
+    }
+  }).timeout(5000);
+
   xit('LWC JS @Salesforce Import Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
@@ -87,7 +127,6 @@ describe('LWC Intellisense Test Suite', function() {
     await editor.edit(editBuilder => {
       editBuilder.replace(rangeReplace, text);
     });
-
     try {
       await testCompletion(docUri, endPosition, {
         items: [
@@ -129,37 +168,6 @@ describe('LWC Intellisense Test Suite', function() {
       throw error;
     }
   }).timeout(10000);
-
-  it('LWC JS Module Import Intellisense', async () => {
-    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
-    const doc = await vscode.workspace.openTextDocument(docUri);
-    const editor = await vscode.window.showTextDocument(doc);
-
-    // We have to have some text or we'll just get generic completions
-    const text = "import {} from 'c";
-    const startPosition = new vscode.Position(1, 0);
-    const endPosition = new vscode.Position(
-      startPosition.line,
-      startPosition.character + text.length
-    );
-    const rangeReplace = new vscode.Range(startPosition, endPosition);
-    await editor.edit(editBuilder => {
-      editBuilder.replace(rangeReplace, text);
-    });
-
-    try {
-      await testCompletion(docUri, endPosition, {
-        items: [
-          {
-            label: 'c/helloBinding',
-            kind: vscode.CompletionItemKind.Folder
-          }
-        ]
-      });
-    } catch (error) {
-      throw error;
-    }
-  }).timeout(5000);
 
   xit('LWC JS Lightning Import Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
