@@ -47,7 +47,7 @@ export class QueryDataViewService {
   }
 
   private updateWebviewWith(queryData: QueryResult<JsonMap>) {
-    this.currentPanel!.webview.postMessage({
+    this.currentPanel?.webview.postMessage({
       type: 'update',
       data: queryData,
       documentName: getDocumentName(this.document)
