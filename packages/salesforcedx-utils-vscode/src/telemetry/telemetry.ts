@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'path';
 import * as util from 'util';
 import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
 import {
@@ -87,14 +88,11 @@ export class TelemetryService {
       this.isTelemetryEnabled() &&
       !isDevMode
     ) {
-      const extensionPackage = require(this.context.asAbsolutePath(
-        './package.json'
-      ));
-
+      const packageJson = require(path.join('..', '..', '..', 'package.json'));
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
-        extensionPackage.version,
-        extensionPackage.aiKey,
+        packageJson.version,
+        packageJson.aiKey,
         true
       );
       this.context.subscriptions.push(this.reporter);
