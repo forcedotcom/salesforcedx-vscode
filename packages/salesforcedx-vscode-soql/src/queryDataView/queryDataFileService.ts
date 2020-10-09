@@ -11,7 +11,7 @@ import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getRootWorkspacePath } from '../commonUtils';
-import { QUERY_RESULTS_DIR_PATH } from '../constants';
+import { QUERY_RESULTS_DIR_NAME, QUERY_RESULTS_DIR_PATH } from '../constants';
 import {
   CsvDataProvider,
   DataProvider,
@@ -66,7 +66,7 @@ export class QueryDataFileService {
     } catch (error) {
       // TODO: i18n
       vscode.window.showErrorMessage(
-        `We couldn't save your results. Verify the query syntax, then run the query again.`
+        `We couldn't save the results. Verify the query syntax, then run the query again.`
       );
       throw error;
     }
@@ -92,7 +92,7 @@ export class QueryDataFileService {
   private showSaveSuccessMessage(savedFileName: string) {
     vscode.window.showInformationMessage(
       // TODO: i18n and CCX
-      `Your results have been saved in this workspace as: ${savedFileName}`
+      `The results were saved in the ${QUERY_RESULTS_DIR_NAME} folder as: ${savedFileName}`
     );
   }
 }
