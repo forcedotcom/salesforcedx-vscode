@@ -447,6 +447,7 @@ jobs:
           name: 'Merge changes from main back into develop'
           command: |
             git checkout develop
+            git pull
             git merge main
             git push origin develop
       - slack/notify:
