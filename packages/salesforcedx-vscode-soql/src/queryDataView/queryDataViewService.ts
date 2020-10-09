@@ -117,7 +117,7 @@ export class QueryDataViewService {
     fileService.save();
   }
 
-  private getWebViewContent(webview: vscode.Webview): string {
+  protected getWebViewContent(webview: vscode.Webview): string {
     const baseStyleUri = webview.asWebviewUri(
       vscode.Uri.file(
         path.join(

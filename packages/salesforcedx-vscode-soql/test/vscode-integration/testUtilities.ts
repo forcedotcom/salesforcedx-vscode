@@ -131,6 +131,10 @@ export class TestQueryDataViewService extends QueryDataViewService {
   public handleSaveRecords(format: FileFormat) {
     super.handleSaveRecords(format);
   }
+
+  public getWebViewContent() {
+    return '<p>This is for you CI</p>';
+  }
 }
 
 export class TestFileService extends QueryDataFileService {
