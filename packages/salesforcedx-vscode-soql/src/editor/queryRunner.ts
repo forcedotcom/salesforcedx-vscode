@@ -39,7 +39,6 @@ export class QueryRunner {
   private flattenQueryRecords(rawQueryRecords: JsonMap[]) {
     // filter out the attributes key
     return rawQueryRecords.map(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ({ attributes, ...cleanRecords }) => cleanRecords
     );
   }

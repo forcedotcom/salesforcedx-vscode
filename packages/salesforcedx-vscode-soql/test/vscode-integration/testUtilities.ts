@@ -89,9 +89,7 @@ export function getMockConnection(
 export class MockTextDocumentProvider
   implements vscode.TextDocumentContentProvider {
   public provideTextDocumentContent(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     uri: vscode.Uri,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token: vscode.CancellationToken
   ): string {
     return mockQueryText;
