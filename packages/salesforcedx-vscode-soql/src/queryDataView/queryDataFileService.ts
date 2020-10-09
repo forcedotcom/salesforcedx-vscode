@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { getRootWorkspacePath } from '../commonUtils';
 import { QUERY_RESULTS_DIR_PATH } from '../constants';
 import {
   CsvDataProvider,
@@ -21,14 +22,6 @@ export enum FileFormat {
   JSON = 'json',
   CSV = 'csv'
 }
-
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
-const sfdxCoreExports = sfdxCoreExtension
-  ? sfdxCoreExtension.exports
-  : undefined;
-const { getRootWorkspacePath } = sfdxCoreExports;
 
 export class QueryDataFileService {
   private dataProvider: DataProvider;
