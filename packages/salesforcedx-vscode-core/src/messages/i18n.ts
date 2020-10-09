@@ -112,6 +112,7 @@ export const messages = {
     'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
   force_source_retrieve_display_text: 'Retrieve Source from Org',
+  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
   force_source_retrieve_select_file_or_directory:
     'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
   force_source_retrieve_select_manifest:
@@ -160,6 +161,7 @@ export const messages = {
     'SFDX: Start Function exited unexpectedly with code %s',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Send Request',
+  force_function_debug_invoke_tooltip: 'Debug Send Request',
   force_function_stop_text: 'SFDX: Stop Function',
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',

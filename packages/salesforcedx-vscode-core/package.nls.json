@@ -64,6 +64,7 @@
   "refresh_types_text": "Refresh Types",
   "refresh_components_text": "Refresh Components",
   "force_source_retrieve_display_text": "Retrieve Source from Org",
+  "force_source_retrieve_and_open_display_text": "Retrieve and Open Source",
   "force_diff_against_org": "SFDX: Diff File Against Org",
   "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template",
   "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience.",
@@ -73,6 +74,7 @@
   "experimental_functions_install_dependencies": "Install dependencies from package.json after creating a function",
   "force_function_start": "SFDX: Start Function",
   "force_function_invoke": "SFDX: Invoke Function",
+  "force_function_debug_invoke": "SFDX: Debug Function",
   "force_function_stop": "SFDX: Stop Function",
   "experimental_support_functions": "Enable building and managing Salesforce functions from VS Code"
 }

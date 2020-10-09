@@ -29,7 +29,10 @@ import {
 } from '../../../src/commands/commandConstants';
 import * as commandUtils from '../../../src/commands/commandUtils';
 import {
+  DeviceQuickPickItem,
+  directoryLevelUp,
   forceLightningLwcPreview,
+  getProjectRootDirectory,
   PlatformName,
   platformOptions
 } from '../../../src/commands/forceLightningLwcPreview';
@@ -48,9 +51,10 @@ const logLevelKey = 'preview.logLevel';
 const defaultLogLevel = 'warn';
 const androidSuccessString = 'Launching... Opening Browser';
 
-const iOSPickedDevice: vscode.QuickPickItem = {
+const iOSPickedDevice: DeviceQuickPickItem = {
   label: 'iPhone 8',
-  detail: 'iOS 13.3'
+  detail: 'iOS 13.3',
+  name: 'iPhone 8'
 };
 const iOSDeviceListJson = `
   {
@@ -74,9 +78,10 @@ const iOSDeviceListJson = `
   }
 `;
 
-const androidPickedDevice: vscode.QuickPickItem = {
-  label: 'emu2',
-  detail: 'Default Android System Image'
+const androidPickedDevice: DeviceQuickPickItem = {
+  label: 'Pixel API 29',
+  detail: 'Google APIs, API 29',
+  name: 'Pixel_API_29'
 };
 const androidDeviceListJson = `
   {
@@ -102,6 +107,40 @@ const androidDeviceListJson = `
   }
 `;
 
+const pickedApp: vscode.QuickPickItem = {
+  label: 'LWC Test App',
+  detail: 'com.salesforce.mobile-tooling.lwc-test-app'
+};
+const appConfigFileJson = `
+{
+  "apps": {
+    "ios": [
+      {
+        "id": "com.salesforce.mobile-tooling.lwc-test-app",
+        "name": "LWC Test App",
+        "get_app_bundle": "configure_test_app.js",
+        "launch_arguments": [
+          { "name": "arg1", "value": "val1" },
+          { "name": "arg2", "value": "val2" }
+        ]
+      }
+    ],
+    "android": [
+      {
+        "id": "com.salesforce.mobile-tooling.lwc-test-app",
+        "name": "LWC Test App",
+        "activity": ".MainActivity",
+        "get_app_bundle": "configure_test_app.js",
+        "launch_arguments": [
+          { "name": "arg1", "value": "val1" },
+          { "name": "arg2", "value": "val2" }
+        ]
+      }
+    ]
+  }
+}
+`;
+
 describe('forceLightningLwcPreview', () => {
   let sandbox: SinonSandbox;
   let devServiceStub: any;
@@ -109,7 +148,7 @@ describe('forceLightningLwcPreview', () => {
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
   let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
   let showErrorMessageStub: sinon.SinonStub<any[], any>;
-  const root = /^win32/.test(process.platform) ? 'C:\\' : '/var';
+  const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';
   const mockLwcFileDirectory = path.join(
     root,
     'project',
@@ -290,6 +329,7 @@ describe('forceLightningLwcPreview', () => {
   });
 
   afterEach(() => {
+    sinon.restore();
     sandbox.restore();
     cmdWithArgSpy.restore();
     cmdWithFlagSpy.restore();
@@ -450,7 +490,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(2);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
     expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(5);
+    expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
       platform
@@ -468,6 +508,14 @@ describe('forceLightningLwcPreview', () => {
       'c/foo'
     ]);
     expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
+      '-a',
+      'browser'
+    ]);
+    expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
+      '-d',
+      mockLwcFileDirectory
+    ]);
+    expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
       '--loglevel',
       'warn'
     ]);
@@ -569,7 +617,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(2);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
     expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(5);
+    expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
       PlatformName.Android
@@ -587,6 +635,14 @@ describe('forceLightningLwcPreview', () => {
       'c/foo'
     ]);
     expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
+      '-a',
+      'browser'
+    ]);
+    expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
+      '-d',
+      mockLwcFileDirectory
+    ]);
+    expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
       '--loglevel',
       'warn'
     ]);
@@ -615,7 +671,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(2);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
     expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(5);
+    expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
       PlatformName.iOS
@@ -633,6 +689,14 @@ describe('forceLightningLwcPreview', () => {
       'c/foo'
     ]);
     expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
+      '-a',
+      'browser'
+    ]);
+    expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
+      '-d',
+      mockLwcFileDirectoryUri.fsPath
+    ]);
+    expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
       '--loglevel',
       'warn'
     ]);
@@ -839,7 +903,7 @@ describe('forceLightningLwcPreview', () => {
     sinon.assert.calledOnce(mobileExecutorStub); // device list only (no preview)
     expect(
       showWarningMessageSpy.calledWith(
-        nls.localize('force_lightning_lwc_android_device_cancelled')
+        nls.localize('force_lightning_lwc_operation_cancelled')
       )
     );
   }
@@ -950,7 +1014,7 @@ describe('forceLightningLwcPreview', () => {
     expect(cmdWithArgSpy.callCount).to.equal(2);
     expect(cmdWithArgSpy.getCall(0).args[0]).equals(sfdxDeviceListCommand);
     expect(cmdWithArgSpy.getCall(1).args[0]).equals(sfdxMobilePreviewCommand);
-    expect(cmdWithFlagSpy.callCount).to.equal(5);
+    expect(cmdWithFlagSpy.callCount).to.equal(7);
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
       PlatformName.Android
@@ -968,6 +1032,14 @@ describe('forceLightningLwcPreview', () => {
       'c/foo'
     ]);
     expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
+      '-a',
+      'browser'
+    ]);
+    expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
+      '-d',
+      mockLwcFileDirectory
+    ]);
+    expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
       '--loglevel',
       'debug'
     ]);
@@ -1018,8 +1090,8 @@ describe('forceLightningLwcPreview', () => {
 
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
     const deviceName = isAndroid
-      ? androidPickedDevice.label
-      : iOSPickedDevice.label;
+      ? androidPickedDevice.name
+      : iOSPickedDevice.name;
 
     expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
       '-p',
@@ -1055,15 +1127,6 @@ describe('forceLightningLwcPreview', () => {
   });
 
   async function doNewDeviceQuickPickTest(isAndroid: Boolean) {
-    const createNewDeviceOption: vscode.QuickPickItem = {
-      label: nls.localize(
-        'force_lightning_lwc_preview_create_virtual_device_label'
-      ),
-      detail: nls.localize(
-        'force_lightning_lwc_preview_create_virtual_device_detail'
-      )
-    };
-
     const deviceName = isAndroid ? 'androidtestname' : 'iostestname';
     const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
     devServiceStub.isServerHandlerRegistered.returns(true);
@@ -1080,7 +1143,7 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub
       .onFirstCall()
       .resolves(isAndroid ? androidQuickPick : iOSQuickPick);
-    showQuickPickStub.onSecondCall().resolves(createNewDeviceOption);
+    showQuickPickStub.onSecondCall().resolvesArg(0);
     showInputBoxStub.resolves(deviceName);
     commandOutputStub.returns(
       Promise.resolve(isAndroid ? androidDeviceListJson : iOSDeviceListJson)
@@ -1121,4 +1184,256 @@ describe('forceLightningLwcPreview', () => {
       )
     );
   }
+
+  it('Picks an app from app pick list for Android apps', async () => {
+    await doAppListQuickPickTest(true, pickedApp, false);
+  });
+
+  it('Picks an app from app pick list for iOS apps', async () => {
+    await doAppListQuickPickTest(false, pickedApp, false);
+  });
+
+  it('Picks browser from app pick list for Android apps', async () => {
+    await doAppListQuickPickTest(true, 'browser', true);
+  });
+
+  it('Picks browser from app pick list for iOS apps', async () => {
+    await doAppListQuickPickTest(false, 'browser', true);
+  });
+
+  async function doAppListQuickPickTest(
+    isAndroid: Boolean,
+    selectedApp: vscode.QuickPickItem | 'browser',
+    lwcLocationIsDirectory: boolean
+  ) {
+    const targetApp =
+      selectedApp === 'browser' ? 'browser' : selectedApp.detail;
+
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    if (lwcLocationIsDirectory) {
+      mockFileExists(mockLwcFileDirectory);
+    } else {
+      mockFileExists(mockLwcFilePath);
+    }
+
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return lwcLocationIsDirectory;
+      }
+    } as fs.Stats);
+    sinon.stub(fs, 'readFileSync').returns(appConfigFileJson);
+
+    getConfigurationStub.returns(new MockWorkspace(false));
+    getGlobalStoreStub.returns(new MockMemento());
+    showQuickPickStub
+      .onFirstCall()
+      .resolves(isAndroid ? androidQuickPick : iOSQuickPick);
+    showQuickPickStub
+      .onSecondCall()
+      .resolves(isAndroid ? androidPickedDevice : iOSPickedDevice);
+    if (selectedApp === 'browser') {
+      showQuickPickStub.onThirdCall().callsFake(args => {
+        const items = args as vscode.QuickPickItem[];
+        return Promise.resolve(items[0]);
+      });
+    } else {
+      showQuickPickStub.onThirdCall().resolves(selectedApp);
+    }
+    commandOutputStub.returns(
+      Promise.resolve(isAndroid ? androidDeviceListJson : iOSDeviceListJson)
+    );
+
+    await forceLightningLwcPreview(
+      lwcLocationIsDirectory ? mockLwcFileDirectoryUri : mockLwcFilePathUri
+    );
+
+    if (isAndroid) {
+      mockExecution.stdoutSubject.next(androidSuccessString);
+    } else {
+      mockExecution.processExitSubject.next(0);
+    }
+
+    sinon.assert.calledThrice(showQuickPickStub); // platform + device list + app list
+
+    const platform = isAndroid ? PlatformName.Android : PlatformName.iOS;
+    const deviceName = isAndroid
+      ? androidPickedDevice.name
+      : iOSPickedDevice.name;
+    const projectRootDir = mockLwcFileDirectoryUri.fsPath;
+    const configFile = path.join(projectRootDir, 'mobile-apps.json');
+
+    expect(cmdWithFlagSpy.getCall(0).args).to.have.same.members([
+      '-p',
+      platform
+    ]);
+    expect(cmdWithFlagSpy.getCall(1).args).to.have.same.members([
+      '-p',
+      platform
+    ]);
+    expect(cmdWithFlagSpy.getCall(2).args).to.have.same.members([
+      '-t',
+      deviceName
+    ]);
+    expect(cmdWithFlagSpy.getCall(3).args).to.have.same.members([
+      '-n',
+      'c/foo'
+    ]);
+    expect(cmdWithFlagSpy.getCall(4).args).to.have.same.members([
+      '-a',
+      targetApp
+    ]);
+    expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
+      '-d',
+      projectRootDir
+    ]);
+
+    if (selectedApp === 'browser') {
+      expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
+        '--loglevel',
+        'warn'
+      ]);
+    } else {
+      expect(cmdWithFlagSpy.getCall(6).args).to.have.same.members([
+        '-f',
+        configFile
+      ]);
+      expect(cmdWithFlagSpy.getCall(7).args).to.have.same.members([
+        '--loglevel',
+        'warn'
+      ]);
+    }
+
+    sinon.assert.calledTwice(mobileExecutorStub); // device list + preview
+
+    expect(successInfoMessageSpy.callCount).to.equal(1);
+    expect(
+      successInfoMessageSpy.calledWith(
+        isAndroid
+          ? nls.localize('force_lightning_lwc_android_start', deviceName)
+          : nls.localize('force_lightning_lwc_ios_start', deviceName)
+      )
+    );
+  }
+
+  it('Cancels Preview if user cancels platform selection', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    getConfigurationStub.returns(new MockWorkspace(false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.resolves(undefined);
+
+    await forceLightningLwcPreview(mockLwcFilePathUri);
+
+    sinon.assert.calledOnce(showQuickPickStub); // platform
+    sinon.assert.notCalled(cmdWithFlagSpy);
+    expect(
+      showWarningMessageSpy.calledWith(
+        nls.localize('force_lightning_lwc_operation_cancelled')
+      )
+    );
+  });
+
+  it('Cancels Preview if user cancels selecting target device', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    getConfigurationStub.returns(new MockWorkspace(false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.onFirstCall().resolves(androidQuickPick);
+    showQuickPickStub.onSecondCall().resolves(undefined);
+
+    await forceLightningLwcPreview(mockLwcFilePathUri);
+
+    sinon.assert.calledOnce(showQuickPickStub); // platform
+    sinon.assert.calledOnce(cmdWithFlagSpy); // device list
+    expect(
+      showWarningMessageSpy.calledWith(
+        nls.localize('force_lightning_lwc_operation_cancelled')
+      )
+    );
+  });
+
+  it('Cancels Preview if user cancels selecting target app', async () => {
+    devServiceStub.isServerHandlerRegistered.returns(true);
+    devServiceStub.getBaseUrl.returns(DEV_SERVER_DEFAULT_BASE_URL);
+    devServiceStub.getComponentPreviewUrl.returns(
+      'http://localhost:3333/preview/c/foo'
+    );
+    getConfigurationStub.returns(new MockWorkspace(false));
+    existsSyncStub.returns(true);
+    lstatSyncStub.returns({
+      isDirectory() {
+        return false;
+      }
+    } as fs.Stats);
+    showQuickPickStub.onFirstCall().resolves(androidQuickPick);
+    showQuickPickStub.onSecondCall().resolves(androidPickedDevice);
+    showQuickPickStub.onThirdCall().resolves(undefined);
+
+    await forceLightningLwcPreview(mockLwcFilePathUri);
+
+    sinon.assert.calledOnce(showQuickPickStub); // platform + device list
+    sinon.assert.calledOnce(cmdWithFlagSpy); // device list
+    expect(
+      showWarningMessageSpy.calledWith(
+        nls.localize('force_lightning_lwc_operation_cancelled')
+      )
+    );
+  });
+
+  it('Directory Level Up', async () => {
+    expect(
+      directoryLevelUp(path.normalize('/my/path')) === path.normalize('/my')
+    ).to.be.true;
+    expect(directoryLevelUp(path.normalize('/my')) === path.normalize('/')).to
+      .be.true;
+    expect(directoryLevelUp(path.normalize('/')) === undefined).to.be.true;
+  });
+
+  it('Project Root Directory', async () => {
+    lstatSyncStub.returns({
+      isDirectory() {
+        return true;
+      }
+    } as fs.Stats);
+
+    // returns undefined for invalid path
+    expect(
+      getProjectRootDirectory(path.normalize('/invalidpath')) === undefined
+    ).to.be.true;
+
+    // returns undefined when path is valid but sfdx-project.json not found
+    existsSyncStub.callsFake(
+      fsPath => path.normalize(fsPath as string) === path.normalize('/my/path')
+    );
+
+    // returns correct path when path is valid and sfdx-project.json is found
+    existsSyncStub.reset();
+    existsSyncStub.callsFake(
+      fsPath =>
+        path.normalize(fsPath as string) === path.normalize('/my/path') ||
+        path.normalize(fsPath as string) ===
+          path.normalize('/my/sfdx-project.json')
+    );
+    expect(
+      getProjectRootDirectory(path.normalize('/my/path')) ===
+        path.normalize('/my')
+    ).to.be.true;
+  });
 });
