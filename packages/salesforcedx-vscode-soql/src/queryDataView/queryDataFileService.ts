@@ -71,9 +71,9 @@ export class QueryDataFileService {
 
       return queryDataFilePath;
     } catch (error) {
-      // TODO: i18n, CCX
+      // TODO: i18n
       vscode.window.showErrorMessage(
-        `Your data could not be saved. Run the query and try again.`
+        `We couldn't save your results. Verify the query syntax, then run the query again.`
       );
       throw error;
     }
@@ -99,7 +99,7 @@ export class QueryDataFileService {
   private showSaveSuccessMessage(savedFileName: string) {
     vscode.window.showInformationMessage(
       // TODO: i18n and CCX
-      `Your data has been saved in this workspace as: ${savedFileName}`
+      `Your results have been saved in this workspace as: ${savedFileName}`
     );
   }
 }
