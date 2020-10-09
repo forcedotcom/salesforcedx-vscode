@@ -3,7 +3,7 @@ title: Recommended Extensions
 lang: en
 ---
 
-In addition to the extension pack shipped by Salesforce, the following extensions are useful for Salesforce developers.
+In addition to the extension pack shipped by Salesforce, the following extensions are useful for Salesforce developers.  We also package the Extension pack with some of the most-used community extensions in the [expanded extension pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded). 
 
 ## Apex PMD
 
@@ -19,23 +19,20 @@ Keeping your code consistent and nicely formatted is important in any programmin
 
 > NOTE: Prettier also supports Apex formatting through the [Prettier Apex plugin](https://github.com/dangmai/prettier-plugin-apex).
 
+## ESLint
+
+Analyzes your JavaScript code to find issues and helps you fix them. As a part of the LWC extension, Salesforce provides specific ESLint rules and you can also add your own.  These preconfigured rules to help you write high quality code.  
+
+<https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint>
+
+
 ## XML
 
 VS Code doesn’t ship with rich XML tools by default. This extension, built by Red Hat, provides language support for for XML documents such as the `-meta.xml` or `package.xml` files in your VS Code project.
 
 <https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml>
 
-## GitHub Pull Requests
 
-This extension makes working with GitHub even easier.
-
-<https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github>
-
-## GitLens
-
-Supercharge the Git capabilities built into VS Code: Visualize code authorship at a glance via Git blame annotations and code lenses, navigate and explore Git repositories, gain valuable insights via powerful comparison commands, and more.
-
-<https://marketplace.visualstudio.com/items?itemName=eamodio.gitlens>
 
 ## Community Extensions
 
