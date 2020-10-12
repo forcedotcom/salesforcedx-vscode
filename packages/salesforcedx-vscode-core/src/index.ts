@@ -22,6 +22,7 @@ import {
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceFunctionCreate,
+  forceFunctionDebugInvoke,
   forceFunctionInvoke,
   forceFunctionStart,
   forceFunctionStop,
@@ -65,6 +66,7 @@ import {
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
+import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
   CompositeParametersGatherer,
@@ -357,6 +359,11 @@ function registerCommands(
     forceFunctionInvoke
   );
 
+  const forceFunctionDebugInvokeCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.debugInvoke',
+    forceFunctionDebugInvoke
+  );
+
   const forceFunctionStopCmd = vscode.commands.registerCommand(
     'sfdx.force.function.stop',
     forceFunctionStop
@@ -374,6 +381,7 @@ function registerCommands(
     forceDiffFile,
     forceFunctionCreateCmd,
     forceFunctionInvokeCmd,
+    forceFunctionDebugInvokeCmd,
     forceFunctionStartCmd,
     forceFunctionStopCmd,
     forceOrgCreateCmd,
@@ -559,6 +567,9 @@ export async function activate(context: vscode.ExtensionContext) {
     'sfdx:functions_enabled',
     functionsEnabled
   );
+  if (functionsEnabled) {
+    FunctionService.instance.handleDidStartTerminateDebugSessions(context);
+  }
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;

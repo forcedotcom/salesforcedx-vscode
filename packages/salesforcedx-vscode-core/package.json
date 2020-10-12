@@ -551,6 +551,10 @@
           "when": "false"
         },
         {
+          "command": "sfdx.force.function.debugInvoke",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.function.stop",
           "when": "sfdx:functions_enabled"
         }
@@ -844,6 +848,10 @@
       {
         "command": "sfdx.force.function.invoke",
         "title": "%force_function_invoke%"
+      },
+      {
+        "command": "sfdx.force.function.debugInvoke",
+        "title": "%force_function_debug_invoke%"
       },
       {
         "command": "sfdx.force.function.stop",
