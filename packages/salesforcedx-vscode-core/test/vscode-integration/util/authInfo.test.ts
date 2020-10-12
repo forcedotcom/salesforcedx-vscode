@@ -7,16 +7,17 @@
 
 import { Aliases } from '@salesforce/core';
 import { expect } from 'chai';
-import { sandbox } from 'sinon';
-import * as util from 'util';
+import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 
-const env = sandbox.create();
-
 // tslint:disable: no-unused-expression
 describe('OrgAuthInfo', () => {
+  let env: SinonSandbox;
+  beforeEach(async () => {
+    env = createSandbox();
+  });
   afterEach(() => env.restore());
 
   describe('getUsername', () => {
