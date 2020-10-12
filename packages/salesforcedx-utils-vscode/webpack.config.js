@@ -5,7 +5,7 @@ const DIST = path.resolve(__dirname);
 const getEntryObject = () => {
   const entryArray = glob.sync('src/**/*.ts');
   const srcObj = entryArray.reduce((acc, item) => {
-    const modulePath = item.replace(/\/[\.A-Za-z_-]*\.ts/g, '');
+    const modulePath = item.replace(/\/[\.A-Za-z0-9_-]*\.ts/g, '');
     const outputModulePath = path.join('out', modulePath, 'index');
 
     if (!acc.hasOwnProperty(outputModulePath)) {
