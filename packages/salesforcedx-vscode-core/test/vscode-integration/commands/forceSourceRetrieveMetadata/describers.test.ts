@@ -7,16 +7,15 @@
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import { normalize } from 'path';
-import { sandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { RetrieveDescriberFactory } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { BrowserNode, NodeType, orgBrowser } from '../../../../src/orgBrowser';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 
-const env = sandbox.create();
-
 describe('Retrieve Metadata Describers', () => {
   let packageStub: SinonStub;
   let refreshStub: SinonStub;
+  let env: SinonSandbox;
 
   const node = new BrowserNode('Test', NodeType.MetadataType, 'TestType', {
     suffix: '.t',
@@ -29,6 +28,7 @@ describe('Retrieve Metadata Describers', () => {
   node.setComponents(['Test1', 'Test2', 'Test3'], NodeType.MetadataCmp);
 
   beforeEach(() => {
+    env = createSandbox();
     packageStub = env
       .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
       .returns(['p1', 'p2']);
