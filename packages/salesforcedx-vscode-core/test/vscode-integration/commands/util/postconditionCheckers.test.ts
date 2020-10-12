@@ -72,7 +72,6 @@ describe('Postcondition Checkers', () => {
 
     describe('Check Components Exist', () => {
       beforeEach(() => {
-        // env = createSandbox();
         promptStub = env.stub(checker, 'promptOverwrite');
       });
 
