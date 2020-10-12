@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* 
-This file can be used to override Tabulator CSS
-for custom styling http://tabulator.info/docs/4.8/style
-*/
+export { DataProvider } from './iDataProvider';
+export { CsvDataProvider } from './csvDataProvider';
+export { JsonDataProvider } from './jsonDataProvider';
