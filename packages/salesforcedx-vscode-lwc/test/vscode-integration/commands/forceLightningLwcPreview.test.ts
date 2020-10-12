@@ -39,11 +39,12 @@ import {
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const { channelService, SfdxCommandlet, notificationService } = sfdxCoreExports;
+const { SfdxCommandlet, notificationService } = sfdxCoreExports;
 const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'preview.rememberDevice';

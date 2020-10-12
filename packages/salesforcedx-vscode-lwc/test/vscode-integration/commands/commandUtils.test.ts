@@ -8,15 +8,12 @@
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { showError } from '../../../src/commands/commandUtils';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const {
-  channelService,
-  notificationService,
-  telemetryService
-} = sfdxCoreExports;
+const { notificationService, telemetryService } = sfdxCoreExports;
 
 describe('command utilities', () => {
   describe('showError', () => {

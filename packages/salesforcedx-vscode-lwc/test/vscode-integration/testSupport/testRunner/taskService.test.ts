@@ -5,18 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { assert, match, SinonStub, stub } from 'sinon';
+import { assert, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  SfdxTask,
-  taskService
-} from '../../../../src/testSupport/testRunner/taskService';
+import { taskService } from '../../../../src/testSupport/testRunner/taskService';
 import { nls } from '../../../../src/messages';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const { channelService } = sfdxCoreExports;
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
 
 describe('Task Service Unit Tests', () => {
   let executeTaskStub: SinonStub<
@@ -48,8 +41,9 @@ describe('Task Service Unit Tests', () => {
     onDidStartTaskStub.callsFake(onDidStartTaskEmitter.event);
     onDidEndTaskStub = stub(vscode.tasks, 'onDidEndTask');
     onDidEndTaskStub.callsFake(onDidEndTaskEmitter.event);
-    channelServiceAppendLineStub = <SinonStub<any[], any>>(
-      stub(channelService, 'appendLine')
+    channelServiceAppendLineStub = stub(
+      ChannelService.prototype,
+      'appendLine' as any
     );
     taskServiceRegistration = taskService.registerTaskService({} as any);
   });

@@ -6,6 +6,7 @@
  */
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
 import {
   CliCommandExecutor,
   CommandOutput,
@@ -24,7 +25,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const {
-  channelService,
   notificationService,
   telemetryService,
   SfdxCommandlet,

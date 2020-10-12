@@ -10,19 +10,19 @@ import * as vscode from 'vscode';
 import { forceLightningLwcStop } from '../../../src/commands/forceLightningLwcStop';
 import { DevServerService } from '../../../src/service/devServerService';
 import { nls } from '../../../src/messages';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const {
-  channelService,
   notificationService
 } = sfdxCoreExports;
 
 describe('forceLightningLwcStop', () => {
   let sandbox: sinon.SinonSandbox;
   let devService: DevServerService;
-  let channelServiceStubs: { [key: string]: sinon.SinonStub };
+  let appendLineStub: sinon.SinonStub;
   let notificationServiceStubs: { [key: string]: sinon.SinonStub };
 
   beforeEach(() => {
@@ -30,14 +30,13 @@ describe('forceLightningLwcStop', () => {
     devService = new DevServerService();
     sandbox.stub(DevServerService, 'instance').get(() => devService);
 
-    channelServiceStubs = {};
+
     notificationServiceStubs = {};
 
-    channelServiceStubs.appendLineStub = sandbox.stub(
-      channelService,
-      'appendLine'
+    appendLineStub = sandbox.stub(
+      ChannelService.prototype,
+      'appendLine' as any
     );
-
     notificationServiceStubs.showSuccessfulExecutionStub = sandbox.stub(
       notificationService,
       'showSuccessfulExecution'
@@ -71,9 +70,9 @@ describe('forceLightningLwcStop', () => {
 
     sinon.assert.notCalled(notificationServiceStubs.showErrorMessageStub);
 
-    sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+    sinon.assert.calledOnce(appendLineStub);
     sinon.assert.calledWith(
-      channelServiceStubs.appendLineStub,
+      appendLineStub,
       sinon.match(nls.localize('force_lightning_lwc_stop_in_progress'))
     );
 

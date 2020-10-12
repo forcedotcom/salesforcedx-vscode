@@ -20,5 +20,13 @@ export const messages = {
     'Salesforce CLI is not installed. Install it from [%s](%s)',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
-  telemetry_legal_dialog_button_text: 'Read more'
+  telemetry_legal_dialog_button_text: 'Read more',
+
+  channel_name: 'Salesforce CLI',
+  channel_starting_message: 'Starting ',
+  channel_end_with_exit_code: 'ended with exit code %s',
+  channel_end_with_sfdx_not_found:
+    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+  channel_end_with_error: 'ended with error %s',
+  channel_end: 'ended'
 };
