@@ -351,9 +351,15 @@ export const messages = {
   error_workspace_context_init: 'WorkspaceContext has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
+<<<<<<< HEAD
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   error_no_sandbox_def:
     'No sandbox definition files found. These files must be in the "config" folder and end with "-sandbox-def.json". See [Sandbox Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_sandbox_definition.htm) for help.',
+=======
+    'No scratch definition files found. These files must be in the "config" folder and have file names that end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
+  error_no_sandbox_def:
+    'No sandbox definition files found. These files must be in the "config" folder and have file names that end with "-sandboxdef.json". See [Sandbox Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_sandbox_definition.htm) for help.',
+>>>>>>> a7860bc2f28cc430af8d8117b5b5d8aea92a14e9
   force_list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',

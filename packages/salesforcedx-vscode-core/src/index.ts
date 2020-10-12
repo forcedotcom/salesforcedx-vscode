@@ -399,6 +399,8 @@ function registerCommands(
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,
     forceSandboxCreateCmd,
+    forceSandboxCreateCmd,
+    forceSandboxCloneCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployInManifestCmd,
