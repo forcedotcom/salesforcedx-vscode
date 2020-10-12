@@ -21,7 +21,7 @@ Keeping your code consistent and nicely formatted is important in any programmin
 
 ## ESLint
 
-Analyzes your JavaScript code to find issues and helps you fix them. As a part of the LWC extension, Salesforce provides specific ESLint rules and you can also add your own.  These preconfigured rules to help you write high quality code.  
+Analyzes your JavaScript code to find issues and to help you fix them.  As a part of the LWC extension, Salesforce provides specific ESLint rules and you can also add your own.  These preconfigured rules help you to write high quality code.  
 
 <https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint>
 
