@@ -91,7 +91,7 @@ export class QueryDataFileService {
 
   private showSaveSuccessMessage(savedFileName: string) {
     vscode.window.showInformationMessage(
-      // TODO: i18n and CCX
+      // TODO: i18n
       `The results were saved in the ${QUERY_RESULTS_DIR_NAME} folder as: ${savedFileName}`
     );
   }
