@@ -14,7 +14,7 @@ import {
   QueryResult
 } from 'jsforce';
 import * as vscode from 'vscode';
-import { QueryDataViewService as QueryDataView } from '../queryResultsView/queryDataViewService';
+import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
@@ -155,9 +155,7 @@ export class SOQLEditorInstance {
   protected handleRunQuery(): Promise<void> {
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
-      const queryData = await new QueryRunner(conn, this.document).runQuery(
-        queryText
-      );
+      const queryData = await new QueryRunner(conn).runQuery(queryText);
       this.openQueryDataView(queryData);
     });
   }

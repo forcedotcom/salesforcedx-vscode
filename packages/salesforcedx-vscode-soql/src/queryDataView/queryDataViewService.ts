@@ -11,7 +11,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../commonUtils';
 import {
-  DATA_VIEW_MEDIA_PATH,
+  DATA_VIEW_RESOURCE_ROOTS_PATH,
+  DATA_VIEW_UI_PATH,
   QUERY_DATA_VIEW_PANEL_TITLE,
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
   QUERY_DATA_VIEW_STYLE_FILENAME,
@@ -19,8 +20,16 @@ import {
   TABULATOR_SCRIPT_FILENAME,
   TABULATOR_STYLE_FILENAME
 } from '../constants';
-import { HtmlUtils } from '../editor/htmlUtils';
-import { html } from './queryDataHtml';
+import {
+  FileFormat,
+  QueryDataFileService as FileService
+} from './queryDataFileService';
+import { getHtml } from './queryDataHtml';
+
+export interface DataViewEvent {
+  type: string;
+  format?: FileFormat;
+}
 
 export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
@@ -37,11 +46,8 @@ export class QueryDataViewService {
     QueryDataViewService.extensionPath = context.extensionPath;
   }
 
-  private updateWebviewWith(
-    webview: vscode.Webview,
-    queryData: QueryResult<JsonMap>
-  ) {
-    webview.postMessage({
+  private updateWebviewWith(queryData: QueryResult<JsonMap>) {
+    this.currentPanel?.webview.postMessage({
       type: 'update',
       data: queryData,
       documentName: getDocumentName(this.document)
@@ -56,7 +62,10 @@ export class QueryDataViewService {
       {
         localResourceRoots: [
           vscode.Uri.file(
-            path.join(QueryDataViewService.extensionPath, DATA_VIEW_MEDIA_PATH)
+            path.join(
+              QueryDataViewService.extensionPath,
+              DATA_VIEW_RESOURCE_ROOTS_PATH
+            )
           )
         ],
         enableScripts: true
@@ -71,20 +80,49 @@ export class QueryDataViewService {
       this.subscriptions
     );
 
-    const webview = this.currentPanel.webview;
-    webview.html = this.getWebViewContent(webview);
+    this.currentPanel.webview.html = this.getWebViewContent(
+      this.currentPanel.webview
+    );
 
-    this.updateWebviewWith(webview, this.queryData);
-    return webview;
+    this.currentPanel.webview.onDidReceiveMessage(
+      this.onDidRecieveMessageHandler,
+      this,
+      this.subscriptions
+    );
+
+    return this.currentPanel.webview;
   }
 
-  private getWebViewContent(webview: vscode.Webview): string {
-    let _html: string;
+  protected onDidRecieveMessageHandler(message: DataViewEvent) {
+    const { type, format } = message;
+    switch (type) {
+      case 'activate':
+        this.updateWebviewWith(this.queryData);
+        break;
+      case 'save_records':
+        this.handleSaveRecords(format!);
+        break;
+      default:
+        console.log('unknown message type from data view');
+        break;
+    }
+  }
+
+  protected handleSaveRecords(format: FileFormat) {
+    const fileService = new FileService(
+      this.queryData,
+      format,
+      getDocumentName(this.document)
+    );
+    fileService.save();
+  }
+
+  protected getWebViewContent(webview: vscode.Webview): string {
     const baseStyleUri = webview.asWebviewUri(
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           QUERY_DATA_VIEW_STYLE_FILENAME
         )
       )
@@ -93,7 +131,7 @@ export class QueryDataViewService {
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           TABULATOR_STYLE_FILENAME
         )
       )
@@ -102,7 +140,7 @@ export class QueryDataViewService {
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           QUERY_DATA_VIEW_SCRIPT_FILENAME
         )
       )
@@ -111,7 +149,7 @@ export class QueryDataViewService {
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_MEDIA_PATH,
+          DATA_VIEW_UI_PATH,
           TABULATOR_SCRIPT_FILENAME
         )
       )
@@ -124,9 +162,6 @@ export class QueryDataViewService {
       tabulatorUri
     };
 
-    _html = html(staticAssets);
-    _html = HtmlUtils.replaceCspMetaTag(_html, webview);
-
-    return _html;
+    return getHtml(staticAssets, QueryDataViewService.extensionPath, webview);
   }
 }

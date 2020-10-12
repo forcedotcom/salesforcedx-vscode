@@ -11,10 +11,7 @@ import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 
 export class QueryRunner {
-  constructor(
-    private connection: Connection,
-    private document?: vscode.TextDocument
-  ) {}
+  constructor(private connection: Connection) {}
 
   public async runQuery(queryText: string): Promise<QueryResult<JsonMap>> {
     try {
