@@ -72,7 +72,7 @@ export const messages = {
   parameter_gatherer_enter_scratch_org_expiration_days:
     'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
   parameter_gatherer_enter_sandbox_org_wait_time_mins:
-    'Enter the number of mins (1–120) to wait for sandbox creation or use the default value (30)',
+    'Enter the number of mins (2–120) to wait for sandbox creation or use the default value (30)',
   parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
@@ -353,7 +353,7 @@ export const messages = {
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   error_no_sandbox_def:
-    'No sandbox definition files found. These files must be in the "config" folder and end with "-sandboxdef.json". See [Sandbox Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_sandbox_definition.htm) for help.',
+    'No sandbox definition files found. These files must be in the "config" folder and end with "-sandbox-def.json". See [Sandbox Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_sandbox_definition.htm) for help.',
   force_list_metadata: 'SFDX: Force List Metadata',
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
