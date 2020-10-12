@@ -11,7 +11,7 @@ import {
 import { expect } from 'chai';
 import * as fs from 'fs';
 import { join, normalize } from 'path';
-import { sandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../../src/channels';
 import {
   ConflictDetectionChecker,
@@ -31,9 +31,8 @@ import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath, MetadataDictionary } from '../../../../src/util';
 
-const env = sandbox.create();
-
 describe('Postcondition Checkers', () => {
+  let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
     it('Should return CancelResponse if input passed in is CancelResponse', async () => {
       const postChecker = new EmptyPostChecker();
@@ -64,6 +63,7 @@ describe('Postcondition Checkers', () => {
     const checker = new OverwriteComponentPrompt();
 
     beforeEach(() => {
+      env = createSandbox();
       existsStub = env.stub(fs, 'existsSync');
       modalStub = env.stub(notificationService, 'showWarningModal');
     });
@@ -71,7 +71,9 @@ describe('Postcondition Checkers', () => {
     afterEach(() => env.restore());
 
     describe('Check Components Exist', () => {
-      beforeEach(() => (promptStub = env.stub(checker, 'promptOverwrite')));
+      beforeEach(() => {
+        promptStub = env.stub(checker, 'promptOverwrite');
+      });
 
       it('Should not prompt overwrite if components do not exist', async () => {
         existsStub.returns(true);
@@ -301,6 +303,7 @@ describe('Postcondition Checkers', () => {
     let channelOutput: string[] = [];
 
     beforeEach(() => {
+      env = createSandbox();
       channelOutput = [];
       modalStub = env.stub(notificationService, 'showWarningModal');
       settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');

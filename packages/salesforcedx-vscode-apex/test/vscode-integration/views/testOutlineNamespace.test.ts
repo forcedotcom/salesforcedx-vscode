@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
-import { sandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
@@ -110,7 +110,7 @@ describe('Test View with namespace', () => {
     let sb: SinonSandbox;
 
     beforeEach(() => {
-      sb = sandbox.create();
+      sb = createSandbox();
       readFolderStub = sb.stub(fs, 'readdirSync');
       readFolderStub.callsFake(folderName => {
         return ['test-result.json'];
@@ -191,7 +191,7 @@ describe('Test View with namespace', () => {
     const eventEmitter = new events.EventEmitter();
 
     beforeEach(() => {
-      sb = sandbox.create();
+      sb = createSandbox();
       readFolderStub = sb.stub(fs, 'readdirSync');
       readFolderStub.callsFake(folderName => ['test-result.json']);
       readFileStub = sb.stub(fs, 'readFileSync');
