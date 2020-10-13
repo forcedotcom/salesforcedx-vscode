@@ -13,7 +13,6 @@ import {
   isCLITelemetryAllowed
 } from '../cli/cliConfiguration';
 import { nls } from '../messages';
-// import { sfdxCoreSettings } from '../settings';
 import TelemetryReporter from './telemetryReporter';
 
 const TELEMETRY_OPT_OUT_LINK =
@@ -106,7 +105,6 @@ export class TelemetryService {
   }
 
   public isTelemetryEnabled(): boolean {
-    // return sfdxCoreSettings.getTelemetryEnabled() && this.cliAllowsTelemetry;
     return (
       workspace
         .getConfiguration('telemetry')
