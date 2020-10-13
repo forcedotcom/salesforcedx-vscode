@@ -7,17 +7,13 @@
 
 import * as path from 'path';
 import * as util from 'util';
-import { commands, ExtensionContext, Uri, window, workspace } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import {
   disableCLITelemetry,
   isCLITelemetryAllowed
 } from '../cli/cliConfiguration';
-import { nls } from '../messages';
 import TelemetryReporter from './telemetryReporter';
 
-const TELEMETRY_OPT_OUT_LINK =
-  'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
-const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 interface CommandMetric {
@@ -114,52 +110,6 @@ export class TelemetryService {
         .get<boolean>('telemetry.enabled', true) &&
       this.cliAllowsTelemetry
     );
-  }
-
-  private getHasTelemetryMessageBeenShown(): boolean {
-    if (this.context === undefined) {
-      return true;
-    }
-
-    const sfdxTelemetryState = this.context.globalState.get(
-      TELEMETRY_GLOBAL_VALUE
-    );
-
-    return typeof sfdxTelemetryState === 'undefined';
-  }
-
-  private setTelemetryMessageShowed(): void {
-    if (this.context === undefined) {
-      return;
-    }
-
-    this.context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
-  }
-
-  public showTelemetryMessage() {
-    // check if we've ever shown Telemetry message to user
-    const showTelemetryMessage = this.getHasTelemetryMessageBeenShown();
-
-    if (showTelemetryMessage) {
-      // Show the message and set telemetry to true;
-      const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
-      const showMessage = nls.localize(
-        'telemetry_legal_dialog_message',
-        TELEMETRY_OPT_OUT_LINK
-      );
-      window
-        .showInformationMessage(showMessage, showButtonText)
-        .then(selection => {
-          // Open disable telemetry link
-          if (selection && selection === showButtonText) {
-            commands.executeCommand(
-              'vscode.open',
-              Uri.parse(TELEMETRY_OPT_OUT_LINK)
-            );
-          }
-        });
-      this.setTelemetryMessageShowed();
-    }
   }
 
   public sendExtensionActivationEvent(hrstart: [number, number]): void {

@@ -7,7 +7,6 @@
 import { expect } from 'chai';
 import { assert, match, SinonStub, stub } from 'sinon';
 import { window, workspace } from 'vscode';
-// import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import {
   TelemetryBuilder,
   TelemetryService
@@ -20,7 +19,6 @@ describe('Telemetry', () => {
   const telemetryService = TelemetryService.getInstance();
   let mShowInformation: SinonStub;
   let getConfigurationStub: SinonStub;
-  // let settings: SinonStub;
   let mockContext: MockContext;
   let reporter: SinonStub;
   let exceptionEvent: SinonStub;
@@ -35,10 +33,6 @@ describe('Telemetry', () => {
       getConfigurationStub = stub(workspace, 'getConfiguration').returns({
         get: () => true
       });
-      // settings = stub(
-      //   SfdxCoreSettings.prototype,
-      //   'getTelemetryEnabled'
-      // ).returns(true);
       teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
       cliStub = stub(telemetryService, 'checkCliTelemetry');
       cliStub.returns(true);
@@ -47,7 +41,6 @@ describe('Telemetry', () => {
     afterEach(() => {
       mShowInformation.restore();
       getConfigurationStub.restore();
-      // settings.restore();
       teleStub.restore();
       cliStub.restore();
     });
@@ -63,40 +56,6 @@ describe('Telemetry', () => {
 
       const telemetryReporter = telemetryService.getReporter();
       expect(typeof telemetryReporter).to.be.eql('undefined');
-      expect(teleStub.firstCall.args).to.eql([true]);
-    });
-
-    it('Should show telemetry info message', async () => {
-      // create vscode extensionContext in which telemetry msg has never been previously shown
-      mockContext = new MockContext(false);
-
-      await telemetryService.initializeService(
-        mockContext,
-        'someValue.machineId'
-      );
-
-      const telemetryEnabled = telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).to.be.eql(true);
-
-      telemetryService.showTelemetryMessage();
-      assert.calledOnce(mShowInformation);
-      expect(teleStub.firstCall.args).to.eql([true]);
-    });
-
-    it('Should not show telemetry info message', async () => {
-      // create vscode extensionContext in which telemetry msg has been previously shown
-      mockContext = new MockContext(true);
-
-      await telemetryService.initializeService(
-        mockContext,
-        'someValue.machineId'
-      );
-
-      const telemetryEnabled = telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).to.be.eql(true);
-
-      telemetryService.showTelemetryMessage();
-      assert.notCalled(mShowInformation);
       expect(teleStub.firstCall.args).to.eql([true]);
     });
 
@@ -121,10 +80,6 @@ describe('Telemetry', () => {
       getConfigurationStub = stub(workspace, 'getConfiguration').returns({
         get: () => true
       });
-      // settings = stub(
-      //   SfdxCoreSettings.prototype,
-      //   'getTelemetryEnabled'
-      // ).returns(true);
       reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
       exceptionEvent = stub(TelemetryReporter.prototype, 'sendExceptionEvent');
       teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
@@ -135,39 +90,10 @@ describe('Telemetry', () => {
     afterEach(() => {
       mShowInformation.restore();
       getConfigurationStub.restore();
-      // settings.restore();
       reporter.restore();
       exceptionEvent.restore();
       teleStub.restore();
       cliStub.restore();
-    });
-
-    it('Should show telemetry info message', async () => {
-      // create vscode extensionContext in which telemetry msg has never been previously shown
-      mockContext = new MockContext(false);
-
-      await telemetryService.initializeService(mockContext, machineId);
-
-      const telemetryEnabled = telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).to.be.eql(true);
-
-      telemetryService.showTelemetryMessage();
-      assert.calledOnce(mShowInformation);
-      expect(teleStub.firstCall.args).to.eql([true]);
-    });
-
-    it('Should not show telemetry info message', async () => {
-      // create vscode extensionContext in which telemetry msg has been previously shown
-      mockContext = new MockContext(true);
-
-      await telemetryService.initializeService(mockContext, machineId);
-
-      const telemetryEnabled = telemetryService.isTelemetryEnabled();
-      expect(telemetryEnabled).to.be.eql(true);
-
-      telemetryService.showTelemetryMessage();
-      assert.notCalled(mShowInformation);
-      expect(teleStub.firstCall.args).to.eql([true]);
     });
 
     it('Should send telemetry data', async () => {
@@ -189,11 +115,6 @@ describe('Telemetry', () => {
       stub(workspace, 'getConfiguration').returns({
         get: () => false
       });
-      // settings.restore();
-      // settings = stub(
-      //   SfdxCoreSettings.prototype,
-      //   'getTelemetryEnabled'
-      // ).returns(false);
 
       await telemetryService.initializeService(mockContext, machineId);
 
