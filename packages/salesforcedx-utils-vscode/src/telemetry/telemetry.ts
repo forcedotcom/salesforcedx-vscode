@@ -7,14 +7,13 @@
 
 import * as path from 'path';
 import * as util from 'util';
+import * as vscode from 'vscode';
 import { ExtensionContext, workspace } from 'vscode';
 import {
   disableCLITelemetry,
   isCLITelemetryAllowed
 } from '../cli/cliConfiguration';
 import TelemetryReporter from './telemetryReporter';
-
-const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 interface CommandMetric {
   extensionName: string;
@@ -65,6 +64,7 @@ export class TelemetryService {
    * Cached promise to check if CLI telemetry config is enabled
    */
   private cliAllowsTelemetryPromise?: Promise<boolean> = undefined;
+  public extensionName: string = 'unknown';
 
   public static getInstance() {
     if (!TelemetryService.instance) {
@@ -73,11 +73,17 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
+  /**
+   * Initialize Telemetry Service during extension activation.
+   * @param context extension context
+   * @param extensionName extension name
+   */
   public async initializeService(
     context: ExtensionContext,
-    machineId: string
+    extensionName: string
   ): Promise<void> {
     this.context = context;
+    this.extensionName = extensionName;
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
@@ -87,7 +93,10 @@ export class TelemetryService {
       })
       .catch();
 
+    const machineId =
+      vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
     const isDevMode = machineId === 'someValue.machineId';
+
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
@@ -147,7 +156,7 @@ export class TelemetryService {
       this.reporter.sendTelemetryEvent(
         'activationEvent',
         {
-          extensionName: EXTENSION_NAME
+          extensionName: this.extensionName
         },
         { startupTime }
       );
@@ -157,7 +166,7 @@ export class TelemetryService {
   public async sendExtensionDeactivationEvent() {
     if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       this.reporter.sendTelemetryEvent('deactivationEvent', {
-        extensionName: EXTENSION_NAME
+        extensionName: this.extensionName
       });
     }
   }
@@ -174,7 +183,7 @@ export class TelemetryService {
       commandName
     ) {
       const baseProperties: CommandMetric = {
-        extensionName: EXTENSION_NAME,
+        extensionName: this.extensionName,
         commandName
       };
       const aggregatedProps = Object.assign(baseProperties, properties);
