@@ -11,12 +11,6 @@ import { nls } from '../messages';
 import { GlobalCliEnvironment } from './commandExecutor';
 import { ConfigUtil } from './configUtil';
 
-// import {
-//   ENV_SFDX_DISABLE_TELEMETRY,
-//   SFDX_CLI_DOWNLOAD_LINK,
-//   SFDX_CONFIG_DISABLE_TELEMETRY
-// } from '../constants';
-
 export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
 export const SFDX_CLI_DOWNLOAD_LINK =
   'https://developer.salesforce.com/tools/sfdxcli';
