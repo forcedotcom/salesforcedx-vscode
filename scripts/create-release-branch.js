@@ -56,7 +56,7 @@ shell.exec(`git add "**/package.json"`);
 shell.exec('git add lerna.json');
 
 // Git commit
-shell.exec(`git commit -m "Update to version ${nextVersion}"`);
+shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
 // Push version update commits to develop
 shell.exec(`git push origin develop`);

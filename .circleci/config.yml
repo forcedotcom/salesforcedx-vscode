@@ -255,7 +255,7 @@ commands:
           name: 'Adding the SHA256 to git.'
           command: |
             git add SHA256.md
-            git commit -m "Updated SHA256 v${RELEASE_VERSION}"
+            git commit -m "chore: updated SHA256 v${RELEASE_VERSION}"
 
 executors:
   default-executor:
