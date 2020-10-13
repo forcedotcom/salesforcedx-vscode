@@ -88,8 +88,6 @@ export class ForceSandboxCloneExecutor extends SfdxCommandletExecutor<
         const createParser = new OrgCreateResultParser(stdOut);
 
         if (createParser.createIsSuccessful()) {
-          // NOTE: there is a beta in which this command also allows users to create sandboxes
-          // once it's GA this will have to be updated
           setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
         } else {
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
@@ -122,7 +120,7 @@ export class ForceSandboxCloneExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class AliasGatherer implements ParametersGatherer<Alias> {
+export class SandboxCloneGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
     const defaultWaitTime = DEFAULT_WAIT_TIME_MINS;
     let defaultAlias = DEFAULT_ALIAS;
@@ -224,12 +222,7 @@ const preconditionChecker = new CompositePreconditionChecker(
   new DevUsernameChecker()
 );
 const parameterGatherer = new CompositeParametersGatherer(
-  // new FileSelector(
-  //   nls.localize('parameter_gatherer_enter_sandbox_org_def_files'),
-  //   nls.localize('error_no_sandbox_def'),
-  //   'config/**/*-sandbox-def.json'
-  // ),
-  new AliasGatherer()
+  new SandboxCloneGatherer()
 );
 
 export async function forceSandboxClone() {

@@ -65,7 +65,7 @@ export class ForceSandboxCreateExecutor extends SfdxCommandletExecutor<
       .withFlag('--definitionfile', `${selectionPath}`)
       .withFlag('-a', data.alias)
       .withFlag('-w', data.waitTime)
-      .withLogName('force_org_create_sandbox_org')
+      .withLogName('force_create_sandbox_org')
       .withJson()
       .build();
   }
@@ -126,7 +126,7 @@ export class ForceSandboxCreateExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class AliasGatherer implements ParametersGatherer<Alias> {
+export class SandboxCreationGatherer implements ParametersGatherer<Alias> {
   public async gather(): Promise<CancelResponse | ContinueResponse<Alias>> {
     const defaultExpirationdate = DEFAULT_WAIT_TIME_MINS;
     let defaultAlias = DEFAULT_ALIAS;
@@ -199,7 +199,7 @@ const parameterGatherer = new CompositeParametersGatherer(
     nls.localize('error_no_sandbox_def'),
     'config/**/*-sandbox-def.json'
   ),
-  new AliasGatherer()
+  new SandboxCreationGatherer()
 );
 
 export async function forceSandboxCreate() {
