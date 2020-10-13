@@ -412,6 +412,7 @@ jobs:
           message: 'Starting publish for VSCode Extensions'
       - ssh-config
       - checkout
+      - prepare-release-environment-variables
       - prepare-gus-environment-variables
       - restore_dependency_cache
       - run:
@@ -446,6 +447,7 @@ jobs:
           name: 'Merge changes from main back into develop'
           command: |
             git checkout develop
+            git pull
             git merge main
             git push origin develop
       - slack/notify:

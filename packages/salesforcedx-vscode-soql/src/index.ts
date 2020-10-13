@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { startLanguageClient, stopLanguageClient } from './client/client';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
-import { QueryDataViewService } from './queryResultsView/queryDataViewService';
+import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
 
 export function activate(context: vscode.ExtensionContext): void {

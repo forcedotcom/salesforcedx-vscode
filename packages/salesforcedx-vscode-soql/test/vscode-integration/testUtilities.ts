@@ -5,15 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { DescribeSObjectResult, QueryResult } from 'jsforce';
+import { QueryResult } from 'jsforce';
 import { SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
   SoqlEditorEvent,
   SOQLEditorInstance
 } from '../../src/editor/soqlEditorInstance';
+import { DataProvider } from '../../src/queryDataView/dataProviders';
+import {
+  FileFormat,
+  QueryDataFileService
+} from '../../src/queryDataView/queryDataFileService';
+import {
+  DataViewEvent,
+  QueryDataViewService
+} from '../../src/queryDataView/queryDataViewService';
 
 export interface MockConnection {
   authInfo: object;
@@ -80,9 +89,7 @@ export function getMockConnection(
 export class MockTextDocumentProvider
   implements vscode.TextDocumentContentProvider {
   public provideTextDocumentContent(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     uri: vscode.Uri,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token: vscode.CancellationToken
   ): string {
     return mockQueryText;
@@ -93,6 +100,7 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
   public sendEvent(event: SoqlEditorEvent) {
     this.onDidRecieveMessageHandler(event);
   }
+
   public updateWebview(document: vscode.TextDocument) {
     super.updateWebview(document);
   }
@@ -106,5 +114,29 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
 
   public openQueryDataView(queryData: QueryResult<JsonMap>) {
     super.openQueryDataView(queryData);
+  }
+}
+
+export class TestQueryDataViewService extends QueryDataViewService {
+  public sendEvent(event: DataViewEvent) {
+    this.onDidRecieveMessageHandler(event);
+  }
+
+  public createOrShowWebView() {
+    return super.createOrShowWebView();
+  }
+
+  public handleSaveRecords(format: FileFormat) {
+    super.handleSaveRecords(format);
+  }
+
+  public getWebViewContent() {
+    return '<p>This is for you CI</p>';
+  }
+}
+
+export class TestFileService extends QueryDataFileService {
+  public getDataProvider(): DataProvider {
+    return super.getDataProvider();
   }
 }
