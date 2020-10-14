@@ -4,16 +4,26 @@ lang: en
 permalink: /
 ---
 
-This extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
+The Salesforce Extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
+
+## One Set of Extensions, Two Ways to Code
+
+You can install the Salesforce Extensions in VS Code on the desktop or access them via Code Builder in your browser.
+
+### Salesforce Extensions for Desktop
 
 <span>Download using the links below, or read the [installation instructions](./en/getting-started/install).<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](./images/overview.gif)
 
+### Code Builder (Beta)
+
+Code Builder is a browser-based version of Salesforce Extensions, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. To participate in the beta, &&& DO THIS
+
 ## Additional Resources
 
 - Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
-- [Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
+- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
 - [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
 
 ## Videos
