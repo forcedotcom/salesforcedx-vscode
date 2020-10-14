@@ -45,7 +45,6 @@
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
-    "@salesforce/aura-language-server": "3.0.9",
     "@salesforce/salesforcedx-test-utils-vscode": "49.14.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
