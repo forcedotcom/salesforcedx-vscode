@@ -1,3 +1,13 @@
+# 50.1.0 - October 14, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Update LWC preview command to launch a native app or mobile browser ([PR #2585](https://github.com/forcedotcom/salesforcedx-vscode/pull/2585))
+
+- Run SOQL Query Builder and view results ([PR #2565](https://github.com/forcedotcom/salesforcedx-vscode/pull/2565))
+
 # 49.13.0 - October 7, 2020
 
 ## Fixed
