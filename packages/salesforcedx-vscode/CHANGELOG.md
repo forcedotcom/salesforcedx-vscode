@@ -4,9 +4,19 @@
 
 #### salesforcedx-vscode-core
 
-- Update LWC preview command to launch a native app or mobile browser ([PR #2585](https://github.com/forcedotcom/salesforcedx-vscode/pull/2585))
+- Added `Retrieve and Open Source` feature for Org Browser ([PR #2573](https://github.com/forcedotcom/salesforcedx-vscode/pull/2573))
 
-- Run SOQL Query Builder and view results ([PR #2565](https://github.com/forcedotcom/salesforcedx-vscode/pull/2565))
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Updated to latest versions of Aura and LWC language servers for auto-complete fixes ([PR# 2607](https://github.com/forcedotcom/salesforcedx-vscode/pull/2607), [Issue #2322](https://github.com/forcedotcom/salesforcedx-vscode/issues/2322), [Issue #2584](https://github.com/forcedotcom/salesforcedx-vscode/issues/2584))
+
+#### docs
+
+- Updated [Recommended Extensions](https://developer.salesforce.com/tools/vscode/en/getting-started/recommended-extensions) for Salesforce development ([PR #2619](https://github.com/forcedotcom/salesforcedx-vscode/pull/2619))
+
+- Added `Retrieve and Open Source` step for [Org Browser](https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) ([PR# 2591](https://github.com/forcedotcom/salesforcedx-vscode/pull/2591))
 
 # 49.13.0 - October 7, 2020
 
