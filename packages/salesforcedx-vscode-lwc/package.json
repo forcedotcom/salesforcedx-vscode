@@ -24,21 +24,25 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "@salesforce/core": "2.9.0",
     "@salesforce/eslint-config-lwc": "0.3.0",
     "@salesforce/lightning-lsp-common": "3.0.9",
     "@salesforce/lwc-language-server": "3.0.9",
     "@salesforce/salesforcedx-utils-vscode": "49.14.0",
     "ajv": "^6.1.1",
+    "applicationinsights": "1.0.7",
     "eslint": "5.0.0",
     "jest-editor-support": "^26.0.0-beta",
     "jest-regex-util": "^24.9.0",
     "rxjs": "^5.4.1",
+    "shelljs": "0.8.3",
     "strip-ansi": "^5.2.0",
     "uuid": "^3.3.3",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {
+    "@salesforce/aura-language-server": "3.0.9",
     "@salesforce/salesforcedx-test-utils-vscode": "49.14.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
