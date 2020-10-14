@@ -20,6 +20,7 @@
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
+    "@salesforce/salesforcedx-test-utils-vscode": "49.14.0",
     "@types/chai": "^4.0.0",
     "@types/cross-spawn": "6.0.0",
     "@types/mocha": "^5",
@@ -30,6 +31,7 @@
     "@types/sinon": "^2.3.2",
     "@types/vscode": "1.40.0",
     "chai": "^4.0.2",
+    "cross-env": "5.2.0",
     "mocha": "^5",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
@@ -48,7 +50,7 @@
     "lint": "tslint --project .",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:unit",
+    "test": "npm run test:unit && npm run test:vscode-integration",
     "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit/**/*.js --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
     "coverage": "./node_modules/.bin/nyc npm test"
   },

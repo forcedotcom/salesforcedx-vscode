@@ -45,7 +45,12 @@ module.exports = {
   // excluding dependencies from getting bundled
   externals: {
     '@salesforce/core': 'commonjs @salesforce/core',
+<<<<<<< HEAD
     applicationinsights: 'commonjs applicationinsights',
+=======
+    '@salesforce/salesforcedx-test-utils-vscode': 'commonjs @salesforce/salesforcedx-test-utils-vscode',
+    'remap-istanbul': 'commonjs remap-istanbul',
+>>>>>>> c4c9a13e... fix: integration tests not running
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls'
   },
