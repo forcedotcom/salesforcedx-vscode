@@ -30,6 +30,8 @@
     "@salesforce/lwc-language-server": "3.0.9",
     "@salesforce/salesforcedx-utils-vscode": "49.14.0",
     "applicationinsights": "1.0.7",
+    "cross-spawn": "6.0.5",
+    "rxjs": "^5.4.1",
     "shelljs": "0.8.3",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1"
