@@ -12,6 +12,8 @@ You can install the Salesforce Extensions in VS Code on the desktop or access th
 
 ### Salesforce Extensions for Desktop
 
+Want to develop locally? Already using VS Code? Install Salesforce Extensions and Salesforce CLI to develop quickly and more productively on Salesforce platform.
+
 <span>Download using the links below, or read the [installation instructions](./en/getting-started/install).<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
 
 ![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](./images/overview.gif)
