@@ -12,6 +12,7 @@
   "version": "49.14.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
+  "icon": "images/VSCodeSoql.png",
   "engines": {
     "vscode": "^1.46.0"
   },
