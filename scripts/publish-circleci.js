@@ -70,7 +70,7 @@ logger.header('\nAdding the SHA256 to git.');
 shell.exec(`git add SHA256.md`);
 
 logger.header('\nRunning commit.');
-shell.exec(`git commit -m "Updated SHA256"`);
+shell.exec(`git commit -m "chore: updated SHA256 v${nextVersion}"`);
 
 const gitTagName = `v${nextVersion}`;
 logger.header(`\nCreating the git tag (e.g. v48.1.0): ${gitTagName}`);
