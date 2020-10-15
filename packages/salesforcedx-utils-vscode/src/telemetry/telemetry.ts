@@ -91,7 +91,9 @@ export class TelemetryService {
           this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
         );
       })
-      .catch();
+      .catch(error => {
+        console.log('Error initializing telemetry service: ' + error);
+      });
 
     const machineId =
       vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
