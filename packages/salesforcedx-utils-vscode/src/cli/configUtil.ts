@@ -54,7 +54,7 @@ export class ConfigUtil {
       } catch (err) {
         telemetryService
           .sendException('get_config_value_local', err.message)
-          .catch();
+          .catch(error => console.error(error));
         return undefined;
       }
     }
@@ -68,7 +68,7 @@ export class ConfigUtil {
       } catch (err) {
         telemetryService
           .sendException('get_config_value_global', err.message)
-          .catch();
+          .catch(error => console.error(error));
         return undefined;
       }
     }
