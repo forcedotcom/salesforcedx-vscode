@@ -107,16 +107,16 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
         resultJson.result.inboundFiles[0].type
       )?.extensions;
 
-      let filesToOpen = [];
+      const filesToOpen = [];
       if (extensions) {
         for (const ext of extensions) {
-          let tmpFile = resultJson.result.inboundFiles.find(
+          const tmpFile = resultJson.result.inboundFiles.find(
             ({ filePath }: { filePath: string }) => filePath.endsWith(ext)
           );
           filesToOpen.push(path.join(getRootWorkspacePath(), tmpFile.filePath));
         }
       } else {
-        let tmpFile = resultJson.result.inboundFiles.find(
+        const tmpFile = resultJson.result.inboundFiles.find(
           ({ filePath }: { filePath: string }) => filePath.endsWith('-meta.xml')
         );
         filesToOpen.push(path.join(getRootWorkspacePath(), tmpFile.filePath));
