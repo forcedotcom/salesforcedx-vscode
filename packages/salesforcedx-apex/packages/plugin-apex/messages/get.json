@@ -7,5 +7,6 @@
     "logIDDescription": "id of the log to display",
     "numberDescription": "number of most recent logs to display",
     "outputDirDescription": "directory for saving the log files",
-    "outputDirLongDescription": "The location can be an absolute path or relative to the current working directory. The default is the current directory."
+    "outputDirLongDescription": "The location can be an absolute path or relative to the current working directory. The default is the current directory.",
+    "noResultsFound": "No results found"
 }

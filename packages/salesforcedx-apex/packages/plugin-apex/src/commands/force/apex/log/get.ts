@@ -15,6 +15,10 @@ Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/plugin-apex', 'get');
 
 export default class Get extends SfdxCommand {
+  protected static requiresUsername = true;
+  // Guaranteed by requires username
+  protected org!: Org;
+
   public static description = buildDescription(
     messages.getMessage('commandDescription'),
     messages.getMessage('longDescription')
@@ -27,10 +31,6 @@ export default class Get extends SfdxCommand {
     `$ sfdx force:apex:log:get -n 2 -c`,
     `$ sfdx force:apex:log:get -d Users/Desktop/logs -n 2`
   ];
-
-  protected static requiresUsername = true;
-  // Guaranteed by requires username
-  protected org!: Org;
 
   protected static flagsConfig = {
     json: flags.boolean({
@@ -75,7 +75,7 @@ export default class Get extends SfdxCommand {
       });
 
       if (logs.length === 0) {
-        this.ux.log('No results found');
+        this.ux.log(messages.getMessage('noResultsFound'));
         return [];
       }
 

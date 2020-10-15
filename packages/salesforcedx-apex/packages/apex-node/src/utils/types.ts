@@ -18,7 +18,3 @@ export type CommonOptions = {
   json?: boolean;
   loglevel?: logLevel;
 };
-
-export type QueryResult = {
-  records: { Id: string }[];
-};

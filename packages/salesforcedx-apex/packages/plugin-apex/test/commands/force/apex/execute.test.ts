@@ -115,7 +115,6 @@ describe('force:apex:execute', () => {
       const result = ctx.stdout;
       expect(result).to.not.be.empty;
       const resultJSON = JSON.parse(result);
-      console.log(resultJSON + 'hello');
       expect(resultJSON).to.ownProperty('status');
       expect(resultJSON.status).to.equal(0);
       expect(resultJSON).to.ownProperty('result');

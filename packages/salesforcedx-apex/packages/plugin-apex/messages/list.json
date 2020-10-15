@@ -1,0 +1,18 @@
+{
+    "commandDescription": "display a list of IDs and general information about debug logs",
+    "longDescription": "Run this command in a project to list the IDs and general information for all debug logs in your default org.\nTo fetch a specific log from your org, obtain the ID from this command's output, then run the “sfdx force:apex:log:get” command.",
+    "jsonDescription": "format output as JSON",
+    "logLevelDescription": "logging level for this command invocation",
+    "logLevelLongDescription":  "The logging level for this command invocation. Logs are stored in $HOME/.sfdx/sfdx.log.",
+    "no_debug_logs_found": "No debug logs found in org",
+    "app_col_header": "APPLICATION",
+    "duration_col_header": "DURATION (MS)",
+    "id_col_header": "ID",
+    "location_col_header": "LOCATION",
+    "size_col_header": "SIZE (B)",
+    "user_col_header": "LOG USER",
+    "operation_col_header": "OPERATION",
+    "request_col_header": "REQUEST",
+    "time_col_header": "START TIME",
+    "status_col_header": "STATUS"
+}

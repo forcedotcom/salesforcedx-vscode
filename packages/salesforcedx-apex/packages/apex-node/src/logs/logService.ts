@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { ApexLogGetOptions } from './types';
-import { createFile, QueryResult } from '../common';
+import { ApexLogGetOptions, LogQueryResult, LogRecord } from './types';
+import { createFile } from '../utils';
 import { nls } from '../i18n';
 import * as path from 'path';
 import { AnyJson } from '@salesforce/ts-types';
@@ -20,7 +20,7 @@ export class LogService {
     this.connection = connection;
   }
 
-  public async getIdList(options: ApexLogGetOptions): Promise<string[]> {
+  public async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
     if (
       !(
         typeof options.logId === 'string' ||
@@ -29,18 +29,17 @@ export class LogService {
     ) {
       throw new Error(nls.localize('missing_info_log_error'));
     }
-    let logIdList: string[] = [];
+
     if (typeof options.numberOfLogs === 'number') {
-      logIdList = await this.getLogIds(options.numberOfLogs);
-    } else {
-      logIdList.push(options.logId);
+      const logIdRecordList = await this.getLogRecords(options.numberOfLogs);
+      return logIdRecordList.map(logRecord => logRecord.Id);
     }
-    return logIdList;
+    return [options.logId];
   }
 
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
   public async getLogs(options: ApexLogGetOptions): Promise<string[]> {
-    const logIdList = await this.getIdList(options);
+    const logIdList = await this.getLogIds(options);
     const logPaths: string[] = [];
     const connectionRequests = logIdList.map(async id => {
       const url = `${this.connection.tooling._baseUrl()}/sobjects/ApexLog/${id}/Body`;
@@ -60,16 +59,23 @@ export class LogService {
     return logs;
   }
 
-  public async getLogIds(numberOfLogs: number): Promise<string[]> {
-    if (numberOfLogs <= 0) {
-      throw new Error(nls.localize('num_logs_error'));
+  public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {
+    let query = 'Select Id, Application, DurationMilliseconds, Location, ';
+    query +=
+      'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime';
+
+    if (typeof numberOfLogs === 'number') {
+      if (numberOfLogs <= 0) {
+        throw new Error(nls.localize('num_logs_error'));
+      }
+      numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
+      query += `DESC LIMIT ${numberOfLogs}`;
     }
-    numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
-    const query = `Select Id from ApexLog Order By StartTime DESC LIMIT ${numberOfLogs}`;
+
     const response = (await this.connection.tooling.query(
       query
-    )) as QueryResult;
-    return response.records.map(record => record.Id);
+    )) as LogQueryResult;
+    return response.records as LogRecord[];
   }
 
   public async toolingRequest(url: string): Promise<AnyJson> {

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommonOptions } from '../common';
+import { CommonOptions } from '../utils';
 
 export type ApexExecuteOptions = CommonOptions & {
   targetUsername?: string;

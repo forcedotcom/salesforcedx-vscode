@@ -12,6 +12,15 @@
         ]
     },
     {
+        "command": "force:apex:log:list",
+        "flags": [
+            "json",
+            "loglevel",
+            "apiversion",
+            "targetusername"
+        ]
+    },
+    {
         "command": "commandreference:generate",
         "flags": [
             "json",
