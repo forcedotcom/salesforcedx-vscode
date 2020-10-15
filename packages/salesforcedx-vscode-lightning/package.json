@@ -25,9 +25,16 @@
   ],
   "dependencies": {
     "@salesforce/aura-language-server": "3.0.9",
+    "@salesforce/core": "2.9.0",
     "@salesforce/lightning-lsp-common": "3.0.9",
     "@salesforce/lwc-language-server": "3.0.9",
     "@salesforce/salesforcedx-utils-vscode": "50.1.0",
+    "applicationinsights": "1.0.7",
+    "cross-spawn": "6.0.5",
+    "rxjs": "^5.4.1",
+    "path-exists": "3.0.0",
+    "shelljs": "0.8.3",
+    "tree-kill": "^1.1.0",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "^5.2.1"
   },

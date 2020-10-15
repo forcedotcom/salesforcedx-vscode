@@ -6,6 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { telemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src/telemetry';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -29,7 +30,6 @@ import {
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { DevServerService } from './service/devServerService';
-import { telemetryService } from './telemetry';
 import {
   activateLwcTestSupport,
   shouldActivateLwcTestSupport
@@ -60,6 +60,9 @@ export async function activate(context: ExtensionContext) {
     console.log('LWC Language Server activationMode set to off, exiting...');
     return;
   }
+
+  // Initialize telemetry service
+  await telemetryService.initializeService(context, LWC_EXTENSION_NAME);
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
