@@ -135,7 +135,7 @@ export class TelemetryService {
     return await this.cliAllowsTelemetryPromise;
   }
 
-  public isTelemetryExtensionConfigurationEnabled() {
+  public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
       workspace
         .getConfiguration('telemetry')
@@ -146,14 +146,14 @@ export class TelemetryService {
     );
   }
 
-  public setCliTelemetryEnabled(isEnabled: boolean) {
+  public setCliTelemetryEnabled(isEnabled: boolean): void {
     if (!isEnabled) {
       disableCLITelemetry();
     }
   }
 
-  public async sendExtensionActivationEvent(hrstart: [number, number]) {
-    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
+  public async sendExtensionActivationEvent(hrstart: [number, number]): Promise<void> {
+     if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       const startupTime = this.getEndHRTime(hrstart);
       this.reporter.sendTelemetryEvent(
         'activationEvent',
