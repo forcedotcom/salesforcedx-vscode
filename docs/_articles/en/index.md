@@ -18,9 +18,9 @@ Want to develop locally? Already using VS Code? Install Salesforce Extensions an
 
 <span>Download using the links below, or read the [installation instructions](./en/getting-started/install).<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
 
-### Code Builder (Beta)
+### Code Builder (pilot)
 
-Code Builder is a browser-based version of Salesforce Extensions, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. Check back soon for details about how to participate in the beta.
+Currently in pilot, Code Builder is a browser-based version of Salesforce Extensions, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. Check back soon for details about how to participate in the beta.
 
 ## Additional Resources
 
@@ -30,7 +30,7 @@ Code Builder is a browser-based version of Salesforce Extensions, with everythin
 
 ## Videos
 
-- [Quick Tour of the Extensions](https://www.youtube.com/watch?v=njKzjOTzEjo&list=PLgIMQe2PKPSIVPDsaiYIMGnFxtcrUus6M&index=6&t=0s) - Shown in Code Builder (beta).  All functionality is the same on desktop.
+- [Quick Tour of the Extensions](https://www.youtube.com/watch?v=njKzjOTzEjo&list=PLgIMQe2PKPSIVPDsaiYIMGnFxtcrUus6M&index=6&t=0s) - Shown in Code Builder (pilot).  All functionality is the same on desktop.
 - [Language Support](https://youtu.be/s5X4yGBRWTM)
 - [Accessing Orgs and Source](https://youtu.be/pi5Zho9ft3s)
 - [Test and Debug](https://youtu.be/f6OacBmQk1g)
