@@ -6,6 +6,7 @@
  */
 
 import { LogService } from '@salesforce/apex-node';
+import { LogRecord } from '@salesforce/apex-node/lib/src/logs/types';
 import {
   CliCommandExecutor,
   Command,
@@ -37,6 +38,7 @@ import { taskViewService } from '../statuses';
 import { getRootWorkspacePath } from '../util';
 import {
   LibraryCommandletExecutor,
+  LibraryExecution,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -44,7 +46,7 @@ import {
 
 export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
-> {
+  > {
   public build(data: ApexDebugLogIdStartTime): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_log_get_text'))
@@ -101,6 +103,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       const localUTCDate = new Date(response.data.startTime);
       const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
       const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
+      // this needs to be result[0] for this to work correctly but idk if that used to be necessary
       fs.writeFileSync(logPath, resultJson.result.log);
       const document = await vscode.workspace.openTextDocument(logPath);
       vscode.window.showTextDocument(document);
@@ -138,8 +141,15 @@ export class LogFileSelector
     CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const logInfos = await ForceApexLogList.getLogs(cancellationTokenSource);
-    if (logInfos.length > 0) {
+    const logInfos = sfdxCoreSettings.getApexLibrary()
+      ? (
+        await new ApexLibraryLogListExecutor().execute(
+          {} as ContinueResponse<{}>
+        )
+      ).result
+      : await ForceApexLogList.getLogs(cancellationTokenSource);
+
+    if (logInfos && logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
         const localUTCDate = new Date(logInfo.StartTime);
@@ -213,15 +223,26 @@ export class ForceApexLogList {
   }
 }
 
-export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: string }> {
+export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
+  id: string;
+}> {
   protected executionName: string = nls.localize('apex_log_get_text');
   protected logName: string = 'force_apex_log_get_library';
 
-  protected async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
+  protected async run(
+    response: ContinueResponse<{ id: string }>
+  ): Promise<LibraryExecution> {
     const connection = await workspaceContext.getConnection();
+    // @ts-ignore
     const logService = new LogService(connection);
     const { id: logId } = response.data;
-    const outputDir = path.join(getRootWorkspacePath(), SFDX_FOLDER, 'tools', 'debug', 'logs');
+    const outputDir = path.join(
+      getRootWorkspacePath(),
+      SFDX_FOLDER,
+      'tools',
+      'debug',
+      'logs'
+    );
 
     await logService.getLogs({ logId, outputDir });
 
@@ -229,7 +250,27 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: 
     const document = await vscode.workspace.openTextDocument(logPath);
     vscode.window.showTextDocument(document);
 
-    return true;
+    return { success: true };
+  }
+}
+
+export class ApexLibraryLogListExecutor extends LibraryCommandletExecutor<
+  {},
+  LogRecord[]
+  > {
+  protected executionName: string = nls.localize('apex_log_list_text');
+  protected logName: string = 'force_apex_log_get_library';
+
+  protected async run(
+    response: ContinueResponse<{}>
+  ): Promise<LibraryExecution<LogRecord[]>> {
+    const connection = await workspaceContext.getConnection();
+    // @ts-ignore
+    const logService = new LogService(connection);
+    const logs = await logService.getLogRecords();
+    console.log(logs);
+
+    return { success: true, result: logs };
   }
 }
 

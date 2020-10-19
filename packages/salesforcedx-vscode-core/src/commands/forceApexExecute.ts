@@ -26,6 +26,7 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CommandletExecutor,
   LibraryCommandletExecutor,
+  LibraryExecution,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -131,7 +132,9 @@ export class AnonApexGatherer
   }
 }
 
-export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
+export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
+  ApexExecuteParameters
+> {
   protected executionName = nls.localize('apex_execute_text');
   protected logName = 'force_apex_execute_library';
 
@@ -139,12 +142,18 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
     'apex-errors'
   );
 
-  protected async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
+  protected async run(
+    response: ContinueResponse<ApexExecuteParameters>
+  ): Promise<LibraryExecution> {
     const connection = await workspaceContext.getConnection();
+    // @ts-ignore
     const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath } = response.data;
 
-    const result = await executeService.executeAnonymous({ apexFilePath, apexCode });
+    const result = await executeService.executeAnonymous({
+      apexFilePath,
+      apexCode
+    });
 
     const { success } = result;
     const formattedResult = formatExecuteResult(result);
@@ -157,14 +166,10 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
       const document = editor!.document;
       const filePath = apexFilePath || document.uri.fsPath;
 
-      handleApexLibraryDiagnostics(
-        result,
-        this.diagnostics,
-        filePath
-      );
+      handleApexLibraryDiagnostics(result, this.diagnostics, filePath);
     }
 
-    return success;
+    return { success };
   }
 }
 

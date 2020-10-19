@@ -27,7 +27,7 @@ class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
     if (this.error) {
       throw this.error;
     }
-    return response.data.success;
+    return { success: response.data.success };
   }
 }
 
@@ -73,7 +73,7 @@ describe('LibraryCommandletExecutor', () => {
       // @ts-ignore allow public getter for testing
       executor.logName
     );
-    expect(typeof(args[1][0]) === 'number' && typeof(args[1][1]) === 'number').to.equal(true);
+    expect(typeof (args[1][0]) === 'number' && typeof (args[1][1]) === 'number').to.equal(true);
     expect(args[2]).to.deep.equal({ success: 'false' });
     expect(args[3]).to.equal(undefined);
   });
