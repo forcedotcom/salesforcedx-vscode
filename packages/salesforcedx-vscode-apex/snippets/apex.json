@@ -344,10 +344,14 @@
         "body": [
             "@AuraEnabled",
             "${1|public,global|} static ${2:string} ${3:methodName}(){",
-            "\t$0",
+            "\ttry {",
+            "\t\t$0",
+            "\t} catch (Exception e) {",
+            "\t\tthrow new AuraHandledException(e.getMessage());",
+            "\t}",
             "}"
         ],
-        "description": "Aura Enabled Apex Method"
+        "description": "Aura Enabled Apex Method with Aura safe exception handling."
     },
     "AuraHandledException": {
         "prefix": "auraHandledException",
