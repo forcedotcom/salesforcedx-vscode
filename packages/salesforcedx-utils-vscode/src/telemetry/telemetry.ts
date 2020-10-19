@@ -7,14 +7,13 @@
 
 import * as path from 'path';
 import * as util from 'util';
+import * as vscode from 'vscode';
 import { ExtensionContext, workspace } from 'vscode';
 import {
   disableCLITelemetry,
   isCLITelemetryAllowed
 } from '../cli/cliConfiguration';
 import TelemetryReporter from './telemetryReporter';
-
-const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 interface CommandMetric {
   extensionName: string;
@@ -61,7 +60,11 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private context: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
-  private cliAllowsTelemetry: boolean = true;
+  /**
+   * Cached promise to check if CLI telemetry config is enabled
+   */
+  private cliAllowsTelemetryPromise?: Promise<boolean> = undefined;
+  public extensionName: string = 'unknown';
 
   public static getInstance() {
     if (!TelemetryService.instance) {
@@ -70,13 +73,32 @@ export class TelemetryService {
     return TelemetryService.instance;
   }
 
+  /**
+   * Initialize Telemetry Service during extension activation.
+   * @param context extension context
+   * @param extensionName extension name
+   */
   public async initializeService(
     context: ExtensionContext,
-    machineId: string
+    extensionName: string
   ): Promise<void> {
     this.context = context;
-    this.cliAllowsTelemetry = await this.checkCliTelemetry();
+    this.extensionName = extensionName;
+
+    this.checkCliTelemetry()
+      .then(async cliEnabled => {
+        this.setCliTelemetryEnabled(
+          this.isTelemetryExtensionConfigurationEnabled() && cliEnabled
+        );
+      })
+      .catch(error => {
+        console.log('Error initializing telemetry service: ' + error);
+      });
+
+    const machineId =
+      vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
     const isDevMode = machineId === 'someValue.machineId';
+
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
@@ -92,60 +114,78 @@ export class TelemetryService {
       );
       this.context.subscriptions.push(this.reporter);
     }
-
-    this.setCliTelemetryEnabled(this.isTelemetryEnabled());
   }
 
   public getReporter(): TelemetryReporter | undefined {
     return this.reporter;
   }
 
-  public isTelemetryEnabled(): boolean {
+  public async isTelemetryEnabled(): Promise<boolean> {
+    return (
+      this.isTelemetryExtensionConfigurationEnabled() &&
+      (await this.checkCliTelemetry())
+    );
+  }
+
+  public async checkCliTelemetry(): Promise<boolean> {
+    if (typeof this.cliAllowsTelemetryPromise !== 'undefined') {
+      return this.cliAllowsTelemetryPromise;
+    }
+    this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
+    return await this.cliAllowsTelemetryPromise;
+  }
+
+  public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
       workspace
         .getConfiguration('telemetry')
         .get<boolean>('enableTelemetry', true) &&
       workspace
         .getConfiguration('salesforcedx-vscode-core')
-        .get<boolean>('telemetry.enabled', true) &&
-      this.cliAllowsTelemetry
+        .get<boolean>('telemetry.enabled', true)
     );
   }
 
-  public sendExtensionActivationEvent(hrstart: [number, number]): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+  public setCliTelemetryEnabled(isEnabled: boolean): void {
+    if (!isEnabled) {
+      disableCLITelemetry();
+    }
+  }
+
+  public async sendExtensionActivationEvent(hrstart: [number, number]): Promise<void> {
+     if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       const startupTime = this.getEndHRTime(hrstart);
       this.reporter.sendTelemetryEvent(
         'activationEvent',
         {
-          extensionName: EXTENSION_NAME
+          extensionName: this.extensionName
         },
         { startupTime }
       );
     }
   }
 
-  public sendExtensionDeactivationEvent(): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled()) {
+  public async sendExtensionDeactivationEvent() {
+    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       this.reporter.sendTelemetryEvent('deactivationEvent', {
-        extensionName: EXTENSION_NAME
+        extensionName: this.extensionName
       });
     }
   }
 
-  public sendCommandEvent(
+  public async sendCommandEvent(
     commandName?: string,
     hrstart?: [number, number],
     properties?: Properties,
     measurements?: Measurements
-  ): void {
+  ) {
     if (
       this.reporter !== undefined &&
-      this.isTelemetryEnabled() &&
+      (await this.isTelemetryEnabled()) &&
       commandName
     ) {
       const baseProperties: CommandMetric = {
-        extensionName: EXTENSION_NAME,
+        extensionName: this.extensionName,
         commandName
       };
       const aggregatedProps = Object.assign(baseProperties, properties);
@@ -165,18 +205,18 @@ export class TelemetryService {
     }
   }
 
-  public sendException(name: string, message: string): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+  public async sendException(name: string, message: string) {
+    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       this.reporter.sendExceptionEvent(name, message);
     }
   }
 
-  public sendEventData(
+  public async sendEventData(
     eventName: string,
     properties?: { [key: string]: string },
     measures?: { [key: string]: number }
-  ): void {
-    if (this.reporter !== undefined && this.isTelemetryEnabled) {
+  ) {
+    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       this.reporter.sendTelemetryEvent(eventName, properties, measures);
     }
   }
@@ -190,15 +230,5 @@ export class TelemetryService {
   public getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
-  }
-
-  public async checkCliTelemetry(): Promise<boolean> {
-    return await isCLITelemetryAllowed();
-  }
-
-  public setCliTelemetryEnabled(isEnabled: boolean) {
-    if (!isEnabled) {
-      disableCLITelemetry();
-    }
   }
 }
