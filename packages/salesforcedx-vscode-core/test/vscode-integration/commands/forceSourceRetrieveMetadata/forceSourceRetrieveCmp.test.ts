@@ -100,4 +100,26 @@ describe('Force Source Retrieve and open', () => {
     expect(openTextDocumentStub.called).to.equal(true);
     expect(showTextDocumentStub.called).to.equal(true);
   });
+
+  it('Should retrieve resource witout defined file extensions', async () => {
+    const response = [
+      {
+        type: 'CONTINUE',
+        data: [
+          {
+            fileName: 'Account',
+            outputdir:
+              '/Users/testUser/testProject/force-app/main/default/classes/Account.object-meta.xml',
+            type: 'customobject',
+            suffix: 'object',
+            directory: 'objects'
+          }
+        ]
+      }
+    ];
+    const exeEesponse = await forceSourceRetrieveExec.execute(response);
+    expect(getCmdResultStub.called).to.equal(true);
+    expect(openTextDocumentStub.called).to.equal(true);
+    expect(showTextDocumentStub.called).to.equal(true);
+  });
 });
