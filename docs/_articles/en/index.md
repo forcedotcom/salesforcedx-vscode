@@ -30,7 +30,7 @@ Code Builder is a browser-based version of Salesforce Extensions, with everythin
 
 ## Videos
 
-- [Quick Tour of the Extensions](https://www.youtube.com/watch?v=njKzjOTzEjo&list=PLgIMQe2PKPSIVPDsaiYIMGnFxtcrUus6M&index=6&t=0s) - Shown in Code Builder (pilot).  All functionality is the same on desktop.
+- [Quick Tour of the Extensions](https://www.youtube.com/watch?v=njKzjOTzEjo&list=PLgIMQe2PKPSIVPDsaiYIMGnFxtcrUus6M&index=6&t=0s) - Shown in Code Builder (beta).  All functionality is the same on desktop.
 - [Language Support](https://youtu.be/s5X4yGBRWTM)
 - [Accessing Orgs and Source](https://youtu.be/pi5Zho9ft3s)
 - [Test and Debug](https://youtu.be/f6OacBmQk1g)
