@@ -6,8 +6,6 @@
  */
 
 import { which } from 'shelljs';
-import { window } from 'vscode';
-import { nls } from '../messages';
 import { GlobalCliEnvironment } from './commandExecutor';
 import { ConfigUtil } from './configUtil';
 
@@ -26,15 +24,6 @@ export function isCLIInstalled(): boolean {
     console.error('An error happened while looking for sfdx cli', e);
   }
   return isInstalled;
-}
-
-export function showCLINotInstalledMessage() {
-  const showMessage = nls.localize(
-    'sfdx_cli_not_found',
-    SFDX_CLI_DOWNLOAD_LINK,
-    SFDX_CLI_DOWNLOAD_LINK
-  );
-  window.showWarningMessage(showMessage);
 }
 
 export function isSFDXContainerMode(): boolean {

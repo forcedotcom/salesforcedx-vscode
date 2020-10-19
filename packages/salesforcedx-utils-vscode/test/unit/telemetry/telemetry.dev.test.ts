@@ -29,39 +29,40 @@ const vscodeStub = {
   }
 };
 
-const reporter = stub();
-const exceptionEvent = stub();
-const telemetryReporterStub = class MockReporter {
-  public sendTelemetryEvent = reporter;
-  public sendExceptionEvent = exceptionEvent;
-  public dispose = stub();
-};
-
-const cliConfigurationStub = {
-  disableCLITelemetry: stub(),
-  isCLITelemetryAllowed: () => {
-    return Promise.resolve(true);
-  }
-};
-
-// tslint:disable-next-line
-const { TelemetryService } = proxyquire.noCallThru()(
-  '../../../src/telemetry/telemetry',
-  {
-    vscode: vscodeStub,
-    './telemetryReporter': { default: telemetryReporterStub },
-    '../cli/cliConfiguration': cliConfigurationStub
-  }
-);
-
 describe('Telemetry dev mode', () => {
   const extensionName = 'salesforcedx-test';
-  const telemetryService = TelemetryService.getInstance();
+  let telemetryService: any;
   let mockContext: MockContext;
   let teleStub: SinonStub;
   let cliStub: SinonStub;
 
   beforeEach(() => {
+    const reporter = stub();
+    const exceptionEvent = stub();
+    const telemetryReporterStub = class MockReporter {
+      public sendTelemetryEvent = reporter;
+      public sendExceptionEvent = exceptionEvent;
+      public dispose = stub();
+    };
+
+    const cliConfigurationStub = {
+      disableCLITelemetry: stub(),
+      isCLITelemetryAllowed: () => {
+        return Promise.resolve(true);
+      }
+    };
+
+    // tslint:disable-next-line
+    const { TelemetryService } = proxyquire.noCallThru()(
+      '../../../src/telemetry/telemetry',
+      {
+        vscode: vscodeStub,
+        './telemetryReporter': { default: telemetryReporterStub },
+        '../cli/cliConfiguration': cliConfigurationStub
+      }
+    );
+
+    telemetryService = TelemetryService.getInstance();
     teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
     cliStub = stub(telemetryService, 'checkCliTelemetry');
     cliStub.returns(Promise.resolve(true));

@@ -8,11 +8,11 @@
 import { expect } from 'chai';
 import { EOL } from 'os';
 import {
+  CONFLICT_ERROR_NAME,
   ForceDeployResultParser,
   ForceSourceDeployErrorResponse,
   ForceSourceDeploySuccessResponse
 } from '../../../src/cli';
-import { CONFLICT_ERROR_NAME } from '../../../src/cli/deployResultParser';
 
 // tslint:disable:no-unused-expression
 describe('force:source:deploy parser', () => {

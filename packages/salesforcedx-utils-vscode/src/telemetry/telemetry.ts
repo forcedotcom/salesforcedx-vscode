@@ -7,8 +7,7 @@
 
 import * as path from 'path';
 import * as util from 'util';
-import * as vscode from 'vscode';
-import { ExtensionContext, workspace } from 'vscode';
+import { env, ExtensionContext, workspace } from 'vscode';
 import {
   disableCLITelemetry,
   isCLITelemetryAllowed
@@ -95,8 +94,7 @@ export class TelemetryService {
         console.log('Error initializing telemetry service: ' + error);
       });
 
-    const machineId =
-      vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
+    const machineId = env ? env.machineId : 'someValue.machineId';
     const isDevMode = machineId === 'someValue.machineId';
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.

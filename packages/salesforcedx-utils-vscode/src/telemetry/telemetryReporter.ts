@@ -8,12 +8,12 @@ import * as appInsights from 'applicationinsights';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import { Disposable, env, UIKind, version, workspace } from 'vscode';
 
-export default class TelemetryReporter extends vscode.Disposable {
+export default class TelemetryReporter extends Disposable {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
-  private toDispose: vscode.Disposable[] = [];
+  private toDispose: Disposable[] = [];
   private uniqueUserMetrics: boolean = false;
 
   private static TELEMETRY_CONFIG_ID = 'telemetry';
@@ -46,12 +46,12 @@ export default class TelemetryReporter extends vscode.Disposable {
     }
     this.updateUserOptIn(key);
     this.toDispose.push(
-      vscode.workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key))
+      workspace.onDidChangeConfiguration(() => this.updateUserOptIn(key))
     );
   }
 
   private updateUserOptIn(key: string): void {
-    const config = vscode.workspace.getConfiguration(
+    const config = workspace.getConfiguration(
       TelemetryReporter.TELEMETRY_CONFIG_ID
     );
     if (
@@ -92,10 +92,9 @@ export default class TelemetryReporter extends vscode.Disposable {
     }
 
     this.appInsightsClient.commonProperties = this.getCommonProperties();
-    if (this.uniqueUserMetrics && vscode && vscode.env) {
-      this.appInsightsClient.context.tags['ai.user.id'] = vscode.env.machineId;
-      this.appInsightsClient.context.tags['ai.session.id'] =
-        vscode.env.sessionId;
+    if (this.uniqueUserMetrics && env) {
+      this.appInsightsClient.context.tags['ai.user.id'] = env.machineId;
+      this.appInsightsClient.context.tags['ai.session.id'] = env.sessionId;
       this.appInsightsClient.context.tags['ai.cloud.roleInstance'] =
         'DEPRECATED';
     }
@@ -126,13 +125,12 @@ export default class TelemetryReporter extends vscode.Disposable {
     ).toFixed(2)} GB`;
     commonProperties['common.extname'] = this.extensionId;
     commonProperties['common.extversion'] = this.extensionVersion;
-    if (vscode && vscode.env) {
-      commonProperties['common.vscodemachineid'] = vscode.env.machineId;
-      commonProperties['common.vscodesessionid'] = vscode.env.sessionId;
-      commonProperties['common.vscodeversion'] = vscode.version;
-      if (vscode.env.uiKind) {
-        commonProperties['common.vscodeuikind'] =
-          vscode.UIKind[vscode.env.uiKind];
+    if (env) {
+      commonProperties['common.vscodemachineid'] = env.machineId;
+      commonProperties['common.vscodesessionid'] = env.sessionId;
+      commonProperties['common.vscodeversion'] = version;
+      if (env.uiKind) {
+        commonProperties['common.vscodeuikind'] = UIKind[env.uiKind];
       }
     }
     return commonProperties;

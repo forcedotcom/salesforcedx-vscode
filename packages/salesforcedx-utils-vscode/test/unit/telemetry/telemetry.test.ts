@@ -21,6 +21,7 @@ const mShowInformation = stub();
 mShowInformation.returns(Promise.resolve());
 const vscodeStub = {
   commands: stub(),
+  Disposable: stub(),
   env: {
     machineId: '12345534'
   },
