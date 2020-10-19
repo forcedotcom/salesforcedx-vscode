@@ -13,7 +13,7 @@ To install Visual Studio Code visit <https://code.visualstudio.com> and click th
 
 ## Salesforce Extensions for Visual Studio Code
 
-After you’ve installed Salesforce Extensions for VS Code’s dependencies, install the Salesforce Extension Pack extension from the Visual Studio Marketplace. The extension pack contains everything you need to develop Salesforce apps using Visual Studio Code.
+Install the Salesforce Extension Pack extension from the Visual Studio Marketplace. The extension pack contains additional features that help you develop Salesforce apps using Visual Studio Code. 
 
 To install the extensions, visit <https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode> and click the green **Install** button. The installation process prompts you to open Visual Studio Code. After Visual Studio Code opens, a dialog box opens in the lower right corner, asking you to install the extension. Click **Install** to proceed.
 
