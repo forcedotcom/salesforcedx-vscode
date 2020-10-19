@@ -11,7 +11,7 @@ import {
   isInteger,
   isIntegerInRange,
   isRecordIdFormat
-} from '../../../src/helpers/validations';
+} from '../../../src/helpers';
 
 describe('Input Box Validations', () => {
   describe('isInteger', () => {
