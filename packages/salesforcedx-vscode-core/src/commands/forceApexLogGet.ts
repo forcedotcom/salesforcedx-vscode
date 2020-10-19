@@ -223,9 +223,7 @@ export class ForceApexLogList {
   }
 }
 
-export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
-  id: string;
-}> {
+export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: string; }> {
   protected executionName: string = nls.localize('apex_log_get_text');
   protected logName: string = 'force_apex_log_get_library';
 
@@ -254,12 +252,9 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   }
 }
 
-export class ApexLibraryLogListExecutor extends LibraryCommandletExecutor<
-  {},
-  LogRecord[]
-  > {
+export class ApexLibraryLogListExecutor extends LibraryCommandletExecutor<{}, LogRecord[]> {
   protected executionName: string = nls.localize('apex_log_list_text');
-  protected logName: string = 'force_apex_log_get_library';
+  protected logName: string = 'force_apex_log_list_library';
 
   protected async run(
     response: ContinueResponse<{}>

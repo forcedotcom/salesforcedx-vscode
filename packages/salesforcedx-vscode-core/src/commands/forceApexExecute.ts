@@ -132,9 +132,7 @@ export class AnonApexGatherer
   }
 }
 
-export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
-  ApexExecuteParameters
-> {
+export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
   protected executionName = nls.localize('apex_execute_text');
   protected logName = 'force_apex_execute_library';
 
@@ -142,9 +140,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     'apex-errors'
   );
 
-  protected async run(
-    response: ContinueResponse<ApexExecuteParameters>
-  ): Promise<LibraryExecution> {
+  protected async run(response: ContinueResponse<ApexExecuteParameters>): Promise<LibraryExecution> {
     const connection = await workspaceContext.getConnection();
     // @ts-ignore
     const executeService = new ExecuteService(connection);
