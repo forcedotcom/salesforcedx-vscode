@@ -104,7 +104,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
       const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
       // this needs to be result[0] for this to work correctly but idk if that used to be necessary
-      fs.writeFileSync(logPath, resultJson.result.log);
+      fs.writeFileSync(logPath, resultJson.result[0].log);
       const document = await vscode.workspace.openTextDocument(logPath);
       vscode.window.showTextDocument(document);
     }
@@ -268,7 +268,6 @@ export class ApexLibraryLogListExecutor extends LibraryCommandletExecutor<
     // @ts-ignore
     const logService = new LogService(connection);
     const logs = await logService.getLogRecords();
-    console.log(logs);
 
     return { success: true, result: logs };
   }
