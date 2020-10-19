@@ -122,7 +122,7 @@ export class FunctionService {
       const debugConfiguration: vscode.DebugConfiguration = {
         type: 'node',
         request: 'attach',
-        name: 'Debug Send Request', // This name doesn't surface in UI
+        name: 'Debug Invoke', // This name doesn't surface in UI
         resolveSourceMapLocations: ['**', '!**/node_modules/**'],
         console: 'integratedTerminal',
         internalConsoleOptions: 'openOnSessionStart',
