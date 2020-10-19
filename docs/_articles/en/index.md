@@ -6,7 +6,7 @@ permalink: /
 
 ## One Set of Extensions, Two Ways to Code
 
-You can install the Salesforce Extensions in VS Code on the desktop or access them via Code Builder in your browser.
+You can install the Salesforce Extensions for VS Code on the desktop or access them via Code Builder in your browser.
 
 The Salesforce Extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
 
