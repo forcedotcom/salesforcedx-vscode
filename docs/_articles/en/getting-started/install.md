@@ -1,5 +1,5 @@
 ---
-title: Installation and Java Setup
+title: Install Salesforce Extensions for VS Code
 lang: en
 ---
 
