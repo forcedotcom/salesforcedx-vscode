@@ -4,17 +4,9 @@
   baseUrl: /getting-started/
   children:
     - title:
-        en: Installation
+        en: Salesforce Extensions for Desktop
         ja: インストール
       url: /getting-started/install
-    - title:
-        en: First Project
-        ja: 最初のプロジェクト
-      url: /getting-started/first-project
-    - title:
-        en: 'Migrate: Force.com IDE'
-        ja: '移行Force.com IDE'
-      url: /getting-started/migrate-from-forcecom-ide
     - title:
         en: Recommended Extensions
         ja: 推奨の拡張機能
@@ -27,10 +19,6 @@
         en: Tips & Tricks
         ja: ヒントとコツ
       url: /getting-started/tips-and-tricks
-    - title:
-        en: Java Setup
-        ja: Java 設定
-      url: /getting-started/java-setup
 - title:
     en: User Guide
     ja: ユーザガイド
