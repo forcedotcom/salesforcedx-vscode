@@ -89,16 +89,13 @@ export class QueryDataViewService {
       QueryDataViewService.extensionPath,
       IMAGES_DIR_NAME
     );
-    const lightThemeIconUri = vscode.Uri.file(
-      path.join(imagesDirPath, 'DX_Icon_light-theme.png')
-    );
-    const darkThemeIconUri = vscode.Uri.file(
-      path.join(imagesDirPath, 'DX_Icon_dark-theme.png')
+    const salesforceCloudUri = vscode.Uri.file(
+      path.join(imagesDirPath, 'Salesforce_Cloud.png')
     );
 
     this.currentPanel.iconPath = {
-      light: lightThemeIconUri,
-      dark: darkThemeIconUri
+      light: salesforceCloudUri,
+      dark: salesforceCloudUri
     };
 
     this.currentPanel.webview.html = this.getWebViewContent(
