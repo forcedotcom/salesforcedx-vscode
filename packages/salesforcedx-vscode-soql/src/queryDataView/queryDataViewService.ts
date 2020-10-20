@@ -13,6 +13,7 @@ import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_RESOURCE_ROOTS_PATH,
   DATA_VIEW_UI_PATH,
+  IMAGES_DIR_NAME,
   QUERY_DATA_VIEW_PANEL_TITLE,
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
   QUERY_DATA_VIEW_STYLE_FILENAME,
@@ -66,6 +67,9 @@ export class QueryDataViewService {
               QueryDataViewService.extensionPath,
               DATA_VIEW_RESOURCE_ROOTS_PATH
             )
+          ),
+          vscode.Uri.file(
+            path.join(QueryDataViewService.extensionPath, IMAGES_DIR_NAME)
           )
         ],
         enableScripts: true
@@ -79,6 +83,20 @@ export class QueryDataViewService {
       null,
       this.subscriptions
     );
+
+    // set the tab icon for the webview
+    const imagesDirPath = path.join(
+      QueryDataViewService.extensionPath,
+      IMAGES_DIR_NAME
+    );
+    const salesforceCloudUri = vscode.Uri.file(
+      path.join(imagesDirPath, 'Salesforce_Cloud.png')
+    );
+
+    this.currentPanel.iconPath = {
+      light: salesforceCloudUri,
+      dark: salesforceCloudUri
+    };
 
     this.currentPanel.webview.html = this.getWebViewContent(
       this.currentPanel.webview
