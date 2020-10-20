@@ -5,12 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
+import { QueryResult } from 'jsforce';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../../../src/commonUtils';
-import { QueryDataViewService } from '../../../src/queryResultsView/queryDataViewService';
-import { mockQueryData, MockTextDocumentProvider } from '../testUtilities';
+import {
+  FileFormat,
+  QueryDataFileService
+} from '../../../src/queryDataView/queryDataFileService';
+import { QueryDataViewService } from '../../../src/queryDataView/queryDataViewService';
+import {
+  mockQueryData,
+  MockTextDocumentProvider,
+  TestQueryDataViewService
+} from '../testUtilities';
 
 describe('Query Data View Service', () => {
   let mockTextDocument: vscode.TextDocument;
@@ -18,6 +28,7 @@ describe('Query Data View Service', () => {
   let mockSubscription: vscode.Disposable[];
   let mockWebviewPanel: vscode.WebviewPanel;
   let sandbox: sinon.SinonSandbox;
+  let queryRecords: QueryResult<JsonMap>;
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
@@ -35,30 +46,56 @@ describe('Query Data View Service', () => {
       vscode.ViewColumn.One,
       { enableScripts: true }
     );
+    queryRecords = mockQueryData;
   });
 
   afterEach(() => {
     docProviderDisposable.dispose();
+    sandbox.restore();
   });
 
-  it('should post message to webview with query data', () => {
-    const queryRecords = mockQueryData;
-    const dataViewService = new QueryDataViewService(
+  it('should post message to webview with query data on activation event ', () => {
+    const dataViewService = new TestQueryDataViewService(
       mockSubscription,
       queryRecords,
       mockTextDocument
     );
-
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+
     QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
+    dataViewService.sendEvent({ type: 'activate' });
+
     expect(postMessageSpy.callCount).equal(1);
+
     const postMessageArgs = postMessageSpy.args[0][0];
     expect(postMessageArgs.data).to.eql(mockQueryData);
     expect(postMessageArgs.documentName).equal(
       getDocumentName(mockTextDocument)
     );
     expect(postMessageArgs.type).equal('update');
+  });
+
+  it('should save with save_records event', () => {
+    const dataViewService = new TestQueryDataViewService(
+      mockSubscription,
+      queryRecords,
+      mockTextDocument
+    );
+    const saveRecordsSpy = sandbox.spy(dataViewService, 'handleSaveRecords');
+    const fileServiceStub = sandbox.stub(
+      QueryDataFileService.prototype,
+      'save'
+    );
+    QueryDataViewService.extensionPath = '';
+    sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
+    dataViewService.createOrShowWebView();
+    dataViewService.sendEvent({ type: 'save_records', format: FileFormat.CSV });
+
+    expect(saveRecordsSpy.callCount).equal(1);
+    const postMessageArgs = saveRecordsSpy.args[0][0];
+    expect(postMessageArgs).to.eql(FileFormat.CSV);
+    expect(fileServiceStub.callCount).equal(1);
   });
 });

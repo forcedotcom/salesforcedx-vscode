@@ -1,11 +1,13 @@
 const path = require('path');
 const glob = require('glob');
 const DIST = path.resolve(__dirname);
+const shell = require('shelljs');
 
 const getEntryObject = () => {
+  shell.rm('-rf', 'out/src');
   const entryArray = glob.sync('src/**/*.ts');
   const srcObj = entryArray.reduce((acc, item) => {
-    const modulePath = item.replace(/\/[\.A-Za-z_-]*\.ts/g, '');
+    const modulePath = item.replace(/\/[\.A-Za-z0-9_-]*\.ts/g, '');
     const outputModulePath = path.join('out', modulePath, 'index');
 
     if (!acc.hasOwnProperty(outputModulePath)) {
@@ -20,8 +22,8 @@ const getEntryObject = () => {
   if (getMode() !== 'development') {
     return srcObj;
   }
-
-  const entryTestArray = glob.sync('test/**/*.ts');
+/*
+  const entryTestArray = glob.sync('test/** / *.ts');
   const testObj = entryTestArray.reduce((acc, item) => {
     const modulePath = item.replace(/\.ts/g, '');
     const outputModulePath = path.join('out', modulePath);
@@ -35,7 +37,8 @@ const getEntryObject = () => {
     return acc;
   }, {});
 
-  return Object.assign(testObj, srcObj);
+  return Object.assign(testObj, srcObj); */
+  return srcObj;
 };
 
 const getMode = () => {
@@ -60,7 +63,8 @@ module.exports = {
   devtool: 'source-map',
   // excluding dependencies from getting bundled
   externals: {
-    // vscode: 'commonjs vscode',
+    '@salesforce/core': 'commonjs @salesforce/core',
+    vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls'
   },
   // Automatically resolve certain extensions.
@@ -72,7 +76,7 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        exclude: /node_modules|\.d\.ts$/,
+        exclude: /node_modules|\.test.ts$|\.d\.ts$/,
         use: [
           {
             loader: 'ts-loader'

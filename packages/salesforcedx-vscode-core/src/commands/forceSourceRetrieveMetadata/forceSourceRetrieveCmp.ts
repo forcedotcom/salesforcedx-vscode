@@ -26,7 +26,10 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
-import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
+import {
+  FilePathGatherer,
+  RetrieveComponentOutputGatherer
+} from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
@@ -81,7 +84,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   public async execute(response: any): Promise<void> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const execution = await new CliCommandExecutor(this.build(response), {
+    const execution = await new CliCommandExecutor(this.build(response.data), {
       cwd: getRootWorkspacePath()
     }).execute(cancellationToken);
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -104,15 +107,27 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
         resultJson.result.inboundFiles[0].type
       )?.extensions;
 
-      for (const item of resultJson.result.inboundFiles) {
-        if (extensions?.includes(path.extname(item.filePath))) {
-          const fileToOpen = path.join(getRootWorkspacePath(), item.filePath);
-          const showOptions: vscode.TextDocumentShowOptions = {
-            preview: false
-          };
-          const document = await vscode.workspace.openTextDocument(fileToOpen);
-          vscode.window.showTextDocument(document, showOptions);
+      const filesToOpen = [];
+      if (extensions) {
+        for (const ext of extensions) {
+          const tmpFile = resultJson.result.inboundFiles.find(
+            ({ filePath }: { filePath: string }) => filePath.endsWith(ext)
+          );
+          filesToOpen.push(path.join(getRootWorkspacePath(), tmpFile.filePath));
         }
+      } else {
+        const tmpFile = resultJson.result.inboundFiles.find(
+          ({ filePath }: { filePath: string }) => filePath.endsWith('-meta.xml')
+        );
+        filesToOpen.push(path.join(getRootWorkspacePath(), tmpFile.filePath));
+      }
+
+      for (const file of filesToOpen) {
+        const showOptions: vscode.TextDocumentShowOptions = {
+          preview: false
+        };
+        const document = await vscode.workspace.openTextDocument(file);
+        vscode.window.showTextDocument(document, showOptions);
       }
     }
   }

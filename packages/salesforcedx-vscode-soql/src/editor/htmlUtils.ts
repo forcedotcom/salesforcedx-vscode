@@ -84,8 +84,8 @@ export class HtmlUtils {
   ): string {
     const cspMetaTag = `<meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none';
-      img-src ${webview.cspSource} https:;
+      content="default-src 'self';
+      img-src ${webview.cspSource};
       script-src ${webview.cspSource};
       style-src 'unsafe-inline' ${webview.cspSource};"
     />`;
