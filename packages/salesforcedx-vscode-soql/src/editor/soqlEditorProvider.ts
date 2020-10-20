@@ -12,7 +12,7 @@ import {
   EDITOR_VIEW_TYPE,
   HTML_FILE,
   SOQL_BUILDER_UI_PATH,
-  WEBVIEW_RESOURCE_ROOTS_PATH
+  SOQL_BUILDER_WEB_ASSETS_PATH
 } from '../constants';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
@@ -41,10 +41,12 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       localResourceRoots: [
         vscode.Uri.file(
-          path.join(this.context.extensionPath, WEBVIEW_RESOURCE_ROOTS_PATH)
+          path.join(this.context.extensionPath, SOQL_BUILDER_WEB_ASSETS_PATH)
         )
       ]
     };
+
+    // set the html for the webview instance
     webviewPanel.webview.html = this.getWebViewContent(webviewPanel.webview);
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);

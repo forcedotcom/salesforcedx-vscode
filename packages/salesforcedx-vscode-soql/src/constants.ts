@@ -7,7 +7,7 @@
 import * as path from 'path';
 
 /* SOQL BUILDER */
-export const WEBVIEW_RESOURCE_ROOTS_PATH = path.join(
+export const SOQL_BUILDER_WEB_ASSETS_PATH = path.join(
   'node_modules',
   '@salesforce',
   'soql-builder-ui'
@@ -19,6 +19,7 @@ export const SOQL_BUILDER_UI_PATH = path.join(
   'dist'
 );
 export const HTML_FILE = 'index.html';
+export const IMAGES_DIR_NAME = 'images';
 export const EDITOR_VIEW_TYPE = 'soqlCustom.soql';
 
 /* QUERY DATA VIEW */
