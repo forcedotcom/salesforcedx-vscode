@@ -7,13 +7,55 @@
 
 import {
   ApexCodeCoverageAggregateRecord,
+  ApexCodeCoverageRecord,
   ApexTestResultOutcome,
   ApexTestResultRecord,
-  AsyncTestResult
+  SyncTestResult,
+  TestResult
 } from '../../src/tests/types';
 
+export const syncTestResultSimple: SyncTestResult = {
+  apexLogId: '07Lxx00000cxy6YUAQ',
+  failures: [],
+  numFailures: 0,
+  numTestsRun: 1,
+  successes: [
+    {
+      id: '01pxx00000NWwb3AAD',
+      methodName: 'testOne',
+      name: 'TestSample',
+      namespace: null,
+      seeAllData: false,
+      time: 107
+    }
+  ],
+  totalTime: 270
+};
+
+export const syncTestResultWithFailures: SyncTestResult = {
+  apexLogId: '07Lxx00000cxy6YUAQ',
+  successes: [],
+  numFailures: 0,
+  numTestsRun: 1,
+  failures: [
+    {
+      id: '01pxx00000NWwb3AAD',
+      message:
+        'System.AssertException: Assertion Failed: Expected: false, Actual: true',
+      methodName: 'testOne',
+      name: 'TestSample',
+      namespace: 'tr',
+      seeAllData: false,
+      stackTrace: 'Class.TestSample.testOne: line 27, column 1',
+      time: 68,
+      type: 'Class'
+    }
+  ],
+  totalTime: 87
+};
+
 export const testRunId = '707xx0000AGQ3jbQQD';
-export const testResultData: AsyncTestResult = {
+export const testResultData: TestResult = {
   // @ts-ignore
   summary: {
     failRate: '0%',
@@ -48,6 +90,40 @@ export const testResultData: AsyncTestResult = {
     }
   ]
 };
+
+export const perClassCodeCoverage: ApexCodeCoverageRecord[] = [
+  {
+    ApexTestClassId: '01pxx00000NWwb3AAD',
+    ApexClassOrTrigger: {
+      Id: '01pxx00000avcNeAAL',
+      Name: 'ApexClassExample'
+    },
+    TestMethodName: 'testOne',
+    NumLinesCovered: 1,
+    NumLinesUncovered: 62
+  },
+  {
+    ApexTestClassId: '01pxx00000NWwb3AAD',
+    ApexClassOrTrigger: {
+      Id: '01pxx00000avc00AAL',
+      Name: 'ApexSampleV2'
+    },
+    TestMethodName: 'testOne',
+    NumLinesCovered: 45,
+    NumLinesUncovered: 2
+  },
+  {
+    ApexTestClassId: '01pxx00000NWwb3AAD',
+    ApexClassOrTrigger: {
+      Id: '01qxp00000av340AAL',
+      Name: 'MyTestTrigger'
+    },
+    TestMethodName: 'testOne',
+    NumLinesCovered: 5,
+    NumLinesUncovered: 2
+  }
+];
+
 export const codeCoverageQueryResult: ApexCodeCoverageAggregateRecord[] = [
   {
     ApexClassOrTrigger: {
@@ -218,5 +294,68 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     },
     RunTime: 56,
     TestTimestamp: '2020-08-18T02:21:30.000+0000'
+  }
+];
+
+export const mixedPerClassCodeCoverage: ApexCodeCoverageRecord[] = [
+  {
+    ApexTestClassId: '01pxx00000NnP2KQAV',
+    ApexClassOrTrigger: {
+      Id: '01pxx00000avcNeAAL',
+      Name: 'ApexClassExample'
+    },
+    TestMethodName: 'testAssignContains',
+    NumLinesCovered: 1,
+    NumLinesUncovered: 62
+  },
+  {
+    ApexTestClassId: '01pxx00000NnP2KQAV',
+    ApexClassOrTrigger: {
+      Id: '01pxx00000avc00AAL',
+      Name: 'ApexSampleV2'
+    },
+    TestMethodName: 'testAssignOnUpdate',
+    NumLinesCovered: 45,
+    NumLinesUncovered: 2
+  },
+  {
+    ApexTestClassId: '01pxx00000NnP2KQAV',
+    ApexClassOrTrigger: {
+      Id: '01qxp00000av340AAL',
+      Name: 'MyTestTrigger'
+    },
+    TestMethodName: 'testAssignOnInsert',
+    NumLinesCovered: 5,
+    NumLinesUncovered: 2
+  },
+  {
+    ApexTestClassId: '01pxx00000NnP2KQAV',
+    ApexClassOrTrigger: {
+      Id: '01qxp00000av340AAL',
+      Name: 'MyTestTrigger'
+    },
+    TestMethodName: 'testAssignRuleContainsV2',
+    NumLinesCovered: 0,
+    NumLinesUncovered: 20
+  },
+  {
+    ApexTestClassId: '01pxx00000NnP2KQAV',
+    ApexClassOrTrigger: {
+      Id: '01qxp00000av340AAL',
+      Name: 'MyTestTrigger'
+    },
+    TestMethodName: 'testAssignRuleContains',
+    NumLinesCovered: 0,
+    NumLinesUncovered: 14
+  },
+  {
+    ApexTestClassId: '01pxx00000NnP2KQAV',
+    ApexClassOrTrigger: {
+      Id: '01qxp00000av340AAL',
+      Name: 'MyTestTrigger'
+    },
+    TestMethodName: 'testAssignOnFuture',
+    NumLinesCovered: 0,
+    NumLinesUncovered: 4
   }
 ];

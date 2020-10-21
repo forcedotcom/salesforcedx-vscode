@@ -11,7 +11,6 @@ import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { SyncTestConfiguration, TestService } from '../../src/tests';
 import {
-  SyncTestResult,
   AsyncTestConfiguration,
   TestLevel,
   ApexTestQueueItemStatus,
@@ -21,14 +20,19 @@ import {
   ApexTestRunResult,
   ApexTestResult,
   ApexOrgWideCoverage,
-  ApexCodeCoverageAggregate
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverage
 } from '../../src/tests/types';
 import { StreamingClient } from '../../src/streaming';
 import { fail } from 'assert';
 import { nls } from '../../src/i18n';
 import {
   codeCoverageQueryResult,
+  mixedPerClassCodeCoverage,
   mixedTestResults,
+  perClassCodeCoverage,
+  syncTestResultSimple,
+  syncTestResultWithFailures,
   testResultData,
   testRunId
 } from './testData';
@@ -37,6 +41,7 @@ const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingRequestStub: SinonStub;
+let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
 describe('Run Apex tests synchronously', () => {
@@ -58,6 +63,7 @@ describe('Run Apex tests synchronously', () => {
       })
     });
     toolingRequestStub = sandboxStub.stub(mockConnection.tooling, 'request');
+    toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
     testRequest = {
       method: 'POST',
       url: `${mockConnection.tooling._baseUrl()}/runTestsSynchronous`,
@@ -71,32 +77,119 @@ describe('Run Apex tests synchronously', () => {
   });
 
   it('should run a successful test', async () => {
-    const requestResult: SyncTestResult = {
-      apexLogId: '07Lxx00000cxy6YUAQ',
-      failures: [],
-      numFailures: 0,
-      numTestsRun: 1,
-      successes: [
-        {
-          id: '01pxx00000NWwb3AAD',
-          methodName: 'testOne',
-          name: 'TestSample',
-          namespace: null,
-          seeAllData: false,
-          time: 107
-        }
-      ],
-      totalTime: 270
-    };
-
-    toolingRequestStub.withArgs(testRequest).returns(requestResult);
+    toolingRequestStub.withArgs(testRequest).returns(syncTestResultSimple);
     const testSrv = new TestService(mockConnection);
     const testResult = await testSrv.runTestSynchronous(requestOptions);
     expect(testResult).to.be.a('object');
     expect(toolingRequestStub.calledOnce).to.equal(true);
-    expect(testResult).to.deep.equals(requestResult);
+    expect(testResult.summary).to.be.a('object');
+    expect(testResult.summary.failRate).to.equal('0%');
+    expect(testResult.summary.numTestsRan).to.equal(1);
+    expect(testResult.summary.orgId).to.equal(
+      mockConnection.getAuthInfoFields().orgId
+    );
+    expect(testResult.summary.outcome).to.equal('Completed');
+    expect(testResult.summary.passRate).to.equal('100%');
+    expect(testResult.summary.skipRate).to.equal('0%');
+    expect(testResult.summary.testExecutionTime).to.equal(270);
+    expect(testResult.summary.username).to.equal(mockConnection.getUsername());
+
+    expect(testResult.tests).to.be.a('array');
+    expect(testResult.tests.length).to.equal(1);
+    expect(testResult.tests[0].queueItemId).to.equal('');
+    expect(testResult.tests[0].stackTrace).to.equal('');
+    expect(testResult.tests[0].message).to.equal('');
+    expect(testResult.tests[0].asyncApexJobId).to.equal('');
+    expect(testResult.tests[0].methodName).to.equal('testOne');
+    expect(testResult.tests[0].outcome).to.equal('Pass');
+    expect(testResult.tests[0].apexLogId).to.equal('07Lxx00000cxy6YUAQ');
+    expect(testResult.tests[0].apexClass).to.be.a('object');
+    expect(testResult.tests[0].apexClass.id).to.equal('01pxx00000NWwb3AAD');
+    expect(testResult.tests[0].apexClass.name).to.equal('TestSample');
+    expect(testResult.tests[0].apexClass.namespacePrefix).to.equal(null);
+    expect(testResult.tests[0].apexClass.fullName).to.equal('TestSample');
+    expect(testResult.tests[0].runTime).to.equal(107);
+    expect(testResult.tests[0].testTimestamp).to.equal('');
+    expect(testResult.tests[0].fullName).to.equal('TestSample.testOne');
   });
 
+  it('should run a test with failures', async () => {
+    toolingRequestStub
+      .withArgs(testRequest)
+      .returns(syncTestResultWithFailures);
+    const testSrv = new TestService(mockConnection);
+    const testResult = await testSrv.runTestSynchronous(requestOptions);
+    expect(testResult).to.be.a('object');
+    expect(toolingRequestStub.calledOnce).to.equal(true);
+    expect(testResult.summary).to.be.a('object');
+    expect(testResult.summary.failRate).to.equal('100%');
+    expect(testResult.summary.numTestsRan).to.equal(1);
+    expect(testResult.summary.orgId).to.equal(
+      mockConnection.getAuthInfoFields().orgId
+    );
+    expect(testResult.summary.outcome).to.equal('Failed');
+    expect(testResult.summary.passRate).to.equal('0%');
+    expect(testResult.summary.skipRate).to.equal('0%');
+    expect(testResult.summary.testExecutionTime).to.equal(87);
+    expect(testResult.summary.username).to.equal(mockConnection.getUsername());
+
+    expect(testResult.tests).to.be.a('array');
+    expect(testResult.tests.length).to.equal(1);
+    expect(testResult.tests[0].queueItemId).to.equal('');
+    expect(testResult.tests[0].stackTrace).to.equal(
+      'Class.TestSample.testOne: line 27, column 1'
+    );
+    expect(testResult.tests[0].message).to.equal(
+      'System.AssertException: Assertion Failed: Expected: false, Actual: true'
+    );
+    expect(testResult.tests[0].asyncApexJobId).to.equal('');
+    expect(testResult.tests[0].methodName).to.equal('testOne');
+    expect(testResult.tests[0].outcome).to.equal('Fail');
+    expect(testResult.tests[0].apexLogId).to.equal('07Lxx00000cxy6YUAQ');
+    expect(testResult.tests[0].apexClass).to.be.a('object');
+    expect(testResult.tests[0].apexClass.id).to.equal('01pxx00000NWwb3AAD');
+    expect(testResult.tests[0].apexClass.name).to.equal('TestSample');
+    expect(testResult.tests[0].apexClass.namespacePrefix).to.equal('tr');
+    expect(testResult.tests[0].apexClass.fullName).to.equal('tr__TestSample');
+    expect(testResult.tests[0].runTime).to.equal(68);
+    expect(testResult.tests[0].testTimestamp).to.equal('');
+    expect(testResult.tests[0].fullName).to.equal('tr__TestSample.testOne');
+  });
+
+  it('should run a test with code coverage', async () => {
+    toolingRequestStub.withArgs(testRequest).returns(syncTestResultSimple);
+    toolingQueryStub.onCall(0).resolves({
+      done: true,
+      totalSize: 3,
+      records: perClassCodeCoverage
+    } as ApexCodeCoverage);
+    toolingQueryStub.onCall(1).resolves({
+      done: true,
+      totalSize: 3,
+      records: codeCoverageQueryResult
+    } as ApexCodeCoverageAggregate);
+    toolingQueryStub.onCall(2).resolves({
+      done: true,
+      totalSize: 1,
+      records: [
+        {
+          PercentCovered: '35'
+        }
+      ]
+    } as ApexOrgWideCoverage);
+
+    const testSrv = new TestService(mockConnection);
+    const testResult = await testSrv.runTestSynchronous(requestOptions, true);
+    expect(testResult).to.be.a('object');
+    expect(toolingRequestStub.calledOnce).to.equal(true);
+    expect(testResult.summary).to.be.a('object');
+    expect(testResult.summary.orgWideCoverage).to.equal('35%');
+    expect(testResult.tests).to.be.a('array');
+    expect(testResult.tests.length).to.equal(1);
+    expect(testResult.codecoverage).to.be.a('array');
+    expect(testResult.codecoverage.length).to.equal(3);
+  });
+  /*
   it('should run a test with failures', async () => {
     const requestResult = [
       {
@@ -112,7 +205,7 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult).to.be.a('array');
     expect(toolingRequestStub.calledOnce).to.equal(true);
     expect(testResult).to.deep.equals(requestResult);
-  });
+  }); */
 });
 
 describe('Run Apex tests asynchronously', () => {
@@ -304,10 +397,16 @@ describe('Run Apex tests asynchronously', () => {
     mockToolingQuery.onCall(2).resolves({
       done: true,
       totalSize: 3,
+      records: mixedPerClassCodeCoverage
+    } as ApexCodeCoverage);
+
+    mockToolingQuery.onCall(3).resolves({
+      done: true,
+      totalSize: 3,
       records: codeCoverageQueryResult
     } as ApexCodeCoverageAggregate);
 
-    mockToolingQuery.onCall(3).resolves({
+    mockToolingQuery.onCall(4).resolves({
       done: true,
       totalSize: 1,
       records: [

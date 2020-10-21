@@ -5,22 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// NOTE: half of these values are declared by loglevel enum
-export const enum TestLogLevel {
-  trace = 'trace',
-  debug = 'debug',
-  info = 'info',
-  warn = 'warn',
-  error = 'error',
-  fatal = 'fatal',
-  TRACE = 'TRACE',
-  DEBUG = 'DEBUG',
-  INFO = 'INFO',
-  WARN = 'WARN',
-  ERROR = 'ERROR',
-  FATAL = 'FATAL'
-}
-
 export const enum TestLevel {
   /**
    * All tests in your org are run, except the ones that originate from installed managed packages
@@ -84,7 +68,7 @@ export type TestItem = {
 };
 
 export type AsyncTestArrayConfiguration = {
-  tests: [TestItem];
+  tests: TestItem[];
   /**
    * Limits the test run from executing new tests after a given number of tests fail.
    * Valid value ranges from 0 to 1,000,000. A value of 0 causes the test run to stop if any failure occurs.
@@ -98,7 +82,7 @@ export type AsyncTestArrayConfiguration = {
 };
 
 export type SyncTestConfiguration = {
-  tests: [TestItem];
+  tests: TestItem[];
   /**
    * Specifies which tests to run. The only valid value is RunSpecifiedTests.
    */
@@ -143,6 +127,12 @@ export type SyncTestResult = {
 export type SyncTestErrorResult = {
   message: string;
   errorCode: string; // might change it to an enum
+};
+
+export type ApiSyncTestResult = {
+  done: boolean;
+  totalSize: number;
+  records: SyncTestResult[];
 };
 
 export const enum ApexTestResultOutcome {
@@ -336,6 +326,10 @@ export type ApexTestResultData = {
    * The full name of the associated ApexClass method
    */
   fullName: string;
+  perClassCoverage?: {
+    apexClassOrTriggerName: string;
+    percentage: string;
+  };
 };
 
 export type CodeCoverageResult = {
@@ -349,7 +343,7 @@ export type CodeCoverageResult = {
   uncoveredLines: number[];
 };
 
-export type AsyncTestResult = {
+export type TestResult = {
   summary: {
     failRate: string;
     numTestsRan: number;
@@ -366,6 +360,35 @@ export type AsyncTestResult = {
   };
   tests: ApexTestResultData[];
   codecoverage?: CodeCoverageResult[];
+};
+
+export type ApexCodeCoverageRecord = {
+  ApexClassOrTrigger: {
+    Id: string;
+    Name: string;
+  };
+  ApexTestClassId: string;
+  TestMethodName: string;
+  NumLinesCovered: number;
+  NumLinesUncovered: number;
+  Coverage?: {
+    coveredLines: number[];
+    uncoveredLines: number[];
+  };
+};
+
+export type ApexCodeCoverage = {
+  done: boolean;
+  totalSize: number;
+  records: ApexCodeCoverageRecord[];
+};
+
+export type PerClassCoverage = {
+  apexClassOrTriggerName: string;
+  apexClassorTriggerId: string;
+  apexTestClassId: string;
+  apexTestMethodName: string;
+  percentage: string;
 };
 
 export type ApexCodeCoverageAggregateRecord = {
