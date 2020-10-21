@@ -8,11 +8,15 @@
 import * as path from 'path';
 import * as util from 'util';
 import { env, ExtensionContext, workspace } from 'vscode';
-import {
+/* import {
   disableCLITelemetry,
   isCLITelemetryAllowed
-} from '../cli/cliConfiguration';
+} from '../cli/cliConfiguration'; */
 import TelemetryReporter from './telemetryReporter';
+const packageJson = {
+  version: '50.2.0',
+  aiKey: 'waa'
+}
 
 interface CommandMetric {
   extensionName: string;
@@ -103,7 +107,7 @@ export class TelemetryService {
       this.isTelemetryEnabled() &&
       !isDevMode
     ) {
-      const packageJson = require(path.join('..', '..', '..', 'package.json'));
+      // const packageJson = require(path.join('..', '..', '..', 'package.json'));
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
         packageJson.version,
@@ -129,8 +133,9 @@ export class TelemetryService {
     if (typeof this.cliAllowsTelemetryPromise !== 'undefined') {
       return this.cliAllowsTelemetryPromise;
     }
-    this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
-    return await this.cliAllowsTelemetryPromise;
+    /* this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
+    return await this.cliAllowsTelemetryPromise; */
+    return true;
   }
 
   public isTelemetryExtensionConfigurationEnabled(): boolean {
@@ -146,12 +151,12 @@ export class TelemetryService {
 
   public setCliTelemetryEnabled(isEnabled: boolean): void {
     if (!isEnabled) {
-      disableCLITelemetry();
+      // disableCLITelemetry();
     }
   }
 
   public async sendExtensionActivationEvent(hrstart: [number, number]): Promise<void> {
-     if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
+    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       const startupTime = this.getEndHRTime(hrstart);
       this.reporter.sendTelemetryEvent(
         'activationEvent',

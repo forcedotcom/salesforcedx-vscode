@@ -36,7 +36,8 @@ const vscodeStub = {
       return {
         get: () => true
       };
-    }
+    },
+    onDidChangeConfiguration: stub()
   }
 };
 
@@ -70,11 +71,11 @@ describe('Telemetry production mode', () => {
     };
 
     const { TelemetryService, TelemetryBuilder } = proxyquire.noCallThru()(
-      '../../../src/telemetry/telemetry',
+      '../../../src/telemetry/index',
       {
         vscode: vscodeStub,
-        './telemetryReporter': { default: telemetryReporterStub },
-        '../cli/cliConfiguration': cliConfigurationStub
+        TelemetryReporter: { default: telemetryReporterStub },
+        // '../cli/cliConfiguration': cliConfigurationStub
       }
     );
     telemetryService = TelemetryService.getInstance();

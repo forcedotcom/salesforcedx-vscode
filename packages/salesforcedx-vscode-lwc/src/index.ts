@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { telemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src/telemetry';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src/telemetry';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -62,7 +62,7 @@ export async function activate(context: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  await telemetryService.initializeService(context, LWC_EXTENSION_NAME);
+  await TelemetryService.getInstance().initializeService(context, LWC_EXTENSION_NAME);
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
@@ -117,7 +117,7 @@ export async function activate(context: ExtensionContext) {
           ConfigurationTarget.Workspace
         );
       } catch (e) {
-        await telemetryService.sendException(
+        await TelemetryService.getInstance().sendException(
           'lwc_eslint_nodepath_couldnt_be_set',
           e.message
         );
@@ -134,7 +134,7 @@ export async function activate(context: ExtensionContext) {
   WorkspaceUtils.instance.init(context);
 
   // Notify telemetry that our extension is now active
-  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
+  TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 export async function deactivate() {
@@ -142,7 +142,7 @@ export async function deactivate() {
     await DevServerService.instance.stopServer();
   }
   console.log('Lightning Web Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent().catch();
+  TelemetryService.getInstance().sendExtensionDeactivationEvent().catch();
 }
 
 function getActivationMode(): string {
