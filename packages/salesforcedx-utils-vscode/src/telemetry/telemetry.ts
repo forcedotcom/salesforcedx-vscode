@@ -14,9 +14,9 @@ import { env, ExtensionContext, workspace } from 'vscode';
 } from '../cli/cliConfiguration'; */
 import TelemetryReporter from './telemetryReporter';
 const packageJson = {
-  version: '50.2.0',
-  aiKey: 'waa'
-}
+  version: '50.2.0-test',
+  aiKey: 'ec3632a4-df47-47a4-98dc-8134cacbaf7e'
+};
 
 interface CommandMetric {
   extensionName: string;

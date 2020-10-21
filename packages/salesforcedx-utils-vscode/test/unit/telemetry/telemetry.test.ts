@@ -74,7 +74,7 @@ describe('Telemetry production mode', () => {
       '../../../src/telemetry/index',
       {
         vscode: vscodeStub,
-        TelemetryReporter: { default: telemetryReporterStub },
+        TelemetryReporter: { default: telemetryReporterStub }
         // '../cli/cliConfiguration': cliConfigurationStub
       }
     );
