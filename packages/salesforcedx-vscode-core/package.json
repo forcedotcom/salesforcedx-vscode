@@ -25,8 +25,8 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.0.9",
-    "@salesforce/core": "2.9.0",
+    "@salesforce/apex-node": "0.1.2",
+    "@salesforce/core": "2.11.0",
     "@salesforce/salesforcedx-utils-vscode": "50.2.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "1.1.2",
