@@ -46,7 +46,6 @@ module.exports = {
   externals: {
     '@salesforce/core': 'commonjs @salesforce/core',
     applicationinsights: 'commonjs applicationinsights',
-    proxyquire: 'commonjs proxyquire',
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls'
   },
@@ -59,7 +58,10 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        exclude: /node_modules|\.test.ts$|\.d\.ts$/,
+        exclude: [
+          /node_modules|\.test.ts$|\.d\.ts$/,
+          path.resolve(__dirname, './test')
+        ],
         use: [
           {
             loader: 'ts-loader'
