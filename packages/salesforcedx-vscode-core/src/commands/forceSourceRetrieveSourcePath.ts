@@ -30,7 +30,6 @@ import {
   createComponentCount,
   FilePathGatherer,
   LibraryCommandletExecutor,
-  LibraryExecution,
   outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -138,7 +137,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
 
   protected async run(
     response: ContinueResponse<string>
-  ): Promise<LibraryExecution> {
+  ): Promise<boolean> {
     const getConnection = workspaceContext.getConnection();
     const registryAccess = new RegistryAccess();
     const components = registryAccess.getComponentsFromPath(response.data);
@@ -157,6 +156,6 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
 
     channelService.appendLine(outputRetrieveTable(result));
 
-    return { success: result.success };
+    return result.success;
   }
 }

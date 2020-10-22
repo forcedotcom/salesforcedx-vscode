@@ -38,7 +38,6 @@ import { taskViewService } from '../statuses';
 import { getRootWorkspacePath } from '../util';
 import {
   LibraryCommandletExecutor,
-  LibraryExecution,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -142,14 +141,11 @@ export class LogFileSelector
   > {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const logInfos = sfdxCoreSettings.getApexLibrary()
-      ? (
-        await new ApexLibraryLogListExecutor().execute(
-          {} as ContinueResponse<{}>
-        )
-      ).result
+      ? await this.getLogRecords()
       : await ForceApexLogList.getLogs(cancellationTokenSource);
-
+    console.log('loginfos' + logInfos.length);
     if (logInfos && logInfos.length > 0) {
+      console.log('did we get here ');
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
         const localUTCDate = new Date(logInfo.StartTime);
@@ -178,12 +174,22 @@ export class LogFileSelector
         };
       }
     } else {
+      console.log('yo');
       return {
         type: 'CANCEL',
         msg: nls.localize('force_apex_log_get_no_logs_text')
       } as CancelResponse;
     }
     return { type: 'CANCEL' };
+  }
+
+  public async getLogRecords(): Promise<LogRecord[]> {
+    const connection = await workspaceContext.getConnection();
+    const logService = new LogService(connection);
+    return vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: 'Fetching log list'
+    }, () => logService.getLogRecords());
   }
 }
 
@@ -229,9 +235,8 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: 
 
   protected async run(
     response: ContinueResponse<{ id: string }>
-  ): Promise<LibraryExecution> {
+  ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
-    // @ts-ignore
     const logService = new LogService(connection);
     const { id: logId } = response.data;
     const outputDir = path.join(
@@ -248,23 +253,7 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: 
     const document = await vscode.workspace.openTextDocument(logPath);
     vscode.window.showTextDocument(document);
 
-    return { success: true };
-  }
-}
-
-export class ApexLibraryLogListExecutor extends LibraryCommandletExecutor<{}, LogRecord[]> {
-  protected executionName: string = nls.localize('apex_log_list_text');
-  protected logName: string = 'force_apex_log_list_library';
-
-  protected async run(
-    response: ContinueResponse<{}>
-  ): Promise<LibraryExecution<LogRecord[]>> {
-    const connection = await workspaceContext.getConnection();
-    // @ts-ignore
-    const logService = new LogService(connection);
-    const logs = await logService.getLogRecords();
-
-    return { success: true, result: logs };
+    return true;
   }
 }
 

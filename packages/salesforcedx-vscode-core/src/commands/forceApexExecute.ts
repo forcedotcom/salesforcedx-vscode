@@ -26,7 +26,6 @@ import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CommandletExecutor,
   LibraryCommandletExecutor,
-  LibraryExecution,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -140,7 +139,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
     'apex-errors'
   );
 
-  protected async run(response: ContinueResponse<ApexExecuteParameters>): Promise<LibraryExecution> {
+  protected async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     // @ts-ignore
     const executeService = new ExecuteService(connection);
@@ -165,7 +164,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
       handleApexLibraryDiagnostics(result, this.diagnostics, filePath);
     }
 
-    return { success };
+    return success;
   }
 }
 

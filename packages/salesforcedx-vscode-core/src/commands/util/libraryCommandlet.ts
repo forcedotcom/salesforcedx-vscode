@@ -12,12 +12,7 @@ import { notificationService } from '../../notifications';
 import { TelemetryBuilder, telemetryService } from '../../telemetry';
 import { CommandletExecutor } from './sfdxCommandlet';
 
-export interface LibraryExecution<U = void> {
-  success: boolean;
-  result?: U;
-}
-
-export abstract class LibraryCommandletExecutor<T, U = void>
+export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected readonly telemetry = new TelemetryBuilder();
   protected readonly revealChannelOutput = false;
@@ -26,11 +21,11 @@ export abstract class LibraryCommandletExecutor<T, U = void>
 
   protected abstract run(
     response: ContinueResponse<T>
-  ): Promise<LibraryExecution<U>>;
+  ): Promise<boolean>;
 
   public async execute(
     response: ContinueResponse<T>
-  ): Promise<LibraryExecution<U>> {
+  ): Promise<void> {
     const startTime = process.hrtime();
 
     channelService.showCommandWithTimestamp(`Starting ${this.executionName}\n`);
@@ -40,7 +35,7 @@ export abstract class LibraryCommandletExecutor<T, U = void>
     }
 
     try {
-      const execution = await vscode.window.withProgress(
+      const success = await vscode.window.withProgress(
         {
           title: nls.localize('progress_notification_text', this.executionName),
           location: vscode.ProgressLocation.Notification
@@ -50,7 +45,7 @@ export abstract class LibraryCommandletExecutor<T, U = void>
 
       channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
 
-      if (execution.success) {
+      if (success) {
         notificationService
           .showSuccessfulExecution(this.executionName)
           .catch(e => console.error(e));
@@ -58,7 +53,7 @@ export abstract class LibraryCommandletExecutor<T, U = void>
         notificationService.showFailedExecution(this.executionName);
       }
 
-      this.telemetry.addProperty('success', String(execution.success));
+      this.telemetry.addProperty('success', String(success));
       const { properties, measurements } = this.telemetry.build();
       telemetryService.sendCommandEvent(
         this.logName,
@@ -67,13 +62,11 @@ export abstract class LibraryCommandletExecutor<T, U = void>
         measurements
       );
 
-      return execution;
     } catch (e) {
       telemetryService.sendException(e.name, e.message);
       notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
       channelService.showChannelOutput();
-      return { success: false };
     }
   }
 }

@@ -13,7 +13,6 @@ import * as vscode from 'vscode';
 import {
   ApexDebugLogObject,
   ApexLibraryGetLogsExecutor,
-  ApexLibraryLogListExecutor,
   forceApexLogGet,
   ForceApexLogGetExecutor,
   ForceApexLogList,
@@ -82,14 +81,14 @@ describe('Force Apex Log Get Logging', () => {
       .returns(logInfos);
 
     apexLogListStub = sb
-      .stub(ApexLibraryLogListExecutor.prototype, 'execute')
+      .stub(LogFileSelector.prototype, 'getLogRecords')
       .onFirstCall()
-      .resolves({ result: [] })
+      .resolves([])
       .onSecondCall()
-      .resolves({ result: logInfos.slice(0, 1) })
+      .resolves(logInfos.slice(0, 1))
       .onThirdCall()
-      .resolves({ result: logInfos.slice(0, 1) })
-      .resolves({ result: logInfos });
+      .resolves(logInfos.slice(0, 1))
+      .resolves(logInfos);
 
     showQuickPickStub = sb
       .stub(vscode.window, 'showQuickPick')
@@ -123,6 +122,14 @@ describe('Force Apex Log Get Logging', () => {
     expect(showQuickPickStub.notCalled).to.be.true;
   });
 
+  it('Should show error notification if no logs exist using apex library', async () => {
+    settingStub.returns(true);
+    const logFileSelector = new LogFileSelector();
+    await logFileSelector.gather();
+    expect(showQuickPickStub.called).to.be.false;
+    expect(apexLogListStub.called).to.be.true;
+  });
+
   it('Should display one logInfo', async () => {
     const logFileSelector = new LogFileSelector();
     await logFileSelector.gather();
@@ -139,14 +146,6 @@ describe('Force Apex Log Get Logging', () => {
     const logFileSelector = new LogFileSelector();
     await logFileSelector.gather();
     showQuickPickStub.calledWith([logInfos[2], logInfos[1], logInfos[0]]);
-  });
-
-  it('Should show error notification if no logs exist using apex library', async () => {
-    settingStub.returns(true);
-    const logFileSelector = new LogFileSelector();
-    await logFileSelector.gather();
-    expect(showQuickPickStub.notCalled).to.be.true;
-    expect(apexLogListStub.called).to.be.true;
   });
 
   it('Should display one logInfo using apex library', async () => {
@@ -187,7 +186,7 @@ describe('use CLI Command setting', async () => {
     settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary');
     apexLogGetStub = sb.stub(ApexLibraryGetLogsExecutor.prototype, 'execute');
     apexLogListStub = sb
-      .stub(ApexLibraryLogListExecutor.prototype, 'execute')
+      .stub(LogFileSelector.prototype, 'getLogRecords')
       .resolves({ result: [] });
     cliLogGetStub = sb.stub(ForceApexLogGetExecutor.prototype, 'execute');
     cliLogListStub = sb
@@ -199,7 +198,7 @@ describe('use CLI Command setting', async () => {
     sb.restore();
   });
 
-  it('should use the ApexLibraryGetLogsExecutor if setting is true', async () => {
+  it('should call getLogRecords if setting is true', async () => {
     settingStub.returns(true);
     const fileSelector = sb
       .stub(LogFileSelector.prototype, 'gather')
@@ -212,7 +211,7 @@ describe('use CLI Command setting', async () => {
     expect(fileSelector.called).to.be.true;
   });
 
-  it('should use the ApexLibraryLogListExecutor if setting is true', async () => {
+  it('should call getLogRecords if setting is true', async () => {
     settingStub.returns(true);
     await new LogFileSelector().gather();
     expect(cliLogListStub.notCalled).to.be.true;

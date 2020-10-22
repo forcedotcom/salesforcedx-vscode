@@ -36,7 +36,6 @@ import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
   FilePathGatherer,
   LibraryCommandletExecutor,
-  LibraryExecution,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
@@ -142,7 +141,7 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 
   public async run(
     response: ContinueResponse<string | string[]>
-  ): Promise<LibraryExecution> {
+  ): Promise<boolean> {
     try {
       const getConnection = workspaceContext.getConnection();
       const components = this.getComponents(response.data);
@@ -172,7 +171,7 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
         BaseDeployExecutor.errorCollection
       );
 
-      return { success: false };
+      return false;
     } finally {
       await DeployQueue.get().unlock();
     }

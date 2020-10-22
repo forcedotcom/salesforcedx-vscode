@@ -27,7 +27,7 @@ class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
     if (this.error) {
       throw this.error;
     }
-    return { success: response.data.success };
+    return response.data.success;
   }
 }
 
