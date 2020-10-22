@@ -19,25 +19,6 @@ const getEntryObject = () => {
     return acc;
   }, {});
 
-  if (getMode() !== 'development') {
-    return srcObj;
-  }
-/*
-  const entryTestArray = glob.sync('test/** / *.ts');
-  const testObj = entryTestArray.reduce((acc, item) => {
-    const modulePath = item.replace(/\.ts/g, '');
-    const outputModulePath = path.join('out', modulePath);
-
-    if (!acc.hasOwnProperty(outputModulePath)) {
-      // webpack requires the object to be in this format
-      // { 'out/test/unit/cli/commandExecutorTest': './test/unit/cli/commandExecutorTest.ts' }
-      acc[outputModulePath] = '.' + path.join(path.sep, `${modulePath}.ts`);
-    }
-
-    return acc;
-  }, {});
-
-  return Object.assign(testObj, srcObj); */
   return srcObj;
 };
 
@@ -64,6 +45,7 @@ module.exports = {
   // excluding dependencies from getting bundled
   externals: {
     '@salesforce/core': 'commonjs @salesforce/core',
+    applicationinsights: 'commonjs applicationinsights',
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls'
   },
@@ -76,7 +58,10 @@ module.exports = {
     rules: [
       {
         test: /\.tsx?$/,
-        exclude: /node_modules|\.test.ts$|\.d\.ts$/,
+        exclude: [
+          /node_modules|\.test.ts$|\.d\.ts$/,
+          path.resolve(__dirname, './test')
+        ],
         use: [
           {
             loader: 'ts-loader'
