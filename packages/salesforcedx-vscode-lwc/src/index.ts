@@ -62,7 +62,10 @@ export async function activate(context: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  await TelemetryService.getInstance().initializeService(context, LWC_EXTENSION_NAME);
+  const extensionPackage = require(context.asAbsolutePath(
+    './package.json'
+  ));
+  await TelemetryService.getInstance().initializeService(context, LWC_EXTENSION_NAME, extensionPackage.aiKey, extensionPackage.version);
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {

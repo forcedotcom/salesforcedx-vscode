@@ -10,12 +10,8 @@ import { env, ExtensionContext, workspace } from 'vscode';
 import {
   disableCLITelemetry,
   isCLITelemetryAllowed
-} from '../cli';
+} from './cliConfiguration';
 import TelemetryReporter from './telemetryReporter';
-const packageJson = {
-  version: '50.2.0-test',
-  aiKey: 'ec3632a4-df47-47a4-98dc-8134cacbaf7e'
-};
 
 interface CommandMetric {
   extensionName: string;
@@ -62,6 +58,8 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private context: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
+  private aiKey: string = '';
+  private version: string = '';
   /**
    * Cached promise to check if CLI telemetry config is enabled
    */
@@ -82,10 +80,14 @@ export class TelemetryService {
    */
   public async initializeService(
     context: ExtensionContext,
-    extensionName: string
+    extensionName: string,
+    aiKey: string,
+    version: string
   ): Promise<void> {
     this.context = context;
     this.extensionName = extensionName;
+    this.aiKey = aiKey;
+    this.version = version;
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
@@ -108,8 +110,8 @@ export class TelemetryService {
     ) {
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
-        packageJson.version,
-        packageJson.aiKey,
+        this.version,
+        this.aiKey,
         true
       );
       this.context.subscriptions.push(this.reporter);
