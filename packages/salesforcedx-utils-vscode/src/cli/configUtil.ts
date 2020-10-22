@@ -9,7 +9,7 @@ import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
 import { TelemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../workspaces/rootWorkspace';
+import { getRootWorkspacePath } from '../workspaces';
 
 export enum ConfigSource {
   Local,

@@ -51,3 +51,7 @@ export {
   DiffResultParser,
   DiffSuccessResponse
 } from './diffResultParser';
+export {
+  disableCLITelemetry,
+  isCLITelemetryAllowed
+} from './cliConfiguration';

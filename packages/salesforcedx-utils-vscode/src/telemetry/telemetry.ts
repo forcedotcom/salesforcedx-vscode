@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
 import * as util from 'util';
 import { env, ExtensionContext, workspace } from 'vscode';
-/* import {
+import {
   disableCLITelemetry,
   isCLITelemetryAllowed
-} from '../cli/cliConfiguration'; */
+} from '../cli';
 import TelemetryReporter from './telemetryReporter';
 const packageJson = {
   version: '50.2.0-test',
@@ -107,7 +106,6 @@ export class TelemetryService {
       this.isTelemetryEnabled() &&
       !isDevMode
     ) {
-      // const packageJson = require(path.join('..', '..', '..', 'package.json'));
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
         packageJson.version,
@@ -133,9 +131,8 @@ export class TelemetryService {
     if (typeof this.cliAllowsTelemetryPromise !== 'undefined') {
       return this.cliAllowsTelemetryPromise;
     }
-    /* this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
-    return await this.cliAllowsTelemetryPromise; */
-    return true;
+    this.cliAllowsTelemetryPromise = isCLITelemetryAllowed();
+    return await this.cliAllowsTelemetryPromise;
   }
 
   public isTelemetryExtensionConfigurationEnabled(): boolean {
@@ -151,7 +148,7 @@ export class TelemetryService {
 
   public setCliTelemetryEnabled(isEnabled: boolean): void {
     if (!isEnabled) {
-      // disableCLITelemetry();
+      disableCLITelemetry();
     }
   }
 
