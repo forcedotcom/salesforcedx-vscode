@@ -1,3 +1,25 @@
+# 50.2.0 - October 22, 2020
+
+## Fixed
+
+#### docs
+
+- Re-organize Get Started section ([PR #2626](https://github.com/forcedotcom/salesforcedx-vscode/pull/2626))
+
+#### salesforcedx-vscode-apex
+
+- Improve @AuraEnabled apex snippet for better error handling. ([PR #2640](https://github.com/forcedotcom/salesforcedx-vscode/pull/2640)) - Contribution by [@PawelWozniak](https://github.com/PawelWozniak)
+
+#### salesforcedx-vscode-core
+
+- Org browser retrieve & open handling types with xml only files ([PR #2635](https://github.com/forcedotcom/salesforcedx-vscode/pull/2635))
+
+- Fixed Org browser retrieve ([PR #2639](https://github.com/forcedotcom/salesforcedx-vscode/pull/2639), [Issue #2634](https://github.com/forcedotcom/salesforcedx-vscode/issues/2634))
+
+#### salesforcedx-vscode-lwc
+
+- LWC language server correctly handles empty custom label files ([PR #2637](https://github.com/forcedotcom/salesforcedx-vscode/pull/2637), [Issue #2575](https://github.com/forcedotcom/salesforcedx-vscode/issues/2575))
+
 # 50.1.0 - October 14, 2020
 
 ## Added
