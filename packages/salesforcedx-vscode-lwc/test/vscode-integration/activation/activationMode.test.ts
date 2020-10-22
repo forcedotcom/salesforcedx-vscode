@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import * as sinonChai from 'sinon-chai';
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { MockContext } from './MockContext';
 
 chai.use(sinonChai);
 const { expect, assert } = chai;
@@ -31,7 +32,8 @@ describe('activation modes', () => {
 
   it('activates every time when activationMode is set to always', async function() {
     const EXPECTED = 'always';
-
+    // create vscode extensionContext
+    mockContext = new MockContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {
@@ -51,7 +53,8 @@ describe('activation modes', () => {
 
   it('activates every time when activationMode is set to always for non LWC projects', async function() {
     const EXPECTED = 'always';
-
+    // create vscode extensionContext
+    mockContext = new MockContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {
@@ -98,6 +101,8 @@ describe('activation modes', () => {
 
   it('conditionally activates when activationMode is set to autodetect for LWC projects', async function() {
     const EXPECTED = 'autodetect';
+    // create vscode extensionContext
+    mockContext = new MockContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {
@@ -120,6 +125,8 @@ describe('activation modes', () => {
 
   it('does not activate when activationMode is set to autodetect for non-LWC projects', async function() {
     const EXPECTED = 'autodetect';
+    // create vscode extensionContext
+    mockContext = new MockContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {

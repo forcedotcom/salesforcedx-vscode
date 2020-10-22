@@ -14,6 +14,7 @@ const mShowInformation = stub();
 mShowInformation.returns(Promise.resolve());
 const vscodeStub = {
   commands: stub(),
+  Disposable: stub(),
   Uri: {
     parse: stub()
   },
@@ -54,7 +55,7 @@ describe('Telemetry dev mode', () => {
 
     // tslint:disable-next-line
     const { TelemetryService } = proxyquire.noCallThru()(
-      '../../../src/telemetry/telemetry',
+      '../../../src/telemetry/index',
       {
         vscode: vscodeStub,
         './telemetryReporter': { default: telemetryReporterStub },
