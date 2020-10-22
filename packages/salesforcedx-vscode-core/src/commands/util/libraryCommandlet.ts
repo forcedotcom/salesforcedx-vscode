@@ -9,7 +9,10 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { TelemetryBuilder, telemetryService } from '../../telemetry';
+import {
+  TelemetryBuilder,
+  telemetryService
+} from '../../telemetry';
 import { CommandletExecutor } from './sfdxCommandlet';
 
 export abstract class LibraryCommandletExecutor<T>

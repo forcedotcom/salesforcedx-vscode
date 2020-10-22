@@ -143,9 +143,8 @@ export class LogFileSelector
     const logInfos = sfdxCoreSettings.getApexLibrary()
       ? await this.getLogRecords()
       : await ForceApexLogList.getLogs(cancellationTokenSource);
-    console.log('loginfos' + logInfos.length);
+
     if (logInfos && logInfos.length > 0) {
-      console.log('did we get here ');
       const logItems = logInfos.map(logInfo => {
         const icon = '$(file-text) ';
         const localUTCDate = new Date(logInfo.StartTime);
@@ -174,7 +173,6 @@ export class LogFileSelector
         };
       }
     } else {
-      console.log('yo');
       return {
         type: 'CANCEL',
         msg: nls.localize('force_apex_log_get_no_logs_text')

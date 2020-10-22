@@ -135,9 +135,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   protected logName = 'force_source_retrieve_with_sourcepath_beta';
   protected executionName = 'Retrieve (Beta)';
 
-  protected async run(
-    response: ContinueResponse<string>
-  ): Promise<boolean> {
+  protected async run(response: ContinueResponse<string>): Promise<boolean> {
     const getConnection = workspaceContext.getConnection();
     const registryAccess = new RegistryAccess();
     const components = registryAccess.getComponentsFromPath(response.data);
