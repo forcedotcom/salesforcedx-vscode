@@ -22,6 +22,7 @@ export const messages = {
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
   telemetry_legal_dialog_button_text: 'Read more',
 
+  progress_notification_text: 'Running %s',
   notification_successful_execution_text: '%s successfully ran',
   notification_canceled_execution_text: '%s was canceled',
   notification_unsuccessful_execution_text: '%s failed to run',
