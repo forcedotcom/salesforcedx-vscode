@@ -20,5 +20,11 @@ export const messages = {
     'Salesforce CLI is not installed. Install it from [%s](%s)',
   telemetry_legal_dialog_message:
     'You agree that Salesforce Extensions for VS Code may collect usage information, user environment, and crash reports for product improvements. Learn how to [opt out](%s).',
-  telemetry_legal_dialog_button_text: 'Read more'
+  telemetry_legal_dialog_button_text: 'Read more',
+
+  notification_successful_execution_text: '%s successfully ran',
+  notification_canceled_execution_text: '%s was canceled',
+  notification_unsuccessful_execution_text: '%s failed to run',
+  notification_show_button_text: 'Show',
+  notification_show_in_status_bar_button_text: 'Show Only in Status Bar'
 };
