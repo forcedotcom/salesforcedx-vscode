@@ -14,6 +14,7 @@ import {
   QueryResult
 } from 'jsforce';
 import * as vscode from 'vscode';
+import { getDocumentName } from '../commonUtils';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 
@@ -40,7 +41,8 @@ export enum MessageType {
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
   TEXT_SOQL_CHANGED = 'text_soql_changed',
-  RUN_SOQL_QUERY = 'run_query'
+  RUN_SOQL_QUERY = 'run_query',
+  DOCUMENT_INFO = 'document_info'
 }
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
@@ -84,10 +86,24 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
+  /* --- MESSAGING TO THE UI ---- */
+
   protected updateWebview(document: vscode.TextDocument): void {
     this.webviewPanel.webview.postMessage({
       type: MessageType.TEXT_SOQL_CHANGED,
       payload: document.getText()
+    });
+  }
+
+  protected updateDocumentInfo(document: vscode.TextDocument): void {
+    const name = getDocumentName(document);
+    const payload = {
+      name
+    };
+
+    this.webviewPanel.webview.postMessage({
+      type: MessageType.DOCUMENT_INFO,
+      payload
     });
   }
 
@@ -111,9 +127,12 @@ export class SOQLEditorInstance {
     }
   }
 
+  /* --- MESSAGING RECEIVED FROM THE UI ---- */
+
   protected onDidRecieveMessageHandler(e: SoqlEditorEvent): void {
     switch (e.type) {
       case MessageType.UI_ACTIVATED: {
+        this.updateDocumentInfo(this.document);
         this.updateWebview(this.document);
         break;
       }
@@ -178,13 +197,14 @@ export class SOQLEditorInstance {
       this.updateSObjects(sobjectNames);
     });
   }
+
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
       const sobject = await conn.describe(sobjectName);
       this.updateSObjectMetadata(sobject);
     });
   }
-  // Write out the json to a given document. //
+  // Write out the json to a given document
   protected updateTextDocument(
     document: vscode.TextDocument,
     soqlQuery: string
