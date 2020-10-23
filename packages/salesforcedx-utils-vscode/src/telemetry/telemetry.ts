@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path';
 import * as util from 'util';
 import { env, ExtensionContext, workspace } from 'vscode';
 import {
   disableCLITelemetry,
   isCLITelemetryAllowed
-} from '../cli/cliConfiguration';
+} from './cliConfiguration';
 import TelemetryReporter from './telemetryReporter';
 
 interface CommandMetric {
@@ -59,6 +58,8 @@ export class TelemetryService {
   private static instance: TelemetryService;
   private context: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
+  private aiKey: string = '';
+  private version: string = '';
   /**
    * Cached promise to check if CLI telemetry config is enabled
    */
@@ -79,10 +80,14 @@ export class TelemetryService {
    */
   public async initializeService(
     context: ExtensionContext,
-    extensionName: string
+    extensionName: string,
+    aiKey: string,
+    version: string
   ): Promise<void> {
     this.context = context;
     this.extensionName = extensionName;
+    this.aiKey = aiKey;
+    this.version = version;
 
     this.checkCliTelemetry()
       .then(async cliEnabled => {
@@ -103,11 +108,10 @@ export class TelemetryService {
       this.isTelemetryEnabled() &&
       !isDevMode
     ) {
-      const packageJson = require(path.join('..', '..', '..', 'package.json'));
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
-        packageJson.version,
-        packageJson.aiKey,
+        this.version,
+        this.aiKey,
         true
       );
       this.context.subscriptions.push(this.reporter);
@@ -151,7 +155,7 @@ export class TelemetryService {
   }
 
   public async sendExtensionActivationEvent(hrstart: [number, number]): Promise<void> {
-     if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
+    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
       const startupTime = this.getEndHRTime(hrstart);
       this.reporter.sendTelemetryEvent(
         'activationEvent',
