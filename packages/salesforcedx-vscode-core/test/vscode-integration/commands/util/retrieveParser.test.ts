@@ -97,17 +97,18 @@ describe('retrieveParser', () => {
     // @ts-ignore
     const apiResultWithOutType = {
       success: true,
+      status: RetrieveStatus.Succeeded,
       components: [
         {
+          // @ts-ignore
           name: 'MyTestClass',
           xml: 'some/path/MyTestClass.cls-meta.xml',
           // @ts-ignore
           walkContent(): ['some/path/MyTestClass.cls'];
         }
       ],
-      message: 'Message from library'
-    } as ApiResult;
-    // @ts-ignore
+      messages: 'Message from library'
+    } as SourceRetrieveResult;
     const parsedResult = outputRetrieveTable(apiResultWithOutType);
 
     expect(parsedResult).to.equal(
