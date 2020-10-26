@@ -100,10 +100,11 @@ function getNewChangeLogBranch(releaseBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 2: Create new change log branch.');
   }
-  var changeLogBranch =
+  const changeLogBranch =
     constants.CHANGE_LOG_BRANCH +
     releaseBranch.replace(constants.RELEASE_BRANCH_PREFIX, '');
-  shell.exec(`git checkout -b ${changeLogBranch} ${releaseBranch}`).code;
+  const code = shell.exec(`git checkout -b ${changeLogBranch} ${releaseBranch}`)
+    .code;
   if (code !== 0) {
     console.log(
       'An error occurred generating the change log branch. Exitting.'
