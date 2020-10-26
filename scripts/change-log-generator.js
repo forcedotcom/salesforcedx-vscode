@@ -22,24 +22,10 @@ const path = require('path');
 const shell = require('shelljs');
 const fs = require('fs');
 const util = require('util');
+const constants = require('./change-log-constants');
 
 shell.set('-e');
 shell.set('+v');
-
-// Commands
-const GIT_BRANCH =
-  "git branch --remotes --list --sort='-creatordate' 'origin/release/v*'";
-const GIT_CHECKOUT = 'git checkout -b %s %s';
-const GIT_LOG = 'git log --cherry-pick --oneline %s...%s';
-
-// Constants
-const CHANGE_LOG_PATH = path.join(
-  process.cwd(),
-  'packages',
-  'salesforcedx-vscode',
-  'CHANGELOG.md'
-);
-const CHANGE_LOG_BRANCH = 'changeLog-v';
 
 // Text Values
 const RELEASE_MESSAGE = 'Using Release Branch: %s\nPrevious Release Branch: %s';
@@ -76,7 +62,7 @@ function getReleaseBranch() {
   var releaseIndex = process.argv.indexOf('-r');
   var releaseBranch =
     releaseIndex > -1 && process.argv[releaseIndex + 1]
-      ? 'origin/release/v' + process.argv[releaseIndex + 1]
+      ? constants.RELEASE_BRANCH_PREFIX + process.argv[releaseIndex + 1]
       : getReleaseBranches()[0];
   validateReleaseBranch(releaseBranch);
   return releaseBranch;
@@ -88,7 +74,10 @@ function getReleaseBranch() {
  */
 function getReleaseBranches() {
   return shell
-    .exec(GIT_BRANCH, { silent: true })
+    .exec(
+      `git branch --remotes --list --sort='-creatordate' '${constants.RELEASE_BRANCH_PREFIX}*'`,
+      { silent: true }
+    )
     .replace(/\n/g, ',')
     .split(',')
     .map(Function.prototype.call, String.prototype.trim);
@@ -106,7 +95,7 @@ function getPreviousReleaseBranch(releaseBranch) {
 }
 
 function validateReleaseBranch(releaseBranch) {
-  if (!(releaseBranch && RELEASE_REGEX.exec(releaseBranch))) {
+  if (!(releaseBranch && constants.RELEASE_REGEX.exec(releaseBranch))) {
     console.log(
       "Invalid release '" + releaseBranch + "'. Expected format [xx.yy.z]."
     );
@@ -114,13 +103,21 @@ function validateReleaseBranch(releaseBranch) {
   }
 }
 
+/**
+ * Create the changelog branch for committing these changes.
+ * If the branch already exists, check it out to append any
+ * new changes.
+ */
 function getNewChangeLogBranch(releaseBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 2: Create new change log branch.');
   }
   var changeLogBranch =
-    CHANGE_LOG_BRANCH + releaseBranch.replace('origin/release/v', '');
-  shell.exec(util.format(GIT_CHECKOUT, changeLogBranch, releaseBranch));
+    constants.CHANGE_LOG_BRANCH +
+    releaseBranch.replace(constants.RELEASE_BRANCH_PREFIX, '');
+  shell.exec(
+    `git checkout $(git show-ref --verify --quiet refs/heads/${changeLogBranch} || echo '-b') ${changeLogBranch} ${releaseBranch}`
+  );
 }
 
 /**
@@ -132,13 +129,16 @@ function getCommits(releaseBranch, previousBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log(
       '\nStep 3: Determine differences between current release branch and previous release branch.' +
-      '\nCommits:'
+        '\nCommits:'
     );
   }
   var commits = shell
-    .exec(util.format(GIT_LOG, releaseBranch, previousBranch), {
-      silent: !ADD_VERBOSE_LOGGING
-    })
+    .exec(
+      `git log --cherry-pick --oneline ${releaseBranch}...${previousBranch}`,
+      {
+        silent: !ADD_VERBOSE_LOGGING
+      }
+    )
     .stdout.trim()
     .split('\n');
   return commits;
@@ -202,7 +202,7 @@ function getFilesChanged(commitNumber) {
 
 function getPackageHeaders(filesChanged) {
   var packageHeaders = new Set();
-  filesChanged.split(',').forEach(function (filePath) {
+  filesChanged.split(',').forEach(function(filePath) {
     var packageName = getPackageName(filePath);
     if (packageName) {
       packageHeaders.add(packageName);
@@ -229,7 +229,7 @@ function getPackageName(filePath) {
 function filterPackageNames(packageHeaders) {
   var filteredHeaders = new Set(packageHeaders);
   if (packageHeaders.has('salesforcedx-vscode-core')) {
-    packageHeaders.forEach(function (packageName) {
+    packageHeaders.forEach(function(packageName) {
       if (packageName != 'salesforcedx-vscode-core' && packageName != 'docs') {
         filteredHeaders.delete(packageName);
       }
@@ -239,9 +239,9 @@ function filterPackageNames(packageHeaders) {
 }
 
 function filterExistingPREntries(parsedCommits) {
-  var currentChangeLog = fs.readFileSync(CHANGE_LOG_PATH);
+  var currentChangeLog = fs.readFileSync(constants.CHANGE_LOG_PATH);
   var filteredResults = [];
-  parsedCommits.forEach(function (map) {
+  parsedCommits.forEach(function(map) {
     if (!currentChangeLog.includes('PR #' + map[PR_NUM])) {
       filteredResults.push(map);
     } else if (ADD_VERBOSE_LOGGING) {
@@ -258,8 +258,8 @@ function filterExistingPREntries(parsedCommits) {
 function getMessagesGroupedByPackage(parsedCommits) {
   var groupedMessages = {};
   var sortedMessages = {};
-  parsedCommits.forEach(function (map) {
-    map[PACKAGES].forEach(function (packageName) {
+  parsedCommits.forEach(function(map) {
+    map[PACKAGES].forEach(function(packageName) {
       var key = generateKey(packageName, map[TYPE]);
       if (key) {
         groupedMessages[key] = groupedMessages[key] || [];
@@ -271,7 +271,7 @@ function getMessagesGroupedByPackage(parsedCommits) {
   });
   Object.keys(groupedMessages)
     .sort()
-    .forEach(function (key) {
+    .forEach(function(key) {
       sortedMessages[key] = groupedMessages[key];
     });
   if (ADD_VERBOSE_LOGGING) {
@@ -309,17 +309,17 @@ function generateKey(packageName, type) {
 function getChangeLogText(releaseBranch, groupedMessages) {
   var changeLogText = util.format(
     LOG_HEADER,
-    releaseBranch.toString().replace('origin/release/v', '')
+    releaseBranch.toString().replace(constants.RELEASE_BRANCH_PREFIX, '')
   );
   var lastType = '';
-  Object.keys(groupedMessages).forEach(function (typeAndPackageName) {
+  Object.keys(groupedMessages).forEach(function(typeAndPackageName) {
     var [type, packageName] = typeAndPackageName.split('|');
     if (!lastType || lastType != type) {
       changeLogText += util.format(TYPE_HEADER, type);
       lastType = type;
     }
     changeLogText += util.format(SECTION_HEADER, packageName);
-    groupedMessages[typeAndPackageName].forEach(function (message) {
+    groupedMessages[typeAndPackageName].forEach(function(message) {
       changeLogText += message;
     });
   });
@@ -327,19 +327,34 @@ function getChangeLogText(releaseBranch, groupedMessages) {
 }
 
 function writeChangeLog(textToInsert) {
-  var data = fs.readFileSync(CHANGE_LOG_PATH);
-  var fd = fs.openSync(CHANGE_LOG_PATH, 'w+');
+  var data = fs.readFileSync(constants.CHANGE_LOG_PATH);
+  var fd = fs.openSync(constants.CHANGE_LOG_PATH, 'w+');
   var buffer = Buffer.from(textToInsert.toString());
   fs.writeSync(fd, buffer, 0, buffer.length, 0);
   fs.writeSync(fd, data, 0, data.length, buffer.length);
   fs.closeSync(fd);
 }
 
+function openPRForChanges(releaseBranch) {
+  var changeLogBranch = getChangeLogBranch(releaseBranch);
+  var commitCommand =
+    'git commit -a -m "Auto-Generated CHANGELOG for "' + releaseBranch;
+  var pushCommand = 'git push origin ' + changeLogBranch;
+  var pr = util.format(
+    'git request-pull %s origin %s',
+    releaseBranch,
+    changeLogBranch
+  );
+  shell.exec(commitCommand);
+  shell.exec(pushCommand, { silent: true });
+  shell.exec(pr);
+}
+
 function writeAdditionalInfo() {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 6: Write results to the change log.');
   }
-  console.log('Change log written to: ' + CHANGE_LOG_PATH);
+  console.log('Change log written to: ' + constants.CHANGE_LOG_PATH);
   console.log('\nNext Steps:');
   console.log("  1) Remove entries that shouldn't be included in the release.");
   console.log('  2) Add documentation links as needed.');
