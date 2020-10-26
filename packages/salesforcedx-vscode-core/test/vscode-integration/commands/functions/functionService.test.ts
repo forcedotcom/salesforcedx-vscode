@@ -41,12 +41,12 @@ describe('Function Service', () => {
 
     const mockDebugSession: vscode.DebugSession = {
       id: '',
-      name: 'Debug Send Request',
+      name: 'Debug Invoke',
       type: 'node',
       workspaceFolder: getRootWorkspace(),
       configuration: {
         type: 'node',
-        name: 'Debug Send Request',
+        name: 'Debug Invoke',
         request: 'attach'
       },
       customRequest: () => {
@@ -79,7 +79,7 @@ describe('Function Service', () => {
         {
           type: 'node',
           request: 'attach',
-          name: 'Debug Send Request',
+          name: 'Debug Invoke',
           resolveSourceMapLocations: ['**', '!**/node_modules/**'],
           console: 'integratedTerminal',
           internalConsoleOptions: 'openOnSessionStart',
