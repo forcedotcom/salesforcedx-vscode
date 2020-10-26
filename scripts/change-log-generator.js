@@ -337,16 +337,13 @@ function writeChangeLog(textToInsert) {
 function openPRForChanges(releaseBranch) {
   var changeLogBranch = getChangeLogBranch(releaseBranch);
   var commitCommand =
-    'git commit -a -m "Auto-Generated CHANGELOG for "' + releaseBranch;
+    'git commit -a -m "chore: generated CHANGELOG for "' + releaseBranch;
   var pushCommand = 'git push origin ' + changeLogBranch;
-  var pr = util.format(
-    'git request-pull %s origin %s',
-    releaseBranch,
-    changeLogBranch
-  );
   shell.exec(commitCommand);
   shell.exec(pushCommand, { silent: true });
-  shell.exec(pr);
+  shell.exec(
+    `open "https://github.com/forcedotcom/salesforcedx-vscode/pull/new/${changeLogBranch}"`
+  );
 }
 
 function writeAdditionalInfo() {
@@ -360,8 +357,7 @@ function writeAdditionalInfo() {
   console.log(
     '     Format: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)'
   );
-  console.log("  3) Move entries to the 'Added' or 'Fixed' section header.");
-  console.log('  4) Commit, push, and open your PR for team review.');
+  console.log('  3) Open your PR for team review.');
 }
 
 console.log("Starting script 'change-log-generator'\n");
@@ -377,3 +373,4 @@ var groupedMessages = getMessagesGroupedByPackage(parsedCommits);
 var changeLog = getChangeLogText(releaseBranch, groupedMessages);
 writeChangeLog(changeLog);
 writeAdditionalInfo();
+openPRForChanges(releaseBranch);
