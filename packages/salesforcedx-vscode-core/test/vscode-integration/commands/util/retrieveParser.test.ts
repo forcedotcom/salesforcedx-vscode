@@ -10,6 +10,11 @@ import {
   registryData,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentRetrieval,
+  RetrieveStatus,
+  SourceRetrieveResult
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import { join } from 'path';
 import { outputRetrieveTable } from '../../../../src/commands/util/retrieveParser';
@@ -18,25 +23,27 @@ import { nls } from '../../../../src/messages';
 describe('retrieveParser', () => {
   it('Should handle an ApiResult with no components and no message', () => {
     const emptyResult = {
+      status: RetrieveStatus.Succeeded,
       success: true,
       components: []
-    } as ApiResult;
+    } as SourceRetrieveResult;
 
     const parsedResult = outputRetrieveTable(emptyResult);
     expect(parsedResult).to.equal(
       nls.localize(
         'lib_retrieve_result_parse_error',
-        JSON.stringify({ success: true, components: [] })
+        JSON.stringify({ status: RetrieveStatus.Succeeded, success: true, components: [] })
       )
     );
   });
 
   it('Should handle an ApiResult with no components but with message', () => {
     const emptyResult = {
+      status: RetrieveStatus.Succeeded,
       success: true,
       components: [],
-      message: 'Message from library'
-    } as ApiResult;
+      messages: 'Message from library'
+    } as SourceRetrieveResult;
 
     const parsedResult = outputRetrieveTable(emptyResult);
     expect(parsedResult).to.equal('Message from library');
@@ -45,6 +52,7 @@ describe('retrieveParser', () => {
   it('Should handle a fully formed ApiResult', () => {
     const apexClassPath = join('classes', 'MyTestClass.cls');
     const apexClassXmlPath = `${apexClassPath}-meta.xml`;
+    const message = 'Message from library';
     const component = SourceComponent.createVirtualComponent(
       {
         name: 'MyTestClass',
@@ -59,11 +67,18 @@ describe('retrieveParser', () => {
         }
       ]
     );
+    const componentRetrieval = {
+      component,
+      status: RetrieveStatus.Succeeded,
+      diagnostics: { message }
+    } as ComponentRetrieval;
+
     const successfulResult = {
+      status: RetrieveStatus.Succeeded,
       success: true,
-      components: [component],
-      message: 'Message from library'
-    } as ApiResult;
+      components: [componentRetrieval],
+      messages: 'Message from library'
+    } as SourceRetrieveResult;
 
     const parsedResult = outputRetrieveTable(successfulResult);
 
@@ -82,17 +97,18 @@ describe('retrieveParser', () => {
     // @ts-ignore
     const apiResultWithOutType = {
       success: true,
+      status: RetrieveStatus.Succeeded,
       components: [
         {
+          // @ts-ignore
           name: 'MyTestClass',
           xml: 'some/path/MyTestClass.cls-meta.xml',
           // @ts-ignore
           walkContent(): ['some/path/MyTestClass.cls'];
         }
       ],
-      message: 'Message from library'
-    } as ApiResult;
-
+      messages: 'Message from library'
+    } as SourceRetrieveResult;
     const parsedResult = outputRetrieveTable(apiResultWithOutType);
 
     expect(parsedResult).to.equal(

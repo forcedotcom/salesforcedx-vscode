@@ -5,18 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ApiResult } from '@salesforce/source-deploy-retrieve';
+import { RetrieveMessage, SourceRetrieveResult } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 
-export function outputRetrieveTable(retrieveResult: ApiResult) {
-  if (retrieveResult.components.length === 0) {
-    return retrieveResult.message
-      ? retrieveResult.message
+export function outputRetrieveTable(retrieveResult: SourceRetrieveResult) {
+  if (isNullOrUndefined(retrieveResult.components) || retrieveResult.components?.length === 0) {
+    return retrieveResult.messages
+      ? getMessage(retrieveResult.messages)
       : nls.localize(
           'lib_retrieve_result_parse_error',
           JSON.stringify(retrieveResult)
@@ -28,7 +29,8 @@ export function outputRetrieveTable(retrieveResult: ApiResult) {
   const title = nls.localize('lib_retrieve_result_title');
   const resultRows = [] as Row[];
   try {
-    for (const component of retrieveResult.components) {
+    for (const componentRetrieval of retrieveResult.components!) {
+      const component = componentRetrieval.component;
       const { fullName, type } = component;
       for (const file of component.walkContent()) {
         resultRows.push({
@@ -66,4 +68,16 @@ export function outputRetrieveTable(retrieveResult: ApiResult) {
     );
   }
   return outputResult;
+}
+
+function getMessage(retrieveMessage: string | RetrieveMessage[]): string {
+  if (typeof retrieveMessage === 'string') {
+    return retrieveMessage;
+  }
+
+  let problems = '';
+  for (const messageObj of retrieveMessage) {
+    problems += `${messageObj.problem} `;
+  }
+  return problems;
 }
