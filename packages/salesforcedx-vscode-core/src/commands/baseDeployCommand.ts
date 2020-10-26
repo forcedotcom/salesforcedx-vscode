@@ -76,6 +76,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime, properties);
 
       try {
+        BaseDeployExecutor.errorCollection.clear();
         if (stdOut) {
           const deployParser = new ForceDeployResultParser(stdOut);
           const errors = deployParser.getErrors();
@@ -87,12 +88,11 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
               execFilePathOrPaths,
               BaseDeployExecutor.errorCollection
             );
-          } else {
-            BaseDeployExecutor.errorCollection.clear();
           }
           this.outputResult(deployParser);
         }
       } catch (e) {
+        BaseDeployExecutor.errorCollection.clear();
         if (e.name !== 'DeployParserFail') {
           e.message =
             'Error while creating diagnostics for vscode problem view.';
