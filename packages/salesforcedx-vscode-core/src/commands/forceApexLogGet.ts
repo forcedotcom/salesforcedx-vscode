@@ -186,7 +186,7 @@ export class LogFileSelector
     const logService = new LogService(connection);
     return vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
-      title: 'Fetching log list'
+      title: nls.localize('apex_log_list_text')
     }, () => logService.getLogRecords());
   }
 }
