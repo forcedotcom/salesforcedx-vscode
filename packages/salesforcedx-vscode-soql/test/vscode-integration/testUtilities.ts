@@ -112,6 +112,10 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
     return super.updateTextDocument(document, soql);
   }
 
+  public updateDocumentInfo(document: vscode.TextDocument) {
+    super.updateDocumentInfo(document);
+  }
+
   public openQueryDataView(queryData: QueryResult<JsonMap>) {
     super.openQueryDataView(queryData);
   }

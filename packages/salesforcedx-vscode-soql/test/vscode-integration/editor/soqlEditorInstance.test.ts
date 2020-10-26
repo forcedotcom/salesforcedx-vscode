@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { getDocumentName } from '../../../src/commonUtils';
 import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
   getMockConnection,
@@ -152,5 +153,24 @@ describe('SoqlEditorInstance should', () => {
       openQueryResultsSpy.callCount === 1,
       `openQueryResultsSpy callcount expected 1, but got ${openQueryResultsSpy.callCount}`
     );
+  });
+
+  it('send the document info with activaion event', () => {
+    const updateDocumentInfoSpy = sandbox.spy(instance, 'updateDocumentInfo');
+    const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+    const documentName = getDocumentName(mockTextDocument);
+    instance.sendEvent({
+      type: MessageType.UI_ACTIVATED
+    });
+    expect(
+      updateDocumentInfoSpy.callCount === 1,
+      `openQueryResultsSpy callcount expected 1, but got ${updateDocumentInfoSpy.callCount}`
+    );
+
+    const expectedMessage = {
+      type: MessageType.DOCUMENT_INFO,
+      payload: { name: documentName }
+    };
+    expect(postMessageSpy.calledWith(expectedMessage));
   });
 });
