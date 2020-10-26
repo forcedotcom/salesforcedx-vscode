@@ -8,8 +8,8 @@
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
-import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../workspaces/rootWorkspace';
+import { getRootWorkspacePath } from '../workspaces';
+import { TelemetryService } from './telemetry';
 
 export enum ConfigSource {
   Local,
@@ -52,7 +52,7 @@ export class ConfigUtil {
           return localValue;
         }
       } catch (err) {
-        telemetryService
+        TelemetryService.getInstance()
           .sendException('get_config_value_local', err.message)
           .catch(error => console.error(error));
         return undefined;
@@ -66,7 +66,7 @@ export class ConfigUtil {
           return globalValue;
         }
       } catch (err) {
-        telemetryService
+        TelemetryService.getInstance()
           .sendException('get_config_value_global', err.message)
           .catch(error => console.error(error));
         return undefined;
