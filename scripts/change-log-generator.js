@@ -18,7 +18,6 @@
  */
 
 const process = require('process');
-const path = require('path');
 const shell = require('shelljs');
 const fs = require('fs');
 const util = require('util');
@@ -44,12 +43,6 @@ const TYPE = 'TYPE';
 const MESSAGE = 'MESSAGE';
 const FILES_CHANGED = 'FILES_CHANGED';
 const PACKAGES = 'PACKAGES';
-
-// Regex
-const RELEASE_REGEX = new RegExp(/^origin\/release\/v\d{2}\.\d{1,2}\.\d/);
-const PR_REGEX = new RegExp(/(\(#\d+\))/);
-const COMMIT_REGEX = new RegExp(/^([\da-zA-Z]+)/);
-const TYPE_REGEX = new RegExp(/([a-zA-Z]+)(?:\([a-zA-Z]+\))?:/);
 
 /**
  * Checks if the user has provided a release branch override. If they
@@ -165,11 +158,11 @@ function parseCommits(commits) {
 function buildMapFromCommit(commit) {
   var map = {};
   if (commit) {
-    var pr = PR_REGEX.exec(commit);
-    var commitNum = COMMIT_REGEX.exec(commit);
+    var pr = constants.PR_REGEX.exec(commit);
+    var commitNum = constants.COMMIT_REGEX.exec(commit);
     if (pr && commitNum) {
       var message = commit.replace(commitNum[0], '').replace(pr[0], '');
-      var type = TYPE_REGEX.exec(message);
+      var type = constants.TYPE_REGEX.exec(message);
       map[PR_NUM] = pr[0].replace(/[^\d]/g, '');
       map[COMMIT] = commitNum[0];
       if (type) {
