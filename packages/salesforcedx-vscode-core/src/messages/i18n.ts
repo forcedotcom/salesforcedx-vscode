@@ -160,8 +160,8 @@ export const messages = {
   force_function_start_unexpected_error:
     'SFDX: Start Function exited unexpectedly with code %s',
   force_function_invoke_text: 'SFDX: Invoke Function',
-  force_function_invoke_tooltip: 'Send Request',
-  force_function_debug_invoke_tooltip: 'Debug Send Request',
+  force_function_invoke_tooltip: 'Invoke',
+  force_function_debug_invoke_tooltip: 'Debug Invoke',
   force_function_stop_text: 'SFDX: Stop Function',
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
