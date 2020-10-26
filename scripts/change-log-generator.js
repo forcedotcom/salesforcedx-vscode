@@ -96,11 +96,6 @@ function validateReleaseBranch(releaseBranch) {
   }
 }
 
-/**
- * Create the changelog branch for committing these changes.
- * If the branch already exists, check it out to append any
- * new changes.
- */
 function getNewChangeLogBranch(releaseBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 2: Create new change log branch.');
@@ -108,9 +103,7 @@ function getNewChangeLogBranch(releaseBranch) {
   var changeLogBranch =
     constants.CHANGE_LOG_BRANCH +
     releaseBranch.replace(constants.RELEASE_BRANCH_PREFIX, '');
-  shell.exec(
-    `git checkout $(git show-ref --verify --quiet refs/heads/${changeLogBranch} || echo '-b') ${changeLogBranch} ${releaseBranch}`
-  ).code;
+  shell.exec(`git checkout -b ${changeLogBranch} ${releaseBranch}`).code;
   if (code !== 0) {
     console.log(
       'An error occurred generating the change log branch. Exitting.'
@@ -334,8 +327,7 @@ function writeChangeLog(textToInsert) {
   fs.closeSync(fd);
 }
 
-function openPRForChanges(releaseBranch) {
-  var changeLogBranch = getChangeLogBranch(releaseBranch);
+function openPRForChanges(releaseBranch, changeLogBranch) {
   var commitCommand =
     'git commit -a -m "chore: generated CHANGELOG for "' + releaseBranch;
   var pushCommand = 'git push origin ' + changeLogBranch;
