@@ -227,13 +227,11 @@ export class ForceApexLogList {
   }
 }
 
-export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: string; }> {
+export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: string }> {
   protected executionName: string = nls.localize('apex_log_get_text');
   protected logName: string = 'force_apex_log_get_library';
 
-  protected async run(
-    response: ContinueResponse<{ id: string }>
-  ): Promise<boolean> {
+  protected async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;

@@ -22,13 +22,9 @@ export abstract class LibraryCommandletExecutor<T>
   protected abstract readonly logName: string;
   protected abstract readonly executionName: string;
 
-  protected abstract run(
-    response: ContinueResponse<T>
-  ): Promise<boolean>;
+  protected abstract run(response: ContinueResponse<T>): Promise<boolean>;
 
-  public async execute(
-    response: ContinueResponse<T>
-  ): Promise<void> {
+  public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
 
     channelService.showCommandWithTimestamp(`Starting ${this.executionName}\n`);
@@ -64,7 +60,6 @@ export abstract class LibraryCommandletExecutor<T>
         properties,
         measurements
       );
-
     } catch (e) {
       telemetryService.sendException(e.name, e.message);
       notificationService.showFailedExecution(this.executionName);

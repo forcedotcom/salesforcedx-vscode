@@ -144,10 +144,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
     const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath } = response.data;
 
-    const result = await executeService.executeAnonymous({
-      apexFilePath,
-      apexCode
-    });
+    const result = await executeService.executeAnonymous({ apexFilePath, apexCode });
 
     const { success } = result;
     const formattedResult = formatExecuteResult(result);
