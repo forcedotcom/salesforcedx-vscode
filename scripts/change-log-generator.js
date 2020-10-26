@@ -110,7 +110,13 @@ function getNewChangeLogBranch(releaseBranch) {
     releaseBranch.replace(constants.RELEASE_BRANCH_PREFIX, '');
   shell.exec(
     `git checkout $(git show-ref --verify --quiet refs/heads/${changeLogBranch} || echo '-b') ${changeLogBranch} ${releaseBranch}`
-  );
+  ).code;
+  if (code !== 0) {
+    console.log(
+      'An error occurred generating the change log branch. Exitting.'
+    );
+    process.exit(-1);
+  }
 }
 
 /**
