@@ -138,9 +138,6 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 > {
   protected executionName = 'Deploy (Beta)';
   protected logName = 'force_source_deploy_with_sourcepath_beta';
-  /* private diagnostics = vscode.languages.createDiagnosticCollection(
-    'deploy-errors'
-  ); */
 
   public async run(
     response: ContinueResponse<string | string[]>
