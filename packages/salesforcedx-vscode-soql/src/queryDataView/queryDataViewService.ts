@@ -172,12 +172,23 @@ export class QueryDataViewService {
         )
       )
     );
+    const saveIconUri = webview.asWebviewUri(
+      vscode.Uri.file(
+        path.join(
+          QueryDataViewService.extensionPath,
+          DATA_VIEW_UI_PATH,
+          'icons',
+          'icon__save.svg'
+        )
+      )
+    );
 
     const staticAssets = {
       baseStyleUri,
       tabulatorStyleUri,
       viewControllerUri,
-      tabulatorUri
+      tabulatorUri,
+      saveIconUri
     };
 
     return getHtml(staticAssets, QueryDataViewService.extensionPath, webview);
