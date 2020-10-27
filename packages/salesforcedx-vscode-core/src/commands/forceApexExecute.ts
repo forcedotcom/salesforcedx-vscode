@@ -157,11 +157,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
       const document = editor!.document;
       const filePath = apexFilePath || document.uri.fsPath;
 
-      handleApexLibraryDiagnostics(
-        result,
-        this.diagnostics,
-        filePath
-      );
+      handleApexLibraryDiagnostics(result, this.diagnostics, filePath);
     }
 
     return success;
