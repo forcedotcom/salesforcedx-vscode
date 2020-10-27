@@ -6,12 +6,12 @@
  */
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import {
   CliCommandExecutor,
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
