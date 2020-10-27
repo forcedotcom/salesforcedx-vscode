@@ -11,6 +11,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName } from '../commonUtils';
 import {
+  DATA_VIEW_ICONS_PATH,
   DATA_VIEW_RESOURCE_ROOTS_PATH,
   DATA_VIEW_UI_PATH,
   IMAGES_DIR_NAME,
@@ -18,6 +19,7 @@ import {
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
   QUERY_DATA_VIEW_STYLE_FILENAME,
   QUERY_DATA_VIEW_TYPE,
+  SAVE_ICON_FILENAME,
   TABULATOR_SCRIPT_FILENAME,
   TABULATOR_STYLE_FILENAME
 } from '../constants';
@@ -176,9 +178,8 @@ export class QueryDataViewService {
       vscode.Uri.file(
         path.join(
           QueryDataViewService.extensionPath,
-          DATA_VIEW_UI_PATH,
-          'icons',
-          'icon__save.svg'
+          DATA_VIEW_ICONS_PATH,
+          SAVE_ICON_FILENAME
         )
       )
     );
