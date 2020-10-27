@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { forceLightningLwcStop } from '../../../src/commands/forceLightningLwcStop';
 import { DevServerService } from '../../../src/service/devServerService';
 import { nls } from '../../../src/messages';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'

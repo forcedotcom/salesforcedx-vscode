@@ -39,7 +39,7 @@ import {
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'

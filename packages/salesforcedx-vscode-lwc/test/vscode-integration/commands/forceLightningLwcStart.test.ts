@@ -26,7 +26,7 @@ import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'

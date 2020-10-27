@@ -8,7 +8,7 @@
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { showError } from '../../../src/commands/commandUtils';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'

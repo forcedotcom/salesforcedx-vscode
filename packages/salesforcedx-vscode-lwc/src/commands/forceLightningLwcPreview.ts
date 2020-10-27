@@ -6,7 +6,7 @@
  */
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/channels';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import {
   CliCommandExecutor,
   CommandOutput,
