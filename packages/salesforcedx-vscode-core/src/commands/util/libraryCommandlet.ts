@@ -45,7 +45,9 @@ export abstract class LibraryCommandletExecutor<T>
       channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
 
       if (success) {
-        notificationService.showSuccessfulExecution(this.executionName).catch(e => console.error(e));
+        notificationService
+          .showSuccessfulExecution(this.executionName)
+          .catch(e => console.error(e));
       } else {
         notificationService.showFailedExecution(this.executionName);
       }
