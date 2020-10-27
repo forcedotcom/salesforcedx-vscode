@@ -155,7 +155,7 @@ describe('SoqlEditorInstance should', () => {
     );
   });
 
-  it('send the document info with activaion event', () => {
+  it('send the document info with activation event', () => {
     const updateDocumentInfoSpy = sandbox.spy(instance, 'updateDocumentInfo');
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
     const documentName = getDocumentName(mockTextDocument);
