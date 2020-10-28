@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- New force:apex:log:list command implementation ([PR #2644](https://github.com/forcedotcom/salesforcedx-vscode/pull/2644))
+- New force:apex:log:list command implementation, used as part of `SFDX: Get Apex Debug Logs ...` ([PR #2644](https://github.com/forcedotcom/salesforcedx-vscode/pull/2644))
 
 ## Fixed
 
