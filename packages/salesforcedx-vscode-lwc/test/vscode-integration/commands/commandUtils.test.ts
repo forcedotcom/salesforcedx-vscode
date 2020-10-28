@@ -23,7 +23,7 @@ describe('command utilities', () => {
       showError(
         new Error('test error message'),
         'force_lightning_lwc_start_test',
-        'SFDX: Start LWC Code Preview server'
+        'SFDX: Start LWC Code Preview Server'
       );
 
       sinon.assert.calledOnce(spy);
@@ -42,13 +42,13 @@ describe('command utilities', () => {
       showError(
         new Error('test error message'),
         'force_lightning_lwc_start_test',
-        'SFDX: Start LWC Code Preview server'
+        'SFDX: Start LWC Code Preview Server'
       );
 
       sinon.assert.calledTwice(spy);
       sinon.assert.calledWith(
         spy,
-        sinon.match('SFDX: Start LWC Code Preview server')
+        sinon.match('SFDX: Start LWC Code Preview Server')
       );
 
       spy.restore();
@@ -60,7 +60,7 @@ describe('command utilities', () => {
       showError(
         new Error('test error message'),
         'force_lightning_lwc_start_test',
-        'SFDX: Start LWC Code Preview server'
+        'SFDX: Start LWC Code Preview Server'
       );
 
       sinon.assert.calledOnce(spy);
@@ -75,7 +75,7 @@ describe('command utilities', () => {
       showError(
         new Error('test error message'),
         'force_lightning_lwc_start_test',
-        'SFDX: Start LWC Code Preview server'
+        'SFDX: Start LWC Code Preview Server'
       );
 
       sinon.assert.calledOnce(spy);
