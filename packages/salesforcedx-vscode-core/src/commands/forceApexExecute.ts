@@ -135,7 +135,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
   protected executionName = nls.localize('apex_execute_text');
   protected logName = 'force_apex_execute_library';
 
-  private diagnostics = vscode.languages.createDiagnosticCollection(
+  public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
 
@@ -150,19 +150,11 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
     const formattedResult = formatExecuteResult(result);
     channelService.appendLine(formattedResult);
 
-    if (success) {
-      this.diagnostics.clear();
-    } else {
-      const editor = vscode.window.activeTextEditor;
-      const document = editor!.document;
-      const filePath = apexFilePath || document.uri.fsPath;
+    const editor = vscode.window.activeTextEditor;
+    const document = editor!.document;
+    const filePath = apexFilePath || document.uri.fsPath;
 
-      handleApexLibraryDiagnostics(
-        result,
-        this.diagnostics,
-        filePath
-      );
-    }
+    handleApexLibraryDiagnostics(result, ApexLibraryExecuteExecutor.diagnostics, filePath);
 
     return success;
   }
