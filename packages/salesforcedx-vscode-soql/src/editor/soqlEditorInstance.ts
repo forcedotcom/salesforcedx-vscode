@@ -171,17 +171,23 @@ export class SOQLEditorInstance {
 
   protected async retrieveSObjects(): Promise<void> {
     return withSFConnection(async conn => {
-      const describeGlobalResult = await conn.describeGlobal();
-      const sobjectNames: string[] = describeGlobalResult.sobjects.map(
-        (sobject: DescribeGlobalSObjectResult) => sobject.name
-      );
-      this.updateSObjects(sobjectNames);
+      conn.describeGlobal$((err, describeGlobalResult) => {
+        if (describeGlobalResult) {
+          const sobjectNames: string[] = describeGlobalResult.sobjects.map(
+            (sobject: DescribeGlobalSObjectResult) => sobject.name
+          );
+          this.updateSObjects(sobjectNames);
+        }
+      });
     });
   }
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
-      const sobject = await conn.describe(sobjectName);
-      this.updateSObjectMetadata(sobject);
+      conn.describe$(sobjectName, (err, sobject) => {
+        if (sobject) {
+          this.updateSObjectMetadata(sobject);
+        }
+      });
     });
   }
   // Write out the json to a given document. //
