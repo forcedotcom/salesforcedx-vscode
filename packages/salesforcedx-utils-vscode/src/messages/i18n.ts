@@ -27,5 +27,13 @@ export const messages = {
   notification_canceled_execution_text: '%s was canceled',
   notification_unsuccessful_execution_text: '%s failed to run',
   notification_show_button_text: 'Show',
-  notification_show_in_status_bar_button_text: 'Show Only in Status Bar'
+  notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
+
+  channel_name: 'Salesforce CLI',
+  channel_starting_message: 'Starting ',
+  channel_end_with_exit_code: 'ended with exit code %s',
+  channel_end_with_sfdx_not_found:
+    'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
+  channel_end_with_error: 'ended with error %s',
+  channel_end: 'ended'
 };

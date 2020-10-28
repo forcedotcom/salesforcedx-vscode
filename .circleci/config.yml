@@ -430,10 +430,10 @@ jobs:
       - compile
       - package-extensions
       - updating-sha-for-publish
+      - stage-and-store-artifacts
       - run:
           name: 'Publishing to the VS Code Marketplace.'
           command: npm run vscode:publish
-      - stage-and-store-artifacts
       - run:
           name: 'Create git tag (e.g. v48.1.0) & push changes back to main branch'
           command: |
