@@ -13,7 +13,7 @@ To install Visual Studio Code visit <https://code.visualstudio.com> and click th
 
 ## Salesforce Extensions for Visual Studio Code
 
-Install the Salesforce Extension Pack extension from the Visual Studio Marketplace. The extension pack contains additional features that help you develop Salesforce apps using Visual Studio Code. 
+Install the Salesforce Extension Pack extension from the Visual Studio Marketplace. The extension pack contains additional features that help you develop Salesforce apps using Visual Studio Code.
 
 To install the extensions, visit <https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode> and click the green **Install** button. The installation process prompts you to open Visual Studio Code. After Visual Studio Code opens, a dialog box opens in the lower right corner, asking you to install the extension. Click **Install** to proceed.
 
@@ -29,4 +29,4 @@ For information about installing Salesforce CLI, see the _[Salesforce DX Setup G
 
 ## Java Platform, Standard Edition Development Kit
 
-Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 8 or version 11 of the JDK installed. See [Java Setup](./java-setup.md) for details. 
+Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 8 or version 11 of the JDK installed. See [Java Setup](./en/getting-started/java-setup) for details.

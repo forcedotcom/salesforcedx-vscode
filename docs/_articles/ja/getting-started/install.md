@@ -15,7 +15,7 @@ Visual Studio Code をインストールするには、<https://code.visualstudi
 
 Visual Studio Code 向け Salesforce 拡張機能の一部の機能は、Java Platform, Standard Edition Development Kit \(JDK\) に依存しています。JDK のバージョン 8 とバージョン 11 のいずれかをインストールしている必要があります。
 
-JDK のバージョン 11 または 8 をまだインストールしていない場合は、[Java のインストールおよび設定方法の説明](java-setup)を参照してください。
+JDK のバージョン 11 または 8 をまだインストールしていない場合は、[Java のインストールおよび設定方法の説明](./ja/getting-started/java-setup)を参照してください。
 
 ## Salesforce CLI
 
