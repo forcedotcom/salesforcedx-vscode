@@ -1,3 +1,17 @@
+# 50.3.0 - October 28, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- New force:apex:log:list command implementation ([PR #2644](https://github.com/forcedotcom/salesforcedx-vscode/pull/2644))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Clear deploy and Anonymous Apex diagnostics from Problems panel ([PR #2671](https://github.com/forcedotcom/salesforcedx-vscode/pull/2671), [PR #2673](https://github.com/forcedotcom/salesforcedx-vscode/pull/2673), [Issue #2608](https://github.com/forcedotcom/salesforcedx-vscode/issues/2608))
+
 # 50.2.0 - October 22, 2020
 
 ## Fixed
