@@ -8,10 +8,10 @@
 import { Observable } from 'rxjs/Observable';
 import { workspace } from 'vscode';
 import * as vscode from 'vscode';
-// TODO: when channel service is ready
-// import { channelService } from '../channels';
+
 import { CommandExecution } from '../cli';
 import { nls } from '../messages';
+import { channelService } from './index';
 
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
@@ -152,6 +152,6 @@ export class NotificationService {
   }
 
   private showChannelOutput() {
-    // channelService.showChannelOutput();
+    channelService.showChannelOutput();
   }
 }

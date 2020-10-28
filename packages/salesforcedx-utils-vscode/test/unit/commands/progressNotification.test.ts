@@ -40,12 +40,17 @@ const vscodeStub = {
     Notification: 15
   },
   window: {
-    withProgress: () => {}
+    withProgress: () => {},
+    createOutputChannel: () => {
+      return {
+        show: () => {}
+      };
+    }
   }
 };
 
 const { ProgressNotification } = proxyquire.noCallThru()(
-  '../../../src/notifications',
+  '../../../src/commands',
   {
     vscode: vscodeStub
   }
