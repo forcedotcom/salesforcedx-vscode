@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  channelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
@@ -14,7 +17,7 @@ import { showError } from './commandUtils';
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const { notificationService, telemetryService } = sfdxCoreExports;
+const { telemetryService } = sfdxCoreExports;
 
 const logName = 'force_lightning_lwc_stop';
 const commandName = nls.localize('force_lightning_lwc_stop_text');
@@ -28,9 +31,9 @@ export async function forceLightningLwcStop() {
         nls.localize('force_lightning_lwc_stop_in_progress')
       );
       await DevServerService.instance.stopServer();
-      notificationService.showSuccessfulExecution(
-        nls.localize('force_lightning_lwc_stop_text')
-      );
+      notificationService
+        .showSuccessfulExecution(nls.localize('force_lightning_lwc_stop_text'))
+        .catch();
       telemetryService.sendCommandEvent(logName, startTime);
     } else {
       notificationService.showWarningMessage(

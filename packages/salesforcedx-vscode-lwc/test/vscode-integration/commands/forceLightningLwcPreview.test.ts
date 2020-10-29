@@ -39,12 +39,15 @@ import {
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  channelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const { SfdxCommandlet, notificationService } = sfdxCoreExports;
+const { SfdxCommandlet } = sfdxCoreExports;
 const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'preview.rememberDevice';
@@ -148,7 +151,10 @@ describe('forceLightningLwcPreview', () => {
   let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
   let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
-  let showErrorMessageStub: sinon.SinonStub<any[], any>;
+  let showErrorMessageStub: sinon.SinonStub<
+    [string, ...string[]],
+    Thenable<string | undefined>
+  >;
   const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';
   const mockLwcFileDirectory = path.join(
     root,

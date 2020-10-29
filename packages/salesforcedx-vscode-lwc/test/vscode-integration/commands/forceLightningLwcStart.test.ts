@@ -26,16 +26,15 @@ import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  ChannelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const {
-  taskViewService,
-  notificationService,
-  SfdxCommandlet
-} = sfdxCoreExports;
+const { taskViewService, SfdxCommandlet } = sfdxCoreExports;
 
 class FakeExecution implements CommandExecution {
   public command: Command;
@@ -87,7 +86,7 @@ describe('forceLightningLwcStart', () => {
       let sandbox: SinonSandbox;
       let appendLineStub: SinonStub;
       let taskViewServiceStubs: { [key: string]: SinonStub };
-      let notificationServiceStubs: { [key: string]: SinonStub };
+      let notificationServiceStubs: any;
       let devServiceStub: any;
       let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
       let cliCommandExecutorStub: SinonStub<
@@ -136,10 +135,9 @@ describe('forceLightningLwcStart', () => {
           notificationService,
           'showWarningMessage'
         );
-        notificationServiceStubs.showSuccessfulExecutionStub = sandbox.stub(
-          notificationService,
-          'showSuccessfulExecution'
-        );
+        notificationServiceStubs.showSuccessfulExecutionStub = sandbox
+          .stub(notificationService, 'showSuccessfulExecution')
+          .returns(Promise.resolve());
       });
 
       afterEach(() => {
@@ -393,7 +391,10 @@ describe('forceLightningLwcStart', () => {
 
   describe('forceLightningLwcStart function', () => {
     let sandbox: SinonSandbox;
-    let showWarningStub: SinonStub<any[], any>;
+    let showWarningStub: SinonStub<
+      [string, ...string[]],
+      Thenable<string | undefined>
+    >;
     let devServiceStub: any;
     let commandletStub: SinonStub<any[], any>;
 

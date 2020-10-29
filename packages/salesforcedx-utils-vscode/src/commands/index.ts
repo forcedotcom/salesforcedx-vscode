@@ -9,3 +9,8 @@ import { ChannelService } from './channelService';
 export const channelService = ChannelService.getInstance();
 export { DEFAULT_SFDX_CHANNEL } from './channelService';
 export { ChannelService } from './channelService';
+
+import { NotificationService } from './notificationService';
+export const notificationService = NotificationService.getInstance();
+export { NotificationService };
+export { ProgressNotification } from './progressNotification';
