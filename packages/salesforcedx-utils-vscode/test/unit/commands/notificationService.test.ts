@@ -77,12 +77,10 @@ describe('Notifications', () => {
   let mShowInformation: SinonStub;
   let mShowWarningMessage: SinonStub;
   let mShowErrorMessage: SinonStub;
-  let mShow: SinonStub;
   let mStatusBar: SinonStub;
   let settings: SinonStub;
 
   beforeEach(() => {
-    // mShow = stub(NotificationService.prototype, 'showChannelOutput');
     mShowInformation = stub(
       vscodeStub.window,
       'showInformationMessage'
@@ -104,7 +102,6 @@ describe('Notifications', () => {
   });
 
   afterEach(() => {
-    // mShow.restore();
     mShowInformation.restore();
     mShowWarningMessage.restore();
     mShowErrorMessage.restore();
@@ -120,7 +117,6 @@ describe('Notifications', () => {
     notificationService.reportExecutionStatus('mock command', observable);
 
     setTimeout(() => {
-      // assert.notCalled(mShow);
       assert.calledWith(
         mShowInformation,
         'mock command successfully ran',
@@ -147,7 +143,6 @@ describe('Notifications', () => {
     const notificationService = NotificationService.getInstance();
     await notificationService.reportExecutionStatus('mock command', observable);
 
-    // assert.calledOnce(mShow);
     assert.calledWith(
       mShowInformation,
       'mock command successfully ran',
@@ -176,7 +171,6 @@ describe('Notifications', () => {
     notificationService.reportExecutionStatus('mock command', observable);
 
     setTimeout(() => {
-      // assert.notCalled(mShow);
       assert.notCalled(mShowInformation);
       assert.notCalled(mShowWarningMessage);
       assert.notCalled(mShowErrorMessage);
@@ -213,7 +207,6 @@ describe('Notifications', () => {
         SHOW_BUTTON_TEXT,
         SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
       );
-      // assert.notCalled(mShow);
       assert.notCalled(mShowWarningMessage);
       assert.notCalled(mShowErrorMessage);
       assert.notCalled(mStatusBar);
@@ -236,7 +229,6 @@ describe('Notifications', () => {
     cancellationTokenSource.cancel();
 
     setTimeout(() => {
-      // assert.calledOnce(mShow);
       assert.notCalled(mShowInformation);
       assert.calledWith(mShowWarningMessage, 'mock command was canceled');
       assert.notCalled(mShowErrorMessage);
@@ -253,7 +245,6 @@ describe('Notifications', () => {
     notificationService.reportExecutionStatus('mock command', observable);
 
     setTimeout(() => {
-      // assert.calledOnce(mShow);
       assert.notCalled(mShowInformation);
       assert.notCalled(mShowWarningMessage);
       assert.calledWith(mShowErrorMessage, 'mock command failed to run');
@@ -270,7 +261,6 @@ describe('Notifications', () => {
     notificationService.reportExecutionError('mock command', observable);
 
     setTimeout(() => {
-      // assert.calledOnce(mShow);
       assert.notCalled(mShowInformation);
       assert.notCalled(mShowWarningMessage);
       assert.calledWith(mShowErrorMessage, 'mock command failed to run');
