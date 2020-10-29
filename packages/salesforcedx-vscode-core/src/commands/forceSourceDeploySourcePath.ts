@@ -138,9 +138,6 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 > {
   protected executionName = 'Deploy (Beta)';
   protected logName = 'force_source_deploy_with_sourcepath_beta';
-  private diagnostics = vscode.languages.createDiagnosticCollection(
-    'deploy-errors'
-  );
 
   public async run(
     response: ContinueResponse<string | string[]>
@@ -161,18 +158,17 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
       const parser = new LibraryDeployResultParser(result);
       const outputResult = parser.resultParser(result);
       channelService.appendLine(outputResult);
-
+      BaseDeployExecutor.errorCollection.clear();
       if (
         result.status === DeployStatus.Succeeded ||
         result.status === ToolingDeployStatus.Completed
       ) {
-        this.diagnostics.clear();
         return true;
       }
 
       handleDeployRetrieveLibraryDiagnostics(
         result,
-        this.diagnostics
+        BaseDeployExecutor.errorCollection
       );
 
       return false;
