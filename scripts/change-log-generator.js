@@ -330,8 +330,8 @@ function writeChangeLog(textToInsert) {
 
 function openPRForChanges(releaseBranch, changeLogBranch) {
   var commitCommand =
-    'git commit -a -m "chore: generated CHANGELOG for "' + releaseBranch;
-  var pushCommand = 'git push origin ' + changeLogBranch;
+    `git commit -a -m "chore: generated CHANGELOG for ${releaseBranch}"`;
+  var pushCommand = `git push origin ${changeLogBranch}`;
   shell.exec(commitCommand);
   shell.exec(pushCommand, { silent: true });
   shell.exec(
@@ -343,7 +343,7 @@ function writeAdditionalInfo() {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 6: Write results to the change log.');
   }
-  console.log('Change log written to: ' + constants.CHANGE_LOG_PATH);
+  console.log(`Change log written to: ${constants.CHANGE_LOG_PATH}`);
   console.log('\nNext Steps:');
   console.log("  1) Remove entries that shouldn't be included in the release.");
   console.log('  2) Add documentation links as needed.');
