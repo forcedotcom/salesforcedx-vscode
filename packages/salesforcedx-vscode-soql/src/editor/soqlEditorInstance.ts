@@ -40,7 +40,8 @@ export enum MessageType {
   SOBJECTS_REQUEST = 'sobjects_request',
   SOBJECTS_RESPONSE = 'sobjects_response',
   TEXT_SOQL_CHANGED = 'text_soql_changed',
-  RUN_SOQL_QUERY = 'run_query'
+  RUN_SOQL_QUERY = 'run_query',
+  CONNECTION_CHANGED = 'connection_changed'
 }
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
@@ -49,6 +50,41 @@ async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
     f(conn);
   } catch (e) {
     channelService.appendLine(e);
+  }
+}
+
+class ConnectionChangedListener {
+  protected editorInstances: SOQLEditorInstance[];
+  protected static instance: ConnectionChangedListener;
+
+  protected constructor() {
+    workspaceContext.onOrgChange(async (orgInfo: any) => {
+      await this.connectionChanged();
+    });
+    this.editorInstances = [];
+  }
+
+  public static getInstance(): ConnectionChangedListener {
+    if (!ConnectionChangedListener.instance) {
+      ConnectionChangedListener.instance = new ConnectionChangedListener();
+    }
+    return ConnectionChangedListener.instance;
+  }
+
+  public addSoqlEditor(editor: SOQLEditorInstance): void {
+    this.editorInstances.push(editor);
+  }
+
+  public removeSoqlEditor(editor: SOQLEditorInstance): void {
+    this.editorInstances = this.editorInstances.filter(instance => instance !== editor);
+  }
+
+  public async connectionChanged(): Promise<void> {
+    await withSFConnection(conn => {
+      conn.describeGlobal$.clear();
+      conn.describe$.clear();
+      this.editorInstances.forEach(editor => editor.onConnectionChanged());
+    });
   }
 }
 
@@ -79,6 +115,9 @@ export class SOQLEditorInstance {
       this,
       this.subscriptions
     );
+
+    // register editor with connection changed listener
+    ConnectionChangedListener.getInstance().addSoqlEditor(this);
 
     // Make sure we get rid of the event listeners when our editor is closed.
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
@@ -207,6 +246,7 @@ export class SOQLEditorInstance {
   }
 
   protected dispose(): void {
+    ConnectionChangedListener.getInstance().removeSoqlEditor(this);
     this.subscriptions.forEach(dispposable => dispposable.dispose());
     if (this.disposedCallback) {
       this.disposedCallback(this);
@@ -215,5 +255,11 @@ export class SOQLEditorInstance {
 
   public onDispose(callback: (instance: SOQLEditorInstance) => void): void {
     this.disposedCallback = callback;
+  }
+
+  public onConnectionChanged(): void {
+    this.webviewPanel.webview.postMessage({
+      type: MessageType.CONNECTION_CHANGED
+    });
   }
 }

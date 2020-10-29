@@ -79,6 +79,16 @@ describe('SoqlEditorInstance should', () => {
     sandbox.restore();
   });
 
+  it('post CONNECTION_CHANGED message when connection is changed', async () => {
+    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    const expected = { type: 'connection_changed' };
+    const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+
+    instance.onConnectionChanged();
+
+    expect(postMessageSpy.calledWith(expected));
+  });
+
   it('responds to sobjects_request with a list of sobjects', async () => {
     sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
