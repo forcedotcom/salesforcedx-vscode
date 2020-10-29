@@ -160,8 +160,8 @@ export const messages = {
   force_function_start_unexpected_error:
     'SFDX: Start Function exited unexpectedly with code %s',
   force_function_invoke_text: 'SFDX: Invoke Function',
-  force_function_invoke_tooltip: 'Send Request',
-  force_function_debug_invoke_tooltip: 'Debug Send Request',
+  force_function_invoke_tooltip: 'Invoke',
+  force_function_debug_invoke_tooltip: 'Debug Invoke',
   force_function_stop_text: 'SFDX: Stop Function',
   force_function_stop_in_progress: 'Stopping Function',
   force_function_stop_not_started: 'No Function is running locally',
@@ -243,8 +243,8 @@ export const messages = {
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   force_apex_log_list_text: 'Getting Apex debug logs',
-  force_apex_log_get_library: 'Apex Library: Get Logs',
   apex_log_get_text: 'Get Apex Logs',
+  apex_log_list_text: 'Fetching Apex debug log list',
 
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',

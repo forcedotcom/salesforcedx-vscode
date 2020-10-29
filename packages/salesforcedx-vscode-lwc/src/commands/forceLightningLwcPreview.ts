@@ -11,6 +11,7 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -24,7 +25,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const {
-  channelService,
   notificationService,
   telemetryService,
   SfdxCommandlet,

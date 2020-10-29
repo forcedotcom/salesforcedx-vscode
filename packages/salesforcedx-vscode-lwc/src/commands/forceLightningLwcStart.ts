@@ -10,6 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
@@ -21,7 +22,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const {
-  channelService,
   taskViewService,
   notificationService,
   SfdxCommandlet,
