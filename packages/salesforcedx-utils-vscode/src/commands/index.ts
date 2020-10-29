@@ -12,4 +12,5 @@ export { ChannelService } from './channelService';
 
 import { NotificationService } from './notificationService';
 export const notificationService = NotificationService.getInstance();
+export { NotificationService };
 export { ProgressNotification } from './progressNotification';
