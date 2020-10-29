@@ -111,6 +111,7 @@ function getNewChangeLogBranch(releaseBranch) {
     );
     process.exit(-1);
   }
+  return changeLogBranch;
 }
 
 /**
@@ -329,8 +330,7 @@ function writeChangeLog(textToInsert) {
 }
 
 function openPRForChanges(releaseBranch, changeLogBranch) {
-  var commitCommand =
-    `git commit -a -m "chore: generated CHANGELOG for ${releaseBranch}"`;
+  var commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranch}"`;
   var pushCommand = `git push origin ${changeLogBranch}`;
   shell.exec(commitCommand);
   shell.exec(pushCommand, { silent: true });
@@ -356,14 +356,14 @@ function writeAdditionalInfo() {
 console.log("Starting script 'change-log-generator'\n");
 
 let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
-var releaseBranch = getReleaseBranch();
-var previousBranch = getPreviousReleaseBranch(releaseBranch);
+const releaseBranch = getReleaseBranch();
+const previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
-getNewChangeLogBranch(releaseBranch);
+const changeLogBranch = getNewChangeLogBranch(releaseBranch);
 
-var parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
-var groupedMessages = getMessagesGroupedByPackage(parsedCommits);
-var changeLog = getChangeLogText(releaseBranch, groupedMessages);
+const parsedCommits = parseCommits(getCommits(releaseBranch, previousBranch));
+const groupedMessages = getMessagesGroupedByPackage(parsedCommits);
+const changeLog = getChangeLogText(releaseBranch, groupedMessages);
 writeChangeLog(changeLog);
 writeAdditionalInfo();
-openPRForChanges(releaseBranch);
+openPRForChanges(releaseBranch, changeLogBranch);
