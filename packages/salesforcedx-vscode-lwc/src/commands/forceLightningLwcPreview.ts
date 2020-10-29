@@ -12,7 +12,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  channelService,
+  ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as fs from 'fs';
@@ -24,6 +24,7 @@ import { PreviewService } from '../service/previewService';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
+const channelService = ChannelService.getInstance('lwc');
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;

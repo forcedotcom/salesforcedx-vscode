@@ -11,7 +11,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  channelService,
+  ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -21,6 +21,7 @@ import { nls } from '../messages';
 import { DevServerService, ServerHandler } from '../service/devServerService';
 import { openBrowser, showError } from './commandUtils';
 
+const channelService = ChannelService.getInstance('lwc');
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;

@@ -6,7 +6,7 @@
  */
 
 import {
-  channelService,
+  ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as vscode from 'vscode';
@@ -14,6 +14,7 @@ import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { showError } from './commandUtils';
 
+const channelService = ChannelService.getInstance('lwc');
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
