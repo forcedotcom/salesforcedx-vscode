@@ -76,7 +76,9 @@ class ConnectionChangedListener {
   }
 
   public removeSoqlEditor(editor: SOQLEditorInstance): void {
-    this.editorInstances = this.editorInstances.filter(instance => instance !== editor);
+    this.editorInstances = this.editorInstances.filter(
+      instance => instance !== editor
+    );
   }
 
   public async connectionChanged(): Promise<void> {
