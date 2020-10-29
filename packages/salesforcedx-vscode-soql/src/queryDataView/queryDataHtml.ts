@@ -20,7 +20,8 @@ export function getHtml(
     baseStyleUri,
     tabulatorStyleUri,
     viewControllerUri,
-    tabulatorUri
+    tabulatorUri,
+    saveIconUri
   } = assets;
 
   const pathToDataViewDist = path.join(extensionPath, DATA_VIEW_UI_PATH);
@@ -35,6 +36,10 @@ export function getHtml(
   html = html.replace('${baseStyleUri}', baseStyleUri.toString());
   html = html.replace('${tabulatorUri}', tabulatorUri.toString());
   html = html.replace('${viewControllerUri}', viewControllerUri.toString());
+  // There are multiple buttons that require this icon
+  while (html.match(/\${iconSave}/)) {
+    html = html.replace('${iconSave}', saveIconUri.toString());
+  }
 
   return html;
 }
