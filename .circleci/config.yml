@@ -443,17 +443,25 @@ jobs:
       - sfchangecase/update:
           location: REPO_LOCATION
           release: GUS_RELEASE
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#9bcd9b'
+          message: 'VSCode Extensions v${RELEASE_VERSION} have been published to the marketplace'
+      - slack/notify:
+          channel: 'pdt_releases'
+          color: '#9bcd9b'
+          message: 'VSCode Extensions v${RELEASE_VERSION} Post Publish - Merging main into develop'
       - run:
           name: 'Merge changes from main back into develop'
           command: |
             git checkout develop
             git pull
-            git merge main
+            git merge main --commit --no-edit
             git push origin develop
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
-          message: 'VSCode Extensions v${RELEASE_VERSION} have been published to the marketplace'
+          message: 'VSCode Extensions v${RELEASE_VERSION} Post Publish - Succeeded'
       - slack/status:
           channel: 'pdt_releases'
           fail_only: true
