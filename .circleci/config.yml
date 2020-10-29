@@ -456,7 +456,7 @@ jobs:
           command: |
             git checkout develop
             git pull
-            git merge main
+            git merge main --commit --no-edit
             git push origin develop
       - slack/notify:
           channel: 'pdt_releases'
