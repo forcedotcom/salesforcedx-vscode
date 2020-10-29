@@ -143,10 +143,20 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
       'namespace'
     )) as string;
     const client = new SourceClient(await getConnection);
-    const retrieve = client.tooling.retrieve({
-      components,
-      namespace: projectNamespace
-    });
+    let retrieve;
+    if (components.length === 1) {
+      retrieve = client.tooling.retrieve({
+        components,
+        namespace: projectNamespace
+      });
+    } else {
+      retrieve = client.metadata.retrieve({
+        components,
+        namespace: projectNamespace,
+        merge: true,
+        output: response.data
+      });
+    }
     const metadataCount = JSON.stringify(createComponentCount(components));
     this.telemetry.addProperty('metadataCount', metadataCount);
 
