@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { EOL } from 'os';
@@ -514,17 +514,13 @@ export class FauxClassGenerator {
   ): string {
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort(
-      (first, second): number => {
-        return first.name || first.type > second.name || second.type ? 1 : -1;
-      }
-    );
+    declarations.sort((first, second): number => {
+      return first.name || first.type > second.name || second.type ? 1 : -1;
+    });
 
-    declarations = declarations.filter(
-      (value, index, array): boolean => {
-        return !index || value.name !== array[index - 1].name;
-      }
-    );
+    declarations = declarations.filter((value, index, array): boolean => {
+      return !index || value.name !== array[index - 1].name;
+    });
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
     const declarationLines = declarations

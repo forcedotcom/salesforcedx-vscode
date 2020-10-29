@@ -11,7 +11,7 @@ import {
   ForceOrgDisplay,
   OrgInfo
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/index';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
@@ -1660,11 +1660,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(adapter.getEvents()[0].event).to.equal('output');
       const outputEvent = adapter.getEvents()[0] as DebugProtocol.OutputEvent;
       expect(outputEvent.body.output).to.have.string(
-        `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${
-          msg.sobject.RequestId
-        } | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${
-          msg.sobject.Line
-        } | ${msg.sobject.Description} |${os.EOL}${msg.sobject.Stacktrace}`
+        `${msg.event.createdDate} | ${msg.sobject.Type} | Request: ${msg.sobject.RequestId} | Breakpoint: ${msg.sobject.BreakpointId} | Line: ${msg.sobject.Line} | ${msg.sobject.Description} |${os.EOL}${msg.sobject.Stacktrace}`
       );
       expect(outputEvent.body.source!.path).to.equal(Uri.parse(fooUri).fsPath);
       expect(outputEvent.body.line).to.equal(4);
