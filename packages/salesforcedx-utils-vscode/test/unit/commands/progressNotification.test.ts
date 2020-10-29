@@ -8,8 +8,7 @@
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { Subject } from 'rxjs/Subject';
-import * as sinon from 'sinon';
-import { SinonStub, stub } from 'sinon';
+import { assert, match, SinonStub, spy, stub } from 'sinon';
 import {
   CliCommandExecutor,
   CommandExecution,
@@ -108,13 +107,13 @@ describe('Progress Notification', () => {
       message?: string;
       increment?: number;
     }> = {
-      report: sinon.stub()
+      report: stub()
     };
     const token = new vscodeStub.CancellationTokenSource().token;
     withProgressStub.yields(progress, token);
 
     const reporter = new Subject<number>();
-    const subscribeSpy = sinon.spy(reporter, 'subscribe');
+    const subscribeSpy = spy(reporter, 'subscribe');
 
     await ProgressNotification.show(
       execution,
@@ -123,14 +122,14 @@ describe('Progress Notification', () => {
       reporter.asObservable()
     );
 
-    sinon.assert.calledOnce(subscribeSpy);
-    sinon.assert.calledWith(subscribeSpy, sinon.match.has('next'));
-    sinon.assert.calledWith(subscribeSpy, sinon.match.has('complete'));
+    assert.calledOnce(subscribeSpy);
+    assert.calledWith(subscribeSpy, match.has('next'));
+    assert.calledWith(subscribeSpy, match.has('complete'));
   });
 
   it('Should report 100 progress when the reporter invokes complete', async () => {
     const progressLocation = vscodeStub.ProgressLocation.Window;
-    const reportStub = sinon.stub();
+    const reportStub = stub();
     const progress: Progress<{
       message?: string;
       increment?: number;
@@ -150,13 +149,13 @@ describe('Progress Notification', () => {
     );
 
     reporter.complete();
-    sinon.assert.calledOnce(reportStub);
-    sinon.assert.calledWith(reportStub, sinon.match({ increment: 100 }));
+    assert.calledOnce(reportStub);
+    assert.calledWith(reportStub, match({ increment: 100 }));
   });
 
   it('Should report incremental progress when the reporter invokes next', async () => {
     const progressLocation = vscodeStub.ProgressLocation.Window;
-    const reportStub = sinon.stub();
+    const reportStub = stub();
     const progress: Progress<{
       message?: string;
       increment?: number;
@@ -176,7 +175,7 @@ describe('Progress Notification', () => {
     );
 
     reporter.next(25);
-    sinon.assert.calledOnce(reportStub);
-    sinon.assert.calledWith(reportStub, sinon.match({ increment: 25 }));
+    assert.calledOnce(reportStub);
+    assert.calledWith(reportStub, match({ increment: 25 }));
   });
 });

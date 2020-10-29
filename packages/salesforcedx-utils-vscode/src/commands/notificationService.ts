@@ -6,7 +6,6 @@
  */
 
 import { Observable } from 'rxjs/Observable';
-import { workspace } from 'vscode';
 import * as vscode from 'vscode';
 
 import { CommandExecution } from '../cli';
@@ -113,7 +112,7 @@ export class NotificationService {
       'notification_successful_execution_text',
       executionName
     );
-    const showCLISuccessMsg = workspace
+    const showCLISuccessMsg = vscode.workspace
       .getConfiguration('salesforcedx-vscode-core')
       .get<boolean>('show-cli-success-msg', true);
     if (showCLISuccessMsg) {
@@ -130,7 +129,7 @@ export class NotificationService {
         this.showChannelOutput();
       }
       if (selection && selection === showOnlyStatusBarButtonText) {
-        await workspace
+        await vscode.workspace
           .getConfiguration('salesforcedx-vscode-core')
           .update('show-cli-success-msg', false);
       }
