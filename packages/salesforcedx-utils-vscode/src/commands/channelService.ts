@@ -6,24 +6,24 @@
  */
 
 import stripAnsi from 'strip-ansi';
-import * as vscode from 'vscode';
+import { OutputChannel, window } from 'vscode';
 import { nls } from '../messages';
 
 import { CommandExecution } from '../cli';
 
-export const DEFAULT_SFDX_CHANNEL = vscode.window.createOutputChannel(
+export const DEFAULT_SFDX_CHANNEL = window.createOutputChannel(
   nls.localize('channel_name')
 );
 
 export class ChannelService {
-  private readonly channel: vscode.OutputChannel;
+  private readonly channel: OutputChannel;
   private static instance: ChannelService;
 
-  public constructor(channel?: vscode.OutputChannel) {
+  public constructor(channel?: OutputChannel) {
     this.channel = channel || DEFAULT_SFDX_CHANNEL;
   }
 
-  public static getInstance(channel?: vscode.OutputChannel) {
+  public static getInstance(channel?: OutputChannel) {
     if (!ChannelService.instance) {
       ChannelService.instance = new ChannelService(channel);
     }
