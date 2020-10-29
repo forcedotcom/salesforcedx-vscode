@@ -11,8 +11,8 @@ import {
   ForceOrgDisplay,
   OrgInfo
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as sinon from 'sinon';

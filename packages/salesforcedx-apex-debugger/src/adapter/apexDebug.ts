@@ -6,15 +6,15 @@
  */
 
 import {
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
   ForceConfigGet,
   ForceOrgDisplay
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import {
+  SFDX_CONFIG_ISV_DEBUGGER_SID,
+  SFDX_CONFIG_ISV_DEBUGGER_URL
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
 import {
