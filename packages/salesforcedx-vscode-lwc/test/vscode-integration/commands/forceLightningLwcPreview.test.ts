@@ -40,7 +40,7 @@ import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
 import {
-  channelService,
+  ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
@@ -329,10 +329,10 @@ describe('forceLightningLwcPreview', () => {
       'showInformationMessage'
     );
     streamCommandOutputSpy = sandbox.stub(
-      channelService,
+      ChannelService.prototype,
       'streamCommandOutput'
     );
-    appendLineSpy = sinon.spy(channelService, 'appendLine');
+    appendLineSpy = sinon.spy(ChannelService.prototype, 'appendLine');
   });
 
   afterEach(() => {
