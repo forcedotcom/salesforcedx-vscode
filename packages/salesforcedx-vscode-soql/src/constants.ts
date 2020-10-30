@@ -6,8 +6,8 @@
  */
 import * as path from 'path';
 
-/* SOQL BUILDER */
-export const WEBVIEW_RESOURCE_ROOTS_PATH = path.join(
+/* ==== SOQL BUILDER ==== */
+export const SOQL_BUILDER_WEB_ASSETS_PATH = path.join(
   'node_modules',
   '@salesforce',
   'soql-builder-ui'
@@ -19,15 +19,17 @@ export const SOQL_BUILDER_UI_PATH = path.join(
   'dist'
 );
 export const HTML_FILE = 'index.html';
+export const IMAGES_DIR_NAME = 'images';
 export const EDITOR_VIEW_TYPE = 'soqlCustom.soql';
 
-/* QUERY DATA VIEW */
+/* ==== QUERY DATA VIEW ==== */
 export const QUERY_DATA_VIEW_TYPE = 'queryDataView';
 export const QUERY_DATA_VIEW_PANEL_TITLE = 'SOQL Query Results'; // TODO: i18n
 export const QUERY_DATA_VIEW_SCRIPT_FILENAME = 'queryDataViewController.js';
 export const QUERY_DATA_VIEW_STYLE_FILENAME = 'queryDataView.css';
 export const TABULATOR_SCRIPT_FILENAME = 'tabulator.min.js';
 export const TABULATOR_STYLE_FILENAME = 'tabulator.min.css';
+export const SAVE_ICON_FILENAME = 'icon__save.svg';
 export const DATA_VIEW_RESOURCE_ROOTS_PATH = path.join(
   'node_modules',
   '@salesforce',
@@ -39,8 +41,9 @@ export const DATA_VIEW_UI_PATH = path.join(
   'soql-data-view',
   'web'
 );
+export const DATA_VIEW_ICONS_PATH = path.join(DATA_VIEW_UI_PATH, 'icons');
 
-/* QUERY DATA FILE SERVICE */
+/* ==== QUERY DATA FILE SERVICE ==== */
 // The name of the directory query data is saved
 export const QUERY_RESULTS_DIR_NAME = 'query-results';
 export const QUERY_RESULTS_DIR_PATH = path.join(

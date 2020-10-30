@@ -26,16 +26,15 @@ import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  ChannelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const {
-  channelService,
-  taskViewService,
-  notificationService,
-  SfdxCommandlet
-} = sfdxCoreExports;
+const { taskViewService, SfdxCommandlet } = sfdxCoreExports;
 
 class FakeExecution implements CommandExecution {
   public command: Command;
@@ -85,9 +84,9 @@ describe('forceLightningLwcStart', () => {
 
     describe('execute', () => {
       let sandbox: SinonSandbox;
-      let channelServiceStubs: { [key: string]: SinonStub };
+      let appendLineStub: SinonStub;
       let taskViewServiceStubs: { [key: string]: SinonStub };
-      let notificationServiceStubs: { [key: string]: SinonStub };
+      let notificationServiceStubs: any;
       let devServiceStub: any;
       let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
       let cliCommandExecutorStub: SinonStub<
@@ -108,22 +107,14 @@ describe('forceLightningLwcStart', () => {
           'execute'
         );
 
-        channelServiceStubs = {};
         taskViewServiceStubs = {};
         notificationServiceStubs = {};
 
-        channelServiceStubs.appendLineStub = sandbox.stub(
-          channelService,
-          'appendLine'
+        appendLineStub = sandbox.stub(
+          ChannelService.prototype,
+          'appendLine' as any
         );
-        channelServiceStubs.streamCommandOutputStub = sandbox.stub(
-          channelService,
-          'streamCommandOutput'
-        );
-        channelServiceStubs.showChannelOutputStub = sandbox.stub(
-          channelService,
-          'showChannelOutput'
-        );
+
         taskViewServiceStubs.addCommandExecutionStub = sandbox.stub(
           taskViewService,
           'addCommandExecution'
@@ -144,10 +135,9 @@ describe('forceLightningLwcStart', () => {
           notificationService,
           'showWarningMessage'
         );
-        notificationServiceStubs.showSuccessfulExecutionStub = sandbox.stub(
-          notificationService,
-          'showSuccessfulExecution'
-        );
+        notificationServiceStubs.showSuccessfulExecutionStub = sandbox
+          .stub(notificationService, 'showSuccessfulExecution')
+          .returns(Promise.resolve());
       });
 
       afterEach(() => {
@@ -216,9 +206,9 @@ describe('forceLightningLwcStart', () => {
           )
         );
 
-        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
-          channelServiceStubs.appendLineStub,
+          appendLineStub,
           sinon.match(nls.localize('force_lightning_lwc_start_failed'))
         );
       });
@@ -306,9 +296,9 @@ describe('forceLightningLwcStart', () => {
           sinon.match(nls.localize('command_failure', commandName))
         );
 
-        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
-          channelServiceStubs.appendLineStub,
+          appendLineStub,
           sinon.match(nls.localize('force_lightning_lwc_start_not_found'))
         );
       });
@@ -329,9 +319,9 @@ describe('forceLightningLwcStart', () => {
           sinon.match(nls.localize('command_failure', commandName))
         );
 
-        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
-          channelServiceStubs.appendLineStub,
+          appendLineStub,
           sinon.match(nls.localize('force_lightning_lwc_start_addr_in_use'))
         );
       });
@@ -353,9 +343,9 @@ describe('forceLightningLwcStart', () => {
           sinon.match(nls.localize('command_failure', commandName))
         );
 
-        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
-          channelServiceStubs.appendLineStub,
+          appendLineStub,
           sinon.match(nls.localize('force_lightning_lwc_inactive_scratch_org'))
         );
       });
@@ -370,7 +360,7 @@ describe('forceLightningLwcStart', () => {
         fakeExecution.processExitSubject.next(0);
 
         sinon.assert.notCalled(notificationServiceStubs.showErrorMessageStub);
-        sinon.assert.notCalled(channelServiceStubs.appendLineStub);
+        sinon.assert.notCalled(appendLineStub);
       });
 
       it('shows an error message when the process exists before server startup', () => {
@@ -390,9 +380,9 @@ describe('forceLightningLwcStart', () => {
           sinon.match(nls.localize('command_failure', commandName))
         );
 
-        sinon.assert.calledOnce(channelServiceStubs.appendLineStub);
+        sinon.assert.calledOnce(appendLineStub);
         sinon.assert.calledWith(
-          channelServiceStubs.appendLineStub,
+          appendLineStub,
           sinon.match(nls.localize('force_lightning_lwc_start_failed'))
         );
       });
@@ -401,7 +391,10 @@ describe('forceLightningLwcStart', () => {
 
   describe('forceLightningLwcStart function', () => {
     let sandbox: SinonSandbox;
-    let showWarningStub: SinonStub<any[], any>;
+    let showWarningStub: SinonStub<
+      [string, ...string[]],
+      Thenable<string | undefined>
+    >;
     let devServiceStub: any;
     let commandletStub: SinonStub<any[], any>;
 
