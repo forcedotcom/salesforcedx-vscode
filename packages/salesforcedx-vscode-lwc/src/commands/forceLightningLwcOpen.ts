@@ -8,12 +8,8 @@
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
+import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const { telemetryService } = sfdxCoreExports;
 
 const logName = 'force_lightning_lwc_open';
 const commandName = nls.localize('force_lightning_lwc_open_text');
