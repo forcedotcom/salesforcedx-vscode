@@ -18,7 +18,7 @@ import {
   PostconditionChecker,
   PreconditionChecker
 } from '../types';
-import { getRootWorkspacePath } from '../workspaces/rootWorkspace';
+import { getRootWorkspacePath } from '../workspaces';
 import {
   channelService,
   notificationService,

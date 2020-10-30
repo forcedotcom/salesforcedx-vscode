@@ -11,10 +11,7 @@ import { workspace } from 'vscode';
 import { nls } from '../messages';
 import { Predicate, PredicateResponse } from '../predicates';
 import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
-import {
-  getRootWorkspacePath,
-  hasRootWorkspace
-} from '../workspaces/rootWorkspace';
+import { getRootWorkspacePath, hasRootWorkspace } from '../workspaces';
 import { notificationService } from './index';
 
 export class IsSfdxProjectOpened implements Predicate<typeof workspace> {
