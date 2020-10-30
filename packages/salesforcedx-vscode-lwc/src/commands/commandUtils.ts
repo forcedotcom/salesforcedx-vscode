@@ -12,7 +12,7 @@ import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
 export function showError(e: Error, logName: string, commandName: string) {
-  telemetryService.sendException(`${logName}_error`, e.message);
+  telemetryService.sendException(`${logName}_error`, e.message).catch();
   notificationService.showErrorMessage(e.message);
   notificationService.showErrorMessage(
     nls.localize('command_failure', commandName)

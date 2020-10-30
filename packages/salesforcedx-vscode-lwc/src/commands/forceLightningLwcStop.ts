@@ -27,7 +27,7 @@ export async function forceLightningLwcStop() {
       notificationService
         .showSuccessfulExecution(nls.localize('force_lightning_lwc_stop_text'))
         .catch();
-      telemetryService.sendCommandEvent(logName, startTime);
+      telemetryService.sendCommandEvent(logName, startTime).catch();
     } else {
       notificationService.showWarningMessage(
         nls.localize('force_lightning_lwc_stop_not_running')
