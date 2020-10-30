@@ -11,20 +11,17 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ChannelService,
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { PreviewService } from '../service/previewService';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
-const channelService = ChannelService.getInstance('lwc');
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;

@@ -4,11 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as vscode from 'vscode';
+import { channelService } from '../../channel';
 import { nls } from '../../messages';
 
-const channelService = ChannelService.getInstance('lwc');
 interface SfdxTaskDefinition extends vscode.TaskDefinition {
   sfdxTaskId: string;
 }
