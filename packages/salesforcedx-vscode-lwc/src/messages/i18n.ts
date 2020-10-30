@@ -94,5 +94,6 @@ export const messages = {
     'Select a Target Application...',
   force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
   force_lightning_lwc_preview_desktop_description:
-    'Preview component on desktop browser'
+    'Preview component on desktop browser',
+  lwc_output_channel_name: 'LWC Extension'
 };

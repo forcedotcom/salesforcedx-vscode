@@ -7,10 +7,8 @@
 
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-
 import { CommandExecution } from '../cli';
 import { nls } from '../messages';
-import { channelService } from './index';
 
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
@@ -97,14 +95,12 @@ export class NotificationService {
     this.showErrorMessage(
       nls.localize('notification_unsuccessful_execution_text', executionName)
     );
-    this.showChannelOutput();
   }
 
   private showCanceledExecution(executionName: string) {
     this.showWarningMessage(
       nls.localize('notification_canceled_execution_text', executionName)
     );
-    this.showChannelOutput();
   }
 
   public async showSuccessfulExecution(executionName: string) {
@@ -125,9 +121,7 @@ export class NotificationService {
         showButtonText,
         showOnlyStatusBarButtonText
       );
-      if (selection && selection === showButtonText) {
-        this.showChannelOutput();
-      }
+
       if (selection && selection === showOnlyStatusBarButtonText) {
         await vscode.workspace
           .getConfiguration('salesforcedx-vscode-core')
@@ -146,11 +140,6 @@ export class NotificationService {
       this.showErrorMessage(
         nls.localize('notification_unsuccessful_execution_text', executionName)
       );
-      this.showChannelOutput();
     });
-  }
-
-  private showChannelOutput() {
-    channelService.showChannelOutput();
   }
 }

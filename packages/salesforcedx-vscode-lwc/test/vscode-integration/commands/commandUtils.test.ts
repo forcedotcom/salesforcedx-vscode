@@ -9,7 +9,7 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { showError } from '../../../src/commands/commandUtils';
 import {
-  channelService,
+  ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
@@ -58,7 +58,7 @@ describe('command utilities', () => {
     });
 
     it('should send a message to the channel', () => {
-      const spy = sinon.spy(channelService, 'appendLine');
+      const spy = sinon.spy(ChannelService.prototype, 'appendLine');
 
       showError(
         new Error('test error message'),
@@ -73,7 +73,7 @@ describe('command utilities', () => {
     });
 
     it('should show the channel output', () => {
-      const spy = sinon.spy(channelService, 'showChannelOutput');
+      const spy = sinon.spy(ChannelService.prototype, 'showChannelOutput');
 
       showError(
         new Error('test error message'),
