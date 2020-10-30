@@ -15,6 +15,7 @@ import {
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
+  MetadataType,
   RegistryAccess,
   registryData,
   SourceClient
@@ -106,17 +107,7 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   }
 
   const { types } = registryData;
-  const useBeta = useBetaDeployRetrieve(
-    [explorerPath],
-    [
-      types.auradefinitionbundle,
-      types.lightningcomponentbundle,
-      types.apexclass,
-      types.apexcomponent,
-      types.apexpage,
-      types.apextrigger
-    ]
-  );
+  const useBeta = useBetaDeployRetrieve([explorerPath]);
 
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
@@ -143,10 +134,23 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
       'namespace'
     )) as string;
     const client = new SourceClient(await getConnection);
-    const retrieve = client.tooling.retrieve({
-      components,
-      namespace: projectNamespace
-    });
+    let retrieve;
+    if (
+      components.length === 1 &&
+      this.isSupportedToolingRetrieveType(components[0].type)
+    ) {
+      retrieve = client.tooling.retrieve({
+        components,
+        namespace: projectNamespace
+      });
+    } else {
+      retrieve = client.metadata.retrieve({
+        components,
+        namespace: projectNamespace,
+        merge: true,
+        output: response.data
+      });
+    }
     const metadataCount = JSON.stringify(createComponentCount(components));
     this.telemetry.addProperty('metadataCount', metadataCount);
 
@@ -155,5 +159,18 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     channelService.appendLine(outputRetrieveTable(result));
 
     return result.success;
+  }
+
+  private isSupportedToolingRetrieveType(type: MetadataType): boolean {
+    const { types } = registryData;
+    const permittedTypeNames = [
+      types.auradefinitionbundle.name,
+      types.lightningcomponentbundle.name,
+      types.apexclass.name,
+      types.apexcomponent.name,
+      types.apexpage.name,
+      types.apextrigger.name
+    ];
+    return permittedTypeNames.includes(type.name);
   }
 }
