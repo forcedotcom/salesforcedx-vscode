@@ -19,6 +19,11 @@ const vscodeStub = {
     parse: stub()
   },
   window: {
+    createOutputChannel: () => {
+      return {
+        show: () => {}
+      };
+    },
     showInformationMessage: mShowInformation
   },
   workspace: {
@@ -54,14 +59,11 @@ describe('Telemetry dev mode', () => {
     };
 
     // tslint:disable-next-line
-    const { TelemetryService } = proxyquire.noCallThru()(
-      '../../../src/telemetry/index',
-      {
-        vscode: vscodeStub,
-        './telemetryReporter': { default: telemetryReporterStub },
-        '../cli/cliConfiguration': cliConfigurationStub
-      }
-    );
+    const { TelemetryService } = proxyquire.noCallThru()('../../../src/index', {
+      vscode: vscodeStub,
+      './telemetryReporter': { default: telemetryReporterStub },
+      '../cli/cliConfiguration': cliConfigurationStub
+    });
 
     telemetryService = TelemetryService.getInstance();
     teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
