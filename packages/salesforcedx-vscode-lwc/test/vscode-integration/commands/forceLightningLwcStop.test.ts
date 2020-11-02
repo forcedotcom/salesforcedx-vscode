@@ -10,26 +10,27 @@ import * as vscode from 'vscode';
 import { forceLightningLwcStop } from '../../../src/commands/forceLightningLwcStop';
 import { DevServerService } from '../../../src/service/devServerService';
 import { nls } from '../../../src/messages';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  ChannelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
-const {
-  notificationService
-} = sfdxCoreExports;
 
 describe('forceLightningLwcStop', () => {
   let sandbox: sinon.SinonSandbox;
   let devService: DevServerService;
   let appendLineStub: sinon.SinonStub;
-  let notificationServiceStubs: { [key: string]: sinon.SinonStub };
+  let notificationServiceStubs: {
+    [key: string]: any;
+  };
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
     devService = new DevServerService();
     sandbox.stub(DevServerService, 'instance').get(() => devService);
-
 
     notificationServiceStubs = {};
 
@@ -37,10 +38,9 @@ describe('forceLightningLwcStop', () => {
       ChannelService.prototype,
       'appendLine' as any
     );
-    notificationServiceStubs.showSuccessfulExecutionStub = sandbox.stub(
-      notificationService,
-      'showSuccessfulExecution'
-    );
+    notificationServiceStubs.showSuccessfulExecutionStub = sandbox
+      .stub(notificationService, 'showSuccessfulExecution')
+      .returns(Promise.resolve());
     notificationServiceStubs.showErrorMessageStub = sandbox.stub(
       notificationService,
       'showErrorMessage'
@@ -76,7 +76,9 @@ describe('forceLightningLwcStop', () => {
       sinon.match(nls.localize('force_lightning_lwc_stop_in_progress'))
     );
 
-    sinon.assert.calledOnce(notificationServiceStubs.showSuccessfulExecutionStub);
+    sinon.assert.calledOnce(
+      notificationServiceStubs.showSuccessfulExecutionStub
+    );
     sinon.assert.calledWith(
       notificationServiceStubs.showSuccessfulExecutionStub,
       sinon.match(nls.localize('force_lightning_lwc_stop_text'))
