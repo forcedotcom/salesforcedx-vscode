@@ -6,17 +6,13 @@
  */
 
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { env, extensions, Uri } from 'vscode';
+import { env, Uri } from 'vscode';
 import { channelService } from '../channel';
 import { nls } from '../messages';
-
-const sfdxCoreExports = extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const { telemetryService } = sfdxCoreExports;
+import { telemetryService } from '../telemetry';
 
 export function showError(e: Error, logName: string, commandName: string) {
-  telemetryService.sendException(`${logName}_error`, e.message);
+  telemetryService.sendException(`${logName}_error`, e.message).catch();
   notificationService.showErrorMessage(e.message);
   notificationService.showErrorMessage(
     nls.localize('command_failure', commandName)

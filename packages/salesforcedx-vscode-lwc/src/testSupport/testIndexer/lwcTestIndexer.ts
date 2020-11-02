@@ -8,24 +8,22 @@ import { Indexer } from '@salesforce/lightning-lsp-common';
 import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
 import {
-  extractPositionFromFailureMessage,
-  IExtendedParseResults,
-  ItBlockWithAncestorTitles,
-  populateAncestorTitles,
-  sanitizeFailureMessage
-} from './jestUtils';
-
-import {
   LwcJestTestResults,
   RawTestResult,
   TestCaseInfo,
-  TestExecutionInfo,
   TestFileInfo,
   TestInfoKind,
   TestResultStatus,
   TestType
 } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
+import {
+  extractPositionFromFailureMessage,
+  IExtendedParseResults,
+  ItBlockWithAncestorTitles,
+  populateAncestorTitles,
+  sanitizeFailureMessage
+} from './jestUtils';
 
 class LwcTestIndexer implements Indexer, vscode.Disposable {
   private disposables: vscode.Disposable[] = [];
