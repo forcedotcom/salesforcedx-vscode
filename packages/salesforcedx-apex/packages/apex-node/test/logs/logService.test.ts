@@ -268,8 +268,8 @@ describe('Apex Log Service Tests', () => {
       const numberOfLogs = 2;
       let query = 'Select Id, Application, DurationMilliseconds, Location, ';
       query +=
-        'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime';
-      query += `DESC LIMIT ${numberOfLogs}`;
+        'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime DESC ';
+      query += `LIMIT ${numberOfLogs}`;
       const queryStub = sandboxStub
         .stub(mockConnection.tooling, 'query')
         //@ts-ignore
@@ -284,7 +284,7 @@ describe('Apex Log Service Tests', () => {
     it('should return all log records', async () => {
       let query = 'Select Id, Application, DurationMilliseconds, Location, ';
       query +=
-        'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime';
+        'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime DESC';
       const queryStub = sandboxStub
         .stub(mockConnection.tooling, 'query')
         //@ts-ignore

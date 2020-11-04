@@ -62,14 +62,14 @@ export class LogService {
   public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {
     let query = 'Select Id, Application, DurationMilliseconds, Location, ';
     query +=
-      'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime';
+      'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime DESC';
 
     if (typeof numberOfLogs === 'number') {
       if (numberOfLogs <= 0) {
         throw new Error(nls.localize('num_logs_error'));
       }
       numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
-      query += `DESC LIMIT ${numberOfLogs}`;
+      query += ` LIMIT ${numberOfLogs}`;
     }
 
     const response = (await this.connection.tooling.query(
