@@ -1,3 +1,33 @@
+# 50.4.0 - Month DD, YYYY
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- Move channel service to utils package ([PR #2625](https://github.com/forcedotcom/salesforcedx-vscode/pull/2625))
+
+#### salesforcedx-vscode-core
+
+- Allow multiple component retrieve for performance beta ([PR #2682](https://github.com/forcedotcom/salesforcedx-vscode/pull/2682))
+
+- Diagnostics not clearing for apex execute ([PR #2674](https://github.com/forcedotcom/salesforcedx-vscode/pull/2674))
+
+#### salesforcedx-vscode-lightning
+
+- Update aura & lwc lang servers to 3.0.11 ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688))
+
+#### salesforcedx-vscode-lwc
+
+- Update aura & lwc lang servers to 3.0.11 ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688))
+
+- Rename 'Local dev server' commands ([PR #2670](https://github.com/forcedotcom/salesforcedx-vscode/pull/2670))
+
+- Move channel service to utils package ([PR #2625](https://github.com/forcedotcom/salesforcedx-vscode/pull/2625))
+
+#### salesforcedx-vscode-soql
+
+- Save Button Icons ([PR #2675](https://github.com/forcedotcom/salesforcedx-vscode/pull/2675))
+
 # 50.3.0 - October 28, 2020
 
 ## Added
