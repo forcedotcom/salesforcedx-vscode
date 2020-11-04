@@ -1,32 +1,20 @@
-# 50.4.0 - Month DD, YYYY
+# 50.4.0 - November 5, 2020
 
 ## Fixed
 
-#### salesforcedx-utils-vscode
-
-- Move channel service to utils package ([PR #2625](https://github.com/forcedotcom/salesforcedx-vscode/pull/2625))
-
 #### salesforcedx-vscode-core
 
-- Allow multiple component retrieve for performance beta ([PR #2682](https://github.com/forcedotcom/salesforcedx-vscode/pull/2682))
-
-- Diagnostics not clearing for apex execute ([PR #2674](https://github.com/forcedotcom/salesforcedx-vscode/pull/2674))
-
-#### salesforcedx-vscode-lightning
-
-- Update aura & lwc lang servers to 3.0.11 ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688))
+- Allow retrieving multiple components as part of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2682](https://github.com/forcedotcom/salesforcedx-vscode/pull/2682))
 
 #### salesforcedx-vscode-lwc
 
-- Update aura & lwc lang servers to 3.0.11 ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688))
+- Remove suggestions after every `{` character ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688), [Issue #2681](https://github.com/forcedotcom/salesforcedx-vscode/issues/2681))
 
-- Rename 'Local dev server' commands ([PR #2670](https://github.com/forcedotcom/salesforcedx-vscode/pull/2670))
-
-- Move channel service to utils package ([PR #2625](https://github.com/forcedotcom/salesforcedx-vscode/pull/2625))
-
-#### salesforcedx-vscode-soql
-
-- Save Button Icons ([PR #2675](https://github.com/forcedotcom/salesforcedx-vscode/pull/2675))
+- Rename Local Development Server commands ([PR #2670](https://github.com/forcedotcom/salesforcedx-vscode/pull/2670))
+  - `SFDX: Start Local Development Server` to `SFDX: Start LWC Code Preview Server`
+  - `SFDX: Stop Local Development Server` to `SFDX: Stop LWC Code Preview Server`
+  - `SFDX: Open Local Development Server` to `SFDX: Open Code Preview Home`
+  - `SFDX: Preview Component Locally` to `SFDX: Preview Component`
 
 # 50.3.0 - October 28, 2020
 
