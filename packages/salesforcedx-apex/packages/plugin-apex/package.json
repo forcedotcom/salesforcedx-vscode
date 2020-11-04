@@ -42,7 +42,10 @@
   "files": [
     "yarn.lock",
     "/bin",
-    "/lib",
+    "/lib/commands/force/apex/log/*",
+    "/lib/commands/force/apex/execute.*",
+    "/lib/index.*",
+    "/lib/utils.*",
     "/messages",
     "/npm-shrinkwrap.json",
     "/oclif.manifest.json",
