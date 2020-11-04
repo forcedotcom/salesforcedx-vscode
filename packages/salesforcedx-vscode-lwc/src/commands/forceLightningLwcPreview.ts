@@ -11,13 +11,15 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { PreviewService } from '../service/previewService';
+import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
 
@@ -25,8 +27,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const {
-  notificationService,
-  telemetryService,
   SfdxCommandlet,
   EmptyParametersGatherer,
   SfdxWorkspaceChecker
@@ -263,14 +263,14 @@ async function startServer(
     );
 
     await commandlet.run();
-    telemetryService.sendCommandEvent(logName, startTime);
+    telemetryService.sendCommandEvent(logName, startTime).catch();
   } else if (isDesktop) {
     try {
       const fullUrl = DevServerService.instance.getComponentPreviewUrl(
         componentName
       );
       await openBrowser(fullUrl);
-      telemetryService.sendCommandEvent(logName, startTime);
+      telemetryService.sendCommandEvent(logName, startTime).catch();
     } catch (e) {
       showError(e, logName, commandName);
     }
@@ -551,7 +551,7 @@ async function executeMobilePreview(
   const previewCancellationTokenSource = new vscode.CancellationTokenSource();
   const previewCancellationToken = previewCancellationTokenSource.token;
   const previewExecution = previewExecutor.execute(previewCancellationToken);
-  telemetryService.sendCommandEvent(logName, startTime);
+  telemetryService.sendCommandEvent(logName, startTime).catch();
   channelService.streamCommandOutput(previewExecution);
   channelService.showChannelOutput();
 
@@ -562,9 +562,9 @@ async function executeMobilePreview(
         : nls.localize('force_lightning_lwc_ios_failure', targetDevice);
       showError(new Error(message), logName, commandName);
     } else if (!isAndroid) {
-      notificationService.showSuccessfulExecution(
-        previewExecution.command.toString()
-      );
+      notificationService
+        .showSuccessfulExecution(previewExecution.command.toString())
+        .catch();
       vscode.window.showInformationMessage(
         nls.localize('force_lightning_lwc_ios_start', targetDevice)
       );
@@ -576,9 +576,9 @@ async function executeMobilePreview(
   if (isAndroid) {
     previewExecution.stdoutSubject.subscribe(async data => {
       if (data && data.toString().includes(androidSuccessString)) {
-        notificationService.showSuccessfulExecution(
-          previewExecution.command.toString()
-        );
+        notificationService
+          .showSuccessfulExecution(previewExecution.command.toString())
+          .catch();
         vscode.window.showInformationMessage(
           nls.localize('force_lightning_lwc_android_start', targetDevice)
         );

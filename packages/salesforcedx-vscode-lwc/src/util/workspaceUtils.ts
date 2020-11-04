@@ -4,11 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
-import { workspace } from 'vscode';
+
+import {
+  ExtensionContext,
+  Memento,
+  workspace,
+  WorkspaceConfiguration
+} from 'vscode';
 
 export class WorkspaceUtils {
-  private context: vscode.ExtensionContext | undefined;
+  private context: ExtensionContext | undefined;
   private static _instance: WorkspaceUtils;
 
   public static get instance() {
@@ -18,15 +23,15 @@ export class WorkspaceUtils {
     return WorkspaceUtils._instance;
   }
 
-  public init(extensionContext: vscode.ExtensionContext) {
+  public init(extensionContext: ExtensionContext) {
     this.context = extensionContext;
   }
 
-  public getGlobalStore(): vscode.Memento | undefined {
+  public getGlobalStore(): Memento | undefined {
     return this.context && this.context.globalState;
   }
 
-  public getWorkspaceSettings(): vscode.WorkspaceConfiguration {
+  public getWorkspaceSettings(): WorkspaceConfiguration {
     return workspace.getConfiguration('salesforcedx-vscode-lwc');
   }
 }

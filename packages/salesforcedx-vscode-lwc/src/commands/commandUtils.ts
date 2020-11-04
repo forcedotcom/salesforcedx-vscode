@@ -5,17 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import * as vscode from 'vscode';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { env, Uri } from 'vscode';
+import { channelService } from '../channel';
 import { nls } from '../messages';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const { notificationService, telemetryService } = sfdxCoreExports;
+import { telemetryService } from '../telemetry';
 
 export function showError(e: Error, logName: string, commandName: string) {
-  telemetryService.sendException(`${logName}_error`, e.message);
+  telemetryService.sendException(`${logName}_error`, e.message).catch();
   notificationService.showErrorMessage(e.message);
   notificationService.showErrorMessage(
     nls.localize('command_failure', commandName)
@@ -25,5 +22,5 @@ export function showError(e: Error, logName: string, commandName: string) {
 }
 
 export function openBrowser(url: string) {
-  return vscode.env.openExternal(vscode.Uri.parse(url));
+  return env.openExternal(Uri.parse(url));
 }
