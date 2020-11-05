@@ -21,8 +21,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "^2.12.1",
-    "@salesforce/soql-builder-ui": "0.0.21",
-    "@salesforce/soql-data-view": "0.0.5",
+    "@salesforce/soql-builder-ui": "0.0.22",
+    "@salesforce/soql-data-view": "0.0.6",
     "@salesforce/soql-language-server": "0.2.7",
     "debounce": "^1.2.0",
     "jsforce": "^1.10.0",
