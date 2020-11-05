@@ -10,12 +10,6 @@
 
 - Remove suggestions after every `{` character ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688), [Issue #2681](https://github.com/forcedotcom/salesforcedx-vscode/issues/2681))
 
-- Rename Local Development Server commands ([PR #2670](https://github.com/forcedotcom/salesforcedx-vscode/pull/2670))
-  - `SFDX: Start Local Development Server` to `SFDX: Start LWC Code Preview Server`
-  - `SFDX: Stop Local Development Server` to `SFDX: Stop LWC Code Preview Server`
-  - `SFDX: Open Local Development Server` to `SFDX: Open Code Preview Home`
-  - `SFDX: Preview Component Locally` to `SFDX: Preview Component`
-
 # 50.3.0 - October 28, 2020
 
 ## Added
