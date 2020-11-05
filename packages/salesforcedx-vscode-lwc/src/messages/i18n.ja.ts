@@ -53,5 +53,42 @@ export const messages = {
   debug_test_title: 'テストをデバッグ',
   run_test_task_name: 'テストを実行',
   watch_test_task_name: 'テストをウォッチ',
-  default_task_name: 'LWC テスト'
+  default_task_name: 'LWC テスト',
+  task_windows_command_prompt_messaging:
+    'Default shell for running tasks is set to cmd.exe',
+  force_lightning_lwc_no_mobile_plugin:
+    'To run this command, install the @salesforce/lwc-dev-mobile plugin.',
+  force_lightning_lwc_platform_selection:
+    'Select the platform for previewing the component',
+  force_lightning_lwc_android_target_default:
+    'Enter a name for the Android emulator (leave blank for default)',
+  force_lightning_lwc_ios_target_default:
+    'Enter a name for the iOS simulator (leave blank for default)',
+  force_lightning_lwc_android_target_remembered:
+    "Enter a name for the Android emulator (leave blank for '%s')",
+  force_lightning_lwc_ios_target_remembered:
+    "Enter a name for the iOS simulator (leave blank for '%s')",
+  force_lightning_lwc_operation_cancelled:
+    'Preview operation cancelled by user.',
+  force_lightning_lwc_ios_label: 'Use iOS Simulator',
+  force_lightning_lwc_ios_description: 'Preview component on iOS',
+  force_lightning_lwc_android_label: 'Use Android Emulator',
+  force_lightning_lwc_android_description: 'Preview component on Android',
+  force_lightning_lwc_android_failure: "Failed to start Android Emulator '%s'.",
+  force_lightning_lwc_ios_failure: "Failed to start iOS Simulator '%s'.",
+  force_lightning_lwc_android_start: "Starting Android Emulator '%s'.",
+  force_lightning_lwc_ios_start: "Starting iOS Simulator '%s'.",
+  force_lightning_lwc_browserapp_label: 'Browser',
+  force_lightning_lwc_browserapp_description: 'Your mobile browser.',
+  force_lightning_lwc_preview_create_virtual_device_label: 'New...',
+  force_lightning_lwc_preview_create_virtual_device_detail:
+    'Create a Virtual Device',
+  force_lightning_lwc_preview_select_virtual_device:
+    'Select a Virtual Device...',
+  force_lightning_lwc_preview_select_target_app:
+    'Select a Target Application...',
+  force_lightning_lwc_preview_desktop_label: 'Use Desktop Browser',
+  force_lightning_lwc_preview_desktop_description:
+    'Preview component on desktop browser',
+  lwc_output_channel_name: 'LWC Extension'
 };

@@ -6,11 +6,11 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src/telemetry';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import {
+  commands,
   ConfigurationTarget,
+  Disposable,
   ExtensionContext,
   Uri,
   workspace,
@@ -30,6 +30,7 @@ import {
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
 import { DevServerService } from './service/devServerService';
+import { telemetryService } from './telemetry';
 import {
   activateLwcTestSupport,
   shouldActivateLwcTestSupport
@@ -62,10 +63,13 @@ export async function activate(context: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  const extensionPackage = require(context.asAbsolutePath(
-    './package.json'
-  ));
-  await TelemetryService.getInstance().initializeService(context, LWC_EXTENSION_NAME, extensionPackage.aiKey, extensionPackage.version);
+  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  await telemetryService.initializeService(
+    context,
+    LWC_EXTENSION_NAME,
+    extensionPackage.aiKey,
+    extensionPackage.version
+  );
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
@@ -120,7 +124,7 @@ export async function activate(context: ExtensionContext) {
           ConfigurationTarget.Workspace
         );
       } catch (e) {
-        await TelemetryService.getInstance().sendException(
+        await telemetryService.sendException(
           'lwc_eslint_nodepath_couldnt_be_set',
           e.message
         );
@@ -137,7 +141,7 @@ export async function activate(context: ExtensionContext) {
   WorkspaceUtils.instance.init(context);
 
   // Notify telemetry that our extension is now active
-  TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart).catch();
+  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 export async function deactivate() {
@@ -145,7 +149,7 @@ export async function deactivate() {
     await DevServerService.instance.stopServer();
   }
   console.log('Lightning Web Components Extension Deactivated');
-  TelemetryService.getInstance().sendExtensionDeactivationEvent().catch();
+  telemetryService.sendExtensionDeactivationEvent().catch();
 }
 
 function getActivationMode(): string {
@@ -153,23 +157,21 @@ function getActivationMode(): string {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
-function registerCommands(
-  _extensionContext: vscode.ExtensionContext
-): vscode.Disposable {
-  return vscode.Disposable.from(
-    vscode.commands.registerCommand(
+function registerCommands(_extensionContext: ExtensionContext): Disposable {
+  return Disposable.from(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.start',
       forceLightningLwcStart
     ),
-    vscode.commands.registerCommand(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.stop',
       forceLightningLwcStop
     ),
-    vscode.commands.registerCommand(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.open',
       forceLightningLwcOpen
     ),
-    vscode.commands.registerCommand(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.preview',
       forceLightningLwcPreview
     )
