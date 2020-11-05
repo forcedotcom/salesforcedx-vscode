@@ -6,14 +6,12 @@
  */
 
 import * as sinon from 'sinon';
-import * as vscode from 'vscode';
 import { showError } from '../../../src/commands/commandUtils';
-import { channelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const { notificationService, telemetryService } = sfdxCoreExports;
+import {
+  ChannelService,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { telemetryService } from '../../../src/telemetry';
 
 describe('command utilities', () => {
   describe('showError', () => {
@@ -55,7 +53,7 @@ describe('command utilities', () => {
     });
 
     it('should send a message to the channel', () => {
-      const spy = sinon.spy(channelService, 'appendLine');
+      const spy = sinon.spy(ChannelService.prototype, 'appendLine');
 
       showError(
         new Error('test error message'),
@@ -70,7 +68,7 @@ describe('command utilities', () => {
     });
 
     it('should show the channel output', () => {
-      const spy = sinon.spy(channelService, 'showChannelOutput');
+      const spy = sinon.spy(ChannelService.prototype, 'showChannelOutput');
 
       showError(
         new Error('test error message'),
