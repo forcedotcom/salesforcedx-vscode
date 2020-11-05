@@ -70,8 +70,7 @@
     "vscode:package": "vsce package"
   },
   "activationEvents": [
-    "onCustomEditor:soqlCustom.soql",
-    "onLanguage:soql"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
   "contributes": {
@@ -84,7 +83,7 @@
             "filenamePattern": "*.soql"
           }
         ],
-        "priority": "default"
+        "priority": "option"
       }
     ],
     "languages": [
