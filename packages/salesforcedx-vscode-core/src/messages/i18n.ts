@@ -302,6 +302,8 @@ export const messages = {
   table_header_type: 'TYPE',
   table_header_full_name: 'FULL NAME',
   table_header_state: 'STATE',
+  table_header_error_type: 'MESSAGE TYPE',
+  table_header_message: 'MESSAGE',
   table_no_results_found: 'No results found',
   table_title_deployed_source: 'Deployed Source',
   table_title_deploy_errors: 'Deploy Errors',
@@ -588,6 +590,7 @@ export const messages = {
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error:
     'Not able to parse current results. Raw result: %s',
+  lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
