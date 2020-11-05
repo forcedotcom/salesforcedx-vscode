@@ -20,11 +20,10 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "^2.12.1",
-    "@salesforce/soql-builder-ui": "0.0.10",
+    "@salesforce/core": "2.12.1",
+    "@salesforce/soql-builder-ui": "0.0.21",
     "@salesforce/soql-data-view": "0.0.5",
-    "@salesforce/soql-language-server": "0.2.1",
-    "@salesforce/soql-tmlanguage": "0.1.1",
+    "@salesforce/soql-language-server": "0.2.5",
     "@types/papaparse": "^5.2.3",
     "debounce": "^1.2.0",
     "jsforce": "^1.10.0",

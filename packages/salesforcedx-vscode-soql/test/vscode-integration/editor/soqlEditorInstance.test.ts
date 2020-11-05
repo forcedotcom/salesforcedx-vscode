@@ -12,6 +12,7 @@ import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
   getMockConnection,
   MockConnection,
+  mockSObject,
   MockTextDocumentProvider,
   TestSoqlEditorInstance
 } from '../testUtilities';
@@ -78,14 +79,18 @@ describe('SoqlEditorInstance should', () => {
     sandbox.restore();
   });
 
+  it('post CONNECTION_CHANGED message when connection is changed', async () => {
+    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    const expected = { type: 'connection_changed' };
+    const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+
+    instance.onConnectionChanged();
+
+    expect(postMessageSpy.calledWith(expected));
+  });
+
   it('responds to sobjects_request with a list of sobjects', async () => {
     sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
-    const describeGlobalResponse = {
-      sobjects: [{ name: 'A' }, { name: 'B' }]
-    };
-    sandbox
-      .stub(mockConnection, 'describeGlobal')
-      .resolves(describeGlobalResponse);
 
     const expectedMessage = {
       type: 'sobjects_response',
@@ -102,16 +107,14 @@ describe('SoqlEditorInstance should', () => {
 
   it('responds to sobject_metadata_request with SObject metadata', async () => {
     sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
-    const fakeSObject = { name: 'A' };
-    sandbox.stub(mockConnection, 'describe').resolves(fakeSObject);
 
     const expectedMessage = {
       type: 'sobject_metadata_response',
-      payload: fakeSObject
+      payload: mockSObject
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobject_metadata_request' });
+    instance.sendEvent({ type: 'sobject_metadata_request', payload: 'A' });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
