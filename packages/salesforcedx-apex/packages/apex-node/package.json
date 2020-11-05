@@ -34,7 +34,7 @@
     "salesforcedx"
   ],
   "files": [
-    "lib"
+    "lib/src"
   ],
   "scripts": {
     "build": "shx rm -rf lib && tsc -b",
