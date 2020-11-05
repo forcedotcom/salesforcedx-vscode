@@ -50,6 +50,3 @@ GitIgnoreTest2/
 
 # MacOS folder atttribute tracking
 **/.DS_Store
-
-# ignore oclif manifest file
-oclif.manifest.json

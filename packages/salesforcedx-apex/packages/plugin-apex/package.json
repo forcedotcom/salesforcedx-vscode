@@ -101,7 +101,6 @@
     "format": "prettier --config ../../.prettierrc --write './{src,test,scripts}/**/*.{ts,js,json}'",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src ./test",
     "manifest:generate": "yarn build && oclif-dev manifest",
-    "postpack": "shx rm -f oclif.manifest.json",
     "test": "cross-env FORCE_COLOR=true mocha --recursive \"./test/**/*.test.ts\" --full-trace",
     "version": "oclif-dev readme && git add README.md",
     "test:deprecation-policy": "./bin/run snapshot:compare",
