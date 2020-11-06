@@ -14,7 +14,7 @@ import {
 } from '@salesforce/apex-node/lib/src/tests/types';
 import { Row, Table } from '@salesforce/apex-node/lib/src/utils';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages } from '@salesforce/core';
+import { Messages, Org } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import { buildDescription, logLevels } from '../../../../utils';
 
@@ -46,6 +46,10 @@ export function buildTestItem(testNames: string): TestItem[] {
 }
 
 export default class Run extends SfdxCommand {
+  protected static requiresUsername = true;
+  // Guaranteed by requires username
+  protected org!: Org;
+
   public static description = buildDescription(
     messages.getMessage('commandDescription'),
     messages.getMessage('longDescription')
@@ -59,8 +63,6 @@ export default class Run extends SfdxCommand {
     `$ sfdx force:apex:test:run -t "MyClassTest.testCoolFeature,MyClassTest.testAwesomeFeature,AnotherClassTest,namespace.TheirClassTest.testThis" -r human`,
     `$ sfdx force:apex:test:run -l RunLocalTests -d <path to outputdir> -u me@my.org`
   ];
-
-  protected static supportsUsername = true;
 
   protected static flagsConfig = {
     json: flags.boolean({
@@ -93,8 +95,7 @@ export default class Run extends SfdxCommand {
     resultformat: flags.enum({
       char: 'r',
       description: messages.getMessage('resultFormatLongDescription'),
-      options: resultFormat,
-      required: true
+      options: resultFormat
     }),
     suitenames: flags.string({
       char: 's',
@@ -124,58 +125,115 @@ export default class Run extends SfdxCommand {
 
   public async run(): Promise<AnyJson> {
     try {
-      if (!this.org) {
-        return Promise.reject(
-          new Error(messages.getMessage('missing_auth_error'))
-        );
-      }
-      const conn = this.org.getConnection();
-      const testService = new TestService(conn);
-
-      if (this.flags.synchronous) {
-        const testOptions: SyncTestConfiguration = {
-          tests: buildTestItem(this.flags.tests),
-          testLevel: 'RunSpecifiedTests'
-        };
-        const resSync = await testService.runTestSynchronous(
-          testOptions,
-          this.flags.codecoverage
-        );
-        if (this.flags.resultformat === 'human') {
-          this.ux.log(this.formatHuman(resSync, this.flags.detailedcoverage));
-        }
-        return resSync;
-      }
-
-      let payload: AsyncTestConfiguration | AsyncTestArrayConfiguration;
+      await this.validateFlags();
       const testLevel = this.flags.testlevel
         ? this.flags.testlevel
         : 'RunSpecifiedTests';
 
-      if (this.flags.tests) {
-        payload = {
-          tests: buildTestItem(this.flags.tests),
-          testLevel
-        };
-      } else {
-        payload = {
-          classNames: this.flags.classnames,
-          suiteNames: this.flags.suitenames,
-          testLevel
-        };
-      }
+      const conn = this.org.getConnection();
+      const testService = new TestService(conn);
+      let result: TestResult;
 
-      const res = (await testService.runTestAsynchronous(
-        payload,
-        this.flags.codecoverage
-      )) as TestResult;
+      if (this.flags.synchronous) {
+        let testOptions: SyncTestConfiguration;
+        if (this.flags.tests) {
+          testOptions = {
+            tests: buildTestItem(this.flags.tests),
+            testLevel
+          };
+
+          const classes = testOptions.tests?.map(testItem => {
+            if (testItem.className) {
+              return testItem.className;
+            }
+          });
+          if (new Set(classes).size !== 1) {
+            return Promise.reject(
+              new Error(messages.getMessage('syncClassErr'))
+            );
+          }
+        } else {
+          testOptions = {
+            tests: [],
+            classNames: this.flags.classnames,
+            testLevel
+          };
+        }
+
+        result = await testService.runTestSynchronous(
+          testOptions,
+          this.flags.codecoverage
+        );
+      } else {
+        let payload: AsyncTestConfiguration | AsyncTestArrayConfiguration;
+
+        if (this.flags.tests) {
+          payload = {
+            tests: buildTestItem(this.flags.tests),
+            testLevel
+          };
+        } else {
+          payload = {
+            classNames: this.flags.classnames,
+            suiteNames: this.flags.suitenames,
+            testLevel
+          };
+        }
+
+        result = await testService.runTestAsynchronous(
+          payload,
+          this.flags.codecoverage
+        );
+      }
 
       if (this.flags.resultformat === 'human') {
-        this.ux.log(this.formatHuman(res, this.flags.detailedcoverage));
+        this.ux.log(this.formatHuman(result, this.flags.detailedcoverage));
       }
-      return res;
+
+      if (!this.flags.resultformat) {
+        const id = result.summary.testRunId;
+        const username = result.summary.username;
+        this.ux.log(
+          messages.getMessage('runTestReportCommand', [id, username])
+        );
+      }
+
+      return result;
     } catch (e) {
       return Promise.reject(e);
+    }
+  }
+
+  public async validateFlags(): Promise<void> {
+    if (this.flags.codecoverage && !this.flags.resultformat) {
+      return Promise.reject(
+        new Error(messages.getMessage('missingReporterErr'))
+      );
+    }
+
+    if (
+      (this.flags.classnames && (this.flags.suitenames || this.flags.tests)) ||
+      (this.flags.suitenames && this.flags.tests)
+    ) {
+      return Promise.reject(
+        new Error(messages.getMessage('classSuiteTestErr'))
+      );
+    }
+
+    if (
+      this.flags.synchronous &&
+      (this.flags.suitenames ||
+        (this.flags.classnames && this.flags.classnames.split(',').length > 1))
+    ) {
+      return Promise.reject(new Error(messages.getMessage('syncClassErr')));
+    }
+
+    if (
+      (this.flags.tests || this.flags.classnames || this.flags.suitenames) &&
+      this.flags.testlevel &&
+      this.flags.testlevel !== 'RunSpecifiedTests'
+    ) {
+      return Promise.reject(new Error(messages.getMessage('testLevelErr')));
     }
   }
 
@@ -184,17 +242,55 @@ export default class Run extends SfdxCommand {
     detailedCoverage: boolean
   ): string {
     const tb = new Table();
+
     // Summary Table
-    const summary: { [key: string]: string | number | undefined } =
-      testResult.summary;
-    const summaryRowArray: Row[] = [];
-    for (const prop in summary) {
-      const row: Row = {
-        name: messages.getMessage(prop),
-        value: summary[prop] ? String(summary[prop]) : ''
-      };
-      summaryRowArray.push(row);
-    }
+    const summaryRowArray: Row[] = [
+      {
+        name: messages.getMessage('outcome'),
+        value: testResult.summary.outcome
+      },
+      {
+        name: messages.getMessage('numTestsRan'),
+        value: String(testResult.summary.numTestsRan)
+      },
+      {
+        name: messages.getMessage('passRate'),
+        value: testResult.summary.passRate
+      },
+      {
+        name: messages.getMessage('failRate'),
+        value: testResult.summary.failRate
+      },
+      {
+        name: messages.getMessage('skipRate'),
+        value: testResult.summary.skipRate
+      },
+      {
+        name: messages.getMessage('testRunId'),
+        value: testResult.summary.testRunId
+      },
+      {
+        name: messages.getMessage('testExecutionTime'),
+        value: `${testResult.summary.testExecutionTime} ms`
+      },
+      {
+        name: messages.getMessage('orgId'),
+        value: testResult.summary.orgId
+      },
+      {
+        name: messages.getMessage('username'),
+        value: testResult.summary.username
+      },
+      ...(testResult.summary.orgWideCoverage
+        ? [
+            {
+              name: messages.getMessage('orgWideCoverage'),
+              value: String(testResult.summary.orgWideCoverage)
+            }
+          ]
+        : [])
+    ];
+
     let tbResult = tb.createTable(
       summaryRowArray,
       [

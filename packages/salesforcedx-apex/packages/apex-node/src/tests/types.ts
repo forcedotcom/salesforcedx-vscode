@@ -82,7 +82,11 @@ export type AsyncTestArrayConfiguration = {
 };
 
 export type SyncTestConfiguration = {
-  tests: TestItem[];
+  classNames?: string;
+  /**
+   * Specifies which test class to run. Only one class is allowed for synchronous runs.
+   */
+  tests?: TestItem[];
   /**
    * Specifies which tests to run. The only valid value is RunSpecifiedTests.
    */

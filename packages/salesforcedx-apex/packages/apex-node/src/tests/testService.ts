@@ -223,14 +223,15 @@ export class TestService {
     apexTestResultQuery +=
       'RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ';
     apexTestResultQuery +=
-      'ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix, ApexClass.FullName ';
+      'ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix ';
     apexTestResultQuery += 'FROM ApexTestResult WHERE QueueItemId IN (%s)';
 
-    // TODO: this needs to iterate and create a comma separated string of ids
-    // and check for query length
-    const apexResultId = testQueueResult.records[0].Id;
+    // TODO: this needs to check for query length
+    const apexResultIds = testQueueResult.records
+      .map(record => record.Id)
+      .join("','");
     const apexTestResults = (await this.connection.tooling.query(
-      util.format(apexTestResultQuery, `'${apexResultId}'`)
+      util.format(apexTestResultQuery, `'${apexResultIds}'`)
     )) as ApexTestResult;
 
     let globalTestPassed = 0;
@@ -255,6 +256,10 @@ export class TestService {
       }
 
       apexTestClassIdSet.add(item.ApexClass.Id);
+      // Can only query the FullName field if a single record is returned, so manually build the field
+      item.ApexClass.FullName = item.ApexClass.NamespacePrefix
+        ? `${item.ApexClass.NamespacePrefix}__${item.ApexClass.Name}`
+        : item.ApexClass.Name;
 
       testResults.push({
         id: item.Id,
@@ -285,11 +290,14 @@ export class TestService {
       testResults.forEach(item => {
         const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
         const perClassCov = perClassCoverageMap.get(keyCodeCov);
-        coveredApexClassIdSet.add(perClassCov.apexClassorTriggerId);
-        item.perClassCoverage = {
-          apexClassOrTriggerName: perClassCov.apexClassOrTriggerName,
-          percentage: perClassCov.percentage
-        };
+        // Skipped test is not in coverage map, check to see if perClassCov exists first
+        if (perClassCov) {
+          coveredApexClassIdSet.add(perClassCov.apexClassorTriggerId);
+          item.perClassCoverage = {
+            apexClassOrTriggerName: perClassCov.apexClassOrTriggerName,
+            percentage: perClassCov.percentage
+          };
+        }
       });
     }
 
