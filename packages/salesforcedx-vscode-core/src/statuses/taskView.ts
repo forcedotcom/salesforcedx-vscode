@@ -45,7 +45,7 @@ export class TaskViewService implements TreeDataProvider<Task> {
     task.monitor();
     this.tasks.push(task);
 
-    this._onDidChangeTreeData.fire();
+    this._onDidChangeTreeData.fire(undefined);
     return task;
   }
 
@@ -54,7 +54,7 @@ export class TaskViewService implements TreeDataProvider<Task> {
     if (index !== -1) {
       this.tasks.splice(index, 1);
 
-      this._onDidChangeTreeData.fire();
+      this._onDidChangeTreeData.fire(undefined);
       return true;
     }
     return false;

@@ -35,7 +35,7 @@
     "typescript": "3.7.5"
   },
   "engines": {
-    "vscode": "^1.40.0"
+    "vscode": "^1.46.0"
   },
   "scripts": {
     "compile": "tsc -p ./",

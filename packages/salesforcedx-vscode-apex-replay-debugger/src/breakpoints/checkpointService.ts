@@ -45,7 +45,6 @@ import {
   BatchRequests
 } from '../commands/batchDeleteExistingOverlayActionsCommand';
 import {
-  ApexExecutionOverlayActionRecord,
   QueryExistingOverlayActionIdsCommand,
   QueryOverlayActionIdsSuccessResult
 } from '../commands/queryExistingOverlayActionIdsCommand';
@@ -90,7 +89,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   }
 
   public fireTreeChangedEvent() {
-    this._onDidChangeTreeData.fire();
+    this._onDidChangeTreeData.fire(undefined);
   }
 
   public async retrieveOrgInfo(): Promise<boolean> {

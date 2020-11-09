@@ -38,7 +38,7 @@ export class MetadataOutlineProvider
   public async onViewChange() {
     const usernameOrAlias = await this.getDefaultUsernameOrAlias();
     if (usernameOrAlias !== this.defaultOrg) {
-      this.internalOnDidChangeTreeData.fire();
+      this.internalOnDidChangeTreeData.fire(undefined);
     }
     this.defaultOrg = usernameOrAlias;
   }
