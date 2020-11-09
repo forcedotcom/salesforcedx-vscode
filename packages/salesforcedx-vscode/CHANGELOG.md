@@ -1,3 +1,15 @@
+# 50.4.0 - November 5, 2020
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Allow retrieving multiple components as part of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2682](https://github.com/forcedotcom/salesforcedx-vscode/pull/2682))
+
+#### salesforcedx-vscode-lwc
+
+- Remove suggestions after every `{` character ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688), [Issue #2681](https://github.com/forcedotcom/salesforcedx-vscode/issues/2681))
+
 # 50.3.0 - October 28, 2020
 
 ## Added

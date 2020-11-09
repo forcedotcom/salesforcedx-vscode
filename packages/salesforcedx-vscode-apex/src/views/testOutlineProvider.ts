@@ -118,7 +118,7 @@ export class ApexTestOutlineProvider
       this.apexTestInfo = await getApexTests();
     }
     this.getAllApexTests();
-    this.onDidChangeTestData.fire();
+    this.onDidChangeTestData.fire(undefined);
   }
 
   public async onResultFileCreate(
@@ -177,7 +177,7 @@ export class ApexTestOutlineProvider
   public readJSONFile(testResultFilePath: string) {
     const jsonSummary = this.getJSONFileOutput(testResultFilePath);
     this.updateTestsFromJSON(jsonSummary);
-    this.onDidChangeTestData.fire();
+    this.onDidChangeTestData.fire(undefined);
   }
 
   private getJSONFileOutput(testResultFileName: string): FullTestResult {

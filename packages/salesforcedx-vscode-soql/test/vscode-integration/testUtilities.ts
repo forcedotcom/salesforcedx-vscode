@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
-import { QueryResult } from 'jsforce';
+import { DescribeGlobalResult, QueryResult } from 'jsforce';
 import { SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -26,8 +26,8 @@ import {
 
 export interface MockConnection {
   authInfo: object;
-  describeGlobal: () => Promise<void>;
-  describe: () => Promise<void>;
+  describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) => void;
+  describe$: (name: string, callback: (err: Error | undefined, resp: any) => void) => void;
   query: () => Promise<QueryResult<JsonMap>>;
 }
 
@@ -63,6 +63,10 @@ export const mockQueryData: QueryResult<JsonMap> = {
   ]
 };
 
+export const mockDescribeGlobalResponse = {
+  sobjects: [{ name: 'A' }, { name: 'B' }]
+};
+export const mockSObject = { name: 'A' };
 export function getMockConnection(
   sandbox: SinonSandbox,
   testUserName = 'test@test.com'
@@ -70,8 +74,8 @@ export function getMockConnection(
   const mockAuthInfo = { test: 'test' };
   const mockConnection = {
     authInfo: mockAuthInfo,
-    describeGlobal: () => Promise.resolve(),
-    describe: () => Promise.resolve(),
+    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) => callback(undefined, mockDescribeGlobalResponse),
+    describe$: (name: string, callback: (err: Error | undefined, resp: any) => void) => callback(undefined, mockSObject),
     query: () => Promise.resolve(mockQueryData)
   };
 
