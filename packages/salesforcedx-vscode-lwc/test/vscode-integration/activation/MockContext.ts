@@ -78,7 +78,7 @@ export class MockContext implements ExtensionContext {
   public globalStoragePath = 'globalStatePath';
   public logPath = 'logPath';
   public asAbsolutePath(relativePath: string): string {
-    return path.join('../../../package.json'); // this should point to the src/package.json
+    return path.join('../../package.json'); // this should point to the src/package.json
   }
   public storagePath: string = 'myStoragePath';
 }
