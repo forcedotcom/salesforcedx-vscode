@@ -449,8 +449,8 @@ jobs:
           message: 'VSCode Extensions v${RELEASE_VERSION} have been published to the marketplace'
       - slack/notify:
           channel: 'pdt_releases'
-          color: '#9bcd9b'
-          message: 'VSCode Extensions v${RELEASE_VERSION} Post Publish - Merging main into develop'
+          color: '#FFDEAD'
+          message: 'VSCode Extensions v${RELEASE_VERSION} Post Publish - Starting merge of main into develop'
       - run:
           name: 'Merge changes from main back into develop'
           command: |
