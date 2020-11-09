@@ -74,7 +74,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     lwcTestWatcher.onDidCreate(
       async testUri => {
         await this.indexTestCases(testUri);
-        this.onDidUpdateTestIndexEventEmitter.fire();
+        this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
       this.disposables
@@ -82,7 +82,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     lwcTestWatcher.onDidChange(
       async testUri => {
         await this.indexTestCases(testUri);
-        this.onDidUpdateTestIndexEventEmitter.fire();
+        this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
       this.disposables
@@ -91,7 +91,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       testUri => {
         const { fsPath } = testUri;
         this.resetTestFileIndex(fsPath);
-        this.onDidUpdateTestIndexEventEmitter.fire();
+        this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
       this.disposables
@@ -105,7 +105,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     this.hasIndexedTestFiles = false;
     this.testFileInfoMap.clear();
     this.diagnosticCollection.clear();
-    this.onDidUpdateTestIndexEventEmitter.fire();
+    this.onDidUpdateTestIndexEventEmitter.fire(undefined);
   }
 
   /**
@@ -350,7 +350,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       }
     });
     // Update Test Explorer View
-    this.onDidUpdateTestResultsIndexEventEmitter.fire();
+    this.onDidUpdateTestResultsIndexEventEmitter.fire(undefined);
   }
 }
 export const lwcTestIndexer = new LwcTestIndexer();

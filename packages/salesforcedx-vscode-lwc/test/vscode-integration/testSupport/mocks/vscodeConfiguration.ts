@@ -5,11 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { workspace, Uri, WorkspaceConfiguration } from 'vscode';
+import {
+  workspace,
+  Uri,
+  WorkspaceConfiguration,
+  TextDocument,
+  WorkspaceFolder
+} from 'vscode';
 import { SinonStub, stub } from 'sinon';
 
 let getConfigurationStub: SinonStub<
-  [string?, (Uri | null)?],
+  [
+    string?,
+    (
+      | Uri
+      | TextDocument
+      | WorkspaceFolder
+      | { uri?: Uri | undefined; languageId: string }
+      | null
+      | undefined
+    )?
+  ],
   WorkspaceConfiguration
 >;
 const mockBaseConfiguration = {
