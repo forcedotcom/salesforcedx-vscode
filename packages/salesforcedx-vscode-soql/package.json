@@ -25,7 +25,6 @@
     "@salesforce/soql-builder-ui": "0.0.23",
     "@salesforce/soql-data-view": "0.0.7",
     "@salesforce/soql-language-server": "0.2.7",
-    "@types/papaparse": "^5.2.3",
     "debounce": "^1.2.0",
     "jsforce": "^1.10.0",
     "papaparse": "^5.3.0",
@@ -69,7 +68,7 @@
     "test": "npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "prevscode:package": "npx node-prune",
+    "prevscode:package": "npm prune --production; npx node-prune",
     "vscode:package": "vsce package"
   },
   "activationEvents": [
