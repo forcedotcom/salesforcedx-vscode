@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestService } from '@salesforce/apex-node';
+import { TapReporter, TestService } from '@salesforce/apex-node';
 import {
   AsyncTestConfiguration,
   AsyncTestArrayConfiguration,
@@ -188,6 +188,10 @@ export default class Run extends SfdxCommand {
 
       if (this.flags.resultformat === 'human') {
         this.ux.log(this.formatHuman(result, this.flags.detailedcoverage));
+      }
+
+      if (this.flags.resultformat === 'tap') {
+        this.formatTap(result);
       }
 
       if (!this.flags.resultformat) {
@@ -446,5 +450,26 @@ export default class Run extends SfdxCommand {
       processedLines += '...';
     }
     return processedLines;
+  }
+
+  private formatTap(result: TestResult): void {
+    try {
+      const reporter = new TapReporter();
+      const hint = this.formatReportHint(result);
+      this.ux.log(reporter.format(result, [hint]));
+    } catch (err) {
+      this.ux.logJson(result);
+      const msg = messages.getMessage('testResultProcessErr', [err]);
+      this.ux.error(msg);
+    }
+  }
+
+  private formatReportHint(result: TestResult): string {
+    let reportArgs = `-i ${result.summary.testRunId}`;
+    if (this.flags.targetusername) {
+      reportArgs += ` -u ${this.flags.targetusername}`;
+    }
+    const hint = messages.getMessage('apexTestReportFormatHint', [reportArgs]);
+    return hint;
   }
 }

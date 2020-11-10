@@ -50,5 +50,8 @@
   "runTestReportCommandErr": "Run 'sfdx force:apex:test:report -i %s -u %s' to retrieve test results",
   "classSuiteTestErr": "Specify either classnames, suitenames, or tests",
   "syncClassErr": "Synchronous test runs can include test methods from only one Apex class. Omit the --synchronous flag or include tests from only one class",
-  "testLevelErr": "When specifying classnames, suitenames, or tests, indicate RunSpecifiedTests as the testlevel"
+  "testLevelErr": "When specifying classnames, suitenames, or tests, indicate RunSpecifiedTests as the testlevel",
+  "testResultProcessErr": "Encountered an error when processing test results\n%s",
+  "apexTestReportFormatHint":
+  "Run \"sfdx force:apex:test:report %s --resultformat <format>\" to retrieve test results in a different format."
 }
