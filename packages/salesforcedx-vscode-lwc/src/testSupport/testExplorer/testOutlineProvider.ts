@@ -69,11 +69,11 @@ export class SfdxTestOutlineProvider
   }
 
   private onDidUpdateTestIndex() {
-    this.onDidChangeTestData.fire();
+    this.onDidChangeTestData.fire(undefined);
   }
 
   private onDidUpdateTestResultsIndex() {
-    this.onDidChangeTestData.fire();
+    this.onDidChangeTestData.fire(undefined);
   }
 
   public getTreeItem(element: TestNode): vscode.TreeItem {

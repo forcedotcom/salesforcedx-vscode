@@ -20,6 +20,7 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "@salesforce/apex-tmlanguage": "1.5.0",
     "@salesforce/core": "2.12.1",
     "@salesforce/soql-builder-ui": "0.0.22",
     "@salesforce/soql-data-view": "0.0.6",
@@ -72,8 +73,7 @@
     "vscode:package": "vsce package"
   },
   "activationEvents": [
-    "onCustomEditor:soqlCustom.soql",
-    "onLanguage:soql"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "./out/src",
   "contributes": {
@@ -86,7 +86,7 @@
             "filenamePattern": "*.soql"
           }
         ],
-        "priority": "default"
+        "priority": "option"
       }
     ],
     "languages": [
@@ -105,7 +105,7 @@
       {
         "language": "soql",
         "scopeName": "source.soql",
-        "path": "./node_modules/@salesforce/soql-tmlanguage/grammars/soql.tmLanguage.json"
+        "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
       }
     ]
   }
