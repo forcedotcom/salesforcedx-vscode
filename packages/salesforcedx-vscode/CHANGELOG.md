@@ -1,24 +1,10 @@
-# 50.5.0 - Month DD, YYYY
-
-## Added
-
-#### salesforcedx-vscode-soql
-
-- Only activate with sfdx project ([PR #2708](https://github.com/forcedotcom/salesforcedx-vscode/pull/2708))
-
-- Soql grammar moved to apex-tmlanguage repo ([PR #2691](https://github.com/forcedotcom/salesforcedx-vscode/pull/2691))
-
-- Use sobject cache ([PR #2679](https://github.com/forcedotcom/salesforcedx-vscode/pull/2679))
+# 50.5.0 - November 11, 2020
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Debug log list in descending order ([PR #2713](https://github.com/forcedotcom/salesforcedx-vscode/pull/2713))
-
-#### salesforcedx-vscode-soql
-
-- Jhork/check default username ([PR #2685](https://github.com/forcedotcom/salesforcedx-vscode/pull/2685))
+- Show debug log list in descending order by date for `SFDX: Get Apex Debug Logs` ([PR #2713](https://github.com/forcedotcom/salesforcedx-vscode/pull/2713))
 
 # 50.4.0 - November 5, 2020
 
