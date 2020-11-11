@@ -128,6 +128,7 @@ commands:
             git config credential.helper 'cache --timeout=<< parameters.cache_timeout >>'
             git config user.email "<< parameters.gh_email >>"
             git config user.name "<< parameters.gh_username >>"
+            git config --global pull.rebase true
 
   install:
     description: 'Installing dependencies'
@@ -455,7 +456,7 @@ jobs:
           name: 'Merge changes from main back into develop'
           command: |
             git checkout develop
-            git pull --rebase
+            git pull
             git merge main --commit --no-edit
             git push origin develop
       - slack/notify:
