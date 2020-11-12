@@ -6,3 +6,13 @@ src/**
 **/*.map
 .gitignore
 tsconfig.json
+.eslint.json
+**/*.ts
+**/tsconfig.json
+*.xml
+**/*.md
+*.vsix
+node_modules/rxjs/src/**
+node_modules/rxjs/bundles/**
+node_modules/rxjs/_esm5/**
+node_modules/rxjs/_esm2015/**
