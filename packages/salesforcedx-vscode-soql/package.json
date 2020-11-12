@@ -10,14 +10,26 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "version": "50.5.0",
+  "preview": true,
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
   "engines": {
     "vscode": "^1.46.0"
   },
   "categories": [
     "Programming Languages"
+  ],
+  "keywords": [
+    "soql",
+    "salesforce",
+    "salesforcedx",
+    "sfdx",
+    "soql builder"
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.5.0",
