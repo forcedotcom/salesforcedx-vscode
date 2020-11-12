@@ -29,7 +29,7 @@
     "salesforce",
     "salesforcedx",
     "sfdx",
-    "custom editor"
+    "soql builder"
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.5.0",
