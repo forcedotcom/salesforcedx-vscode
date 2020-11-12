@@ -7,9 +7,10 @@
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import {
+  commands,
   ConfigurationTarget,
+  Disposable,
   ExtensionContext,
   Uri,
   workspace,
@@ -61,6 +62,15 @@ export async function activate(context: ExtensionContext) {
     console.log('LWC Language Server activationMode set to off, exiting...');
     return;
   }
+
+  // Initialize telemetry service
+  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  await telemetryService.initializeService(
+    context,
+    LWC_EXTENSION_NAME,
+    extensionPackage.aiKey,
+    extensionPackage.version
+  );
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
@@ -151,23 +161,21 @@ function getActivationMode(): string {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
-function registerCommands(
-  _extensionContext: vscode.ExtensionContext
-): vscode.Disposable {
-  return vscode.Disposable.from(
-    vscode.commands.registerCommand(
+function registerCommands(_extensionContext: ExtensionContext): Disposable {
+  return Disposable.from(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.start',
       forceLightningLwcStart
     ),
-    vscode.commands.registerCommand(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.stop',
       forceLightningLwcStop
     ),
-    vscode.commands.registerCommand(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.open',
       forceLightningLwcOpen
     ),
-    vscode.commands.registerCommand(
+    commands.registerCommand(
       'sfdx.force.lightning.lwc.preview',
       forceLightningLwcPreview
     )

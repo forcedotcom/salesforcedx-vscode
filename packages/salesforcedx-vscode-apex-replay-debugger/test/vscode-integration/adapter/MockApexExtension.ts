@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Extension, ExtensionKind } from 'vscode';
+import { Extension, ExtensionKind, Uri } from 'vscode';
 export class MockApexExtension implements Extension<any> {
   public extensionKind = ExtensionKind.Workspace;
 
@@ -14,6 +14,7 @@ export class MockApexExtension implements Extension<any> {
     this.isActive = true;
     this.exports = new MockJorje();
   }
+  public extensionUri = Uri.parse('file://test');
   public id: string;
   public extensionPath: string;
   public isActive: boolean;

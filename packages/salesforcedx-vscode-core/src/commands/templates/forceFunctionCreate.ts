@@ -15,8 +15,11 @@ import {
   FunctionInfo,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as cp from 'child_process';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
+import { notificationService } from '../../notifications';
+import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   SfdxCommandlet,
@@ -44,10 +47,42 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       .withLogName('force_create_function')
       .build();
   }
+
+  public runPostCommandTasks(targetDir: string) {
+    if (sfdxCoreSettings.getFunctionsPullDependencies()) {
+      vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Window,
+          title: nls.localize(
+            'force_function_install_npm_dependencies_progress'
+          ),
+          cancellable: true
+        },
+        () => {
+          return new Promise((resolve, reject) => {
+            cp.exec('npm install', { cwd: targetDir }, err => {
+              if (err) {
+                notificationService.showWarningMessage(
+                  nls.localize(
+                    'force_function_install_npm_dependencies_error',
+                    err.message
+                  )
+                );
+                reject(err);
+              }
+              resolve();
+            });
+          });
+        }
+      );
+    }
+  }
 }
 
 export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<FunctionInfo>> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<FunctionInfo>
+  > {
     const nameInputOptions = {
       prompt: nls.localize('force_function_enter_function')
     } as vscode.InputBoxOptions;
@@ -56,13 +91,17 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
       return { type: 'CANCEL' };
     }
 
-    const language = await vscode.window.showQuickPick(['javascript', 'typescript'], {
-      placeHolder: nls.localize('force_function_enter_language')
-    });
+    const language = await vscode.window.showQuickPick(
+      ['javascript', 'typescript'],
+      {
+        placeHolder: nls.localize('force_function_enter_language')
+      }
+    );
 
     if (language === undefined) {
       return { type: 'CANCEL' };
     }
+
     // In order to reuse code used by other templates that have outputdir
     // and extends DirFileNameSelection, we are passing an empty outputdir
     return {

@@ -6,6 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src/telemetry';
 import * as path from 'path';
 import {
   ExtensionContext,
@@ -21,7 +22,8 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { nls } from './messages';
-import { telemetryService } from './telemetry';
+
+const EXTENSION_NAME = 'salesforcedx-vscode-lightning';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri): string {
@@ -82,6 +84,12 @@ export async function activate(context: ExtensionContext) {
   // 4) If we get here, we either passed autodetect validation or activationMode == always
   console.log('Aura Components Extension Activated');
   console.log('WorkspaceType detected: ' + workspaceType);
+
+  // Initialize telemetry service
+  const extensionPackage = require(context.asAbsolutePath(
+    './package.json'
+  ));
+  await TelemetryService.getInstance().initializeService(context, EXTENSION_NAME, extensionPackage.aiKey, extensionPackage.version);
 
   // Start the Aura Language Server
 
@@ -180,7 +188,7 @@ export async function activate(context: ExtensionContext) {
   context.subscriptions.push(disp);
 
   // Notify telemetry that our extension is now active
-  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
+  TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart).catch();
 }
 
 let indexingResolve: any;
@@ -211,5 +219,5 @@ function reportIndexing(indexingPromise: Promise<void>) {
 
 export function deactivate() {
   console.log('Aura Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent().catch();
+  TelemetryService.getInstance().sendExtensionDeactivationEvent().catch();
 }

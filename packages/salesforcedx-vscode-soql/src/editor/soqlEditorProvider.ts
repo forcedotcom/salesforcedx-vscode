@@ -9,19 +9,27 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
+  EDITOR_VIEW_TYPE,
   HTML_FILE,
   SOQL_BUILDER_UI_PATH,
-  VIEW_TYPE,
-  WEBVIEW_RESOURCE_ROOTS_PATH
+  SOQL_BUILDER_WEB_ASSETS_PATH
 } from '../constants';
-import { EditorUtils } from './editorUtils';
+import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
+
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
+const sfdxCoreExports = sfdxCoreExtension
+  ? sfdxCoreExtension.exports
+  : undefined;
+const { channelService, workspaceContext } = sfdxCoreExports;
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
     const provider = new SOQLEditorProvider(context);
     const providerRegistration = vscode.window.registerCustomEditorProvider(
-      VIEW_TYPE,
+      EDITOR_VIEW_TYPE,
       provider
     );
     return providerRegistration;
@@ -41,16 +49,27 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       localResourceRoots: [
         vscode.Uri.file(
-          path.join(this.context.extensionPath, WEBVIEW_RESOURCE_ROOTS_PATH)
+          path.join(this.context.extensionPath, SOQL_BUILDER_WEB_ASSETS_PATH)
         )
       ]
     };
+
+    // set the html for the webview instance
     webviewPanel.webview.html = this.getWebViewContent(webviewPanel.webview);
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);
     instance.onDispose(this.disposeInstance.bind(this));
     this.context.subscriptions.push(...instance.subscriptions);
+
+    // Check to see if a default org is set.
+    if (!workspaceContext.username) {
+      // i18n
+      const message = `No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.`;
+      channelService.appendLine(message);
+      vscode.window.showInformationMessage(message);
+    }
   }
+
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToLwcDist = path.join(
       this.context.extensionPath,
@@ -58,7 +77,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     );
     const pathToHtml = path.join(pathToLwcDist, HTML_FILE);
     let html = fs.readFileSync(pathToHtml).toString();
-    html = EditorUtils.transformHtml(html, pathToLwcDist, webview);
+    html = HtmlUtils.transformHtml(html, pathToLwcDist, webview);
     return html;
   }
   private disposeInstance(instance: SOQLEditorInstance) {

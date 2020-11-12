@@ -8,24 +8,22 @@ import { Indexer } from '@salesforce/lightning-lsp-common';
 import { parse } from 'jest-editor-support';
 import * as vscode from 'vscode';
 import {
-  extractPositionFromFailureMessage,
-  IExtendedParseResults,
-  ItBlockWithAncestorTitles,
-  populateAncestorTitles,
-  sanitizeFailureMessage
-} from './jestUtils';
-
-import {
   LwcJestTestResults,
   RawTestResult,
   TestCaseInfo,
-  TestExecutionInfo,
   TestFileInfo,
   TestInfoKind,
   TestResultStatus,
   TestType
 } from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
+import {
+  extractPositionFromFailureMessage,
+  IExtendedParseResults,
+  ItBlockWithAncestorTitles,
+  populateAncestorTitles,
+  sanitizeFailureMessage
+} from './jestUtils';
 
 class LwcTestIndexer implements Indexer, vscode.Disposable {
   private disposables: vscode.Disposable[] = [];
@@ -76,7 +74,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     lwcTestWatcher.onDidCreate(
       async testUri => {
         await this.indexTestCases(testUri);
-        this.onDidUpdateTestIndexEventEmitter.fire();
+        this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
       this.disposables
@@ -84,7 +82,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     lwcTestWatcher.onDidChange(
       async testUri => {
         await this.indexTestCases(testUri);
-        this.onDidUpdateTestIndexEventEmitter.fire();
+        this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
       this.disposables
@@ -93,7 +91,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       testUri => {
         const { fsPath } = testUri;
         this.resetTestFileIndex(fsPath);
-        this.onDidUpdateTestIndexEventEmitter.fire();
+        this.onDidUpdateTestIndexEventEmitter.fire(undefined);
       },
       this,
       this.disposables
@@ -107,7 +105,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
     this.hasIndexedTestFiles = false;
     this.testFileInfoMap.clear();
     this.diagnosticCollection.clear();
-    this.onDidUpdateTestIndexEventEmitter.fire();
+    this.onDidUpdateTestIndexEventEmitter.fire(undefined);
   }
 
   /**
@@ -352,7 +350,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
       }
     });
     // Update Test Explorer View
-    this.onDidUpdateTestResultsIndexEventEmitter.fire();
+    this.onDidUpdateTestResultsIndexEventEmitter.fire(undefined);
   }
 }
 export const lwcTestIndexer = new LwcTestIndexer();

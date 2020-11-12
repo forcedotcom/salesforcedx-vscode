@@ -10,9 +10,11 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
+import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService, ServerHandler } from '../service/devServerService';
 import { openBrowser, showError } from './commandUtils';
@@ -21,9 +23,7 @@ const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const {
-  channelService,
   taskViewService,
-  notificationService,
   SfdxCommandlet,
   ProgressNotification,
   EmptyParametersGatherer,
@@ -115,7 +115,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         serverStarted = true;
         progress.complete();
         taskViewService.removeTask(task);
-        notificationService.showSuccessfulExecution(executionName);
+        notificationService.showSuccessfulExecution(executionName).catch();
 
         DevServerService.instance.setBaseUrlFromDevServerUpMessage(
           data.toString()

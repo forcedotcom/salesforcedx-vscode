@@ -14,17 +14,24 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  MetadataType,
+  RegistryAccess,
+  registryData,
+  SourceClient
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
   createComponentCount,
-  DeployRetrieveLibraryExecutor,
   FilePathGatherer,
+  LibraryCommandletExecutor,
+  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -99,10 +106,13 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     }
   }
 
+  const { types } = registryData;
+  const useBeta = useBetaDeployRetrieve([explorerPath]);
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    useBetaDeployRetrieve([explorerPath])
+    useBeta
       ? new LibraryRetrieveSourcePathExecutor()
       : new ForceSourceRetrieveSourcePathExecutor(),
     new SourcePathChecker()
@@ -110,44 +120,57 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   await commandlet.run();
 }
 
-export class LibraryRetrieveSourcePathExecutor extends DeployRetrieveLibraryExecutor {
-  public async execute(response: ContinueResponse<string>): Promise<void> {
-    this.setStartTime();
+export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
+  string
+> {
+  protected logName = 'force_source_retrieve_with_sourcepath_beta';
+  protected executionName = 'Retrieve (Beta)';
 
-    try {
-      await this.build(
-        'Retrieve (Beta)',
-        'force_source_retrieve_with_sourcepath_beta'
-      );
-
-      if (this.sourceClient === undefined) {
-        throw new Error('SourceClient is not established');
-      }
-
-      this.sourceClient.tooling.retrieve = this.retrieveWrapper(
-        this.sourceClient.tooling.retrieve
-      );
-
-      const projectNamespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
-      const registryAccess = new RegistryAccess();
-      const components = registryAccess.getComponentsFromPath(response.data);
-      const retrievePromise = this.sourceClient.tooling.retrieve({
+  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+    const getConnection = workspaceContext.getConnection();
+    const registryAccess = new RegistryAccess();
+    const components = registryAccess.getComponentsFromPath(response.data);
+    const projectNamespace = (await SfdxProjectConfig.getValue(
+      'namespace'
+    )) as string;
+    const client = new SourceClient(await getConnection);
+    let retrieve;
+    if (
+      components.length === 1 &&
+      this.isSupportedToolingRetrieveType(components[0].type)
+    ) {
+      retrieve = client.tooling.retrieve({
         components,
         namespace: projectNamespace
       });
-      const metadataCount = JSON.stringify(createComponentCount(components));
-      await retrievePromise;
-
-      this.logMetric({ metadataCount });
-    } catch (e) {
-      telemetryService.sendException(
-        'force_source_retrieve_with_sourcepath_beta',
-        e.message
-      );
-      notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
+    } else {
+      retrieve = client.metadata.retrieve({
+        components,
+        namespace: projectNamespace,
+        merge: true,
+        output: response.data
+      });
     }
+    const metadataCount = JSON.stringify(createComponentCount(components));
+    this.telemetry.addProperty('metadataCount', metadataCount);
+
+    const result = await retrieve;
+
+    channelService.appendLine(outputRetrieveTable(result));
+
+    return result.success;
+  }
+
+  private isSupportedToolingRetrieveType(type: MetadataType): boolean {
+    const { types } = registryData;
+    const permittedTypeNames = [
+      types.auradefinitionbundle.name,
+      types.lightningcomponentbundle.name,
+      types.apexclass.name,
+      types.apexcomponent.name,
+      types.apexpage.name,
+      types.apextrigger.name
+    ];
+    return permittedTypeNames.includes(type.name);
   }
 }

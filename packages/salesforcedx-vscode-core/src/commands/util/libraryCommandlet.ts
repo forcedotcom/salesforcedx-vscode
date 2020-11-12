@@ -5,46 +5,66 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as vscode from 'vscode';
+import { channelService } from '../../channels';
+import { nls } from '../../messages';
+import { notificationService } from '../../notifications';
 import {
-  Measurements,
-  Properties,
-  TelemetryData,
+  TelemetryBuilder,
   telemetryService
 } from '../../telemetry';
 import { CommandletExecutor } from './sfdxCommandlet';
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
-  protected showChannelOutput = true;
-  protected executionName: string = '';
-  protected startTime: [number, number] | undefined;
-  protected telemetryName: string | undefined;
+  protected readonly telemetry = new TelemetryBuilder();
+  protected readonly revealChannelOutput = false;
+  protected abstract readonly logName: string;
+  protected abstract readonly executionName: string;
 
-  public async build(
-    execName: string,
-    telemetryLogName: string
-  ): Promise<void> {}
+  protected abstract run(response: ContinueResponse<T>): Promise<boolean>;
 
-  public async execute(response: ContinueResponse<T>): Promise<void> {}
+  public async execute(response: ContinueResponse<T>): Promise<void> {
+    const startTime = process.hrtime();
 
-  public logMetric(properties?: Properties, measurements?: Measurements) {
-    telemetryService.sendCommandEvent(
-      this.telemetryName,
-      this.startTime,
-      properties,
-      measurements
-    );
-  }
+    channelService.showCommandWithTimestamp(`Starting ${this.executionName}\n`);
 
-  public setStartTime() {
-    this.startTime = process.hrtime();
-  }
+    if (this.revealChannelOutput) {
+      channelService.showChannelOutput();
+    }
 
-  protected getTelemetryData(
-    success: boolean,
-    response: ContinueResponse<T>,
-    output: string
-  ): TelemetryData | undefined {
-    return;
+    try {
+      const success = await vscode.window.withProgress(
+        {
+          title: nls.localize('progress_notification_text', this.executionName),
+          location: vscode.ProgressLocation.Notification
+        },
+        () => this.run(response)
+      );
+
+      channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
+
+      if (success) {
+        notificationService
+          .showSuccessfulExecution(this.executionName)
+          .catch(e => console.error(e));
+      } else {
+        notificationService.showFailedExecution(this.executionName);
+      }
+
+      this.telemetry.addProperty('success', String(success));
+      const { properties, measurements } = this.telemetry.build();
+      telemetryService.sendCommandEvent(
+        this.logName,
+        startTime,
+        properties,
+        measurements
+      );
+    } catch (e) {
+      telemetryService.sendException(e.name, e.message);
+      notificationService.showFailedExecution(this.executionName);
+      channelService.appendLine(e.message);
+      channelService.showChannelOutput();
+    }
   }
 }

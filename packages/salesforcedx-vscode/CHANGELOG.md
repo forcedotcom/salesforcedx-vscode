@@ -1,101 +1,81 @@
-# 49.7.0 - August 27, 2020
-
-## Fixed
-
-#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
-
-- Update to the latest version of the Aura and LWC language servers [PR #2380](https://github.com/forcedotcom/salesforcedx-vscode/pull/2380)
-
-#### docs
-
-- Fix example under [Advanced Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup/#advanced-setup) on Java Setup page [PR #2426](https://github.com/forcedotcom/salesforcedx-vscode/pull/2426) - Contribution by ([@nabondance](https://github.com/nabondance))
-
-# 49.6.0 - August 20, 2020
+# 50.5.0 - November 11, 2020
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-- Prompts the user to remove stale files in an existing project when running the `SFDX: Create and Set Up Project for ISV Debugging` command ([PR #2407](https://github.com/forcedotcom/salesforcedx-vscode/pull/2407))
+- Show debug log list in descending order by date for `SFDX: Get Apex Debug Logs` ([PR #2713](https://github.com/forcedotcom/salesforcedx-vscode/pull/2713), [Issue #2698](https://github.com/forcedotcom/salesforcedx-vscode/issues/2698))
 
-#### salesforcedx-sobjects-faux-generator
+- Set required version of VS Code to 1.46.0 or higher ([PR #2719](https://github.com/forcedotcom/salesforcedx-vscode/pull/2719))
 
-- Fix SObject refresh to ignore entities ending with Share, History, Feed and Event ([PR #2412](https://github.com/forcedotcom/salesforcedx-vscode/pull/2412))
-
-# 49.5.0 - August 13, 2020
+# 50.4.0 - November 5, 2020
 
 ## Fixed
+
+#### salesforcedx-vscode-core
+
+- Allow retrieving multiple components as part of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2682](https://github.com/forcedotcom/salesforcedx-vscode/pull/2682))
+
+#### salesforcedx-vscode-lwc
+
+- Remove suggestions after every `{` character ([PR #2688](https://github.com/forcedotcom/salesforcedx-vscode/pull/2688), [Issue #2681](https://github.com/forcedotcom/salesforcedx-vscode/issues/2681))
+
+# 50.3.0 - October 28, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- New force:apex:log:list command implementation, used as part of `SFDX: Get Apex Debug Logs ...` ([PR #2644](https://github.com/forcedotcom/salesforcedx-vscode/pull/2644))
+
+## Fixed
+
+#### docs
+
+- Fix broken links to [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) article ([PR #2677](https://github.com/forcedotcom/salesforcedx-vscode/pull/2677))
+
+#### salesforcedx-vscode-core
+
+- Clear deploy and Anonymous Apex diagnostics from Problems panel ([PR #2671](https://github.com/forcedotcom/salesforcedx-vscode/pull/2671), [PR #2673](https://github.com/forcedotcom/salesforcedx-vscode/pull/2673), [Issue #2608](https://github.com/forcedotcom/salesforcedx-vscode/issues/2608))
+
+# 50.2.0 - October 22, 2020
+
+## Fixed
+
+#### docs
+
+- Re-organize Get Started section ([PR #2626](https://github.com/forcedotcom/salesforcedx-vscode/pull/2626))
 
 #### salesforcedx-vscode-apex
 
-- Fix system assert snippets ([PR #2393](https://github.com/forcedotcom/salesforcedx-vscode/pull/2393)) - Contribution by ([@PawełWoźniak](https://github.com/PawelWozniak))
-
-- Fix SObject refresh pop up when a project does not have a defaultusername ([PR #2396](https://github.com/forcedotcom/salesforcedx-vscode/pull/2396))
-
-#### docs
-
-- Update [Remote Development](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) doc ([PR #2402](https://github.com/forcedotcom/salesforcedx-vscode/pull/2402))
-
-## Added
-
-#### docs
-
-- Add docs for [Using Windows Subsystem for Linux (WSL) 2](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/#using-windows-subsystem-for-linux-wsl-2) ([PR #2388](https://github.com/forcedotcom/salesforcedx-vscode/pull/2388))
-
-#### salesforcedx-vscode
-
-- Include SLDS Validator extension in Salesforce Extension Pack ([PR #2245](https://github.com/forcedotcom/salesforcedx-vscode/pull/2245))
-
-# 49.4.0 - August 6, 2020
-
-## Fixed
+- Improve @AuraEnabled apex snippet for better error handling. ([PR #2640](https://github.com/forcedotcom/salesforcedx-vscode/pull/2640)) - Contribution by [@PawelWozniak](https://github.com/PawelWozniak)
 
 #### salesforcedx-vscode-core
 
-- Performance enhancements for `SFDX: Get Apex Debug Logs...` command ([PR #2353](https://github.com/forcedotcom/salesforcedx-vscode/pull/2353))
+- Org Browser retrieve & open handling types with xml only files ([PR #2635](https://github.com/forcedotcom/salesforcedx-vscode/pull/2635))
 
-# 49.3.0 - July 30, 2020
+- Fixed Org Browser retrieve ([PR #2639](https://github.com/forcedotcom/salesforcedx-vscode/pull/2639), [Issue #2634](https://github.com/forcedotcom/salesforcedx-vscode/issues/2634))
+
+#### salesforcedx-vscode-lwc
+
+- LWC Language Server correctly handles empty custom label files ([PR #2637](https://github.com/forcedotcom/salesforcedx-vscode/pull/2637), [Issue #2575](https://github.com/forcedotcom/salesforcedx-vscode/issues/2575))
+
+# 50.1.0 - October 14, 2020
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Show message for missing SObject information at startup ([PR #2356](https://github.com/forcedotcom/salesforcedx-vscode/pull/2356))
-
-- Update telemetry to include number of metadata types on a deploy ([PR #2355](https://github.com/forcedotcom/salesforcedx-vscode/pull/2355))
-
-#### salesforcedx-vscode-lwc
-
-- Show list of available devices for `SFDX: Preview Component Locally` command ([PR #2368](https://github.com/forcedotcom/salesforcedx-vscode/pull/2368))
-
-# 49.2.0 - July 24, 2020
+- Added `Retrieve and Open Source` feature for Org Browser ([PR #2573](https://github.com/forcedotcom/salesforcedx-vscode/pull/2573))
 
 ## Fixed
 
-#### docs
-
-- Update [Remote Development - Containers](https://developer.salesforce.com/tools/vscode/en/user-guide/remote-development/) to remove references to the sample repo. ([PR #2352](https://github.com/forcedotcom/salesforcedx-vscode/pull/2352))
-
 #### salesforcedx-vscode-core
 
-- We fixed some minor under-the-hood bugs.
-
-- Fix `SFDX: Execute Anonymous Apex with Editor Contents` to work on untitled editors ([PR #2370](https://github.com/forcedotcom/salesforcedx-vscode/pull/2370), [Issue #2369](https://github.com/forcedotcom/salesforcedx-vscode/issues/2369))
-
-# 49.1.0 - July 18, 2020
-
-## Fixed
+- Updated to latest versions of Aura and LWC language servers for auto-complete fixes ([PR# 2607](https://github.com/forcedotcom/salesforcedx-vscode/pull/2607), [Issue #2322](https://github.com/forcedotcom/salesforcedx-vscode/issues/2322), [Issue #2584](https://github.com/forcedotcom/salesforcedx-vscode/issues/2584))
 
 #### docs
 
-- Replaced non-inclusive content ([PR #2323](https://github.com/forcedotcom/salesforcedx-vscode/pull/2323))
+- Updated [Recommended Extensions](https://developer.salesforce.com/tools/vscode/en/getting-started/recommended-extensions) for Salesforce development ([PR #2619](https://github.com/forcedotcom/salesforcedx-vscode/pull/2619))
 
-- Update prettier-plugin-apex documentation ([PR #2329](https://github.com/forcedotcom/salesforcedx-vscode/pull/2329), [Issue #2328](https://github.com/forcedotcom/salesforcedx-vscode/issues/2328))-Contribution by [@jefersonchaves](https://github.com/jefersonchaves)
-
-#### salesforcedx-vscode-core
-
-- Performance enhancements for `SFDX: Execute Anonymous Apex with Editor Contents` command ([PR #2291](https://github.com/forcedotcom/salesforcedx-vscode/pull/2291))
-
-#### salesforcedx-vscode-lwc
-
-- Support debugging LWC tests in VSCode's new JavaScript debugger ([PR #2345](https://github.com/forcedotcom/salesforcedx-vscode/pull/2345))
+- Added `Retrieve and Open Source` step for [Org Browser](https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) ([PR# 2591](https://github.com/forcedotcom/salesforcedx-vscode/pull/2591))

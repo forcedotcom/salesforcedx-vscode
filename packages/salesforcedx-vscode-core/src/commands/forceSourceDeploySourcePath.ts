@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
+* Copyright (c) 2018, salesforce.com, inc.
+* All rights reserved.
+* Licensed under the BSD 3-Clause license.
+* For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+*/
 
+import { Connection } from '@salesforce/core';
 import {
   Command,
   SfdxCommandBuilder
@@ -16,12 +17,14 @@ import {
 import {
   DeployStatus,
   RegistryAccess,
+  SourceClient,
   SourceComponent,
   SourceDeployResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { workspaceContext } from '../context';
 import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -31,8 +34,8 @@ import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
-  DeployRetrieveLibraryExecutor,
   FilePathGatherer,
+  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
@@ -130,100 +133,98 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   await commandlet.run();
 }
 
-export class LibraryDeploySourcePathExecutor extends DeployRetrieveLibraryExecutor {
-  private hashElement(component: SourceComponent): string {
-    const hashed = `${component.fullName}.${component.type.id}`;
-    return hashed;
-  }
+export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
+  string | string[]
+> {
+  protected executionName = 'Deploy (Beta)';
+  protected logName = 'force_source_deploy_with_sourcepath_beta';
 
-  public async execute(
+  public async run(
     response: ContinueResponse<string | string[]>
-  ): Promise<void> {
-    this.setStartTime();
+  ): Promise<boolean> {
     try {
-      await this.build(
-        'Deploy (Beta)',
-        'force_source_deploy_with_sourcepath_beta'
-      );
-      channelService.showCommandWithTimestamp(`Starting ${this.executionName}`);
-
-      let components: SourceComponent[] = [];
-      const registryAccess = new RegistryAccess();
-      if (typeof response.data === 'string') {
-        components = registryAccess.getComponentsFromPath(response.data);
-      } else {
-        const allComponents: SourceComponent[] = [];
-
-        for (const filepath of response.data) {
-          allComponents.push(...registryAccess.getComponentsFromPath(filepath));
-        }
-
-        const hashedCmps = new Set();
-        components = allComponents.filter(component => {
-          const hashed = this.hashElement(component);
-          if (!hashedCmps.has(hashed)) {
-            hashedCmps.add(hashed);
-            return component;
-          }
-        });
-      }
-
-      const projectNamespace = (await SfdxProjectConfig.getValue(
+      const getConnection = workspaceContext.getConnection();
+      const components = this.getComponents(response.data);
+      const namespace = (await SfdxProjectConfig.getValue(
         'namespace'
       )) as string;
 
-      if (this.sourceClient === undefined) {
-        throw new Error('SourceClient is not established');
-      }
-
-      let deploy: Promise<SourceDeployResult>;
-      let api: string;
-      if (projectNamespace) {
-        deploy = this.sourceClient.tooling.deploy(components, {
-          namespace: projectNamespace
-        });
-        api = 'tooling';
-      } else {
-        deploy = this.sourceClient.metadata.deploy(components);
-        api = 'metadata';
-      }
-
+      const deploy = this.doDeploy(await getConnection, components, namespace);
       const metadataCount = JSON.stringify(createComponentCount(components));
-      const result = await vscode.window.withProgress(
-        {
-          title: this.executionName,
-          location: vscode.ProgressLocation.Notification
-        },
-        () => deploy
-      );
+      this.telemetry.addProperty('metadataCount', metadataCount);
+
+      const result = await deploy;
 
       const parser = new LibraryDeployResultParser(result);
       const outputResult = parser.resultParser(result);
       channelService.appendLine(outputResult);
-
-      channelService.showCommandWithTimestamp(`Finished ${this.executionName}`);
-
-      this.logMetric({ metadataCount, api });
-
+      BaseDeployExecutor.errorCollection.clear();
       if (
         result.status === DeployStatus.Succeeded ||
         result.status === ToolingDeployStatus.Completed
       ) {
-        DeployRetrieveLibraryExecutor.errorCollection.clear();
-        await notificationService.showSuccessfulExecution(this.executionName);
-      } else {
-        handleDeployRetrieveLibraryDiagnostics(
-          result,
-          DeployRetrieveLibraryExecutor.errorCollection
-        );
-        notificationService.showFailedExecution(this.executionName);
+        return true;
       }
-    } catch (e) {
-      telemetryService.sendException(e.name, e.message);
-      notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
+
+      handleDeployRetrieveLibraryDiagnostics(
+        result,
+        BaseDeployExecutor.errorCollection
+      );
+
+      return false;
     } finally {
       await DeployQueue.get().unlock();
     }
+  }
+
+  private getComponents(paths: string | string[]) {
+    let components: SourceComponent[];
+    const registryAccess = new RegistryAccess();
+
+    if (typeof paths === 'string') {
+      components = registryAccess.getComponentsFromPath(paths);
+    } else {
+      const allComponents: SourceComponent[] = [];
+
+      for (const filepath of paths) {
+        allComponents.push(...registryAccess.getComponentsFromPath(filepath));
+      }
+
+      // dedupe components
+      const hashedCmps = new Set();
+      components = allComponents.filter(component => {
+        const hashed = `${component.fullName}.${component.type.id}`;
+        if (!hashedCmps.has(hashed)) {
+          hashedCmps.add(hashed);
+          return component;
+        }
+      });
+    }
+
+    return components;
+  }
+
+  private doDeploy(
+    connection: Connection,
+    components: SourceComponent[],
+    namespace?: string
+  ): Promise<SourceDeployResult> {
+    let api: string;
+    let deploy: Promise<SourceDeployResult>;
+    const client = new SourceClient(connection);
+
+    if (namespace) {
+      deploy = client.tooling.deploy(components, {
+        namespace
+      });
+      api = 'tooling';
+    } else {
+      deploy = client.metadata.deploy(components);
+      api = 'metadata';
+    }
+
+    this.telemetry.addProperty('api', api);
+
+    return deploy;
   }
 }

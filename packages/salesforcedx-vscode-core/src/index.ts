@@ -22,6 +22,10 @@ import {
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceFunctionCreate,
+  forceFunctionDebugInvoke,
+  forceFunctionInvoke,
+  forceFunctionStart,
+  forceFunctionStop,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
   forceInternalLightningEventCreate,
@@ -34,7 +38,9 @@ import {
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
   forceOrgCreate,
+  forceOrgDelete,
   forceOrgDisplay,
+  forceOrgList,
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
@@ -55,10 +61,12 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
+  registerFunctionInvokeCodeLensProvider,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
 import { getUserId } from './commands/forceStartApexDebugLogging';
+import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
   CompositeParametersGatherer,
@@ -70,16 +78,18 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
-import { getDefaultUsernameOrAlias, setupWorkspaceOrgType } from './context';
+import { getDefaultUsernameOrAlias } from './context';
+import { workspaceContext } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
+import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { telemetryService } from './telemetry';
-import { hasRootWorkspace, isCLIInstalled } from './util';
+import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 function registerCommands(
@@ -242,6 +252,15 @@ function registerCommands(
     'sfdx.force.alias.list',
     forceAliasList
   );
+  const forceOrgDeleteDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.delete.default',
+    forceOrgDelete
+  );
+  const forceOrgDeleteUsernameCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.delete.username',
+    forceOrgDelete,
+    { flag: '--targetusername' }
+  );
   const forceOrgDisplayDefaultCmd = vscode.commands.registerCommand(
     'sfdx.force.org.display.default',
     forceOrgDisplay
@@ -250,6 +269,10 @@ function registerCommands(
     'sfdx.force.org.display.username',
     forceOrgDisplay,
     { flag: '--targetusername' }
+  );
+  const forceOrgListCleanCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.list.clean',
+    forceOrgList
   );
   const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
     'sfdx.force.data.soql.query.input',
@@ -326,6 +349,26 @@ function registerCommands(
     forceFunctionCreate
   );
 
+  const forceFunctionStartCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.start',
+    forceFunctionStart
+  );
+
+  const forceFunctionInvokeCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.invoke',
+    forceFunctionInvoke
+  );
+
+  const forceFunctionDebugInvokeCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.debugInvoke',
+    forceFunctionDebugInvoke
+  );
+
+  const forceFunctionStopCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.stop',
+    forceFunctionStop
+  );
+
   return vscode.Disposable.from(
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
@@ -336,8 +379,16 @@ function registerCommands(
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceDiffFile,
+    forceFunctionCreateCmd,
+    forceFunctionInvokeCmd,
+    forceFunctionDebugInvokeCmd,
+    forceFunctionStartCmd,
+    forceFunctionStopCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
+    forceOrgDeleteDefaultCmd,
+    forceOrgDeleteUsernameCmd,
+    forceOrgListCleanCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
@@ -452,6 +503,13 @@ async function setupOrgBrowser(
       await forceSourceRetrieveCmp(trigger);
     }
   );
+
+  vscode.commands.registerCommand(
+    'sfdx.force.source.retrieve.open.component',
+    async (trigger: RetrieveMetadataTrigger) => {
+      await forceSourceRetrieveCmp(trigger, true);
+    }
+  );
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -509,16 +567,13 @@ export async function activate(context: vscode.ExtensionContext) {
     'sfdx:functions_enabled',
     functionsEnabled
   );
+  if (functionsEnabled) {
+    FunctionService.instance.handleDidStartTerminateDebugSessions(context);
+  }
 
   // Context
-  let sfdxProjectOpened = false;
-  if (hasRootWorkspace()) {
-    const files = await vscode.workspace.findFiles(
-      '**/sfdx-project.json',
-      '**/{node_modules,out}/**'
-    );
-    sfdxProjectOpened = files && files.length > 0;
-  }
+  const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
+
   // TODO: move this and the replay debugger commands to the apex extension
   let replayDebuggerExtensionInstalled = false;
   if (
@@ -540,31 +595,19 @@ export async function activate(context: vscode.ExtensionContext) {
     sfdxProjectOpened
   );
 
-  let defaultUsernameorAlias: string | undefined;
-  if (hasRootWorkspace()) {
-    defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-  }
+  if (sfdxProjectOpened) {
+    await workspaceContext.initialize(context);
 
-  // register org picker commands and set up filewatcher for defaultusername
-  const orgList = new OrgList();
-  orgList.displayDefaultUsername(defaultUsernameorAlias);
-  context.subscriptions.push(registerOrgPickerCommands(orgList));
+    // register org picker commands
+    const orgList = new OrgList();
+    context.subscriptions.push(registerOrgPickerCommands(orgList));
 
-  await setupOrgBrowser(context);
-  await setupConflictView(context);
-  // Set context for defaultusername org
-  await setupWorkspaceOrgType(defaultUsernameorAlias);
-  await orgList.registerDefaultUsernameWatcher(context);
+    await setupOrgBrowser(context);
+    await setupConflictView(context);
 
-  // Register filewatcher for push or deploy on save
-  await registerPushOrDeployOnSave();
-  // Commands
-  const commands = registerCommands(context);
-  context.subscriptions.push(commands);
-  context.subscriptions.push(registerConflictView());
+    // Register filewatcher for push or deploy on save
 
-  // Scratch Org Decorator
-  if (hasRootWorkspace()) {
+    await registerPushOrDeployOnSave();
     decorators.showOrg();
     decorators.monitorOrgConfigChanges();
 
@@ -573,6 +616,11 @@ export async function activate(context: vscode.ExtensionContext) {
       decorators.showDemoMode();
     }
   }
+
+  // Commands
+  const commands = registerCommands(context);
+  context.subscriptions.push(commands);
+  context.subscriptions.push(registerConflictView());
 
   const api: any = {
     channelService,
@@ -590,9 +638,12 @@ export async function activate(context: vscode.ExtensionContext) {
     SfdxCommandletExecutor,
     sfdxCoreSettings,
     SfdxWorkspaceChecker,
+    workspaceContext,
     taskViewService,
     telemetryService
   };
+
+  registerFunctionInvokeCodeLensProvider(context);
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');

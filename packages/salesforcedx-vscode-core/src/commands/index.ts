@@ -162,5 +162,14 @@ export {
   ForceSourceDiffExecutor,
   handleDiffResponse
 } from './forceSourceDiff';
+export { forceOrgList } from './forceOrgList';
+export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
+export {
+  forceFunctionStart,
+  forceFunctionStop,
+  forceFunctionDebugInvoke,
+  forceFunctionInvoke,
+  registerFunctionInvokeCodeLensProvider
+} from './functions';

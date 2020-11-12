@@ -1,11 +1,11 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "49.8.0",
+  "version": "50.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.40.0"
+    "vscode": "^1.46.0"
   },
   "activationEvents": [
     "onView:never"

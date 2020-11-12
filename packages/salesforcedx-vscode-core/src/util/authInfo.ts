@@ -102,9 +102,22 @@ export class OrgAuthInfo {
   }
 
   public static async getConnection(
-    usernameOrAlias: string
+    usernameOrAlias?: string
   ): Promise<Connection> {
-    const username = await this.getUsername(usernameOrAlias);
+    let _usernameOrAlias;
+
+    if (usernameOrAlias) {
+      _usernameOrAlias = usernameOrAlias;
+    } else {
+      const defaultName = await OrgAuthInfo.getDefaultUsernameOrAlias(true);
+      if (!defaultName) {
+        throw new Error(nls.localize('error_no_default_username'));
+      }
+      _usernameOrAlias = defaultName;
+    }
+
+    const username = await this.getUsername(_usernameOrAlias);
+
     return await Connection.create({
       authInfo: await AuthInfo.create({ username })
     });

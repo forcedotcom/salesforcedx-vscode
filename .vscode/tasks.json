@@ -36,7 +36,7 @@
       "type": "shell",
       "presentation": {
         "focus": true,
-        "panel": "shared",
+        "panel": "shared"
       },
       "args": [
         "run",
@@ -50,7 +50,7 @@
       "type": "shell",
       "presentation": {
         "focus": false,
-        "panel": "shared",
+        "panel": "shared"
       },
       "args": [
         "run",
@@ -97,6 +97,16 @@
       ]
     },
     {
+      "label": "Create Change Log",
+      "command": "./scripts/change-log-generator.js",
+      "type": "shell",
+      "args": [
+        "${input:verboseOutput}",
+        "-r",
+        "${input:releaseOverride}"
+      ]
+    },
+    {
       "label": "Lint",
       "command": "npm",
       "type": "shell",
@@ -111,6 +121,15 @@
       "isBackground": false
     },
     {
+      "label": "Launch Pre-Publish Steps",
+      "command": "./scripts/pre-publish-workflow.sh",
+      "type": "shell",
+      "args": [
+        "${input:circleCiId}",
+        "${input:releaseBranch}"
+      ]
+    },
+    {
       "label": "Publish Extensions",
       "command": "./scripts/publish-workflow.sh",
       "type": "shell",
@@ -123,7 +142,6 @@
       "command": "npm",
       "type": "shell",
       "presentation": {
-        "reveal": "silent",
         "focus": false,
         "panel": "dedicated"
       },
@@ -131,7 +149,7 @@
         "run",
         "watch"
       ],
-      "isBackground": true,
+      "isBackground": false,
       "problemMatcher": "$tsc-watch"
     }
   ],
@@ -140,6 +158,26 @@
       "id": "circleCiId",
       "type": "promptString",
       "description": "CircleCi Token"
+    },
+    {
+      "id": "verboseOutput",
+      "type": "pickString",
+      "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
+      "options": [
+        "",
+        "-v"
+      ],
+      "default": "-v"
+    },
+    {
+      "id": "releaseOverride",
+      "type": "promptString",
+      "description": "Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 49.11.0)"
+    },
+    {
+      "id": "releaseBranch",
+      "type": "promptString",
+      "description": "Provide the release version (Ex 49.11.0)"
     }
   ]
 }

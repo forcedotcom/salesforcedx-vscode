@@ -38,7 +38,8 @@ import {
 export enum projectTemplateEnum {
   standard = 'standard',
   empty = 'empty',
-  analytics = 'analytics'
+  analytics = 'analytics',
+  functions = 'functions'
 }
 
 type forceProjectCreateOptions = {
@@ -90,6 +91,7 @@ export class LibraryForceProjectCreateExecutor extends LibraryBaseTemplateComman
       defaultpackagedir: 'force-app',
       manifest: this.options.isProjectWithManifest
     };
+    this.telemetryProperties = { projectTemplate: data.projectTemplate };
     return templateOptions;
   }
 }
@@ -194,6 +196,14 @@ export class SelectProjectTemplate
         'force_project_create_analytics_template'
       )
     ];
+    if (sfdxCoreSettings.getFunctionsEnabled()) {
+      items.push(
+        new ProjectTemplateItem(
+          'force_project_create_functions_template_display_text',
+          'force_project_create_functions_template'
+        )
+      );
+    }
 
     const selection = await vscode.window.showQuickPick(items);
     let projectTemplate: string | undefined;
@@ -206,6 +216,9 @@ export class SelectProjectTemplate
         break;
       case nls.localize('force_project_create_analytics_template_display_text'):
         projectTemplate = projectTemplateEnum.analytics;
+        break;
+      case nls.localize('force_project_create_functions_template_display_text'):
+        projectTemplate = projectTemplateEnum.functions;
         break;
       default:
         break;

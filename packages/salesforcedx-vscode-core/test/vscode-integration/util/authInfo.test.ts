@@ -7,15 +7,17 @@
 
 import { Aliases } from '@salesforce/core';
 import { expect } from 'chai';
-import { sandbox } from 'sinon';
+import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 
-const env = sandbox.create();
-
 // tslint:disable: no-unused-expression
 describe('OrgAuthInfo', () => {
+  let env: SinonSandbox;
+  beforeEach(async () => {
+    env = createSandbox();
+  });
   afterEach(() => env.restore());
 
   describe('getUsername', () => {
@@ -77,6 +79,26 @@ describe('OrgAuthInfo', () => {
       expect(infoMessageStub.calledOnce).to.be.false;
       configUtilStub.restore();
       infoMessageStub.restore();
+    });
+  });
+
+  describe('getConnection', () => {
+    const username = 'user@test.test';
+    const alias = 'TestOrg';
+
+    it('should use username/alias when passed as argument', async () => {
+      const connection = await OrgAuthInfo.getConnection(username);
+      expect(connection.getUsername()).to.equal(username);
+    });
+
+    it('should use default username/alias when invoked without argument', async () => {
+      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      configUtilStub.returns('defaultUsername');
+
+      const connection = await OrgAuthInfo.getConnection();
+      expect(connection.getUsername()).to.equal('defaultUsername');
+
+      configUtilStub.restore();
     });
   });
 });

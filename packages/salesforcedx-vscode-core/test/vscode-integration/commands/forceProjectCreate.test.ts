@@ -29,6 +29,7 @@ import {
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { telemetryService } from '../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -236,9 +237,7 @@ describe('Force Project Create', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
-          PROJECT_DIR[0].fsPath
-        } --template standard`
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
@@ -253,9 +252,7 @@ describe('Force Project Create', () => {
         projectTemplate: projectTemplateEnum.analytics
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
-          PROJECT_DIR[0].fsPath
-        } --template analytics`
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template analytics`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
@@ -272,9 +269,7 @@ describe('Force Project Create', () => {
         projectTemplate: projectTemplateEnum.analytics
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
-          PROJECT_DIR[0].fsPath
-        } --template analytics --manifest`
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template analytics --manifest`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
@@ -291,9 +286,7 @@ describe('Force Project Create', () => {
         projectTemplate: projectTemplateEnum.standard
       });
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
-          PROJECT_DIR[0].fsPath
-        } --template standard --manifest`
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template standard --manifest`
       );
       expect(createCommand.description).to.equal(
         nls.localize('force_project_create_text')
@@ -310,7 +303,7 @@ describe('Force Project Create', () => {
     let showSuccessfulExecutionStub: SinonStub;
     let showFailedExecutionStub: SinonStub;
     let executeCommandStub: SinonStub;
-
+    let sendCommandEventStub: SinonStub;
     let showWarningStub: SinonStub;
 
     beforeEach(() => {
@@ -331,7 +324,7 @@ describe('Force Project Create', () => {
         'showFailedExecution'
       );
       executeCommandStub = stub(vscode.commands, 'executeCommand');
-
+      sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
       showWarningStub = stub(vscode.window, 'showWarningMessage');
     });
 
@@ -344,7 +337,7 @@ describe('Force Project Create', () => {
       showFailedExecutionStub.restore();
       appendLineStub.restore();
       executeCommandStub.restore();
-
+      sendCommandEventStub.restore();
       showWarningStub.restore();
     });
 
@@ -517,6 +510,117 @@ describe('Force Project Create', () => {
           'package.xml'
         )
       ]);
+
+      // clean up
+      shell.rm('-rf', projectPath);
+    });
+
+    it('Should Create Functions Project', async () => {
+      // arrange
+      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      shell.rm('-rf', projectPath);
+      assert.noFile(projectPath);
+
+      quickPickStub.returns({
+        label: nls.localize(
+          'force_project_create_functions_template_display_text'
+        )
+      });
+      showInputBoxStub.returns('TestProject');
+      openDialogStub.returns([
+        vscode.Uri.file(path.join(getRootWorkspacePath()))
+      ]);
+
+      // act
+      await forceSfdxProjectCreate();
+
+      assert.file([
+        path.join(getRootWorkspacePath(), 'TestProject', 'functions')
+      ]);
+      assert.fileContent(
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject/config/project-scratch-def.json'
+        ),
+        '"Functions"'
+      );
+
+      // clean up
+      shell.rm('-rf', projectPath);
+    });
+
+    it('Should Create Functions Project with manifest', async () => {
+      // arrange
+      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      shell.rm('-rf', projectPath);
+      assert.noFile(projectPath);
+
+      quickPickStub.returns({
+        label: nls.localize(
+          'force_project_create_functions_template_display_text'
+        )
+      });
+      showInputBoxStub.returns('TestProject');
+      openDialogStub.returns([
+        vscode.Uri.file(path.join(getRootWorkspacePath()))
+      ]);
+
+      // act
+      await forceProjectWithManifestCreate();
+
+      assert.file([
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject',
+          'manifest',
+          'package.xml'
+        )
+      ]);
+      assert.file([
+        path.join(getRootWorkspacePath(), 'TestProject', 'functions')
+      ]);
+      assert.fileContent(
+        path.join(
+          getRootWorkspacePath(),
+          'TestProject/config/project-scratch-def.json'
+        ),
+        '"Functions"'
+      );
+
+      // clean up
+      shell.rm('-rf', projectPath);
+    });
+
+    it('Should Log Telemetry on Creating Functions Project', async () => {
+      // arrange
+      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      shell.rm('-rf', projectPath);
+      assert.noFile(projectPath);
+
+      quickPickStub.returns({
+        label: nls.localize(
+          'force_project_create_functions_template_display_text'
+        )
+      });
+      showInputBoxStub.returns('TestProject');
+      openDialogStub.returns([
+        vscode.Uri.file(path.join(getRootWorkspacePath()))
+      ]);
+
+      // act
+      await forceSfdxProjectCreate();
+
+      sinon.assert.calledOnce(sendCommandEventStub);
+      sinon.assert.calledWith(
+        sendCommandEventStub,
+        'force_project_create',
+        sinon.match.array,
+        {
+          dirType: 'customDir',
+          commandExecutor: 'library',
+          projectTemplate: 'functions'
+        }
+      );
 
       // clean up
       shell.rm('-rf', projectPath);

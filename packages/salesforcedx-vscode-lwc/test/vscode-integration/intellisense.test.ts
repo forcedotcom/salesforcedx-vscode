@@ -11,8 +11,8 @@ import * as vscode from 'vscode';
 
 describe('LWC Intellisense Test Suite', function() {
   let lwcDir: string;
-
-  before(function() {
+  let lwcExtension: vscode.Extension<any>;
+  before(async() => {
     lwcDir = path.join(
       vscode.workspace.workspaceFolders![0].uri.fsPath,
       'force-app',
@@ -20,9 +20,14 @@ describe('LWC Intellisense Test Suite', function() {
       'default',
       'lwc'
     );
+
+    lwcExtension = vscode.extensions.getExtension(
+      'salesforce.salesforcedx-vscode-lwc'
+    ) as vscode.Extension<any>;
+    await lwcExtension.activate();
   });
 
-  afterEach(async function() {
+  afterEach(async () => {
     try {
       await vscode.commands.executeCommand(
         'workbench.action.closeActiveEditor'
@@ -32,10 +37,14 @@ describe('LWC Intellisense Test Suite', function() {
     }
   });
 
+  it('lwc extension activation', async function() {
+    expect(lwcExtension.isActive);
+  }).timeout(10000);
+
   /**
    * Test that lwc markup intellisense includes standard lwc tags and custom lwc tags
    */
-  it('LWC Markup Intellisense', async function() {
+  it('LWC Markup Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
@@ -71,68 +80,7 @@ describe('LWC Intellisense Test Suite', function() {
     }
   });
 
-  it('LWC JS @Salesforce Import Intellisense', async function() {
-    this.timeout(10000);
-    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
-    const doc = await vscode.workspace.openTextDocument(docUri);
-    const editor = await vscode.window.showTextDocument(doc);
-
-    // We have to have some text or we'll just get generic completions
-    const text = "import {} from '@sales";
-    const startPosition = new vscode.Position(1, 0);
-    const endPosition = new vscode.Position(
-      startPosition.line,
-      startPosition.character + text.length
-    );
-    const rangeReplace = new vscode.Range(startPosition, endPosition);
-    await editor.edit(editBuilder => {
-      editBuilder.replace(rangeReplace, text);
-    });
-
-    try {
-      await testCompletion(docUri, endPosition, {
-        items: [
-          {
-            label: '@salesforce/apex',
-            kind: vscode.CompletionItemKind.Module
-          },
-          // TODO add these back once we determine why Apex language server isn't working on windows
-          // {
-          //   label: '@salesforce/apex/AccountController.getAccountList',
-          //   kind: vscode.CompletionItemKind.Module
-          // },
-          // {
-          //   label: '@salesforce/apex/ContactController.findContacts',
-          //   kind: vscode.CompletionItemKind.Module
-          // },
-          {
-            label: '@salesforce/contentAssetUrl/Cookpatternv1',
-            kind: vscode.CompletionItemKind.Module
-          },
-          {
-            label: '@salesforce/resourceUrl/d3',
-            kind: vscode.CompletionItemKind.Module
-          },
-          {
-            label: '@salesforce/resourceUrl/trailhead_logo',
-            kind: vscode.CompletionItemKind.Module
-          },
-          {
-            label: '@salesforce/schema',
-            kind: vscode.CompletionItemKind.Module
-          },
-          {
-            label: '@salesforce/user/Id',
-            kind: vscode.CompletionItemKind.Module
-          }
-        ]
-      });
-    } catch (error) {
-      throw error;
-    }
-  });
-
-  it('LWC JS Module Import Intellisense', async function() {
+  it('LWC JS Module Import Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
@@ -161,9 +109,67 @@ describe('LWC Intellisense Test Suite', function() {
     } catch (error) {
       throw error;
     }
-  });
+  }).timeout(5000);
 
-  it('LWC JS Lightning Import Intellisense', async function() {
+  xit('LWC JS @Salesforce Import Intellisense', async () => {
+    const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
+    const doc = await vscode.workspace.openTextDocument(docUri);
+    const editor = await vscode.window.showTextDocument(doc);
+
+    // We have to have some text or we'll just get generic completions
+    const text = "import {} from '@sales";
+    const startPosition = new vscode.Position(1, 0);
+    const endPosition = new vscode.Position(
+      startPosition.line,
+      startPosition.character + text.length
+    );
+    const rangeReplace = new vscode.Range(startPosition, endPosition);
+    await editor.edit(editBuilder => {
+      editBuilder.replace(rangeReplace, text);
+    });
+    try {
+      await testCompletion(docUri, endPosition, {
+        items: [
+          {
+            label: '@salesforce/apex',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/apex/AccountController.getAccountList',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/apex/ContactController.findContacts',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/contentAssetUrl/Cookpatternv1',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/resourceUrl/d3',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/resourceUrl/trailhead_logo',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/schema',
+            kind: vscode.CompletionItemKind.Module
+          },
+          {
+            label: '@salesforce/user/Id',
+            kind: vscode.CompletionItemKind.Module
+          }
+        ]
+      });
+    } catch (error) {
+      throw error;
+    }
+  }).timeout(10000);
+
+  xit('LWC JS Lightning Import Intellisense', async () => {
     const docUri = vscode.Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
     const doc = await vscode.workspace.openTextDocument(docUri);
     const editor = await vscode.window.showTextDocument(doc);
@@ -211,8 +217,8 @@ async function testCompletion(
     position
   )) as vscode.CompletionList;
 
-  expectedCompletionList.items.forEach(function(expectedItem) {
-    const actualItem = actualCompletionList.items.find(function(obj) {
+  expectedCompletionList.items.forEach(expectedItem => {
+    const actualItem = actualCompletionList.items.find(obj => {
       if (obj.label) {
         return obj.label === expectedItem.label;
       }

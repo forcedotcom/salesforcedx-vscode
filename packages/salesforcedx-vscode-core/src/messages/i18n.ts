@@ -75,6 +75,14 @@ export const messages = {
   parameter_gatherer_invalid_forceide_url:
     "The forceide:// URL is invalid. From your subscriber's org, copy and paste the forceide:// URL shown on the Apex Debugger page in Setup.",
   parameter_gatherer_enter_function: 'Enter function details',
+  parameter_gatherer_prompt_confirm_option: 'Continue',
+  parameter_gatherer_prompt_cancel_option: 'Cancel',
+  parameter_gatherer_placeholder_org_list_clean:
+    'Confirm to continue removing deleted and expired scratch orgs',
+  parameter_gatherer_placeholder_delete_selected_org:
+    'Confirm to continue deleting the selected org',
+  parameter_gatherer_placeholder_delete_default_org:
+    'Confirm to continue deleting the default org',
 
   force_org_create_default_scratch_org_text:
     'SFDX: Create a Default Scratch Org...',
@@ -104,6 +112,7 @@ export const messages = {
     'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   force_source_retrieve_text: 'SFDX: Retrieve Source from Org',
   force_source_retrieve_display_text: 'Retrieve Source from Org',
+  force_source_retrieve_and_open_display_text: 'Retrieve and Open Source',
   force_source_retrieve_select_file_or_directory:
     'You can run SFDX: Retrieve Source from Org only on a source file or directory.',
   force_source_retrieve_select_manifest:
@@ -137,6 +146,25 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
+  force_function_start_text: 'SFDX: Start Function',
+  force_function_start_no_org_auth:
+    'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
+  force_function_start_warning_no_toml:
+    'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
+  force_function_start_warning_not_in_function_folder:
+    'Open a function file to run SFDX: Start Function',
+  force_function_start_warning_plugin_not_installed:
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://github.com/forcedotcom/evergreen-docs/blob/master/Getting%20Started%20Guide/Evergreen%20Getting%20Started%20Guide.md#installing-the-salesforce-functions-sfdx-plugin).',
+  force_function_start_warning_docker_not_installed_or_not_started:
+    'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
+  force_function_start_unexpected_error:
+    'SFDX: Start Function exited unexpectedly with code %s',
+  force_function_invoke_text: 'SFDX: Invoke Function',
+  force_function_invoke_tooltip: 'Invoke',
+  force_function_debug_invoke_tooltip: 'Debug Invoke',
+  force_function_stop_text: 'SFDX: Stop Function',
+  force_function_stop_in_progress: 'Stopping Function',
+  force_function_stop_not_started: 'No Function is running locally',
   force_source_status_local_text: 'SFDX: View Local Changes',
   force_source_status_remote_text: 'SFDX: View Changes in Default Scratch Org',
   warning_prompt_file_overwrite:
@@ -155,8 +183,11 @@ export const messages = {
   warning_prompt_other_not_shown: '...%s other components not shown\n',
   force_config_list_text: 'SFDX: List All Config Variables',
   force_alias_list_text: 'SFDX: List All Aliases',
+  force_org_delete_default_text: 'SFDX: Delete Default Org',
+  force_org_delete_username_text: 'SFDX: Delete Org...',
   force_org_display_default_text: 'SFDX: Display Org Details for Default Org',
   force_org_display_username_text: 'SFDX: Display Org Details...',
+  force_org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   force_debugger_query_session_text: 'query for Apex Debugger session',
   force_debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   force_debugger_stop_none_found_text: 'No Apex Debugger session found.',
@@ -177,6 +208,8 @@ export const messages = {
   force_project_create_analytics_template_display_text: 'Analytics',
   force_project_create_empty_template: 'Empty project template',
   force_project_create_analytics_template: 'Analytics project template',
+  force_project_create_functions_template_display_text: 'Functions',
+  force_project_create_functions_template: 'Functions project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
     'SFDX: Turn On Apex Debug Log for Replay Debugger',
@@ -210,8 +243,8 @@ export const messages = {
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   force_apex_log_list_text: 'Getting Apex debug logs',
-  force_apex_log_get_library: 'Apex Library: Get Logs',
   apex_log_get_text: 'Get Apex Logs',
+  apex_log_list_text: 'Fetching Apex debug log list',
 
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
@@ -257,6 +290,7 @@ export const messages = {
   error_source_path_not_in_package_directory_text:
     'Error deploying or retrieving source: The file or directory that you tried to deploy or retrieve isn\'t in a package directory that\'s specified in your sfdx-project.json file. Add this location to your "packageDirectories" value, or deploy or retrieve a different file or directory. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
   org_select_text: 'Select an org to set as default',
+  org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
   force_config_set_org_text: 'SFDX: Set a Default Org',
   error_parsing_sfdx_project_file:
@@ -268,6 +302,8 @@ export const messages = {
   table_header_type: 'TYPE',
   table_header_full_name: 'FULL NAME',
   table_header_state: 'STATE',
+  table_header_error_type: 'MESSAGE TYPE',
+  table_header_message: 'MESSAGE',
   table_no_results_found: 'No results found',
   table_title_deployed_source: 'Deployed Source',
   table_title_deploy_errors: 'Deploy Errors',
@@ -301,6 +337,7 @@ export const messages = {
   error_org_browser_text:
     'Run "SFDX: Authorize an Org" to authorize your org again.',
   error_org_browser_init: 'Org Browser has not been initialized',
+  error_workspace_context_init: 'WorkspaceContext has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
   error_no_scratch_def:
     'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
@@ -553,9 +590,14 @@ export const messages = {
   lib_retrieve_result_title: 'Retrieved Source',
   lib_retrieve_result_parse_error:
     'Not able to parse current results. Raw result: %s',
+  lib_retrieve_message_title: 'Retrieve Warnings',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
   package_id_gatherer_placeholder: '04t...',
   force_function_enter_function: 'Enter a name for the function',
-  force_function_enter_language: 'Select a language for your function'
+  force_function_enter_language: 'Select a language for your function',
+  force_function_install_npm_dependencies_progress:
+    'Installing NPM dependencies',
+  force_function_install_npm_dependencies_error:
+    "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
 };

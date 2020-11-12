@@ -7,6 +7,7 @@
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
 export const SFDX_CONFIG_FILE = 'sfdx-config.json';
+export const SFDX_FOLDER = '.sfdx';
 export const CLIENT_ID = 'sfdx-vscode';
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
@@ -33,3 +34,5 @@ export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const USE_APEX_LIBRARY = 'experimental.useApexLibrary';
 export const FUNCTIONS_ENABLED = 'experimental.supportFunctions';
 export const USE_TEMPLATES_LIBRARY = 'experimental.useTemplatesLibrary';
+export const FUNCTIONS_INSTALL_DEPENDENCIES =
+  'experimental.functions_install_dependencies';
