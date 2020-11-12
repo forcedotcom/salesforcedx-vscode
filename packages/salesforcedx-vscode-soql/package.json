@@ -52,7 +52,6 @@
     "eslint-plugin-jsdoc": "^30.0.3",
     "eslint-plugin-prettier": "^3.1.4",
     "mocha": "^5",
-    "node-prune": "^1.0.2",
     "sinon": "^7.3.1",
     "typescript": "3.7.5"
   },
