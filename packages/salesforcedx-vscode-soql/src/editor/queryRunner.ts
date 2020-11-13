@@ -24,10 +24,7 @@ export class QueryRunner {
       };
       return cleanQueryData;
     } catch (error) {
-      // TODO: i18n
-      vscode.window.showErrorMessage(
-        `Your query contains invalid or incomplete syntax. Fix the syntax errors and try again.`
-      );
+      vscode.window.showErrorMessage(`${error.name}:  ${error.message}`);
       throw error;
     }
   }
