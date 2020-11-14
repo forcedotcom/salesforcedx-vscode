@@ -85,7 +85,7 @@ export class QueryDataFileService {
   private showFileInExplorer(targetPath: string) {
     vscode.commands.executeCommand(
       'revealInExplorer',
-      vscode.Uri.parse(targetPath)
+      vscode.Uri.file(targetPath)
     );
   }
 
