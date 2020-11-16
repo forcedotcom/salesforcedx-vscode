@@ -14,6 +14,11 @@ import { nls } from '../i18n';
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
 const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
 
+export interface AsyncTestRun {
+  runId: string;
+  queueItem: ApexTestQueueItem;
+}
+
 export class StreamingClient {
   private client: FayeClient;
   private conn: Connection;
@@ -53,10 +58,15 @@ export class StreamingClient {
         message: StreamMessage,
         callback: (message: StreamMessage) => void
       ) => {
-        if (message && message.channel === '/meta/handshake' && message.error) {
-          throw new Error(
-            nls.localize('streaming_handshake_fail', message.error)
-          );
+        if (message && message.error) {
+          if (message.channel === '/meta/handshake') {
+            this.client.disconnect();
+            throw new Error(
+              nls.localize('streaming_handshake_fail', message.error)
+            );
+          }
+          console.log(nls.localize('streaming_failure', message.error));
+          this.client.disconnect();
         }
         callback(message);
       }
@@ -76,8 +86,15 @@ export class StreamingClient {
     }
   }
 
-  public async subscribe(testRunId: string): Promise<ApexTestQueueItem> {
-    this.subscribedTestRunId = testRunId;
+  public handshake(): Promise<void> {
+    return new Promise(resolve => {
+      this.client.handshake(() => {
+        resolve();
+      });
+    });
+  }
+
+  public async subscribe(action: () => Promise<string>): Promise<AsyncTestRun> {
     return new Promise((subscriptionResolve, subscriptionReject) => {
       try {
         this.client.subscribe(
@@ -87,10 +104,22 @@ export class StreamingClient {
 
             if (result) {
               this.client.disconnect();
-              subscriptionResolve(result);
+              subscriptionResolve({
+                runId: this.subscribedTestRunId,
+                queueItem: result
+              });
             }
           }
         );
+
+        action()
+          .then(id => {
+            this.subscribedTestRunId = id;
+          })
+          .catch(e => {
+            this.client.disconnect();
+            subscriptionReject(e);
+          });
       } catch (e) {
         this.client.disconnect();
         subscriptionReject(e);
@@ -114,8 +143,19 @@ export class StreamingClient {
       return null;
     }
 
+    const result = await this.getCompletedTestRun(testRunId);
+    if (result) {
+      return result;
+    }
+
+    console.log(nls.localize('streaming_processing_test_run', testRunId));
+    return null;
+  }
+
+  private async getCompletedTestRun(
+    testRunId: string
+  ): Promise<ApexTestQueueItem> {
     const queryApexTestQueueItem = `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`;
-    let completedRecordProcess = true;
     const result = (await this.conn.tooling.query(
       queryApexTestQueueItem
     )) as ApexTestQueueItem;
@@ -132,16 +172,9 @@ export class StreamingClient {
         item.Status === ApexTestQueueItemStatus.Preparing ||
         item.Status === ApexTestQueueItemStatus.Processing
       ) {
-        completedRecordProcess = false;
-        break;
+        return null;
       }
     }
-
-    if (completedRecordProcess) {
-      return result;
-    } else {
-      console.log(nls.localize('streaming_processing_test_run', testRunId));
-    }
-    return null;
+    return result;
   }
 }

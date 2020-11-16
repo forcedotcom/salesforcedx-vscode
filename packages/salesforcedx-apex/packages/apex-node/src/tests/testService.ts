@@ -169,23 +169,15 @@ export class TestService {
   ): Promise<TestResult> {
     const sClient = new StreamingClient(this.connection);
     await sClient.init();
-    const url = `${this.connection.tooling._baseUrl()}/runTestsAsynchronous`;
-    const request = {
-      method: 'POST',
-      url,
-      body: JSON.stringify(options),
-      headers: { 'content-type': 'application/json' }
-    };
+    await sClient.handshake();
 
-    const testRunId = (await this.connection.tooling.request(
-      request
-    )) as string;
-
-    const testQueueResult = await sClient.subscribe(testRunId);
+    const asyncRunResult = await sClient.subscribe(
+      this.getTestRunRequestAction(options)
+    );
 
     return await this.getTestResultData(
-      testQueueResult,
-      testRunId,
+      asyncRunResult.queueItem,
+      asyncRunResult.runId,
       codeCoverage
     );
   }
@@ -423,5 +415,29 @@ export class TestService {
     );
 
     return coverageResults;
+  }
+
+  private getTestRunRequestAction(
+    options: AsyncTestConfiguration | AsyncTestArrayConfiguration
+  ): () => Promise<string> {
+    const requestTestRun = async (): Promise<string> => {
+      const url = `${this.connection.tooling._baseUrl()}/runTestsAsynchronous`;
+      const request = {
+        method: 'POST',
+        url,
+        body: JSON.stringify(options),
+        headers: { 'content-type': 'application/json' }
+      };
+
+      try {
+        const testRunId = (await this.connection.tooling.request(
+          request
+        )) as string;
+        return Promise.resolve(testRunId);
+      } catch (e) {
+        return Promise.reject(e);
+      }
+    };
+    return requestTestRun;
   }
 }

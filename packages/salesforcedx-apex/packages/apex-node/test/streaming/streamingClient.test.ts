@@ -10,7 +10,7 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { createSandbox, SinonSandbox } from 'sinon';
 import { StreamingClient } from '../../src/streaming';
 import { expect } from 'chai';
-import { Client as FayeClient } from 'faye';
+import { Client as FayeClient, Subscription } from 'faye';
 import { fail } from 'assert';
 import { TestResultMessage } from '../../src/streaming/types';
 import { ApexTestQueueItemStatus } from '../../src/tests/types';
@@ -88,20 +88,53 @@ describe('Streaming API Client', () => {
     }
   });
 
-  it('should disconect when subscribe throws an error', async () => {
+  it('should disconnect when subscribe throws an error', async () => {
     const stubSubscribe = sandboxStub
       .stub(FayeClient.prototype, 'subscribe')
       .throwsException('custom subscribe error');
     const stubDisconnect = sandboxStub.stub(FayeClient.prototype, 'disconnect');
     const streamClient = new StreamingClient(mockConnection);
     try {
-      await streamClient.subscribe('707xx0000AGQ3jbQQD');
+      await streamClient.subscribe(() => Promise.resolve('707xx0000AGQ3jbQQD'));
       fail('Test should have thrown an error');
     } catch (e) {
       expect(stubSubscribe.calledOnce).to.equal(true);
       expect(e.name).to.equal('custom subscribe error');
       expect(stubDisconnect.calledOnce).to.equal(true);
     }
+  });
+
+  it('should disconnect when subscribe action throws an error', async () => {
+    const stubSubscribe = sandboxStub
+      .stub(FayeClient.prototype, 'subscribe')
+      .returns(new Subscription());
+    const stubDisconnect = sandboxStub.stub(FayeClient.prototype, 'disconnect');
+    const streamClient = new StreamingClient(mockConnection);
+
+    try {
+      await streamClient.subscribe(() => Promise.reject(new Error('Broken')));
+      fail('Test should have thrown an error');
+    } catch (e) {
+      expect(e.message).to.equal('Broken');
+    }
+    expect(stubSubscribe.calledOnce).to.equal(true);
+    expect(stubDisconnect.calledOnce).to.equal(true);
+  });
+
+  it.skip('should capture test run ID in subscribe', async () => {
+    const stubSubscribe = sandboxStub
+      .stub(FayeClient.prototype, 'subscribe')
+      .returns(new Subscription());
+    const stubDisconnect = sandboxStub.stub(FayeClient.prototype, 'disconnect');
+    const streamClient = new StreamingClient(mockConnection);
+
+    const result = await streamClient.subscribe(() =>
+      Promise.resolve('707xx0000AGQ3jbQQD')
+    );
+    expect(result).to.equal('707xx0000AGQ3jbQQD');
+    expect(streamClient.subscribedTestRunId).to.equal('707xx0000AGQ3jbQQD');
+    expect(stubSubscribe.calledOnce).to.equal(true);
+    expect(stubDisconnect.calledOnce).to.equal(false);
   });
 
   it('should throw error if handler can not find test records', async () => {

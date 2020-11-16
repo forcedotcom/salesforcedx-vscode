@@ -23,7 +23,7 @@ import {
   ApexCodeCoverageAggregate,
   ApexCodeCoverage
 } from '../../src/tests/types';
-import { StreamingClient } from '../../src/streaming';
+import { AsyncTestRun, StreamingClient } from '../../src/streaming';
 import { fail } from 'assert';
 import { nls } from '../../src/i18n';
 import {
@@ -242,6 +242,10 @@ describe('Run Apex tests asynchronously', () => {
   });
 
   it('should run a successful test', async () => {
+    const asyncResult = {
+      runId: testRunId,
+      queueItem: pollResponse
+    } as AsyncTestRun;
     const requestOptions: AsyncTestConfiguration = {
       classNames: 'TestSample',
       testLevel: TestLevel.RunSpecifiedTests
@@ -257,17 +261,19 @@ describe('Run Apex tests asynchronously', () => {
     toolingRequestStub.withArgs(testAsyncRequest).returns(testRunId);
     sandboxStub
       .stub(StreamingClient.prototype, 'subscribe')
-      .resolves(pollResponse);
+      .resolves(asyncResult);
     const testSrv = new TestService(mockConnection);
     const mockTestResultData = sandboxStub
       .stub(testSrv, 'getTestResultData')
       .resolves(testResultData);
+    sandboxStub.stub(StreamingClient.prototype, 'handshake').resolves();
     const testResult = await testSrv.runTestAsynchronous(requestOptions);
     expect(testResult).to.be.a('object');
-    expect(toolingRequestStub.calledOnce).to.equal(true);
     expect(mockTestResultData.calledOnce).to.equal(true);
-    expect(mockTestResultData.getCall(0).args[0]).to.equal(pollResponse);
-    expect(mockTestResultData.getCall(0).args[1]).to.equal(testRunId);
+    expect(mockTestResultData.getCall(0).args[0]).to.equal(
+      asyncResult.queueItem
+    );
+    expect(mockTestResultData.getCall(0).args[1]).to.equal(asyncResult.runId);
     expect(testResult).to.equal(testResultData);
   });
 

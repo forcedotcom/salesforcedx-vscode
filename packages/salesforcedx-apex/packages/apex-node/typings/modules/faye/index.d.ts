@@ -14,6 +14,7 @@ declare module 'faye' {
     addExtension(extension: Record<string, any>): void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     subscribe(channel: string, callback: (message: any) => void): Subscription;
+    handshake(callback: () => void): void;
     disconnect(): void;
   }
 
