@@ -9,11 +9,17 @@ import * as vscode from 'vscode';
 
 export const telemetryService = TelemetryService.getInstance();
 
-export async function startTelemetry(context: vscode.ExtensionContext, hrtime: [number, number]): Promise<void> {
-  const extensionPackage = require(context.asAbsolutePath(
-    './package.json'
-  ));
-  await telemetryService.initializeService(context, extensionPackage.name, extensionPackage.aiKey, extensionPackage.version);
+export async function startTelemetry(
+    context: vscode.ExtensionContext, 
+    hrtime: [number, number]
+  ): Promise<void> {
+  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  await telemetryService.initializeService(
+    context, 
+    extensionPackage.name, 
+    extensionPackage.aiKey, 
+    extensionPackage.version
+  );
   await telemetryService.sendExtensionActivationEvent(hrtime);
 }
 
