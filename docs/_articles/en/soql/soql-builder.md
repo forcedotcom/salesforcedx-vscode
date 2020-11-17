@@ -57,18 +57,14 @@ As you build your query, watch SOQL Builder display the query syntax while it si
 
 You can save the query results in a `.csv` or `.json` file. The file is saved in `<project-dir>/scripts/soql/query-results` with a `.csv` or `.json` extension. This path is included in the `.gitignore` file so that you don’t deploy it to your org or include it in source control.  
 
-### Beta Limitations
-
-You can’t select the file name or where the query results file is saved. However, you can move it afterward.
-
-If you click the **Save .csv** or **Save .json** button again, the previous file is overwritten. To avoid overwriting the file, save it to a different file name or move it to a different location.
+**Beta Limitations:**
+* You can’t select the file name or where the query results file is saved. However, you can move it afterward.
+* If you click the **Save .csv** or **Save .json** button again, the previous file is overwritten. To avoid overwriting the file, save it to a different file name or move it to a different location.
 
 ## Known Issues
 
 **Can’t Use SOQL Builder If Authentication to Default Org Has Expired**
-
 **Description:** If the authentication token has expired for your default org, or your default scratch org has expired, SOQL Builder isn’t usable.
-
 **Workaround:** Authorize a default org, then re-open the file in SOQL Builder. If that doesn’t work, restart VS Code.
 
 **Switching Back to .soql File in Text Editor View Opens It in SOQL Builder**
