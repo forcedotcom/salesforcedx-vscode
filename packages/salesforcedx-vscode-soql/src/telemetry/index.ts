@@ -10,14 +10,15 @@ import * as vscode from 'vscode';
 export const telemetryService = TelemetryService.getInstance();
 
 export async function startTelemetry(
-    context: vscode.ExtensionContext, 
-    hrtime: [number, number]
-  ): Promise<void> {
+  context: vscode.ExtensionContext,
+  hrtime: [number, number]
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const extensionPackage = require(context.asAbsolutePath('./package.json'));
   await telemetryService.initializeService(
-    context, 
-    extensionPackage.name, 
-    extensionPackage.aiKey, 
+    context,
+    extensionPackage.name,
+    extensionPackage.aiKey,
     extensionPackage.version
   );
   await telemetryService.sendExtensionActivationEvent(hrtime);
