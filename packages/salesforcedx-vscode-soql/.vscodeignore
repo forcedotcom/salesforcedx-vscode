@@ -10,7 +10,7 @@ tsconfig.json
 **/*.ts
 **/tsconfig.json
 *.xml
-**/*.md
+**/*[!README].md
 *.vsix
 node_modules/rxjs/src/**
 node_modules/rxjs/bundles/**
