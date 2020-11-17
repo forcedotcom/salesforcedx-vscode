@@ -40,7 +40,7 @@ DX projects have a sample `accounts.soql` file in the `<project-folder>/scripts/
 
 As you build your query, watch SOQL Builder display the query syntax while it simultaneously updates the `.soql` file. After you’re done building your statements, click **Run Query** to view the output.
 
-&&& PUT JONNY'S GIF HERE
+![Build your query](./images/soql-builder.gif)
 
 **Beta Limitations:**
 * SOQL Builder currently supports interactively building simple queries. We plan to add more functionality soon. However, you can still open a more complex `.soql` file and run the query from within SOQL Builder, but you must use a text editor to update it.
