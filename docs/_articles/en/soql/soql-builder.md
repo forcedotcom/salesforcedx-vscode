@@ -49,7 +49,7 @@ As you build your query, watch SOQL Builder display the query syntax while it si
 * Every time you click Run Query, a SOQL Query Results tab appears. There’s no way to associate the results with the specific query statements. The SOQL Builder editor reflects your most-recent updates.
 * If you manually update the `.soql` file using a text editor, we don’t currently support any of the syntax validation that comes with the Apex Language Server. 
 
-**Next**
+**Next:**
 * Save the `.soql` (text) file to avoid losing your updates.
 * Save the query results output to a `.csv` or `.json` file.
 
@@ -63,12 +63,12 @@ You can save the query results in a `.csv` or `.json` file. The file is saved in
 
 ## Known Issues
 
-**Can’t Use SOQL Builder If Authentication to Default Org Has Expired**
+### Can’t Use SOQL Builder If Authentication to Default Org Has Expired
 **Description:** If the authentication token has expired for your default org, or your default scratch org has expired, SOQL Builder isn’t usable.
+
 **Workaround:** Authorize a default org, then re-open the file in SOQL Builder. If that doesn’t work, restart VS Code.
 
-**Switching Back to .soql File in Text Editor View Opens It in SOQL Builder**
-
+### Switching Back to .soql File in Text Editor View Opens It in SOQL Builder
 **Description:** Let’s say you open a `.soql` file in SOQL Builder, and then open it in a text editor. If you click the SOQL Builder tab, then go back and click the text editor tab, the text editor switches to the SOQL Builder view.
 
 **Workaround:** Reopen the `.soql` file in the text editor. 
