@@ -102,3 +102,9 @@ To preview a definition, hold down **Ctrl** (Windows or Linux) or **Command** (m
 To view a definition, right-click the item and select **Peek Definition**, or press **Alt+F12**.
 
 To jump to the location of a definition, right-click the item and select **Go to Definition**, or press **F12**.
+
+## Supporting js-meta.xml
+
+VS Code provides IntelliSense support through integrating an XML VSCode extension by Red Hat for js-meta.xml. It supports features that comes out-of-the-box by the extension, such as but not limited to auto suggestion, syntax error reporting, renaming support, automatic code generation, and more.
+
+![View suggestions for target in js-meta.xml](./images/vscode-lwc-jsmeta-intellisense.png)
