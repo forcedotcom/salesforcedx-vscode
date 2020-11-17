@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Extension, ExtensionKind, extensions } from 'vscode';
+import { Extension, ExtensionKind, extensions, Uri } from 'vscode';
 import * as path from 'path';
 
 export class MockRedhatExtension implements Extension<any> {
@@ -23,6 +23,7 @@ export class MockRedhatExtension implements Extension<any> {
     };
     this.api = new MockRhApi(this.extensionPath);
   }
+  public extensionUri = Uri.parse('file://test');
   public id: string;
   public extensionPath: string;
   public isActive: boolean;
