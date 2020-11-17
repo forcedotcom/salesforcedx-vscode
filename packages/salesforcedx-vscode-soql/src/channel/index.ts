@@ -6,8 +6,8 @@
  */
 
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { nls } from '../messages';
 
 export const channelService = ChannelService.getInstance(
-  // i18n
-  'SOQL Extension'
+  nls.localize('soql_channel_name')
 );
