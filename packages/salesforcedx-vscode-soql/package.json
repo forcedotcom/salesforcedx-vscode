@@ -9,6 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
+  "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
   "version": "50.6.0",
   "preview": true,
   "publisher": "salesforce",
@@ -33,6 +34,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "50.6.0",
     "@salesforce/core": "2.12.1",
     "@salesforce/soql-builder-ui": "0.0.23",
     "@salesforce/soql-data-view": "0.0.7",
@@ -54,7 +56,7 @@
     "@types/node": "12.0.12",
     "@types/papaparse": "^5.2.3",
     "@types/sinon": "^2.3.2",
-    "@types/vscode": "^1.46.0",
+    "@types/vscode": "1.46.0",
     "@typescript-eslint/eslint-plugin": "^3.7.1",
     "@typescript-eslint/parser": "^3.7.1",
     "chai": "^4.0.2",
