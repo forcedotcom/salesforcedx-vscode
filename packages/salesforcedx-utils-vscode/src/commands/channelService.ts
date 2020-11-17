@@ -12,7 +12,7 @@ import { nls } from '../messages';
 
 export class ChannelService {
   private readonly channel: OutputChannel;
-  private static instances: { [key : string] : ChannelService } = {};
+  private static instances: { [key: string]: ChannelService } = {};
 
   public constructor(channel: OutputChannel) {
     this.channel = channel;
