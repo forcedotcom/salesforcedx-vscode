@@ -147,6 +147,7 @@
   children:
      - title:
         en: SOQL Builder
+        ja: SOQL Builder
       url: /soql/soql-builder
     - title:
         en: Writing
