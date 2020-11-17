@@ -67,9 +67,13 @@ If you click the **Save .csv** or **Save .json** button again, the previous file
 ## Known Issues
 
 **Can’t Use SOQL Builder If Authentication to Default Org Has Expired**
-**Description:** If the authentication token has expired for your default org, or your default scratch org has expired, SOQL Builder isn’t usable. 
+
+**Description:** If the authentication token has expired for your default org, or your default scratch org has expired, SOQL Builder isn’t usable.
+
 **Workaround:** Authorize a default org, then re-open the file in SOQL Builder. If that doesn’t work, restart VS Code.
 
 **Switching Back to .soql File in Text Editor View Opens It in SOQL Builder**
+
 **Description:** Let’s say you open a `.soql` file in SOQL Builder, and then open it in a text editor. If you click the SOQL Builder tab, then go back and click the text editor tab, the text editor switches to the SOQL Builder view.
+
 **Workaround:** Reopen the `.soql` file in the text editor. 
