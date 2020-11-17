@@ -42,15 +42,14 @@ As you build your query, watch SOQL Builder display the query syntax while it si
 
 &&& PUT JONNY'S GIF HERE
 
-### Beta Limitations
-
+**Beta Limitations:**
 * SOQL Builder currently supports interactively building simple queries. We plan to add more functionality soon. However, you can still open a more complex `.soql` file and run the query from within SOQL Builder, but you must use a text editor to update it.
 * The Run Query button gives no indication of status while it’s building the results. It can take several minutes to build a large result set. Try to resist the urge to click Run Query again.
 * When selecting fields, you can select (click) only one at a time.
 * Every time you click Run Query, a SOQL Query Results tab appears. There’s no way to associate the results with the specific query statements. The SOQL Builder editor reflects your most-recent updates.
 * If you manually update the `.soql` file using a text editor, we don’t currently support any of the syntax validation that comes with the Apex Language Server. 
 
-### Next
+**Next**
 * Save the `.soql` (text) file to avoid losing your updates.
 * Save the query results output to a `.csv` or `.json` file.
 
