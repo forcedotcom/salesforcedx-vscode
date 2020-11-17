@@ -97,8 +97,9 @@ export const messages = {
     'Preview component on desktop browser',
   lwc_output_channel_name: 'LWC Extension',
   force_lightning_lwc_no_redhat_extension_found:
-    'Salesforce js-meta.xml intellisense requires RedHat XML Plugin',
+    'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension',
   force_lightning_lwc_deprecated_redhat_extension:
-    'Salesforce js-meta.xml intellisense requires RedHat XML Extension Version >= 0.14.0. Please upgrade the RedHat XML Extension.',
-  force_lightning_lwc_fail_redhat_extension: 'Failed to setup RedHat XML Plugin'
+    'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
+  force_lightning_lwc_fail_redhat_extension:
+    'Failed to setup Red Hat XML extension'
 };
