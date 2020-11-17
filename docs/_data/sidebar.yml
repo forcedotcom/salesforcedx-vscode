@@ -145,6 +145,9 @@
     ja: SOQL
   baseUrl: /soql/
   children:
+     - title:
+        en: SOQL Builder
+      url: /soql/soql-builder
     - title:
         en: Writing
         ja: 作成
