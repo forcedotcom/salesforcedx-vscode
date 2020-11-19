@@ -14,6 +14,7 @@ import {
   QueryResult
 } from 'jsforce';
 import * as vscode from 'vscode';
+import { channelService } from '../channel';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 
@@ -23,7 +24,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { channelService, workspaceContext } = sfdxCoreExports;
+const { workspaceContext } = sfdxCoreExports;
 
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
