@@ -17,10 +17,10 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
   startLanguageClient(context);
-  startTelemetry(extensionHRStart);
+  startTelemetry(context, extensionHRStart).catch();
 }
 
 export function deactivate(): Thenable<void> | undefined {
-  stopTelemetry();
+  stopTelemetry().catch();
   return stopLanguageClient();
 }

@@ -14,6 +14,7 @@ import {
   SOQL_BUILDER_UI_PATH,
   SOQL_BUILDER_WEB_ASSETS_PATH
 } from '../constants';
+import { channelService } from '../channel';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
@@ -23,7 +24,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { channelService, workspaceContext } = sfdxCoreExports;
+const { workspaceContext } = sfdxCoreExports;
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {

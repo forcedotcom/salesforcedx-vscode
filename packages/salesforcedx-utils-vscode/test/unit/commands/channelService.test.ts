@@ -29,11 +29,11 @@ class MockChannel {
     this.value += EOL;
   }
 
-  public clear(): void {}
+  public clear(): void { }
   public show(preserveFocus?: boolean | undefined): void;
-  public show(column?: any, preserveFocus?: any) {}
-  public hide(): void {}
-  public dispose(): void {}
+  public show(column?: any, preserveFocus?: any) { }
+  public hide(): void { }
+  public dispose(): void { }
 }
 
 const vscodeStub = {
@@ -51,18 +51,38 @@ const { ChannelService } = proxyquire.noCallThru()('../../../src/commands', {
 
 describe('Channel Service', () => {
   let mChannel: MockChannel;
+  let mChannel2: MockChannel;
   // @ts-ignore
   let channelService;
   let sb: SinonSandbox;
 
   beforeEach(() => {
     mChannel = new MockChannel();
+    mChannel2 = new MockChannel();
     channelService = new ChannelService(mChannel);
     sb = createSandbox();
   });
 
   afterEach(async () => {
     sb.restore();
+  });
+
+  it('Should create new singleton instance of of channel if it does not exist', () => {
+    sb.stub(vscodeStub.window, 'createOutputChannel').withArgs('first').returns(mChannel).withArgs('second').returns(mChannel2);
+
+    const chan1 = ChannelService.getInstance('first');
+    const chan2 = ChannelService.getInstance('second');
+
+    expect(chan1).not.equals(chan2);
+  });
+
+  it('Should return existing singleton instance of channel if it exists', () => {
+    sb.stub(vscodeStub.window, 'createOutputChannel').withArgs('first').returns(mChannel).withArgs('second').returns(mChannel2);
+
+    const chan1 = ChannelService.getInstance('first');
+    const chan2 = ChannelService.getInstance('first');
+
+    expect(chan1).equals(chan2);
   });
 
   it('Should pipe stdout on successful command execution', async () => {

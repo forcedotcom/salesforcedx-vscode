@@ -4,29 +4,26 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src/telemetry';
 import * as vscode from 'vscode';
-import { TelemetryService } from './telemetry';
 
 export const telemetryService = TelemetryService.getInstance();
 
-export function startTelemetry(hrstart: [number, number]): void {
-  // Telemetry
-  const sfdxCoreExtension = vscode.extensions.getExtension(
-    'salesforce.salesforcedx-vscode-core'
+export async function startTelemetry(
+  context: vscode.ExtensionContext,
+  hrtime: [number, number]
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  await telemetryService.initializeService(
+    context,
+    extensionPackage.name,
+    extensionPackage.aiKey,
+    extensionPackage.version
   );
-
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
-    telemetryService.initializeService(
-      sfdxCoreExtension.exports.telemetryService.getReporter(),
-      sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
-  }
-
-  telemetryService.sendExtensionActivationEvent(hrstart);
+  await telemetryService.sendExtensionActivationEvent(hrtime);
 }
 
-export function stopTelemetry(): void {
-  telemetryService.sendExtensionDeactivationEvent();
+export async function stopTelemetry(): Promise<void> {
+  await telemetryService.sendExtensionDeactivationEvent();
 }
