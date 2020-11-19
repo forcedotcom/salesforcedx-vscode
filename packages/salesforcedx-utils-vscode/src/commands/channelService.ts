@@ -12,18 +12,18 @@ import { nls } from '../messages';
 
 export class ChannelService {
   private readonly channel: OutputChannel;
-  private static instance: ChannelService;
+  private static instances: { [key: string]: ChannelService } = {};
 
   public constructor(channel: OutputChannel) {
     this.channel = channel;
   }
 
   public static getInstance(channelName: string) {
-    if (!ChannelService.instance) {
+    if (!ChannelService.instances[channelName]) {
       const outputChannel = window.createOutputChannel(channelName);
-      ChannelService.instance = new ChannelService(outputChannel);
+      ChannelService.instances[channelName] = new ChannelService(outputChannel);
     }
-    return ChannelService.instance;
+    return ChannelService.instances[channelName];
   }
 
   public streamCommandOutput(execution: CommandExecution) {
