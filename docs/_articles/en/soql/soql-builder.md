@@ -36,6 +36,8 @@ DX projects have a sample `accounts.soql` file in the `<project-folder>/scripts/
 1. (If necessary) Create a `.soql` file.
 1. Right-click the file name, select **Open With**, then **SOQL Builder**.
 
+![Right-click to open SOQL Builder](./images/soql-builder-open.png)
+
 ## Build a Query
 
 As you build your query, watch SOQL Builder display the query syntax while it simultaneously updates the `.soql` file. After you’re done building your statements, click **Run Query** to view the output.
