@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TapReporter, TestService } from '@salesforce/apex-node';
+import { TapReporter, TestService, JUnitReporter } from '@salesforce/apex-node';
 import {
   AsyncTestConfiguration,
   AsyncTestArrayConfiguration,
@@ -186,20 +186,22 @@ export default class Run extends SfdxCommand {
         );
       }
 
-      if (this.flags.resultformat === 'human') {
-        this.ux.log(this.formatHuman(result, this.flags.detailedcoverage));
-      }
-
-      if (this.flags.resultformat === 'tap') {
-        this.formatTap(result);
-      }
-
-      if (!this.flags.resultformat) {
-        const id = result.summary.testRunId;
-        const username = result.summary.username;
-        this.ux.log(
-          messages.getMessage('runTestReportCommand', [id, username])
-        );
+      switch (this.flags.resultformat) {
+        case 'human':
+          this.ux.log(this.formatHuman(result, this.flags.detailedcoverage));
+          break;
+        case 'tap':
+          this.logTap(result);
+          break;
+        case 'junit':
+          this.logJUnit(result);
+          break;
+        default:
+          const id = result.summary.testRunId;
+          const username = result.summary.username;
+          this.ux.log(
+            messages.getMessage('runTestReportCommand', [id, username])
+          );
       }
 
       return result;
@@ -452,7 +454,7 @@ export default class Run extends SfdxCommand {
     return processedLines;
   }
 
-  private formatTap(result: TestResult): void {
+  private logTap(result: TestResult): void {
     try {
       const reporter = new TapReporter();
       const hint = this.formatReportHint(result);
@@ -460,6 +462,17 @@ export default class Run extends SfdxCommand {
     } catch (err) {
       this.ux.logJson(result);
       const msg = messages.getMessage('testResultProcessErr', [err]);
+      this.ux.error(msg);
+    }
+  }
+
+  private logJUnit(result: TestResult): void {
+    try {
+      const reporter = new JUnitReporter();
+      this.ux.log(reporter.format(result));
+    } catch (e) {
+      this.ux.logJson(result);
+      const msg = messages.getMessage('testResultProcessErr', [e]);
       this.ux.error(msg);
     }
   }

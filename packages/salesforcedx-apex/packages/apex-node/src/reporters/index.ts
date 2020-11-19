@@ -6,3 +6,4 @@
  */
 
 export { TapReporter } from './tapReporter';
+export { JUnitReporter } from './junitReporter';

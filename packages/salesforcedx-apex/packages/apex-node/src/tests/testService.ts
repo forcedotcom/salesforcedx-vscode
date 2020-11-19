@@ -110,26 +110,30 @@ export class TestService {
     const globalTestPassed = apiTestResult.successes.length;
     const result: TestResult = {
       summary: {
-        failRate: this.calculatePercentage(
-          globalTestFailed,
-          apiTestResult.numTestsRun
-        ),
-        numTestsRan: apiTestResult.numTestsRun,
-        orgId: this.connection.getAuthInfoFields().orgId,
         outcome:
           globalTestFailed === 0
             ? ApexTestRunResultStatus.Completed
             : ApexTestRunResultStatus.Failed,
+        numTestsRan: apiTestResult.numTestsRun,
+        passing: globalTestPassed,
+        failing: globalTestFailed,
+        skipped: 0,
         passRate: this.calculatePercentage(
           globalTestPassed,
+          apiTestResult.numTestsRun
+        ),
+        failRate: this.calculatePercentage(
+          globalTestFailed,
           apiTestResult.numTestsRun
         ),
         skipRate: this.calculatePercentage(0, apiTestResult.numTestsRun),
         testStartTime: `${startTime}`,
         testExecutionTime: apiTestResult.totalTime,
+        hostname: this.connection.instanceUrl,
+        orgId: this.connection.getAuthInfoFields().orgId,
+        username: this.connection.getUsername(),
         testRunId: '',
-        userId: this.connection.getConnectionOptions().userId,
-        username: this.connection.getUsername()
+        userId: this.connection.getConnectionOptions().userId
       },
       tests: testResults
     };
@@ -295,15 +299,17 @@ export class TestService {
 
     const result: TestResult = {
       summary: {
-        failRate: this.calculatePercentage(
-          globalTestFailed,
-          testResults.length
-        ),
-        numTestsRan: testResults.length,
-        orgId: this.connection.getAuthInfoFields().orgId,
         outcome: summaryRecord.Status,
+        numTestsRan: testResults.length,
+        passing: globalTestPassed,
+        failing: globalTestFailed,
+        skipped: globalTestSkipped,
         passRate: this.calculatePercentage(
           globalTestPassed,
+          testResults.length
+        ),
+        failRate: this.calculatePercentage(
+          globalTestFailed,
           testResults.length
         ),
         skipRate: this.calculatePercentage(
@@ -312,9 +318,11 @@ export class TestService {
         ),
         testStartTime: summaryRecord.StartTime,
         testExecutionTime: summaryRecord.TestTime,
+        hostname: this.connection.instanceUrl,
+        orgId: this.connection.getAuthInfoFields().orgId,
+        username: this.connection.getUsername(),
         testRunId,
-        userId: summaryRecord.UserId,
-        username: this.connection.getUsername()
+        userId: summaryRecord.UserId
       },
       tests: testResults
     };

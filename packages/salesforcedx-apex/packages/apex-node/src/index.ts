@@ -11,5 +11,5 @@ export {
   ApexExecuteOptions
 } from './execute';
 export { LogService, ApexLogGetOptions } from './logs';
-export { TapReporter } from './reporters';
+export { JUnitReporter, TapReporter } from './reporters';
 export { TestService } from './tests';

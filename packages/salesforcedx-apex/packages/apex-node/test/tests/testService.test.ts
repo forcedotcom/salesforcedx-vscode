@@ -209,6 +209,7 @@ describe('Run Apex tests synchronously', () => {
 });
 
 describe('Run Apex tests asynchronously', () => {
+  let hostnameStub: SinonStub;
   const pollResponse: ApexTestQueueItem = {
     done: true,
     totalSize: 1,
@@ -231,6 +232,9 @@ describe('Run Apex tests asynchronously', () => {
       authInfo: await AuthInfo.create({
         username: testData.username
       })
+    });
+    hostnameStub = sandboxStub.stub(mockConnection, 'instanceUrl').get(() => {
+      return 'https://na139.salesforce.com';
     });
     testResultData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     testResultData.summary.username = mockConnection.getUsername();

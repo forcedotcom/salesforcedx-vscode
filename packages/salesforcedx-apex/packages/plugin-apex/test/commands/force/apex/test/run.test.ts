@@ -120,6 +120,57 @@ describe('force:apex:test:run', () => {
       root: __dirname
     })
     .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests',
+      '--resultformat',
+      'junit'
+    ])
+    .it('should return a success junit format message with async run', ctx => {
+      const result = ctx.stdout;
+      expect(result).to.not.be.empty;
+      expect(result).to.contain(
+        '<testcase name="testConfig" classname="MyApexTests" time="0.05">'
+      );
+      expect(result).to.contain(`<property name="numTestsRan" value="1"/>`);
+      expect(result).to.not.contain('# Run "sfdx force:apex:test:report');
+      expect(result).to.not.contain('Apex Code Coverage by Class');
+    });
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => ({ tests: [] }))
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests',
+      '--resultformat',
+      'junit'
+    ])
+    .it('should handle a junit format parsing error', ctx => {
+      expect(ctx.stdout).to.contain('{\n  "tests": []\n}\n');
+      expect(ctx.stderr).to.contain(
+        messages.getMessage('testResultProcessErr', [
+          "TypeError: Cannot read property 'testStartTime' of undefined"
+        ])
+      );
+    });
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
     .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
     .stdout()
     .command([
@@ -160,6 +211,33 @@ describe('force:apex:test:run', () => {
       expect(result).to.contain('1..1');
       expect(result).to.contain('ok 1 MyApexTests.testConfig');
       expect(result).to.contain('# Run "sfdx force:apex:test:report');
+      expect(result).to.not.contain('Apex Code Coverage by Class');
+    });
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testInsertRecord',
+      '--resultformat',
+      'junit',
+      '--synchronous'
+    ])
+    .it('should return a success junit format message with sync run', ctx => {
+      const result = ctx.stdout;
+      expect(result).to.not.be.empty;
+      expect(result).to.contain(
+        '<testcase name="testConfig" classname="MyApexTests" time="0.05">'
+      );
+      expect(result).to.contain(`<property name="numTestsRan" value="1"/>`);
+      expect(result).to.not.contain('# Run "sfdx force:apex:test:report');
       expect(result).to.not.contain('Apex Code Coverage by Class');
     });
 

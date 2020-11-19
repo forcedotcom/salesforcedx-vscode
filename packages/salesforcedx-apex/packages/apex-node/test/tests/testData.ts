@@ -59,10 +59,14 @@ export const testResultData: TestResult = {
   // @ts-ignore
   summary: {
     failRate: '0%',
+    failing: 0,
+    hostname: 'https://na139.salesforce.com',
     numTestsRan: 1,
     outcome: 'Completed',
     passRate: '100%',
+    passing: 1,
     skipRate: '0%',
+    skipped: 0,
     testStartTime: '2020-07-12T02:54:47.000+0000',
     testExecutionTime: 1765,
     testRunId,
