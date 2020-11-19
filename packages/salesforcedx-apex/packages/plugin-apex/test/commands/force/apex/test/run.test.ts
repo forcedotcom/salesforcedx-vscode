@@ -247,134 +247,29 @@ describe('force:apex:test:run', () => {
       root: __dirname
     })
     .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--tests',
-      'MyApexTests.testMethodOne',
-      '--classnames',
-      'MyApexTests',
-      '--resultformat',
-      'human'
-    ])
-    .it('should throw an error if classnames and tests are specified', ctx => {
-      expect(ctx.stderr).to.contain(messages.getMessage('classSuiteTestErr'));
-    });
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(
+        TestService.prototype,
+        'runTestSynchronous'
+      );
     })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--tests',
-      'MyApexTests.testMethodOne',
-      '--suitenames',
-      'MyApexSuite',
-      '--resultformat',
-      'human'
-    ])
-    .it('should throw an error if suitenames and tests are specified', ctx => {
-      expect(ctx.stderr).to.contain(messages.getMessage('classSuiteTestErr'));
-    });
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
-    })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--tests',
-      'MyApexTests.testMethodOne',
-      '--suitenames',
-      'MyApexSuite',
-      '--resultformat',
-      'human'
-    ])
-    .it(
-      'should throw an error if suitenames and classnames are specified',
-      ctx => {
-        expect(ctx.stderr).to.contain(messages.getMessage('classSuiteTestErr'));
-      }
-    );
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
-    })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--tests',
-      'MyApexTests.testMethodOne',
-      '-c'
-    ])
-    .it(
-      'should throw an error if code coverage is specified but reporter is missing',
-      ctx => {
-        expect(ctx.stderr).to.contain(
-          messages.getMessage('missingReporterErr')
-        );
-      }
-    );
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
-    })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--suitenames',
-      'MyApexSuite',
-      '--synchronous'
-    ])
-    .it(
-      'should throw an error if suitenames is specifed with sync run',
-      ctx => {
-        expect(ctx.stderr).to.contain(messages.getMessage('syncClassErr'));
-      }
-    );
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
-    })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
     .stdout()
     .stderr()
     .command([
       'force:apex:test:run',
       '--classnames',
-      'MyApexClass,MySecondClass',
+      'MyApexTests',
       '--synchronous'
     ])
     .it(
-      'should throw an error if multiple classnames are specifed with sync run',
+      'should format request with correct properties for sync run with class name',
       ctx => {
-        expect(ctx.stderr).to.contain(messages.getMessage('syncClassErr'));
+        expect(
+          ctx.myStub.calledWith({
+            tests: [{ className: 'MyApexTests' }],
+            testLevel: 'RunSpecifiedTests'
+          })
+        ).to.be.true;
       }
     );
 
@@ -384,90 +279,310 @@ describe('force:apex:test:run', () => {
       root: __dirname
     })
     .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--suitenames',
-      'MyApexSuite',
-      '--testlevel',
-      'RunLocalTests'
-    ])
-    .it(
-      'should throw an error if test level is not "Run Specified Tests" for run with suites',
-      ctx => {
-        expect(ctx.stderr).to.contain(messages.getMessage('testLevelErr'));
-      }
-    );
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(
+        TestService.prototype,
+        'runTestSynchronous'
+      );
     })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
     .stdout()
     .stderr()
     .command([
       'force:apex:test:run',
       '--classnames',
-      'MyApexClass',
-      '--synchronous',
-      '--testlevel',
-      'RunAllTestsInOrg'
-    ])
-    .it(
-      'should throw an error if test level is not "Run Specified Tests" for run with classnames',
-      ctx => {
-        expect(ctx.stderr).to.contain(messages.getMessage('testLevelErr'));
-      }
-    );
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
-    })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--tests',
-      'MyApexClass.testInsertTrigger',
-      '--synchronous',
-      '--testlevel',
-      'RunAllTestsInOrg'
-    ])
-    .it(
-      'should throw an error if test level is not "Run Specified Tests" for run with tests',
-      ctx => {
-        expect(ctx.stderr).to.contain(messages.getMessage('testLevelErr'));
-      }
-    );
-
-  test
-    .withOrg({ username: TEST_USERNAME }, true)
-    .loadConfig({
-      root: __dirname
-    })
-    .stub(process, 'cwd', () => projectPath)
-    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
-    .stdout()
-    .stderr()
-    .command([
-      'force:apex:test:run',
-      '--tests',
-      'MyApexClass.testInsertTrigger,MySecondClass.testAfterTrigger',
+      '01p45678x123456',
       '--synchronous'
     ])
     .it(
-      'should throw an error if test level is not "Run Specified Tests" for run with tests',
+      'should format request with correct properties for sync run with class id',
       ctx => {
-        expect(ctx.stderr).to.contain(messages.getMessage('syncClassErr'));
+        expect(
+          ctx.myStub.calledWith({
+            tests: [{ classId: '01p45678x123456' }],
+            testLevel: 'RunSpecifiedTests'
+          })
+        ).to.be.true;
       }
     );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(
+        TestService.prototype,
+        'runTestSynchronous'
+      );
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '--synchronous'
+    ])
+    .it(
+      'should format request with correct properties for sync run with tests',
+      ctx => {
+        expect(
+          ctx.myStub.calledWith({
+            tests: [
+              {
+                className: 'MyApexTests',
+                testMethods: ['testMethodOne']
+              }
+            ],
+            testLevel: 'RunSpecifiedTests'
+          })
+        ).to.be.true;
+      }
+    );
+
+  describe('Error checking', async () => {
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--tests',
+        'MyApexTests.testMethodOne',
+        '--classnames',
+        'MyApexTests',
+        '--resultformat',
+        'human'
+      ])
+      .it(
+        'should throw an error if classnames and tests are specified',
+        ctx => {
+          expect(ctx.stderr).to.contain(
+            messages.getMessage('classSuiteTestErr')
+          );
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--tests',
+        'MyApexTests.testMethodOne',
+        '--suitenames',
+        'MyApexSuite',
+        '--resultformat',
+        'human'
+      ])
+      .it(
+        'should throw an error if suitenames and tests are specified',
+        ctx => {
+          expect(ctx.stderr).to.contain(
+            messages.getMessage('classSuiteTestErr')
+          );
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--tests',
+        'MyApexTests.testMethodOne',
+        '--suitenames',
+        'MyApexSuite',
+        '--resultformat',
+        'human'
+      ])
+      .it(
+        'should throw an error if suitenames and classnames are specified',
+        ctx => {
+          expect(ctx.stderr).to.contain(
+            messages.getMessage('classSuiteTestErr')
+          );
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--tests',
+        'MyApexTests.testMethodOne',
+        '-c'
+      ])
+      .it(
+        'should throw an error if code coverage is specified but reporter is missing',
+        ctx => {
+          expect(ctx.stderr).to.contain(
+            messages.getMessage('missingReporterErr')
+          );
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--suitenames',
+        'MyApexSuite',
+        '--synchronous'
+      ])
+      .it(
+        'should throw an error if suitenames is specifed with sync run',
+        ctx => {
+          expect(ctx.stderr).to.contain(messages.getMessage('syncClassErr'));
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--classnames',
+        'MyApexClass,MySecondClass',
+        '--synchronous'
+      ])
+      .it(
+        'should throw an error if multiple classnames are specifed with sync run',
+        ctx => {
+          expect(ctx.stderr).to.contain(messages.getMessage('syncClassErr'));
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--suitenames',
+        'MyApexSuite',
+        '--testlevel',
+        'RunLocalTests'
+      ])
+      .it(
+        'should throw an error if test level is not "Run Specified Tests" for run with suites',
+        ctx => {
+          expect(ctx.stderr).to.contain(messages.getMessage('testLevelErr'));
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--classnames',
+        'MyApexClass',
+        '--synchronous',
+        '--testlevel',
+        'RunAllTestsInOrg'
+      ])
+      .it(
+        'should throw an error if test level is not "Run Specified Tests" for run with classnames',
+        ctx => {
+          expect(ctx.stderr).to.contain(messages.getMessage('testLevelErr'));
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--tests',
+        'MyApexClass.testInsertTrigger',
+        '--synchronous',
+        '--testlevel',
+        'RunAllTestsInOrg'
+      ])
+      .it(
+        'should throw an error if test level is not "Run Specified Tests" for run with tests',
+        ctx => {
+          expect(ctx.stderr).to.contain(messages.getMessage('testLevelErr'));
+        }
+      );
+
+    test
+      .withOrg({ username: TEST_USERNAME }, true)
+      .loadConfig({
+        root: __dirname
+      })
+      .stub(process, 'cwd', () => projectPath)
+      .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+      .stdout()
+      .stderr()
+      .command([
+        'force:apex:test:run',
+        '--tests',
+        'MyApexClass.testInsertTrigger,MySecondClass.testAfterTrigger',
+        '--synchronous'
+      ])
+      .it(
+        'should throw an error if test level is not "Run Specified Tests" for run with tests',
+        ctx => {
+          expect(ctx.stderr).to.contain(messages.getMessage('syncClassErr'));
+        }
+      );
+  });
 });

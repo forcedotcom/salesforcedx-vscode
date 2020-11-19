@@ -29,6 +29,8 @@ export const TestLevel = [
 
 export const resultFormat = ['human', 'tap', 'junit', 'json'];
 
+const CLASS_ID_PREFIX = '01p';
+
 export function buildTestItem(testNames: string): TestItem[] {
   const testNameArray = testNames.split(',');
   const tItems = testNameArray.map(item => {
@@ -153,9 +155,13 @@ export default class Run extends SfdxCommand {
             );
           }
         } else {
+          const prop = this.flags.classnames
+            .toLowerCase()
+            .startsWith(CLASS_ID_PREFIX)
+            ? 'classId'
+            : 'className';
           testOptions = {
-            tests: [],
-            classNames: this.flags.classnames,
+            tests: [{ [prop]: this.flags.classnames }],
             testLevel
           };
         }

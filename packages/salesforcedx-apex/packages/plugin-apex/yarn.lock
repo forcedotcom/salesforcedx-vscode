@@ -247,10 +247,10 @@
   dependencies:
     fancy-test "^1.4.3"
 
-"@salesforce/apex-node@0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@salesforce/apex-node/-/apex-node-0.1.2.tgz#87ed9e2dfa1fcfec4af302666908aa71f3fe92c3"
-  integrity sha512-6kHCChtpsLo1vntm0LJSvkg2N3fBmDge0CY5XtRCzJTXyhH1wkPXQevtLqxLGm4neXK4jp//+9iNAzWEaBRHPg==
+"@salesforce/apex-node@0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@salesforce/apex-node/-/apex-node-0.1.4.tgz#2c81757f564702f037e8f26bc2a1bcd5d3bfd912"
+  integrity sha512-J+Ib3wOl/kXAeUibb+XvA7uM/x0PuJLfGd9RZQ7DQifE7tEIRifxTN3JD4yHxYTdAxhyt/UqTPY1xilgoVf84w==
   dependencies:
     "@salesforce/core" "2.11.0"
     faye "1.1.3"
