@@ -14,8 +14,17 @@ import {
   SOQL_BUILDER_UI_PATH,
   SOQL_BUILDER_WEB_ASSETS_PATH
 } from '../constants';
+import { channelService } from '../channel';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
+
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
+const sfdxCoreExports = sfdxCoreExtension
+  ? sfdxCoreExtension.exports
+  : undefined;
+const { workspaceContext } = sfdxCoreExports;
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -52,7 +61,16 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     this.instances.push(instance);
     instance.onDispose(this.disposeInstance.bind(this));
     this.context.subscriptions.push(...instance.subscriptions);
+
+    // Check to see if a default org is set.
+    if (!workspaceContext.username) {
+      // i18n
+      const message = `No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.`;
+      channelService.appendLine(message);
+      vscode.window.showInformationMessage(message);
+    }
   }
+
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToLwcDist = path.join(
       this.context.extensionPath,

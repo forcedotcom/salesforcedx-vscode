@@ -14,6 +14,7 @@ import {
   QueryResult
 } from 'jsforce';
 import * as vscode from 'vscode';
+import { channelService } from '../channel';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 
@@ -23,7 +24,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 const sfdxCoreExports = sfdxCoreExtension
   ? sfdxCoreExtension.exports
   : undefined;
-const { channelService, workspaceContext } = sfdxCoreExports;
+const { workspaceContext } = sfdxCoreExports;
 
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
@@ -194,6 +195,15 @@ export class SOQLEditorInstance {
   }
 
   protected handleRunQuery(): Promise<void> {
+    // Check to see if a default org is set.
+    if (!workspaceContext.username) {
+      // i18n
+      const message = `No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.`;
+      channelService.appendLine(message);
+      vscode.window.showInformationMessage(message);
+      return Promise.resolve();
+    }
+
     const queryText = this.document.getText();
     return withSFConnection(async conn => {
       const queryData = await new QueryRunner(conn).runQuery(queryText);

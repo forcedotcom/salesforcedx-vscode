@@ -15,19 +15,19 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "50.4.0",
+  "version": "50.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.40.0"
+    "vscode": "^1.46.0"
   },
   "categories": [
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.1.2",
+    "@salesforce/apex-node": "0.1.4",
     "@salesforce/core": "2.11.0",
-    "@salesforce/salesforcedx-utils-vscode": "50.4.0",
+    "@salesforce/salesforcedx-utils-vscode": "50.6.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "1.1.9",
     "@salesforce/templates": "50.1.0",
@@ -41,7 +41,7 @@
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "50.4.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "50.6.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -51,7 +51,7 @@
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
-    "@types/vscode": "1.40.0",
+    "@types/vscode": "1.46.0",
     "@types/yeoman-assert": "^3.1.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",

@@ -23,7 +23,7 @@ export class ConflictOutlineProvider
   }
 
   public onViewChange() {
-    this.internalOnDidChangeTreeData.fire();
+    this.internalOnDidChangeTreeData.fire(undefined);
   }
 
   public async refresh(node?: ConflictNode): Promise<void> {

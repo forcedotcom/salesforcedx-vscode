@@ -25,6 +25,8 @@ Currently, we have the following extensions:
    This extension supports Aura component bundles. It uses the HTML language server from VS Code.
 - [salesforcedx-vscode-visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
    This extension supports Visualforce pages and components. It uses the HTML language server from VS Code.
+- [salesforcedx-vscode-soql](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)  
+   This extension enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 
 ## Be an Efficient Salesforce Developer with VS Code
 
