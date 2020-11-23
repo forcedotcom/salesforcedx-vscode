@@ -5,27 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  MetadataType,
-  RegistryAccess
-} from '@salesforce/source-deploy-retrieve';
+import { MetadataType, WorkingSet } from '@salesforce/source-deploy-retrieve';
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { sfdxCoreSettings } from '../../settings';
 
-export function useBetaDeployRetrieve(uris: vscode.Uri[], supportedTypes?: MetadataType[]): boolean {
+export function useBetaDeployRetrieve(
+  uris: vscode.Uri[],
+  supportedTypes?: MetadataType[]
+): boolean {
   const betaSettingOn = sfdxCoreSettings.getBetaDeployRetrieve();
   if (!betaSettingOn) {
     return false;
   }
 
-  const registry = new RegistryAccess();
+  const ws = new WorkingSet();
   const permittedTypeNames = new Set();
   supportedTypes?.forEach(type => permittedTypeNames.add(type.name));
 
   for (const { fsPath } of uris) {
-    const componentsForPath = registry.getComponentsFromPath(fsPath);
-    if (supportedTypes) {
+    const componentsForPath = ws.resolveSourceComponents(fsPath);
+    if (supportedTypes && componentsForPath) {
       for (const component of componentsForPath) {
         if (!permittedTypeNames.has(component.type.name)) {
           return false;
