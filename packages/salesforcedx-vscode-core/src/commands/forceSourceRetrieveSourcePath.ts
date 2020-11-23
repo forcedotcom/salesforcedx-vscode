@@ -21,7 +21,6 @@ import {
   SourceComponent,
   WorkingSet
 } from '@salesforce/source-deploy-retrieve';
-import { WSAEACCES } from 'constants';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { workspaceContext } from '../context';
