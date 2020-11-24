@@ -63,11 +63,8 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       let properties;
       try {
-        const ws = new WorkingSet();
-        const comps = ws.resolveSourceComponents(execFilePathOrPaths);
-        const components: SourceComponent[] = comps ? [...comps] : [];
-
-        const metadataCount = JSON.stringify(createComponentCount(components));
+        const ws = WorkingSet.fromSource(execFilePathOrPaths);
+        const metadataCount = JSON.stringify(createComponentCount([...ws]));
         properties = { metadataCount };
         // registry does not handle multiple paths. only log component count for single paths
       } catch (e) {
