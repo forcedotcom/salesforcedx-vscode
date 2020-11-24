@@ -18,6 +18,8 @@ To debug subscribers’ sandbox orgs, use [ISV Customer Debugger](./en/apex/isv-
 
 The first time that you use Apex Debugger in VS Code, complete these setup steps.
 
+Note that you will need to have the appropriate debugger license. The default license provided to License Management orgs can only be used with the [ISV Customer Debugger](./en/apex/isv-debugger) to debug Subscriber orgs. If you do not have the appropriate license, please consider using the [Replay Debugger](./en/apex/isv-debugger).
+
 1. Add the `DebugApex` feature to the scratch org definition files for all the types of scratch orgs that you plan to debug:  
    `"features": "DebugApex"`
 1. In VS Code, run **SFDX: Create a Default Scratch Org**.
