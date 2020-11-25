@@ -37,7 +37,7 @@ export function useBetaDeployRetrieve(
   return true;
 }
 
-export function createComponentCount(components: MetadataComponent[]) {
+export function createComponentCount(components: Iterable<MetadataComponent>) {
   const quantities: { [type: string]: number } = {};
   for (const component of components) {
     const { name: typeName } = component.type;
