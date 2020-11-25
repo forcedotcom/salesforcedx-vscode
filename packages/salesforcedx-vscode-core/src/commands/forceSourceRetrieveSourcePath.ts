@@ -16,9 +16,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   MetadataType,
-  RegistryAccess,
   registryData,
-  SourceClient
+  SourceClient,
+  SourceComponent,
+  WorkingSet
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -128,13 +129,16 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
 
   protected async run(response: ContinueResponse<string>): Promise<boolean> {
     const getConnection = workspaceContext.getConnection();
-    const registryAccess = new RegistryAccess();
-    const components = registryAccess.getComponentsFromPath(response.data);
+    const ws = new WorkingSet();
+    const comps = ws.resolveSourceComponents(response.data);
+    const components: SourceComponent[] = comps ? [...comps] : [];
+
     const projectNamespace = (await SfdxProjectConfig.getValue(
       'namespace'
     )) as string;
     const client = new SourceClient(await getConnection);
     let retrieve;
+
     if (
       components.length === 1 &&
       this.isSupportedToolingRetrieveType(components[0].type)
