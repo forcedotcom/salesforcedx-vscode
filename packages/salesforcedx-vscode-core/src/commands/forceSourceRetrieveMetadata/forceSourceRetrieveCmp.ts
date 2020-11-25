@@ -14,22 +14,30 @@ import {
   ContinueResponse,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ComponentSet,
+  SourceComponent,
+  WorkingSet
+} from '@salesforce/source-deploy-retrieve';
+import { MetadataMember } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
 import { channelService } from '../../channels';
+import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
+import { SfdxPackageDirectories } from '../../sfdxProject';
 import { TelemetryData, telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
+  createComponentCount,
+  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  useBetaDeployRetrieve
 } from '../util';
-import {
-  FilePathGatherer,
-  RetrieveComponentOutputGatherer
-} from '../util/parameterGatherers';
+import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
@@ -132,16 +140,92 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     }
   }
 }
+export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
+  LocalComponent[]
+> {
+  protected logName = 'force_source_retrieve_beta';
+  protected executionName = 'Retrieve (Beta)';
+  private openAfterRetrieve: boolean = false;
+
+  constructor(openAfterRetrieve: boolean = false) {
+    super();
+    this.openAfterRetrieve = openAfterRetrieve;
+  }
+
+  protected async run(
+    response: ContinueResponse<LocalComponent[]>
+  ): Promise<boolean> {
+    const dirPath = (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
+    const output = path.join(getRootWorkspacePath(), dirPath);
+    const comps: LocalComponent[] = response.data;
+
+    const components = comps.map(
+      lc => ({ fullName: lc.fileName, type: lc.type } as MetadataMember)
+    );
+    const ws = WorkingSet.fromComponents(components);
+
+    const metadataCount = JSON.stringify(createComponentCount([...ws]));
+    this.telemetry.addProperty('metadataCount', metadataCount);
+
+    const conn = await workspaceContext.getConnection();
+    const result = await ws.retrieve(conn, output, { merge: true });
+
+    if (result.success && this.openAfterRetrieve) {
+      const compSet = ws.resolveSourceComponents(output);
+      await this.openResources(this.findResources(components[0], compSet));
+    }
+
+    return result.success;
+  }
+
+  private findResources(
+    filter: MetadataMember,
+    compSet?: ComponentSet<SourceComponent>
+  ): string[] {
+    if (compSet && compSet?.size > 0) {
+      const comps: SourceComponent[] = [...compSet];
+      const oneComp = comps.find(
+        c => c.fullName === filter.fullName && c.type.name === filter.type
+      );
+
+      const filesToOpen = [];
+      if (oneComp) {
+        if (oneComp.xml) {
+          filesToOpen.push(oneComp.xml);
+        }
+
+        for (const filePath of oneComp.walkContent()) {
+          filesToOpen.push(filePath);
+        }
+      }
+      return filesToOpen;
+    }
+    return [];
+  }
+
+  private async openResources(filesToOpen: string[]): Promise<void> {
+    for (const file of filesToOpen) {
+      const showOptions: vscode.TextDocumentShowOptions = {
+        preview: false
+      };
+      const document = await vscode.workspace.openTextDocument(file);
+      vscode.window.showTextDocument(document, showOptions);
+    }
+  }
+}
 
 export async function forceSourceRetrieveCmp(
   trigger: RetrieveMetadataTrigger,
   openAfterRetrieve: boolean = false
 ) {
+  const useBeta = useBetaDeployRetrieve([]);
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
-    new ForceSourceRetrieveExecutor(retrieveDescriber, openAfterRetrieve),
+    useBeta
+      ? new LibraryRetrieveSourcePathExecutor(openAfterRetrieve)
+      : new ForceSourceRetrieveExecutor(retrieveDescriber, openAfterRetrieve),
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
