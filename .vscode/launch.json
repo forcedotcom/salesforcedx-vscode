@@ -573,6 +573,29 @@
       },
       "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "name": "Launch Tests - SOQL - VSCode Integration Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages",
+        "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "smartStep": true,
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
+      "sourceMapPathOverrides": {
+        "../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration/*",
+        "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration/*",
+        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///*": "*"
+      },
+      "XXXXXpreLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ],
   "compounds": [
