@@ -616,7 +616,7 @@
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
       },
-      "XXXXXpreLaunchTask": "Compile",
+      "preLaunchTask": "Compile",
       "internalConsoleOptions": "openOnSessionStart"
     }
   ],
