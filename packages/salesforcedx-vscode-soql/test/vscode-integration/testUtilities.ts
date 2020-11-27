@@ -26,8 +26,13 @@ import {
 
 export interface MockConnection {
   authInfo: object;
-  describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) => void;
-  describe$: (name: string, callback: (err: Error | undefined, resp: any) => void) => void;
+  describeGlobal$: (
+    callback: (err: Error | undefined, resp: any) => void
+  ) => void;
+  describe$: (
+    name: string,
+    callback: (err: Error | undefined, resp: any) => void
+  ) => void;
   query: () => Promise<QueryResult<JsonMap>>;
 }
 
@@ -64,7 +69,11 @@ export const mockQueryData: QueryResult<JsonMap> = {
 };
 
 export const mockDescribeGlobalResponse = {
-  sobjects: [{ name: 'A' }, { name: 'B' }]
+  sobjects: [
+    { name: 'A', queryable: true },
+    { name: 'B', queryable: true },
+    { name: 'Z', queryable: false }
+  ]
 };
 export const mockSObject = { name: 'A' };
 export function getMockConnection(
@@ -74,8 +83,12 @@ export function getMockConnection(
   const mockAuthInfo = { test: 'test' };
   const mockConnection = {
     authInfo: mockAuthInfo,
-    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) => callback(undefined, mockDescribeGlobalResponse),
-    describe$: (name: string, callback: (err: Error | undefined, resp: any) => void) => callback(undefined, mockSObject),
+    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
+      callback(undefined, mockDescribeGlobalResponse),
+    describe$: (
+      name: string,
+      callback: (err: Error | undefined, resp: any) => void
+    ) => callback(undefined, mockSObject),
     query: () => Promise.resolve(mockQueryData)
   };
 

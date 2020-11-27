@@ -5,8 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Connection } from '@salesforce/core';
+import { DescribeGlobalSObjectResult } from 'jsforce';
 import * as path from 'path';
-import { ExtensionContext, workspace } from 'vscode';
+import {
+  CompletionItem,
+  CompletionItemKind,
+  ExtensionContext,
+  workspace
+} from 'vscode';
 
 import {
   LanguageClient,
@@ -14,12 +21,14 @@ import {
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient';
+import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
+import { retrieveSObjects } from '../sfdx';
 
 let client: LanguageClient;
 
-export function startLanguageClient(context: ExtensionContext): void {
+export function startLanguageClient(extensionContext: ExtensionContext): void {
   // path to language server module
-  const serverModule = context.asAbsolutePath(
+  const serverModule = extensionContext.asAbsolutePath(
     path.join(
       'node_modules',
       '@salesforce',
@@ -45,6 +54,41 @@ export function startLanguageClient(context: ExtensionContext): void {
     synchronize: {
       configurationSection: 'soql',
       fileEvents: workspace.createFileSystemWatcher('**/*.soql')
+    },
+    middleware: {
+      // The SOQL LSP server may include special completion items as "placeholders" for
+      // the client to expand with information from the users' default Salesforce Org.
+      // We do that here as middleware, transforming the server response before passing
+      // it up to VSCode.
+      provideCompletionItem: async (
+        document,
+        position,
+        context,
+        token,
+        next
+      ) => {
+        const items = (await next(
+          document,
+          position,
+          context,
+          token
+        )) as ProtocolCompletionItem[];
+        const sobjectsIdx = items.findIndex(
+          item =>
+            item.kind === CompletionItemKind.Class &&
+            item.label === '__SOBJECTS_PLACEHOLDER__'
+        );
+        if (sobjectsIdx >= 0) {
+          const sobjectItems = (await retrieveSObjects()).map(objName => {
+            const item = new ProtocolCompletionItem(objName);
+            item.kind = CompletionItemKind.Class;
+            return item;
+          });
+
+          items.splice(sobjectsIdx, 1, ...sobjectItems);
+        }
+        return items;
+      }
     }
   };
 
