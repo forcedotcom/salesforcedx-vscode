@@ -10,9 +10,9 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
-  RegistryAccess,
   registryData,
-  SourceComponent
+  SourceComponent,
+  WorkingSet
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -57,20 +57,20 @@ describe('Parameter Gatherers', () => {
   describe('CompositeParametersGatherer', () => {
     it('Should proceed to next gatherer if previous gatherer in composite gatherer is CONTINUE', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
-        new class implements ParametersGatherer<{}> {
+        new (class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
           > {
             return { type: 'CONTINUE', data: {} };
           }
-        }(),
-        new class implements ParametersGatherer<{}> {
+        })(),
+        new (class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
           > {
             return { type: 'CONTINUE', data: {} };
           }
-        }()
+        })()
       );
 
       const response = await compositeParameterGatherer.gather();
@@ -79,20 +79,20 @@ describe('Parameter Gatherers', () => {
 
     it('Should not proceed to next gatherer if previous gatherer in composite gatherer is CANCEL', async () => {
       const compositeParameterGatherer = new CompositeParametersGatherer(
-        new class implements ParametersGatherer<{}> {
+        new (class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
           > {
             return { type: 'CANCEL' };
           }
-        }(),
-        new class implements ParametersGatherer<{}> {
+        })(),
+        new (class implements ParametersGatherer<{}> {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
           > {
             throw new Error('This should not be called');
           }
-        }()
+        })()
       );
 
       await compositeParameterGatherer.gather();
@@ -101,25 +101,25 @@ describe('Parameter Gatherers', () => {
     it('Should call executor if composite gatherer is CONTINUE', async () => {
       let executed = false;
       const commandlet = new SfdxCommandlet(
-        new class {
+        new (class {
           public check(): boolean {
             return true;
           }
-        }(),
+        })(),
         new CompositeParametersGatherer(
-          new class implements ParametersGatherer<{}> {
+          new (class implements ParametersGatherer<{}> {
             public async gather(): Promise<
               CancelResponse | ContinueResponse<{}>
             > {
               return { type: 'CONTINUE', data: {} };
             }
-          }()
+          })()
         ),
-        new class implements CommandletExecutor<{}> {
+        new (class implements CommandletExecutor<{}> {
           public execute(response: ContinueResponse<{}>): void {
             executed = true;
           }
-        }()
+        })()
       );
 
       await commandlet.run();
@@ -129,25 +129,25 @@ describe('Parameter Gatherers', () => {
 
     it('Should not call executor if composite gatherer is CANCEL', async () => {
       const commandlet = new SfdxCommandlet(
-        new class {
+        new (class {
           public check(): boolean {
             return true;
           }
-        }(),
+        })(),
         new CompositeParametersGatherer(
-          new class implements ParametersGatherer<{}> {
+          new (class implements ParametersGatherer<{}> {
             public async gather(): Promise<
               CancelResponse | ContinueResponse<{}>
             > {
               return { type: 'CANCEL' };
             }
-          }()
+          })()
         ),
-        new class implements CommandletExecutor<{}> {
+        new (class implements CommandletExecutor<{}> {
           public execute(response: ContinueResponse<{}>): void {
             throw new Error('This should not be called');
           }
-        }()
+        })()
       );
 
       await commandlet.run();
@@ -337,8 +337,8 @@ describe('Parameter Gatherers', () => {
         'getPackageDirectoryPaths'
       );
       const getLwcsStub = sinon.stub(
-        RegistryAccess.prototype,
-        'getComponentsFromPath'
+        WorkingSet.prototype,
+        'resolveSourceComponents'
       );
       const showMenuStub = sinon.stub(selector, 'showMenu');
       getPackageDirPathsStub.returns(packageDirs);
