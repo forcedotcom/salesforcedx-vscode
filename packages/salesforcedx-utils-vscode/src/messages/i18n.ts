@@ -29,6 +29,9 @@ export const messages = {
   notification_show_button_text: 'Show',
   notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
 
+  error_no_default_username:
+    'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
