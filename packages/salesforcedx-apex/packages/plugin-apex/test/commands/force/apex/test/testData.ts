@@ -7,13 +7,13 @@
 export const testRunSimple = {
   summary: {
     failRate: '0%',
-    numTestsRan: 1,
+    testsRan: 1,
     orgId: '00D4xx00000FH4IEAW',
     outcome: 'Completed',
     passRate: '100%',
     skipRate: '0%',
     testStartTime: '2020-08-25T00:48:02.000+0000',
-    testExecutionTime: 53,
+    testExecutionTime: '53 ms',
     testRunId: '707xx0000AUS2gH',
     userId: '005xx000000uEgSAAU',
     username: 'test@example.com'

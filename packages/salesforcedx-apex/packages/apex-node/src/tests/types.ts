@@ -211,8 +211,9 @@ export const enum ApexTestRunResultStatus {
   Queued = 'Queued',
   Processing = 'Processing',
   Aborted = 'Aborted',
-  Completed = 'Completed',
-  Failed = 'Failed'
+  Passed = 'Passed',
+  Failed = 'Failed',
+  Completed = 'Completed'
 }
 
 export type ApexTestRunResultRecord = {
@@ -330,7 +331,7 @@ export type ApexTestResultData = {
    * The full name of the associated ApexClass method
    */
   fullName: string;
-  perClassCoverage?: {
+  perTestCoverage?: {
     apexClassOrTriggerName: string;
     percentage: string;
   };
@@ -350,8 +351,9 @@ export type CodeCoverageResult = {
 export type TestResult = {
   summary: {
     failRate: string;
-    numTestsRan: number;
+    testsRan: number;
     orgId: string;
+    testRunCoverage?: string;
     orgWideCoverage?: string;
     outcome: string;
     passing: number;
@@ -360,7 +362,9 @@ export type TestResult = {
     passRate: string;
     skipRate: string;
     testStartTime: string;
-    testExecutionTime: number;
+    testExecutionTimeInMs: number;
+    testTotalTimeInMs: number;
+    commandTimeInMs: number;
     hostname: string;
     username: string;
     testRunId: string;
@@ -391,7 +395,7 @@ export type ApexCodeCoverage = {
   records: ApexCodeCoverageRecord[];
 };
 
-export type PerClassCoverage = {
+export type PerTestCoverage = {
   apexClassOrTriggerName: string;
   apexClassorTriggerId: string;
   apexTestClassId: string;

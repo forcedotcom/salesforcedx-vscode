@@ -9,16 +9,21 @@ import * as util from 'util';
 import { ApexTestResultOutcome, TestResult } from '../../src/tests/types';
 
 const testStartTime = '2020-11-09T18:02:50.000+0000';
+const date = new Date(testStartTime);
+const localStartTime = `${date.toDateString()} ${date.toLocaleTimeString()}`;
+
 export const successResult: TestResult = {
   summary: {
     failRate: '0%',
-    numTestsRan: 2,
+    testsRan: 2,
     orgId: '00D3t000001vIruEAE',
     outcome: 'Completed',
     passRate: '100%',
     skipRate: '0%',
-    testStartTime,
-    testExecutionTime: 5463,
+    testStartTime: localStartTime,
+    testExecutionTimeInMs: 5463,
+    testTotalTimeInMs: 5463,
+    commandTimeInMs: 6000,
     testRunId: '7073t000061uwZI',
     userId: '0053t000007OxppAAC',
     username: 'tpo-3',
@@ -72,13 +77,15 @@ export const successResult: TestResult = {
 export const testResults: TestResult = {
   summary: {
     failRate: '13%',
-    numTestsRan: 16,
+    testsRan: 16,
     orgId: '00D3t000001vIruEAE',
     outcome: 'Completed',
     passRate: '88%',
     skipRate: '0%',
-    testStartTime: '2020-11-09T18:02:50.000+0000',
-    testExecutionTime: 5463,
+    testStartTime: localStartTime,
+    testExecutionTimeInMs: 5463,
+    testTotalTimeInMs: 5463,
+    commandTimeInMs: 6000,
     testRunId: '7073t000061uwZI',
     userId: '0053t000007OxppAAC',
     username: 'tpo-3',
@@ -399,19 +406,19 @@ export const testResults: TestResult = {
   ]
 };
 
-const localStartTime = new Date(testStartTime).toLocaleTimeString();
 export const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-    <testsuite name="force.apex" timestamp="2020-11-09T18:02:50.000+0000" hostname="https://na139.salesforce.com" tests="16" failures="4"  time="5.46 s">
+    <testsuite name="force.apex" timestamp="2020-11-09T18:02:50.000Z" hostname="https://na139.salesforce.com" tests="16" failures="4"  errors="0"  time="5.46">
         <properties>
             <property name="failRate" value="13%"/>
-            <property name="numTestsRan" value="16"/>
+            <property name="testsRan" value="16"/>
             <property name="orgId" value="00D3t000001vIruEAE"/>
             <property name="outcome" value="Completed"/>
             <property name="passRate" value="88%"/>
-            <property name="skipRate" value="0%"/>
-            <property name="testStartTime" value="Mon Nov 09 2020 ${localStartTime}"/>
+            <property name="testStartTime" value="${localStartTime}"/>
             <property name="testExecutionTime" value="5.46 s"/>
+            <property name="testTotalTime" value="5.46 s"/>
+            <property name="commandTime" value="6.00 s"/>
             <property name="testRunId" value="7073t000061uwZI"/>
             <property name="userId" value="0053t000007OxppAAC"/>
             <property name="username" value="tpo-3"/>
@@ -460,13 +467,14 @@ export const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
 </testsuites>\n`;
 
 const successProperties = `            <property name="failRate" value="0%"/>
-            <property name="numTestsRan" value="2"/>
+            <property name="testsRan" value="2"/>
             <property name="orgId" value="00D3t000001vIruEAE"/>
             <property name="outcome" value="Completed"/>
             <property name="passRate" value="100%"/>
-            <property name="skipRate" value="0%"/>
-            <property name="testStartTime" value="Mon Nov 09 2020 ${localStartTime}"/>
+            <property name="testStartTime" value="${localStartTime}"/>
             <property name="testExecutionTime" value="5.46 s"/>
+            <property name="testTotalTime" value="5.46 s"/>
+            <property name="commandTime" value="6.00 s"/>
             <property name="testRunId" value="7073t000061uwZI"/>
             <property name="userId" value="0053t000007OxppAAC"/>
             <property name="username" value="tpo-3"/>
@@ -475,13 +483,14 @@ const successProperties = `            <property name="failRate" value="0%"/>
             <property name="passing" value="2"/>
             <property name="hostname" value="https://na139.salesforce.com"/>`;
 const missingValProperties = `            <property name="failRate" value="0%"/>
-            <property name="numTestsRan" value="2"/>
+            <property name="testsRan" value="2"/>
             <property name="orgId" value="00D3t000001vIruEAE"/>
             <property name="outcome" value="Completed"/>
             <property name="passRate" value="100%"/>
-            <property name="skipRate" value="0%"/>
-            <property name="testStartTime" value="Mon Nov 09 2020 ${localStartTime}"/>
+            <property name="testStartTime" value="${localStartTime}"/>
             <property name="testExecutionTime" value="5.46 s"/>
+            <property name="testTotalTime" value="5.46 s"/>
+            <property name="commandTime" value="6.00 s"/>
             <property name="username" value="tpo-3"/>
             <property name="failing" value="0"/>
             <property name="skipped" value="0"/>
@@ -491,7 +500,7 @@ const codeCovProperties = `${missingValProperties}\n            <property name="
 
 const successTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-    <testsuite name="force.apex" timestamp="2020-11-09T18:02:50.000+0000" hostname="https://na139.salesforce.com" tests="2" failures="0"  time="5.46 s">
+    <testsuite name="force.apex" timestamp="2020-11-09T18:02:50.000Z" hostname="https://na139.salesforce.com" tests="2" failures="0"  errors="0"  time="5.46">
         <properties>
 %s
         </properties>

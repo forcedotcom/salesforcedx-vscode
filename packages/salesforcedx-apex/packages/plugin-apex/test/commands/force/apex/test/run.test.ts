@@ -135,7 +135,7 @@ describe('force:apex:test:run', () => {
       expect(result).to.contain(
         '<testcase name="testConfig" classname="MyApexTests" time="0.05">'
       );
-      expect(result).to.contain(`<property name="numTestsRan" value="1"/>`);
+      expect(result).to.contain(`<property name="testsRan" value="1"/>`);
       expect(result).to.not.contain('# Run "sfdx force:apex:test:report');
       expect(result).to.not.contain('Apex Code Coverage by Class');
     });
@@ -236,7 +236,7 @@ describe('force:apex:test:run', () => {
       expect(result).to.contain(
         '<testcase name="testConfig" classname="MyApexTests" time="0.05">'
       );
-      expect(result).to.contain(`<property name="numTestsRan" value="1"/>`);
+      expect(result).to.contain(`<property name="testsRan" value="1"/>`);
       expect(result).to.not.contain('# Run "sfdx force:apex:test:report');
       expect(result).to.not.contain('Apex Code Coverage by Class');
     });

@@ -54,6 +54,9 @@ export const syncTestResultWithFailures: SyncTestResult = {
   totalTime: 87
 };
 
+export const testStartTime = '2020-11-09T18:02:50.000+0000';
+const date = new Date(testStartTime);
+const localStartTime = `${date.toDateString()} ${date.toLocaleTimeString()}`;
 export const testRunId = '707xx0000AGQ3jbQQD';
 export const testResultData: TestResult = {
   // @ts-ignore
@@ -61,14 +64,16 @@ export const testResultData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
-    numTestsRan: 1,
-    outcome: 'Completed',
+    testsRan: 1,
+    outcome: 'Passed',
     passRate: '100%',
     passing: 1,
     skipRate: '0%',
     skipped: 0,
-    testStartTime: '2020-07-12T02:54:47.000+0000',
-    testExecutionTime: 1765,
+    testStartTime: localStartTime,
+    testExecutionTimeInMs: 1765,
+    testTotalTimeInMs: 1765,
+    commandTimeInMs: 2000,
     testRunId,
     userId: '005xx000000abcDAAU'
   },
@@ -194,7 +199,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     StackTrace: null,
     Message: null,
     RunTime: 1397,
-    TestTimestamp: '2020-08-18T02:04:49.000+0000',
+    TestTimestamp: testStartTime,
     AsyncApexJobId: '707xx0000ASIPB5QQP',
     MethodName: 'testAssignOnFuture',
     Outcome: ApexTestResultOutcome.Pass,

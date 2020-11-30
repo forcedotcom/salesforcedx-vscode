@@ -9,6 +9,7 @@ import {
   ApexTestResultOutcome,
   TestResult
 } from '../tests/types';
+import { msToSecond } from '../utils';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
@@ -20,11 +21,12 @@ export class JUnitReporter {
     let output = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     output += `<testsuites>\n`;
     output += `${tab}<testsuite name="force.apex" `;
-    output += `timestamp="${summary.testStartTime}" `;
+    output += `timestamp="${new Date(summary.testStartTime).toISOString()}" `;
     output += `hostname="${summary.hostname}" `;
-    output += `tests="${summary.numTestsRan}" `;
+    output += `tests="${summary.testsRan}" `;
     output += `failures="${summary.failing}"  `;
-    output += `time="${this.msToSecond(summary.testExecutionTime)} s">\n`;
+    output += `errors="0"  `;
+    output += `time="${msToSecond(summary.testExecutionTimeInMs)}">\n`;
 
     output += this.buildProperties(testResult);
     output += this.buildTestCases(tests);
@@ -38,19 +40,24 @@ export class JUnitReporter {
     let junitProperties = `${tab}${tab}<properties>\n`;
 
     Object.entries(testResult.summary).forEach(([key, value]) => {
-      if (
-        value === null ||
-        value === undefined ||
-        (typeof value === 'string' && value.length === 0)
-      ) {
+      // skipRate not in cli spec
+      if (this.isEmpty(value) || key === 'skipRate') {
         return;
       }
-      if (key === 'testExecutionTime') {
-        value = `${this.msToSecond(value as number)} s`;
+
+      if (
+        [
+          'testExecutionTimeInMs',
+          'testTotalTimeInMs',
+          'commandTimeInMs'
+        ].includes(key)
+      ) {
+        value = `${msToSecond(value)} s`;
+        key = key.replace('InMs', '');
       }
-      if (key === 'testStartTime') {
-        const date = new Date(value);
-        value = `${date.toDateString()} ${date.toLocaleTimeString()}`;
+
+      if (key === 'outcome' && value === 'Passed') {
+        value = 'Successful';
       }
 
       junitProperties += `${tab}${tab}${tab}<property name="${key}" value="${value}"/>\n`;
@@ -66,7 +73,7 @@ export class JUnitReporter {
     for (const testCase of tests) {
       junitTests += `${tab}${tab}<testcase name="${
         testCase.methodName
-      }" classname="${testCase.apexClass.fullName}" time="${this.msToSecond(
+      }" classname="${testCase.apexClass.fullName}" time="${msToSecond(
         testCase.runTime
       )}">\n`;
 
@@ -86,7 +93,14 @@ export class JUnitReporter {
     return junitTests;
   }
 
-  private msToSecond(timestamp: number): string {
-    return (timestamp / 1000).toFixed(2);
+  private isEmpty(value: string | number): boolean {
+    if (
+      value === null ||
+      value === undefined ||
+      (typeof value === 'string' && value.length === 0)
+    ) {
+      return true;
+    }
+    return false;
   }
 }

@@ -21,7 +21,7 @@
   "verboseDescription": "display Apex test processing details; if JSON is specified, processing details aren't displayed",
   "detailedCoverageDescription": "display detailed code coverage per test",
   "failRate": "Fail Rate",
-  "numTestsRan": "Tests Ran",
+  "testsRan": "Tests Ran",
   "orgId": "Org Id",
   "outcome": "Outcome",
   "passRate": "Pass Rate",
