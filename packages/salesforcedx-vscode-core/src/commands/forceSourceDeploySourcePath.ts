@@ -1,9 +1,9 @@
 /*
-* Copyright (c) 2018, salesforce.com, inc.
-* All rights reserved.
-* Licensed under the BSD 3-Clause license.
-* For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-*/
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
 import { Connection } from '@salesforce/core';
 import {
@@ -16,11 +16,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   DeployStatus,
-  RegistryAccess,
   SourceClient,
   SourceComponent,
   SourceDeployResult,
-  ToolingDeployStatus
+  ToolingDeployStatus,
+  WorkingSet
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -177,30 +177,23 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     }
   }
 
-  private getComponents(paths: string | string[]) {
-    let components: SourceComponent[];
-    const registryAccess = new RegistryAccess();
+  private getComponents(paths: string | string[]): SourceComponent[] {
+    const ws = new WorkingSet();
+    const components: SourceComponent[] = [];
 
     if (typeof paths === 'string') {
-      components = registryAccess.getComponentsFromPath(paths);
-    } else {
-      const allComponents: SourceComponent[] = [];
-
-      for (const filepath of paths) {
-        allComponents.push(...registryAccess.getComponentsFromPath(filepath));
+      const comps = ws.resolveSourceComponents(paths);
+      if (comps) {
+        components.push(...comps);
       }
-
-      // dedupe components
-      const hashedCmps = new Set();
-      components = allComponents.filter(component => {
-        const hashed = `${component.fullName}.${component.type.id}`;
-        if (!hashedCmps.has(hashed)) {
-          hashedCmps.add(hashed);
-          return component;
+    } else {
+      for (const filepath of paths) {
+        const comps = ws.resolveSourceComponents(filepath);
+        if (comps) {
+          components.push(...comps);
         }
-      });
+      }
     }
-
     return components;
   }
 

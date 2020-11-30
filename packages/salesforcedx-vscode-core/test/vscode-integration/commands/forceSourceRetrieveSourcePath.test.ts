@@ -11,7 +11,7 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import { WorkingSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -155,8 +155,8 @@ describe('Source Retrieve Beta', () => {
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const getNamespace = sb.stub(SfdxProjectConfig, 'getValue').returns('diFf');
     const getComponentsStub = sb.stub(
-      RegistryAccess.prototype,
-      'getComponentsFromPath'
+      WorkingSet.prototype,
+      'resolveSourceComponents'
     );
     const executor = new LibraryRetrieveSourcePathExecutor();
     const filePath = path.join(
