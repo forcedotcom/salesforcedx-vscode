@@ -79,6 +79,7 @@ export function startLanguageClient(extensionContext: ExtensionContext): void {
             item.label === '__SOBJECTS_PLACEHOLDER__'
         );
         if (sobjectsIdx >= 0) {
+          console.log('=== Expanding __SOBJECTS_PLACEHOLDER__');
           const sobjectItems = (await retrieveSObjects()).map(objName => {
             const item = new ProtocolCompletionItem(objName);
             item.kind = CompletionItemKind.Class;
