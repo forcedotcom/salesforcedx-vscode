@@ -22,17 +22,17 @@ export interface OrgInfo {
  * Manages the context of a workspace during a session with an open SFDX project.
  */
 export class WorkspaceContextUtil {
-  private static instance?: WorkspaceContextUtil;
+  protected static instance?: WorkspaceContextUtil;
 
-  private cliConfigWatcher: vscode.FileSystemWatcher;
-  private sessionConnections: Map<string, Connection>;
-  private onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
-  private _username?: string;
-  private _alias?: string;
+  protected cliConfigWatcher: vscode.FileSystemWatcher;
+  protected sessionConnections: Map<string, Connection>;
+  protected onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
+  protected _username?: string;
+  protected _alias?: string;
 
   public readonly onOrgChange: vscode.Event<OrgInfo>;
 
-  private constructor() {
+  protected constructor() {
     this.sessionConnections = new Map<string, Connection>();
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
@@ -75,7 +75,7 @@ export class WorkspaceContextUtil {
     return connection;
   }
 
-  private async handleCliConfigChange() {
+  protected async handleCliConfigChange() {
     const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(false);
 
     if (usernameOrAlias) {
