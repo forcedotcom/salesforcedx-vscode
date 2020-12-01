@@ -129,7 +129,7 @@
       url: /lwc/linting
     - title:
         en: Code Preview
-        ja: ローカル開発
+        ja: Code Preview
       url: /lwc/lwccodepreview
       children:
          - title:
