@@ -10,26 +10,18 @@ These modules are supported.
 
 | Module Name             |	Behavior                                                                        |
 |-------------------------|---------------------------------------------------------------------------------|
-| @salesforce/apex	      | Exposes Apex methods. Use this module to invoke Apex methods. Apex requests are
-proxied to your scratch org. |
-| @salesforce/label	      | Exposes labels in your Salesforce org. The local development server resolves labels
-from the SFDX project file `force-app/main/default/labels/CustomLabels.labels-meta.xml`. You can configure this value in the `localdevserver.config.json`
-file. The Code Preview server displays a placeholder for labels that it can't find or that you didn't
-sync to your local filesystem. The placeholder follows this format: `{unknown label:labelName}`. |
-| @salesforce/resourceUrl | Exposes static resources in your Salesforce org. Static resources are copied and
-served from the DX project location on your filesystem, `force-app/main/default/staticresources`, to the server. |
-| @salesforce/schema.     |	Exposes Salesforce schema metadata. Use this module to import references to Salesforce
-objects and fields. This module behaves the same as it does in a production org. |
+| @salesforce/apex	      | Exposes Apex methods. Use this module to invoke Apex methods. Apex requests are proxied to your scratch org. |
+| @salesforce/label	      | Exposes labels in your Salesforce org. The local development server resolves labels from the SFDX project file `force-app/main/default/labels/CustomLabels.labels-meta.xml`. You can configure this value in the `localdevserver.config.json` file. The Code Preview server displays a placeholder for labels that it can't find or that you didn't sync to your local filesystem. The placeholder follows this format: `{unknown label:labelName}`. |
+| @salesforce/resourceUrl | Exposes static resources in your Salesforce org. Static resources are copied and served from the DX project location on your filesystem, `force-app/main/default/staticresources`, to the server. |
+| @salesforce/schema.     |	Exposes Salesforce schema metadata. Use this module to import references to Salesforce objects and fields. This module behaves the same as it does in a production org. |
 
 ## Partially Supported Modules
 These modules work with the Code Preview server, but behave differently than they do in a production org.
 
 | Module Name             |	Behavior                                                                        |
 |-------------------------|---------------------------------------------------------------------------------|
-| @salesforce/i18n        |	The locale is set to en-US. All imports from `@salesforce/i18n` are hardcoded to 
-return values that are similar to what you would see in the en-US locale in a production org. |
-| @salesforce/user.       | The value of `@salesforce/user/Id` is always undefined. The value of 
-`@salesforce/user/isGuest` is always `true`. |
+| @salesforce/i18n        |	The locale is set to en-US. All imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in a production org. |
+| @salesforce/user.       | The value of `@salesforce/user/Id` is always undefined. The value of `@salesforce/user/isGuest` is always `true`. |
 
 ## Unsupported Modules
 
@@ -41,8 +33,7 @@ If you try to preview any components that use these unsupported modules, you can
 | @salesforce/navigation           | Module appears in the preview, but it's not possible to interact with it.|
 | lightning/empApi                 | Module appears in the preview, but it's not possible to interact with it.|
 | lightning/messageService         | An error message on the Code Preview page.                               |
-| lightning/platformShowToastEvent | Nothing happens when you do an action that would usually result in a 
-toast notification. |
+| lightning/platformShowToastEvent | Nothing happens when you do an action that would usually result in a toast notification. |
 
 ## Unsupported Components
 
