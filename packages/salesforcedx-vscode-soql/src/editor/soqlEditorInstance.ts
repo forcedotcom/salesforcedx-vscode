@@ -6,6 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
+import { OrgInfo } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import {
@@ -15,7 +16,9 @@ import {
 } from 'jsforce';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';
+import { showAndTrackError, trackError } from '../commonUtils';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
+import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
@@ -29,13 +32,14 @@ const { workspaceContext } = sfdxCoreExports;
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
   type: string;
-  payload?: string | string[];
+  payload?: string | string[] | JsonMap;
 }
 
 // TODO: This should be shared with soql-builder-ui
 export enum MessageType {
   UI_ACTIVATED = 'ui_activated',
   UI_SOQL_CHANGED = 'ui_soql_changed',
+  UI_TELEMETRY = 'ui_telemetry',
   SOBJECT_METADATA_REQUEST = 'sobject_metadata_request',
   SOBJECT_METADATA_RESPONSE = 'sobject_metadata_response',
   SOBJECTS_REQUEST = 'sobjects_request',
@@ -59,7 +63,7 @@ class ConnectionChangedListener {
   protected static instance: ConnectionChangedListener;
 
   protected constructor() {
-    workspaceContext.onOrgChange(async (orgInfo: any) => {
+    workspaceContext.onOrgChange(async (orgInfo: OrgInfo) => {
       await this.connectionChanged();
     });
     this.editorInstances = [];
@@ -126,25 +130,30 @@ export class SOQLEditorInstance {
     webviewPanel.onDidDispose(this.dispose, this, this.subscriptions);
   }
 
+  protected sendMessageToUi(
+    type: string,
+    payload?: string | string[] | DescribeSObjectResult
+  ): void {
+    this.webviewPanel.webview
+      .postMessage({
+        type,
+        payload
+      })
+      .then(undefined, async (err: string) => {
+        await showAndTrackError(type, err);
+      });
+  }
+
   protected updateWebview(document: vscode.TextDocument): void {
-    this.webviewPanel.webview.postMessage({
-      type: MessageType.TEXT_SOQL_CHANGED,
-      payload: document.getText()
-    });
+    this.sendMessageToUi(MessageType.TEXT_SOQL_CHANGED, document.getText());
   }
 
   protected updateSObjects(sobjectNames: string[]): void {
-    this.webviewPanel.webview.postMessage({
-      type: MessageType.SOBJECTS_RESPONSE,
-      payload: sobjectNames
-    });
+    this.sendMessageToUi(MessageType.SOBJECTS_RESPONSE, sobjectNames);
   }
 
   protected updateSObjectMetadata(sobject: DescribeSObjectResult): void {
-    this.webviewPanel.webview.postMessage({
-      type: MessageType.SOBJECT_METADATA_RESPONSE,
-      payload: sobject
-    });
+    this.sendMessageToUi(MessageType.SOBJECT_METADATA_RESPONSE, sobject);
   }
 
   protected onDocumentChangeHandler(e: vscode.TextDocumentChangeEvent): void {
@@ -164,8 +173,31 @@ export class SOQLEditorInstance {
         this.updateTextDocument(this.document, soql);
         break;
       }
+      case MessageType.UI_TELEMETRY: {
+        const { unsupported, errors } = e.payload as TelemetryModelJson;
+        if (errors && errors.length) {
+          trackError('syntax-error', JSON.stringify(e.payload)).catch(err => {
+            channelService.appendLine(
+              `Unable to send telemetry because of ${err}.`
+            );
+          });
+        }
+        if (unsupported && unsupported.length) {
+          // no need to duplicate.  unsupported and errors often duplicate
+          if (!errors || !errors.length) {
+            trackError('syntax-unsupported', JSON.stringify(e.payload)).catch(
+              console.error
+            );
+          }
+          channelService.appendLine(
+            `This syntax is not yet supported: ${unsupported.join(', ')}`
+          );
+        }
+        break;
+      }
       case MessageType.SOBJECT_METADATA_REQUEST: {
-        this.retrieveSObject(e.payload as string).catch(() => {
+        this.retrieveSObject(e.payload as string).catch(async err => {
+          await showAndTrackError(MessageType.SOBJECT_METADATA_REQUEST, err);
           channelService.appendLine(
             `An error occurred while handling a request for object metadata for the ${e.payload} object.`
           );
@@ -173,7 +205,8 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.SOBJECTS_REQUEST: {
-        this.retrieveSObjects().catch(() => {
+        this.retrieveSObjects().catch(async err => {
+          await showAndTrackError(MessageType.SOBJECTS_REQUEST, err);
           channelService.appendLine(
             `An error occurred while handling a request for object names.`
           );
@@ -181,7 +214,8 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.RUN_SOQL_QUERY: {
-        this.handleRunQuery().catch(() => {
+        this.handleRunQuery().catch(async err => {
+          await showAndTrackError(MessageType.RUN_SOQL_QUERY, err);
           channelService.appendLine(
             `An error occurred while running the SOQL query.`
           );
@@ -189,7 +223,9 @@ export class SOQLEditorInstance {
         break;
       }
       default: {
-        console.log('message type is not supported');
+        const message = `message type ${e.type} is not supported`;
+        channelService.appendLine(message);
+        trackError('message-handler', message).catch(console.error);
       }
     }
   }
@@ -223,6 +259,11 @@ export class SOQLEditorInstance {
   protected async retrieveSObjects(): Promise<void> {
     return withSFConnection(async conn => {
       conn.describeGlobal$((err, describeGlobalResult) => {
+        if (err) {
+          showAndTrackError('retrieve-sobjects', err.toString()).catch(
+            console.error
+          );
+        }
         if (describeGlobalResult) {
           const sobjectNames: string[] = describeGlobalResult.sobjects.map(
             (sobject: DescribeGlobalSObjectResult) => sobject.name
@@ -235,6 +276,11 @@ export class SOQLEditorInstance {
   protected async retrieveSObject(sobjectName: string): Promise<void> {
     return withSFConnection(async conn => {
       conn.describe$(sobjectName, (err, sobject) => {
+        if (err) {
+          showAndTrackError('retrieve-sobject', err.toString()).catch(
+            console.error
+          );
+        }
         if (sobject) {
           this.updateSObjectMetadata(sobject);
         }
@@ -270,8 +316,6 @@ export class SOQLEditorInstance {
   }
 
   public onConnectionChanged(): void {
-    this.webviewPanel.webview.postMessage({
-      type: MessageType.CONNECTION_CHANGED
-    });
+    this.sendMessageToUi(MessageType.CONNECTION_CHANGED);
   }
 }

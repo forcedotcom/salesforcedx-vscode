@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getRootWorkspacePath } from '../commonUtils';
+import { getRootWorkspacePath, trackError } from '../commonUtils';
 import { QUERY_RESULTS_DIR_NAME, QUERY_RESULTS_DIR_PATH } from '../constants';
 import {
   CsvDataProvider,
@@ -83,10 +83,11 @@ export class QueryDataFileService {
   }
 
   private showFileInExplorer(targetPath: string) {
-    vscode.commands.executeCommand(
-      'revealInExplorer',
-      vscode.Uri.file(targetPath)
-    );
+    vscode.commands
+      .executeCommand('revealInExplorer', vscode.Uri.file(targetPath))
+      .then(undefined, async (err: string) => {
+        trackError('data-view-show-file', err);
+      });
   }
 
   private showSaveSuccessMessage(savedFileName: string) {

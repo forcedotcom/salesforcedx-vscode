@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import * as commonUtils from '../../../src/commonUtils';
 import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
   getMockConnection,
@@ -155,5 +156,52 @@ describe('SoqlEditorInstance should', () => {
       openQueryResultsSpy.callCount === 1,
       `openQueryResultsSpy callcount expected 1, but got ${openQueryResultsSpy.callCount}`
     );
+  });
+
+  it('display and track error wheb webview.postMessage throws', async () => {
+    sandbox.stub(mockWebviewPanel.webview, 'postMessage').rejects();
+    const showAndTrackSpy = sandbox.spy(commonUtils, 'showAndTrackError');
+
+    instance.sendMessageToUi('message-type', 'message-body');
+
+    return Promise.resolve().then(() => {
+      expect(showAndTrackSpy.callCount).to.equal(1);
+    });
+  });
+
+  it('handles telemetry events and tracks when there are errors', async () => {
+    const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
+    instance.sendEvent({
+      type: MessageType.UI_TELEMETRY,
+      payload: { errors: ['an example error'] }
+    });
+    return Promise.resolve().then(() => {
+      expect(trackErrorSpy.callCount).to.equal(1);
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax-error');
+    });
+  });
+
+  it('handles telemetry events and tracks when there is unsupported syntax', async () => {
+    const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
+    instance.sendEvent({
+      type: MessageType.UI_TELEMETRY,
+      payload: { unsupported: ['WHERE'] }
+    });
+    return Promise.resolve().then(() => {
+      expect(trackErrorSpy.callCount).to.equal(1);
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax-unsupported');
+    });
+  });
+
+  it('does not duplicate telemetry events with both errors and unsupported present', async () => {
+    const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
+    instance.sendEvent({
+      type: MessageType.UI_TELEMETRY,
+      payload: { unsupported: ['WHERE'], errors: ['an example error'] }
+    });
+    return Promise.resolve().then(() => {
+      expect(trackErrorSpy.callCount).to.equal(1);
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax-error');
+    });
   });
 });

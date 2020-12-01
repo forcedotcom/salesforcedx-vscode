@@ -8,25 +8,19 @@
 import { Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import * as vscode from 'vscode';
 
 export class QueryRunner {
   constructor(private connection: Connection) {}
 
   public async runQuery(queryText: string): Promise<QueryResult<JsonMap>> {
-    try {
-      const rawQueryData = (await this.connection.query(
-        queryText
-      )) as QueryResult<JsonMap>;
-      const cleanQueryData = {
-        ...rawQueryData,
-        records: this.flattenQueryRecords(rawQueryData.records)
-      };
-      return cleanQueryData;
-    } catch (error) {
-      vscode.window.showErrorMessage(`${error.name}:  ${error.message}`);
-      throw error;
-    }
+    const rawQueryData = (await this.connection.query(
+      queryText
+    )) as QueryResult<JsonMap>;
+    const cleanQueryData = {
+      ...rawQueryData,
+      records: this.flattenQueryRecords(rawQueryData.records)
+    };
+    return cleanQueryData;
   }
   /*
   As query complexity grows

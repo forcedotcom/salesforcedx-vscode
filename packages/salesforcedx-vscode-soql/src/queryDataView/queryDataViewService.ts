@@ -9,7 +9,7 @@ import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getDocumentName } from '../commonUtils';
+import { getDocumentName, showAndTrackError, trackError } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
   DATA_VIEW_RESOURCE_ROOTS_PATH,
@@ -50,11 +50,15 @@ export class QueryDataViewService {
   }
 
   private updateWebviewWith(queryData: QueryResult<JsonMap>) {
-    this.currentPanel?.webview.postMessage({
-      type: 'update',
-      data: queryData,
-      documentName: getDocumentName(this.document)
-    });
+    this.currentPanel?.webview
+      .postMessage({
+        type: 'update',
+        data: queryData,
+        documentName: getDocumentName(this.document)
+      })
+      .then(undefined, async (err: string) => {
+        showAndTrackError('data-view-postmessage', err);
+      });
   }
 
   public createOrShowWebView(): vscode.Webview {
@@ -113,28 +117,35 @@ export class QueryDataViewService {
     return this.currentPanel.webview;
   }
 
-  protected onDidRecieveMessageHandler(message: DataViewEvent) {
+  protected onDidRecieveMessageHandler(message: DataViewEvent): void {
     const { type, format } = message;
     switch (type) {
       case 'activate':
         this.updateWebviewWith(this.queryData);
         break;
       case 'save_records':
-        this.handleSaveRecords(format!);
+        this.handleSaveRecords(format as FileFormat);
         break;
       default:
-        console.log('unknown message type from data view');
+        showAndTrackError(
+          'message-type',
+          `Dataview unable to handle message type: ${type}`
+        );
         break;
     }
   }
 
-  protected handleSaveRecords(format: FileFormat) {
-    const fileService = new FileService(
-      this.queryData,
-      format,
-      getDocumentName(this.document)
-    );
-    fileService.save();
+  protected handleSaveRecords(format: FileFormat): void {
+    try {
+      const fileService = new FileService(
+        this.queryData,
+        format,
+        getDocumentName(this.document)
+      );
+      fileService.save();
+    } catch (err) {
+      trackError('data-view-save', err);
+    }
   }
 
   protected getWebViewContent(webview: vscode.Webview): string {
