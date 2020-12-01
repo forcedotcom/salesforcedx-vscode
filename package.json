@@ -31,7 +31,7 @@
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
-    "clean": "lerna run clean",
+    "clean": "lerna run clean && git clean -xfd",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
     "publish": "node scripts/publish-circleci.js",
