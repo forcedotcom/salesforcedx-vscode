@@ -16,5 +16,20 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
-  soql_channel_name: 'SOQL Extension'
+  soql_channel_name: 'SOQL Extension',
+  soql_query_results: 'SOQL Query Results',
+  info_no_default_org:
+    'INFO: No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+  info_syntax_unsupported:
+    'INFO: This syntax is not yet supported in SOQL Builder. Instead, use a text editor.',
+  info_file_save_success: 'The results were saved in the %s folder as: %s',
+  error_sobject_metadata_request:
+    'ERROR: We can’t retrieve the fields for %s. Make sure that you’re connected to an authorized org and have permissions to view the object and fields.',
+  error_sobjects_request:
+    'ERROR: We can’t retrieve the objects in the org. Make sure that you’re connected to an authorized org and have permissions to view the objects in the org.',
+  error_run_soql_query: 'ERROR: We can’t run the SOQL query. %s',
+  error_unknown_error:
+    'ERROR: %s. Unknown error. Open an issue and provide the error message details: https://github.com/forcedotcom/soql-tooling/issues/new/choose.',
+  error_data_view_save:
+    'ERROR: We can’t save the file to the %s directory. Make sure you have write permissions for the directory.'
 };

@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import {
   EDITOR_VIEW_TYPE,
   HTML_FILE,
@@ -64,8 +65,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
     // Check to see if a default org is set.
     if (!workspaceContext.username) {
-      // i18n
-      const message = `No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.`;
+      const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
     }

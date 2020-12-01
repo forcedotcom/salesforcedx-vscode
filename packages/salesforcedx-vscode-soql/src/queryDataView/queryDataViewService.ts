@@ -9,7 +9,8 @@ import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getDocumentName } from '../commonUtils';
+import { channelService } from '../channel';
+import { getDocumentName, trackErrorWithTelemetry } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
   DATA_VIEW_RESOURCE_ROOTS_PATH,
@@ -19,10 +20,12 @@ import {
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
   QUERY_DATA_VIEW_STYLE_FILENAME,
   QUERY_DATA_VIEW_TYPE,
+  QUERY_RESULTS_DIR_NAME,
   SAVE_ICON_FILENAME,
   TABULATOR_SCRIPT_FILENAME,
   TABULATOR_STYLE_FILENAME
 } from '../constants';
+import { nls } from '../messages';
 import {
   FileFormat,
   QueryDataFileService as FileService
@@ -50,11 +53,18 @@ export class QueryDataViewService {
   }
 
   private updateWebviewWith(queryData: QueryResult<JsonMap>) {
-    this.currentPanel?.webview.postMessage({
-      type: 'update',
-      data: queryData,
-      documentName: getDocumentName(this.document)
-    });
+    this.currentPanel?.webview
+      .postMessage({
+        type: 'update',
+        data: queryData,
+        documentName: getDocumentName(this.document)
+      })
+      .then(undefined, async (err: string) => {
+        const errorType = 'data_view_post_message';
+        const message = nls.localize('error_unknown_error', errorType);
+        channelService.appendLine(message);
+        trackErrorWithTelemetry(errorType, err);
+      });
   }
 
   public createOrShowWebView(): vscode.Webview {
@@ -113,28 +123,41 @@ export class QueryDataViewService {
     return this.currentPanel.webview;
   }
 
-  protected onDidRecieveMessageHandler(message: DataViewEvent) {
+  protected onDidRecieveMessageHandler(message: DataViewEvent): void {
     const { type, format } = message;
     switch (type) {
       case 'activate':
         this.updateWebviewWith(this.queryData);
         break;
       case 'save_records':
-        this.handleSaveRecords(format!);
+        this.handleSaveRecords(format as FileFormat);
         break;
       default:
-        console.log('unknown message type from data view');
+        const errorMessage = nls.localize('error_unknown_error', type);
+        channelService.appendLine(errorMessage);
+        trackErrorWithTelemetry('data_view_message_type', type).catch(
+          console.error
+        );
         break;
     }
   }
 
-  protected handleSaveRecords(format: FileFormat) {
-    const fileService = new FileService(
-      this.queryData,
-      format,
-      getDocumentName(this.document)
-    );
-    fileService.save();
+  protected handleSaveRecords(format: FileFormat): void {
+    try {
+      const fileService = new FileService(
+        this.queryData,
+        format,
+        getDocumentName(this.document)
+      );
+      fileService.save();
+    } catch (err) {
+      const message = nls.localize(
+        'error_data_view_save',
+        QUERY_RESULTS_DIR_NAME
+      );
+      vscode.window.showErrorMessage(message);
+      trackErrorWithTelemetry('data_view_save', message);
+    }
   }
 
   protected getWebViewContent(webview: vscode.Webview): string {

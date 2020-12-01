@@ -26,8 +26,13 @@ import {
 
 export interface MockConnection {
   authInfo: object;
-  describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) => void;
-  describe$: (name: string, callback: (err: Error | undefined, resp: any) => void) => void;
+  describeGlobal$: (
+    callback: (err: Error | undefined, resp: any) => void
+  ) => void;
+  describe$: (
+    name: string,
+    callback: (err: Error | undefined, resp: any) => void
+  ) => void;
   query: () => Promise<QueryResult<JsonMap>>;
 }
 
@@ -74,8 +79,12 @@ export function getMockConnection(
   const mockAuthInfo = { test: 'test' };
   const mockConnection = {
     authInfo: mockAuthInfo,
-    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) => callback(undefined, mockDescribeGlobalResponse),
-    describe$: (name: string, callback: (err: Error | undefined, resp: any) => void) => callback(undefined, mockSObject),
+    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
+      callback(undefined, mockDescribeGlobalResponse),
+    describe$: (
+      name: string,
+      callback: (err: Error | undefined, resp: any) => void
+    ) => callback(undefined, mockSObject),
     query: () => Promise.resolve(mockQueryData)
   };
 
@@ -118,6 +127,10 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
 
   public openQueryDataView(queryData: QueryResult<JsonMap>) {
     super.openQueryDataView(queryData);
+  }
+
+  public sendMessageToUi(type: string, payload: any) {
+    super.sendMessageToUi(type, payload);
   }
 }
 
