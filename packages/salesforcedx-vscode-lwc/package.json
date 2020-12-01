@@ -27,8 +27,8 @@
   "dependencies": {
     "@salesforce/core": "2.11.0",
     "@salesforce/eslint-config-lwc": "0.3.0",
-    "@salesforce/lightning-lsp-common": "3.0.11",
-    "@salesforce/lwc-language-server": "3.0.11",
+    "@salesforce/lightning-lsp-common": "3.0.12",
+    "@salesforce/lwc-language-server": "3.0.12",
     "@salesforce/salesforcedx-utils-vscode": "50.6.0",
     "ajv": "^6.1.1",
     "applicationinsights": "1.0.7",
