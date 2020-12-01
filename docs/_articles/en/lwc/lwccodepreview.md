@@ -14,10 +14,12 @@ View the commands from VS Code's command palette by pressing `command` + `shift`
 ![VS Code commands for Code Preview](./images/vscode_codepreview_commands.png)
 
 **SFDX: Open Code Preview Home**  
-If the Code Preview server isn't currently running, this command starts the server and opens `localhost:333` in your web browser. If the server is already running, then the command only opens `localhost:3333` in your browser.
+If the Code Preview server isn't currently running, this command starts the server and opens `localhost:3333` in your web browser. If the server is already running, then the command only opens `localhost:3333` in your browser.
 
 **SFDX: Start LWC Code Preview Server**  
 This command starts the Code Preview server. If you already started the server from VS Code, then VS Code gives the option to open it in the browser or restart it. If you already started the server from the command line, then VS code shows an error in the output console.
+
+> **Troubleshooting Tip:** If you see an error where the server can't start, it's possible that the port is already in use or a process is still running. If using VS Code, you can kill the process on the server port, by default, `3333`. If running the CLI in a terminal window, close the terminal and terminate any running processes.
 
 **SFDX: Stop LWC Code Preview Server**  
 This command stops the Code Preview server.
