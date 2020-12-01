@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -19,7 +18,13 @@ import { channelService } from '../channel';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
-const workspaceContext = WorkspaceContextUtil.getInstance();
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
+const sfdxCoreExports = sfdxCoreExtension
+  ? sfdxCoreExtension.exports
+  : undefined;
+const { workspaceContext } = sfdxCoreExports;
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
@@ -33,7 +38,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private instances: SOQLEditorInstance[] = [];
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext) { }
 
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,

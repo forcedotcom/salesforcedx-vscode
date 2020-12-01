@@ -6,7 +6,6 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import {
@@ -19,7 +18,13 @@ import { channelService } from '../channel';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 
-const workspaceContext = WorkspaceContextUtil.getInstance();
+const sfdxCoreExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+);
+const sfdxCoreExports = sfdxCoreExtension
+  ? sfdxCoreExtension.exports
+  : undefined;
+const { workspaceContext } = sfdxCoreExports;
 
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
@@ -43,7 +48,7 @@ export enum MessageType {
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
   try {
     const conn = await workspaceContext.getConnection();
-    f((conn as unknown) as Connection);
+    f(conn);
   } catch (e) {
     channelService.appendLine(e);
   }
