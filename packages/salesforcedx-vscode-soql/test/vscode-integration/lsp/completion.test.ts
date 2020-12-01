@@ -87,17 +87,12 @@ async function testCompletion(
   });
 }
 
-async function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export async function activate(docUri: vscode.Uri) {
   const ext = extensions.getExtension('salesforce.salesforcedx-vscode-soql')!;
   await ext.activate();
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     editor = await vscode.window.showTextDocument(doc);
-    await sleep(2000); // Wait for server activation
   } catch (e) {
     console.error(e);
   }
