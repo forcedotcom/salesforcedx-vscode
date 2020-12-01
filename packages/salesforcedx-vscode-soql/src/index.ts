@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
 import { startLanguageClient, stopLanguageClient } from './client/client';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
@@ -16,6 +17,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const extensionHRStart = process.hrtime();
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
+  WorkspaceContextUtil.getInstance().initialize(context);
   startLanguageClient(context);
   startTelemetry(context, extensionHRStart).catch();
 }
