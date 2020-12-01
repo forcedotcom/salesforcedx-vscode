@@ -128,9 +128,9 @@
         ja: リンティング
       url: /lwc/linting
     - title:
-        en: Local Development
+        en: Code Preview
         ja: ローカル開発
-      url: /lwc/localdev
+      url: /lwc/lwccodepreview
 - title:
     en: Visualforce
     ja: Visualforce
