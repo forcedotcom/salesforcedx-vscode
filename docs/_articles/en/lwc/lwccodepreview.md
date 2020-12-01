@@ -37,7 +37,7 @@ After you select SFDX: Preview Component Locally, the Command Palette displays a
 ![Choose to preview in the desktop browser, an Android emulator, or an iOS simulator.](./images/vscode_codepreview_mobile_options.png)
 
 Here’s the previewed component on the local development server’s desktop browser.
-![Previewed component in local development in a browser.](./images/vscode_codepreview.png)
+![Previewed component in a browser.](./images/vscode_codepreview.png)
 
 Here's the previewed component on a virtual mobile device.
-![Previewed component in local development in a virtual mobile device.](./images/vscode_codepreview_ios.png)
+![Previewed component in a virtual mobile device.](./images/vscode_codepreview_ios.png)
