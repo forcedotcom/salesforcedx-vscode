@@ -26,6 +26,7 @@ import { getRootWorkspacePath } from '../util';
 import {
   FilePathGatherer,
   LibraryCommandletExecutor,
+  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -58,6 +59,8 @@ export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExec
     });
     const conn = await workspaceContext.getConnection();
     const result = await components.retrieve(conn.getUsername()!, defaultDir, { merge: true });
+
+    channelService.appendLine(outputRetrieveTable(result));
 
     return result.success;
   }

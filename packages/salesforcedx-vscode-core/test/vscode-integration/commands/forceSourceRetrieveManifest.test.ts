@@ -12,8 +12,10 @@ import { RetrieveStatus } from '@salesforce/source-deploy-retrieve/lib/src/clien
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
+import { channelService } from '../../../src/channels';
 import { ForceSourceRetrieveManifestExecutor } from '../../../src/commands';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
+import { outputRetrieveTable } from '../../../src/commands/util';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
@@ -75,31 +77,37 @@ describe('Force Source Retrieve with Manifest Option', () => {
     });
 
     it('Should correctly report success', async () => {
-      retrieveStub.resolves({
+      const retrieveResult = {
         success: true,
         failures: [],
         successes: [],
         status: RetrieveStatus.Succeeded
-      });
-      const notificationSpy = env.stub(notificationService, 'showSuccessfulExecution');
-
-      await executor.execute({ data: manifestPath, type: 'CONTINUE' });
-
-      expect(notificationSpy.calledOnce).to.equal(true);
-    });
-
-    it('Should correctly report failure', async () => {
-      retrieveStub.resolves({
-        success: false,
-        failures: [],
-        successes: [],
-        status: RetrieveStatus.Failed
-      });
-      const notificationStub = env.stub(notificationService, 'showFailedExecution');
+      };
+      retrieveStub.resolves(retrieveResult);
+      const notificationStub = env.stub(notificationService, 'showSuccessfulExecution');
+      const channelServiceStub = env.stub(channelService, 'appendLine');
 
       await executor.execute({ data: manifestPath, type: 'CONTINUE' });
 
       expect(notificationStub.calledOnce).to.equal(true);
+      expect(channelServiceStub.calledWith(outputRetrieveTable(retrieveResult)));
+    });
+
+    it('Should correctly report failure', async () => {
+      const retrieveResult = {
+        success: false,
+        failures: [],
+        successes: [],
+        status: RetrieveStatus.Failed
+      };
+      retrieveStub.resolves(retrieveResult);
+      const notificationStub = env.stub(notificationService, 'showFailedExecution');
+      const channelServiceStub = env.stub(channelService, 'appendLine');
+
+      await executor.execute({ data: manifestPath, type: 'CONTINUE' });
+
+      expect(notificationStub.calledOnce).to.equal(true);
+      expect(channelServiceStub.calledWith(outputRetrieveTable(retrieveResult)));
     });
   });
 });
