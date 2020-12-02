@@ -107,7 +107,6 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     }
   }
 
-  const { types } = registryData;
   const useBeta = useBetaDeployRetrieve([explorerPath]);
 
   const commandlet = new SfdxCommandlet(

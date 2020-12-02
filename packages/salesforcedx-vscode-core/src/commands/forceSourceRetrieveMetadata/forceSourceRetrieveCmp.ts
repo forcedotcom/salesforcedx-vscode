@@ -17,7 +17,7 @@ import {
 import {
   ComponentSet
 } from '@salesforce/source-deploy-retrieve';
-import { MetadataMember } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
+import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
@@ -158,25 +158,25 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     const comps: LocalComponent[] = response.data;
 
     const components = new ComponentSet(comps.map(
-      lc => ({ fullName: lc.fileName, type: lc.type } as MetadataMember)
+      lc => ({ fullName: lc.fileName, type: lc.type })
     ));
 
     const metadataCount = JSON.stringify(createComponentCount(components));
     this.telemetry.addProperty('metadataCount', metadataCount);
 
     const conn = await workspaceContext.getConnection();
-    const result = await components.retrieve(conn, output, { merge: true });
+    const result = await components.retrieve(conn.getUsername()!, output, { merge: true });
 
     if (result.success && this.openAfterRetrieve) {
       const compSet = ComponentSet.fromSource(output);
-      await this.openResources(this.findResources(components.getSourceComponents().next().value, compSet));
+      await this.openResources(this.findResources(Array.from(components)[0], compSet));
     }
 
     return result.success;
   }
 
   private findResources(
-    filter: MetadataMember,
+    filter: ComponentLike,
     compSet?: ComponentSet
   ): string[] {
     if (compSet && compSet?.size > 0) {
