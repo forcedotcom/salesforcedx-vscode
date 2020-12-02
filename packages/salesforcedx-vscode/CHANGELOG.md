@@ -1,4 +1,4 @@
-# 50.7.0 - December 02, 2020
+# 50.7.0 - December 2, 2020
 
 ## Added
 
@@ -10,11 +10,7 @@
 
 #### docs
 
-- Add license note for interactive debugger ([PR #2760](https://github.com/forcedotcom/salesforcedx-vscode/pull/2760))
-
-#### salesforcedx-utils-vscode
-
-- Remove core extension as dependency on SOQL extension part 1 ([PR #2743](https://github.com/forcedotcom/salesforcedx-vscode/pull/2743))
+- Add license note for Apex Interactive Debugger ([PR #2760](https://github.com/forcedotcom/salesforcedx-vscode/pull/2760))
 
 #### salesforcedx-vscode-core
 
@@ -28,7 +24,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Fix LWC component library links displayed when hovering tags ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2703](https://github.com/forcedotcom/salesforcedx-vscode/issues/2703))
+- Fix LWC component library links displayed when hovering over tags ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2703](https://github.com/forcedotcom/salesforcedx-vscode/issues/2703))
 
 - Fix `Cannot destructure property 'delimiter' of (intermediate value) as it is undefined` ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2636](https://github.com/forcedotcom/salesforcedx-vscode/issues/2636), [Issue #2570](https://github.com/forcedotcom/salesforcedx-vscode/issues/2570))
 
