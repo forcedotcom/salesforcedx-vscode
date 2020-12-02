@@ -6,67 +6,78 @@
  */
 
 import { expect } from 'chai';
-import { extensions, window } from 'vscode';
+import { extensions } from 'vscode';
 import { nls } from '../../../src/messages';
 import { MockRedhatExtension } from './MockRhExtension';
 import { metaSupport } from '../../../src/metasupport';
 import { strict as assert } from 'assert';
 import * as sinon from 'sinon';
 import * as path from 'path';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 let sandbox = sinon.createSandbox();
-let infoMessageStub: any;
 let mockRhExtension: any;
 let rhExtension: any;
+let appendLineSpy: sinon.SinonSpy<any, any>;
 
 describe('MetaSupport: Extension version too old', () => {
-
   beforeEach(() => {
-
-    infoMessageStub = sandbox.stub(window, 'showInformationMessage');
+    appendLineSpy = sinon.spy(ChannelService.prototype, 'appendLine');
   });
 
   afterEach(() => {
     sandbox.restore();
+    appendLineSpy.restore();
   });
 
-  it('Should provide information to update XML plugin if XML extension is too old', async () => {
-    mockRhExtension = sandbox.stub(extensions, 'getExtension').returns(new MockRedhatExtension('0.13.0'));
+  it('Should post error message if XML extension is a minor version too old', async () => {
+    mockRhExtension = sandbox
+      .stub(extensions, 'getExtension')
+      .returns(new MockRedhatExtension('0.13.0'));
     await metaSupport.getMetaSupport();
-    expect(infoMessageStub).to.have.calledOnceWith(nls.localize('force_lightning_lwc_deprecated_redhat_extension'));
+    expect(appendLineSpy).to.have.calledOnceWith(
+      nls.localize('force_lightning_lwc_deprecated_redhat_extension')
+    );
   });
 
-  it('Should provide information to update XML plugin if XML extension is too old', async () => {
-    mockRhExtension = sandbox.stub(extensions, 'getExtension').returns(new MockRedhatExtension('0.13.2'));
+  it('Should post error message if XML extension is a patch version too old', async () => {
+    mockRhExtension = sandbox
+      .stub(extensions, 'getExtension')
+      .returns(new MockRedhatExtension('0.13.2'));
     await metaSupport.getMetaSupport();
-    expect(infoMessageStub).to.have.calledOnceWith(nls.localize('force_lightning_lwc_deprecated_redhat_extension'));
+    expect(appendLineSpy).to.have.calledOnceWith(
+      nls.localize('force_lightning_lwc_deprecated_redhat_extension')
+    );
   });
-
 });
 
 describe('MetaSupport: Extension not found', () => {
-
   beforeEach(() => {
-    mockRhExtension = sandbox.stub(extensions, 'getExtension').returns(undefined);
-    infoMessageStub = sandbox.stub(window, 'showInformationMessage');
+    mockRhExtension = sandbox
+      .stub(extensions, 'getExtension')
+      .returns(undefined);
+    appendLineSpy = sinon.spy(ChannelService.prototype, 'appendLine');
   });
 
   afterEach(() => {
     sandbox.restore();
+    appendLineSpy.restore();
   });
 
   it('Should provide information to install XML plugin if not found', async () => {
     await metaSupport.getMetaSupport();
-    expect(infoMessageStub).to.have.calledOnceWith(nls.localize('force_lightning_lwc_no_redhat_extension_found'));
+    expect(appendLineSpy).to.have.calledOnceWith(
+      nls.localize('force_lightning_lwc_no_redhat_extension_found')
+    );
   });
 });
 
-
 describe('MetaSupport: Extension function', () => {
-
   beforeEach(() => {
-    rhExtension = new MockRedhatExtension('0.14.0')
-    mockRhExtension = sandbox.stub(extensions, 'getExtension').returns(rhExtension);
+    rhExtension = new MockRedhatExtension('0.14.0');
+    mockRhExtension = sandbox
+      .stub(extensions, 'getExtension')
+      .returns(rhExtension);
   });
 
   afterEach(() => {
@@ -76,19 +87,39 @@ describe('MetaSupport: Extension function', () => {
   it('Should pass correct catalog path to XML extension', async () => {
     await metaSupport.getMetaSupport();
 
-    const catalogPaths = [path.join('extension', 'local', 'path', 'resources', 'static', 'js-meta-home.xml')]
-    assert.equal(rhExtension.api.listOfCatalogs[0], catalogPaths[0]);
+    const catalogPaths = [
+      path.join(
+        'extension',
+        'local',
+        'path',
+        'resources',
+        'static',
+        'js-meta-home.xml'
+      )
+    ];
+    assert.strictEqual(rhExtension.api.listOfCatalogs[0], catalogPaths[0]);
   });
 
   it('Should pass correct file association path to XML extension', async () => {
     await metaSupport.getMetaSupport();
 
-    const systemId = path.join('extension', 'local', 'path', 'resources', 'static', 'js-meta.xsd');
+    const systemId = path.join(
+      'extension',
+      'local',
+      'path',
+      'resources',
+      'static',
+      'js-meta.xsd'
+    );
     const pattern = '**/*js-meta.xml';
 
-    assert.equal(rhExtension.api.listOfAssociations[0]['systemId'], systemId);
-    assert.equal(rhExtension.api.listOfAssociations[0]['pattern'], pattern);
-
+    assert.strictEqual(
+      rhExtension.api.listOfAssociations[0]['systemId'],
+      systemId
+    );
+    assert.strictEqual(
+      rhExtension.api.listOfAssociations[0]['pattern'],
+      pattern
+    );
   });
-
 });

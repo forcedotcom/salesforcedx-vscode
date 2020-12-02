@@ -7,6 +7,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channel';
 import { nls } from '../messages';
 
 const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
@@ -28,11 +29,14 @@ export class MetaSupport {
    * @returns - a list of path for each file name
    */
   private getLocalFilePath(targetFileNames: [string]) {
-    const thisExtPath = vscode.extensions.getExtension(EXTENSION_NAME)!.extensionPath;
+    const thisExtPath = vscode.extensions.getExtension(EXTENSION_NAME)!
+      .extensionPath;
     const listOfPaths: string[] = [];
 
     targetFileNames.forEach(targetFileName => {
-      listOfPaths.push(path.join(thisExtPath, 'resources', 'static', targetFileName));
+      listOfPaths.push(
+        path.join(thisExtPath, 'resources', 'static', targetFileName)
+      );
     });
 
     return listOfPaths;
@@ -44,15 +48,21 @@ export class MetaSupport {
    * @param inputFileAssociations - a list of dictionary specifying file associations
    * @returns - None
    */
-  private async setupRedhatXml(inputCatalogs: string[], inputFileAssociations: Array<{ systemId: string; pattern: string; }>) {
+  private async setupRedhatXml(
+    inputCatalogs: string[],
+    inputFileAssociations: Array<{ systemId: string; pattern: string }>
+  ) {
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     try {
       const extensionApi = await redHatExtension!.activate();
       extensionApi.addXMLCatalogs(inputCatalogs);
       extensionApi.addXMLFileAssociations(inputFileAssociations);
     } catch (error) {
-      vscode.window.showErrorMessage(error);
-      vscode.window.showErrorMessage(nls.localize('force_lightning_lwc_fail_redhat_extension'));
+      channelService.appendLine(
+        nls.localize('force_lightning_lwc_fail_redhat_extension')
+      );
+      const errorMsg = error.message ? error.message : error;
+      channelService.appendLine(errorMsg);
     }
   }
 
@@ -64,7 +74,9 @@ export class MetaSupport {
     // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
     const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     if (redHatExtension === undefined) {
-      vscode.window.showInformationMessage(nls.localize('force_lightning_lwc_no_redhat_extension_found'));
+      channelService.appendLine(
+        nls.localize('force_lightning_lwc_no_redhat_extension_found')
+      );
     } else if (redHatExtension) {
       const pluginVersionNumber = redHatExtension!.packageJSON['version'];
 
@@ -79,7 +91,7 @@ export class MetaSupport {
         ];
         await this.setupRedhatXml(catalogs, fileAssociations);
       } else {
-        vscode.window.showInformationMessage(
+        channelService.appendLine(
           nls.localize('force_lightning_lwc_deprecated_redhat_extension')
         );
       }
