@@ -1,4 +1,4 @@
-# 50.7.0 - Month DD, YYYY
+# 50.7.0 - December 02, 2020
 
 ## Added
 
