@@ -40,10 +40,6 @@ node_modules/rxjs/src/**
 node_modules/rxjs/bundles/**
 node_modules/rxjs/_esm5/**
 node_modules/rxjs/_esm2015/**
-node_modules/inquirer/node_modules/rxjs/src/**
-node_modules/inquirer/node_modules/rxjs/bundles/**
-node_modules/inquirer/node_modules/rxjs/_esm5/**
-node_modules/inquirer/node_modules/rxjs/_esm2015/**
 
 # ignore unused jsforce code
 node_modules/jsforce/test/**
