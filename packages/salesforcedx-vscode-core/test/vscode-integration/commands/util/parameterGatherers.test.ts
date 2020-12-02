@@ -10,9 +10,9 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  ComponentSet,
   registryData,
-  SourceComponent,
-  ComponentSet
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';

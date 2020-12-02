@@ -15,7 +15,7 @@ import {
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
-  ComponentSet,
+  ComponentSet
 } from '@salesforce/source-deploy-retrieve';
 import { MetadataMember } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
 import * as path from 'path';

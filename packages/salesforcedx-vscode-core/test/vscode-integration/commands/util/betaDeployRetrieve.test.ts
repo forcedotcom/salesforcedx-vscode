@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { registryData, ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, registryData } from '@salesforce/source-deploy-retrieve';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';

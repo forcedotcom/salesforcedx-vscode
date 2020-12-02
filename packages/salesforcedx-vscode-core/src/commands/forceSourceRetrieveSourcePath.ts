@@ -15,11 +15,11 @@ import {
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
+  ComponentSet,
   MetadataType,
   registryData,
   SourceClient,
-  SourceComponent,
-  ComponentSet
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
