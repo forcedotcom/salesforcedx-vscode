@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Org browser retrieve perf enhancements ([PR #2756](https://github.com/forcedotcom/salesforcedx-vscode/pull/2756))
+- Org Browser usage of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2756](https://github.com/forcedotcom/salesforcedx-vscode/pull/2756))
 
 ## Fixed
 
