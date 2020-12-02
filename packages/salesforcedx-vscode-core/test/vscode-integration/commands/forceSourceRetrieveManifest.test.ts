@@ -11,7 +11,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { RetrieveStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, createStubInstance } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import { ForceSourceRetrieveManifestExecutor } from '../../../src/commands';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
 import { workspaceContext } from '../../../src/context';
@@ -37,12 +37,18 @@ describe('Force Source Retrieve with Manifest Option', () => {
   });
 
   describe('Library Beta', () => {
-    const testData = new MockTestOrgData();
-    const executor = new LibrarySourceRetrieveManifestExecutor();
+    const manifestPath = 'package.xml';
+    const packageDirs = ['p1', 'p2'];
+    const packageDirFullPaths = packageDirs.map(p => path.join(getRootWorkspacePath(), p));
+    const mockComponents = new ComponentSet([{ fullName: 'Test', type: 'apexclass'}, {fullName: 'Test2', type: 'layout' }]);
 
     let mockConnection: Connection;
+    let retrieveStub: SinonStub;
+
+    const executor = new LibrarySourceRetrieveManifestExecutor();
 
     beforeEach(async () => {
+      const testData = new MockTestOrgData();
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
@@ -51,15 +57,6 @@ describe('Force Source Retrieve with Manifest Option', () => {
           username: testData.username
         })
       });
-    });
-
-    afterEach(() => env.restore());
-
-    it('Should retrieve using manifest file', async () => {
-      const manifestPath = 'package.xml';
-      const packageDirs = ['package1', 'package2'];
-      const packageDirFullPaths = packageDirs.map(p => path.join(getRootWorkspacePath(), p));
-      const mockComponents = new ComponentSet([{ fullName: 'Test', type: 'apexclass'}, {fullName: 'Test2', type: 'layout' }]);
 
       env.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves(packageDirFullPaths);
       env.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(packageDirs[0]);
@@ -67,20 +64,42 @@ describe('Force Source Retrieve with Manifest Option', () => {
       env.stub(ComponentSet, 'fromManifestFile')
         .withArgs(manifestPath, { resolve: packageDirFullPaths, literalWildcard: true })
         .returns(mockComponents);
-      env
+      retrieveStub = env
         .stub(mockComponents, 'retrieve')
-        .withArgs(mockConnection.getUsername()!, packageDirFullPaths[0], { merge: true })
-        .resolves({
-          success: true,
-          failures: [],
-          successes: [],
-          status: RetrieveStatus.Succeeded
-        });
-      const notificationSpy = env.spy(notificationService, 'showSuccessfulExecution');
+        .withArgs(mockConnection.getUsername()!, packageDirFullPaths[0], { merge: true });
+    });
+
+    afterEach(() => {
+      env.restore();
+      $$.SANDBOX.restore();
+    });
+
+    it('Should correctly report success', async () => {
+      retrieveStub.resolves({
+        success: true,
+        failures: [],
+        successes: [],
+        status: RetrieveStatus.Succeeded
+      });
+      const notificationSpy = env.stub(notificationService, 'showSuccessfulExecution');
 
       await executor.execute({ data: manifestPath, type: 'CONTINUE' });
 
       expect(notificationSpy.calledOnce).to.equal(true);
+    });
+
+    it('Should correctly report failure', async () => {
+      retrieveStub.resolves({
+        success: false,
+        failures: [],
+        successes: [],
+        status: RetrieveStatus.Failed
+      });
+      const notificationStub = env.stub(notificationService, 'showFailedExecution');
+
+      await executor.execute({ data: manifestPath, type: 'CONTINUE' });
+
+      expect(notificationStub.calledOnce).to.equal(true);
     });
   });
 });
