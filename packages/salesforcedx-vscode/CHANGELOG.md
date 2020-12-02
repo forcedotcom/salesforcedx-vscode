@@ -16,7 +16,7 @@
 
 - Update beta disclaimer for soql builder docs ([PR #2749](https://github.com/forcedotcom/salesforcedx-vscode/pull/2749))
 
-- Add SOQL Builder to doc site ([PR #2745](https://github.com/forcedotcom/salesforcedx-vscode/pull/2745))
+- Add SOQL Builder to doc site ([PR #2745](https://github.com/forcedotcom/salesforcedx-vscode/pull/2745), [PR #2753](https://github.com/forcedotcom/salesforcedx-vscode/pull/2753), [PR #2749](https://github.com/forcedotcom/salesforcedx-vscode/pull/2749) )
 
 - Auto-complete support for js-meta.xml ([PR #2726](https://github.com/forcedotcom/salesforcedx-vscode/pull/2726))
 
