@@ -15,7 +15,7 @@ import {
 import {
   registryData,
   SourceComponent,
-  WorkingSet
+  ComponentSet
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -186,7 +186,7 @@ describe('Source Retrieve Using Library', () => {
       .returns('test-app');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const retrieveStub = sb
-      .stub(WorkingSet.prototype, 'retrieve')
+      .stub(ComponentSet.prototype, 'retrieve')
       .returns({ success: true });
     sendCommandEventStub = sb.stub(telemetryService, 'sendCommandEvent');
 
@@ -260,7 +260,7 @@ describe('Source Retrieve and Open Using Library', () => {
       .returns('test-app');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const retrieveStub = sb
-      .stub(WorkingSet.prototype, 'retrieve')
+      .stub(ComponentSet.prototype, 'retrieve')
       .returns({ success: true });
     const retrievePath = path.join(getRootWorkspacePath(), 'test-app');
     sendCommandEventStub = sb.stub(telemetryService, 'sendCommandEvent');
@@ -290,10 +290,10 @@ describe('Source Retrieve and Open Using Library', () => {
       )
     ];
 
-    const wsOne = new WorkingSet();
+    const wsOne = new ComponentSet();
     wsOne.add(testComponents[0]);
     const getComponentsStub = sb
-      .stub(WorkingSet.prototype, 'resolveSourceComponents')
+      .stub(ComponentSet.prototype, 'resolveSourceComponents')
       .returns(wsOne);
 
     await libSourceRetrieveExec.execute(response);

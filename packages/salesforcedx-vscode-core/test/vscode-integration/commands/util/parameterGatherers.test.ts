@@ -12,7 +12,7 @@ import {
 import {
   registryData,
   SourceComponent,
-  WorkingSet
+  ComponentSet
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -337,7 +337,7 @@ describe('Parameter Gatherers', () => {
         'getPackageDirectoryPaths'
       );
       const getLwcsStub = sinon.stub(
-        WorkingSet.prototype,
+        ComponentSet.prototype,
         'resolveSourceComponents'
       );
       const showMenuStub = sinon.stub(selector, 'showMenu');

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { registryData, WorkingSet } from '@salesforce/source-deploy-retrieve';
+import { registryData, ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
@@ -49,12 +49,12 @@ describe('Deploy/Retrieve Performance Beta Utils', () => {
       settingStub = env
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
-      const wsOne = new WorkingSet();
+      const wsOne = new ComponentSet();
       wsOne.add(testComponents[0]);
-      const wsTwo = new WorkingSet();
+      const wsTwo = new ComponentSet();
       wsTwo.add(testComponents[1]);
       registryStub = env
-        .stub(WorkingSet.prototype, 'resolveSourceComponents')
+        .stub(ComponentSet.prototype, 'resolveSourceComponents')
         .withArgs(uriOne.fsPath)
         .returns(wsOne)
         .withArgs(uriTwo.fsPath)

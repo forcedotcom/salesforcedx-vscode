@@ -15,8 +15,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
-  SourceComponent,
-  WorkingSet
+  ComponentSet
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -63,7 +62,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     execution.processExitSubject.subscribe(async exitCode => {
       let properties;
       try {
-        const ws = WorkingSet.fromSource(execFilePathOrPaths);
+        const ws = ComponentSet.fromSource(execFilePathOrPaths);
         const metadataCount = JSON.stringify(createComponentCount([...ws]));
         properties = { metadataCount };
         // registry does not handle multiple paths. only log component count for single paths
