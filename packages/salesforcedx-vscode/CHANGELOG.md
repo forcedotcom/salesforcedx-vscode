@@ -12,14 +12,6 @@
 
 - Add license note for interactive debugger ([PR #2760](https://github.com/forcedotcom/salesforcedx-vscode/pull/2760))
 
-- Image for opening SOQL Builder ([PR #2753](https://github.com/forcedotcom/salesforcedx-vscode/pull/2753))
-
-- Update beta disclaimer for soql builder docs ([PR #2749](https://github.com/forcedotcom/salesforcedx-vscode/pull/2749))
-
-- Add SOQL Builder to doc site ([PR #2745](https://github.com/forcedotcom/salesforcedx-vscode/pull/2745), [PR #2753](https://github.com/forcedotcom/salesforcedx-vscode/pull/2753), [PR #2749](https://github.com/forcedotcom/salesforcedx-vscode/pull/2749) )
-
-- Auto-complete support for js-meta.xml ([PR #2726](https://github.com/forcedotcom/salesforcedx-vscode/pull/2726))
-
 #### salesforcedx-utils-vscode
 
 - Remove core extension as dependency on SOQL extension part 1 ([PR #2743](https://github.com/forcedotcom/salesforcedx-vscode/pull/2743))
@@ -36,19 +28,11 @@
 
 #### salesforcedx-vscode-lwc
 
-- Replace use of info message on js-meta lwc code ([PR #2777](https://github.com/forcedotcom/salesforcedx-vscode/pull/2777))
-
 - Fix LWC component library links displayed when hovering tags ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2703](https://github.com/forcedotcom/salesforcedx-vscode/issues/2703))
 
 - Fix `Cannot destructure property 'delimiter' of (intermediate value) as it is undefined` ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2636](https://github.com/forcedotcom/salesforcedx-vscode/issues/2636), [Issue #2570](https://github.com/forcedotcom/salesforcedx-vscode/issues/2570))
 
 - Auto-complete support for js-meta.xml ([PR #2726](https://github.com/forcedotcom/salesforcedx-vscode/pull/2726))
-
-#### salesforcedx-vscode-soql
-
-- Remove core extension as dependency on SOQL extension part 1 ([PR #2743](https://github.com/forcedotcom/salesforcedx-vscode/pull/2743))
-
-- Include the readme in the vsix ([PR #2742](https://github.com/forcedotcom/salesforcedx-vscode/pull/2742))
 
 # 50.5.0 - November 11, 2020
 
