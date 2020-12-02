@@ -26,7 +26,7 @@
 
 #### salesforcedx-vscode-core
 
-- Remove unused code from generated extensions (vsix) ([PR #2769](https://github.com/forcedotcom/salesforcedx-vscode/pull/2769))
+- Reduce `salesforcedx-vscode-core` extension size by 30% ([PR #2769](https://github.com/forcedotcom/salesforcedx-vscode/pull/2769))
 
 #### salesforcedx-vscode-lightning
 
