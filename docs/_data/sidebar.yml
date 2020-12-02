@@ -132,14 +132,14 @@
         ja: Code Preview
       url: /lwc/lwccodepreview
       children:
-         - title:
+        - title:
             en: Set Up LWC Code Preview
             ja: Set Up LWC Code Preview
-         url: /lwc/set-up-lwc-code-preview
-         - title:
+          url: /lwc/set-up-lwc-code-preview
+        - title:
             en: Supported and Unsupported Modules, Components, and Features
             ja: Supported and Unsupported Modules, Components, and Features
-         url: /lwc/lwc-codepreview-supported-modules
+          url: /lwc/lwc-codepreview-supported-modules
 - title:
     en: Visualforce
     ja: Visualforce
