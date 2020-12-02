@@ -14,6 +14,14 @@ import { msToSecond } from '../utils';
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
 
+const timeProperties = [
+  'testExecutionTimeInMs',
+  'testTotalTimeInMs',
+  'commandTimeInMs'
+];
+
+// properties not in cli junit spec
+const skippedProperties = ['skipRate', 'totalLines', 'linesCovered'];
 export class JUnitReporter {
   public format(testResult: TestResult): string {
     const { summary, tests } = testResult;
@@ -40,18 +48,11 @@ export class JUnitReporter {
     let junitProperties = `${tab}${tab}<properties>\n`;
 
     Object.entries(testResult.summary).forEach(([key, value]) => {
-      // skipRate not in cli spec
-      if (this.isEmpty(value) || key === 'skipRate') {
+      if (this.isEmpty(value) || skippedProperties.includes(key)) {
         return;
       }
 
-      if (
-        [
-          'testExecutionTimeInMs',
-          'testTotalTimeInMs',
-          'commandTimeInMs'
-        ].includes(key)
-      ) {
+      if (timeProperties.includes(key)) {
         value = `${msToSecond(value)} s`;
         key = key.replace('InMs', '');
       }

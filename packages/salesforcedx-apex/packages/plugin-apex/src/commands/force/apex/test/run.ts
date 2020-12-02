@@ -16,6 +16,7 @@ import { Row, Table } from '@salesforce/apex-node/lib/src/utils';
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Org } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
+import { JsonReporter } from '../../../../jsonReporter';
 import { buildDescription, logLevels } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
@@ -210,7 +211,7 @@ export default class Run extends SfdxCommand {
           );
       }
 
-      return result;
+      return this.logJson(result);
     } catch (e) {
       return Promise.reject(e);
     }
@@ -481,6 +482,18 @@ export default class Run extends SfdxCommand {
       const msg = messages.getMessage('testResultProcessErr', [e]);
       this.ux.error(msg);
     }
+  }
+
+  private logJson(result: TestResult): AnyJson {
+    try {
+      const reporter = new JsonReporter();
+      return reporter.format(result);
+    } catch (e) {
+      this.ux.logJson(result);
+      const msg = messages.getMessage('testResultProcessErr', [e]);
+      this.ux.error(msg);
+    }
+    return result;
   }
 
   private formatReportHint(result: TestResult): string {

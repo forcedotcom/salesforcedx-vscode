@@ -10,7 +10,12 @@ import { expect, test } from '@salesforce/command/lib/test';
 import { Messages, SfdxProject } from '@salesforce/core';
 import * as path from 'path';
 import { createSandbox, SinonSandbox } from 'sinon';
-import { testRunSimple } from './testData';
+import {
+  testRunSimple,
+  runWithCoverage,
+  cliJsonResult,
+  cliWithCoverage
+} from './testData';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/plugin-apex', 'run');
@@ -240,6 +245,57 @@ describe('force:apex:test:run', () => {
       expect(result).to.not.contain('# Run "sfdx force:apex:test:report');
       expect(result).to.not.contain('Apex Code Coverage by Class');
     });
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testInsertRecord',
+      '--json',
+      '--resultformat',
+      'junit',
+      '--synchronous'
+    ])
+    .it('should return a success json result with sync run', ctx => {
+      const result = ctx.stdout;
+      expect(result).to.not.be.empty;
+      const resultJSON = JSON.parse(result);
+      expect(resultJSON).to.deep.equal(cliJsonResult);
+    });
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => runWithCoverage)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testInsertRecord',
+      '--json',
+      '--resultformat',
+      'junit',
+      '-c'
+    ])
+    .it(
+      'should return a success json result with async run and code coverage',
+      ctx => {
+        const result = ctx.stdout;
+        expect(result).to.not.be.empty;
+        const resultJSON = JSON.parse(result);
+        expect(resultJSON).to.deep.equal(cliWithCoverage);
+      }
+    );
 
   test
     .withOrg({ username: TEST_USERNAME }, true)

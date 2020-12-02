@@ -71,7 +71,7 @@ describe('Get code coverage results', () => {
     );
   });
 
-  it('should return test code coverage result', async () => {
+  it('should return aggregate code coverage result and testRunCoverage', async () => {
     const codeCoverageQueryResult = [
       {
         ApexClassOrTrigger: { Id: '0001x05958', Name: 'ApexTrigger1' },
@@ -136,16 +136,18 @@ describe('Get code coverage results', () => {
     const testSrv = new TestService(mockConnection);
     const {
       codeCoverageResults,
-      testRunCoverage
+      totalLines,
+      coveredLines
     } = await testSrv.getAggregateCodeCoverage(
       new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
     );
 
-    expect(testRunCoverage).to.equal('75%');
+    expect(totalLines).to.equal(24);
+    expect(coveredLines).to.equal(18);
     expect(codeCoverageResults).to.eql(expectedResult);
   });
 
-  it('should return test code coverage result with 0 records', async () => {
+  it('should return aggregate code coverage result with 0 records', async () => {
     toolingQueryStub.resolves({
       done: true,
       totalSize: 0,
@@ -155,14 +157,16 @@ describe('Get code coverage results', () => {
     const testSrv = new TestService(mockConnection);
     const {
       codeCoverageResults,
-      testRunCoverage
+      totalLines,
+      coveredLines
     } = await testSrv.getAggregateCodeCoverage(new Set([]));
     expect(codeCoverageResults.length).to.equal(0);
-    expect(testRunCoverage).to.equal('0%');
+    expect(totalLines).to.equal(0);
+    expect(coveredLines).to.equal(0);
   });
 
-  it('should return per class code coverage and test run coverage', async () => {
-    const perClassCodeCovResult = [
+  it('should return per test code coverage', async () => {
+    const perTestCodeCovResult = [
       {
         ApexClassOrTrigger: { Id: '0001x05958', Name: 'ApexTrigger1' },
         TestMethodName: 'MethodOne',
@@ -194,7 +198,7 @@ describe('Get code coverage results', () => {
     toolingQueryStub.resolves({
       done: true,
       totalSize: 3,
-      records: perClassCodeCovResult
+      records: perTestCodeCovResult
     } as ApexCodeCoverage);
 
     const testSrv = new TestService(mockConnection);
@@ -204,28 +208,43 @@ describe('Get code coverage results', () => {
     expect(perTestCoverageMap.size).to.eql(3);
     expect(perTestCoverageMap.get('0001x05958-MethodOne')).to.deep.equal({
       apexClassOrTriggerName: 'ApexTrigger1',
-      apexClassorTriggerId: '0001x05958',
+      apexClassOrTriggerId: '0001x05958',
       apexTestClassId: '0001x05958',
       apexTestMethodName: 'MethodOne',
-      percentage: '83%'
+      percentage: '83%',
+      coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] },
+      numLinesCovered: 5,
+      numLinesUncovered: 1
     });
     expect(perTestCoverageMap.get('0001x05959-MethodTwo')).to.deep.equal({
       apexClassOrTriggerName: 'ApexTrigger2',
-      apexClassorTriggerId: '0001x05959',
+      apexClassOrTriggerId: '0001x05959',
       apexTestClassId: '0001x05959',
       apexTestMethodName: 'MethodTwo',
-      percentage: '75%'
+      percentage: '75%',
+      coverage: {
+        coveredLines: [1, 2, 3, 4, 5, 6],
+        uncoveredLines: [7, 8]
+      },
+      numLinesCovered: 6,
+      numLinesUncovered: 2
     });
     expect(perTestCoverageMap.get('0001x05951-MethodThree')).to.deep.equal({
       apexClassOrTriggerName: 'ApexTrigger3',
-      apexClassorTriggerId: '0001x05951',
+      apexClassOrTriggerId: '0001x05951',
       apexTestClassId: '0001x05951',
       apexTestMethodName: 'MethodThree',
-      percentage: '70%'
+      percentage: '70%',
+      coverage: {
+        coveredLines: [1, 2, 3, 4, 5, 6, 7],
+        uncoveredLines: [8, 9, 10]
+      },
+      numLinesCovered: 7,
+      numLinesUncovered: 3
     });
   });
 
-  it('should return per class coverage and test run coverage with 0 records', async () => {
+  it('should return per test coverage', async () => {
     toolingQueryStub.resolves({
       done: true,
       totalSize: 0,
