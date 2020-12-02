@@ -11,17 +11,24 @@ The goal of publishing is to take the extensions under /packages, bundle them as
 .vsix files, and push them to the [Visual Studio Code
 Marketplace](https://marketplace.visualstudio.com/vscode).
 
-For more information about publishing take a look at
+For more information about publishing take a look at:
 
 - [Publishing VS Code Extensions][publish_vscode_ext]
 - [Managing
   Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
 
+# Prerequisites
+
+1. Publisher has a valid CircleCI token for the forcedotcom organization. More info on CircleCI's doc [Create a Personal API token](https://circleci.com/docs/2.0/managing-api-tokens/#creating-a-personal-api-token).
+1. Publisher is a part of the GitHub team 'PDT'.
+
 # Steps
 
 ## Creating a release branch
 
-Typically, a release branch is created from the `develop` branch to indicate the state of the codebase that will be published for a particular version. Release branches are in the format `release/vxx.yy.zz`. Create and push a release branch by running `node scripts/create-release-branch.js`.
+The release branch is typically created from a scheduled job in CircleCi. This scheduled job cuts the release branch off of develop on Mondays at 7 PM PST.
+
+Typically, a release branch is created from the `develop` branch to indicate the state of the codebase that will be published for a particular version. Release branches are in the format `release/vxx.yy.zz`. Create and push a release branch by running `node scripts/create-release-branch.js`. We cut the release branch every Monday at 7PM PST via a scheduled job that runs within CircleCi.
 
 You may also use the GitHub Action to run this process in a CI environment and avoid local setup. It is triggered through a [repository dispatch](https://developer.github.com/v3/repos/#create-a-repository-dispatch-event) event with a payload of the following format:
 
