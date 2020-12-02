@@ -38,7 +38,9 @@
 
 - Replace use of info message on js-meta lwc code ([PR #2777](https://github.com/forcedotcom/salesforcedx-vscode/pull/2777))
 
-- Update aura & lwc language servers to v3.0.12 ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775))
+- Fix LWC component library links displayed when hovering tags ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2703](https://github.com/forcedotcom/salesforcedx-vscode/issues/2703))
+
+- Fix `Cannot destructure property 'delimiter' of (intermediate value) as it is undefined` ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2636](https://github.com/forcedotcom/salesforcedx-vscode/issues/2636), [Issue #2570](https://github.com/forcedotcom/salesforcedx-vscode/issues/2570))
 
 - Auto-complete support for js-meta.xml ([PR #2726](https://github.com/forcedotcom/salesforcedx-vscode/pull/2726))
 
