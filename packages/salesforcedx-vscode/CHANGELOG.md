@@ -30,7 +30,9 @@
 
 #### salesforcedx-vscode-lightning
 
-- Update aura & lwc language servers to v3.0.12 ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775))
+- Fix `TypeError: Cannot read property 'charCodeAt' of undefined` ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #1684](https://github.com/forcedotcom/salesforcedx-vscode/issues/1684))
+
+- Fix `Error re-indexing workspace: Cannot read property 'indexOf' of undefined` ([PR #2775](https://github.com/forcedotcom/salesforcedx-vscode/pull/2775), [Issue #2624](https://github.com/forcedotcom/salesforcedx-vscode/issues/2624))
 
 #### salesforcedx-vscode-lwc
 
