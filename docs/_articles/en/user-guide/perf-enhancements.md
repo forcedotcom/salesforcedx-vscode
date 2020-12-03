@@ -18,5 +18,6 @@ Performance enhancements are in effect when you run the following commands:
 
 - SFDX: Deploy This Source to Org
 - SFDX: Retrieve This Source from Org
+- SFDX: Deploy Source in Manifest to Org
 - SFDX: Retrieve Source in Manifest from Org
 - Retrieve Using the [Org Browser](./en/user-guide/org-browser)
