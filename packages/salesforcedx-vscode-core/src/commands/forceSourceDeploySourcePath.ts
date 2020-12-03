@@ -15,12 +15,12 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  ComponentSet,
   DeployStatus,
   SourceClient,
   SourceComponent,
   SourceDeployResult,
-  ToolingDeployStatus,
-  WorkingSet
+  ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -177,21 +177,13 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     }
   }
 
-  private getComponents(paths: string | string[]): SourceComponent[] {
-    const ws = new WorkingSet();
-    const components: SourceComponent[] = [];
-
+  private getComponents(paths: string | string[]): ComponentSet {
+    const components = new ComponentSet();
     if (typeof paths === 'string') {
-      const comps = ws.resolveSourceComponents(paths);
-      if (comps) {
-        components.push(...comps);
-      }
+      components.resolveSourceComponents(paths);
     } else {
       for (const filepath of paths) {
-        const comps = ws.resolveSourceComponents(filepath);
-        if (comps) {
-          components.push(...comps);
-        }
+        components.resolveSourceComponents(filepath);
       }
     }
     return components;
@@ -199,20 +191,20 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 
   private doDeploy(
     connection: Connection,
-    components: SourceComponent[],
+    components: ComponentSet,
     namespace?: string
   ): Promise<SourceDeployResult> {
     let api: string;
     let deploy: Promise<SourceDeployResult>;
-    const client = new SourceClient(connection);
 
     if (namespace) {
-      deploy = client.tooling.deploy(components, {
+      const client = new SourceClient(connection);
+      deploy = client.tooling.deploy(components.getSourceComponents().next().value, {
         namespace
       });
       api = 'tooling';
     } else {
-      deploy = client.metadata.deploy(components);
+      deploy = components.deploy(connection);
       api = 'metadata';
     }
 
