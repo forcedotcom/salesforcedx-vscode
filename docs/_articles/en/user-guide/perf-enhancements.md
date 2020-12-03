@@ -3,7 +3,7 @@ title: Performance Enhancements
 lang: en
 ---
 
-The changes we have made to enhance performance ensure that single file metadata deploys run through a more efficient code path.
+The changes we have made to enhance performance ensure that metadata deploys and retrieves run through a more efficient code path.
 
 > NOTICE: The changes to enhance code performance are currently in beta. If you find any bugs or have feedback, [open a GitHub issue](./en/bugs-and-feedback).
 
