@@ -10,8 +10,6 @@ import {
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import {
-  ComponentDiagnostic,
-  ComponentRetrieval,
   RetrieveStatus,
   SourceRetrieveResult
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
@@ -21,39 +19,7 @@ import { outputRetrieveTable } from '../../../../src/commands/util/retrieveParse
 import { nls } from '../../../../src/messages';
 
 describe('retrieveParser', () => {
-  it('Should handle an SourceRetrieveResult with no components and no message', () => {
-    const emptyResult = {
-      status: RetrieveStatus.Succeeded,
-      success: true,
-      components: []
-    } as SourceRetrieveResult;
-
-    const parsedResult = outputRetrieveTable(emptyResult);
-    expect(parsedResult).to.equal(
-      nls.localize(
-        'lib_retrieve_result_parse_error',
-        JSON.stringify({
-          status: RetrieveStatus.Succeeded,
-          success: true,
-          components: []
-        })
-      )
-    );
-  });
-
-  it('Should handle an SourceRetrieveResult with no components but with message', () => {
-    const emptyResult = {
-      status: RetrieveStatus.Succeeded,
-      success: true,
-      components: [],
-      messages: 'Message from library'
-    } as SourceRetrieveResult;
-
-    const parsedResult = outputRetrieveTable(emptyResult);
-    expect(parsedResult).to.equal('Message from library');
-  });
-
-  it('Should handle a fully formed SourceRetrieveResult', () => {
+  it('Should handle a retrieve result with successes and no failures', () => {
     const apexClassPath = join('classes', 'MyTestClass.cls');
     const apexClassXmlPath = `${apexClassPath}-meta.xml`;
     const component = SourceComponent.createVirtualComponent(
@@ -70,17 +36,12 @@ describe('retrieveParser', () => {
         }
       ]
     );
-    const componentRetrieval = {
-      component,
-      status: RetrieveStatus.Succeeded
-    } as ComponentRetrieval;
-
-    const successfulResult = {
+    const successfulResult: SourceRetrieveResult = {
       status: RetrieveStatus.Succeeded,
       success: true,
-      components: [componentRetrieval]
-    } as SourceRetrieveResult;
-
+      successes: [{ component }],
+      failures: []
+    };
     const parsedResult = outputRetrieveTable(successfulResult);
 
     let expectedResult = '=== Retrieved Source\n';
@@ -94,33 +55,32 @@ describe('retrieveParser', () => {
     expect(parsedResult).to.equal(expectedResult);
   });
 
-  it('Should handle a malformed SourceRetrieveResult', () => {
-    // @ts-ignore
-    const apiResultWithOutType = {
-      success: true,
-      status: RetrieveStatus.Succeeded,
-      components: [
+  it('Should handle a retrieve result with failures and no successes', () => {
+    const result: SourceRetrieveResult = {
+      status: RetrieveStatus.Failed,
+      success: false,
+      successes: [],
+      failures: [
         {
-          // @ts-ignore
-          name: 'MyTestClass',
-          xml: 'some/path/MyTestClass.cls-meta.xml',
-          // @ts-ignore
-          walkContent(): ['some/path/MyTestClass.cls'];
-        }
-      ],
-      messages: 'Message from library'
-    } as SourceRetrieveResult;
-    const parsedResult = outputRetrieveTable(apiResultWithOutType);
+          component: {
+            fullName: 'MyBadClass',
+            type: registryData.types.apexclass
+          },
+          message: 'Missing metadata'
+      }]
+    };
 
-    expect(parsedResult).to.equal(
-      nls.localize(
-        'lib_retrieve_result_parse_error',
-        JSON.stringify(apiResultWithOutType)
-      )
-    );
+    const parsedResult = outputRetrieveTable(result);
+
+    let expectedResult = '\n=== Retrieve Warnings\n';
+    expectedResult += 'FULL NAME   MESSAGE TYPE  MESSAGE         \n';
+    expectedResult += '──────────  ────────────  ────────────────\n';
+    expectedResult += 'MyBadClass  Error         Missing metadata\n';
+
+    expect(parsedResult).to.equal(expectedResult);
   });
 
-  it('Should handle a SourceRetrieveResult with components and diagnostics', () => {
+  it('Should handle a SourceRetrieveResult with successes and failures', () => {
     const apexClassPath = join('classes', 'MyTestClass.cls');
     const apexClassXmlPath = `${apexClassPath}-meta.xml`;
     const component = SourceComponent.createVirtualComponent(
@@ -151,29 +111,15 @@ describe('retrieveParser', () => {
         }
       ]
     );
-    const componentRetrieval = {
-      component,
-      status: RetrieveStatus.Succeeded
-    } as ComponentRetrieval;
 
-    const componentDiagnostic = {
-      filePath: apexClassPath,
-      type: 'Error',
-      message: 'Missing metadata'
-    } as ComponentDiagnostic;
-    const badComponentRetrieval = {
-      component: badComponent,
-      status: RetrieveStatus.Succeeded,
-      diagnostics: componentDiagnostic
-    } as ComponentRetrieval;
-
-    const successfulResult = {
-      status: RetrieveStatus.Succeeded,
+    const result: SourceRetrieveResult = {
+      status: RetrieveStatus.PartialSuccess,
       success: true,
-      components: [componentRetrieval, badComponentRetrieval]
-    } as SourceRetrieveResult;
+      successes: [{ component }],
+      failures: [{ component: badComponent, message: 'Missing metadata' }]
+    };
 
-    const parsedResult = outputRetrieveTable(successfulResult);
+    const parsedResult = outputRetrieveTable(result);
 
     let expectedResult = '=== Retrieved Source\n';
     expectedResult +=
@@ -189,5 +135,31 @@ describe('retrieveParser', () => {
     expectedResult += 'MyBadClass  Error         Missing metadata\n';
 
     expect(parsedResult).to.equal(expectedResult);
+  });
+
+  it('Should handle a malformed SourceRetrieveResult', () => {
+    // @ts-ignore
+    const apiResultWithOutType = {
+      success: true,
+      status: RetrieveStatus.Succeeded,
+      components: [
+        {
+          // @ts-ignore
+          name: 'MyTestClass',
+          xml: 'some/path/MyTestClass.cls-meta.xml',
+          // @ts-ignore
+          walkContent(): ['some/path/MyTestClass.cls'];
+        }
+      ],
+      messages: 'Message from library'
+    } as SourceRetrieveResult;
+    const parsedResult = outputRetrieveTable(apiResultWithOutType);
+
+    expect(parsedResult).to.equal(
+      nls.localize(
+        'lib_retrieve_result_parse_error',
+        JSON.stringify(apiResultWithOutType)
+      )
+    );
   });
 });

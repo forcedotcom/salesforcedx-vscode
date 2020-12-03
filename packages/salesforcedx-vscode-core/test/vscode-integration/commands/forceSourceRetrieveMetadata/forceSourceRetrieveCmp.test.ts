@@ -13,9 +13,9 @@ import {
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  ComponentSet,
   registryData,
-  SourceComponent,
-  WorkingSet
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -30,6 +30,8 @@ import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
+
+const $$ = testSetup();
 
 class TestDescriber implements RetrieveDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
@@ -140,7 +142,6 @@ describe('Force Source Retrieve and open', () => {
 });
 
 describe('Source Retrieve Using Library', () => {
-  const $$ = testSetup();
   const testData = new MockTestOrgData();
 
   let mockConnection: Connection;
@@ -186,7 +187,7 @@ describe('Source Retrieve Using Library', () => {
       .returns('test-app');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const retrieveStub = sb
-      .stub(WorkingSet.prototype, 'retrieve')
+      .stub(ComponentSet.prototype, 'retrieve')
       .returns({ success: true });
     sendCommandEventStub = sb.stub(telemetryService, 'sendCommandEvent');
 
@@ -214,7 +215,6 @@ describe('Source Retrieve Using Library', () => {
 });
 
 describe('Source Retrieve and Open Using Library', () => {
-  const $$ = testSetup();
   const testData = new MockTestOrgData();
 
   let mockConnection: Connection;
@@ -260,7 +260,7 @@ describe('Source Retrieve and Open Using Library', () => {
       .returns('test-app');
     sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const retrieveStub = sb
-      .stub(WorkingSet.prototype, 'retrieve')
+      .stub(ComponentSet.prototype, 'retrieve')
       .returns({ success: true });
     const retrievePath = path.join(getRootWorkspacePath(), 'test-app');
     sendCommandEventStub = sb.stub(telemetryService, 'sendCommandEvent');
@@ -290,11 +290,9 @@ describe('Source Retrieve and Open Using Library', () => {
       )
     ];
 
-    const wsOne = new WorkingSet();
-    wsOne.add(testComponents[0]);
-    const getComponentsStub = sb
-      .stub(WorkingSet.prototype, 'resolveSourceComponents')
-      .returns(wsOne);
+    const components = new ComponentSet(testComponents);
+    const getComponentsStub = sb.stub(ComponentSet, 'fromSource');
+    getComponentsStub.withArgs(retrievePath).returns(components);
 
     await libSourceRetrieveExec.execute(response);
 
@@ -306,7 +304,6 @@ describe('Source Retrieve and Open Using Library', () => {
     );
     expect(args[2]).to.eql(telemetryProps);
 
-    expect(getComponentsStub.calledWith(retrievePath)).to.equal(true);
     expect(openTextDocumentStub.called).to.equal(true);
     expect(showTextDocumentStub.called).to.equal(true);
 

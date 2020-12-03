@@ -7,7 +7,7 @@
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { WorkingSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { ToolingApi } from '@salesforce/source-deploy-retrieve/lib/src/client/toolingApi';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -72,7 +72,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(SfdxProjectConfig, 'getValue')
         .returns('diFf');
       const getComponentsStub = sb.stub(
-        WorkingSet.prototype,
+        ComponentSet.prototype,
         'resolveSourceComponents'
       );
       const executor = new LibraryDeploySourcePathExecutor();
