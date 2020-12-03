@@ -68,7 +68,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
         .returns(mockComponents);
       retrieveStub = env
         .stub(mockComponents, 'retrieve')
-        .withArgs(mockConnection.getUsername()!, packageDirFullPaths[0], { merge: true });
+        .withArgs(mockConnection, packageDirFullPaths[0], { merge: true });
     });
 
     afterEach(() => {

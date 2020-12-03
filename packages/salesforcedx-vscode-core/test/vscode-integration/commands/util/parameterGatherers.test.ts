@@ -332,19 +332,17 @@ describe('Parameter Gatherers', () => {
         },
         []
       );
+      const mockComponents = new ComponentSet([component]);
       const getPackageDirPathsStub = sinon.stub(
         SfdxPackageDirectories,
         'getPackageDirectoryPaths'
       );
-      const getLwcsStub = sinon.stub(
-        ComponentSet.prototype,
-        'resolveSourceComponents'
-      );
-      const showMenuStub = sinon.stub(selector, 'showMenu');
-      getPackageDirPathsStub.returns(packageDirs);
+      const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');
       getLwcsStub
         .withArgs(path.join(getRootWorkspacePath(), packageDirs[0]))
-        .returns([component]);
+        .returns(mockComponents);
+      const showMenuStub = sinon.stub(selector, 'showMenu');
+      getPackageDirPathsStub.returns(packageDirs);
       const dirChoice = packageDirs[0];
       const componentChoice = component.fullName;
       showMenuStub.onFirstCall().returns(dirChoice);
