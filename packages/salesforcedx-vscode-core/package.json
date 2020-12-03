@@ -29,7 +29,7 @@
     "@salesforce/core": "2.11.0",
     "@salesforce/salesforcedx-utils-vscode": "50.6.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "1.1.12",
+    "@salesforce/source-deploy-retrieve": "1.1.13",
     "@salesforce/templates": "50.1.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
