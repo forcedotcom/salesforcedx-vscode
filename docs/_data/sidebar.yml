@@ -130,8 +130,12 @@
 - title:
     en: LWC Code Preview
     ja: LWC Code Preview
-  baseUrl: /codepreview/lwccodepreview
+  baseUrl: /codepreview/
   children:
+    - title:
+        en: Overview
+        ja: Overview
+      url: /codepreview/lwccodepreview
     - title:
         en: Set Up LWC Code Preview
         ja: Set Up LWC Code Preview
