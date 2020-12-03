@@ -18,6 +18,10 @@ node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
 node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
 node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
 node_modules/@salesforce/salesforcedx-utils-vscode/out/test/**
+node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/rxjs/src/**
+node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/rxjs/bundles/**
+node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/rxjs/_esm5/**
+node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/rxjs/_esm2015/**
 
 # salesforcedx-sobjects-faux-generator files to ignore
 node_modules/@salesforce/salesforcedx-sobjects-faux-generator/node_modules/**
