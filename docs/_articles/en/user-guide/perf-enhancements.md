@@ -14,7 +14,7 @@ To enable this beta feature:
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 1. Under Salesforce Feature Previews, select Experimental: Deploy Retrieve.
 
-In this beta release, performance enhancements are effective when you run the following commands:
+In this beta release, performance enhancements are in effect when you run the following commands:
 
 - SFDX: Deploy This Source to Org
 - SFDX: Retrieve This Source from Org
