@@ -215,7 +215,6 @@ describe('Source Retrieve Using Library', () => {
 });
 
 describe('Source Retrieve and Open Using Library', () => {
-  // const $$ = testSetup();
   const testData = new MockTestOrgData();
 
   let mockConnection: Connection;
@@ -305,7 +304,6 @@ describe('Source Retrieve and Open Using Library', () => {
     );
     expect(args[2]).to.eql(telemetryProps);
 
-    // expect(getComponentsStub.calledWith(retrievePath)).to.equal(true);
     expect(openTextDocumentStub.called).to.equal(true);
     expect(showTextDocumentStub.called).to.equal(true);
 
