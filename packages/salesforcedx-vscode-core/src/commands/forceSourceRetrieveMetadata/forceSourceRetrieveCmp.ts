@@ -165,8 +165,8 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     const metadataCount = JSON.stringify(createComponentCount(components));
     this.telemetry.addProperty('metadataCount', metadataCount);
 
-    const conn = await workspaceContext.getConnection();
-    const result = await components.retrieve(conn.getUsername()!, output, { merge: true });
+    const connection = await workspaceContext.getConnection();
+    const result = await components.retrieve(connection, output, { merge: true });
 
     if (result.success && this.openAfterRetrieve) {
       const compSet = ComponentSet.fromSource(output);

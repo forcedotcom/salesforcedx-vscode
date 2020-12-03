@@ -145,7 +145,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
         namespace: projectNamespace
       });
     } else {
-      retrieve = components.retrieve(workspaceContext.username!, await SfdxPackageDirectories.getDefaultPackageDir() ?? '', { merge: true });
+      retrieve = components.retrieve(connection, await SfdxPackageDirectories.getDefaultPackageDir() ?? '', { merge: true });
     }
 
     const metadataCount = JSON.stringify(createComponentCount(components));

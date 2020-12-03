@@ -14,11 +14,9 @@ To enable this beta feature:
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 1. Under Salesforce Feature Previews, select Experimental: Deploy Retrieve.
 
-In this beta release, performance enhancements are effective when you run the **SFDX: Deploy This Source to Org** and **SFDX: Retrieve This Source from Org** commands. At this time, the beta enhancements for **SFDX: Retrieve This Source from Org** work with only these metadata types:
+In this beta release, performance enhancements are effective when you run the following commands:
 
-- Apex Class
-- Apex Trigger
-- Visualforce Component
-- Visualforce Page
-- Lightning Web Components
-- Aura Components
+- SFDX: Deploy This Source to Org
+- SFDX: Retrieve This Source from Org
+- SFDX: Retrieve Source in Manifest from Org
+- Retrieve Using the [Org Browser](./en/user-guide/org-browser)

@@ -52,13 +52,13 @@ export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExec
 
   protected async run(response: ContinueResponse<string>): Promise<boolean> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
-    const defaultDir = join(getRootWorkspacePath(), await SfdxPackageDirectories.getDefaultPackageDir() ?? '');
+    const defaultOutput = join(getRootWorkspacePath(), await SfdxPackageDirectories.getDefaultPackageDir() ?? '');
     const components = await ComponentSet.fromManifestFile(response.data, {
       resolve: packageDirs,
       literalWildcard: true
     });
-    const conn = await workspaceContext.getConnection();
-    const result = await components.retrieve(conn.getUsername()!, defaultDir, { merge: true });
+    const connection = await workspaceContext.getConnection();
+    const result = await components.retrieve(connection, defaultOutput, { merge: true });
 
     channelService.appendLine(outputRetrieveTable(result));
 
