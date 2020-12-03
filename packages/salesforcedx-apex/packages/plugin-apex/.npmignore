@@ -12,6 +12,3 @@ tsconfig.json
 
 # Ignore artifacts
 *.tgz
-
-# Ignore apex:test:run code until it is ready for production
-/lib/commands/force/apex/test/*
