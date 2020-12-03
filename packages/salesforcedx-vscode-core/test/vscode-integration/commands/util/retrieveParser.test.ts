@@ -10,8 +10,6 @@ import {
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import {
-  ComponentDiagnostic,
-  ComponentRetrieval,
   RetrieveStatus,
   SourceRetrieveResult
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';

@@ -30,6 +30,7 @@ import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   createComponentCount,
   LibraryCommandletExecutor,
+  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -171,6 +172,8 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
       const compSet = ComponentSet.fromSource(output);
       await this.openResources(this.findResources(Array.from(components)[0], compSet));
     }
+
+    channelService.appendLine(outputRetrieveTable(result));
 
     return result.success;
   }
