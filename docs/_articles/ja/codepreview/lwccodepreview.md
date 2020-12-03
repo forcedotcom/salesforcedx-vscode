@@ -1,6 +1,6 @@
 ---
 title: Code Preview (Generally Available)
-lang: en
+lang: ja
 ---
 
 The Code Preview Server is a Salesforce CLI plug-in that configures and runs a Lightning Web Components-enabled server on your computer. You can develop Lightning web components and see live changes without publishing the components to an org. 
