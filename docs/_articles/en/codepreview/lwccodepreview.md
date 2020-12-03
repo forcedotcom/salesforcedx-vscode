@@ -9,7 +9,7 @@ The Code Preview Server is a Salesforce CLI plug-in that configures and runs a L
 
 The Code Preview server uses the following Salesforce CLI commands.
 
-View the commands from VS Code's command palette by pressing `command` + `shift` + `p`. By typing in "code previewvs," all three commands are visible.
+View the commands from VS Code's command palette by pressing `command` + `shift` + `p`. By typing in "code preview," all three commands are visible.
 
 ![VS Code commands for Code Preview](./images/vscode_codepreview_commands.png)
 
