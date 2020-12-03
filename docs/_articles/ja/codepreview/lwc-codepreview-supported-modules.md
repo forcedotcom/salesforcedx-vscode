@@ -1,6 +1,6 @@
 ---
 title: Supported and Unsupported Modules, Components, and Features
-lang: en
+lang: ja
 ---
 
 You can use most components, `@salesforce` modules, and framework features in Code Preview. There are a few differences to be aware of, which are detailed below.  If you don’t see a module or component listed, you can expect it to work the same as in your org.
