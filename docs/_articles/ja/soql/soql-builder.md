@@ -67,7 +67,7 @@ Split your view to see your query in both SOQL Builder and the text editor.
 1. Right-click the tab, then select one of the Split options.
 1. Right-click on the new tab, select **Reopen Editor With**, then select **Text Editor**.
 
-![Split your screen to see both SOQL Builder and Text Editor](.images/split-panels.gif)
+![Split your screen to see both SOQL Builder and Text Editor](./images/split-panels.gif)
 
 ## Save Query Results
 
