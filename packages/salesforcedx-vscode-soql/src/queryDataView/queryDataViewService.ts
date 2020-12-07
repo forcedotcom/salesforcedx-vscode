@@ -57,7 +57,7 @@ export class QueryDataViewService {
         documentName: getDocumentName(this.document)
       })
       .then(undefined, async (err: string) => {
-        showAndTrackError('data-view-postmessage', err);
+        showAndTrackError('data_view_postmessage', err);
       });
   }
 
@@ -128,7 +128,7 @@ export class QueryDataViewService {
         break;
       default:
         showAndTrackError(
-          'message-type',
+          'data_view_message_type',
           `Dataview unable to handle message type: ${type}`
         );
         break;
@@ -144,7 +144,7 @@ export class QueryDataViewService {
       );
       fileService.save();
     } catch (err) {
-      trackError('data-view-save', err);
+      trackError('data_view_save', err);
     }
   }
 

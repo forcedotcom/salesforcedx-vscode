@@ -53,7 +53,7 @@ describe('Common SOQL Builder Utilities', () => {
 
     expect(telemetryServiceStub.callCount).to.equal(1);
     expect(telemetryServiceStub.getCall(0).args[0]).to.equal(
-      `soql-error-${errorNamespace}`
+      `soql_error_${errorNamespace}`
     );
     expect(telemetryServiceStub.getCall(0).args[1]).to.equal(errorDetails);
     expect(windowErrorMessageStub.callCount).to.equal(1);

@@ -176,16 +176,14 @@ export class SOQLEditorInstance {
       case MessageType.UI_TELEMETRY: {
         const { unsupported, errors } = e.payload as TelemetryModelJson;
         if (errors && errors.length) {
-          trackError('syntax-error', JSON.stringify(e.payload)).catch(err => {
-            channelService.appendLine(
-              `Unable to send telemetry because of ${err}.`
-            );
-          });
+          trackError('syntax_error', JSON.stringify(e.payload)).catch(
+            console.error
+          );
         }
         if (unsupported && unsupported.length) {
-          // no need to duplicate.  unsupported and errors often duplicate
+          // no need to duplicate.  unsupported and errors often both present
           if (!errors || !errors.length) {
-            trackError('syntax-unsupported', JSON.stringify(e.payload)).catch(
+            trackError('syntax_unsupported', JSON.stringify(e.payload)).catch(
               console.error
             );
           }
@@ -225,7 +223,7 @@ export class SOQLEditorInstance {
       default: {
         const message = `message type ${e.type} is not supported`;
         channelService.appendLine(message);
-        trackError('message-handler', message).catch(console.error);
+        trackError('message_handler', message).catch(console.error);
       }
     }
   }
@@ -260,7 +258,7 @@ export class SOQLEditorInstance {
     return withSFConnection(async conn => {
       conn.describeGlobal$((err, describeGlobalResult) => {
         if (err) {
-          showAndTrackError('retrieve-sobjects', err.toString()).catch(
+          showAndTrackError('retrieve_sobjects', err.toString()).catch(
             console.error
           );
         }
@@ -277,7 +275,7 @@ export class SOQLEditorInstance {
     return withSFConnection(async conn => {
       conn.describe$(sobjectName, (err, sobject) => {
         if (err) {
-          showAndTrackError('retrieve-sobject', err.toString()).catch(
+          showAndTrackError('retrieve_sobject', err.toString()).catch(
             console.error
           );
         }

@@ -36,11 +36,11 @@ export function showError(kind: string, err: string): void {
 export async function trackError(kind: string, err: string): Promise<void> {
   try {
     await telemetryService.sendException(
-      `soql-error-${kind.toLocaleLowerCase()}`,
+      `soql_error_${kind.toLocaleLowerCase()}`,
       err
     );
   } catch (err) {
-    channelService.appendLine(`soql-error-telemetry:  ${err.toString()}`);
+    channelService.appendLine(`soql_error_telemetry:  ${err.toString()}`);
   }
 }
 

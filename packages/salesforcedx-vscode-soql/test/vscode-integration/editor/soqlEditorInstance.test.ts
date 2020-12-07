@@ -177,7 +177,7 @@ describe('SoqlEditorInstance should', () => {
     });
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
-      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax-error');
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_error');
     });
   });
 
@@ -189,7 +189,7 @@ describe('SoqlEditorInstance should', () => {
     });
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
-      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax-unsupported');
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_unsupported');
     });
   });
 
@@ -201,7 +201,7 @@ describe('SoqlEditorInstance should', () => {
     });
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
-      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax-error');
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_error');
     });
   });
 });
