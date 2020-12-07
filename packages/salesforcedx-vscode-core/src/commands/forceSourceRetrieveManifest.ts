@@ -8,20 +8,29 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
 } from '../commands/util/postconditionCheckers';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath } from '../util';
 import {
   FilePathGatherer,
+  LibraryCommandletExecutor,
+  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  useBetaDeployRetrieve
 } from './util';
 
 export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
@@ -34,6 +43,26 @@ export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
       .withFlag('--manifest', manifestPath)
       .withLogName('force_source_retrieve_with_manifest')
       .build();
+  }
+}
+
+export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExecutor<string> {
+  protected logName = 'force_source_retrieve_with_manifest_beta';
+  protected executionName = 'Retrieve With Manifest (beta)';
+
+  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+    const defaultOutput = join(getRootWorkspacePath(), await SfdxPackageDirectories.getDefaultPackageDir() ?? '');
+    const components = await ComponentSet.fromManifestFile(response.data, {
+      resolve: packageDirs,
+      literalWildcard: true
+    });
+    const connection = await workspaceContext.getConnection();
+    const result = await components.retrieve(connection, defaultOutput, { merge: true });
+
+    channelService.appendLine(outputRetrieveTable(result));
+
+    return result.success;
   }
 }
 
@@ -71,7 +100,9 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    new ForceSourceRetrieveManifestExecutor(),
+    useBetaDeployRetrieve([]) ?
+      new LibrarySourceRetrieveManifestExecutor() :
+      new ForceSourceRetrieveManifestExecutor(),
     new ConflictDetectionChecker(messages)
   );
   await commandlet.run();
