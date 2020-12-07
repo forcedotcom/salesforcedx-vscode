@@ -15,11 +15,9 @@ import {
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
-  ComponentSet,
-  SourceComponent,
-  WorkingSet
+  ComponentSet
 } from '@salesforce/source-deploy-retrieve';
-import { MetadataMember } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
+import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
@@ -32,6 +30,7 @@ import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   createComponentCount,
   LibraryCommandletExecutor,
+  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -159,34 +158,32 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     const output = path.join(getRootWorkspacePath(), dirPath);
     const comps: LocalComponent[] = response.data;
 
-    const components = comps.map(
-      lc => ({ fullName: lc.fileName, type: lc.type } as MetadataMember)
-    );
-    const ws = WorkingSet.fromComponents(components);
+    const components = new ComponentSet(comps.map(
+      lc => ({ fullName: lc.fileName, type: lc.type })
+    ));
 
-    const metadataCount = JSON.stringify(createComponentCount([...ws]));
+    const metadataCount = JSON.stringify(createComponentCount(components));
     this.telemetry.addProperty('metadataCount', metadataCount);
 
-    const conn = await workspaceContext.getConnection();
-    const result = await ws.retrieve(conn, output, { merge: true });
+    const connection = await workspaceContext.getConnection();
+    const result = await components.retrieve(connection, output, { merge: true });
 
     if (result.success && this.openAfterRetrieve) {
-      const compSet = ws.resolveSourceComponents(output);
-      await this.openResources(this.findResources(components[0], compSet));
+      const compSet = ComponentSet.fromSource(output);
+      await this.openResources(this.findResources(Array.from(components)[0], compSet));
     }
+
+    channelService.appendLine(outputRetrieveTable(result));
 
     return result.success;
   }
 
   private findResources(
-    filter: MetadataMember,
-    compSet?: ComponentSet<SourceComponent>
+    filter: ComponentLike,
+    compSet?: ComponentSet
   ): string[] {
     if (compSet && compSet?.size > 0) {
-      const comps: SourceComponent[] = [...compSet];
-      const oneComp = comps.find(
-        c => c.fullName === filter.fullName && c.type.name === filter.type
-      );
+      const oneComp = compSet.getSourceComponents(filter).next().value;
 
       const filesToOpen = [];
       if (oneComp) {
