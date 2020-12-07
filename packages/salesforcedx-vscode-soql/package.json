@@ -82,7 +82,9 @@
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "prevscode:package": "npm prune --production; npx node-prune",
-    "vscode:package": "vsce package"
+    "vscode:package": "vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
