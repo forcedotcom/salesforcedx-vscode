@@ -129,7 +129,7 @@ export class QueryDataViewService {
       default:
         showAndTrackError(
           'data_view_message_type',
-          `Dataview unable to handle message type: ${type}`
+          `Error: ${type}. This is an unknown error.  Open an issue: https://github.com/forcedotcom/soql-tooling/issues/new/choose.`
         );
         break;
     }

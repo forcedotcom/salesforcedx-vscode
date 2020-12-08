@@ -171,13 +171,15 @@ describe('SoqlEditorInstance should', () => {
 
   it('handles telemetry events and tracks when there are errors', async () => {
     const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
-    instance.sendEvent({
+    const telemetryEvent = {
       type: MessageType.UI_TELEMETRY,
       payload: { errors: 1 }
-    });
+    };
+    instance.sendEvent(telemetryEvent);
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
       expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_error');
+      expect(JSON.parse(trackErrorSpy.getCall(0).args[1]).errors).to.equal(1);
     });
   });
 
@@ -190,6 +192,22 @@ describe('SoqlEditorInstance should', () => {
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
       expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_unsupported');
+    });
+  });
+
+  it('handles telemetry errors and unsupported properties as numbers AND arrays', async () => {
+    const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
+    const telemetryEvent = {
+      type: MessageType.UI_TELEMETRY,
+      payload: { unsupported: ['WHERE 1 = 1'], errors: ['WHERE Pickles'] }
+    };
+    instance.sendEvent(telemetryEvent);
+    return Promise.resolve().then(() => {
+      expect(trackErrorSpy.callCount).to.equal(1);
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_error');
+      expect(trackErrorSpy.getCall(0).args[1]).contains(
+        telemetryEvent.payload.errors[0]
+      );
     });
   });
 

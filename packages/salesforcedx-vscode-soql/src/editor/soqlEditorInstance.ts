@@ -139,8 +139,8 @@ export class SOQLEditorInstance {
         type,
         payload
       })
-      .then(undefined, async (err: string) => {
-        await showAndTrackError(type, err);
+      .then(undefined, (err: string) => {
+        showAndTrackError(type, err);
       });
   }
 
@@ -175,25 +175,31 @@ export class SOQLEditorInstance {
       }
       case MessageType.UI_TELEMETRY: {
         const { unsupported, errors } = e.payload as TelemetryModelJson;
-        if (errors) {
+        const hasErrors = Array.isArray(errors) ? errors.length : errors;
+        const hasUnsupported = Array.isArray(unsupported)
+          ? unsupported.length
+          : unsupported;
+        if (hasErrors) {
           trackError('syntax_error', JSON.stringify(e.payload)).catch(
             console.error
           );
         }
-        if (unsupported) {
+        if (hasUnsupported) {
           // no need to duplicate.  unsupported and errors often both present
-          if (!errors) {
+          if (!hasErrors) {
             trackError('syntax_unsupported', JSON.stringify(e.payload)).catch(
               console.error
             );
           }
-          channelService.appendLine(`This syntax is not yet supported.`);
+          channelService.appendLine(
+            `This syntax is not yet supported in SOQL Builder. Use a text editor.`
+          );
         }
         break;
       }
       case MessageType.SOBJECT_METADATA_REQUEST: {
-        this.retrieveSObject(e.payload as string).catch(async err => {
-          await showAndTrackError(MessageType.SOBJECT_METADATA_REQUEST, err);
+        this.retrieveSObject(e.payload as string).catch(err => {
+          showAndTrackError(MessageType.SOBJECT_METADATA_REQUEST, err);
           channelService.appendLine(
             `An error occurred while handling a request for object metadata for the ${e.payload} object.`
           );
@@ -201,8 +207,8 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.SOBJECTS_REQUEST: {
-        this.retrieveSObjects().catch(async err => {
-          await showAndTrackError(MessageType.SOBJECTS_REQUEST, err);
+        this.retrieveSObjects().catch(err => {
+          showAndTrackError(MessageType.SOBJECTS_REQUEST, err);
           channelService.appendLine(
             `An error occurred while handling a request for object names.`
           );
@@ -210,8 +216,8 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.RUN_SOQL_QUERY: {
-        this.handleRunQuery().catch(async err => {
-          await showAndTrackError(MessageType.RUN_SOQL_QUERY, err);
+        this.handleRunQuery().catch(err => {
+          showAndTrackError(MessageType.RUN_SOQL_QUERY, err);
           channelService.appendLine(
             `An error occurred while running the SOQL query.`
           );
@@ -219,7 +225,7 @@ export class SOQLEditorInstance {
         break;
       }
       default: {
-        const message = `message type ${e.type} is not supported`;
+        const message = `Error: ${e.type}. This is an unknown error.  Open an issue: https://github.com/forcedotcom/soql-tooling/issues/new/choose.`;
         channelService.appendLine(message);
         trackError('message_handler', message).catch(console.error);
       }
