@@ -1,3 +1,13 @@
+# 50.8.0 - December 9, 2020
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Allow deploying with manifest as part of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2787](https://github.com/forcedotcom/salesforcedx-vscode/pull/2787))
+
+- Allow retrieving with manfiest as part of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2785](https://github.com/forcedotcom/salesforcedx-vscode/pull/2785))
+
 # 50.7.0 - December 2, 2020
 
 ## Added
