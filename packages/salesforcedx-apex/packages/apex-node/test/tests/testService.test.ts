@@ -8,8 +8,12 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { SyncTestConfiguration, TestService } from '../../src/tests';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import {
+  SyncTestConfiguration,
+  TestService,
+  OutputDirConfig
+} from '../../src/tests';
 import {
   AsyncTestConfiguration,
   TestLevel,
@@ -38,6 +42,10 @@ import {
   testRunId,
   testStartTime
 } from './testData';
+import { join } from 'path';
+import * as stream from 'stream';
+import * as fs from 'fs';
+import { JUnitReporter, TapReporter } from '../../src';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -761,6 +769,131 @@ describe('Run Apex tests asynchronously', () => {
       expect(mockToolingQuery.calledOnce).to.be.true;
       expect(mockToolingQuery.calledWith(singleQuery)).to.be.true;
       expect(result.length).to.eql(1);
+    });
+  });
+
+  describe('Create Result Files', () => {
+    let createStreamStub: SinonStub;
+    let stringifySpy: SinonSpy;
+    let junitSpy: SinonSpy;
+    let tapSpy: SinonSpy;
+
+    beforeEach(async () => {
+      sandboxStub = createSandbox();
+      sandboxStub.stub(fs, 'existsSync').returns(true);
+      sandboxStub.stub(fs, 'mkdirSync');
+      createStreamStub = sandboxStub.stub(fs, 'createWriteStream');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      createStreamStub.returns(new stream.PassThrough() as any);
+      sandboxStub.stub(fs, 'closeSync');
+      sandboxStub.stub(fs, 'openSync');
+      stringifySpy = sandboxStub.spy(TestService.prototype, 'stringify');
+      junitSpy = sandboxStub.spy(JUnitReporter.prototype, 'format');
+      tapSpy = sandboxStub.spy(TapReporter.prototype, 'format');
+    });
+
+    afterEach(() => {
+      timeStub.restore();
+      sandboxStub.restore();
+    });
+
+    it('should only create test-run-id.txt if no result format nor fileInfos are specified', async () => {
+      const config = {
+        dirPath: 'path/to/directory'
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(testResultData, config);
+
+      expect(
+        createStreamStub.calledWith(join(config.dirPath, 'test-run-id.txt'))
+      ).to.be.true;
+      expect(createStreamStub.callCount).to.eql(1);
+    });
+
+    it('should create the json files if json result format is specified', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        resultFormat: 'json'
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(testResultData, config);
+
+      expect(
+        createStreamStub.calledWith(
+          join(config.dirPath, `test-result-${testRunId}.json`)
+        )
+      ).to.be.true;
+      expect(stringifySpy.calledOnce).to.be.true;
+      expect(createStreamStub.callCount).to.eql(2);
+    });
+
+    it('should create the junit result files if junit result format is specified', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        resultFormat: 'junit'
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(testResultData, config);
+
+      expect(
+        createStreamStub.calledWith(
+          join(config.dirPath, `test-result-${testRunId}-junit.xml`)
+        )
+      ).to.be.true;
+      expect(junitSpy.calledOnce).to.be.true;
+      expect(createStreamStub.callCount).to.eql(2);
+    });
+
+    it('should create the tap result files if result format is specified', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        resultFormat: 'tap'
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(testResultData, config);
+
+      expect(
+        createStreamStub.calledWith(
+          join(config.dirPath, `test-result-${testRunId}-tap.txt`)
+        )
+      ).to.be.true;
+      expect(tapSpy.calledOnce).to.be.true;
+      expect(createStreamStub.callCount).to.eql(2);
+    });
+
+    it('should create any files provided in fileInfos', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        fileInfos: [
+          { filename: `test-result-myFile.json`, content: { summary: {} } }
+        ]
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(testResultData, config);
+
+      expect(
+        createStreamStub.calledWith(
+          join(config.dirPath, `test-result-myFile.json`)
+        )
+      ).to.be.true;
+      expect(stringifySpy.callCount).to.eql(1);
+      expect(createStreamStub.callCount).to.eql(2);
+    });
+
+    it('should create code coverage files if set to true', async () => {
+      const config = {
+        dirPath: 'path/to/directory'
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(testResultData, config, true);
+
+      expect(
+        createStreamStub.calledWith(
+          join(config.dirPath, `test-result-${testRunId}-codecoverage.json`)
+        )
+      ).to.be.true;
+      expect(stringifySpy.callCount).to.eql(1);
+      expect(createStreamStub.callCount).to.eql(2);
     });
   });
 });

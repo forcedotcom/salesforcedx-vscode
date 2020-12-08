@@ -21,12 +21,16 @@ import {
   ApexTestRunResultStatus,
   TestResult,
   ApexCodeCoverage,
-  PerTestCoverage
+  PerTestCoverage,
+  OutputDirConfig
 } from './types';
 import * as util from 'util';
 import { nls } from '../i18n';
 import { StreamingClient } from '../streaming';
 import { formatStartTime, getCurrentTime } from '../utils';
+import { join } from 'path';
+import { JUnitReporter, TapReporter } from '../reporters';
+import { createFiles } from '../utils/fileSystemHandler';
 
 // Tooling API query char limit is 100,000 after v48; REST API limit for uri + headers is 16,348 bytes
 // local testing shows query char limit to be closer to ~12,400
@@ -519,6 +523,76 @@ export class TestService {
     };
   }
 
+  public async writeResultFiles(
+    result: TestResult,
+    outputDirConfig: OutputDirConfig,
+    codeCoverage = false
+  ): Promise<string[]> {
+    const { dirPath, resultFormat, fileInfos } = outputDirConfig;
+    const fileMap: { path: string; content: string }[] = [];
+
+    fileMap.push({
+      path: join(dirPath, 'test-run-id.txt'),
+      content: result.summary.testRunId
+    });
+    switch (resultFormat) {
+      case 'json':
+        fileMap.push({
+          path: join(dirPath, `test-result-${result.summary.testRunId}.json`),
+          content: this.stringify(result)
+        });
+        break;
+      case 'tap':
+        const tapResult = new TapReporter().format(result);
+        fileMap.push({
+          path: join(
+            dirPath,
+            `test-result-${result.summary.testRunId}-tap.txt`
+          ),
+          content: tapResult
+        });
+        break;
+      case 'junit':
+        const junitResult = new JUnitReporter().format(result);
+        fileMap.push({
+          path: join(
+            dirPath,
+            `test-result-${result.summary.testRunId}-junit.xml`
+          ),
+          content: junitResult
+        });
+        break;
+    }
+
+    if (codeCoverage) {
+      const coverageRecords = result.tests.map(record => {
+        return record.perTestCoverage;
+      });
+      fileMap.push({
+        path: join(
+          dirPath,
+          `test-result-${result.summary.testRunId}-codecoverage.json`
+        ),
+        content: this.stringify(coverageRecords)
+      });
+    }
+
+    fileInfos?.forEach(fileInfo => {
+      fileMap.push({
+        path: join(dirPath, fileInfo.filename),
+        content:
+          typeof fileInfo.content !== 'string'
+            ? this.stringify(fileInfo.content)
+            : fileInfo.content
+      });
+    });
+
+    createFiles(fileMap);
+    return fileMap.map(file => {
+      return file.path;
+    });
+  }
+
   private calculatePercentage(dividend: number, divisor: number): string {
     let percentage = '0%';
     if (dividend > 0) {
@@ -530,6 +604,10 @@ export class TestService {
 
   private addIdToQuery(formattedIds: string, id: string): string {
     return formattedIds.length === 0 ? id : `${formattedIds}','${id}`;
+  }
+
+  public stringify(jsonObj: object): string {
+    return JSON.stringify(jsonObj, null, 2);
   }
 
   private getTestRunRequestAction(

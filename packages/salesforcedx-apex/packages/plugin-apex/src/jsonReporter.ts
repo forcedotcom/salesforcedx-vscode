@@ -9,7 +9,12 @@ import {
   ApexTestResultOutcome,
   TestResult
 } from '@salesforce/apex-node/lib/src/tests/types';
-import { AnyJson } from '@salesforce/ts-types';
+
+export type CliJsonFormat = {
+  summary: object;
+  tests: CliTestResult[];
+  coverage?: CliCoverageResult;
+};
 
 type CliTestResult = {
   Id: string;
@@ -67,7 +72,13 @@ const timeProperties = [
 ];
 
 export class JsonReporter {
-  public format(result: TestResult): AnyJson {
+  public format(
+    result: TestResult
+  ): {
+    summary: object;
+    tests: CliTestResult[];
+    coverage?: CliCoverageResult;
+  } {
     return {
       summary: this.formatSummary(result),
       tests: this.formatTestResults(result.tests),
@@ -79,7 +90,7 @@ export class JsonReporter {
     };
   }
 
-  private formatSummary(testResult: TestResult): {} {
+  private formatSummary(testResult: TestResult): object {
     const summary = {};
 
     Object.entries(testResult.summary).forEach(([key, value]) => {

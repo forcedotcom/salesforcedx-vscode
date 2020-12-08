@@ -53,5 +53,6 @@
   "testLevelErr": "When specifying classnames, suitenames, or tests, indicate RunSpecifiedTests as the testlevel",
   "testResultProcessErr": "Encountered an error when processing test results\n%s",
   "apexTestReportFormatHint":
-  "Run \"sfdx force:apex:test:report %s --resultformat <format>\" to retrieve test results in a different format."
+  "Run \"sfdx force:apex:test:report %s --resultformat <format>\" to retrieve test results in a different format.",
+  "outputDirHint": "Test result files written to %s"
 }

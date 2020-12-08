@@ -16,7 +16,7 @@ import { Row, Table } from '@salesforce/apex-node/lib/src/utils';
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Org } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import { JsonReporter } from '../../../../jsonReporter';
+import { CliJsonFormat, JsonReporter } from '../../../../jsonReporter';
 import { buildDescription, logLevels } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
@@ -193,15 +193,55 @@ export default class Run extends SfdxCommand {
         );
       }
 
+      if (this.flags.outputdir) {
+        const jsonOutput = this.logJson(result) as CliJsonFormat;
+        const outputDirConfig = {
+          dirPath: this.flags.outputdir,
+          fileInfos: [
+            {
+              filename: `test-result-${result.summary.testRunId}.json`,
+              content: jsonOutput
+            },
+            ...(jsonOutput.coverage
+              ? [
+                  {
+                    filename: `test-result-codecoverage.json`,
+                    content: jsonOutput.coverage
+                  }
+                ]
+              : [])
+          ],
+          ...(this.flags.resultformat === 'junit' ||
+          this.flags.resultformat === 'tap'
+            ? { resultFormat: this.flags.resultformat }
+            : {})
+        };
+
+        await testService.writeResultFiles(
+          result,
+          outputDirConfig,
+          this.flags.codecoverage
+        );
+      }
+
       switch (this.flags.resultformat) {
         case 'human':
-          this.ux.log(this.formatHuman(result, this.flags.detailedcoverage));
+          const humanOutput = this.formatHuman(
+            result,
+            this.flags.detailedcoverage,
+            this.flags.outputdir
+          );
+
+          this.ux.log(humanOutput);
           break;
         case 'tap':
           this.logTap(result);
           break;
         case 'junit':
           this.logJUnit(result);
+          break;
+        case 'json':
+          this.ux.logJson(this.logJson(result));
           break;
         default:
           const id = result.summary.testRunId;
@@ -211,7 +251,7 @@ export default class Run extends SfdxCommand {
           );
       }
 
-      return this.logJson(result);
+      return this.logJson(result) as AnyJson;
     } catch (e) {
       return Promise.reject(e);
     }
@@ -252,10 +292,12 @@ export default class Run extends SfdxCommand {
 
   public formatHuman(
     testResult: TestResult,
-    detailedCoverage: boolean
+    detailedCoverage: boolean,
+    outputDir: string
   ): string {
-    const tb = new Table();
-
+    if (outputDir) {
+      this.ux.log(messages.getMessage('outputDirHint', [outputDir]));
+    }
     // Summary Table
     const summaryRowArray: Row[] = [
       {
@@ -304,6 +346,7 @@ export default class Run extends SfdxCommand {
         : [])
     ];
 
+    const tb = new Table();
     let tbResult = tb.createTable(
       summaryRowArray,
       [
@@ -484,7 +527,7 @@ export default class Run extends SfdxCommand {
     }
   }
 
-  private logJson(result: TestResult): AnyJson {
+  private logJson(result: TestResult): CliJsonFormat | TestResult {
     try {
       const reporter = new JsonReporter();
       return reporter.format(result);

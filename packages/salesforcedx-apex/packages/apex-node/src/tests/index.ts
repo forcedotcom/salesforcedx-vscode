@@ -6,4 +6,4 @@
  */
 
 export { TestService } from './testService';
-export { SyncTestConfiguration } from './types';
+export { SyncTestConfiguration, OutputDirConfig } from './types';

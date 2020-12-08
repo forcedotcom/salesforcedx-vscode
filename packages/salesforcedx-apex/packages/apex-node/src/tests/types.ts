@@ -49,6 +49,12 @@ export type AsyncTestConfiguration = {
   skipCodeCoverage?: boolean;
 };
 
+export type OutputDirConfig = {
+  dirPath: string;
+  resultFormat?: 'tap' | 'junit' | 'json';
+  fileInfos?: { filename: string; content: string | object }[];
+};
+
 /**
  * array of objects that represent Apex test classes
  */

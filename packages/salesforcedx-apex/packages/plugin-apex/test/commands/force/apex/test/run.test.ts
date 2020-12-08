@@ -14,7 +14,8 @@ import {
   testRunSimple,
   runWithCoverage,
   cliJsonResult,
-  cliWithCoverage
+  cliWithCoverage,
+  jsonResult
 } from './testData';
 
 Messages.importMessagesDirectory(__dirname);
@@ -252,6 +253,31 @@ describe('force:apex:test:run', () => {
       root: __dirname
     })
     .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testInsertRecord',
+      '--resultformat',
+      'json'
+    ])
+    .it(
+      'should return a json result with json result format specified',
+      ctx => {
+        const result = ctx.stdout;
+        expect(result).to.not.be.empty;
+        const resultJSON = JSON.parse(result);
+        expect(resultJSON).to.deep.equal(jsonResult);
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
     .stub(TestService.prototype, 'runTestSynchronous', () => testRunSimple)
     .stdout()
     .command([
@@ -395,6 +421,33 @@ describe('force:apex:test:run', () => {
             testLevel: 'RunSpecifiedTests'
           })
         ).to.be.true;
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '-d',
+      'path/to/dir',
+      '--resultformat',
+      'human'
+    ])
+    .it(
+      'should output correct message when output directory is specified with human result format',
+      ctx => {
+        expect(ctx.stdout).to.contain(
+          messages.getMessage('outputDirHint', ['path/to/dir'])
+        );
       }
     );
 
