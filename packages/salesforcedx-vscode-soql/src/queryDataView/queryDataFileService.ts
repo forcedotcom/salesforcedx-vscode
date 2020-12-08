@@ -86,7 +86,7 @@ export class QueryDataFileService {
     vscode.commands
       .executeCommand('revealInExplorer', vscode.Uri.file(targetPath))
       .then(undefined, async (err: string) => {
-        trackError('data-view-show-file', err);
+        trackError('data_view_show_file', err);
       });
   }
 
