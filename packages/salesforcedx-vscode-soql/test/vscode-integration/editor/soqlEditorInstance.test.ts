@@ -173,7 +173,7 @@ describe('SoqlEditorInstance should', () => {
     const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
     instance.sendEvent({
       type: MessageType.UI_TELEMETRY,
-      payload: { errors: ['an example error'] }
+      payload: { errors: 1 }
     });
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
@@ -185,7 +185,7 @@ describe('SoqlEditorInstance should', () => {
     const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
     instance.sendEvent({
       type: MessageType.UI_TELEMETRY,
-      payload: { unsupported: ['WHERE'] }
+      payload: { unsupported: 1 }
     });
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
@@ -197,7 +197,7 @@ describe('SoqlEditorInstance should', () => {
     const trackErrorSpy = sandbox.spy(commonUtils, 'trackError');
     instance.sendEvent({
       type: MessageType.UI_TELEMETRY,
-      payload: { unsupported: ['WHERE'], errors: ['an example error'] }
+      payload: { unsupported: 1, errors: 1 }
     });
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);

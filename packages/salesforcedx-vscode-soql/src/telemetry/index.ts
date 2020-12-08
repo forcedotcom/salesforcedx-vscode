@@ -33,6 +33,6 @@ export interface TelemetryModelJson extends JsonMap {
   fields: number;
   orderBy: number;
   limit: number;
-  errors: JsonMap[];
-  unsupported: string[];
+  errors: number;
+  unsupported: number;
 }

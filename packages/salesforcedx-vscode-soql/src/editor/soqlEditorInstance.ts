@@ -175,21 +175,19 @@ export class SOQLEditorInstance {
       }
       case MessageType.UI_TELEMETRY: {
         const { unsupported, errors } = e.payload as TelemetryModelJson;
-        if (errors && errors.length) {
+        if (errors) {
           trackError('syntax_error', JSON.stringify(e.payload)).catch(
             console.error
           );
         }
-        if (unsupported && unsupported.length) {
+        if (unsupported) {
           // no need to duplicate.  unsupported and errors often both present
-          if (!errors || !errors.length) {
+          if (!errors) {
             trackError('syntax_unsupported', JSON.stringify(e.payload)).catch(
               console.error
             );
           }
-          channelService.appendLine(
-            `This syntax is not yet supported: ${unsupported.join(', ')}`
-          );
+          channelService.appendLine(`This syntax is not yet supported.`);
         }
         break;
       }
