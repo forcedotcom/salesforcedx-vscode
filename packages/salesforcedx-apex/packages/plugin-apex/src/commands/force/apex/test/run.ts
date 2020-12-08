@@ -62,7 +62,7 @@ export default class Run extends SfdxCommand {
   public static examples = [
     `$ sfdx force:apex:test:run`,
     `$ sfdx force:apex:test:run -n "MyClassTest,MyOtherClassTest" -r human`,
-    `$ sfdx force:apex:test:run -s "MySuite,MyOtherSuite" -c --json`,
+    `$ sfdx force:apex:test:run -s "MySuite,MyOtherSuite" -c -v --json`,
     `$ sfdx force:apex:test:run -t "MyClassTest.testCoolFeature,MyClassTest.testAwesomeFeature,AnotherClassTest,namespace.TheirClassTest.testThis" -r human`,
     `$ sfdx force:apex:test:run -l RunLocalTests -d <path to outputdir> -u me@my.org`
   ];

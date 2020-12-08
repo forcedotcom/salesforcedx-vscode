@@ -1,6 +1,6 @@
 {
   "commandDescription": "invoke Apex tests",
-  "longDescription": "By default, runs all Apex tests in the org’s namespace.\nTo run specific test classes, specify class names or suite names, or set a --testlevel value.\nTo run specific test methods, use --tests.",
+  "longDescription": "Specify which tests to run by using the --classnames, --suites, or --tests parameters. Alternatively, use the --testlevel parameter to run all the tests in your org, local tests, or specified tests.\nTo see code coverage results, use the --codecoverage parameter with --resultformat. The output displays a high-level summary of the test run and the code coverage values for classes in your org. If you specify human-readable result format, use the --detailedcoverage parameter to see detailed coverage results for each test method run.\n\nNOTE: The testRunCoverage value (JSON and JUnit result formats) is a percentage of the covered lines and total lines from all the Apex classes evaluated by the tests in this run.",
   "jsonDescription": "format output as JSON",
   "logLevelDescription": "[default: warn] logging level for this command invocation; logs are stored in $HOME/.sfdx/sfdx.log",
   "logLevelLongDescription": "Permissible values are: trace, debug, info, warn, error, fatal, TRACE, DEBUG, INFO, WARN, ERROR, FATAL",
