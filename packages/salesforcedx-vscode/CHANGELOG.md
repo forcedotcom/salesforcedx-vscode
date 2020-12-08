@@ -1,50 +1,12 @@
-# 50.8.0 - Month DD, YYYY
+# 50.8.0 - December 9, 2020
 
 ## Added
 
-#### docs
-
-- Deploy with manifest in performance beta ([PR #2787](https://github.com/forcedotcom/salesforcedx-vscode/pull/2787))
-
-- Retrieve with manfiest in performance beta ([PR #2785](https://github.com/forcedotcom/salesforcedx-vscode/pull/2785))
-
 #### salesforcedx-vscode-core
 
-- Deploy with manifest in performance beta ([PR #2787](https://github.com/forcedotcom/salesforcedx-vscode/pull/2787))
+- Allow deploying with manifest as part of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2787](https://github.com/forcedotcom/salesforcedx-vscode/pull/2787))
 
-- Retrieve with manfiest in performance beta ([PR #2785](https://github.com/forcedotcom/salesforcedx-vscode/pull/2785))
-
-#### salesforcedx-vscode-soql
-
-- Show api error when running query ([PR #2733](https://github.com/forcedotcom/salesforcedx-vscode/pull/2733))
-
-## Fixed
-
-#### docs
-
-- Update soql-builder.md ([PR #2786](https://github.com/forcedotcom/salesforcedx-vscode/pull/2786))
-
-- Image for opening SOQL Builder ([PR #2753](https://github.com/forcedotcom/salesforcedx-vscode/pull/2753))
-
-- Update beta disclaimer for soql builder docs ([PR #2749](https://github.com/forcedotcom/salesforcedx-vscode/pull/2749))
-
-- Add SOQL Builder to doc site ([PR #2745](https://github.com/forcedotcom/salesforcedx-vscode/pull/2745))
-
-#### salesforcedx-utils-vscode
-
-- Remove core extension as dependency on SOQL extension part 1 ([PR #2743](https://github.com/forcedotcom/salesforcedx-vscode/pull/2743))
-
-#### salesforcedx-vscode-soql
-
-- Remove core extension as dependency on SOQL extension part 1 ([PR #2743](https://github.com/forcedotcom/salesforcedx-vscode/pull/2743))
-
-- Include the readme in the vsix ([PR #2742](https://github.com/forcedotcom/salesforcedx-vscode/pull/2742))
-
-- Parse uri for saved results as file ([PR #2732](https://github.com/forcedotcom/salesforcedx-vscode/pull/2732))
-
-- Jhork/publish soql ([PR #2727](https://github.com/forcedotcom/salesforcedx-vscode/pull/2727))
-
-- Prune and ignore files when packaging vsix ([PR #2695](https://github.com/forcedotcom/salesforcedx-vscode/pull/2695))
+- Allow retrieving with manfiest as part of [Performance Enhancements](https://developer.salesforce.com/tools/vscode/en/user-guide/perf-enhancements) ([PR #2785](https://github.com/forcedotcom/salesforcedx-vscode/pull/2785))
 
 # 50.7.0 - December 2, 2020
 
