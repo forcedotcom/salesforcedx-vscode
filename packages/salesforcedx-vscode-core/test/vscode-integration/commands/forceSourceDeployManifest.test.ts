@@ -19,8 +19,7 @@ import { channelService } from '../../../src/channels';
 
 import { ForceSourceDeployManifestExecutor } from '../../../src/commands';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
-import { LibraryDeployResultParser } from '../../../src/commands/util';
-import { outputDeployTable } from '../../../src/commands/util/libraryDeployResultParser';
+import { createDeployOutput } from '../../../src/commands/util';
 import { workspaceContext } from '../../../src/context';
 
 import { nls } from '../../../src/messages';
@@ -108,7 +107,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       expect(notificationStub.calledOnce).to.equal(true);
       expect(
         channelServiceStub.calledWith(
-          outputDeployTable(deployResult, packageDirs)
+          createDeployOutput(deployResult, packageDirs)
         )
       );
     });
@@ -132,7 +131,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       expect(notificationStub.calledOnce).to.equal(true);
       expect(
         channelServiceStub.calledWith(
-          outputDeployTable(deployResult, packageDirs)
+          createDeployOutput(deployResult, packageDirs)
         )
       );
     });

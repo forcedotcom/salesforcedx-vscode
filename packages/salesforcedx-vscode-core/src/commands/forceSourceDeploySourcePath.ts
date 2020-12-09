@@ -40,9 +40,9 @@ import {
 } from './util';
 import {
   createComponentCount,
+  createDeployOutput,
   useBetaDeployRetrieve
-} from './util/betaDeployRetrieve';
-import { outputDeployTable } from './util/libraryDeployResultParser';
+} from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -154,7 +154,7 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 
       const result = await deploy;
 
-      const outputResult = outputDeployTable(
+      const outputResult = createDeployOutput(
         result,
         await SfdxPackageDirectories.getPackageDirectoryPaths()
       );

@@ -34,7 +34,7 @@ import {
   SfdxWorkspaceChecker,
   useBetaDeployRetrieve
 } from './util';
-import { outputDeployTable } from './util/libraryDeployResultParser';
+import { createDeployOutput } from './util';
 
 export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   public build(manifestPath: string): Command {
@@ -73,7 +73,7 @@ export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecut
       );
       const result = await deployPromise;
 
-      const outputResult = outputDeployTable(result, packageDirs);
+      const outputResult = createDeployOutput(result, packageDirs);
       channelService.appendLine(outputResult);
       BaseDeployExecutor.errorCollection.clear();
 
