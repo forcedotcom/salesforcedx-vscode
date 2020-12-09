@@ -189,7 +189,13 @@ export class FauxClassGenerator {
         err.stack
       );
     }
-    const filteredSObjects = sobjects.filter(this.isRequiredSObject);
+
+    // when run manually does not exclude any object
+    const filteredSObjects =
+      source === SObjectRefreshSource.Manual
+        ? sobjects
+        : sobjects.filter(this.isRequiredSObject);
+
     let j = 0;
     while (j < filteredSObjects.length) {
       try {
@@ -514,17 +520,13 @@ export class FauxClassGenerator {
   ): string {
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort(
-      (first, second): number => {
-        return first.name || first.type > second.name || second.type ? 1 : -1;
-      }
-    );
+    declarations.sort((first, second): number => {
+      return first.name || first.type > second.name || second.type ? 1 : -1;
+    });
 
-    declarations = declarations.filter(
-      (value, index, array): boolean => {
-        return !index || value.name !== array[index - 1].name;
-      }
-    );
+    declarations = declarations.filter((value, index, array): boolean => {
+      return !index || value.name !== array[index - 1].name;
+    });
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
     const declarationLines = declarations
