@@ -1,47 +1,29 @@
-import { AuthInfo, Connection } from '@salesforce/core';
-import { join } from 'path';
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+import { Connection } from '@salesforce/core';
+import { OrgInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '.';
-import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../constants';
-import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, OrgAuthInfo } from '../util';
-
-export interface OrgInfo {
-  username?: string;
-  alias?: string;
-}
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
  */
 export class WorkspaceContext {
-  private static instance?: WorkspaceContext;
-
-  private cliConfigWatcher: vscode.FileSystemWatcher;
-  private sessionConnections: Map<string, Connection>;
-  private onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
-  private _username?: string;
-  private _alias?: string;
+  protected static instance?: WorkspaceContext;
 
   public readonly onOrgChange: vscode.Event<OrgInfo>;
 
-  private constructor() {
-    this.sessionConnections = new Map<string, Connection>();
-    this.onOrgChangeEmitter = new vscode.EventEmitter<OrgInfo>();
-    this.onOrgChange = this.onOrgChangeEmitter.event;
-
-    const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
-    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
-    this.cliConfigWatcher.onDidChange(bindedHandler);
-    this.cliConfigWatcher.onDidCreate(bindedHandler);
-    this.cliConfigWatcher.onDidDelete(bindedHandler);
+  protected constructor() {
+    this.onOrgChange = WorkspaceContextUtil.getInstance().onOrgChange;
+    this.onOrgChange(this.handleCliConfigChange);
   }
 
   public async initialize(context: vscode.ExtensionContext) {
-    context.subscriptions.push(this.cliConfigWatcher, this.onOrgChangeEmitter, this.cliConfigWatcher);
-    await this.handleCliConfigChange();
+    await WorkspaceContextUtil.getInstance().initialize(context);
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {
@@ -52,46 +34,23 @@ export class WorkspaceContext {
   }
 
   public async getConnection(): Promise<Connection> {
-    if (!this._username) {
-      throw new Error(nls.localize('error_no_default_username'));
-    }
-
-    let connection = this.sessionConnections.get(this._username);
-    if (!connection) {
-      connection = await Connection.create({
-        authInfo: await AuthInfo.create({ username: this._username })
-      });
-      this.sessionConnections.set(this._username, connection);
-    }
-
-    return connection;
+    return await WorkspaceContextUtil.getInstance().getConnection();
   }
 
-  private async handleCliConfigChange() {
-    const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-
-    if (usernameOrAlias) {
-      this._username = await OrgAuthInfo.getUsername(usernameOrAlias);
-      this._alias =
-        usernameOrAlias !== this._username ? usernameOrAlias : undefined;
-    } else {
-      this._username = undefined;
-      this._alias = undefined;
-    }
-
-    setupWorkspaceOrgType(this._username).catch(e =>
+  protected async handleCliConfigChange(orgInfo: OrgInfo) {
+    setupWorkspaceOrgType(orgInfo.username).catch(e =>
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-
-    this.onOrgChangeEmitter.fire({ username: this._username, alias: this._alias });
   }
 
   get username(): string | undefined {
-    return this._username;
+    return WorkspaceContextUtil.getInstance().username;
   }
 
   get alias(): string | undefined {
-    return this._alias;
+    return WorkspaceContextUtil.getInstance().alias;
   }
 }
+
+export { OrgInfo };

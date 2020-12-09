@@ -1,4 +1,5 @@
 import { AuthInfo, Connection } from '@salesforce/core';
+import { OrgInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
@@ -20,18 +21,21 @@ class MockFileWatcher implements vscode.Disposable {
     this.watchUri = vscode.Uri.file(fsPath);
   }
 
-  public dispose() {}
+  public dispose() { }
 
-  public onDidChange(f: (uri: vscode.Uri) => void) {
+  public onDidChange(f: (uri: vscode.Uri) => void): vscode.Disposable {
     this.changeSubscribers.push(f);
+    return this;
   }
 
-  public onDidCreate(f: (uri: vscode.Uri) => void) {
+  public onDidCreate(f: (uri: vscode.Uri) => void): vscode.Disposable {
     this.createSubscribers.push(f);
+    return this;
   }
 
-  public onDidDelete(f: (uri: vscode.Uri) => void) {
+  public onDidDelete(f: (uri: vscode.Uri) => void): vscode.Disposable {
     this.deleteSubscribers.push(f);
+    return this;
   }
 
   public async fire(type: 'change' | 'create' | 'delete') {
@@ -53,6 +57,33 @@ class MockFileWatcher implements vscode.Disposable {
       await subscriber(this.watchUri);
     }
   }
+
+  public ignoreCreateEvents = false;
+  public ignoreChangeEvents = false;
+  public ignoreDeleteEvents = false;
+}
+
+class TestWorkspaceContextUtil extends WorkspaceContextUtil {
+  protected static testInstance: TestWorkspaceContextUtil;
+  protected constructor() {
+    super();
+
+    const bindedHandler = () => this.handleCliConfigChange();
+    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
+    this.cliConfigWatcher = new MockFileWatcher(cliConfigPath);
+    this.cliConfigWatcher.onDidChange(bindedHandler);
+    this.cliConfigWatcher.onDidCreate(bindedHandler);
+    this.cliConfigWatcher.onDidDelete(bindedHandler);
+  }
+
+  public static getInstance(forceNew = false) {
+    if (!TestWorkspaceContextUtil.testInstance || forceNew) {
+      TestWorkspaceContextUtil.testInstance = new TestWorkspaceContextUtil();
+    }
+    return TestWorkspaceContextUtil.testInstance;
+  }
+
+  public getFileWatcher(): MockFileWatcher { return this.cliConfigWatcher as MockFileWatcher; }
 }
 
 describe('WorkspaceContext', () => {
@@ -64,28 +95,20 @@ describe('WorkspaceContext', () => {
     SFDX_FOLDER,
     SFDX_CONFIG_FILE
   );
-  let mockFileWatcher: MockFileWatcher;
 
   let orgTypeStub: SinonStub;
-  let getUsernameStub: SinonStub;
-  let getUsernameOrAliasStub: SinonStub;
+  let usernameStub: SinonStub;
+  let aliasStub: SinonStub;
+  let workspaceContextUtil: WorkspaceContextUtil;
   let workspaceContext: WorkspaceContext;
 
   beforeEach(async () => {
-    mockFileWatcher = new MockFileWatcher(cliConfigPath);
-
-    env
-      .stub(vscode.workspace, 'createFileSystemWatcher')
-      .withArgs(cliConfigPath)
-      .returns(mockFileWatcher);
     orgTypeStub = env.stub(wsContext, 'setupWorkspaceOrgType').resolves();
-    getUsernameOrAliasStub = env
-      .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
-      .returns(testAlias);
-    getUsernameStub = env
-      .stub(OrgAuthInfo, 'getUsername')
-      .withArgs(testAlias)
-      .returns(testUser);
+
+    workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
+    env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtil);
+    usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
+    aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
 
     const context = ({
       subscriptions: []
@@ -104,10 +127,10 @@ describe('WorkspaceContext', () => {
   });
 
   it('should update default username and alias upon config change', async () => {
-    getUsernameOrAliasStub.returns(testUser2);
-    getUsernameStub.withArgs(testUser2).returns(testUser2);
+    usernameStub.get(() => testUser2);
+    aliasStub.get(() => undefined);
 
-    await mockFileWatcher.fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(testUser2);
@@ -115,10 +138,10 @@ describe('WorkspaceContext', () => {
   });
 
   it('should update default username and alias to undefined if one is not set', async () => {
-    getUsernameOrAliasStub.returns(undefined);
-    getUsernameStub.returns(undefined);
+    usernameStub.get(() => undefined);
+    aliasStub.get(() => undefined);
 
-    await mockFileWatcher.fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(undefined);
@@ -132,9 +155,9 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await mockFileWatcher.fire('change');
-    await mockFileWatcher.fire('create');
-    await mockFileWatcher.fire('delete');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
 
     expect(someLogic.callCount).to.equal(3);
   });
@@ -143,30 +166,14 @@ describe('WorkspaceContext', () => {
     const mockAuthInfo = { test: 'test' };
     const mockConnection = { authInfo: mockAuthInfo };
 
-    let createConnectionStub: SinonStub;
-
     beforeEach(() => {
-      env
-        .stub(AuthInfo, 'create')
-        .withArgs({ username: testUser })
-        .resolves(mockAuthInfo);
-      createConnectionStub = env
-        .stub(Connection, 'create')
-        .withArgs({ authInfo: mockAuthInfo })
-        .returns(mockConnection);
+      env.stub(workspaceContextUtil, 'getConnection').returns(mockConnection);
     });
 
     it('should return connection for the default org', async () => {
       const connection = await workspaceContext.getConnection();
 
       expect(connection).to.deep.equal(mockConnection);
-    });
-
-    it('should return a cached connection for the default org if there is one', async () => {
-      await workspaceContext.getConnection();
-      await workspaceContext.getConnection();
-
-      expect(createConnectionStub.callCount).to.equal(1);
     });
   });
 });
