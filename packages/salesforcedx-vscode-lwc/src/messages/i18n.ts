@@ -18,7 +18,7 @@
 export const messages = {
   command_failure: '%s failed to run.',
   command_canceled: '%s was canceled.',
-  force_lightning_lwc_start_text: 'SFDX: Start Local Development Server',
+  force_lightning_lwc_start_text: 'SFDX: Start LWC Code Preview Server',
   force_lightning_lwc_start_not_found:
     'To run this command, install the @salesforce/lwc-dev-server plugin. For more info, see [https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev).',
   force_lightning_lwc_start_addr_in_use:
@@ -31,10 +31,10 @@ export const messages = {
     'The local development server exited unexpectedly with code %s.',
   force_lightning_lwc_start_already_running:
     'The local development server is already running.',
-  force_lightning_lwc_stop_text: 'SFDX: Stop Local Development Server',
+  force_lightning_lwc_stop_text: 'SFDX: Stop LWC Code Preview Server',
   force_lightning_lwc_stop_not_running:
     'The local development server is not running.',
-  force_lightning_lwc_stop_in_progress: 'Stopping local development server',
+  force_lightning_lwc_stop_in_progress: 'Stopping LWC Code Preview Server',
   force_lightning_lwc_preview_text: 'SFDX: Preview Component Locally',
   force_lightning_lwc_preview_file_undefined:
     "Can't find the Lightning Web Components module. Check that %s is the correct file path.",
@@ -42,8 +42,7 @@ export const messages = {
     "Can't find the Lightning Web Components module in %s. Check that the module exists.",
   force_lightning_lwc_preview_unsupported:
     "Something's not right with the filepath. The local development server doesn't recognize the Lightning Web Components module '%s.'",
-  force_lightning_lwc_open_text:
-    'SFDX: Open Local Development Server in Browser',
+  force_lightning_lwc_open_text: 'SFDX: Open Code Preview Home',
   prompt_option_open_browser: 'Open Browser',
   prompt_option_restart: 'Restart',
   force_lwc_test_run_description_text: 'Run LWC test(s)',
