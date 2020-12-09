@@ -24,6 +24,9 @@
     "Debuggers"
   ],
   "dependencies": {
+    "@salesforce/apex-node": "0.1.4",
+    "@salesforce/core": "2.11.0",
+    "@salesforce/salesforcedx-utils-vscode": "50.6.0",
     "@salesforce/salesforcedx-apex-replay-debugger": "50.6.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
@@ -110,6 +113,14 @@
         {
           "command": "sfdx.launch.replay.debugger.last.logfile",
           "when": "sfdx:project_opened && !inDebugMode"
+        },
+        {
+          "command": "sfdx.force.test.view.debugTests",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.test.view.debugSingleTest",
+          "when": "false"
         }
       ],
       "view/title": [
@@ -117,6 +128,18 @@
           "command": "sfdx.create.checkpoints",
           "when": "view == sfdx.force.view.checkpoint && sfdx:project_opened",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "sfdx.force.test.view.debugTests",
+          "when": "view == sfdx.force.test.view && viewItem =~ /apexTestGroup/",
+          "group": "inline"
+        },
+        {
+          "command": "sfdx.force.test.view.debugSingleTest",
+          "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
+          "group": "inline"
         }
       ],
       "editor/context": [
@@ -153,6 +176,22 @@
       {
         "command": "sfdx.launch.replay.debugger.last.logfile",
         "title": "%launch_from_last_log_file%"
+      },
+      {
+        "command": "sfdx.force.test.view.debugTests",
+        "title": "%run_tests_and_debug%",
+        "icon": {
+          "light": "resources/light/debug.svg",
+          "dark": "resources/light/debug.svg"
+        }
+      },
+      {
+        "command": "sfdx.force.test.view.debugSingleTest",
+        "title": "%run_single_test_and_debug%",
+        "icon": {
+          "light": "resources/light/debug.svg",
+          "dark": "resources/light/debug.svg"
+        }
       }
     ],
     "views": {
