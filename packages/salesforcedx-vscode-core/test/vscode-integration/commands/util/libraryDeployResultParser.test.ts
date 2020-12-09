@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import {
   ComponentStatus,
   DeployStatus,
@@ -14,26 +15,44 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { LibraryDeployResultParser } from '../../../../src/commands/util';
+import { outputDeployTable } from '../../../../src/commands/util/libraryDeployResultParser';
 import { nls } from '../../../../src/messages';
 
 describe('Deploy Parser', () => {
-  const apexClassPathOne = path.join('classes', 'test.cls');
+  const root = path.join(path.sep, 'path', 'to', 'project');
+  const packageDirs = ['force-app', path.join('test', 'force-app2')];
+  const apexClassPathOne = path.join(packageDirs[0], 'classes', 'test.cls');
   const apexClassXmlPathOne = `${apexClassPathOne}-meta.xml`;
-  const apexClassPathTwo = path.join('classes', 'testTwo.cls');
+  const apexClassPathTwo = path.join(packageDirs[1], 'classes', 'testTwo.cls');
   const apexClassXmlPathTwo = `${apexClassPathTwo}-meta.xml`;
-  const lwcJsPath = path.join('lwc', 'test', 'test.js');
+  const lwcJsPath = path.join(packageDirs[0], 'lwc', 'test', 'test.js');
   const lwcXmlPath = `${lwcJsPath}-meta.xml`;
+  const successColumns = [
+    { key: 'state', label: nls.localize('table_header_state') },
+    { key: 'fullName', label: nls.localize('table_header_full_name') },
+    { key: 'type', label: nls.localize('table_header_type') },
+    {
+      key: 'filePath',
+      label: nls.localize('table_header_project_path')
+    }
+  ];
+  const failureColumns = [
+    {
+      key: 'filePath',
+      label: nls.localize('table_header_project_path')
+    },
+    { key: 'error', label: nls.localize('table_header_errors') }
+  ];
   const apexComponentOne = SourceComponent.createVirtualComponent(
     {
       name: 'test',
       type: registryData.types.apexclass,
-      xml: apexClassXmlPathOne,
-      content: apexClassPathOne
+      xml: path.join(root, apexClassXmlPathOne),
+      content: path.join(root, apexClassPathOne)
     },
     [
       {
-        dirPath: 'classes',
+        dirPath: path.join(root, packageDirs[0], 'classes'),
         children: ['test.cls', 'test.cls-meta.xml']
       }
     ]
@@ -42,12 +61,12 @@ describe('Deploy Parser', () => {
     {
       name: 'test',
       type: registryData.types.apexclass,
-      xml: apexClassXmlPathTwo,
-      content: apexClassPathTwo
+      xml: path.join(root, apexClassXmlPathTwo),
+      content: path.join(root, apexClassPathTwo)
     },
     [
       {
-        dirPath: 'classes',
+        dirPath: path.join(root, packageDirs[1], 'classes'),
         children: ['testTwo.cls', 'testTwo.cls-meta.xml']
       }
     ]
@@ -56,16 +75,16 @@ describe('Deploy Parser', () => {
     {
       name: 'test',
       type: registryData.types.lightningcomponentbundle,
-      xml: lwcXmlPath,
-      content: path.join('lwc', 'test')
+      xml: path.join(root, lwcXmlPath),
+      content: path.join(root, packageDirs[0], 'lwc', 'test')
     },
     [
       {
-        dirPath: 'lwc',
+        dirPath: path.join(root, packageDirs[0], 'lwc'),
         children: ['test']
       },
       {
-        dirPath: path.join('lwc', 'test'),
+        dirPath: path.join(root, packageDirs[0], 'lwc', 'test'),
         children: ['test.js', 'test.js-meta.xml']
       }
     ]
@@ -139,45 +158,12 @@ describe('Deploy Parser', () => {
       }
     ]
   };
-  const failedManagedPkgDeployResult: SourceDeployResult = {
-    success: false,
-    id: '',
-    status: ToolingDeployStatus.Failed,
-    components: [
-      {
-        component: apexComponentOne,
-        status: ComponentStatus.Created,
-        diagnostics: [
-          {
-            filePath: apexClassPathOne,
-            message:
-              'Could not save testAPI, : managed installed classes cannot be saved',
-            type: 'Error'
-          }
-        ]
-      },
-      {
-        component: apexComponentOne,
-        status: ComponentStatus.Failed,
-        diagnostics: [
-          {
-            filePath: apexClassXmlPathOne,
-            message:
-              'Could not save testAPI, : managed installed classes cannot be saved',
-            type: 'Error'
-          }
-        ]
-      }
-    ]
-  };
-
   const queuedDeployResult: SourceDeployResult = {
     id: '',
     status: ToolingDeployStatus.Queued,
     components: [],
     success: true
   };
-
   const errorDeployResult: SourceDeployResult = {
     id: '',
     success: false,
@@ -198,97 +184,125 @@ describe('Deploy Parser', () => {
   };
 
   it('should create a table with successful results', async () => {
-    const parser = new LibraryDeployResultParser(completeApexResult);
-    const { fullName } = apexComponentOne;
+    const { fullName, type } = apexComponentOne;
+    const expectedOutput = new Table().createTable(
+      [
+        {
+          state: 'Changed',
+          fullName,
+          type: type.name,
+          filePath: apexClassPathOne
+        },
+        {
+          state: 'Changed',
+          fullName,
+          type: type.name,
+          filePath: apexClassXmlPathOne
+        }
+      ],
+      successColumns,
+      nls.localize(`table_title_deployed_source`)
+    );
 
-    let mockResult = '=== Deployed Source\n';
-    mockResult += 'STATE    FULL NAME  TYPE       PROJECT PATH             \n';
-    mockResult += '───────  ─────────  ─────────  ─────────────────────────\n';
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathOne}         \n`;
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathOne}\n`;
-
-    const results = parser.resultParser(completeApexResult);
-    expect(results).to.equal(mockResult);
+    const results = outputDeployTable(completeApexResult, packageDirs);
+    expect(results).to.equal(expectedOutput);
   });
 
   it('should create a table with successful results for multiple components', async () => {
-    const parser = new LibraryDeployResultParser(completeApexResult);
-    const { fullName } = apexComponentOne;
-
-    let mockResult = '=== Deployed Source\n';
-    mockResult += 'STATE    FULL NAME  TYPE       PROJECT PATH                ';
-    mockResult +=
-      '\n───────  ─────────  ─────────  ────────────────────────────\n';
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathOne}            \n`;
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathOne}   \n`;
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassPathTwo}         \n`;
-    mockResult += `Changed  ${fullName}       ApexClass  ${apexClassXmlPathTwo}\n`;
-
-    const results = parser.resultParser(multipleCmpResult);
-    expect(results).to.equal(mockResult);
+    const expectedOutput = new Table().createTable(
+      [
+        {
+          state: 'Changed',
+          fullName: apexComponentOne.fullName,
+          type: apexComponentOne.type.name,
+          filePath: apexClassPathOne
+        },
+        {
+          state: 'Changed',
+          fullName: apexComponentOne.fullName,
+          type: apexComponentOne.type.name,
+          filePath: apexClassXmlPathOne
+        },
+        {
+          state: 'Changed',
+          fullName: apexComponentTwo.fullName,
+          type: apexComponentTwo.type.name,
+          filePath: apexClassPathTwo
+        },
+        {
+          state: 'Changed',
+          fullName: apexComponentTwo.fullName,
+          type: apexComponentTwo.type.name,
+          filePath: apexClassXmlPathTwo
+        }
+      ],
+      successColumns,
+      nls.localize(`table_title_deployed_source`)
+    );
+    const results = outputDeployTable(multipleCmpResult, packageDirs);
+    expect(results).to.equal(expectedOutput);
   });
 
-  it('should create a table with successful results for LWC', async () => {
-    const parser = new LibraryDeployResultParser(succeededLwcResult);
-    const { fullName } = lwcComponent;
-
-    let mockResult = '=== Deployed Source\n';
-    mockResult +=
-      'STATE    FULL NAME  TYPE                      PROJECT PATH             \n';
-    mockResult +=
-      '───────  ─────────  ────────────────────────  ─────────────────────────\n';
-    mockResult += `Created  ${fullName}       LightningComponentBundle  ${lwcJsPath}         \n`;
-    mockResult += `Created  ${fullName}       LightningComponentBundle  ${lwcXmlPath}\n`;
-
-    const results = parser.resultParser(succeededLwcResult);
-    expect(results).to.equal(mockResult);
+  it('should create a table with successful results for a bundle type component', async () => {
+    const { fullName, type } = lwcComponent;
+    const expectedOutput = new Table().createTable(
+      [
+        {
+          state: 'Created',
+          fullName,
+          type: type.name,
+          filePath: lwcJsPath
+        },
+        {
+          state: 'Created',
+          fullName,
+          type: type.name,
+          filePath: lwcXmlPath
+        }
+      ],
+      successColumns,
+      nls.localize(`table_title_deployed_source`)
+    );
+    const results = outputDeployTable(succeededLwcResult, packageDirs);
+    expect(results).to.equal(expectedOutput);
   });
 
   it('should create a table with failed results', async () => {
-    const parser = new LibraryDeployResultParser(failedApexResult);
-
-    let errorResult = '=== Deploy Errors\n';
-    errorResult += 'PROJECT PATH      ERRORS                  \n';
-    errorResult += '────────────────  ────────────────────────\n';
-    errorResult += `${apexClassPathOne}  Missing ';' at '}' (4:5)\n`;
-    errorResult += `${apexClassPathOne}  Extra ':' at '}' (7:9)  \n`;
-
-    const results = parser.resultParser(failedApexResult);
-    expect(results).to.equal(errorResult);
+    const expectedOutput = new Table().createTable(
+      [
+        {
+          filePath: apexClassPathOne,
+          error: "Missing ';' at '}' (4:5)"
+        },
+        {
+          filePath: apexClassPathOne,
+          error: "Extra ':' at '}' (7:9)"
+        }
+      ],
+      failureColumns,
+      nls.localize(`table_title_deploy_errors`)
+    );
+    const results = outputDeployTable(failedApexResult, packageDirs);
+    expect(results).to.equal(expectedOutput);
   });
 
-  it('should create a table with failed results for managed package errors', async () => {
-    const parser = new LibraryDeployResultParser(failedManagedPkgDeployResult);
-
-    let errorResult = '=== Deploy Errors\n';
-    errorResult +=
-      'PROJECT PATH               ERRORS                                                             \n';
-    errorResult +=
-      '─────────────────────────  ───────────────────────────────────────────────────────────────────\n';
-    errorResult += `${apexClassPathOne}           Could not save testAPI, : managed installed classes cannot be saved\n`;
-    errorResult += `${apexClassXmlPathOne}  Could not save testAPI, : managed installed classes cannot be saved\n`;
-
-    const results = await parser.resultParser(failedManagedPkgDeployResult);
-    expect(results).to.equal(errorResult);
-  });
-
-  it('should create a table with error results', async () => {
-    const parser = new LibraryDeployResultParser(errorDeployResult);
-
-    let errorResult = '=== Deploy Errors\n';
-    errorResult +=
-      'PROJECT PATH      ERRORS                                 \n';
-    errorResult +=
-      '────────────────  ───────────────────────────────────────\n';
-    errorResult += `${apexClassPathOne}  Unexpected error happened during deploy\n`;
-
-    const results = parser.resultParser(errorDeployResult);
-    expect(results).to.equal(errorResult);
+  it('should create a table with failures that do not have line and column info', async () => {
+    const expectedOutput = new Table().createTable(
+      [
+        {
+          filePath: apexClassPathOne,
+          error: 'Unexpected error happened during deploy'
+        }
+      ],
+      failureColumns,
+      nls.localize(`table_title_deploy_errors`)
+    );
+    const results = outputDeployTable(errorDeployResult, packageDirs);
+    expect(results).to.equal(expectedOutput);
   });
 
   it('should create a table with queued results', async () => {
-    const parser = new LibraryDeployResultParser(queuedDeployResult);
-    const results = await parser.resultParser(queuedDeployResult);
+    const results = outputDeployTable(queuedDeployResult, packageDirs);
     expect(results).to.equal(nls.localize('beta_tapi_queue_status'));
   });
 });

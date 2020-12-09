@@ -7,7 +7,11 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ComponentSet, DeployStatus, SourceDeployResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentSet,
+  DeployStatus,
+  SourceDeployResult
+} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
@@ -16,6 +20,7 @@ import { channelService } from '../../../src/channels';
 import { ForceSourceDeployManifestExecutor } from '../../../src/commands';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
 import { LibraryDeployResultParser } from '../../../src/commands/util';
+import { outputDeployTable } from '../../../src/commands/util/libraryDeployResultParser';
 import { workspaceContext } from '../../../src/context';
 
 import { nls } from '../../../src/messages';
@@ -41,8 +46,14 @@ describe('Force Source Deploy Using Manifest Option', () => {
 
   describe('Library Beta', () => {
     const manifestPath = 'package.xml';
-    const packageDirFullPaths = ['p1', 'p2'].map(p => path.join(getRootWorkspacePath(), p));
-    const mockComponents = new ComponentSet([{ fullName: 'Test', type: 'apexclass'}, {fullName: 'Test2', type: 'layout' }]);
+    const packageDirs = ['p1', 'p2'];
+    // const packageDirFullPaths = packageDirs.map(p =>
+    //   path.join(getRootWorkspacePath(), p)
+    // );
+    const mockComponents = new ComponentSet([
+      { fullName: 'Test', type: 'apexclass' },
+      { fullName: 'Test2', type: 'layout' }
+    ]);
 
     let mockConnection: Connection;
     let deployStub: SinonStub;
@@ -60,14 +71,17 @@ describe('Force Source Deploy Using Manifest Option', () => {
         })
       });
 
-      env.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves(packageDirFullPaths);
+      env
+        .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+        .resolves(packageDirs);
       env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-      env.stub(ComponentSet, 'fromManifestFile')
-        .withArgs(manifestPath, { resolve: packageDirFullPaths })
+      env
+        .stub(ComponentSet, 'fromManifestFile')
+        .withArgs(manifestPath, {
+          resolve: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
+        })
         .returns(mockComponents);
-      deployStub = env
-        .stub(mockComponents, 'deploy')
-        .withArgs(mockConnection);
+      deployStub = env.stub(mockComponents, 'deploy').withArgs(mockConnection);
     });
 
     afterEach(() => {
@@ -83,13 +97,20 @@ describe('Force Source Deploy Using Manifest Option', () => {
         components: []
       };
       deployStub.resolves(deployResult);
-      const notificationStub = env.stub(notificationService, 'showSuccessfulExecution');
+      const notificationStub = env.stub(
+        notificationService,
+        'showSuccessfulExecution'
+      );
       const channelServiceStub = env.stub(channelService, 'appendLine');
 
       await executor.execute({ data: manifestPath, type: 'CONTINUE' });
 
       expect(notificationStub.calledOnce).to.equal(true);
-      expect(channelServiceStub.calledWith(new LibraryDeployResultParser(deployResult).resultParser(deployResult)));
+      expect(
+        channelServiceStub.calledWith(
+          outputDeployTable(deployResult, packageDirs)
+        )
+      );
     });
 
     it('Should correctly report failure', async () => {
@@ -100,13 +121,20 @@ describe('Force Source Deploy Using Manifest Option', () => {
         components: []
       };
       deployStub.resolves(deployResult);
-      const notificationStub = env.stub(notificationService, 'showFailedExecution');
+      const notificationStub = env.stub(
+        notificationService,
+        'showFailedExecution'
+      );
       const channelServiceStub = env.stub(channelService, 'appendLine');
 
       await executor.execute({ data: manifestPath, type: 'CONTINUE' });
 
       expect(notificationStub.calledOnce).to.equal(true);
-      expect(channelServiceStub.calledWith(new LibraryDeployResultParser(deployResult).resultParser(deployResult)));
+      expect(
+        channelServiceStub.calledWith(
+          outputDeployTable(deployResult, packageDirs)
+        )
+      );
     });
   });
 });
