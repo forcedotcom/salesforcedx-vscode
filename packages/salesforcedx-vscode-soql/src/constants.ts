@@ -25,8 +25,7 @@ export const EDITOR_VIEW_TYPE = 'soqlCustom.soql';
 
 /* ==== QUERY DATA VIEW ==== */
 export const QUERY_DATA_VIEW_TYPE = 'queryDataView';
-// export const QUERY_DATA_VIEW_PANEL_TITLE = 'SOQL Query Results'; // TODO: i18n
-export const QUERY_DATA_VIEW_PANEL_TITLE = nls.localize('soql_query_results'); // TODO: i18n
+export const QUERY_DATA_VIEW_PANEL_TITLE = nls.localize('soql_query_results');
 export const QUERY_DATA_VIEW_SCRIPT_FILENAME = 'queryDataViewController.js';
 export const QUERY_DATA_VIEW_STYLE_FILENAME = 'queryDataView.css';
 export const TABULATOR_SCRIPT_FILENAME = 'tabulator.min.js';
