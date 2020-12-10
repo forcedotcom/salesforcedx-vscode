@@ -7,10 +7,10 @@ You can use most components, `@salesforce` modules, and framework features in Co
 
 ## Supported Modules
 
-@salesforce/apex
+**@salesforce/apex**
 : Exposes Apex methods. Use this module to invoke Apex methods. Apex requests are proxied to your scratch org.
 
-@salesforce/label
+**@salesforce/label**
 : Exposes labels in your Salesforce org. The local development server resolves labels from the SFDX project file `force-app/main/default/labels/CustomLabels.labels-meta.xml`. You can configure this value in the `localdevserver.config.json` file. The Code Preview server displays a placeholder for labels that it can't find or that you didn't sync to your local filesystem. The placeholder follows this format: `{unknown label:labelName}`.
 
 These modules are supported.
