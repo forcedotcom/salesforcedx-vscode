@@ -6,4 +6,14 @@
  */
 
 export { TestService } from './testService';
-export { SyncTestConfiguration, OutputDirConfig } from './types';
+export {
+  AsyncTestConfiguration,
+  AsyncTestArrayConfiguration,
+  SyncTestConfiguration,
+  OutputDirConfig,
+  ApexTestResultData,
+  ApexTestResultOutcome,
+  CodeCoverageResult,
+  TestItem,
+  TestResult
+} from './types';

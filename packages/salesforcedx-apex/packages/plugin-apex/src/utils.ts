@@ -10,6 +10,7 @@ import * as chalk from 'chalk';
 export const colorSuccess = chalk.bold.green;
 export const colorError = chalk.bold.red;
 
+export const resultFormat = ['human', 'tap', 'junit', 'json'];
 export const logLevels = [
   'trace',
   'debug',

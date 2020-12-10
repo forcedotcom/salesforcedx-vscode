@@ -8,7 +8,7 @@ import {
   ApexTestResultData,
   ApexTestResultOutcome,
   TestResult
-} from '@salesforce/apex-node/lib/src/tests/types';
+} from '@salesforce/apex-node';
 
 export type CliJsonFormat = {
   summary: object;

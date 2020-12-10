@@ -214,6 +214,20 @@ export class TestService {
     );
   }
 
+  public async reportAsyncResults(
+    testRunId: string,
+    codeCoverage = false
+  ): Promise<TestResult> {
+    const sClient = new StreamingClient(this.connection);
+    const queueResult = await sClient.handler(undefined, testRunId);
+    return await this.formatAsyncResults(
+      queueResult,
+      testRunId,
+      getCurrentTime(),
+      codeCoverage
+    );
+  }
+
   public async formatAsyncResults(
     testQueueResult: ApexTestQueueItem,
     testRunId: string,
