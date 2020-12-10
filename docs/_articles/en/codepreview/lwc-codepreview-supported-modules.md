@@ -6,6 +6,13 @@ lang: en
 You can use most components, `@salesforce` modules, and framework features in Code Preview. There are a few differences to be aware of, which are detailed below.  If you don’t see a module or component listed, you can expect it to work the same as in your org.
 
 ## Supported Modules
+
+@salesforce/apex
+: Exposes Apex methods. Use this module to invoke Apex methods. Apex requests are proxied to your scratch org.
+
+@salesforce/label
+: Exposes labels in your Salesforce org. The local development server resolves labels from the SFDX project file `force-app/main/default/labels/CustomLabels.labels-meta.xml`. You can configure this value in the `localdevserver.config.json` file. The Code Preview server displays a placeholder for labels that it can't find or that you didn't sync to your local filesystem. The placeholder follows this format: `{unknown label:labelName}`.
+
 These modules are supported.
 
 | Module Name             |	Behavior                                                                        |
