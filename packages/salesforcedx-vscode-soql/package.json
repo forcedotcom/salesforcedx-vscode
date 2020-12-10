@@ -121,6 +121,20 @@
         "scopeName": "source.soql",
         "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
       }
-    ]
+    ],
+    "commands": [
+      {
+        "command": "soql.builder.open.new",
+        "title": "SOQL: New Query"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "soql.builder.open.new",
+          "when": "sfdx:project_opened"
+        }
+      ]
+    }
   }
 }
