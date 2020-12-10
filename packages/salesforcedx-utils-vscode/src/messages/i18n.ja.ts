@@ -29,6 +29,9 @@ export const messages = {
   notification_show_button_text: '表示',
   notification_show_in_status_bar_button_text: 'ステータスバーだけに表示',
 
+  error_no_default_username:
+    'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し組織を設定してください。',
+
   channel_name: 'Salesforce CLI',
   channel_starting_message: '開始しています: ',
   channel_end_with_exit_code: 'が終了コード %s で終了しました。',
