@@ -27,7 +27,7 @@ const workspaceContext = sfdxCoreExtension?.exports?.workspaceContext;
 let client: LanguageClient;
 
 export function clearDiagnostics(): void {
-  client.diagnostics?.clear();
+  client?.diagnostics?.clear();
 }
 
 export async function startLanguageClient(
