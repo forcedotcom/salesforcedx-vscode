@@ -5,21 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import { extensions, workspace, WorkspaceFolder } from 'vscode';
-
-const sfdxCoreExtension = extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
-const sfdxCoreExports = sfdxCoreExtension
-  ? sfdxCoreExtension.exports
-  : undefined;
-
-export const {
-  CreateDebugLevel,
-  LibraryCommandletExecutor,
-  notificationService,
-  workspaceContext
-} = sfdxCoreExports;
+import { workspace, WorkspaceFolder } from 'vscode';
 
 export function hasRootWorkspace(ws: typeof workspace = workspace) {
   return ws && ws.workspaceFolders && ws.workspaceFolders.length > 0;

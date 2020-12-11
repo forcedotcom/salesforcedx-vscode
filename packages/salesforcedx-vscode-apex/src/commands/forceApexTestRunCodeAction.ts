@@ -94,6 +94,14 @@ export async function forceApexTestClassRunCodeActionDelegate(
   vscode.commands.executeCommand('sfdx.force.apex.test.class.run', testClass);
 }
 
+export async function forceApexDebugClassRunCodeActionDelegate(
+  testClass: string
+) {
+  vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
+    name: testClass
+  });
+}
+
 // evaluate test class param: if not provided, apply cached value
 // exported for testability
 export async function resolveTestClassParam(
@@ -132,6 +140,13 @@ export async function forceApexTestMethodRunCodeActionDelegate(
   testMethod: string
 ) {
   vscode.commands.executeCommand('sfdx.force.apex.test.method.run', testMethod);
+}
+export async function forceApexDebugMethodRunCodeActionDelegate(
+  testMethod: string
+) {
+  vscode.commands.executeCommand('sfdx.force.test.view.debugSingleTest', {
+    name: testMethod
+  });
 }
 
 // evaluate test method param: if not provided, apply cached value

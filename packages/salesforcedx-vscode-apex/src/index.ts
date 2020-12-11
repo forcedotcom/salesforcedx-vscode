@@ -13,6 +13,8 @@ import { LanguageClient } from 'vscode-languageclient/lib/main';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
   checkSObjectsAndRefresh,
+  forceApexDebugClassRunCodeActionDelegate,
+  forceApexDebugMethodRunCodeActionDelegate,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
@@ -102,7 +104,9 @@ export async function activate(context: vscode.ExtensionContext) {
                 })
               );
             } else {
-              checkSObjectsAndRefresh(vscode.workspace.workspaceFolders![0].uri.fsPath).catch(e =>
+              checkSObjectsAndRefresh(
+                vscode.workspace.workspaceFolders![0].uri.fsPath
+              ).catch(e =>
                 telemetryService.sendErrorEvent({
                   message: e.message,
                   stack: e.stack
@@ -178,6 +182,14 @@ function registerCommands(
     'sfdx.force.apex.test.method.run.delegate',
     forceApexTestMethodRunCodeActionDelegate
   );
+  const forceApexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.debug.class.run.delegate',
+    forceApexDebugClassRunCodeActionDelegate
+  );
+  const forceApexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.debug.method.run.delegate',
+    forceApexDebugMethodRunCodeActionDelegate
+  );
   const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.last.method.run',
     forceApexTestMethodRunCodeAction
@@ -195,6 +207,8 @@ function registerCommands(
     forceApexTestLastClassRunCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,
+    forceApexDebugClassRunDelegateCmd,
+    forceApexDebugMethodRunDelegateCmd,
     forceApexTestLastMethodRunCmd,
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
@@ -263,10 +277,12 @@ async function registerTestView(
 }
 
 export async function getApexClassFiles(): Promise<vscode.Uri[]> {
-  const jsonProject = (await vscode.workspace.findFiles(
-    '**/sfdx-project.json',
-    '**/node_modules/**'
-  ))[0];
+  const jsonProject = (
+    await vscode.workspace.findFiles(
+      '**/sfdx-project.json',
+      '**/node_modules/**'
+    )
+  )[0];
   const innerText = fs.readFileSync(jsonProject.path);
   const jsonObject = JSON.parse(innerText.toString());
   const packageDirectories =

@@ -14,15 +14,20 @@ import {
 import { Connection } from '@salesforce/core';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { nls } from '../messages';
-import {
-  getLogDirPath,
-  LibraryCommandletExecutor,
-  notificationService,
-  workspaceContext
-} from '../utils';
+import { getLogDirPath } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 import { TraceFlags } from './traceFlags';
+
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+
+export const LibraryCommandletExecutor =
+  sfdxCoreExports.LibraryCommandletExecutor;
+export const notificationService = sfdxCoreExports.notificationService;
+export const workspaceContext = sfdxCoreExports.workspaceContext;
 
 interface TestRunResult {
   logFileId?: string;
@@ -121,7 +126,7 @@ export class QuickLaunch {
   }
 }
 
-class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
+export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   protected executionName = nls.localize('debug_test_exec_name');
   protected logName = 'debug_test_replay_debugger';
 
