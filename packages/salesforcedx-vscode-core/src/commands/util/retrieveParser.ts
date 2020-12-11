@@ -4,66 +4,64 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import {
-  RetrieveMessage,
   SourceRetrieveResult
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 
 export function outputRetrieveTable(retrieveResult: SourceRetrieveResult) {
-  if (
-    isNullOrUndefined(retrieveResult.components) ||
-    retrieveResult.components?.length === 0
-  ) {
-    return retrieveResult.messages
-      ? getMessage(retrieveResult.messages)
-      : nls.localize(
-          'lib_retrieve_result_parse_error',
-          JSON.stringify(retrieveResult)
-        );
-  }
-
   let outputResult: string = '';
-  const resultRows = [] as Row[];
-  const messageRows = [] as Row[];
+  const successRows: Row[] = [];
+  const failureRows: Row[] = [];
 
   try {
-    for (const componentRetrieval of retrieveResult.components!) {
-      const { component, diagnostics } = componentRetrieval;
-      const { fullName, type } = component;
-      if (diagnostics) {
-        messageRows.push({
-          fullName,
-          type: diagnostics.type,
-          message: diagnostics.message
-        });
-      } else {
-        for (const file of component.walkContent()) {
-          resultRows.push({
+    for (const success of retrieveResult.successes) {
+      const { component, properties } = success;
+      if (component) {
+        const { fullName, type, xml } = component;
+        for (const fsPath of component.walkContent()) {
+          successRows.push({
             fullName,
             type: type.name,
-            filePath: file
+            filePath: fsPath
           });
         }
-        resultRows.push({
-          fullName,
-          type: type.name,
-          filePath: component.xml || ''
+        if (xml) {
+          successRows.push({
+            fullName,
+            type: type.name,
+            filePath: xml
+          });
+        }
+      } else if (properties) {
+        successRows.push({
+          fullName: properties.fullName.split('/')[0],
+          type: properties.type,
+          filePath: properties.fileName
+        });
+      }
+    }
+
+    for (const failure of retrieveResult.failures) {
+      const { component, message } = failure;
+      if (component) {
+        failureRows.push({
+          fullName: component.fullName,
+          type: 'Error',
+          message
         });
       }
     }
 
     const table = new Table();
-    if (resultRows.length > 0) {
+    if (successRows.length > 0) {
       const successResults = table.createTable(
-        resultRows,
+        successRows,
         [
           { key: 'fullName', label: nls.localize('table_header_full_name') },
           { key: 'type', label: nls.localize('table_header_type') },
@@ -77,9 +75,9 @@ export function outputRetrieveTable(retrieveResult: SourceRetrieveResult) {
       outputResult = outputResult.concat(successResults);
     }
 
-    if (messageRows.length > 0) {
+    if (failureRows.length > 0) {
       const messageResults = table.createTable(
-        messageRows,
+        failureRows,
         [
           { key: 'fullName', label: nls.localize('table_header_full_name') },
           { key: 'type', label: nls.localize('table_header_error_type') },
@@ -100,16 +98,4 @@ export function outputRetrieveTable(retrieveResult: SourceRetrieveResult) {
     );
   }
   return outputResult;
-}
-
-function getMessage(retrieveMessage: string | RetrieveMessage[]): string {
-  if (typeof retrieveMessage === 'string') {
-    return retrieveMessage;
-  }
-
-  let problems = '';
-  for (const messageObj of retrieveMessage) {
-    problems += `${messageObj.problem} `;
-  }
-  return problems;
 }
