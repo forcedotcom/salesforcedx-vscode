@@ -75,23 +75,25 @@ export async function startLanguageClient(
   // Start the client. This will also launch the server
   client.start();
 
-  await client.onReady().then(() => {
-    client.onRequest(RequestTypes.RunQuery, async (queryText: string) => {
-      try {
-        const conn = await workspaceContext.getConnection();
-        const queryData = await new QueryRunner(conn).runQuery(queryText, {
-          showErrors: false
-        });
-        return { result: queryData };
-      } catch (e) {
-        const error = {
+  await client.onReady();
+  client.onRequest(RequestTypes.RunQuery, async (queryText: string) => {
+    try {
+      const conn = await workspaceContext.getConnection();
+      const queryData = await new QueryRunner(conn).runQuery(queryText, {
+        showErrors: false
+      });
+      return { result: queryData };
+    } catch (e) {
+      // NOTE: The return value must be serializable, for JSON-RPC.
+      // Thus we cannot include the exception object as-is
+      return {
+        error: {
           name: e.name,
           errorCode: e.errorCode,
           message: e.message
-        };
-        return { error };
-      }
-    });
+        }
+      };
+    }
   });
 }
 

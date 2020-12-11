@@ -26,7 +26,7 @@ async function sleep(ms: number = 0) {
 }
 
 function waitUntil(predicate: () => boolean) {
-  return new Promise(async resolve => {
+  return new Promise<void>(async resolve => {
     let notFound = true;
     let tries = 5;
     while (notFound || tries-- > 0) {
