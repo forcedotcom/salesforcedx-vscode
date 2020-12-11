@@ -125,7 +125,7 @@
     "commands": [
       {
         "command": "soql.builder.open.new",
-        "title": "SOQL: New Query"
+        "title": "SOQL: Create Query in SOQL Builder"
       }
     ],
     "menus": {
