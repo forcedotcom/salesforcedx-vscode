@@ -15,15 +15,15 @@ export async function soqlOpenNew() {
 
   if (vscode.workspace) {
     // create untitled file
-    const newFileUri = vscode.Uri.file(
-      path.join(vscode.workspace.rootPath!, 'untitled.soql')
-    ).with({ scheme: 'untitled' });
-    await vscode.workspace.openTextDocument(newFileUri);
+    const doc = await vscode.workspace.openTextDocument({
+      language: 'soql',
+      content: ''
+    });
 
     // open with SOQL builder
     vscode.commands.executeCommand(
       'vscode.openWith',
-      newFileUri,
+      doc.uri,
       EDITOR_VIEW_TYPE
     );
   }

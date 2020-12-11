@@ -173,6 +173,29 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
+      "name": "Launch Tests - SOQL - VSCode Integration Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/packages/system-tests/assets/sfdx-simple",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages",
+        "--extensionTestsPath=${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration"
+      ],
+      "stopOnEntry": false,
+      "sourceMaps": true,
+      "smartStep": true,
+      "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
+      "sourceMapPathOverrides": {
+        "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration/*",
+        "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
+        "webpack:///*": "*"
+      },
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "name": "Launch Tests - Apex - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
