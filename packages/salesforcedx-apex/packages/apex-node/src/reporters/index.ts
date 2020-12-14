@@ -7,3 +7,4 @@
 
 export { TapReporter } from './tapReporter';
 export { JUnitReporter } from './junitReporter';
+export { HumanReporter } from './humanReporter';

@@ -12,6 +12,81 @@ const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);
 const localStartTime = `${date.toDateString()} ${date.toLocaleTimeString()}`;
 
+export const coverageResult: TestResult = {
+  summary: {
+    failRate: '0%',
+    testsRan: 2,
+    orgId: '00D3t000001vIruEAE',
+    outcome: 'Completed',
+    passRate: '100%',
+    skipRate: '0%',
+    testStartTime: localStartTime,
+    testExecutionTimeInMs: 5463,
+    testTotalTimeInMs: 5463,
+    commandTimeInMs: 6000,
+    testRunId: '7073t000061uwZI',
+    userId: '0053t000007OxppAAC',
+    username: 'tpo-3',
+    failing: 0,
+    skipped: 0,
+    passing: 2,
+    hostname: 'https://na139.salesforce.com',
+    orgWideCoverage: '85%'
+  },
+  tests: [
+    {
+      id: '07M3t000003bQwqEAE',
+      queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'should_create_account',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000000ivLzAAI',
+        name: 'AccountServiceTest',
+        namespacePrefix: null,
+        fullName: 'AccountServiceTest'
+      },
+      runTime: 86,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AccountServiceTest.should_create_account'
+    },
+    {
+      id: '07M3t000003bQwgEAE',
+      queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: '',
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'testCallout',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000000imbvAAA',
+        name: 'AwesomeCalculatorTest',
+        namespacePrefix: null,
+        fullName: 'AwesomeCalculatorTest'
+      },
+      runTime: 23,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AwesomeCalculatorTest.testCallout'
+    }
+  ],
+  codecoverage: [
+    {
+      apexId: '001917xACG',
+      name: 'ApexTestClass',
+      type: 'ApexClass',
+      numLinesCovered: 8,
+      numLinesUncovered: 2,
+      percentage: '12.5%',
+      coveredLines: [1, 2, 3, 4, 5, 6, 7, 8],
+      uncoveredLines: [9, 10]
+    }
+  ]
+};
+
 export const successResult: TestResult = {
   summary: {
     failRate: '0%',

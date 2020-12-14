@@ -6,6 +6,7 @@
  */
 import {
   JUnitReporter,
+  HumanReporter,
   TapReporter,
   TestService,
   TestResult
@@ -13,11 +14,7 @@ import {
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Org } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import {
-  HumanReporter,
-  JsonReporter,
-  CliJsonFormat
-} from '../../../../reporters';
+import { JsonReporter, CliJsonFormat } from '../../../../reporters';
 import { buildDescription, logLevels, resultFormat } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);

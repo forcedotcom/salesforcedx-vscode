@@ -5,17 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ApexTestResultData,
-  CodeCoverageResult,
-  TestResult,
-  Table,
-  Row
-} from '@salesforce/apex-node';
-import { Messages } from '@salesforce/core';
-
-Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'run');
+import { Row, Table } from '../utils';
+import { ApexTestResultData, CodeCoverageResult, TestResult } from '../tests';
+import { nls } from '../i18n';
 
 export class HumanReporter {
   public format(testResult: TestResult, detailedCoverage: boolean): string {
@@ -39,45 +31,45 @@ export class HumanReporter {
     // Summary Table
     const summaryRowArray: Row[] = [
       {
-        name: messages.getMessage('outcome'),
+        name: nls.localize('outcome'),
         value: testResult.summary.outcome
       },
       {
-        name: messages.getMessage('testsRan'),
+        name: nls.localize('testsRan'),
         value: String(testResult.summary.testsRan)
       },
       {
-        name: messages.getMessage('passRate'),
+        name: nls.localize('passRate'),
         value: testResult.summary.passRate
       },
       {
-        name: messages.getMessage('failRate'),
+        name: nls.localize('failRate'),
         value: testResult.summary.failRate
       },
       {
-        name: messages.getMessage('skipRate'),
+        name: nls.localize('skipRate'),
         value: testResult.summary.skipRate
       },
       {
-        name: messages.getMessage('testRunId'),
+        name: nls.localize('testRunId'),
         value: testResult.summary.testRunId
       },
       {
-        name: messages.getMessage('testExecutionTime'),
+        name: nls.localize('testExecutionTime'),
         value: `${testResult.summary.testExecutionTimeInMs} ms`
       },
       {
-        name: messages.getMessage('orgId'),
+        name: nls.localize('orgId'),
         value: testResult.summary.orgId
       },
       {
-        name: messages.getMessage('username'),
+        name: nls.localize('username'),
         value: testResult.summary.username
       },
       ...(testResult.summary.orgWideCoverage
         ? [
             {
-              name: messages.getMessage('orgWideCoverage'),
+              name: nls.localize('orgWideCoverage'),
               value: String(testResult.summary.orgWideCoverage)
             }
           ]
@@ -89,11 +81,11 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: messages.getMessage('name_col_header')
+          label: nls.localize('name_col_header')
         },
-        { key: 'value', label: messages.getMessage('value_col_header') }
+        { key: 'value', label: nls.localize('value_col_header') }
       ],
-      messages.getMessage('test_summary_header')
+      nls.localize('test_summary_header')
     );
     return summaryTable;
   }
@@ -123,13 +115,13 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: messages.getMessage('test_name_col_header')
+          label: nls.localize('test_name_col_header')
         },
-        { key: 'outcome', label: messages.getMessage('outcome_col_header') },
-        { key: 'msg', label: messages.getMessage('msg_col_header') },
-        { key: 'runtime', label: messages.getMessage('runtime_col_header') }
+        { key: 'outcome', label: nls.localize('outcome_col_header') },
+        { key: 'msg', label: nls.localize('msg_col_header') },
+        { key: 'runtime', label: nls.localize('runtime_col_header') }
       ],
-      messages.getMessage('test_results_header')
+      nls.localize('test_results_header')
     );
     return testResultTable;
   }
@@ -169,26 +161,24 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: messages.getMessage('test_name_col_header')
+          label: nls.localize('test_name_col_header')
         },
         {
           key: 'coveredClassName',
-          label: messages.getMessage('class_tested_header')
+          label: nls.localize('class_tested_header')
         },
         {
           key: 'outcome',
-          label: messages.getMessage('outcome_col_header')
+          label: nls.localize('outcome_col_header')
         },
         {
           key: 'coveredClassPercentage',
-          label: messages.getMessage('percent_col_header')
+          label: nls.localize('percent_col_header')
         },
-        { key: 'msg', label: messages.getMessage('msg_col_header') },
-        { key: 'runtime', label: messages.getMessage('runtime_col_header') }
+        { key: 'msg', label: nls.localize('msg_col_header') },
+        { key: 'runtime', label: nls.localize('runtime_col_header') }
       ],
-      messages.getMessage('detailed_code_cov_header', [
-        testResult.summary.testRunId
-      ])
+      nls.localize('detailed_code_cov_header', [testResult.summary.testRunId])
     );
     return detailedCovTable;
   }
@@ -216,18 +206,18 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: messages.getMessage('classes_col_header')
+          label: nls.localize('classes_col_header')
         },
         {
           key: 'percent',
-          label: messages.getMessage('percent_col_header')
+          label: nls.localize('percent_col_header')
         },
         {
           key: 'uncoveredLines',
-          label: messages.getMessage('uncovered_lines_col_header')
+          label: nls.localize('uncovered_lines_col_header')
         }
       ],
-      messages.getMessage('code_cov_header')
+      nls.localize('code_cov_header')
     );
     return codeCovTable;
   }

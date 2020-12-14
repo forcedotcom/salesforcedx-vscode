@@ -8,6 +8,7 @@ import {
   TapReporter,
   TestService,
   JUnitReporter,
+  HumanReporter,
   AsyncTestConfiguration,
   AsyncTestArrayConfiguration,
   SyncTestConfiguration,
@@ -17,11 +18,7 @@ import {
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Org } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import {
-  CliJsonFormat,
-  JsonReporter,
-  HumanReporter
-} from '../../../../reporters';
+import { CliJsonFormat, JsonReporter } from '../../../../reporters';
 import { buildDescription, logLevels, resultFormat } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
@@ -130,103 +127,101 @@ export default class Run extends SfdxCommand {
   };
 
   public async run(): Promise<AnyJson> {
-    try {
-      await this.validateFlags();
-      const testLevel = this.flags.testlevel
-        ? this.flags.testlevel
-        : 'RunSpecifiedTests';
+    await this.validateFlags();
+    const testLevel = this.flags.testlevel
+      ? this.flags.testlevel
+      : 'RunSpecifiedTests';
 
-      const conn = this.org.getConnection();
-      const testService = new TestService(conn);
-      let result: TestResult;
+    const conn = this.org.getConnection();
+    const testService = new TestService(conn);
+    let result: TestResult;
 
-      if (this.flags.synchronous) {
-        let testOptions: SyncTestConfiguration;
-        if (this.flags.tests) {
-          testOptions = {
-            tests: buildTestItem(this.flags.tests),
-            testLevel
-          };
-
-          const classes = testOptions.tests?.map(testItem => {
-            if (testItem.className) {
-              return testItem.className;
-            }
-          });
-          if (new Set(classes).size !== 1) {
-            return Promise.reject(
-              new Error(messages.getMessage('syncClassErr'))
-            );
-          }
-        } else {
-          const prop = this.flags.classnames
-            .toLowerCase()
-            .startsWith(CLASS_ID_PREFIX)
-            ? 'classId'
-            : 'className';
-          testOptions = {
-            tests: [{ [prop]: this.flags.classnames }],
-            testLevel
-          };
-        }
-
-        result = await testService.runTestSynchronous(
-          testOptions,
-          this.flags.codecoverage
-        );
-      } else {
-        let payload: AsyncTestConfiguration | AsyncTestArrayConfiguration;
-
-        if (this.flags.tests) {
-          payload = {
-            tests: buildTestItem(this.flags.tests),
-            testLevel
-          };
-        } else {
-          payload = {
-            classNames: this.flags.classnames,
-            suiteNames: this.flags.suitenames,
-            testLevel
-          };
-        }
-
-        result = await testService.runTestAsynchronous(
-          payload,
-          this.flags.codecoverage
-        );
-      }
-
-      if (this.flags.outputdir) {
-        const jsonOutput = this.logJson(result) as CliJsonFormat;
-        const outputDirConfig = {
-          dirPath: this.flags.outputdir,
-          fileInfos: [
-            {
-              filename: `test-result-${result.summary.testRunId}.json`,
-              content: jsonOutput
-            },
-            ...(jsonOutput.coverage
-              ? [
-                  {
-                    filename: `test-result-codecoverage.json`,
-                    content: jsonOutput.coverage
-                  }
-                ]
-              : [])
-          ],
-          ...(this.flags.resultformat === 'junit' ||
-          this.flags.resultformat === 'tap'
-            ? { resultFormat: this.flags.resultformat }
-            : {})
+    if (this.flags.synchronous) {
+      let testOptions: SyncTestConfiguration;
+      if (this.flags.tests) {
+        testOptions = {
+          tests: buildTestItem(this.flags.tests),
+          testLevel
         };
 
-        await testService.writeResultFiles(
-          result,
-          outputDirConfig,
-          this.flags.codecoverage
-        );
+        const classes = testOptions.tests?.map(testItem => {
+          if (testItem.className) {
+            return testItem.className;
+          }
+        });
+        if (new Set(classes).size !== 1) {
+          return Promise.reject(new Error(messages.getMessage('syncClassErr')));
+        }
+      } else {
+        const prop = this.flags.classnames
+          .toLowerCase()
+          .startsWith(CLASS_ID_PREFIX)
+          ? 'classId'
+          : 'className';
+        testOptions = {
+          tests: [{ [prop]: this.flags.classnames }],
+          testLevel
+        };
       }
 
+      result = await testService.runTestSynchronous(
+        testOptions,
+        this.flags.codecoverage
+      );
+    } else {
+      let payload: AsyncTestConfiguration | AsyncTestArrayConfiguration;
+
+      if (this.flags.tests) {
+        payload = {
+          tests: buildTestItem(this.flags.tests),
+          testLevel
+        };
+      } else {
+        payload = {
+          classNames: this.flags.classnames,
+          suiteNames: this.flags.suitenames,
+          testLevel
+        };
+      }
+
+      result = await testService.runTestAsynchronous(
+        payload,
+        this.flags.codecoverage
+      );
+    }
+
+    if (this.flags.outputdir) {
+      const jsonOutput = this.logJson(result);
+      const outputDirConfig = {
+        dirPath: this.flags.outputdir,
+        fileInfos: [
+          {
+            filename: `test-result-${result.summary.testRunId}.json`,
+            content: jsonOutput
+          },
+          ...(jsonOutput.coverage
+            ? [
+                {
+                  filename: `test-result-codecoverage.json`,
+                  content: jsonOutput.coverage
+                }
+              ]
+            : [])
+        ],
+        ...(this.flags.resultformat === 'junit' ||
+        this.flags.resultformat === 'tap'
+          ? { resultFormat: this.flags.resultformat }
+          : {})
+      };
+
+      await testService.writeResultFiles(
+        result,
+        outputDirConfig,
+        this.flags.codecoverage
+      );
+    }
+
+    try {
       switch (this.flags.resultformat) {
         case 'human':
           this.logHuman(
@@ -251,11 +246,13 @@ export default class Run extends SfdxCommand {
             messages.getMessage('runTestReportCommand', [id, username])
           );
       }
-
-      return this.logJson(result) as AnyJson;
     } catch (e) {
-      return Promise.reject(e);
+      this.ux.logJson(result);
+      const msg = messages.getMessage('testResultProcessErr', [e]);
+      this.ux.error(msg);
     }
+
+    return this.logJson(result) as AnyJson;
   }
 
   public async validateFlags(): Promise<void> {
@@ -296,44 +293,26 @@ export default class Run extends SfdxCommand {
     detailedCoverage: boolean,
     outputDir: string
   ): void {
-    try {
-      if (outputDir) {
-        this.ux.log(messages.getMessage('outputDirHint', [outputDir]));
-      }
-      const humanReporter = new HumanReporter();
-      const output = humanReporter.format(result, detailedCoverage);
-      this.ux.log(output);
-    } catch (e) {
-      this.ux.logJson(result);
-      const msg = messages.getMessage('testResultProcessErr', [e]);
-      this.ux.error(msg);
+    if (outputDir) {
+      this.ux.log(messages.getMessage('outputDirHint', [outputDir]));
     }
+    const humanReporter = new HumanReporter();
+    const output = humanReporter.format(result, detailedCoverage);
+    this.ux.log(output);
   }
 
   private logTap(result: TestResult): void {
-    try {
-      const reporter = new TapReporter();
-      const hint = this.formatReportHint(result);
-      this.ux.log(reporter.format(result, [hint]));
-    } catch (err) {
-      this.ux.logJson(result);
-      const msg = messages.getMessage('testResultProcessErr', [err]);
-      this.ux.error(msg);
-    }
+    const reporter = new TapReporter();
+    const hint = this.formatReportHint(result);
+    this.ux.log(reporter.format(result, [hint]));
   }
 
   private logJUnit(result: TestResult): void {
-    try {
-      const reporter = new JUnitReporter();
-      this.ux.log(reporter.format(result));
-    } catch (e) {
-      this.ux.logJson(result);
-      const msg = messages.getMessage('testResultProcessErr', [e]);
-      this.ux.error(msg);
-    }
+    const reporter = new JUnitReporter();
+    this.ux.log(reporter.format(result));
   }
 
-  private logJson(result: TestResult): CliJsonFormat | TestResult {
+  private logJson(result: TestResult): CliJsonFormat {
     try {
       const reporter = new JsonReporter();
       return reporter.format(result);
@@ -341,8 +320,8 @@ export default class Run extends SfdxCommand {
       this.ux.logJson(result);
       const msg = messages.getMessage('testResultProcessErr', [e]);
       this.ux.error(msg);
+      throw e;
     }
-    return result;
   }
 
   private formatReportHint(result: TestResult): string {
