@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { startLanguageClient, stopLanguageClient } from './client/client';
-import { soqlOpenNew } from './commands';
+import { soqlBuilderToggle, soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
@@ -20,11 +20,12 @@ export async function activate(
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
 
-  const soqlOpenNewCommand = vscode.commands.registerCommand(
-    'soql.builder.open.new',
-    soqlOpenNew
+  context.subscriptions.push(
+    vscode.commands.registerCommand('soql.builder.open.new', soqlOpenNew)
   );
-  context.subscriptions.push(soqlOpenNewCommand);
+  context.subscriptions.push(
+    vscode.commands.registerCommand('soql.builder.toggle', soqlBuilderToggle)
+  );
 
   await startLanguageClient(context);
   startTelemetry(context, extensionHRStart).catch();

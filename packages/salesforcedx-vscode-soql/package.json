@@ -94,8 +94,8 @@
   "contributes": {
     "customEditors": [
       {
-        "viewType": "%soqlCustom_soql%",
-        "displayName": "SOQL Builder",
+        "viewType": "soqlCustom.soql",
+        "displayName": "%soqlCustom_soql%",
         "selector": [
           {
             "filenamePattern": "*.soql"
@@ -127,6 +127,11 @@
       {
         "command": "soql.builder.open.new",
         "title": "%soql_builder_open_new%"
+      },
+      {
+        "command": "soql.builder.toggle",
+        "title": "%soql_builder_toggle%",
+        "icon": "$(go-to-file)"
       }
     ],
     "menus": {
@@ -134,6 +139,13 @@
         {
           "command": "soql.builder.open.new",
           "when": "sfdx:project_opened"
+        }
+      ],
+      "editor/title": [
+        {
+          "when": "resourceLangId == soql",
+          "command": "soql.builder.toggle",
+          "group": "navigation"
         }
       ]
     }
