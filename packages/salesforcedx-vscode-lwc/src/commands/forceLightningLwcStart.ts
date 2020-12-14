@@ -41,7 +41,8 @@ const commandName = nls.localize(`force_lightning_lwc_start_text`);
 export const enum errorHints {
   SERVER_STARTUP_FALIED = 'Server start up failed',
   ADDRESS_IN_USE = 'EADDRINUSE',
-  INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
+  INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active',
+  LWC_FOLDER_NOT_FOUND = 'No \'lwc\' directory found'
 }
 
 export interface ForceLightningLwcStartOptions {
@@ -147,6 +148,10 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         if (data.toString().includes(errorHints.INACTIVE_SCRATCH_ORG)) {
           this.errorHint = errorHints.INACTIVE_SCRATCH_ORG;
         }
+        if (data.toString().includes('No \'lwc\' directory found')) {
+          errorCode = 135;
+          this.errorHint = errorHints.LWC_FOLDER_NOT_FOUND;
+        }
         if (errorCode !== -1) {
           this.handleErrors(
             cancellationToken,
@@ -207,7 +212,9 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       if (exitCode === 98) {
         message = nls.localize('force_lightning_lwc_start_addr_in_use');
       }
-
+      if (exitCode === 135){
+        message = nls.localize('force_lightning_lwc_start_no_lwc_folder', 'alojamora');
+      }
       showError(new Error(message), logName, commandName);
     } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
       const message = nls.localize(
