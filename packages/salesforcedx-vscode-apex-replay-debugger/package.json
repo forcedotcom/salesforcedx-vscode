@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "50.6.0",
+    "@salesforce/ts-sinon": "1.2.2",
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
@@ -61,7 +62,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests",
+    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
   },
   "activationEvents": [
