@@ -135,7 +135,7 @@ describe('SoqlEditorInstance should', () => {
     expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
   });
 
-  it('does NOT emit if soql statement has NOT changed', async () => {
+  it('muffles the postMessage once if soql statement has NOT changed', async () => {
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
     const aQuery = 'select a,b,c from somewhere';
     instance.sendEvent({
@@ -146,6 +146,12 @@ describe('SoqlEditorInstance should', () => {
     expect(
       postMessageSpy.callCount === 0,
       `postMessageSpy callcount expected 0, but got ${postMessageSpy.callCount}`
+    );
+    instance.updateTextDocument(mockTextDocument, 'select d from somewhere');
+    instance.updateWebview(mockTextDocument);
+    expect(
+      postMessageSpy.callCount === 1,
+      `postMessageSpy callcount expected 1, but got ${postMessageSpy.callCount}`
     );
   });
 
