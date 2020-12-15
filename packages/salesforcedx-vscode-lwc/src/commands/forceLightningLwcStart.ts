@@ -213,7 +213,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         message = nls.localize('force_lightning_lwc_start_addr_in_use');
       }
       if (exitCode === 135){
-        message = nls.localize('force_lightning_lwc_start_no_lwc_folder', 'alojamora');
+        message = nls.localize('force_lightning_lwc_start_no_lwc_folder', 'testPath');
       }
       showError(new Error(message), logName, commandName);
     } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
