@@ -7,14 +7,17 @@
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { TraceFlags } from '../../../src/commands/traceFlags';
+import { nls } from '../../../src/messages';
 
 const $$ = testSetup();
 
 describe('Trace Flags', () => {
   const testData = new MockTestOrgData();
+  const USER_ID = 'abcd';
   let mockConnection: Connection;
   let sb: SinonSandbox;
   let flags: TraceFlags;
@@ -52,7 +55,7 @@ describe('Trace Flags', () => {
 
     queryStub
       .onFirstCall()
-      .resolves({ done: true, totalSize: 1, records: [{ Id: 'abcd' }] });
+      .resolves({ done: true, totalSize: 1, records: [{ Id: USER_ID }] });
     toolingQueryStub.onFirstCall().resolves({
       done: true,
       totalSize: 1,
@@ -78,6 +81,8 @@ describe('Trace Flags', () => {
     expect(ensure).to.equal(true);
     expect(queryStub.callCount, 'Query stub called').to.equal(1);
     expect(toolingQueryStub.callCount, 'Tooling stub called').to.equal(1);
+    const queryArgs = toolingQueryStub.getCall(0).args;
+    expect(queryArgs[0]).to.contain(`TracedEntityId='${USER_ID}'`);
 
     expect(toolingUpdateStub.callCount, 'Tooling update').to.equal(2);
 
@@ -107,7 +112,7 @@ describe('Trace Flags', () => {
 
     queryStub
       .onFirstCall()
-      .resolves({ done: true, totalSize: 1, records: [{ Id: 'abcd' }] });
+      .resolves({ done: true, totalSize: 1, records: [{ Id: USER_ID }] });
     toolingQueryStub.onFirstCall().resolves({
       done: true,
       totalSize: 0,
@@ -135,11 +140,63 @@ describe('Trace Flags', () => {
 
     createArgs = toolingCreateStub.getCall(1).args;
     expect(createArgs[0]).to.equal('TraceFlag');
-    expect(createArgs[1].tracedentityid).to.equal('abcd');
+    expect(createArgs[1].tracedentityid).to.equal(USER_ID);
     expect(createArgs[1].logtype).to.equal('developer_log');
     expect(createArgs[1].debuglevelid).to.equal('aBcDeF');
     expect(createArgs[1].StartDate).to.equal('');
     const expDate = new Date(createArgs[1].ExpirationDate);
     expect(expDate.getTime() - currDate).to.be.greaterThan(60000 * 29);
+  });
+
+  it('should raise error for missing username', async () => {
+    flags = new TraceFlags(mockConnection);
+    sb.stub(mockConnection, 'getUsername').returns(undefined);
+
+    try {
+      await flags.ensureTraceFlags();
+      fail('Expected an error');
+    } catch (err) {
+      expect(err.message).to.equal(nls.localize('error_no_default_username'));
+    }
+  });
+
+  it('should raise error for unknown user', async () => {
+    flags = new TraceFlags(mockConnection);
+    sb.stub(mockConnection, 'query')
+      .onFirstCall()
+      .resolves({ done: true, totalSize: 0, records: [] });
+
+    try {
+      await flags.ensureTraceFlags();
+      fail('Expected an error');
+    } catch (err) {
+      expect(err.message).to.equal(nls.localize('trace_flags_unknown_user'));
+    }
+  });
+
+  it('should raise error on failure to create debug level', async () => {
+    flags = new TraceFlags(mockConnection);
+    queryStub = sb.stub(mockConnection, 'query');
+    toolingCreateStub = sb.stub(mockConnection.tooling, 'create');
+    toolingQueryStub = sb.stub(mockConnection.tooling, 'query');
+
+    queryStub
+      .onFirstCall()
+      .resolves({ done: true, totalSize: 1, records: [{ Id: USER_ID }] });
+    toolingQueryStub.onFirstCall().resolves({
+      done: true,
+      totalSize: 0,
+      records: []
+    });
+    toolingCreateStub.onFirstCall().resolves({ success: false, id: undefined });
+
+    try {
+      await flags.ensureTraceFlags();
+      fail('Expected to raise an error');
+    } catch (err) {
+      expect(err.message).to.equal(
+        nls.localize('trace_flags_failed_to_create_debug_level')
+      );
+    }
   });
 });

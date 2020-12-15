@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as launcher from '../../../src/commands/launchFromLogFile';
 import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { TraceFlags } from '../../../src/commands/traceFlags';
+import { nls } from '../../../src/messages';
 import * as utils from '../../../src/utils';
 
 const coreExports = vscode.extensions.getExtension(
@@ -67,9 +68,9 @@ describe('Quick launch apex tests', () => {
       .returns(true);
     testServiceStub = sb
       .stub(TestService.prototype, 'runTestSynchronous')
-      .returns({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
+      .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
-    logServiceStub = sb.stub(LogService.prototype, 'getLogs').returns({});
+    logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
     const response: ContinueResponse<string[]> = {
@@ -112,9 +113,9 @@ describe('Quick launch apex tests', () => {
       .returns(true);
     testServiceStub = sb
       .stub(TestService.prototype, 'runTestSynchronous')
-      .returns({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
+      .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
-    logServiceStub = sb.stub(LogService.prototype, 'getLogs').returns({});
+    logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
     const response: ContinueResponse<string[]> = {
@@ -157,9 +158,9 @@ describe('Quick launch apex tests', () => {
       .returns(true);
     testServiceStub = sb
       .stub(TestService.prototype, 'runTestSynchronous')
-      .returns({} as TestResult);
+      .resolves({} as TestResult);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
-    logServiceStub = sb.stub(LogService.prototype, 'getLogs').returns({});
+    logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
     const response: ContinueResponse<string[]> = {
@@ -189,6 +190,78 @@ describe('Quick launch apex tests', () => {
     const notificationArgs = notificationServiceStub.getCall(0).args;
     expect(notificationArgs[0]).to.equal(
       "Cannot read property 'length' of undefined"
+    );
+  });
+
+  it('should display an error for a missing test', async () => {
+    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    traceFlagsStub = sb
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
+      .returns(true);
+    testServiceStub = sb
+      .stub(TestService.prototype, 'runTestSynchronous')
+      .resolves({ tests: [] });
+
+    const response: ContinueResponse<string[]> = {
+      type: 'CONTINUE',
+      data: ['MyClass', 'testSomeCode']
+    };
+
+    await testDebuggerExec.execute(response);
+
+    expect(traceFlagsStub.called).to.equal(true);
+    expect(testServiceStub.called).to.equal(true);
+    const { args } = testServiceStub.getCall(0);
+    expect(args[0]).to.eql({
+      tests: [
+        {
+          className: 'MyClass',
+          testMethods: ['testSomeCode']
+        }
+      ],
+      testLevel: 'RunSpecifiedTests'
+    });
+
+    expect(notificationServiceStub.called).to.equal(true);
+    const notificationArgs = notificationServiceStub.getCall(0).args;
+    expect(notificationArgs[0]).to.equal(
+      nls.localize('debug_test_no_results_found')
+    );
+  });
+
+  it('should display an error for a missing log file', async () => {
+    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    traceFlagsStub = sb
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
+      .returns(true);
+    testServiceStub = sb
+      .stub(TestService.prototype, 'runTestSynchronous')
+      .resolves({ tests: [{}] });
+
+    const response: ContinueResponse<string[]> = {
+      type: 'CONTINUE',
+      data: ['MyClass', 'testSomeCode']
+    };
+
+    await testDebuggerExec.execute(response);
+
+    expect(traceFlagsStub.called).to.equal(true);
+    expect(testServiceStub.called).to.equal(true);
+    const { args } = testServiceStub.getCall(0);
+    expect(args[0]).to.eql({
+      tests: [
+        {
+          className: 'MyClass',
+          testMethods: ['testSomeCode']
+        }
+      ],
+      testLevel: 'RunSpecifiedTests'
+    });
+
+    expect(notificationServiceStub.called).to.equal(true);
+    const notificationArgs = notificationServiceStub.getCall(0).args;
+    expect(notificationArgs[0]).to.equal(
+      nls.localize('debug_test_no_debug_log')
     );
   });
 });
