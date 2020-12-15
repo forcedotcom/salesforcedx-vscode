@@ -3,7 +3,7 @@ title: Code Preview (Generally Available)
 lang: en
 ---
 
-The Code Preview Server is a Salesforce CLI plug-in that configures and runs a Lightning Web Components-enabled server on your computer. You can develop Lightning web components and see live changes without publishing the components to an org. 
+The Code Preview Server is a Salesforce CLI plug-in that configures and runs a Lightning Web Components-enabled server on your computer. You can develop Lightning web components and see live changes without publishing the components to an org.
 
 ## Run Code Preview Salesforce CLI Commands in VS Code
 
@@ -25,7 +25,7 @@ This command starts the Code Preview server. If you already started the server f
 This command stops the Code Preview server.
 
 **Preview Lightning Web Components in VS Code**  
-To preview Lightning web components, right-click any line of code in the component's HTML, CSS, or JavaScript files. You can also right-click any of the HTML, CSS, or JavaScript filenames or the component folder. 
+To preview Lightning web components, right-click any line of code in the component's HTML, CSS, or JavaScript files. You can also right-click any of the HTML, CSS, or JavaScript filenames or the component folder.
 
 Preview `c-hello` from the HTML code.
 ![Preview component from HTML.](./images/vscode_preview_component_code.png)
@@ -33,7 +33,7 @@ Preview `c-hello` from the HTML code.
 Preview `c-hello` from the HTML file.
 ![Preview component from file.](./images/vscode_codepreview_file_preview.png)
 
-After you select SFDX: Preview Component Locally, the Command Palette displays a list of preview options. You can choose to preview your component in the desktop browser or in a virtual mobile device (iOS or Android). Mobile previews require additional setup. See ["Set Up Your Dev Environment" in the Lightning Web Components Dev Guide.](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.install_setup_develop)
+After you select SFDX: Preview Component Locally, the Command Palette displays a list of preview options. You can choose to preview your component in the desktop browser or in a virtual mobile device (iOS or Android). Mobile previews require additional setup. See ["Preview Lightning Web Components on Mobile" in the Lightning Web Components Dev Guide.](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.mobile_extensions)
 ![Choose to preview in the desktop browser, an Android emulator, or an iOS simulator.](./images/vscode_codepreview_mobile_options.png)
 
 Here’s the previewed component on the local development server’s desktop browser.
