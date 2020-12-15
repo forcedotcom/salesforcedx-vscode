@@ -142,12 +142,14 @@ describe('SoqlEditorInstance should', () => {
       type: MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
+    // attempt to update webview with unchanged soql statement
     instance.updateWebview(mockTextDocument);
     expect(
       postMessageSpy.callCount === 0,
       `postMessageSpy callcount expected 0, but got ${postMessageSpy.callCount}`
     );
     instance.updateTextDocument(mockTextDocument, 'select d from somewhere');
+    // updated soql statement should post
     instance.updateWebview(mockTextDocument);
     expect(
       postMessageSpy.callCount === 1,
