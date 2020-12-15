@@ -20,7 +20,7 @@ export const messages = {
   command_canceled: '%s was canceled.',
   force_lightning_lwc_start_text: 'SFDX: Start LWC Code Preview Server',
   force_lightning_lwc_start_not_found:
-    'Error: This command requires a plugin. Run \'sfdx plugins:install @salesforce/lwc-dev-server\' from the terminal to install it. For more info, https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.get_started_local_dev.',
+    'Error: This command requires a plugin. Run \'sfdx plugins:install @salesforce/lwc-dev-server\' from the terminal to install it. For more info, https://developer.salesforce.com/tools/vscode/en/codepreview/lwccodepreview.',
   force_lightning_lwc_start_addr_in_use:
     "The local development server can't start because the address is already in use. To fix, try one of these options:\n 1) Stop the local dev server running on any another instance.\n or 2) Change the default port [Configuration for Projects (Optional)](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_local_dev_setup).\n 3) Kill the process running on the specified port.",
   force_lightning_lwc_inactive_scratch_org:
