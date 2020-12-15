@@ -148,8 +148,7 @@ describe('SoqlEditorInstance should', () => {
       postMessageSpy.callCount === 0,
       `postMessageSpy callcount expected 0, but got ${postMessageSpy.callCount}`
     );
-    instance.updateTextDocument(mockTextDocument, 'select d from somewhere');
-    // updated soql statement should post
+    // a second update with the same statement will send
     instance.updateWebview(mockTextDocument);
     expect(
       postMessageSpy.callCount === 1,
