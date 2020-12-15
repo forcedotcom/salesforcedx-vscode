@@ -141,8 +141,8 @@
         ja: Set Up LWC Code Preview
       url: /codepreview/set-up-lwc-code-preview
     - title:
-        en: Supported and Unsupported Modules, Components, and Features
-        ja: Supported and Unsupported Modules, Components, and Features
+        en: What's Supported?
+        ja: What's Supported?
       url: /codepreview/lwc-codepreview-supported-modules
 - title:
     en: Visualforce
