@@ -138,7 +138,7 @@ export class SOQLEditorInstance {
       // The automated onDocumentChangeHandler fires unnecessarily
       // when we manually update the soql statement in the document
       // this introduced a 'cache once' and muffles the unnecessary postMessage
-      // For more infor, see section "From TextDocument to webviews"
+      // For more info, see section "From TextDocument to webviews"
       // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
       this.lastIncomingSoqlStatement = '';
     }
