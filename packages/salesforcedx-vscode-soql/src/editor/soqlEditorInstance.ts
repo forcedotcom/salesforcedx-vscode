@@ -94,6 +94,7 @@ class ConnectionChangedListener {
 export class SOQLEditorInstance {
   // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
+  protected lastIncomingSoqlStatement = '';
 
   // Notify soqlEditorProvider when destroyed
   protected disposedCallback:
@@ -127,10 +128,13 @@ export class SOQLEditorInstance {
   }
 
   protected updateWebview(document: vscode.TextDocument): void {
-    this.webviewPanel.webview.postMessage({
-      type: MessageType.TEXT_SOQL_CHANGED,
-      payload: document.getText()
-    });
+    const newSoqlStatement = document.getText();
+    if (this.lastIncomingSoqlStatement !== newSoqlStatement) {
+      this.webviewPanel.webview.postMessage({
+        type: MessageType.TEXT_SOQL_CHANGED,
+        payload: newSoqlStatement
+      });
+    }
   }
 
   protected updateSObjects(sobjectNames: string[]): void {
@@ -161,6 +165,7 @@ export class SOQLEditorInstance {
       }
       case MessageType.UI_SOQL_CHANGED: {
         const soql = e.payload as string;
+        this.lastIncomingSoqlStatement = soql;
         this.updateTextDocument(this.document, soql);
         break;
       }
