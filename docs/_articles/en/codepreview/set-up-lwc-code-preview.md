@@ -20,11 +20,11 @@ After you select **SFDX: Preview Component**, the Command Palette displays a lis
 ## Recommended Settings
 
 **Disable Browser Cache**  
-If you would like to see changes made to your static resources in real time, please disable the web browser cache when working with LWC Code Preview.
+To see changes made to your static resources in real time, disable the web browser cache when working with LWC Code Preview.
 
-For some examples of how to disable the web browser cache, please see...
+For some examples of how to disable the web browser cache, see:
 
 - Chrome: https://www.technipages.com/google-chrome-how-to-completely-disable-cache
 - Safari: https://www.technipages.com/apple-safari-completely-disable-cache
 
-Another work around is to make changes to one of the .js or .html files within your component, which will recompile and cache your new static resources to the browser.
+Another workaround is to make changes to one of the `.js` or `.html` files within your component, which recompiles and caches your new static resources to the browser.
