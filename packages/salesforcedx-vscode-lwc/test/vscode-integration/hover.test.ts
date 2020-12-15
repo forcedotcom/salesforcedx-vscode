@@ -34,6 +34,7 @@ describe('LWC Hovers', () => {
       path.join(lwcDir, 'hello', 'hello.html')
     );
     const editor = await window.showTextDocument(doc);
+    console.log(editor.document.getText());
 
     // hover over the 'lightning-card' tag
     const position = new Position(1, 14);
