@@ -326,7 +326,11 @@ export const jsonWithCoverage = {
         coveredPercent: 20,
         id: '01pxx00000NWwb3AAF',
         lines: {
-          0: 1
+          1: 1,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0
         },
         name: 'testClass',
         totalCovered: 1,

@@ -203,7 +203,7 @@ export default class Run extends SfdxCommand {
             ? [
                 {
                   filename: `test-result-codecoverage.json`,
-                  content: jsonOutput.coverage
+                  content: jsonOutput.coverage.coverage
                 }
               ]
             : [])
