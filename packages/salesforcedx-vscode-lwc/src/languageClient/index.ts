@@ -69,7 +69,6 @@ export function createLanguageClient(serverPath: string): LanguageClient {
     }
   };
 
-  // Create the language client and start the client.
   return new LanguageClient(
     'lwcLanguageServer',
     'LWC Language Server',
