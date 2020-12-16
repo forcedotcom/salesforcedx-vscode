@@ -17,3 +17,15 @@ node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
 node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
 node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
 node_modules/@salesforce/salesforcedx-utils-vscode/out/test/**
+
+# ignore unused jsforce code
+node_modules/jsforce/test/**
+node_modules/jsforce/build/**
+
+# ignore unused sfdx-faye code
+node_modules/sfdx-faye/examples/**
+node_modules/sfdx-faye/site/**
+node_modules/sfdx-faye/spec/**
+
+# ignore unused dayjs code
+node_modules/dayjs/esm/**
