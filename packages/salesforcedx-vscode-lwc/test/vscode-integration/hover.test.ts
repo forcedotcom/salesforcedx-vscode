@@ -29,7 +29,11 @@ describe('LWC Hovers', () => {
 
   let client: LanguageClient;
 
-  before(() => {
+  before(async function() {
+    this.timeout(5000);
+    // creating a new client so that we can wait on its ready status before the
+    // tests begin. set the timeout at the suite level to give the client some time
+    // to get ready
     client = createLanguageClient(
       path.join(
         __dirname,
@@ -44,6 +48,7 @@ describe('LWC Hovers', () => {
       )
     );
     client.start();
+    await client.onReady();
   });
 
   afterEach(async () => {
@@ -53,7 +58,6 @@ describe('LWC Hovers', () => {
   after(() => client.stop());
 
   it('Should provide additional details when hovering over a LWC tag', async () => {
-    await client.onReady();
     const doc = await workspace.openTextDocument(
       path.join(lwcDir, 'hello', 'hello.html')
     );
@@ -77,10 +81,9 @@ describe('LWC Hovers', () => {
 
     expect(content!.value).to.include('Attributes');
     expect(content!.value).to.include('View in Component Library');
-  }).timeout(5000);
+  });
 
   it('Should provide additional details when hovering over a LWC attribute', async () => {
-    await client.onReady();
     const doc = await workspace.openTextDocument(
       path.join(lwcDir, 'hello', 'hello.html')
     );
