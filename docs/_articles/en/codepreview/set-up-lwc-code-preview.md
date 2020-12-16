@@ -28,3 +28,5 @@ For some examples of how to disable the web browser cache, see:
 - Safari: https://www.technipages.com/apple-safari-completely-disable-cache
 
 Another workaround is to make changes to one of the `.js` or `.html` files within your component, which recompiles and caches your new static resources to the browser.
+
+> **Warning:** Disabling the browser cache may cause slowness for other websites and services. It is advisable to recheck this cache setting when no longer working within LWC Code Preview.
