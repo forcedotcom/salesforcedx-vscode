@@ -182,15 +182,23 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.RUN_SOQL_QUERY: {
-        this.handleRunQuery().catch(() => {
-          channelService.appendLine(
-            `An error occurred while running the SOQL query.`
-          );
-        }).finally(() => {
-          this.webviewPanel.webview.postMessage({
-            type: MessageType.RUN_SOQL_QUERY_DONE
+        vscode.window
+          .withProgress(
+            {
+              cancellable: false,
+              location: vscode.ProgressLocation.Notification,
+              title: 'Running query'
+            },
+            () => {
+              return this.handleRunQuery();
+            }
+          )
+          .then(undefined, () => {
+            channelService.appendLine(
+              `An error occurred while running the SOQL query.`
+            );
+            this.runQueryDone();
           });
-        });
         break;
       }
       default: {
@@ -206,6 +214,7 @@ export class SOQLEditorInstance {
       const message = `No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.`;
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
+      this.runQueryDone();
       return Promise.resolve();
     }
 
@@ -213,6 +222,13 @@ export class SOQLEditorInstance {
     return withSFConnection(async conn => {
       const queryData = await new QueryRunner(conn).runQuery(queryText);
       this.openQueryDataView(queryData);
+      this.runQueryDone();
+    });
+  }
+
+  protected runQueryDone(): void {
+    this.webviewPanel.webview.postMessage({
+      type: MessageType.RUN_SOQL_QUERY_DONE
     });
   }
 
