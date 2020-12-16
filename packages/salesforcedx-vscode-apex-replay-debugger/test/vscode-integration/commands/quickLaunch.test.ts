@@ -11,6 +11,7 @@ import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import * as launcher from '../../../src/commands/launchFromLogFile';
@@ -102,7 +103,7 @@ describe('Quick launch apex tests', () => {
 
     expect(launcherStub.called).to.equal(true);
     const launcherArgs = launcherStub.getCall(0).args;
-    expect(launcherArgs[0]).to.equal('logs/abcd.log');
+    expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
     expect(launcherArgs[1]).to.equal(false);
   });
 
@@ -147,7 +148,7 @@ describe('Quick launch apex tests', () => {
 
     expect(launcherStub.called).to.equal(true);
     const launcherArgs = launcherStub.getCall(0).args;
-    expect(launcherArgs[0]).to.equal('logs/abcd.log');
+    expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
     expect(launcherArgs[1]).to.equal(false);
   });
 
