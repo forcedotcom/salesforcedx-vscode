@@ -42,7 +42,8 @@ export enum MessageType {
   SOBJECTS_RESPONSE = 'sobjects_response',
   TEXT_SOQL_CHANGED = 'text_soql_changed',
   RUN_SOQL_QUERY = 'run_query',
-  CONNECTION_CHANGED = 'connection_changed'
+  CONNECTION_CHANGED = 'connection_changed',
+  RUN_SOQL_QUERY_DONE = 'run_query_done'
 }
 
 async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
@@ -185,6 +186,10 @@ export class SOQLEditorInstance {
           channelService.appendLine(
             `An error occurred while running the SOQL query.`
           );
+        }).finally(() => {
+          this.webviewPanel.webview.postMessage({
+            type: MessageType.RUN_SOQL_QUERY_DONE
+          });
         });
         break;
       }
