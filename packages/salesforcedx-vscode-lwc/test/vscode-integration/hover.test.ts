@@ -15,6 +15,8 @@ import {
   window,
   workspace
 } from 'vscode';
+import { LanguageClient } from 'vscode-languageclient';
+import { createLanguageClient } from '../../src/languageClient';
 
 describe('LWC Hovers', () => {
   let lwcDir = path.join(
@@ -25,16 +27,37 @@ describe('LWC Hovers', () => {
     'lwc'
   );
 
+  let client: LanguageClient;
+
+  before(() => {
+    client = createLanguageClient(
+      path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'node_modules',
+        '@salesforce',
+        'lwc-language-server',
+        'lib',
+        'server.js'
+      )
+    );
+    client.start();
+  });
+
   afterEach(async () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
 
+  after(() => client.stop());
+
   it('Should provide additional details when hovering over a LWC tag', async () => {
+    await client.onReady();
     const doc = await workspace.openTextDocument(
       path.join(lwcDir, 'hello', 'hello.html')
     );
     const editor = await window.showTextDocument(doc);
-    console.log(editor.document.getText());
 
     // hover over the 'lightning-card' tag
     const position = new Position(1, 14);
@@ -57,6 +80,7 @@ describe('LWC Hovers', () => {
   }).timeout(5000);
 
   it('Should provide additional details when hovering over a LWC attribute', async () => {
+    await client.onReady();
     const doc = await workspace.openTextDocument(
       path.join(lwcDir, 'hello', 'hello.html')
     );
