@@ -133,7 +133,7 @@ describe('Test View with namespace', () => {
       testOutline = new ApexTestOutlineProvider(
         apexNamespacedTestInfo.slice(0, 1)
       );
-      testOutline.readJSONFile('oneFilePass');
+      testOutline.updateTestResults('oneFilePass');
       const testGroupNode = testOutline.getHead()
         .children[0] as ApexTestGroupNode;
       expect(testGroupNode.passing).to.equal(1);
@@ -146,7 +146,7 @@ describe('Test View with namespace', () => {
         return jsonMultipleNSFiles;
       });
       testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       let classNum = 0;
       expect(testOutline.getHead().children.length).to.equal(4);
       for (const testGroupNode of testOutline.getHead().children) {
@@ -203,7 +203,7 @@ describe('Test View with namespace', () => {
       showTextDocumentStub.returns(Promise.resolve());
 
       testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       testRunner = new ApexTestRunner(testOutline, eventEmitter);
     });
 

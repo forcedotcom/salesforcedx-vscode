@@ -22,7 +22,7 @@ describe('Force Apex Test Run - Code Action', () => {
     const testClass = 'MyTests';
     const outputToJson = 'outputToJson';
     const builder = new ForceApexTestRunCodeActionExecutor(
-      testClass,
+      [testClass],
       false,
       outputToJson
     );
@@ -40,7 +40,7 @@ describe('Force Apex Test Run - Code Action', () => {
     const testClass = 'MyTests';
     const outputToJson = 'outputToJson';
     const builder = new ForceApexTestRunCodeActionExecutor(
-      testClass,
+      [testClass],
       true,
       outputToJson
     );
@@ -58,7 +58,7 @@ describe('Force Apex Test Run - Code Action', () => {
     const testMethod = 'MyTests.testMe';
     const outputToJson = 'outputToJson';
     const builder = new ForceApexTestRunCodeActionExecutor(
-      testMethod,
+      [testMethod],
       false,
       outputToJson
     );
@@ -76,7 +76,7 @@ describe('Force Apex Test Run - Code Action', () => {
     const testMethod = 'MyTests.testMe';
     const outputToJson = 'outputToJson';
     const builder = new ForceApexTestRunCodeActionExecutor(
-      testMethod,
+      [testMethod],
       true,
       outputToJson
     );

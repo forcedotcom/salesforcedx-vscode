@@ -4,12 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { TestItem, TestService } from '@salesforce/apex-node';
+import { TestLevel } from '@salesforce/apex-node/lib/src/tests/types';
 import {
   Command,
   SfdxCommandBuilder,
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  workspaceContext
+} from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
@@ -23,21 +27,65 @@ const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const notificationService = sfdxCoreExports.notificationService;
+const LibraryCommandletExecutor = sfdxCoreExports.LibraryCommandletExecutor;
+
+export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{ outputDir: string, tests: string[], codeCoverage: boolean }> {
+  private tests: string[];
+  private codeCoverage: boolean = false;
+  private outputDir: string;
+  protected executionName = 'Run Apex Tests';
+  protected logName = 'force_apex_execute_library';
+
+  public static diagnostics = vscode.languages.createDiagnosticCollection(
+    'apex-errors'
+  );
+
+  constructor(tests: string[], outputDir: string, codeCoverage: boolean) {
+    super();
+    this.tests = tests;
+    this.outputDir = outputDir;
+    this.codeCoverage = codeCoverage;
+  }
+
+  private buildTestItem(testNames: string[]): TestItem[] {
+    const tItems = testNames.map(item => {
+      if (item.indexOf('.') > 0) {
+        const splitItemData = item.split('.');
+        return {
+          className: splitItemData[0],
+          testMethods: [splitItemData[1]]
+        } as TestItem;
+      }
+
+      return { className: item } as TestItem;
+    });
+    return tItems;
+  }
+
+  protected async run(): Promise<boolean> {
+    const connection = await workspaceContext.getConnection();
+    const testService = new TestService(connection);
+    const result = await testService.runTestAsynchronous({ tests: this.buildTestItem(this.tests), testLevel: TestLevel.RunSpecifiedTests }, this.codeCoverage);
+    await testService.writeResultFiles(result, { resultFormat: 'json', dirPath: this.outputDir }, this.codeCoverage);
+    return true;
+    // TODO: add telemetry
+  }
+}
 
 // build force:apex:test:run w/ given test class or test method
 export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
-  protected test: string;
+  protected tests: string;
   protected shouldGetCodeCoverage: boolean = false;
   protected builder: SfdxCommandBuilder = new SfdxCommandBuilder();
   private outputToJson: string;
 
   public constructor(
-    test: string,
+    tests: string[],
     shouldGetCodeCoverage: boolean,
     outputToJson: string
   ) {
     super();
-    this.test = test || '';
+    this.tests = tests.join(',') || '';
     this.shouldGetCodeCoverage = shouldGetCodeCoverage;
     this.outputToJson = outputToJson;
   }
@@ -62,13 +110,16 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
   }
 }
 
-async function forceApexTestRunCodeAction(test: string) {
-  const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+async function forceApexTestRunCodeAction(tests: string[]) {
   const outputToJson = getTempFolder();
+  const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+  const testRunExecutor = sfdxCoreSettings.getApexLibrary()
+    ? new ApexLibraryTestRunExecutor(tests, outputToJson, getCodeCoverage)
+    : new ForceApexTestRunCodeActionExecutor(tests, getCodeCoverage, outputToJson);
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
-    new ForceApexTestRunCodeActionExecutor(test, getCodeCoverage, outputToJson)
+    testRunExecutor
   );
   await commandlet.run();
 }
@@ -122,7 +173,7 @@ export async function forceApexTestClassRunCodeAction(testClass: string) {
     return;
   }
 
-  await forceApexTestRunCodeAction(testClass);
+  await forceApexTestRunCodeAction([testClass]);
 }
 
 //   T E S T   M E T H O D
@@ -163,5 +214,5 @@ export async function forceApexTestMethodRunCodeAction(testMethod: string) {
     return;
   }
 
-  await forceApexTestRunCodeAction(testMethod);
+  await forceApexTestRunCodeAction([testMethod]);
 }

@@ -215,7 +215,7 @@ describe('TestView', () => {
         return jsonSummaryOneFilePass;
       });
       testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
-      testOutline.readJSONFile('oneFilePass');
+      testOutline.updateTestResults('oneFilePass');
       const testGroupNode = testOutline.getHead()
         .children[0] as ApexTestGroupNode;
       expect(testGroupNode.passing).to.equal(1);
@@ -228,7 +228,7 @@ describe('TestView', () => {
         return jsonSummaryMultipleFiles;
       });
       testOutline = new ApexTestOutlineProvider(apexTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       let classNum = 0;
       expect(testOutline.getHead().children.length).to.equal(4);
       for (const testGroupNode of testOutline.getHead().children) {
@@ -284,7 +284,7 @@ describe('TestView', () => {
       showTextDocumentStub.returns(Promise.resolve());
 
       testOutline = new ApexTestOutlineProvider(apexTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       testRunner = new ApexTestRunner(testOutline, eventEmitter);
     });
 
