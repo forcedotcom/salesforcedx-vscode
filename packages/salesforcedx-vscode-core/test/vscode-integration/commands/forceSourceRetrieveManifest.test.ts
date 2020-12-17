@@ -15,7 +15,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../src/channels';
 import { ForceSourceRetrieveManifestExecutor } from '../../../src/commands';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
-import { outputRetrieveTable } from '../../../src/commands/util';
+import { createRetrieveOutput } from '../../../src/commands/util';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
@@ -41,8 +41,13 @@ describe('Force Source Retrieve with Manifest Option', () => {
   describe('Library Beta', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
-    const packageDirFullPaths = packageDirs.map(p => path.join(getRootWorkspacePath(), p));
-    const mockComponents = new ComponentSet([{ fullName: 'Test', type: 'apexclass'}, {fullName: 'Test2', type: 'layout' }]);
+    const packageDirFullPaths = packageDirs.map(p =>
+      path.join(getRootWorkspacePath(), p)
+    );
+    const mockComponents = new ComponentSet([
+      { fullName: 'Test', type: 'apexclass' },
+      { fullName: 'Test2', type: 'layout' }
+    ]);
 
     let mockConnection: Connection;
     let retrieveStub: SinonStub;
@@ -60,11 +65,19 @@ describe('Force Source Retrieve with Manifest Option', () => {
         })
       });
 
-      env.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves(packageDirFullPaths);
-      env.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(packageDirs[0]);
+      env
+        .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
+        .resolves(packageDirs);
+      env
+        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
+        .resolves(packageDirs[0]);
       env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-      env.stub(ComponentSet, 'fromManifestFile')
-        .withArgs(manifestPath, { resolve: packageDirFullPaths, literalWildcard: true })
+      env
+        .stub(ComponentSet, 'fromManifestFile')
+        .withArgs(manifestPath, {
+          resolve: packageDirFullPaths,
+          literalWildcard: true
+        })
         .returns(mockComponents);
       retrieveStub = env
         .stub(mockComponents, 'retrieve')
@@ -84,13 +97,20 @@ describe('Force Source Retrieve with Manifest Option', () => {
         status: RetrieveStatus.Succeeded
       };
       retrieveStub.resolves(retrieveResult);
-      const notificationStub = env.stub(notificationService, 'showSuccessfulExecution');
+      const notificationStub = env.stub(
+        notificationService,
+        'showSuccessfulExecution'
+      );
       const channelServiceStub = env.stub(channelService, 'appendLine');
 
       await executor.execute({ data: manifestPath, type: 'CONTINUE' });
 
       expect(notificationStub.calledOnce).to.equal(true);
-      expect(channelServiceStub.calledWith(outputRetrieveTable(retrieveResult)));
+      expect(
+        channelServiceStub.calledWith(
+          createRetrieveOutput(retrieveResult, packageDirs)
+        )
+      );
     });
 
     it('Should correctly report failure', async () => {
@@ -101,13 +121,20 @@ describe('Force Source Retrieve with Manifest Option', () => {
         status: RetrieveStatus.Failed
       };
       retrieveStub.resolves(retrieveResult);
-      const notificationStub = env.stub(notificationService, 'showFailedExecution');
+      const notificationStub = env.stub(
+        notificationService,
+        'showFailedExecution'
+      );
       const channelServiceStub = env.stub(channelService, 'appendLine');
 
       await executor.execute({ data: manifestPath, type: 'CONTINUE' });
 
       expect(notificationStub.calledOnce).to.equal(true);
-      expect(channelServiceStub.calledWith(outputRetrieveTable(retrieveResult)));
+      expect(
+        channelServiceStub.calledWith(
+          createRetrieveOutput(retrieveResult, packageDirs)
+        )
+      );
     });
   });
 });

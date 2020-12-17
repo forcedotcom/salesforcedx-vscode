@@ -45,5 +45,4 @@ export {
   createComponentCount,
   useBetaDeployRetrieve
 } from './betaDeployRetrieve';
-export { LibraryDeployResultParser } from './libraryDeployResultParser';
-export { outputRetrieveTable } from './retrieveParser';
+export { createDeployOutput, createRetrieveOutput } from './sourceResultOutput';

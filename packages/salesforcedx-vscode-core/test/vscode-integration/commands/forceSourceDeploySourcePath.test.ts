@@ -18,7 +18,10 @@ import {
 } from '../../../src/commands';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { SfdxProjectConfig } from '../../../src/sfdxProject';
+import {
+  SfdxPackageDirectories,
+  SfdxProjectConfig
+} from '../../../src/sfdxProject';
 import { OrgAuthInfo } from '../../../src/util';
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
@@ -68,6 +71,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         testData.username
       );
       sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').returns([
+        'p1'
+      ]);
       const getNamespace = sb
         .stub(SfdxProjectConfig, 'getValue')
         .returns('diFf');

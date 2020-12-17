@@ -10,6 +10,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { ComponentSet, DeployStatus } from '@salesforce/source-deploy-retrieve';
+import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
@@ -23,8 +24,17 @@ import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
-import { createComponentCount, FilePathGatherer, LibraryCommandletExecutor, LibraryDeployResultParser, SfdxCommandlet, SfdxWorkspaceChecker, useBetaDeployRetrieve } from './util';
+import {
+  createComponentCount,
+  FilePathGatherer,
+  LibraryCommandletExecutor,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  useBetaDeployRetrieve
+} from './util';
+import { createDeployOutput } from './util';
 
 export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   public build(manifestPath: string): Command {
@@ -42,21 +52,28 @@ export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   }
 }
 
-export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecutor<string> {
+export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecutor<
+  string
+> {
   protected logName = 'force_source_deploy_with_manifest';
   protected executionName = 'Deploy With Manifest (beta)';
 
   protected async run(response: ContinueResponse<string>): Promise<boolean> {
+    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     try {
       const components = await ComponentSet.fromManifestFile(response.data, {
-        resolve: await SfdxPackageDirectories.getPackageDirectoryFullPaths()
+        resolve: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
       });
-      const deployPromise = components.deploy(await workspaceContext.getConnection());
-      this.telemetry.addProperty('metadataCount', JSON.stringify(createComponentCount(components)));
+      const deployPromise = components.deploy(
+        await workspaceContext.getConnection()
+      );
+      this.telemetry.addProperty(
+        'metadataCount',
+        JSON.stringify(createComponentCount(components))
+      );
       const result = await deployPromise;
 
-      const parser = new LibraryDeployResultParser(result);
-      const outputResult = parser.resultParser(result);
+      const outputResult = createDeployOutput(result, packageDirs);
       channelService.appendLine(outputResult);
       BaseDeployExecutor.errorCollection.clear();
 

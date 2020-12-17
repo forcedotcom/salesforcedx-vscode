@@ -30,9 +30,9 @@ import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
   createComponentCount,
+  createRetrieveOutput,
   FilePathGatherer,
   LibraryCommandletExecutor,
-  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -130,7 +130,8 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     let retrieve;
     const connection = await workspaceContext.getConnection();
     const components = ComponentSet.fromSource(response.data);
-    const first: SourceComponent = components.getSourceComponents().next().value;
+    const first: SourceComponent = components.getSourceComponents().next()
+      .value;
 
     if (
       components.size === 1 &&
@@ -138,14 +139,18 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     ) {
       const projectNamespace = (await SfdxProjectConfig.getValue(
         'namespace'
-        )) as string;
+      )) as string;
       const client = new SourceClient(connection);
       retrieve = client.tooling.retrieve({
         components: [first],
         namespace: projectNamespace
       });
     } else {
-      retrieve = components.retrieve(connection, await SfdxPackageDirectories.getDefaultPackageDir() ?? '', { merge: true });
+      retrieve = components.retrieve(
+        connection,
+        (await SfdxPackageDirectories.getDefaultPackageDir()) ?? '',
+        { merge: true }
+      );
     }
 
     const metadataCount = JSON.stringify(createComponentCount(components));
@@ -153,7 +158,12 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
 
     const result = await retrieve;
 
-    channelService.appendLine(outputRetrieveTable(result));
+    channelService.appendLine(
+      createRetrieveOutput(
+        result,
+        await SfdxPackageDirectories.getPackageDirectoryPaths()
+      )
+    );
 
     return result.success;
   }
