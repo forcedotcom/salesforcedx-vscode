@@ -46,9 +46,6 @@ describe('Force Source Deploy Using Manifest Option', () => {
   describe('Library Beta', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
-    // const packageDirFullPaths = packageDirs.map(p =>
-    //   path.join(getRootWorkspacePath(), p)
-    // );
     const mockComponents = new ComponentSet([
       { fullName: 'Test', type: 'apexclass' },
       { fullName: 'Test2', type: 'layout' }
