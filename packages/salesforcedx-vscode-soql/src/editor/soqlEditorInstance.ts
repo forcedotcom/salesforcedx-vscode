@@ -15,6 +15,7 @@ import {
 } from 'jsforce';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';
+import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { QueryRunner } from './queryRunner';
 
@@ -187,7 +188,7 @@ export class SOQLEditorInstance {
             {
               cancellable: false,
               location: vscode.ProgressLocation.Notification,
-              title: 'Running query'
+              title: nls.localize('progress_running_query')
             },
             () => {
               return this.handleRunQuery();

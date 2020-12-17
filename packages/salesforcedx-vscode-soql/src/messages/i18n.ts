@@ -16,5 +16,6 @@
  * If ommitted, we will assume _message.
  */
 export const messages = {
-  soql_channel_name: 'SOQL Extension'
+  soql_channel_name: 'SOQL Extension',
+  progress_running_query: 'Running query'
 };
