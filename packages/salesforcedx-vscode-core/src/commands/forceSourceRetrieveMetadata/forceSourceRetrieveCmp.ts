@@ -14,9 +14,7 @@ import {
   ContinueResponse,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  ComponentSet
-} from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -29,8 +27,8 @@ import { TelemetryData, telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   createComponentCount,
+  createRetrieveOutput,
   LibraryCommandletExecutor,
-  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -158,22 +156,26 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     const output = path.join(getRootWorkspacePath(), dirPath);
     const comps: LocalComponent[] = response.data;
 
-    const components = new ComponentSet(comps.map(
-      lc => ({ fullName: lc.fileName, type: lc.type })
-    ));
+    const components = new ComponentSet(
+      comps.map(lc => ({ fullName: lc.fileName, type: lc.type }))
+    );
 
     const metadataCount = JSON.stringify(createComponentCount(components));
     this.telemetry.addProperty('metadataCount', metadataCount);
 
     const connection = await workspaceContext.getConnection();
-    const result = await components.retrieve(connection, output, { merge: true });
+    const result = await components.retrieve(connection, output, {
+      merge: true
+    });
 
     if (result.success && this.openAfterRetrieve) {
       const compSet = ComponentSet.fromSource(output);
-      await this.openResources(this.findResources(Array.from(components)[0], compSet));
+      await this.openResources(
+        this.findResources(Array.from(components)[0], compSet)
+      );
     }
 
-    channelService.appendLine(outputRetrieveTable(result));
+    channelService.appendLine(createRetrieveOutput(result, [dirPath]));
 
     return result.success;
   }
