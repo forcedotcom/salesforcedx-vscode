@@ -93,7 +93,7 @@
   "contributes": {
     "customEditors": [
       {
-        "viewType": "soqlCustom.soql",
+        "viewType": "%soqlCustom_soql%",
         "displayName": "SOQL Builder",
         "selector": [
           {
@@ -125,7 +125,7 @@
     "commands": [
       {
         "command": "soql.builder.open.new",
-        "title": "SOQL: Create Query in SOQL Builder"
+        "title": "%soql_builder_open_new%"
       }
     ],
     "menus": {

@@ -189,7 +189,6 @@
       "sourceMapPathOverrides": {
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
-        "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
