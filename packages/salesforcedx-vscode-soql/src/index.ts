@@ -12,7 +12,9 @@ import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
 
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(
+  context: vscode.ExtensionContext
+): Promise<void> {
   console.log('SOQL Extension Activated');
   const extensionHRStart = process.hrtime();
   context.subscriptions.push(SOQLEditorProvider.register(context));
@@ -24,7 +26,7 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(soqlOpenNewCommand);
 
-  startLanguageClient(context);
+  await startLanguageClient(context);
   startTelemetry(context, extensionHRStart).catch();
 }
 
