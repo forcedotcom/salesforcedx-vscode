@@ -41,7 +41,8 @@ const commandName = nls.localize(`force_lightning_lwc_start_text`);
 export const enum errorHints {
   SERVER_STARTUP_FALIED = 'Server start up failed',
   ADDRESS_IN_USE = 'EADDRINUSE',
-  INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
+  INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active',
+  LWC_FOLDER_NOT_FOUND = 'No \'lwc\' directory found'
 }
 
 export interface ForceLightningLwcStartOptions {
