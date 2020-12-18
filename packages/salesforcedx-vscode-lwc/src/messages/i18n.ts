@@ -29,8 +29,6 @@ export const messages = {
     'The local development server was not able to start.',
   force_lightning_lwc_start_exited:
     'The local development server exited unexpectedly with code %s.',
-  force_lightning_lwc_start_no_lwc_folder:
-    'No \'lwc\' directory found in path %s',
   force_lightning_lwc_start_already_running:
     'The local development server is already running.',
   force_lightning_lwc_stop_text: 'SFDX: Stop Local Development Server',
