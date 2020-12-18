@@ -136,6 +136,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     });
 
     execution.stderrSubject.subscribe(async data => {
+      let errorMessage: string | undefined;
       if (!printedError && data) {
         let errorCode = -1;
         if (data.toString().includes(errorHints.SERVER_STARTUP_FALIED)) {
@@ -147,12 +148,17 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
         if (data.toString().includes(errorHints.INACTIVE_SCRATCH_ORG)) {
           this.errorHint = errorHints.INACTIVE_SCRATCH_ORG;
         }
+        if (data.toString().includes('No \'lwc\' directory found')) {
+          errorMessage = data.toString();
+          errorCode = 135;
+        }
         if (errorCode !== -1) {
           this.handleErrors(
             cancellationToken,
             serverHandler,
             serverStarted,
-            errorCode
+            errorCode,
+            errorMessage
           );
           progress.complete();
           printedError = true;
@@ -189,7 +195,8 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     cancellationToken: vscode.CancellationToken,
     serverHandler: ServerHandler,
     serverStarted: boolean,
-    exitCode: number | null | undefined
+    exitCode: number | null | undefined,
+    errorMessage?: string
   ) {
     DevServerService.instance.clearServerHandler(serverHandler);
     if (!serverStarted && !cancellationToken.isCancellationRequested) {
@@ -207,7 +214,9 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       if (exitCode === 98) {
         message = nls.localize('force_lightning_lwc_start_addr_in_use');
       }
-
+      if (exitCode === 135 && errorMessage) {
+        message = errorMessage;
+      }
       showError(new Error(message), logName, commandName);
     } else if (exitCode !== undefined && exitCode !== null && exitCode > 0) {
       const message = nls.localize(
