@@ -93,6 +93,7 @@ export const mockSObjects = [
         groupable: true,
         relationshipName: null,
         sortable: true,
+        type: 'id',
         updateable: false
       },
       {
