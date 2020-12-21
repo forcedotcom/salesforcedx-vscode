@@ -11,6 +11,7 @@ import {
   SfdxCommandBuilder,
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -24,7 +25,6 @@ const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
-const notificationService = sfdxCoreExports.notificationService;
 const LibraryCommandletExecutor = sfdxCoreExports.LibraryCommandletExecutor;
 const channelService = sfdxCoreExports.channelService;
 
