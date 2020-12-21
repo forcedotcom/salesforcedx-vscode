@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
+import { TestLevel } from '@salesforce/apex-node/lib/src/tests/types';
 import {
   Command,
   SfdxCommandBuilder,
@@ -18,10 +20,12 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
+  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -165,6 +169,46 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
   }
 }
 
+export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
+  ApexTestQuickPickItem
+> {
+  protected executionName = 'Run Apex Tests';
+  protected logName = 'force_apex_execute_library';
+
+  public static diagnostics = vscode.languages.createDiagnosticCollection(
+    'apex-errors'
+  );
+
+  protected async run(
+    response: ContinueResponse<ApexTestQuickPickItem>
+  ): Promise<boolean> {
+    const connection = await workspaceContext.getConnection();
+    const testService = new TestService(connection);
+    const testLevel = TestLevel.RunSpecifiedTests;
+    const codeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+
+    let payload: AsyncTestConfiguration;
+
+    switch (response.data.type) {
+      case TestType.Class:
+        payload = { classNames: response.data.label, testLevel };
+        break;
+      case TestType.Suite:
+        payload = { suiteNames: response.data.label, testLevel };
+        break;
+      default:
+        payload = { testLevel: TestLevel.RunAllTestsInOrg };
+    }
+    const result = await testService.runTestAsynchronous(payload, codeCoverage);
+    await testService.writeResultFiles(
+      result,
+      { resultFormat: 'json', dirPath: getTempFolder() },
+      codeCoverage
+    );
+    return true;
+  }
+}
+
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new TestsSelector();
 
@@ -172,7 +216,9 @@ export async function forceApexTestRun() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceApexTestRunExecutor()
+    sfdxCoreSettings.getApexLibrary()
+      ? new ApexLibraryTestRunExecutor()
+      : new ForceApexTestRunExecutor()
   );
   await commandlet.run();
 }

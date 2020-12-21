@@ -96,7 +96,7 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
         nls.localize('force_apex_test_run_codeAction_description_text')
       )
       .withArg('force:apex:test:run')
-      .withFlag('--tests', this.test)
+      .withFlag('--tests', this.tests)
       .withFlag('--resultformat', 'human')
       .withFlag('--outputdir', this.outputToJson)
       .withFlag('--loglevel', 'error')
