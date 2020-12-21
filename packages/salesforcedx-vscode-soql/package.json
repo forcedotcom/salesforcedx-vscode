@@ -94,7 +94,7 @@
   "contributes": {
     "customEditors": [
       {
-        "viewType": "soqlCustom.soql",
+        "viewType": "%soqlCustom_soql%",
         "displayName": "SOQL Builder",
         "selector": [
           {
@@ -122,6 +122,20 @@
         "scopeName": "source.soql",
         "path": "./node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
       }
-    ]
+    ],
+    "commands": [
+      {
+        "command": "soql.builder.open.new",
+        "title": "%soql_builder_open_new%"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "soql.builder.open.new",
+          "when": "sfdx:project_opened"
+        }
+      ]
+    }
   }
 }
