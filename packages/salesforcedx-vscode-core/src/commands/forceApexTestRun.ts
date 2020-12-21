@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
+import { AsyncTestConfiguration, HumanReporter, TestService } from '@salesforce/apex-node';
 import { TestLevel } from '@salesforce/apex-node/lib/src/tests/types';
 import {
   Command,
@@ -20,6 +20,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
@@ -59,6 +60,14 @@ export class TestsSelector
       };
     });
 
+    fileItems.push({
+      label: nls.localize('force_apex_test_run_all_test_label'),
+      description: nls.localize(
+        'force_apex_test_run_all_tests_description_text'
+      ),
+      type: TestType.All
+    });
+
     const apexClasses = await vscode.workspace.findFiles('**/*.cls');
     apexClasses.forEach(apexClass => {
       const fileContent = fs.readFileSync(apexClass.fsPath).toString();
@@ -69,14 +78,6 @@ export class TestsSelector
           type: TestType.Class
         });
       }
-    });
-
-    fileItems.push({
-      label: nls.localize('force_apex_test_run_all_test_label'),
-      description: nls.localize(
-        'force_apex_test_run_all_tests_description_text'
-      ),
-      type: TestType.All
     });
 
     const selection = (await vscode.window.showQuickPick(
@@ -172,7 +173,7 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   ApexTestQuickPickItem
 > {
-  protected executionName = 'Run Apex Tests';
+  protected executionName = nls.localize('apex_test_run_text');
   protected logName = 'force_apex_execute_library';
 
   public static diagnostics = vscode.languages.createDiagnosticCollection(
@@ -199,12 +200,15 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
       default:
         payload = { testLevel: TestLevel.RunAllTestsInOrg };
     }
+
     const result = await testService.runTestAsynchronous(payload, codeCoverage);
     await testService.writeResultFiles(
       result,
       { resultFormat: 'json', dirPath: getTempFolder() },
       codeCoverage
     );
+    const humanOutput = new HumanReporter().format(result, codeCoverage);
+    channelService.appendLine(humanOutput);
     return true;
   }
 }
