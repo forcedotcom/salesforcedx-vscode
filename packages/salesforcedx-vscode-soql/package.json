@@ -94,7 +94,7 @@
   "contributes": {
     "customEditors": [
       {
-        "viewType": "%soqlCustom_soql%",
+        "viewType": "soqlCustom.soql",
         "displayName": "SOQL Builder",
         "selector": [
           {
