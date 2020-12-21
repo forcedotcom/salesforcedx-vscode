@@ -9,3 +9,4 @@ export { createFile } from './fileSystemHandler';
 export { CommonOptions } from './types';
 export { Column, Row, Table } from './table';
 export { getCurrentTime, formatStartTime, msToSecond } from './dateUtil';
+export { refreshAuth } from './authUtil';

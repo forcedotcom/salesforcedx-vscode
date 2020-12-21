@@ -88,6 +88,16 @@ describe('Streaming API Client', () => {
     }
   });
 
+  it('should force refresh the connection during init', async () => {
+    const requestStub = sandboxStub
+      .stub(mockConnection, 'baseUrl')
+      .returns('66568xxxx');
+
+    const streamClient = new StreamingClient(mockConnection);
+    await streamClient.init();
+    expect(requestStub.calledOnce).to.be.true;
+  });
+
   it('should disconnect when subscribe throws an error', async () => {
     const stubSubscribe = sandboxStub
       .stub(FayeClient.prototype, 'subscribe')

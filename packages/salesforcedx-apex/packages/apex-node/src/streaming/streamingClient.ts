@@ -6,10 +6,11 @@
  */
 
 import { Client as FayeClient } from 'faye';
-import { Connection, Org } from '@salesforce/core';
-import { ApexTestQueueItem, ApexTestQueueItemStatus } from '../tests/types';
+import { Connection } from '@salesforce/core';
 import { StreamMessage, TestResultMessage } from './types';
 import { nls } from '../i18n';
+import { refreshAuth } from '../utils';
+import { ApexTestQueueItem, ApexTestQueueItemStatus } from '../tests/types';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
 const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
@@ -73,10 +74,10 @@ export class StreamingClient {
     });
   }
 
+  // NOTE: There's an intermittent auth issue with Streaming API that requires the connection to be refreshed
+  // The builtin org.refreshAuth() util only refreshes the connection associated with the instance of the org you provide, not all connections associated with that username's orgs
   public async init(): Promise<void> {
-    const username = this.conn.getUsername();
-    const org = await Org.create({ aliasOrUsername: username });
-    await org.refreshAuth();
+    await refreshAuth(this.conn);
 
     const accessToken = this.conn.getConnectionOptions().accessToken;
     if (accessToken) {

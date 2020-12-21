@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { JsonCollection } from '@salesforce/ts-types';
 import { existsSync, readFileSync } from 'fs';
 import {
   ExecuteAnonymousResponse,
@@ -18,6 +17,7 @@ import {
   action
 } from './types';
 import { nls } from '../i18n';
+import { refreshAuth } from '../utils';
 import { encodeBody } from './utils';
 import * as readline from 'readline';
 
@@ -45,7 +45,7 @@ export class ExecuteService {
           e.message &&
           e.message.includes('INVALID_SESSION_ID')
         ) {
-          await this.refreshAuth(this.connection);
+          await refreshAuth(this.connection);
           count += 1;
         } else {
           throw new Error(
@@ -160,15 +160,9 @@ export class ExecuteService {
     return formattedResponse;
   }
 
-  // TODO: make these general utils accessible to other classes
   public async connectionRequest(
     requestData: RequestData
   ): Promise<SoapResponse> {
     return (await this.connection.request(requestData)) as SoapResponse;
-  }
-
-  public async refreshAuth(connection: Connection): Promise<JsonCollection> {
-    const requestInfo = { url: connection.baseUrl(), method: 'GET' };
-    return await connection.request(requestInfo);
   }
 }

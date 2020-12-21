@@ -201,7 +201,6 @@ describe('Apex Execute Tests', async () => {
       ExecuteService.prototype,
       'connectionRequest'
     );
-    sandboxStub.stub(ExecuteService.prototype, 'refreshAuth');
     const error = new Error('INVALID_SESSION_ID');
     error.name = 'ERROR_HTTP_500';
     connRequestStub.onFirstCall().throws(error);
