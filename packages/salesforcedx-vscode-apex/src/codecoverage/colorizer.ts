@@ -8,7 +8,6 @@
 import { CodeCoverageResult } from '@salesforce/apex-node';
 import * as fs from 'fs';
 import { join, sep } from 'path';
-import * as vscode from 'vscode';
 import {
   Range,
   TextDocument,
@@ -31,11 +30,6 @@ const apexDirPath = join(
   'testresults',
   'apex'
 );
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 
 export function getLineRange(
   document: TextDocument,
@@ -71,7 +65,7 @@ export type CoverageItem = {
   lines: { [key: string]: number };
 };
 
-function getTestRunId() {
+function getTestRunId(): string {
   const testRunIdFile = join(apexDirPath, 'test-run-id.txt');
   if (!fs.existsSync(testRunIdFile)) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
@@ -79,7 +73,7 @@ function getTestRunId() {
   return fs.readFileSync(testRunIdFile, 'utf8');
 }
 
-function getCoverageData() {
+function getCoverageData(): CoverageItem[] | CodeCoverageResult[] {
   const testRunId = getTestRunId();
   const testResultFilePath = join(apexDirPath, `test-result-${testRunId}.json`);
 
@@ -131,9 +125,7 @@ export class CodeCoverage {
 
   public onDidChangeActiveTextEditor(editor?: TextEditor) {
     if (editor && this.statusBar.isHighlightingEnabled) {
-      sfdxCoreSettings.getApexLibrary()
-        ? this.apexLibraryColorizer(editor)
-        : this.colorizer(editor);
+      this.colorizer(editor);
     }
   }
 
@@ -152,54 +144,18 @@ export class CodeCoverage {
         );
       }
     } else {
-      sfdxCoreSettings.getApexLibrary()
-        ? this.apexLibraryColorizer(window.activeTextEditor)
-        : this.colorizer(window.activeTextEditor);
+      this.colorizer(window.activeTextEditor);
       this.statusBar.toggle(true);
-    }
-  }
-
-  public apexLibraryColorizer(editor?: TextEditor) {
-    try {
-      if (editor && isApexMetadata(editor.document.uri.fsPath)) {
-        const codeCovArray = getCoverageData() as CodeCoverageResult[];
-        const codeCovItem = codeCovArray.find(
-          covItem =>
-            covItem.name === getApexMemberName(editor.document.uri.fsPath)
-        );
-
-        if (!codeCovItem) {
-          throw new Error(
-            nls.localize('colorizer_no_code_coverage_current_file')
-          );
-        }
-
-        this.coveredLines = codeCovItem.coveredLines.map(cov =>
-          getLineRange(editor.document, Number(cov))
-        );
-        this.uncoveredLines = codeCovItem.uncoveredLines.map(uncov =>
-          getLineRange(editor.document, Number(uncov))
-        );
-
-        editor.setDecorations(coveredLinesDecorationType, this.coveredLines);
-        editor.setDecorations(
-          uncoveredLinesDecorationType,
-          this.uncoveredLines
-        );
-      }
-    } catch (e) {
-      // telemetry
-      window.showWarningMessage(e.message);
     }
   }
 
   public colorizer(editor?: TextEditor) {
     try {
       if (editor && isApexMetadata(editor.document.uri.fsPath)) {
-        const codeCovArray = getCoverageData() as CoverageItem[];
+        const codeCovArray = getCoverageData() as Array<{ name: string }>;
+        const apexMemberName = getApexMemberName(editor.document.uri.fsPath);
         const codeCovItem = codeCovArray.find(
-          covItem =>
-            covItem.name === getApexMemberName(editor.document.uri.fsPath)
+          covItem => covItem.name === apexMemberName
         );
 
         if (!codeCovItem) {
@@ -208,18 +164,32 @@ export class CodeCoverage {
           );
         }
 
-        for (const key in codeCovItem.lines) {
-          if (codeCovItem.lines.hasOwnProperty(key)) {
-            if (codeCovItem.lines[key] === 1) {
-              this.coveredLines.push(
-                getLineRange(editor.document, Number(key))
-              );
-            } else {
-              this.uncoveredLines.push(
-                getLineRange(editor.document, Number(key))
-              );
+        if (
+          codeCovItem.hasOwnProperty('lines') &&
+          !codeCovItem.hasOwnProperty('uncoveredLines')
+        ) {
+          const covItem = codeCovItem as CoverageItem;
+          for (const key in covItem.lines) {
+            if (covItem.lines.hasOwnProperty(key)) {
+              if (covItem.lines[key] === 1) {
+                this.coveredLines.push(
+                  getLineRange(editor.document, Number(key))
+                );
+              } else {
+                this.uncoveredLines.push(
+                  getLineRange(editor.document, Number(key))
+                );
+              }
             }
           }
+        } else {
+          const covResult = codeCovItem as CodeCoverageResult;
+          this.coveredLines = covResult.coveredLines.map(cov =>
+            getLineRange(editor.document, Number(cov))
+          );
+          this.uncoveredLines = covResult.uncoveredLines.map(uncov =>
+            getLineRange(editor.document, Number(uncov))
+          );
         }
 
         editor.setDecorations(coveredLinesDecorationType, this.coveredLines);

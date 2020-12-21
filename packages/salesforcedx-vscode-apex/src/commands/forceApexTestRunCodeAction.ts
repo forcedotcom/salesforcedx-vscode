@@ -4,16 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestItem, TestService } from '@salesforce/apex-node';
+import { HumanReporter, TestItem, TestService } from '@salesforce/apex-node';
 import { TestLevel } from '@salesforce/apex-node/lib/src/tests/types';
 import {
   Command,
   SfdxCommandBuilder,
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  workspaceContext
-} from '@salesforce/salesforcedx-utils-vscode/out/src/context';
+import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
@@ -28,12 +26,17 @@ const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const notificationService = sfdxCoreExports.notificationService;
 const LibraryCommandletExecutor = sfdxCoreExports.LibraryCommandletExecutor;
+const channelService = sfdxCoreExports.channelService;
 
-export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{ outputDir: string, tests: string[], codeCoverage: boolean }> {
+export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
+  outputDir: string;
+  tests: string[];
+  codeCoverage: boolean;
+}> {
   private tests: string[];
   private codeCoverage: boolean = false;
   private outputDir: string;
-  protected executionName = 'Run Apex Tests';
+  protected executionName = nls.localize('apex_test_run_text');
   protected logName = 'force_apex_execute_library';
 
   public static diagnostics = vscode.languages.createDiagnosticCollection(
@@ -65,10 +68,21 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{ outp
   protected async run(): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
-    const result = await testService.runTestAsynchronous({ tests: this.buildTestItem(this.tests), testLevel: TestLevel.RunSpecifiedTests }, this.codeCoverage);
-    await testService.writeResultFiles(result, { resultFormat: 'json', dirPath: this.outputDir }, this.codeCoverage);
+    const result = await testService.runTestAsynchronous(
+      {
+        tests: this.buildTestItem(this.tests),
+        testLevel: TestLevel.RunSpecifiedTests
+      },
+      this.codeCoverage
+    );
+    await testService.writeResultFiles(
+      result,
+      { resultFormat: 'json', dirPath: this.outputDir },
+      this.codeCoverage
+    );
+    const humanOutput = new HumanReporter().format(result, this.codeCoverage);
+    channelService.appendLine(humanOutput);
     return true;
-    // TODO: add telemetry
   }
 }
 
@@ -115,7 +129,11 @@ async function forceApexTestRunCodeAction(tests: string[]) {
   const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
   const testRunExecutor = sfdxCoreSettings.getApexLibrary()
     ? new ApexLibraryTestRunExecutor(tests, outputToJson, getCodeCoverage)
-    : new ForceApexTestRunCodeActionExecutor(tests, getCodeCoverage, outputToJson);
+    : new ForceApexTestRunCodeActionExecutor(
+        tests,
+        getCodeCoverage,
+        outputToJson
+      );
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),
