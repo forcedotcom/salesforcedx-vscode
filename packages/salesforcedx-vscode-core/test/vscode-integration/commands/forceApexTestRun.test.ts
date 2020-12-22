@@ -87,9 +87,13 @@ describe('Force Apex Test Run', () => {
   describe('Apex Library Test Run Executor', async () => {
     let sb: sinon.SinonSandbox;
     let runTestStub: sinon.SinonStub;
+    let getCoverageStub: sinon.SinonStub;
 
     beforeEach(async () => {
       sb = sinon.createSandbox();
+      getCoverageStub = sb
+        .stub(sfdxCoreSettings, 'getRetrieveTestCodeCoverage')
+        .returns(true);
       runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous');
       sb.stub(workspaceContext, 'getConnection');
     });
@@ -103,7 +107,7 @@ describe('Force Apex Test Run', () => {
         data: { type: TestType.Class, label: 'testClass' },
         type: 'CONTINUE'
       });
-      console.log('these are the args ' + runTestStub.args[0]);
+
       expect(runTestStub.args[0]).to.deep.equal([
         { classNames: 'testClass', testLevel: TestLevel.RunSpecifiedTests },
         true
@@ -116,7 +120,7 @@ describe('Force Apex Test Run', () => {
         data: { type: TestType.Suite, label: 'testSuite' },
         type: 'CONTINUE'
       });
-      console.log('these are the args ' + runTestStub.args[0]);
+
       expect(runTestStub.args[0]).to.deep.equal([
         { suiteNames: 'testSuite', testLevel: TestLevel.RunSpecifiedTests },
         true
@@ -129,7 +133,7 @@ describe('Force Apex Test Run', () => {
         data: { type: TestType.All, label: '' },
         type: 'CONTINUE'
       });
-      console.log('these are the args ' + runTestStub.args[0]);
+
       expect(runTestStub.args[0]).to.deep.equal([
         { testLevel: TestLevel.RunAllTestsInOrg },
         true
