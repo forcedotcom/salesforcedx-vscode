@@ -183,7 +183,9 @@ export class ApexTestOutlineProvider
     const testResultOutput = readFileSync(testResultFilePath, 'utf8');
     const testResultContent = JSON.parse(testResultOutput);
 
-    sfdxCoreSettings.getApexLibrary() ? this.updateTestsFromLibrary(testResultContent as TestResult) : this.updateTestsFromJSON(testResultContent as FullTestResult);
+    sfdxCoreSettings.getApexLibrary()
+      ? this.updateTestsFromLibrary(testResultContent as TestResult)
+      : this.updateTestsFromJSON(testResultContent as FullTestResult);
     this.onDidChangeTestData.fire(undefined);
   }
 
@@ -233,7 +235,7 @@ export class ApexTestOutlineProvider
       const apexGroupNode = this.apexTestMap.get(
         apexGroupName
       ) as ApexTestGroupNode;
-      // why u add the group node if it does exist?
+
       if (apexGroupNode) {
         groups.add(apexGroupNode);
       }
@@ -246,8 +248,7 @@ export class ApexTestOutlineProvider
         if (test.outcome === 'Fail') {
           apexTestNode.errorMessage = test.message || '';
           apexTestNode.stackTrace = test.stackTrace || '';
-          apexTestNode.description =
-            `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
+          apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
         }
       }
     }
