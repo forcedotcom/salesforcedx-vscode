@@ -18,7 +18,6 @@ import {
   ComponentSet,
   DeployStatus,
   SourceClient,
-  SourceComponent,
   SourceDeployResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
@@ -29,7 +28,7 @@ import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
-import { SfdxProjectConfig } from '../sfdxProject';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
@@ -41,9 +40,9 @@ import {
 } from './util';
 import {
   createComponentCount,
+  createDeployOutput,
   useBetaDeployRetrieve
-} from './util/betaDeployRetrieve';
-import { LibraryDeployResultParser } from './util/libraryDeployResultParser';
+} from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -155,8 +154,10 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 
       const result = await deploy;
 
-      const parser = new LibraryDeployResultParser(result);
-      const outputResult = parser.resultParser(result);
+      const outputResult = createDeployOutput(
+        result,
+        await SfdxPackageDirectories.getPackageDirectoryPaths()
+      );
       channelService.appendLine(outputResult);
       BaseDeployExecutor.errorCollection.clear();
       if (
@@ -199,9 +200,12 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 
     if (namespace) {
       const client = new SourceClient(connection);
-      deploy = client.tooling.deploy(components.getSourceComponents().next().value, {
-        namespace
-      });
+      deploy = client.tooling.deploy(
+        components.getSourceComponents().next().value,
+        {
+          namespace
+        }
+      );
       api = 'tooling';
     } else {
       deploy = components.deploy(connection);
