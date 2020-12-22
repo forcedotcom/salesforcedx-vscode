@@ -47,8 +47,12 @@ describe('Should do completion', async () => {
   ]);
 
   testCompletion('SELECT | FROM Account', [
-    { label: 'Id', kind: vscode.CompletionItemKind.Field },
-    { label: 'Name', kind: vscode.CompletionItemKind.Field },
+    { label: 'Id', kind: vscode.CompletionItemKind.Field, detail: 'id' },
+    {
+      label: 'Name',
+      kind: vscode.CompletionItemKind.Field,
+      detail: 'string'
+    },
     {
       label: '(SELECT ... FROM ...)',
       kind: vscode.CompletionItemKind.Snippet,
@@ -56,18 +60,110 @@ describe('Should do completion', async () => {
     }
   ]);
   testCompletion('SELECT | FROM User', [
-    { label: 'Id', kind: vscode.CompletionItemKind.Field },
-    { label: 'Name', kind: vscode.CompletionItemKind.Field },
-    { label: 'AccountId', kind: vscode.CompletionItemKind.Field },
+    { label: 'Id', kind: vscode.CompletionItemKind.Field, detail: 'id' },
     {
-      label: 'Account (Account)',
+      label: 'Name',
+      kind: vscode.CompletionItemKind.Field,
+      detail: 'string'
+    },
+    {
+      label: 'AccountId',
+      kind: vscode.CompletionItemKind.Field,
+      detail: 'reference'
+    },
+    {
+      label: 'Account',
       kind: vscode.CompletionItemKind.Class,
-      insertText: 'Account.'
+      insertText: 'Account.',
+      detail: 'Ref. to Account'
     },
     {
       label: '(SELECT ... FROM ...)',
       kind: vscode.CompletionItemKind.Snippet,
       insertText: '(SELECT $2 FROM $1)'
+    }
+  ]);
+
+  testCompletion('SELECT Id FROM Account WHERE |', [
+    { label: 'Id', kind: vscode.CompletionItemKind.Field, detail: 'id' },
+    {
+      label: 'Name',
+      kind: vscode.CompletionItemKind.Field,
+      detail: 'string'
+    }
+  ]);
+
+  const basicOperators = ['IN (', 'NOT IN (', '=', '!=', '<>'];
+  const relativeOperators = ['<', '<=', '>', '>='];
+  const idOperators = basicOperators;
+  const stringOperators = [...basicOperators, ...relativeOperators, 'LIKE'];
+  testCompletion(
+    'SELECT Id FROM Account WHERE Id |',
+    idOperators.map(operator => ({
+      label: operator,
+      kind: vscode.CompletionItemKind.Keyword
+    }))
+  );
+  testCompletion(
+    'SELECT Id FROM Account WHERE Name |',
+    stringOperators.map(operator => ({
+      label: operator,
+      kind: vscode.CompletionItemKind.Keyword
+    }))
+  );
+
+  // Account.Name is not Nillable
+  testCompletion('SELECT Id FROM Account WHERE Name = |', []);
+
+  // Account.BillingCity IS Nillable
+  testCompletion('SELECT Id FROM Account WHERE BillingCity = |', [
+    {
+      label: 'NULL',
+      kind: vscode.CompletionItemKind.Keyword
+    }
+  ]);
+  // Account.BillingCity IS Nillable, however, some operators never accept NULL
+  testCompletion('SELECT Id FROM Account WHERE BillingCity < |', []);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity <= |', []);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity > |', []);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity >= |', []);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity LIKE |', []);
+
+  testCompletion(
+    'SELECT Id FROM Account WHERE IsDeleted = |',
+    ['TRUE', 'FALSE'].map(booleanValue => ({
+      label: booleanValue,
+      kind: vscode.CompletionItemKind.Value
+    }))
+  );
+  testCompletion('SELECT Channel FROM QuickText WHERE Channel = |', [
+    {
+      label: 'NULL',
+      kind: vscode.CompletionItemKind.Keyword
+    },
+    ...['Email', 'Portal', 'Phone'].map(booleanValue => ({
+      label: booleanValue,
+      kind: vscode.CompletionItemKind.Value
+    }))
+  ]);
+  // NOTE: NULL not supported in INCLUDES/EXCLUDES list
+  testCompletion('SELECT Channel FROM QuickText WHERE Channel INCLUDES(|', [
+    ...['Email', 'Portal', 'Phone'].map(booleanValue => ({
+      label: booleanValue,
+      kind: vscode.CompletionItemKind.Value
+    }))
+  ]);
+
+  testCompletion('SELECT Id FROM Account WHERE CreatedDate < |', [
+    {
+      label: 'YYYY-MM-DDThh:mm:ssZ',
+      kind: vscode.CompletionItemKind.Snippet
+    }
+  ]);
+  testCompletion('SELECT Id FROM Account WHERE LastActivityDate < |', [
+    {
+      label: 'YYYY-MM-DD',
+      kind: vscode.CompletionItemKind.Snippet
     }
   ]);
 });
@@ -97,7 +193,8 @@ function testCompletion(
 
         const pickMainItemKeys = (item: vscode.CompletionItem) => ({
           label: item.label,
-          kind: item.kind
+          kind: item.kind,
+          detail: item.detail
         });
         const simplifiedActualCompletionItems = actualCompletionItems.map(
           pickMainItemKeys
