@@ -91,6 +91,7 @@ export const mockSObjects = [
         label: 'Account ID',
         custom: false,
         groupable: true,
+        nillable: false,
         relationshipName: null,
         sortable: true,
         type: 'id',
@@ -104,9 +105,71 @@ export const mockSObjects = [
         label: 'Account Name',
         name: 'Name',
         nameField: true,
+        nillable: false,
         sortable: true,
         type: 'string',
         updateable: true
+      },
+      {
+        aggregatable: true,
+        custom: false,
+        filterable: true,
+        groupable: true,
+        label: 'Billing City',
+        name: 'BillingCity',
+        nameField: false,
+        nillable: true,
+        sortable: true,
+        type: 'string',
+        updateable: true
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'Deleted',
+        name: 'IsDeleted',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'boolean',
+        unique: false,
+        updateable: false
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'LastActivityDate',
+        name: 'LastActivityDate',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'date',
+        unique: false,
+        updateable: false
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'CreatedDate',
+        name: 'CreatedDate',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'datetime',
+        unique: false,
+        updateable: false
       }
     ]
   },
@@ -145,6 +208,68 @@ export const mockSObjects = [
         referenceTo: ['Account'],
         relationshipName: 'Account',
         type: 'reference'
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'Deleted',
+        name: 'IsDeleted',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'boolean',
+        unique: false,
+        updateable: false
+      }
+    ]
+  },
+  {
+    name: 'QuickText',
+    fields: [
+      {
+        aggregatable: false,
+        defaultValue: 'Email',
+        filterable: true,
+        groupable: false,
+        label: 'Channel',
+        name: 'Channel',
+        nillable: true,
+        picklistValues: [
+          {
+            active: true,
+            defaultValue: true,
+            label: 'Email',
+            validFor: null,
+            value: 'Email'
+          },
+          {
+            active: true,
+            defaultValue: false,
+            label: 'Portal',
+            validFor: null,
+            value: 'Portal'
+          },
+          {
+            active: true,
+            defaultValue: false,
+            label: 'Phone',
+            validFor: null,
+            value: 'Phone'
+          },
+          {
+            active: false,
+            label: 'INACTIVE',
+            value: 'INACTIVE'
+          }
+        ],
+        sortable: false,
+        type: 'multipicklist',
+        unique: false,
+        updateable: true
       }
     ]
   }

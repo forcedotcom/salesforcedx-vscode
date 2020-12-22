@@ -38,7 +38,7 @@
     "@salesforce/salesforcedx-utils-vscode": "50.13.0",
     "@salesforce/soql-builder-ui": "0.0.23",
     "@salesforce/soql-data-view": "0.0.7",
-    "@salesforce/soql-language-server": "0.2.9",
+    "@salesforce/soql-language-server": "0.3.2",
     "debounce": "^1.2.0",
     "jsforce": "^1.10.0",
     "papaparse": "^5.3.0",
