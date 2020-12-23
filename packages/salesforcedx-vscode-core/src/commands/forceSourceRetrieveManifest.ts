@@ -24,9 +24,9 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import {
+  createRetrieveOutput,
   FilePathGatherer,
   LibraryCommandletExecutor,
-  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -46,21 +46,30 @@ export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExecutor<string> {
+export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExecutor<
+  string
+> {
   protected logName = 'force_source_retrieve_with_manifest_beta';
   protected executionName = 'Retrieve With Manifest (beta)';
 
   protected async run(response: ContinueResponse<string>): Promise<boolean> {
-    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
-    const defaultOutput = join(getRootWorkspacePath(), await SfdxPackageDirectories.getDefaultPackageDir() ?? '');
+    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const defaultOutput = join(
+      getRootWorkspacePath(),
+      (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
+    );
     const components = await ComponentSet.fromManifestFile(response.data, {
-      resolve: packageDirs,
+      resolve: packageDirs.map(relativeDir =>
+        join(getRootWorkspacePath(), relativeDir)
+      ),
       literalWildcard: true
     });
     const connection = await workspaceContext.getConnection();
-    const result = await components.retrieve(connection, defaultOutput, { merge: true });
+    const result = await components.retrieve(connection, defaultOutput, {
+      merge: true
+    });
 
-    channelService.appendLine(outputRetrieveTable(result));
+    channelService.appendLine(createRetrieveOutput(result, packageDirs));
 
     return result.success;
   }
@@ -100,9 +109,9 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    useBetaDeployRetrieve([]) ?
-      new LibrarySourceRetrieveManifestExecutor() :
-      new ForceSourceRetrieveManifestExecutor(),
+    useBetaDeployRetrieve([])
+      ? new LibrarySourceRetrieveManifestExecutor()
+      : new ForceSourceRetrieveManifestExecutor(),
     new ConflictDetectionChecker(messages)
   );
   await commandlet.run();
