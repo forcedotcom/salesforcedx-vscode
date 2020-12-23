@@ -20,6 +20,7 @@ export {
   CodeCoverageResult,
   SyncTestConfiguration,
   TestItem,
+  TestLevel,
   TestResult,
   TestService
 } from './tests';

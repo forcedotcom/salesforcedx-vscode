@@ -15,5 +15,6 @@ export {
   ApexTestResultOutcome,
   CodeCoverageResult,
   TestItem,
-  TestResult
+  TestResult,
+  TestLevel
 } from './types';
