@@ -190,9 +190,7 @@ export class SOQLEditorInstance {
               location: vscode.ProgressLocation.Notification,
               title: nls.localize('progress_running_query')
             },
-            () => {
-              return this.handleRunQuery();
-            }
+            () => this.handleRunQuery()
           )
           .then(undefined, () => {
             channelService.appendLine(
@@ -208,7 +206,7 @@ export class SOQLEditorInstance {
     }
   }
 
-  protected handleRunQuery(): Promise<void> {
+  protected async handleRunQuery(): Promise<void> {
     // Check to see if a default org is set.
     if (!workspaceContext.username) {
       // i18n
@@ -220,11 +218,10 @@ export class SOQLEditorInstance {
     }
 
     const queryText = this.document.getText();
-    return withSFConnection(async conn => {
-      const queryData = await new QueryRunner(conn).runQuery(queryText);
-      this.openQueryDataView(queryData);
-      this.runQueryDone();
-    });
+    const conn = await workspaceContext.getConnection();
+    const queryData = await new QueryRunner(conn).runQuery(queryText);
+    this.openQueryDataView(queryData);
+    this.runQueryDone();
   }
 
   protected runQueryDone(): void {
