@@ -318,7 +318,7 @@ export class FauxClassGenerator {
   // VisibleForTesting
   public isRequiredSObject(sobject: string): boolean {
     // Ignore all sobjects that end with Share or History or Feed or Event
-    return !/Share$|History$|Feed$|Event$/.test(sobject);
+    return !/Share$|History$|Feed$|.+Event$/.test(sobject);
   }
 
   // VisibleForTesting
