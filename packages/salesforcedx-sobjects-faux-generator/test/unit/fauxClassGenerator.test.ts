@@ -434,11 +434,12 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove sobjects ending with Share, History, Feed, Event', () => {
-      const sobjects: string[] = ['xShare', 'Sharex', 'yHistory', 'xFeed', 'xFeedy', 'zEvent'];
+      const sobjects: string[] = ['xShare', 'Sharex', 'yHistory', 'xFeed', 'xFeedy', 'zEvent', 'Event'];
       const output = sobjects.filter(gen.isRequiredSObject);
-      expect(output.length).to.equal(2);
+      expect(output.length).to.equal(3);
       expect(output).to.contain('Sharex');
       expect(output).to.contain('xFeedy');
+      expect(output).to.contain('Event');
     });
   });
 });
