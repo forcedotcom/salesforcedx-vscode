@@ -16,7 +16,8 @@ import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
 import { SObjectCategory } from '../../src/describe';
 import {
   FauxClassGenerator,
-  INDENT
+  INDENT,
+  SObjectRefreshSource
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { customSObject } from './sObjectMockData';
@@ -432,14 +433,70 @@ describe('SObject faux class generator', () => {
       expect(!fs.existsSync(customFolder));
       expect(!fs.existsSync(standardFolder));
     });
+  });
 
-    it('Should remove sobjects ending with Share, History, Feed, Event', () => {
-      const sobjects: string[] = ['xShare', 'Sharex', 'yHistory', 'xFeed', 'xFeedy', 'zEvent', 'Event'];
-      const output = sobjects.filter(gen.isRequiredSObject);
-      expect(output.length).to.equal(3);
-      expect(output).to.contain('Sharex');
-      expect(output).to.contain('xFeedy');
-      expect(output).to.contain('Event');
+  describe('SObjects Filter', () => {
+    const gen = getGenerator();
+    // sobjects to filter
+    const sobjects: string[] = [
+      'xShare',
+      'Sharex',
+      'yHistory',
+      'xFeed',
+      'xFeedy',
+      'zEvent',
+      'Event'
+    ];
+    // expected result when filtered
+    const expectedFilteredSObjects: string[] = ['Sharex', 'xFeedy', 'Event'];
+    describe('When source is Startup', () => {
+      const source = SObjectRefreshSource.Startup;
+      it('Should remove sobjects ending with Share, History, Feed, Event', () => {
+        const output = gen.filterSObjects(
+          sobjects,
+          SObjectCategory.ALL,
+          source
+        );
+        expect(output).to.deep.equal(expectedFilteredSObjects);
+      });
+    });
+    describe('When source is StartupMin', () => {
+      const source = SObjectRefreshSource.StartupMin;
+      it('Should remove sobjects ending with Share, History, Feed, Event', () => {
+        const output = gen.filterSObjects(
+          sobjects,
+          SObjectCategory.ALL,
+          source
+        );
+        expect(output).to.deep.equal(expectedFilteredSObjects);
+      });
+    });
+    describe('When source is Manual', () => {
+      const source = SObjectRefreshSource.Manual;
+      it('Should remove sobjects ending with Share, History, Feed, Event if category is CUSTOM', () => {
+        const output = gen.filterSObjects(
+          sobjects,
+          SObjectCategory.CUSTOM,
+          source
+        );
+        expect(output).to.deep.equal(expectedFilteredSObjects);
+      });
+      it('Should remove sobjects ending with Share, History, Feed, Event if category is STANDARD', () => {
+        const output = gen.filterSObjects(
+          sobjects,
+          SObjectCategory.STANDARD,
+          source
+        );
+        expect(output).to.deep.equal(expectedFilteredSObjects);
+      });
+      it('Should NOT remove sobjects ending with Share, History, Feed, Event if category is ALL', () => {
+        const output = gen.filterSObjects(
+          sobjects,
+          SObjectCategory.ALL,
+          source
+        );
+        expect(output).to.equal(sobjects);
+      });
     });
   });
 });
