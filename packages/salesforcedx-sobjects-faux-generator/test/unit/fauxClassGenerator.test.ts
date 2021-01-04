@@ -441,12 +441,14 @@ describe('SObject faux class generator', () => {
         'yHistory',
         'xFeed',
         'xFeedy',
-        'zEvent'
+        'zEvent',
+        'Event'
       ];
       const output = sobjects.filter(gen.isRequiredSObject);
-      expect(output.length).to.equal(2);
+      expect(output.length).to.equal(3);
       expect(output).to.contain('Sharex');
       expect(output).to.contain('xFeedy');
+      expect(output).to.contain('Event');
     });
   });
 });
