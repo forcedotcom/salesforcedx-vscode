@@ -189,7 +189,9 @@ export class FauxClassGenerator {
         err.stack
       );
     }
-    const filteredSObjects = sobjects.filter(this.isRequiredSObject);
+
+    const filteredSObjects = this.filterSObjects(sobjects, type, source);
+
     let j = 0;
     while (j < filteredSObjects.length) {
       try {
@@ -316,7 +318,23 @@ export class FauxClassGenerator {
   }
 
   // VisibleForTesting
-  public isRequiredSObject(sobject: string): boolean {
+  public filterSObjects(
+    sobjects: string[],
+    category: SObjectCategory,
+    source: SObjectRefreshSource
+  ): string[] {
+    if (
+      category === SObjectCategory.ALL &&
+      source === SObjectRefreshSource.Manual
+    ) {
+      // manually run by the user, does not exclude any sObjects
+      return sobjects;
+    }
+    // in all other cases we clean up the list
+    return sobjects.filter(this.isRequiredSObject);
+  }
+
+  private isRequiredSObject(sobject: string): boolean {
     // Ignore all sobjects that end with Share or History or Feed or Event
     return !/Share$|History$|Feed$|.+Event$/.test(sobject);
   }
@@ -514,17 +532,13 @@ export class FauxClassGenerator {
   ): string {
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    declarations.sort(
-      (first, second): number => {
-        return first.name || first.type > second.name || second.type ? 1 : -1;
-      }
-    );
+    declarations.sort((first, second): number => {
+      return first.name || first.type > second.name || second.type ? 1 : -1;
+    });
 
-    declarations = declarations.filter(
-      (value, index, array): boolean => {
-        return !index || value.name !== array[index - 1].name;
-      }
-    );
+    declarations = declarations.filter((value, index, array): boolean => {
+      return !index || value.name !== array[index - 1].name;
+    });
 
     const classDeclaration = `${MODIFIER} class ${className} {${EOL}`;
     const declarationLines = declarations
