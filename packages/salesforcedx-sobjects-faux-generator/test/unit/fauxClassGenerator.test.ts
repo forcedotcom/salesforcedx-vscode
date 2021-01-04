@@ -434,7 +434,15 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove sobjects ending with Share, History, Feed, Event', () => {
-      const sobjects: string[] = ['xShare', 'Sharex', 'yHistory', 'xFeed', 'xFeedy', 'zEvent'];
+      // fixme: change this test to support different options
+      const sobjects: string[] = [
+        'xShare',
+        'Sharex',
+        'yHistory',
+        'xFeed',
+        'xFeedy',
+        'zEvent'
+      ];
       const output = sobjects.filter(gen.isRequiredSObject);
       expect(output.length).to.equal(2);
       expect(output).to.contain('Sharex');
