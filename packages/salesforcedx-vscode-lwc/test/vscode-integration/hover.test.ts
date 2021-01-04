@@ -30,7 +30,7 @@ describe('LWC Hovers', () => {
   let client: LanguageClient;
 
   before(async function() {
-    this.timeout(5000);
+    this.timeout(10000);
     // creating a new client so that we can wait on its ready status before the
     // tests begin. set the timeout at the suite level to give the client some time
     // to get ready
