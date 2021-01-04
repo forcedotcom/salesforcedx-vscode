@@ -190,11 +190,7 @@ export class FauxClassGenerator {
       );
     }
 
-    // when run manually does not exclude any object
-    const filteredSObjects =
-      source === SObjectRefreshSource.Manual
-        ? sobjects
-        : sobjects.filter(this.isRequiredSObject);
+    const filteredSObjects = this.filterSObjects(sobjects, type, source);
 
     let j = 0;
     while (j < filteredSObjects.length) {
@@ -322,7 +318,23 @@ export class FauxClassGenerator {
   }
 
   // VisibleForTesting
-  public isRequiredSObject(sobject: string): boolean {
+  public filterSObjects(
+    sobjects: string[],
+    category: SObjectCategory,
+    source: SObjectRefreshSource
+  ): string[] {
+    if (
+      category === SObjectCategory.ALL &&
+      source === SObjectRefreshSource.Manual
+    ) {
+      // manually run by the user, does not exclude any sObjects
+      return sobjects;
+    }
+    // in all other cases we clean up the list
+    return sobjects.filter(this.isRequiredSObject);
+  }
+
+  private isRequiredSObject(sobject: string): boolean {
     // Ignore all sobjects that end with Share or History or Feed or Event
     return !/Share$|History$|Feed$|.+Event$/.test(sobject);
   }
