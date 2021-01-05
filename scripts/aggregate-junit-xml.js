@@ -7,22 +7,24 @@ const shell = require('shelljs');
 
 const cwd = process.cwd();
 const packagesDir = path.join(cwd, 'packages');
-const flagsToFiles = {
-  '--vscode-integration': 'junit-custom-vscodeIntegrationTests.xml',
-  '--integration': 'junit-custom-integrationTests.xml',
-  '--unit': 'junit-custom-unitTests.xml',
-  '--system': 'junit-custom.xml',
+const aggregateDir = path.join(cwd, 'junit-aggregate');
+const categoryToFile = {
+  'vscode-integration': 'junit-custom-vscodeIntegrationTests.xml',
+  'integration': 'junit-custom-integrationTests.xml',
+  'unit': 'junit-custom-unitTests.xml',
+  'system': 'junit-custom.xml',
 }
 
 let flags = new Set(process.argv.slice(2));
 if (flags.size === 0) {
-  flags = new Set(Object.keys(flagsToFiles));
+  flags = new Set(Object.keys(categoryToFile));
 }
 
 // copy junit results to aggregate folder and identify packages missing test results
-shell.mkdir(path.join(cwd, 'junit-aggregate'));
+if (!fs.existsSync(aggregateDir)) {
+  shell.mkdir(path.join(cwd, 'junit-aggregate'));
+}
 
-// const missingResults = [];
 const missingResults = {
   'vscode-integration': [],
   'integration': [],
@@ -36,13 +38,12 @@ for (const entry of fs.readdirSync(packagesDir)) {
     const testDir = path.join(packagePath, 'test');
     if (fs.existsSync(testDir) && fs.statSync(testDir).isDirectory()) {
       for (const testEntry of fs.readdirSync(testDir)) {
-        const flag = `--${testEntry}`;
-        if (flags.has(flag)) {
-          const junitFilePath = path.join(packagePath, flagsToFiles[flag]);
+        if (flags.has(testEntry)) {
+          const junitFilePath = path.join(packagePath, categoryToFile[testEntry]);
           if (fs.existsSync(junitFilePath)) {
             shell.cp(
               junitFilePath,
-              path.join(cwd, 'junit-aggregate', `${entry}-${flagsToFiles[flag]}`)
+              path.join(cwd, 'junit-aggregate', `${entry}-${categoryToFile[testEntry]}`)
             );
             foundResults = true;
           } else {

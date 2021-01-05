@@ -303,6 +303,7 @@ jobs:
           name: 'Aggregate test results'
           shell: bash.exe
           command: |
+            set -e
             npm run aggregateJUnit --unit
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
@@ -351,6 +352,7 @@ jobs:
           name: 'Aggregate test results'
           shell: bash.exe
           command: |
+            set -e
             npm run aggregateJUnit --integration --vscode-integration
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
