@@ -70,7 +70,7 @@ for (const [testType, pkgs] of Object.entries(missingResults)) {
 if (missingMessage) {
   missingMessage += '\n\nPossible Issues:\n\n'
   missingMessage += "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.)\n";
-  missingMessage += '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail.';
+  missingMessage += '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail\n';
   console.error(missingMessage);
   process.exit(1);
 }
