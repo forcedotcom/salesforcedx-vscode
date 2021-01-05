@@ -9,7 +9,6 @@ import { Connection } from '@salesforce/core';
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { DescribeSObjectResult } from 'jsforce';
-import * as vscode from 'vscode';
 import { nls } from './messages';
 
 export const channelService = ChannelService.getInstance(
