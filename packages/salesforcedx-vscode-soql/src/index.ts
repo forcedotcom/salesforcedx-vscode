@@ -11,12 +11,13 @@ import { soqlBuilderToggle, soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
+import { checkDependencies } from './sfdx';
 
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
-  console.log('SOQL Extension Activated');
   const extensionHRStart = process.hrtime();
+  checkDependencies();
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
 
@@ -29,6 +30,7 @@ export async function activate(
 
   await startLanguageClient(context);
   startTelemetry(context, extensionHRStart).catch();
+  console.log('SOQL Extension Activated');
 }
 
 export function deactivate(): Thenable<void> | undefined {

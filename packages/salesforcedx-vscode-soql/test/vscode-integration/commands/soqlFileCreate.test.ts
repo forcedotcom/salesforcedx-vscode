@@ -6,21 +6,24 @@
  */
 
 import { expect } from 'chai';
-import { SinonSandbox, createSandbox, SinonStub } from 'sinon';
+import { SinonSandbox, createSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { soqlOpenNew } from '../../../src/commands/soqlFileCreate';
+import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE } from '../../../src/constants';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('soqlOpenNew should', () => {
   let sb: SinonSandbox;
   let telemetryStub: SinonStub;
   let editorOpened: SinonStub;
+  let executeCommandSpy: SinonSpy;
 
   beforeEach(() => {
     sb = createSandbox();
     telemetryStub = sb.stub(telemetryService, 'sendCommandEvent');
     editorOpened = sb.stub();
     vscode.workspace.onDidOpenTextDocument(editorOpened);
+    executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
   });
 
   afterEach(async () => {
@@ -32,6 +35,6 @@ describe('soqlOpenNew should', () => {
 
     expect(telemetryStub.called).is.true;
     expect(editorOpened.called).is.true;
+    expect(executeCommandSpy.getCall(0).args[2]).contains(BUILDER_VIEW_TYPE);
   });
-
 });
