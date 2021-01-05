@@ -19,7 +19,7 @@ export async function activate(
   const extensionHRStart = process.hrtime();
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
-  WorkspaceContextUtil.getInstance().initialize(context);
+  await WorkspaceContextUtil.getInstance().initialize(context);
 
   const soqlOpenNewCommand = vscode.commands.registerCommand(
     'soql.builder.open.new',
