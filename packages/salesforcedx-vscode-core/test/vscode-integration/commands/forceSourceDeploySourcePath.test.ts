@@ -7,7 +7,7 @@
 
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { ToolingApi } from '@salesforce/source-deploy-retrieve/lib/src/client/toolingApi';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -18,7 +18,10 @@ import {
 } from '../../../src/commands';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { SfdxProjectConfig } from '../../../src/sfdxProject';
+import {
+  SfdxPackageDirectories,
+  SfdxProjectConfig
+} from '../../../src/sfdxProject';
 import { OrgAuthInfo } from '../../../src/util';
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
@@ -68,12 +71,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         testData.username
       );
       sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').returns([
+        'p1'
+      ]);
       const getNamespace = sb
         .stub(SfdxProjectConfig, 'getValue')
         .returns('diFf');
       const getComponentsStub = sb.stub(
-        RegistryAccess.prototype,
-        'getComponentsFromPath'
+        ComponentSet.prototype,
+        'resolveSourceComponents'
       );
       const executor = new LibraryDeploySourcePathExecutor();
       const filePath = path.join(

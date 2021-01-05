@@ -7,20 +7,30 @@
 
 import * as vscode from 'vscode';
 import { startLanguageClient, stopLanguageClient } from './client/client';
+import { soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
 
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(
+  context: vscode.ExtensionContext
+): Promise<void> {
   console.log('SOQL Extension Activated');
   const extensionHRStart = process.hrtime();
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
-  startLanguageClient(context);
-  startTelemetry(extensionHRStart);
+
+  const soqlOpenNewCommand = vscode.commands.registerCommand(
+    'soql.builder.open.new',
+    soqlOpenNew
+  );
+  context.subscriptions.push(soqlOpenNewCommand);
+
+  await startLanguageClient(context);
+  startTelemetry(context, extensionHRStart).catch();
 }
 
 export function deactivate(): Thenable<void> | undefined {
-  stopTelemetry();
+  stopTelemetry().catch();
   return stopLanguageClient();
 }

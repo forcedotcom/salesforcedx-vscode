@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  RegistryAccess,
-  registryData
-} from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, registryData } from '@salesforce/source-deploy-retrieve';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
@@ -52,12 +49,16 @@ describe('Deploy/Retrieve Performance Beta Utils', () => {
       settingStub = env
         .stub(SfdxCoreSettings.prototype, 'getBetaDeployRetrieve')
         .returns(true);
+      const wsOne = new ComponentSet();
+      wsOne.add(testComponents[0]);
+      const wsTwo = new ComponentSet();
+      wsTwo.add(testComponents[1]);
       registryStub = env
-        .stub(RegistryAccess.prototype, 'getComponentsFromPath')
+        .stub(ComponentSet.prototype, 'resolveSourceComponents')
         .withArgs(uriOne.fsPath)
-        .returns([testComponents[0]])
+        .returns(wsOne)
         .withArgs(uriTwo.fsPath)
-        .returns([testComponents[1]]);
+        .returns(wsTwo);
     });
 
     afterEach(() => {

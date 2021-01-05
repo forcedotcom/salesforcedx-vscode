@@ -15,10 +15,11 @@ import {
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
+  ComponentSet,
   MetadataType,
-  RegistryAccess,
   registryData,
-  SourceClient
+  SourceClient,
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -29,9 +30,9 @@ import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
   createComponentCount,
+  createRetrieveOutput,
   FilePathGatherer,
   LibraryCommandletExecutor,
-  outputRetrieveTable,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -106,7 +107,6 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     }
   }
 
-  const { types } = registryData;
   const useBeta = useBetaDeployRetrieve([explorerPath]);
 
   const commandlet = new SfdxCommandlet(
@@ -127,36 +127,43 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   protected executionName = 'Retrieve (Beta)';
 
   protected async run(response: ContinueResponse<string>): Promise<boolean> {
-    const getConnection = workspaceContext.getConnection();
-    const registryAccess = new RegistryAccess();
-    const components = registryAccess.getComponentsFromPath(response.data);
-    const projectNamespace = (await SfdxProjectConfig.getValue(
-      'namespace'
-    )) as string;
-    const client = new SourceClient(await getConnection);
     let retrieve;
+    const connection = await workspaceContext.getConnection();
+    const components = ComponentSet.fromSource(response.data);
+    const first: SourceComponent = components.getSourceComponents().next()
+      .value;
+
     if (
-      components.length === 1 &&
-      this.isSupportedToolingRetrieveType(components[0].type)
+      components.size === 1 &&
+      this.isSupportedToolingRetrieveType(first.type)
     ) {
+      const projectNamespace = (await SfdxProjectConfig.getValue(
+        'namespace'
+      )) as string;
+      const client = new SourceClient(connection);
       retrieve = client.tooling.retrieve({
-        components,
+        components: [first],
         namespace: projectNamespace
       });
     } else {
-      retrieve = client.metadata.retrieve({
-        components,
-        namespace: projectNamespace,
-        merge: true,
-        output: response.data
-      });
+      retrieve = components.retrieve(
+        connection,
+        (await SfdxPackageDirectories.getDefaultPackageDir()) ?? '',
+        { merge: true }
+      );
     }
+
     const metadataCount = JSON.stringify(createComponentCount(components));
     this.telemetry.addProperty('metadataCount', metadataCount);
 
     const result = await retrieve;
 
-    channelService.appendLine(outputRetrieveTable(result));
+    channelService.appendLine(
+      createRetrieveOutput(
+        result,
+        await SfdxPackageDirectories.getPackageDirectoryPaths()
+      )
+    );
 
     return result.success;
   }

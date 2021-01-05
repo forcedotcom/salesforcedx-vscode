@@ -17,18 +17,13 @@ import {
   WorkspaceConfiguration
 } from 'vscode';
 import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-  TransportKind
-} from 'vscode-languageclient';
-import {
   forceLightningLwcOpen,
   forceLightningLwcPreview,
   forceLightningLwcStart,
   forceLightningLwcStop
 } from './commands';
 import { ESLINT_NODEPATH_CONFIG, LWC_EXTENSION_NAME } from './constants';
+import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
@@ -107,7 +102,18 @@ export async function activate(context: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Start the LWC Language Server
-  startLWCLanguageServer(context);
+  const client = createLanguageClient(
+    context.asAbsolutePath(
+      path.join(
+        'node_modules',
+        '@salesforce',
+        'lwc-language-server',
+        'lib',
+        'server.js'
+      )
+    )
+  );
+  context.subscriptions.push(client.start());
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
@@ -180,67 +186,4 @@ function registerCommands(_extensionContext: ExtensionContext): Disposable {
       forceLightningLwcPreview
     )
   );
-}
-
-function startLWCLanguageServer(context: ExtensionContext) {
-  // Setup the language server
-  const serverModule = context.asAbsolutePath(
-    path.join(
-      'node_modules',
-      '@salesforce',
-      'lwc-language-server',
-      'lib',
-      'server.js'
-    )
-  );
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
-  // If the extension is launched in debug mode then the debug server options are used
-  // Otherwise the run options are used
-  const serverOptions: ServerOptions = {
-    run: { module: serverModule, transport: TransportKind.ipc },
-    debug: {
-      module: serverModule,
-      transport: TransportKind.ipc,
-      options: debugOptions
-    }
-  };
-
-  const clientOptions: LanguageClientOptions = {
-    documentSelector: [
-      { language: 'html', scheme: 'file' },
-      { language: 'javascript', scheme: 'file' }
-    ],
-    synchronize: {
-      fileEvents: [
-        workspace.createFileSystemWatcher('**/*.resource'),
-        workspace.createFileSystemWatcher(
-          '**/labels/CustomLabels.labels-meta.xml'
-        ),
-        workspace.createFileSystemWatcher(
-          '**/staticresources/*.resource-meta.xml'
-        ),
-        workspace.createFileSystemWatcher('**/contentassets/*.asset-meta.xml'),
-        workspace.createFileSystemWatcher('**/lwc/*/*.js'),
-        workspace.createFileSystemWatcher('**/modules/*/*/*.js'),
-        // need to watch for directory deletions as no events are created for contents or deleted directories
-        workspace.createFileSystemWatcher('**/', false, true, false)
-      ]
-    },
-    uriConverters: {
-      code2Protocol: code2ProtocolConverter,
-      protocol2Code: protocol2CodeConverter
-    }
-  };
-
-  // Create the language client and start the client.
-  const client = new LanguageClient(
-    'lwcLanguageServer',
-    'LWC Language Server',
-    serverOptions,
-    clientOptions
-  ).start();
-
-  // Push the disposable to the context's subscriptions so that the
-  // client can be deactivated on extension deactivation
-  context.subscriptions.push(client);
 }

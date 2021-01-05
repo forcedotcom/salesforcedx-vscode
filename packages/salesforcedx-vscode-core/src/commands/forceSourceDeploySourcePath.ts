@@ -1,9 +1,9 @@
 /*
-* Copyright (c) 2018, salesforce.com, inc.
-* All rights reserved.
-* Licensed under the BSD 3-Clause license.
-* For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
-*/
+ * Copyright (c) 2018, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
 import { Connection } from '@salesforce/core';
 import {
@@ -15,10 +15,9 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  ComponentSet,
   DeployStatus,
-  RegistryAccess,
   SourceClient,
-  SourceComponent,
   SourceDeployResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
@@ -29,7 +28,7 @@ import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
-import { SfdxProjectConfig } from '../sfdxProject';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
@@ -41,9 +40,9 @@ import {
 } from './util';
 import {
   createComponentCount,
+  createDeployOutput,
   useBetaDeployRetrieve
-} from './util/betaDeployRetrieve';
-import { LibraryDeployResultParser } from './util/libraryDeployResultParser';
+} from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -155,8 +154,10 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 
       const result = await deploy;
 
-      const parser = new LibraryDeployResultParser(result);
-      const outputResult = parser.resultParser(result);
+      const outputResult = createDeployOutput(
+        result,
+        await SfdxPackageDirectories.getPackageDirectoryPaths()
+      );
       channelService.appendLine(outputResult);
       BaseDeployExecutor.errorCollection.clear();
       if (
@@ -177,49 +178,37 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     }
   }
 
-  private getComponents(paths: string | string[]) {
-    let components: SourceComponent[];
-    const registryAccess = new RegistryAccess();
-
+  private getComponents(paths: string | string[]): ComponentSet {
+    const components = new ComponentSet();
     if (typeof paths === 'string') {
-      components = registryAccess.getComponentsFromPath(paths);
+      components.resolveSourceComponents(paths);
     } else {
-      const allComponents: SourceComponent[] = [];
-
       for (const filepath of paths) {
-        allComponents.push(...registryAccess.getComponentsFromPath(filepath));
+        components.resolveSourceComponents(filepath);
       }
-
-      // dedupe components
-      const hashedCmps = new Set();
-      components = allComponents.filter(component => {
-        const hashed = `${component.fullName}.${component.type.id}`;
-        if (!hashedCmps.has(hashed)) {
-          hashedCmps.add(hashed);
-          return component;
-        }
-      });
     }
-
     return components;
   }
 
   private doDeploy(
     connection: Connection,
-    components: SourceComponent[],
+    components: ComponentSet,
     namespace?: string
   ): Promise<SourceDeployResult> {
     let api: string;
     let deploy: Promise<SourceDeployResult>;
-    const client = new SourceClient(connection);
 
     if (namespace) {
-      deploy = client.tooling.deploy(components, {
-        namespace
-      });
+      const client = new SourceClient(connection);
+      deploy = client.tooling.deploy(
+        components.getSourceComponents().next().value,
+        {
+          namespace
+        }
+      );
       api = 'tooling';
     } else {
-      deploy = client.metadata.deploy(components);
+      deploy = components.deploy(connection);
       api = 'metadata';
     }
 

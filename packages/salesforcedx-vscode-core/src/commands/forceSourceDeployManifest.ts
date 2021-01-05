@@ -8,17 +8,33 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { ComponentSet, DeployStatus } from '@salesforce/source-deploy-retrieve';
+import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
 } from '../commands/util/postconditionCheckers';
+import { workspaceContext } from '../context';
+import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { DeployQueue } from '../settings';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
+import { getRootWorkspacePath } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  createComponentCount,
+  FilePathGatherer,
+  LibraryCommandletExecutor,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  useBetaDeployRetrieve
+} from './util';
+import { createDeployOutput } from './util';
 
 export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   public build(manifestPath: string): Command {
@@ -33,6 +49,47 @@ export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
 
   protected getDeployType() {
     return DeployType.Deploy;
+  }
+}
+
+export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecutor<
+  string
+> {
+  protected logName = 'force_source_deploy_with_manifest';
+  protected executionName = 'Deploy With Manifest (beta)';
+
+  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    try {
+      const components = await ComponentSet.fromManifestFile(response.data, {
+        resolve: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
+      });
+      const deployPromise = components.deploy(
+        await workspaceContext.getConnection()
+      );
+      this.telemetry.addProperty(
+        'metadataCount',
+        JSON.stringify(createComponentCount(components))
+      );
+      const result = await deployPromise;
+
+      const outputResult = createDeployOutput(result, packageDirs);
+      channelService.appendLine(outputResult);
+      BaseDeployExecutor.errorCollection.clear();
+
+      if (result.status === DeployStatus.Succeeded) {
+        return true;
+      }
+
+      handleDeployRetrieveLibraryDiagnostics(
+        result,
+        BaseDeployExecutor.errorCollection
+      );
+
+      return false;
+    } finally {
+      await DeployQueue.get().unlock();
+    }
   }
 }
 
@@ -68,7 +125,9 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(manifestUri),
-    new ForceSourceDeployManifestExecutor(),
+    useBetaDeployRetrieve([])
+      ? new LibrarySourceDeployManifestExecutor()
+      : new ForceSourceDeployManifestExecutor(),
     new ConflictDetectionChecker(messages)
   );
   await commandlet.run();

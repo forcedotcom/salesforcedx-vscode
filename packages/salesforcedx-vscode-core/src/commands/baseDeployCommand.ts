@@ -14,7 +14,9 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentSet
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -22,7 +24,7 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
-import { telemetryService } from '../telemetry';
+import { TelemetryBuilder, telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { createComponentCount } from './util/betaDeployRetrieve';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
@@ -58,23 +60,23 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     });
 
     execution.processExitSubject.subscribe(async exitCode => {
-      let properties;
-      const registryAccess = new RegistryAccess();
+      const telemetry = new TelemetryBuilder();
+
       try {
-        const components = registryAccess.getComponentsFromPath(
-          execFilePathOrPaths
-        );
+        const components = new ComponentSet();
+        for (const fsPath of execFilePathOrPaths.split(',')) {
+          components.resolveSourceComponents(fsPath);
+        }
         const metadataCount = JSON.stringify(createComponentCount(components));
-        properties = { metadataCount };
-        // registry does not handle multiple paths. only log component count for single paths
+        telemetry.addProperty('metadataCount', metadataCount);
       } catch (e) {
         telemetryService.sendException(
           e.name,
           'error detecting deploy components'
         );
       }
-      this.logMetric(execution.command.logName, startTime, properties);
 
+      let success = false;
       try {
         BaseDeployExecutor.errorCollection.clear();
         if (stdOut) {
@@ -88,6 +90,8 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
               execFilePathOrPaths,
               BaseDeployExecutor.errorCollection
             );
+          } else {
+            success = true;
           }
           this.outputResult(deployParser);
         }
@@ -100,6 +104,8 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         telemetryService.sendException(e.name, e.message);
         console.error(e.message);
       }
+      telemetry.addProperty('success', String(success));
+      this.logMetric(execution.command.logName, startTime, telemetry.build().properties);
       await DeployQueue.get().unlock();
     });
 
