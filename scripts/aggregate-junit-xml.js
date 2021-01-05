@@ -1,6 +1,33 @@
 #!/usr/bin/env node
 
-const process = require('process');
+/*
+ * Asserts JUnit test results were generated from a test run and aggregates
+ * them into a single output file. The script processes each package directory
+ * that has a test/ folder in it and asserts/copies the JUnit output for each
+ * test category under the test/ folder.
+ * 
+ * For the following structure:
+ * 
+ * packages/salesforcecx-vscode-lwc/test/unit
+ * packages/salesforcecx-vscode-lwc/test/vscode-integration
+ * 
+ * These files will be asserted to exist and be aggregated:
+ * 
+ * packages/salesforcedx-vscode-lwc/junit-custom-unitTests.xml
+ * packages/salesforcedx-vscode-lwc/junit-custom-vscodeIntegrationTests.xml
+ * 
+ * Valid categories: unit, integration, vscode-integration
+ * 
+ * By default, all categories will be considered. To only process specific
+ * categories, call the script with desired categories separated by a space.
+ * 
+ * e.g. node aggregate-junit-xml.js integration vscode-integration
+ *
+ * Overriding Default Values:
+ * 1. Override the release. Example: npm run build-change-log -- -r 46.7.0
+ * 2. Add verbose logging. Example: npm run build-change-log -- -v
+ */
+
 const fs = require('fs-extra');
 const path = require('path');
 const shell = require('shelljs');
@@ -15,12 +42,12 @@ const categoryToFile = {
   'system': 'junit-custom.xml',
 }
 
+// process all test categories if none are specified in arguments
 let flags = new Set(process.argv.slice(2));
 if (flags.size === 0) {
-  flags = new Set(Object.keys(categoryToFile));
+  flags = new Set(Object.keys(categoryToFile).map(c => `--${c}`));
 }
 
-// copy junit results to aggregate folder and identify packages missing test results
 if (!fs.existsSync(aggregateDir)) {
   shell.mkdir(path.join(cwd, 'junit-aggregate'));
 }
@@ -35,17 +62,19 @@ const missingResults = {
 for (const entry of fs.readdirSync(packagesDir)) {
   const packagePath = path.join(packagesDir, entry);
   if (fs.statSync(packagePath).isDirectory()) {
+    // scan test directory for each package that has one
     const testDir = path.join(packagePath, 'test');
     if (fs.existsSync(testDir) && fs.statSync(testDir).isDirectory()) {
       for (const testEntry of fs.readdirSync(testDir)) {
-        if (flags.has(testEntry)) {
+        // if package test directory has a test category that matches the
+        // category input, copy the junit results to the aggregate folder
+        if (flags.has(`--${testEntry}`)) {
           const junitFilePath = path.join(packagePath, categoryToFile[testEntry]);
           if (fs.existsSync(junitFilePath)) {
             shell.cp(
               junitFilePath,
               path.join(cwd, 'junit-aggregate', `${entry}-${categoryToFile[testEntry]}`)
             );
-            foundResults = true;
           } else {
             missingResults[testEntry].push(entry);
           }
@@ -55,6 +84,11 @@ for (const entry of fs.readdirSync(packagesDir)) {
   }
 }
 
+// merge junit output
+const junitMerge = path.join(cwd, 'node_modules', 'junit-merge', 'bin', 'junit-merge');
+shell.exec(`${junitMerge} -d ${aggregateDir} -o ${path.join(cwd, 'junit-aggregate.xml')}`)
+
+// report on missing junit output if there is any, and exit with an error.
 let missingMessage;
 
 for (const [testType, pkgs] of Object.entries(missingResults)) {
@@ -69,8 +103,9 @@ for (const [testType, pkgs] of Object.entries(missingResults)) {
 
 if (missingMessage) {
   missingMessage += '\n\nPossible Issues:\n\n'
-  missingMessage += "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.)\n";
-  missingMessage += '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail\n';
+  missingMessage += "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.).\n";
+  missingMessage += '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail.\n';
+  missingMessage += '3) Test run configuration is improperly set up.\n';
   console.error(missingMessage);
   process.exit(1);
 }

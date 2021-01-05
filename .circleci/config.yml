@@ -81,7 +81,6 @@ commands:
             npm install
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g codecov
-            npm install -g junit-merge
       - run:
           name: 'Compile'
           shell: bash.exe
@@ -305,7 +304,6 @@ jobs:
           command: |
             set -e
             npm run aggregateJUnit unit
-            junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/
       - run:
@@ -354,7 +352,6 @@ jobs:
           command: |
             set -e
             npm run aggregateJUnit integration vscode-integration
-            junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/
       - run:
