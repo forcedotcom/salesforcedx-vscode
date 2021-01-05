@@ -6,6 +6,9 @@
  * that has a test/ folder in it and asserts/copies the JUnit output for each
  * test category under the test/ folder.
  * 
+ * Assumptions:
+ * 0. You have junit-merge installed globally using `npm install -g junit-merge`.
+ * 
  * For the following structure:
  * 
  * packages/salesforcecx-vscode-lwc/test/unit
@@ -22,10 +25,6 @@
  * categories, call the script with desired categories separated by a space.
  * 
  * e.g. node aggregate-junit-xml.js integration vscode-integration
- *
- * Overriding Default Values:
- * 1. Override the release. Example: npm run build-change-log -- -r 46.7.0
- * 2. Add verbose logging. Example: npm run build-change-log -- -v
  */
 
 const fs = require('fs-extra');
@@ -85,8 +84,7 @@ for (const entry of fs.readdirSync(packagesDir)) {
 }
 
 // merge junit output
-const junitMerge = path.join(cwd, 'node_modules', 'junit-merge', 'bin', 'junit-merge');
-shell.exec(`${junitMerge} -d ${aggregateDir} -o ${path.join(cwd, 'junit-aggregate.xml')}`)
+shell.exec(`junit-merge -d ${aggregateDir} -o ${path.join(cwd, 'junit-aggregate.xml')}`)
 
 // report on missing junit output if there is any, and exit with an error.
 let missingMessage;
