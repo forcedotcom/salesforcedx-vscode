@@ -129,19 +129,18 @@ export class SOQLEditorInstance {
 
   protected updateWebview(document: vscode.TextDocument): void {
     const newSoqlStatement = document.getText();
+    // The automated onDocumentChangeHandler fires unnecessarily
+    // when we manually update the soql statement in the document
+    // this introduced a 'cache once' and muffles the unnecessary postMessage
+    // For more info, see section "From TextDocument to webviews"
+    // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
     if (this.lastIncomingSoqlStatement !== newSoqlStatement) {
       this.webviewPanel.webview.postMessage({
         type: MessageType.TEXT_SOQL_CHANGED,
         payload: newSoqlStatement
       });
-    } else {
-      // The automated onDocumentChangeHandler fires unnecessarily
-      // when we manually update the soql statement in the document
-      // this introduced a 'cache once' and muffles the unnecessary postMessage
-      // For more info, see section "From TextDocument to webviews"
-      // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
-      this.lastIncomingSoqlStatement = '';
     }
+    this.lastIncomingSoqlStatement = '';
   }
 
   protected updateSObjects(sobjectNames: string[]): void {

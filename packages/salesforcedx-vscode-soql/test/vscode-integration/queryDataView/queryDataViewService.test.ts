@@ -65,7 +65,7 @@ describe('Query Data View Service', () => {
     QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
-    dataViewService.sendEvent({ type: 'activate' });
+    dataViewService.mockReceiveEvent({ type: 'activate' });
 
     expect(postMessageSpy.callCount).equal(1);
 
@@ -91,7 +91,7 @@ describe('Query Data View Service', () => {
     QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
-    dataViewService.sendEvent({ type: 'save_records', format: FileFormat.CSV });
+    dataViewService.mockReceiveEvent({ type: 'save_records', format: FileFormat.CSV });
 
     expect(saveRecordsSpy.callCount).equal(1);
     const postMessageArgs = saveRecordsSpy.args[0][0];
