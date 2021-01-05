@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import {
   BUILDER_VIEW_TYPE,
   EDITOR_VIEW_TYPE,
-  OPEN_WITH_COMMAND,
+  OPEN_WITH_COMMAND
 } from '../constants';
 import { telemetryService } from '../telemetry';
 
@@ -20,7 +20,7 @@ export async function soqlOpenNew(): Promise<void> {
     // create untitled file
     const doc = await vscode.workspace.openTextDocument({
       language: 'soql',
-      content: '',
+      content: ''
     });
 
     // open with SOQL builder
