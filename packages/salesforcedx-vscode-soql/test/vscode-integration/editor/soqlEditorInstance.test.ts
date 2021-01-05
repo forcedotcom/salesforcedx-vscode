@@ -98,7 +98,7 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobjects_request' });
+    instance.mockReceiveEvent({ type: 'sobjects_request' });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -114,7 +114,7 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobject_metadata_request', payload: 'A' });
+    instance.mockReceiveEvent({ type: 'sobject_metadata_request', payload: 'A' });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -124,7 +124,7 @@ describe('SoqlEditorInstance should', () => {
   it('handles query event and updates text document with soql', async () => {
     const aQuery = 'select a,b,c from somewhere';
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
@@ -138,7 +138,7 @@ describe('SoqlEditorInstance should', () => {
   it('muffles the postMessage once if soql statement has NOT changed', async () => {
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
     const aQuery = 'select a,b,c from somewhere';
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
@@ -159,7 +159,7 @@ describe('SoqlEditorInstance should', () => {
   it('does emit if soql statement has changed', async () => {
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
     const aQuery = 'select a,b,c from somewhere';
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
@@ -173,7 +173,7 @@ describe('SoqlEditorInstance should', () => {
 
   it('handles activation event and updates the webview', async () => {
     const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_ACTIVATED
     });
     expect(
@@ -184,7 +184,7 @@ describe('SoqlEditorInstance should', () => {
 
   it('handles run query event and opens the webview', async () => {
     const openQueryResultsSpy = sandbox.spy(instance, 'openQueryDataView');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.RUN_SOQL_QUERY
     });
     expect(
