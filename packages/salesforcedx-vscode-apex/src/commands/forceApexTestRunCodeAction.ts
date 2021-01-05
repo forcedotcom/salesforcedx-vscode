@@ -4,8 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { HumanReporter, TestItem, TestService } from '@salesforce/apex-node';
-import { TestLevel } from '@salesforce/apex-node/lib/src/tests/types';
+import {
+  HumanReporter,
+  TestItem,
+  TestLevel,
+  TestService
+} from '@salesforce/apex-node';
 import {
   Command,
   SfdxCommandBuilder,

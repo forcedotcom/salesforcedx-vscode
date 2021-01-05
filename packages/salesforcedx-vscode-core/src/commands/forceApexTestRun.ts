@@ -8,9 +8,9 @@
 import {
   AsyncTestConfiguration,
   HumanReporter,
+  TestLevel,
   TestService
 } from '@salesforce/apex-node';
-import { TestLevel } from '@salesforce/apex-node/lib/src/tests/types';
 import {
   Command,
   SfdxCommandBuilder,

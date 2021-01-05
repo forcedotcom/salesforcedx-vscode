@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestService } from '@salesforce/apex-node';
-import { TestLevel } from '@salesforce/apex-node/lib/src/tests/types';
+import { TestLevel, TestService } from '@salesforce/apex-node';
 import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
