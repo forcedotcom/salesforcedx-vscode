@@ -12,13 +12,11 @@ import { soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { startTelemetry, stopTelemetry } from './telemetry';
-import { checkDependencies } from './sfdx';
 
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<void> {
   const extensionHRStart = process.hrtime();
-  checkDependencies();
   context.subscriptions.push(SOQLEditorProvider.register(context));
   QueryDataViewService.register(context);
   WorkspaceContextUtil.getInstance().initialize(context);
