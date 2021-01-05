@@ -1,27 +1,26 @@
 #!/usr/bin/env node
 
 /*
- * Asserts JUnit test results were generated from a test run and aggregates
- * them into a single output file. The script processes each package directory
- * that has a test/ folder in it and asserts/copies the JUnit output for each
- * test category under the test/ folder.
+ * Asserts JUnit test results were generated from a test run with the specified
+ * test categories and aggregates them into a directory.
  * 
- * Assumptions:
- * 0. You have junit-merge installed globally using `npm install -g junit-merge`.
  * 
- * For the following structure:
+ * e.g. with the following structure:
  * 
  * packages/salesforcecx-vscode-lwc/test/unit
  * packages/salesforcecx-vscode-lwc/test/vscode-integration
  * 
- * These files will be asserted to exist and be aggregated:
+ * these files will be asserted to exist:
  * 
  * packages/salesforcedx-vscode-lwc/junit-custom-unitTests.xml
  * packages/salesforcedx-vscode-lwc/junit-custom-vscodeIntegrationTests.xml
  * 
+ * and then are copied into a top-level directory called junit-aggregate.'
+ * 
+ * 
  * Valid categories: unit, integration, vscode-integration
  * 
- * By default, all categories will be considered. To only process specific
+ * By default, all categories will be tested. To only process specific
  * categories, call the script with desired categories separated by a space.
  * 
  * e.g. node aggregate-junit-xml.js integration vscode-integration
@@ -82,9 +81,6 @@ for (const entry of fs.readdirSync(packagesDir)) {
     }
   }
 }
-
-// merge junit output
-shell.exec(`junit-merge -d ${aggregateDir} -o ${path.join(cwd, 'junit-aggregate.xml')}`)
 
 // report on missing junit output if there is any, and exit with an error.
 let missingMessage;
