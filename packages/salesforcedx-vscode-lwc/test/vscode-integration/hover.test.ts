@@ -15,6 +15,8 @@ import {
   window,
   workspace
 } from 'vscode';
+import { LanguageClient } from 'vscode-languageclient';
+import { createLanguageClient } from '../../src/languageClient';
 
 describe('LWC Hovers', () => {
   let lwcDir = path.join(
@@ -25,9 +27,35 @@ describe('LWC Hovers', () => {
     'lwc'
   );
 
+  let client: LanguageClient;
+
+  before(async function() {
+    this.timeout(10000);
+    // creating a new client so that we can wait on its ready status before the
+    // tests begin. set the timeout at the suite level to give the client some time
+    // to get ready
+    client = createLanguageClient(
+      path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'node_modules',
+        '@salesforce',
+        'lwc-language-server',
+        'lib',
+        'server.js'
+      )
+    );
+    client.start();
+    await client.onReady();
+  });
+
   afterEach(async () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
   });
+
+  after(() => client.stop());
 
   it('Should provide additional details when hovering over a LWC tag', async () => {
     const doc = await workspace.openTextDocument(
@@ -53,7 +81,7 @@ describe('LWC Hovers', () => {
 
     expect(content!.value).to.include('Attributes');
     expect(content!.value).to.include('View in Component Library');
-  }).timeout(5000);
+  });
 
   it('Should provide additional details when hovering over a LWC attribute', async () => {
     const doc = await workspace.openTextDocument(

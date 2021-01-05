@@ -31,7 +31,10 @@ describe('Should do completion', async () => {
   });
 
   testCompletion('|', [
-    { label: 'SELECT', kind: vscode.CompletionItemKind.Keyword }
+    {
+      label: 'SELECT',
+      kind: vscode.CompletionItemKind.Keyword
+    }
   ]);
 
   testCompletion('SELECT id FROM |', [
@@ -82,23 +85,23 @@ function testCompletion(
     let passed = false;
     for (let tries = 3; !passed && tries > 0; tries--) {
       try {
-        const actualCompletionItems = sortItems(
-          ((await vscode.commands.executeCommand(
-            'vscode.executeCompletionItemProvider',
-            soqlFileUri,
-            position
-          )) as vscode.CompletionList).items
-        );
+        const actualCompletionItems = ((await vscode.commands.executeCommand(
+          'vscode.executeCompletionItemProvider',
+          soqlFileUri,
+          position
+        )) as vscode.CompletionList).items;
 
-        expect(actualCompletionItems.length).gte(
-          expectedCompletionItems.length
-        );
-
-        sortItems(expectedCompletionItems).forEach((expectedItem, i) => {
-          const actualItem = actualCompletionItems[i];
-          expect(actualItem.label).equals(expectedItem.label);
-          expect(actualItem.kind).equals(expectedItem.kind);
+        const pickMainItemKeys = (item: vscode.CompletionItem) => ({
+          label: item.label,
+          kind: item.kind
         });
+        const simplifiedActualCompletionItems = actualCompletionItems.map(
+          pickMainItemKeys
+        );
+        expectedCompletionItems.map(pickMainItemKeys).forEach(item => {
+          expect(simplifiedActualCompletionItems).to.deep.include(item);
+        });
+
         passed = true;
       } catch (failure) {
         if (tries === 1) {
@@ -114,11 +117,6 @@ function testCompletion(
 
 async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function sortItems(items: vscode.CompletionItem[]): vscode.CompletionItem[] {
-  items.sort((a, b) => (a.label > b.label ? 1 : b.label > a.label ? -1 : 0));
-  return items;
 }
 
 export async function activate(docUri: vscode.Uri) {

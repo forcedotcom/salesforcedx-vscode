@@ -134,13 +134,16 @@ async function expandPlaceholders(
     item => item.label === '__SOBJECTS_PLACEHOLDER'
   );
   if (sobjectsIdx >= 0) {
-    const sobjectItems = (await retrieveSObjects()).map(objName => {
-      const item = new ProtocolCompletionItem(objName);
-      item.kind = CompletionItemKind.Class;
-      return item;
-    });
-
-    completionItems.splice(sobjectsIdx, 1, ...sobjectItems);
+    try {
+      const sobjectItems = (await retrieveSObjects()).map(objName => {
+        const item = new ProtocolCompletionItem(objName);
+        item.kind = CompletionItemKind.Class;
+        return item;
+      });
+      completionItems.splice(sobjectsIdx, 1, ...sobjectItems);
+    } catch (metadataErrors) {
+      completionItems.splice(sobjectsIdx, 1);
+    }
   }
 
   //  Expand SObject fields
@@ -149,29 +152,33 @@ async function expandPlaceholders(
     SOBJECT_FIELDS_PLACEHOLDER.test(item.label)
   );
   if (sobjectFieldsIdx >= 0) {
-    const m = completionItems[sobjectFieldsIdx].label.match(
+    const parsedCommand = completionItems[sobjectFieldsIdx].label.match(
       SOBJECT_FIELDS_PLACEHOLDER
     );
 
-    if (m) {
-      const objName = m[1];
-      const objMetadata = await retrieveSObject(objName);
-      const sobjectFields = objMetadata.fields.reduce((fieldItems, field) => {
-        fieldItems.push(newFieldCompletionItem(field.name));
+    if (parsedCommand) {
+      const objName = parsedCommand[1];
+      try {
+        const objMetadata = await retrieveSObject(objName);
+        const sobjectFields = objMetadata.fields.reduce((fieldItems, field) => {
+          fieldItems.push(newFieldCompletionItem(field.name));
 
-        if (field.relationshipName) {
-          fieldItems.push(
-            newFieldCompletionItem(
-              `${field.relationshipName} \(${field.referenceTo}\)`,
-              CompletionItemKind.Class,
-              field.relationshipName + '.'
-            )
-          );
-        }
+          if (field.relationshipName) {
+            fieldItems.push(
+              newFieldCompletionItem(
+                `${field.relationshipName} \(${field.referenceTo}\)`,
+                CompletionItemKind.Class,
+                field.relationshipName + '.'
+              )
+            );
+          }
 
-        return fieldItems;
-      }, [] as ProtocolCompletionItem[]);
-      completionItems.splice(sobjectFieldsIdx, 1, ...sobjectFields);
+          return fieldItems;
+        }, [] as ProtocolCompletionItem[]);
+        completionItems.splice(sobjectFieldsIdx, 1, ...sobjectFields);
+      } catch (metadataError) {
+        completionItems.splice(sobjectFieldsIdx, 1);
+      }
     }
   }
 
