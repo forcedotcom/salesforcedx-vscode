@@ -7,10 +7,8 @@
 
 import { Aliases } from '@salesforce/core';
 import { ConfigUtil } from '../config';
-import {
-  DEFAULT_USERNAME_KEY
-} from '../constants';
 import { TelemetryService } from '../telemetry';
+import { DEFAULT_USERNAME_KEY } from '../types';
 
 export class AuthUtil {
   private static instance?: AuthUtil;
@@ -36,7 +34,10 @@ export class AuthUtil {
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      await TelemetryService.getInstance().sendException('get_default_username_alias', err.message);
+      await TelemetryService.getInstance().sendException(
+        'get_default_username_alias',
+        err.message
+      );
       return undefined;
     }
   }
