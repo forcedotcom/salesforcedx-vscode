@@ -69,7 +69,6 @@ export async function startLanguageClient(
   // Start the client. This will also launch the server
   client.start();
   await client.onReady();
-
   client = queryValidation.afterStart(client);
 }
 

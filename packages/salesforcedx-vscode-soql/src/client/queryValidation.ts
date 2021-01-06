@@ -11,20 +11,30 @@ import {
 import { LanguageClient } from 'vscode-languageclient';
 import { QueryRunner } from '../editor/queryRunner';
 import { withSFConnection } from '../sfdx';
+import { workspace } from 'vscode';
+import { SOQL_CONFIGURATION_NAME, SOQL_VALIDATION_CONFIG } from '../constants';
 
 export function init(client: LanguageClient): LanguageClient {
   client.registerFeature(new QueryValidationFeature());
   return client;
 }
+
+const emptyQueryResults = { done: true, totalSize: 0, records: [] };
 export function afterStart(client: LanguageClient): LanguageClient {
   client.onRequest(RequestTypes.RunQuery, async (queryText: string) => {
+    const enabled = workspace
+      .getConfiguration(SOQL_CONFIGURATION_NAME)
+      .get<boolean>(SOQL_VALIDATION_CONFIG);
+
     try {
-      return await withSFConnection(async conn => {
-        const queryData = await new QueryRunner(conn).runQuery(queryText, {
-          showErrors: false
-        });
-        return { result: queryData };
-      });
+      return enabled
+        ? await withSFConnection(async conn => {
+            const queryData = await new QueryRunner(conn).runQuery(queryText, {
+              showErrors: false
+            });
+            return { result: queryData };
+          })
+        : emptyQueryResults;
     } catch (e) {
       // NOTE: The return value must be serializable, for JSON-RPC.
       // Thus we cannot include the exception object as-is
