@@ -11,20 +11,12 @@ import * as vscode from 'vscode';
 import * as commonUtils from '../../../src/commonUtils';
 import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
-  getMockConnection,
   MockConnection,
   mockSObject,
   MockTextDocumentProvider,
+  stubMockConnection,
   TestSoqlEditorInstance
 } from '../testUtilities';
-
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
-const sfdxCoreExports = sfdxCoreExtension
-  ? sfdxCoreExtension.exports
-  : undefined;
-const { workspaceContext } = sfdxCoreExports;
 
 describe('SoqlEditorInstance should', () => {
   let mockConnection: MockConnection;
@@ -53,7 +45,7 @@ describe('SoqlEditorInstance should', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    mockConnection = getMockConnection(sandbox);
+    mockConnection = stubMockConnection(sandbox);
     docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
       'sfdc-test',
       new MockTextDocumentProvider()
@@ -81,7 +73,6 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('post CONNECTION_CHANGED message when connection is changed', async () => {
-    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
     const expected = { type: 'connection_changed' };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
@@ -91,8 +82,6 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('responds to sobjects_request with a list of sobjects', async () => {
-    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
-
     const expectedMessage = {
       type: 'sobjects_response',
       payload: ['A', 'B']
@@ -107,8 +96,6 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('responds to sobject_metadata_request with SObject metadata', async () => {
-    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
-
     const expectedMessage = {
       type: 'sobject_metadata_response',
       payload: mockSObject

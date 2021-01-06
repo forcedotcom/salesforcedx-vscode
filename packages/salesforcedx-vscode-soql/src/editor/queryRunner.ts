@@ -8,19 +8,33 @@
 import { Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
+import * as vscode from 'vscode';
+import { nls } from '../messages';
 
 export class QueryRunner {
   constructor(private connection: Connection) {}
 
-  public async runQuery(queryText: string): Promise<QueryResult<JsonMap>> {
-    const rawQueryData = (await this.connection.query(
-      queryText
-    )) as QueryResult<JsonMap>;
-    const cleanQueryData = {
-      ...rawQueryData,
-      records: this.flattenQueryRecords(rawQueryData.records)
-    };
-    return cleanQueryData;
+  public async runQuery(
+    queryText: string,
+    options = { showErrors: true }
+  ): Promise<QueryResult<JsonMap>> {
+    try {
+      const rawQueryData = (await this.connection.query(
+        queryText
+      )) as QueryResult<JsonMap>;
+      const cleanQueryData = {
+        ...rawQueryData,
+        records: this.flattenQueryRecords(rawQueryData.records)
+      };
+      return cleanQueryData;
+    } catch (error) {
+      // TODO: i18n
+      if (options.showErrors) {
+        const message = nls.localize('error_run_soql_query', error.message);
+        vscode.window.showErrorMessage(message);
+      }
+      throw error;
+    }
   }
   /*
   As query complexity grows

@@ -5,30 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
-import { OrgInfo } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { JsonMap } from '@salesforce/ts-types';
-import { nls } from '../messages';
 import { debounce } from 'debounce';
-import {
-  DescribeGlobalSObjectResult,
-  DescribeSObjectResult,
-  QueryResult
-} from 'jsforce';
+import { DescribeSObjectResult, QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
-import { channelService } from '../channel';
 import { trackErrorWithTelemetry } from '../commonUtils';
+import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
+import {
+  channelService,
+  isDefaultOrgSet,
+  onOrgChange,
+  retrieveSObject,
+  retrieveSObjects,
+  withSFConnection
+} from '../sfdx';
 import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
-
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
-const sfdxCoreExports = sfdxCoreExtension
-  ? sfdxCoreExtension.exports
-  : undefined;
-const { workspaceContext } = sfdxCoreExports;
 
 // TODO: This should be exported from soql-builder-ui
 export interface SoqlEditorEvent {
@@ -50,23 +43,15 @@ export enum MessageType {
   CONNECTION_CHANGED = 'connection_changed'
 }
 
-async function withSFConnection(f: (conn: Connection) => void): Promise<void> {
-  try {
-    const conn = await workspaceContext.getConnection();
-    f(conn);
-  } catch (e) {
-    channelService.appendLine(e);
-  }
-}
-
 class ConnectionChangedListener {
   protected editorInstances: SOQLEditorInstance[];
   protected static instance: ConnectionChangedListener;
 
   protected constructor() {
-    workspaceContext.onOrgChange(async (orgInfo: OrgInfo) => {
+    onOrgChange(async (orgInfo: any) => {
       await this.connectionChanged();
     });
+
     this.editorInstances = [];
   }
 
@@ -88,11 +73,7 @@ class ConnectionChangedListener {
   }
 
   public async connectionChanged(): Promise<void> {
-    await withSFConnection(conn => {
-      conn.describeGlobal$.clear();
-      conn.describe$.clear();
-      this.editorInstances.forEach(editor => editor.onConnectionChanged());
-    });
+    this.editorInstances.forEach(editor => editor.onConnectionChanged());
   }
 }
 
@@ -168,26 +149,26 @@ export class SOQLEditorInstance {
     }
   }
 
-  protected onDidRecieveMessageHandler(e: SoqlEditorEvent): void {
-    switch (e.type) {
+  protected onDidRecieveMessageHandler(event: SoqlEditorEvent): void {
+    switch (event.type) {
       case MessageType.UI_ACTIVATED: {
         this.updateWebview(this.document);
         break;
       }
       case MessageType.UI_SOQL_CHANGED: {
-        const soql = e.payload as string;
+        const soql = event.payload as string;
         this.updateTextDocument(this.document, soql);
         break;
       }
       case MessageType.UI_TELEMETRY: {
-        const { unsupported } = e.payload as TelemetryModelJson;
+        const { unsupported } = event.payload as TelemetryModelJson;
         const hasUnsupported = Array.isArray(unsupported)
           ? unsupported.length
           : unsupported;
         if (hasUnsupported) {
           trackErrorWithTelemetry(
             'syntax_unsupported',
-            JSON.stringify(e.payload)
+            JSON.stringify(event.payload)
           ).catch(console.error);
           const message = nls.localize('info_syntax_unsupported');
           channelService.appendLine(message);
@@ -195,11 +176,24 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.SOBJECT_METADATA_REQUEST: {
-        this.retrieveSObject(e.payload as string);
+        retrieveSObject(event.payload as string)
+          .then(sobject => this.updateSObjectMetadata(sobject))
+          .catch(() => {
+            const message = nls.localize(
+              'error_sobject_metadata_request',
+              event.payload
+            );
+            channelService.appendLine(message);
+          });
         break;
       }
       case MessageType.SOBJECTS_REQUEST: {
-        this.retrieveSObjects();
+        retrieveSObjects()
+          .then(sobjectNames => this.updateSObjects(sobjectNames))
+          .catch(() => {
+            const message = nls.localize('error_sobjects_request');
+            channelService.appendLine(message);
+          });
         break;
       }
       case MessageType.RUN_SOQL_QUERY: {
@@ -207,16 +201,18 @@ export class SOQLEditorInstance {
         break;
       }
       default: {
-        const message = nls.localize('error_unknown_error', e.type);
+        const message = nls.localize('error_unknown_error', event.type);
         channelService.appendLine(message);
-        trackErrorWithTelemetry('message_unknown', e.type).catch(console.error);
+        trackErrorWithTelemetry('message_unknown', event.type).catch(
+          console.error
+        );
       }
     }
   }
 
   protected handleRunQuery(): Promise<void> {
     // Check to see if a default org is set.
-    if (!workspaceContext.username) {
+    if (!isDefaultOrgSet()) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
@@ -229,7 +225,7 @@ export class SOQLEditorInstance {
         const queryData = await new QueryRunner(conn).runQuery(queryText);
         this.openQueryDataView(queryData);
       } catch (err) {
-        const message = nls.localize('error_run_soql_query', err.toString());
+        const message = nls.localize('error_run_soql_query', err.message);
         vscode.window.showErrorMessage(message);
       }
     });
@@ -244,38 +240,6 @@ export class SOQLEditorInstance {
     webview.createOrShowWebView();
   }
 
-  protected async retrieveSObjects(): Promise<void> {
-    return withSFConnection(async conn => {
-      conn.describeGlobal$((err, describeGlobalResult) => {
-        if (err) {
-          const message = nls.localize('error_sobjects_request');
-          channelService.appendLine(message);
-        }
-        if (describeGlobalResult) {
-          const sobjectNames: string[] = describeGlobalResult.sobjects.map(
-            (sobject: DescribeGlobalSObjectResult) => sobject.name
-          );
-          this.updateSObjects(sobjectNames);
-        }
-      });
-    });
-  }
-  protected async retrieveSObject(sobjectName: string): Promise<void> {
-    return withSFConnection(async conn => {
-      conn.describe$(sobjectName, (err, sobject) => {
-        if (err) {
-          const message = nls.localize(
-            'error_sobject_metadata_request',
-            sobjectName
-          );
-          channelService.appendLine(message);
-        }
-        if (sobject) {
-          this.updateSObjectMetadata(sobject);
-        }
-      });
-    });
-  }
   // Write out the json to a given document. //
   protected updateTextDocument(
     document: vscode.TextDocument,

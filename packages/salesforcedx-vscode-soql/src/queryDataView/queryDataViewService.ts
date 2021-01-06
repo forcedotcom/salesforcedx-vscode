@@ -9,7 +9,6 @@ import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channel';
 import { getDocumentName, trackErrorWithTelemetry } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
@@ -26,6 +25,7 @@ import {
   TABULATOR_STYLE_FILENAME
 } from '../constants';
 import { nls } from '../messages';
+import { channelService } from '../sfdx';
 import {
   FileFormat,
   QueryDataFileService as FileService
