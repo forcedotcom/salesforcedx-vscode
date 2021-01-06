@@ -134,6 +134,7 @@ export const messages = {
   force_apex_test_run_all_test_label: 'All tests',
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current project',
+  apex_test_run_text: 'Run Apex Tests',
 
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',

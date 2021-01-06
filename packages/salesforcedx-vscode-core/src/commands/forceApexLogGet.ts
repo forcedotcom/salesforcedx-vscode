@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LogService } from '@salesforce/apex-node';
-import { LogRecord } from '@salesforce/apex-node/lib/src/logs/types';
+import { LogRecord, LogService } from '@salesforce/apex-node';
 import {
   CliCommandExecutor,
   Command,

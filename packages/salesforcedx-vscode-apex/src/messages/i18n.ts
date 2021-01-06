@@ -25,6 +25,7 @@ export const messages = {
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  apex_test_run_text: 'Run Apex Tests',
   force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
   force_apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',

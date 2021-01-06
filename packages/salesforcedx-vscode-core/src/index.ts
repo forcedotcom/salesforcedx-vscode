@@ -71,6 +71,7 @@ import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
+  LibraryCommandletExecutor,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -629,6 +630,7 @@ export async function activate(context: vscode.ExtensionContext) {
     getDefaultUsernameOrAlias,
     getUserId,
     isCLIInstalled,
+    LibraryCommandletExecutor,
     notificationService,
     OrgAuthInfo,
     ProgressNotification,

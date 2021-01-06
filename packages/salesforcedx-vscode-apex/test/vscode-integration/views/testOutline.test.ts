@@ -27,6 +27,9 @@ import {
 import { ApexTestRunner, TestRunType } from '../../../src/views/testRunner';
 import { generateApexTestMethod } from './testDataUtil';
 import {
+  apexLibMultipleResult,
+  apexLibOneFileResult,
+  apexLibTestInfo,
   jsonSummaryMultipleFiles,
   jsonSummaryOneFilePass
 } from './testJSONOutputs';
@@ -35,29 +38,31 @@ const NO_TESTS_DESCRIPTION = nls.localize(
   'force_test_view_no_tests_description'
 );
 
+const coreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const sfdxCoreSettings = coreExports.sfdxCoreSettings;
+
 describe('TestView', () => {
   let testOutline: ApexTestOutlineProvider;
   const apexTestInfo: ApexTestMethod[] = generateApexTestMethod();
 
   describe('Code Coverage', () => {
-    const coreExports = vscode.extensions.getExtension(
-      'salesforce.salesforcedx-vscode-core'
-    )!.exports;
     let commandletSpy: SinonSpy;
     let getCoverageStub: SinonStub;
     let languageClientUtils: LanguageClientUtils;
+    let settingStub: SinonStub;
 
     beforeEach(() => {
       commandletSpy = spy(coreExports.SfdxCommandlet.prototype, 'run');
-      getCoverageStub = stub(
-        coreExports.sfdxCoreSettings,
-        'getRetrieveTestCodeCoverage'
-      );
+      getCoverageStub = stub(sfdxCoreSettings, 'getRetrieveTestCodeCoverage');
       languageClientUtils = LanguageClientUtils.getInstance();
       languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
+      settingStub = stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
     });
 
     afterEach(() => {
+      settingStub.restore();
       commandletSpy.restore();
       getCoverageStub.restore();
     });
@@ -74,6 +79,21 @@ describe('TestView', () => {
       await testRunner.runApexTests(['MyTestFalse'], TestRunType.Method);
       executor = commandletSpy.getCall(1).thisValue.executor;
       expect(executor.shouldGetCodeCoverage).to.be.false;
+    });
+
+    it('Should honor code coverage setting with Apex Library', async () => {
+      settingStub.returns(true);
+      const testRunner = new ApexTestRunner(testOutline);
+      getCoverageStub.onFirstCall().returns(true);
+      getCoverageStub.onSecondCall().returns(false);
+
+      await testRunner.runApexTests(['MyTestTrue'], TestRunType.Method);
+      let { executor } = commandletSpy.getCall(0).thisValue;
+      expect(executor.codeCoverage).to.be.true;
+
+      await testRunner.runApexTests(['MyTestFalse'], TestRunType.Method);
+      executor = commandletSpy.getCall(1).thisValue.executor;
+      expect(executor.codeCoverage).to.be.false;
     });
   });
 
@@ -190,7 +210,7 @@ describe('TestView', () => {
     let readFolderStub: SinonStub;
     let readFileStub: SinonStub;
     let parseJSONStub: SinonStub;
-    // let jsonSummaryAll: FullTestResult;
+    let settingStub: SinonStub;
 
     beforeEach(() => {
       readFolderStub = stub(fs, 'readdirSync');
@@ -202,20 +222,24 @@ describe('TestView', () => {
         return 'nonsense';
       });
       parseJSONStub = stub(JSON, 'parse');
+      settingStub = stub(sfdxCoreSettings, 'getApexLibrary');
     });
 
     afterEach(() => {
+      settingStub.restore();
       readFolderStub.restore();
       readFileStub.restore();
       parseJSONStub.restore();
     });
 
-    it('Should update single test with Pass result', () => {
+    it('Should update single test with Pass result using CLI', () => {
+      settingStub.returns(false);
       parseJSONStub.callsFake(() => {
         return jsonSummaryOneFilePass;
       });
+
       testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
-      testOutline.readJSONFile('oneFilePass');
+      testOutline.updateTestResults('oneFilePass');
       const testGroupNode = testOutline.getHead()
         .children[0] as ApexTestGroupNode;
       expect(testGroupNode.passing).to.equal(1);
@@ -223,12 +247,28 @@ describe('TestView', () => {
       expect(testNode.outcome).to.equal('Pass');
     });
 
-    it('Should update tests and test groups with 8 results, 6 passing and 2 failing', () => {
+    it('Should update single test with Pass result using Apex library', () => {
+      settingStub.returns(true);
+      parseJSONStub.callsFake(() => {
+        return apexLibOneFileResult;
+      });
+
+      testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
+      testOutline.updateTestResults('oneFilePass');
+      const testGroupNode = testOutline.getHead()
+        .children[0] as ApexTestGroupNode;
+      expect(testGroupNode.passing).to.equal(1);
+      const testNode = testGroupNode.children[0] as ApexTestNode;
+      expect(testNode.outcome).to.equal('Pass');
+    });
+
+    it('Should update tests and test groups with 8 results, 6 passing and 2 failing using CLI', () => {
+      settingStub.returns(false);
       parseJSONStub.callsFake(() => {
         return jsonSummaryMultipleFiles;
       });
       testOutline = new ApexTestOutlineProvider(apexTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       let classNum = 0;
       expect(testOutline.getHead().children.length).to.equal(4);
       for (const testGroupNode of testOutline.getHead().children) {
@@ -260,6 +300,27 @@ describe('TestView', () => {
         classNum++;
       }
     });
+
+    it('Should update tests and test groups with passing/failing tests using Apex library', () => {
+      settingStub.returns(true);
+      parseJSONStub.callsFake(() => {
+        return apexLibMultipleResult;
+      });
+      testOutline = new ApexTestOutlineProvider(apexLibTestInfo);
+      testOutline.updateTestResults('multipleFilesMixed');
+
+      expect(testOutline.getHead().children.length).to.equal(1);
+      const groupNode = testOutline.getHead().children[0] as ApexTestGroupNode;
+      expect(groupNode.passing).to.eql(2);
+      expect(groupNode.failing).to.eql(1);
+
+      expect(groupNode.children[0].name).to.equal('file0.test0');
+      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal('Pass');
+      expect(groupNode.children[1].name).to.equal('file0.test1');
+      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal('Fail');
+      expect(groupNode.children[2].name).to.equal('file0.test2');
+      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal('Pass');
+    });
   });
 
   describe('Navigate to test definition or error', () => {
@@ -268,6 +329,7 @@ describe('TestView', () => {
     let parseJSONStub: SinonStub;
     let showTextDocumentStub: SinonStub;
     let eventEmitterStub: SinonStub;
+    let settingStub: SinonStub;
 
     let testRunner: ApexTestRunner;
     const eventEmitter = new events.EventEmitter();
@@ -282,13 +344,15 @@ describe('TestView', () => {
       eventEmitterStub = stub(eventEmitter, 'emit');
       showTextDocumentStub = stub(vscode.window, 'showTextDocument');
       showTextDocumentStub.returns(Promise.resolve());
+      settingStub = stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
 
       testOutline = new ApexTestOutlineProvider(apexTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       testRunner = new ApexTestRunner(testOutline, eventEmitter);
     });
 
     afterEach(() => {
+      settingStub.restore();
       readFolderStub.restore();
       readFileStub.restore();
       parseJSONStub.restore();
