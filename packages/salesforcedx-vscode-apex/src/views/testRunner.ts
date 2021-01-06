@@ -8,13 +8,13 @@
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as events from 'events';
 import * as vscode from 'vscode';
+import { ApexLibraryTestRunExecutor, ForceApexTestRunCodeActionExecutor } from '../commands';
 import {
   LanguageClientStatus,
   languageClientUtils
 } from '../languageClientUtils';
 import { nls } from '../messages';
 import { forceApexTestRunCacheService } from '../testRunCache';
-import { ReadableApexTestRunExecutor } from './readableApexTestRunExecutor';
 import {
   ApexTestGroupNode,
   ApexTestNode,
@@ -140,7 +140,8 @@ export class ApexTestRunner {
     } else if (testRunType === TestRunType.Method) {
       await forceApexTestRunCacheService.setCachedMethodTestParam(tests[0]);
     }
-    const builder = new ReadableApexTestRunExecutor(
+    const executor = sfdxCoreSettings.getApexLibrary() ? new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage) :
+    new ForceApexTestRunCodeActionExecutor(
       tests,
       getCodeCoverage,
       tmpFolder
@@ -148,7 +149,7 @@ export class ApexTestRunner {
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       new EmptyParametersGatherer(),
-      builder
+      executor
     );
     await commandlet.run();
   }

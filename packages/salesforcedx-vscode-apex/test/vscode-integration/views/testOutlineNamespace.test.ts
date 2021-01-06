@@ -19,21 +19,18 @@ import {
 } from '../../../src/views/testOutlineProvider';
 import { ApexTestRunner } from '../../../src/views/testRunner';
 import { generateApexTestMethod } from './testDataUtil';
-import { summaryMultipleFiles, summaryOneFile } from './testJSONOutputs';
 import {
-  testResultsMultipleFiles,
-  testResultsOneFile
+  apexLibMultipleNsResult,
+  apexLibNsResult,
+  apexLibNsTestInfo,
+  jsonMultipleNSFiles,
+  jsonOneNSFilePass
 } from './testNamespacedOutputs';
 
-const jsonOneNSFilePass = {
-  summary: summaryOneFile,
-  tests: testResultsOneFile
-};
-
-const jsonMultipleNSFiles = {
-  summary: summaryMultipleFiles,
-  tests: testResultsMultipleFiles
-};
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 
 describe('Test View with namespace', () => {
   let testOutline: ApexTestOutlineProvider;
@@ -107,6 +104,7 @@ describe('Test View with namespace', () => {
     let readFolderStub: SinonStub;
     let readFileStub: SinonStub;
     let parseJSONStub: SinonStub;
+    let settingStub: SinonStub;
     let sb: SinonSandbox;
 
     beforeEach(() => {
@@ -120,20 +118,21 @@ describe('Test View with namespace', () => {
         return 'nonsense';
       });
       parseJSONStub = sb.stub(JSON, 'parse');
+      settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
     });
 
     afterEach(() => {
       sb.restore();
     });
 
-    it('Should update single test with Pass result', () => {
+    it('Should update single test with Pass result using CLI', () => {
       parseJSONStub.callsFake(() => {
         return jsonOneNSFilePass;
       });
       testOutline = new ApexTestOutlineProvider(
         apexNamespacedTestInfo.slice(0, 1)
       );
-      testOutline.readJSONFile('oneFilePass');
+      testOutline.updateTestResults('oneFilePass');
       const testGroupNode = testOutline.getHead()
         .children[0] as ApexTestGroupNode;
       expect(testGroupNode.passing).to.equal(1);
@@ -141,12 +140,28 @@ describe('Test View with namespace', () => {
       expect(testNode.outcome).to.equal('Pass');
     });
 
-    it('Should update tests and test groups with 8 results, 6 passing and 2 failing', () => {
+    it('Should update single test with Pass result using Apex library', () => {
+      settingStub.returns(true);
+      parseJSONStub.callsFake(() => {
+        return apexLibNsResult;
+      });
+      testOutline = new ApexTestOutlineProvider(
+        apexNamespacedTestInfo.slice(0, 1)
+      );
+      testOutline.updateTestResults('oneFilePass');
+      const testGroupNode = testOutline.getHead()
+        .children[0] as ApexTestGroupNode;
+      expect(testGroupNode.passing).to.equal(1);
+      const testNode = testGroupNode.children[0] as ApexTestNode;
+      expect(testNode.outcome).to.equal('Pass');
+    });
+
+    it('Should update tests and test groups with 8 results, 6 passing and 2 failing using CLI', () => {
       parseJSONStub.callsFake(() => {
         return jsonMultipleNSFiles;
       });
       testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       let classNum = 0;
       expect(testOutline.getHead().children.length).to.equal(4);
       for (const testGroupNode of testOutline.getHead().children) {
@@ -178,6 +193,27 @@ describe('Test View with namespace', () => {
         classNum++;
       }
     });
+
+    it('Should update tests and test groups with passing/failing results using Apex library', async () => {
+      settingStub.returns(true);
+      parseJSONStub.callsFake(() => {
+        return apexLibMultipleNsResult;
+      });
+      testOutline = new ApexTestOutlineProvider(apexLibNsTestInfo);
+      testOutline.updateTestResults('multipleFilesMixed');
+
+      expect(testOutline.getHead().children.length).to.equal(1);
+      const groupNode = testOutline.getHead().children[0] as ApexTestGroupNode;
+      expect(groupNode.passing).to.eql(2);
+      expect(groupNode.failing).to.eql(1);
+
+      expect(groupNode.children[0].name).to.equal('tester.file0.test0');
+      expect((groupNode.children[0] as ApexTestNode).outcome).to.equal('Pass');
+      expect(groupNode.children[1].name).to.equal('tester.file0.test1');
+      expect((groupNode.children[1] as ApexTestNode).outcome).to.equal('Fail');
+      expect(groupNode.children[2].name).to.equal('tester.file0.test2');
+      expect((groupNode.children[2] as ApexTestNode).outcome).to.equal('Pass');
+    });
   });
 
   describe('Navigate to test definition or error', () => {
@@ -201,9 +237,10 @@ describe('Test View with namespace', () => {
       eventEmitterStub = sb.stub(eventEmitter, 'emit');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
       showTextDocumentStub.returns(Promise.resolve());
+      sb.stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
 
       testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo);
-      testOutline.readJSONFile('multipleFilesMixed');
+      testOutline.updateTestResults('multipleFilesMixed');
       testRunner = new ApexTestRunner(testOutline, eventEmitter);
     });
 
