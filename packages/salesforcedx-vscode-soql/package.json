@@ -2,9 +2,9 @@
   "name": "salesforcedx-vscode-soql",
   "displayName": "SOQL",
   "description": "Provides code-editing features for SOQL",
-  "qna": "https://github.com/forcedotcom/soql-tooling/issues",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
-    "url": "https://github.com/forcedotcom/soql-tooling/issues"
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
@@ -83,9 +83,7 @@
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "prevscode:package": "npm prune --production; npx node-prune",
-    "vscode:package": "vsce package",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js"
+    "vscode:package": "vsce package"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
