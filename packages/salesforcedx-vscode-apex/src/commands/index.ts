@@ -6,6 +6,7 @@
  */
 
 export {
+  ApexLibraryTestRunExecutor,
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
   forceApexTestClassRunCodeAction,

@@ -24,6 +24,7 @@ export {
   ForceAuthDevHubExecutor
 } from './forceAuthDevHub';
 export {
+  ApexLibraryTestRunExecutor,
   forceApexTestRun,
   ApexTestQuickPickItem,
   ForceApexTestRunExecutor,

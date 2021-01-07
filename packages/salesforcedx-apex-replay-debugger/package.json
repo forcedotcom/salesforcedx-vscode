@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-replay-debugger",
   "displayName": "Apex Replay Debug Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
-  "version": "50.9.0",
+  "version": "50.12.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -13,7 +13,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "50.9.0",
+    "@salesforce/salesforcedx-utils-vscode": "50.12.0",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-uri": "1.0.1"
@@ -41,7 +41,7 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
-    "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration config=../../config/mochaIntegrationTestsConfig.json"
+    "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json"
   },
   "nyc": {
     "reporter": [
