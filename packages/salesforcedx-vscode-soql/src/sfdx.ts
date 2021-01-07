@@ -7,31 +7,22 @@
 
 import { Connection } from '@salesforce/core';
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { DescribeSObjectResult } from 'jsforce';
-import * as vscode from 'vscode';
 import { nls } from './messages';
 
 export const channelService = ChannelService.getInstance(
   nls.localize('soql_channel_name')
 );
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
+const workspaceContext = WorkspaceContextUtil.getInstance();
 
-const workspaceContext = sfdxCoreExtension?.exports.workspaceContext;
-
-export function checkDependencies() {
-  if (!workspaceContext) {
-    throw new Error('Unable to find SFDX core extension');
-  }
-}
 export async function withSFConnection(
   f: (conn: Connection) => void
 ): Promise<void> {
   try {
     const conn = await workspaceContext.getConnection();
-    return f(conn);
+    return f((conn as unknown) as Connection);
   } catch (e) {
     channelService.appendLine(e);
   }

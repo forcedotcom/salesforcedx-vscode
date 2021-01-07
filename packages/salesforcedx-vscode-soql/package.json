@@ -70,9 +70,6 @@
     "sinon": "^7.3.1",
     "typescript": "3.7.5"
   },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
-  ],
   "scripts": {
     "build": "npm run compile",
     "compile": "tsc -p ./",

@@ -6,6 +6,7 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { JsonMap } from '@salesforce/ts-types';
 import { DescribeGlobalResult, QueryResult } from 'jsforce';
 import { SinonSandbox } from 'sinon';
@@ -24,11 +25,7 @@ import {
   QueryDataViewService
 } from '../../src/queryDataView/queryDataViewService';
 
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
-const sfdxCoreExports = sfdxCoreExtension?.exports;
-const { workspaceContext } = sfdxCoreExports;
+const workspaceContext = WorkspaceContextUtil.getInstance();
 
 export interface MockConnection {
   authInfo: object;
