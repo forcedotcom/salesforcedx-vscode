@@ -1,5 +1,5 @@
 ---
-title: Command Reference
+title: Command Palette
 lang: en
 ---
 
