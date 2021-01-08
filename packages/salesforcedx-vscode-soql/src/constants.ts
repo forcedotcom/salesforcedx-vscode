@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
+import { nls } from './messages';
 
 /* ==== SOQL BUILDER ==== */
 export const SOQL_BUILDER_WEB_ASSETS_PATH = path.join(
@@ -20,11 +21,13 @@ export const SOQL_BUILDER_UI_PATH = path.join(
 );
 export const HTML_FILE = 'index.html';
 export const IMAGES_DIR_NAME = 'images';
-export const EDITOR_VIEW_TYPE = 'soqlCustom.soql';
+export const BUILDER_VIEW_TYPE = 'soqlCustom.soql';
+export const EDITOR_VIEW_TYPE = 'default';
+export const OPEN_WITH_COMMAND = 'vscode.openWith';
 
 /* ==== QUERY DATA VIEW ==== */
 export const QUERY_DATA_VIEW_TYPE = 'queryDataView';
-export const QUERY_DATA_VIEW_PANEL_TITLE = 'SOQL Query Results'; // TODO: i18n
+export const QUERY_DATA_VIEW_PANEL_TITLE = nls.localize('soql_query_results');
 export const QUERY_DATA_VIEW_SCRIPT_FILENAME = 'queryDataViewController.js';
 export const QUERY_DATA_VIEW_STYLE_FILENAME = 'queryDataView.css';
 export const TABULATOR_SCRIPT_FILENAME = 'tabulator.min.js';
