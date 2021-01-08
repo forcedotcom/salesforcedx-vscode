@@ -208,10 +208,9 @@ export class SOQLEditorInstance {
             },
             () => this.handleRunQuery()
           )
-          .then(undefined, () => {
-            channelService.appendLine(
-              `An error occurred while running the SOQL query.`
-            );
+          .then(undefined, (err) => {
+            const message = nls.localize('error_run_soql_query', err.message);
+            channelService.appendLine(message);
             this.runQueryDone();
           });
         break;
