@@ -8,12 +8,13 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import * as commonUtils from '../../../src/commonUtils';
 import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
-  stubMockConnection,
   MockConnection,
   mockSObject,
   MockTextDocumentProvider,
+  stubMockConnection,
   TestSoqlEditorInstance
 } from '../testUtilities';
 
@@ -169,14 +170,60 @@ describe('SoqlEditorInstance should', () => {
     );
   });
 
-  it('handles run query event and opens the webview', async () => {
+  it('handles run query event and opens the webview and sends run_query_done to webview', async () => {
+    const expectedMessage = {
+      type: 'run_query_done'
+    };
+    const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+
     const openQueryResultsSpy = sandbox.spy(instance, 'openQueryDataView');
     instance.mockReceiveEvent({
       type: MessageType.RUN_SOQL_QUERY
     });
+
     expect(
       openQueryResultsSpy.callCount === 1,
       `openQueryResultsSpy callcount expected 1, but got ${openQueryResultsSpy.callCount}`
     );
+    expect(postMessageSpy.calledWith(expectedMessage));
+  });
+
+  it('display and track error wheb webview.postMessage throws', async () => {
+    sandbox.stub(mockWebviewPanel.webview, 'postMessage').rejects();
+    const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+
+    instance.sendMessageToUi('message-type', 'message-body');
+
+    return Promise.resolve().then(() => {
+      expect(trackErrorSpy.callCount).to.equal(1);
+    });
+  });
+
+  it('handles telemetry events and tracks when there is unsupported syntax', async () => {
+    const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+    instance.sendEvent({
+      type: MessageType.UI_TELEMETRY,
+      payload: { unsupported: 1 }
+    });
+    return Promise.resolve().then(() => {
+      expect(trackErrorSpy.callCount).to.equal(1);
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_unsupported');
+    });
+  });
+
+  it('handles telemetry errors and unsupported properties as numbers AND arrays', async () => {
+    const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+    const telemetryEvent = {
+      type: MessageType.UI_TELEMETRY,
+      payload: { unsupported: ['WHERE 1 = 1'] }
+    };
+    instance.sendEvent(telemetryEvent);
+    return Promise.resolve().then(() => {
+      expect(trackErrorSpy.callCount).to.equal(1);
+      expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_unsupported');
+      expect(trackErrorSpy.getCall(0).args[1]).contains(
+        telemetryEvent.payload.unsupported[0]
+      );
+    });
   });
 });

@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TestResult } from '@salesforce/apex-node';
+import { readFileSync } from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import fs = require('fs');
 import {
   APEX_GROUP_RANGE,
   DARK_BLUE_BUTTON,
@@ -32,6 +33,10 @@ const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
 const NO_TESTS_DESCRIPTION = nls.localize(
   'force_test_view_no_tests_description'
 );
+const sfdxCoreExports = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-core'
+)!.exports;
+const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 
 export class ApexTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode> {
@@ -126,14 +131,14 @@ export class ApexTestOutlineProvider
     testResultFile: string
   ) {
     const testRunIdFile = path.join(apexTestPath, 'test-run-id.txt');
-    const testRunId = fs.readFileSync(testRunIdFile);
+    const testRunId = readFileSync(testRunIdFile);
     const testResultFilePath = path.join(
       apexTestPath,
-      'test-result-' + testRunId + '.json'
+      `test-result-${testRunId}.json`
     );
     if (testResultFile === testResultFilePath) {
       await this.refresh();
-      this.readJSONFile(testResultFile);
+      this.updateTestResults(testResultFile);
     }
   }
 
@@ -168,22 +173,20 @@ export class ApexTestOutlineProvider
         }
         this.testStrings.add(apexGroup.name);
       });
-      // Sorting independently so we don't loose the order of the test methods per test class.
+      // Sorting independently so we don't lose the order of the test methods per test class.
       this.rootNode.children.sort((a, b) => a.name.localeCompare(b.name));
     }
     return this.rootNode;
   }
 
-  public readJSONFile(testResultFilePath: string) {
-    const jsonSummary = this.getJSONFileOutput(testResultFilePath);
-    this.updateTestsFromJSON(jsonSummary);
-    this.onDidChangeTestData.fire(undefined);
-  }
+  public updateTestResults(testResultFilePath: string) {
+    const testResultOutput = readFileSync(testResultFilePath, 'utf8');
+    const testResultContent = JSON.parse(testResultOutput);
 
-  private getJSONFileOutput(testResultFileName: string): FullTestResult {
-    const testResultOutput = fs.readFileSync(testResultFileName, 'utf8');
-    const jsonSummary = JSON.parse(testResultOutput) as FullTestResult;
-    return jsonSummary;
+    sfdxCoreSettings.getApexLibrary()
+      ? this.updateTestsFromLibrary(testResultContent as TestResult)
+      : this.updateTestsFromJSON(testResultContent as FullTestResult);
+    this.onDidChangeTestData.fire(undefined);
   }
 
   private generateFullName(namespace: string, initialName: string): string {
@@ -217,6 +220,35 @@ export class ApexTestOutlineProvider
           apexTest.stackTrace = testResult.StackTrace;
           apexTest.description =
             apexTest.stackTrace + '\n' + apexTest.errorMessage;
+        }
+      }
+    }
+    groups.forEach(group => {
+      group.updatePassFailLabel();
+    });
+  }
+
+  private updateTestsFromLibrary(testResult: TestResult) {
+    const groups = new Set<ApexTestGroupNode>();
+    for (const test of testResult.tests) {
+      const apexGroupName = test.apexClass.fullName;
+      const apexGroupNode = this.apexTestMap.get(
+        apexGroupName
+      ) as ApexTestGroupNode;
+
+      if (apexGroupNode) {
+        groups.add(apexGroupNode);
+      }
+
+      const testFullName = test.fullName;
+      const apexTestNode = this.apexTestMap.get(testFullName) as ApexTestNode;
+      if (apexTestNode) {
+        apexTestNode.outcome = test.outcome;
+        apexTestNode.updateOutcome();
+        if (test.outcome === 'Fail') {
+          apexTestNode.errorMessage = test.message || '';
+          apexTestNode.stackTrace = test.stackTrace || '';
+          apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
         }
       }
     }
