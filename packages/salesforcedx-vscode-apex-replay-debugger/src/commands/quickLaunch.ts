@@ -12,6 +12,8 @@ import {
   TestResult
 } from '@salesforce/apex-node/lib/src/tests/types';
 import { Connection } from '@salesforce/core';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -26,8 +28,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 
 export const LibraryCommandletExecutor =
   sfdxCoreExports.LibraryCommandletExecutor;
-export const notificationService = sfdxCoreExports.notificationService;
-export const workspaceContext = sfdxCoreExports.workspaceContext;
 
 interface TestRunResult {
   logFileId?: string;
