@@ -17,13 +17,13 @@ export class DebugConfigurationProvider
   private sfdxApex = vscode.extensions.getExtension(
     'salesforce.salesforcedx-vscode-apex'
   );
-  public static getConfig(logFile?: string) {
+  public static getConfig(logFile?: string, stopOnEntry: boolean = true) {
     return {
       name: nls.localize('config_name_text'),
       type: DEBUGGER_TYPE,
       request: DEBUGGER_LAUNCH_TYPE,
       logFile: logFile ? logFile : '${command:AskForLogFileName}',
-      stopOnEntry: true,
+      stopOnEntry,
       trace: true
     } as vscode.DebugConfiguration;
   }

@@ -30,6 +30,7 @@ import {
   sfdxToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { launchFromLogFile } from './commands/launchFromLogFile';
+import { setupAndDebugTests } from './commands/quickLaunch';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 let extContext: vscode.ExtensionContext;
@@ -176,12 +177,31 @@ export async function activate(context: vscode.ExtensionContext) {
     processBreakpointChangedForCheckpoints
   );
 
+  // Debug Tests command
+  const debugTests = vscode.commands.registerCommand(
+    'sfdx.force.test.view.debugTests',
+    async test => {
+      await setupAndDebugTests(test.name);
+    }
+  );
+
+  // Debug Single Test command
+  const debugTest = vscode.commands.registerCommand(
+    'sfdx.force.test.view.debugSingleTest',
+    async test => {
+      const name = test.name.split('.');
+      await setupAndDebugTests(name[0], name[1]);
+    }
+  );
+
   context.subscriptions.push(
     commands,
     debugHandlers,
     debugConfigProvider,
     checkpointsView,
-    breakpointsSub
+    breakpointsSub,
+    debugTests,
+    debugTest
   );
 
   // Telemetry
