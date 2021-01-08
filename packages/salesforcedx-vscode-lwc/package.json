@@ -33,7 +33,7 @@
     "ajv": "^6.1.1",
     "applicationinsights": "1.0.7",
     "eslint": "5.0.0",
-    "jest-editor-support": "^26.0.0-beta",
+    "jest-editor-support": "^28.0.0",
     "jest-regex-util": "^24.9.0",
     "rxjs": "^5.4.1",
     "strip-ansi": "^5.2.0",
