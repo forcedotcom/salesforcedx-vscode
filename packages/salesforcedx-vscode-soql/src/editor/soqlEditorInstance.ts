@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import { DescribeSObjectResult, QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
-import { channelService } from '../channel';
 import { trackErrorWithTelemetry } from '../commonUtils';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
@@ -19,7 +19,7 @@ import {
   onOrgChange,
   retrieveSObject,
   retrieveSObjects,
-  withSFConnection
+  workspaceContext
 } from '../sfdx';
 import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
@@ -208,7 +208,7 @@ export class SOQLEditorInstance {
             },
             () => this.handleRunQuery()
           )
-          .then(undefined, (err) => {
+          .then(undefined, err => {
             const message = nls.localize('error_run_soql_query', err.message);
             channelService.appendLine(message);
             this.runQueryDone();
@@ -237,7 +237,9 @@ export class SOQLEditorInstance {
 
     const queryText = this.document.getText();
     const conn = await workspaceContext.getConnection();
-    const queryData = await new QueryRunner(conn).runQuery(queryText);
+    const queryData = await new QueryRunner(
+      (conn as unknown) as Connection
+    ).runQuery(queryText);
     this.openQueryDataView(queryData);
     this.runQueryDone();
   }

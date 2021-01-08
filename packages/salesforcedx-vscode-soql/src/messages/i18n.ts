@@ -17,7 +17,7 @@
  */
 export const messages = {
   soql_channel_name: 'SOQL Extension',
-  progress_running_query: 'Running query'
+  progress_running_query: 'Running query',
   soql_query_results: 'SOQL Query Results',
   info_no_default_org:
     'INFO: No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
