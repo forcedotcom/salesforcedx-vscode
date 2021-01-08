@@ -6,6 +6,12 @@
  */
 
 import {
+  AsyncTestConfiguration,
+  HumanReporter,
+  TestLevel,
+  TestService
+} from '@salesforce/apex-node';
+import {
   Command,
   SfdxCommandBuilder,
   TestRunner
@@ -18,10 +24,13 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
+  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -55,6 +64,14 @@ export class TestsSelector
       };
     });
 
+    fileItems.push({
+      label: nls.localize('force_apex_test_run_all_test_label'),
+      description: nls.localize(
+        'force_apex_test_run_all_tests_description_text'
+      ),
+      type: TestType.All
+    });
+
     const apexClasses = await vscode.workspace.findFiles('**/*.cls');
     apexClasses.forEach(apexClass => {
       const fileContent = fs.readFileSync(apexClass.fsPath).toString();
@@ -65,14 +82,6 @@ export class TestsSelector
           type: TestType.Class
         });
       }
-    });
-
-    fileItems.push({
-      label: nls.localize('force_apex_test_run_all_test_label'),
-      description: nls.localize(
-        'force_apex_test_run_all_tests_description_text'
-      ),
-      type: TestType.All
     });
 
     const selection = (await vscode.window.showQuickPick(
@@ -165,6 +174,49 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
   }
 }
 
+export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
+  ApexTestQuickPickItem
+> {
+  protected executionName = nls.localize('apex_test_run_text');
+  protected logName = 'force_apex_execute_library';
+
+  public static diagnostics = vscode.languages.createDiagnosticCollection(
+    'apex-errors'
+  );
+
+  protected async run(
+    response: ContinueResponse<ApexTestQuickPickItem>
+  ): Promise<boolean> {
+    const connection = await workspaceContext.getConnection();
+    const testService = new TestService(connection);
+    const testLevel = TestLevel.RunSpecifiedTests;
+    const codeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+
+    let payload: AsyncTestConfiguration;
+
+    switch (response.data.type) {
+      case TestType.Class:
+        payload = { classNames: response.data.label, testLevel };
+        break;
+      case TestType.Suite:
+        payload = { suiteNames: response.data.label, testLevel };
+        break;
+      default:
+        payload = { testLevel: TestLevel.RunAllTestsInOrg };
+    }
+
+    const result = await testService.runTestAsynchronous(payload, codeCoverage);
+    await testService.writeResultFiles(
+      result,
+      { resultFormat: 'json', dirPath: getTempFolder() },
+      codeCoverage
+    );
+    const humanOutput = new HumanReporter().format(result, codeCoverage);
+    channelService.appendLine(humanOutput);
+    return true;
+  }
+}
+
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new TestsSelector();
 
@@ -172,7 +224,9 @@ export async function forceApexTestRun() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceApexTestRunExecutor()
+    sfdxCoreSettings.getApexLibrary()
+      ? new ApexLibraryTestRunExecutor()
+      : new ForceApexTestRunExecutor()
   );
   await commandlet.run();
 }

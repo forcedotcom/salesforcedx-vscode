@@ -6,7 +6,6 @@
  */
 
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
@@ -262,28 +261,6 @@ async function registerTestView(
   return vscode.Disposable.from(...testViewItems);
 }
 
-export async function getApexClassFiles(): Promise<vscode.Uri[]> {
-  const jsonProject = (await vscode.workspace.findFiles(
-    '**/sfdx-project.json',
-    '**/node_modules/**'
-  ))[0];
-  const innerText = fs.readFileSync(jsonProject.path);
-  const jsonObject = JSON.parse(innerText.toString());
-  const packageDirectories =
-    jsonObject.packageDirectories || jsonObject.PackageDirectories;
-  const allClasses = new Array<vscode.Uri>();
-  for (const packageDirectory of packageDirectories) {
-    const pattern = path.join(packageDirectory.path, '**/*.cls');
-    const apexClassFiles = await vscode.workspace.findFiles(
-      pattern,
-      '**/node_modules/**'
-    );
-    allClasses.push(...apexClassFiles);
-  }
-  return allClasses;
-}
-
-// tslint:disable-next-line:no-empty
 export function deactivate() {
   telemetryService.sendExtensionDeactivationEvent();
 }
