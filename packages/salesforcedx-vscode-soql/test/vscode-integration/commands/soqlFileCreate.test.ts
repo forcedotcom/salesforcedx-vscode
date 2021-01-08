@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import { SinonSandbox, createSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { soqlOpenNew } from '../../../src/commands/soqlFileCreate';
-import { EDITOR_VIEW_TYPE } from '../../../src/constants';
+import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE } from '../../../src/constants';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('soqlOpenNew should', () => {
@@ -35,6 +35,6 @@ describe('soqlOpenNew should', () => {
 
     expect(telemetryStub.called).is.true;
     expect(editorOpened.called).is.true;
-    expect(executeCommandSpy.getCall(0).args[2]).contains(EDITOR_VIEW_TYPE);
+    expect(executeCommandSpy.getCall(0).args[2]).contains(BUILDER_VIEW_TYPE);
   });
 });

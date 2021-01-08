@@ -6,3 +6,4 @@
  */
 
 export { soqlOpenNew } from './soqlFileCreate';
+export { soqlBuilderToggle } from './soqlBuilderToggle';
