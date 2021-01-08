@@ -14,6 +14,7 @@ import {
   SOQL_BUILDER_UI_PATH,
   SOQL_BUILDER_WEB_ASSETS_PATH
 } from '../constants';
+import { nls } from '../messages';
 import { channelService, isDefaultOrgSet } from '../sfdx';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
@@ -54,10 +55,8 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     instance.onDispose(this.disposeInstance.bind(this));
     this.context.subscriptions.push(...instance.subscriptions);
 
-    // Check to see if a default org is set.
     if (!isDefaultOrgSet()) {
-      // i18n
-      const message = `No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.`;
+      const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
     }
