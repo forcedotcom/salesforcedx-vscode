@@ -134,15 +134,22 @@ describe('SoqlEditorInstance should', () => {
     );
   });
 
-  it('handles run query event and opens the webview', async () => {
+  it('handles run query event and opens the webview and sends run_query_done to webview', async () => {
+    const expectedMessage = {
+      type: 'run_query_done'
+    };
+    const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+
     const openQueryResultsSpy = sandbox.spy(instance, 'openQueryDataView');
     instance.sendEvent({
       type: MessageType.RUN_SOQL_QUERY
     });
+
     expect(
       openQueryResultsSpy.callCount === 1,
       `openQueryResultsSpy callcount expected 1, but got ${openQueryResultsSpy.callCount}`
     );
+    expect(postMessageSpy.calledWith(expectedMessage));
   });
 
   it('display and track error wheb webview.postMessage throws', async () => {

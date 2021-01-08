@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import { DescribeSObjectResult, QueryResult } from 'jsforce';
@@ -18,7 +19,7 @@ import {
   onOrgChange,
   retrieveSObject,
   retrieveSObjects,
-  withSFConnection
+  workspaceContext
 } from '../sfdx';
 import { TelemetryModelJson } from '../telemetry';
 import { QueryRunner } from './queryRunner';
@@ -40,7 +41,8 @@ export enum MessageType {
   SOBJECTS_RESPONSE = 'sobjects_response',
   TEXT_SOQL_CHANGED = 'text_soql_changed',
   RUN_SOQL_QUERY = 'run_query',
-  CONNECTION_CHANGED = 'connection_changed'
+  CONNECTION_CHANGED = 'connection_changed',
+  RUN_SOQL_QUERY_DONE = 'run_query_done'
 }
 
 class ConnectionChangedListener {
@@ -197,7 +199,20 @@ export class SOQLEditorInstance {
         break;
       }
       case MessageType.RUN_SOQL_QUERY: {
-        this.handleRunQuery();
+        vscode.window
+          .withProgress(
+            {
+              cancellable: false,
+              location: vscode.ProgressLocation.Notification,
+              title: nls.localize('progress_running_query')
+            },
+            () => this.handleRunQuery()
+          )
+          .then(undefined, err => {
+            const message = nls.localize('error_run_soql_query', err.message);
+            channelService.appendLine(message);
+            this.runQueryDone();
+          });
         break;
       }
       default: {
@@ -210,24 +225,28 @@ export class SOQLEditorInstance {
     }
   }
 
-  protected handleRunQuery(): Promise<void> {
+  protected async handleRunQuery(): Promise<void> {
     // Check to see if a default org is set.
     if (!isDefaultOrgSet()) {
       const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
+      this.runQueryDone();
       return Promise.resolve();
     }
 
     const queryText = this.document.getText();
-    return withSFConnection(async conn => {
-      try {
-        const queryData = await new QueryRunner(conn).runQuery(queryText);
-        this.openQueryDataView(queryData);
-      } catch (err) {
-        const message = nls.localize('error_run_soql_query', err.message);
-        vscode.window.showErrorMessage(message);
-      }
+    const conn = await workspaceContext.getConnection();
+    const queryData = await new QueryRunner(
+      (conn as unknown) as Connection
+    ).runQuery(queryText);
+    this.openQueryDataView(queryData);
+    this.runQueryDone();
+  }
+
+  protected runQueryDone(): void {
+    this.webviewPanel.webview.postMessage({
+      type: MessageType.RUN_SOQL_QUERY_DONE
     });
   }
 
