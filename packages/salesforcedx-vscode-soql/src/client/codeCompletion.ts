@@ -10,6 +10,7 @@ import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletion
 import { retrieveSObject, retrieveSObjects } from '../sfdx';
 
 import { Middleware } from 'vscode-languageclient';
+import { telemetryService } from '../telemetry';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -75,15 +76,18 @@ async function expandPlaceholders(
       const commandName = parsedCommand[1];
 
       const handler = expandFunctions[commandName];
-      if (!handler) {
-        console.log(`Unknown SOQL completion command ${commandName}!`);
+      if (handler) {
+        expandedItems.splice(
+          index,
+          1,
+          ...(await handler(item?.data?.soqlContext))
+        );
+      } else {
+        telemetryService.sendException(
+          'SOQLLanguageServerException',
+          `Unknown SOQL LSP completion command ${commandName}!`
+        );
       }
-
-      expandedItems.splice(
-        index,
-        1,
-        ...(await handler(item?.data?.soqlContext))
-      );
     }
   }
 
@@ -115,7 +119,10 @@ const expandFunctions: {
     soqlContext?: SoqlItemContext
   ): Promise<ProtocolCompletionItem[]> => {
     if (!soqlContext?.sobjectName) {
-      console.log('SOBJECT_FIELDS_PLACEHOLDER missing `sobjectName`!');
+      telemetryService.sendException(
+        'SOQLLanguageServerException',
+        'SOBJECT_FIELDS_PLACEHOLDER missing `sobjectName`!'
+      );
       return [];
     }
 
@@ -154,19 +161,15 @@ const expandFunctions: {
     let items: ProtocolCompletionItem[] = [];
 
     if (!soqlContext?.sobjectName || !soqlContext?.fieldName) {
-      console.log('LITERAL_VALUES_FOR_FIELD missing `sobjectName/fieldName`!');
+      telemetryService.sendException(
+        'SOQLLanguageServerException',
+        'LITERAL_VALUES_FOR_FIELD missing `sobjectName/fieldName`!'
+      );
       return [];
     }
 
     try {
       const objMetadata = await retrieveSObject(soqlContext.sobjectName);
-      const nillables = objMetadata.fields
-        // .filter(field => field.nillable)
-        .map(f => ({ name: f.name, type: f.type, nillable: f.nillable }));
-      if (nillables) {
-        // debugger;
-        console.log('for debugging');
-      }
       const fieldMeta = objMetadata.fields.find(
         field => field.name === soqlContext.fieldName
       );
