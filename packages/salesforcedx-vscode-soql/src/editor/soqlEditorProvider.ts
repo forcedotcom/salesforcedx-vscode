@@ -9,28 +9,21 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
-  EDITOR_VIEW_TYPE,
+  BUILDER_VIEW_TYPE,
   HTML_FILE,
   SOQL_BUILDER_UI_PATH,
   SOQL_BUILDER_WEB_ASSETS_PATH
 } from '../constants';
-import { channelService } from '../channel';
+import { nls } from '../messages';
+import { channelService, isDefaultOrgSet } from '../sfdx';
 import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
-
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
-const sfdxCoreExports = sfdxCoreExtension
-  ? sfdxCoreExtension.exports
-  : undefined;
-const { workspaceContext } = sfdxCoreExports;
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(context: vscode.ExtensionContext): vscode.Disposable {
     const provider = new SOQLEditorProvider(context);
     const providerRegistration = vscode.window.registerCustomEditorProvider(
-      EDITOR_VIEW_TYPE,
+      BUILDER_VIEW_TYPE,
       provider
     );
     return providerRegistration;
@@ -62,10 +55,8 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     instance.onDispose(this.disposeInstance.bind(this));
     this.context.subscriptions.push(...instance.subscriptions);
 
-    // Check to see if a default org is set.
-    if (!workspaceContext.username) {
-      // i18n
-      const message = `No default org found. Set a default org to use SOQL Builder. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.`;
+    if (!isDefaultOrgSet()) {
+      const message = nls.localize('info_no_default_org');
       channelService.appendLine(message);
       vscode.window.showInformationMessage(message);
     }

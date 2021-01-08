@@ -10,14 +10,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import { extensions, languages, Uri, window, workspace } from 'vscode';
 import { clearDiagnostics } from '../../../src/client/client';
-import { getMockConnection, MockConnection } from '../testUtilities';
-import * as vscode from 'vscode';
-
-const sfdxCoreExtension = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-);
-const sfdxCoreExports = sfdxCoreExtension?.exports;
-const { workspaceContext } = sfdxCoreExports;
+import { stubMockConnection, MockConnection } from '../testUtilities';
 
 async function sleep(ms: number = 0) {
   return new Promise(resolve => {
@@ -46,8 +39,7 @@ describe('SOQL language client', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    mockConnection = getMockConnection(sandbox);
-    sandbox.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    mockConnection = stubMockConnection(sandbox);
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
     soqlFileUri = Uri.file(path.join(workspacePath, 'test.soql'));
     const ext = extensions.getExtension('salesforce.salesforcedx-vscode-soql')!;

@@ -9,6 +9,7 @@ import { Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 
 export class QueryRunner {
   constructor(private connection: Connection) {}
@@ -29,7 +30,8 @@ export class QueryRunner {
     } catch (error) {
       // TODO: i18n
       if (options.showErrors) {
-        vscode.window.showErrorMessage(`${error.message}`);
+        const message = nls.localize('error_run_soql_query', error.message);
+        vscode.window.showErrorMessage(message);
       }
       throw error;
     }
