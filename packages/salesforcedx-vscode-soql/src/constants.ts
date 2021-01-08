@@ -21,7 +21,9 @@ export const SOQL_BUILDER_UI_PATH = path.join(
 );
 export const HTML_FILE = 'index.html';
 export const IMAGES_DIR_NAME = 'images';
-export const EDITOR_VIEW_TYPE = 'soqlCustom.soql';
+export const BUILDER_VIEW_TYPE = 'soqlCustom.soql';
+export const EDITOR_VIEW_TYPE = 'default';
+export const OPEN_WITH_COMMAND = 'vscode.openWith';
 
 /* ==== QUERY DATA VIEW ==== */
 export const QUERY_DATA_VIEW_TYPE = 'queryDataView';
