@@ -12,6 +12,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getRootWorkspacePath } from '../commonUtils';
 import { QUERY_RESULTS_DIR_NAME, QUERY_RESULTS_DIR_PATH } from '../constants';
+import { nls } from '../messages';
 import {
   CsvDataProvider,
   DataProvider,
@@ -46,30 +47,22 @@ export class QueryDataFileService {
   }
 
   public save(): string {
-    try {
-      const fileContent = this.dataProvider.getFileContent(
-        this.queryData.records
-      );
-      const savedFileName = this.dataProvider.getFileName();
-      const queryDataFilePath = path.join(
-        this.getResultsDirectoryPath(),
-        savedFileName
-      );
+    const fileContent = this.dataProvider.getFileContent(
+      this.queryData.records
+    );
+    const savedFileName = this.dataProvider.getFileName();
+    const queryDataFilePath = path.join(
+      this.getResultsDirectoryPath(),
+      savedFileName
+    );
 
-      this.createResultsDirectoryIfDoesNotExist();
-      // Save query results to disk
-      fs.writeFileSync(queryDataFilePath, fileContent);
-      this.showSaveSuccessMessage(savedFileName);
-      this.showFileInExplorer(queryDataFilePath);
+    this.createResultsDirectoryIfDoesNotExist();
+    // Save query results to disk
+    fs.writeFileSync(queryDataFilePath, fileContent);
+    this.showSaveSuccessMessage(savedFileName);
+    this.showFileInExplorer(queryDataFilePath);
 
-      return queryDataFilePath;
-    } catch (error) {
-      // TODO: i18n
-      vscode.window.showErrorMessage(
-        `We couldn't save the results. Verify the query syntax, then run the query again.`
-      );
-      throw error;
-    }
+    return queryDataFilePath;
   }
 
   private getResultsDirectoryPath() {
@@ -91,8 +84,11 @@ export class QueryDataFileService {
 
   private showSaveSuccessMessage(savedFileName: string) {
     vscode.window.showInformationMessage(
-      // TODO: i18n
-      `The results were saved in the ${QUERY_RESULTS_DIR_NAME} folder as: ${savedFileName}`
+      nls.localize(
+        'info_file_save_success',
+        QUERY_RESULTS_DIR_NAME,
+        savedFileName
+      )
     );
   }
 }

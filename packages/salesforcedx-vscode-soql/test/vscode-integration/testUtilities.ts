@@ -218,6 +218,10 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
   public openQueryDataView(queryData: QueryResult<JsonMap>) {
     super.openQueryDataView(queryData);
   }
+
+  public sendMessageToUi(type: string, payload: any) {
+    super.sendMessageToUi(type, payload);
+  }
 }
 
 export class TestQueryDataViewService extends QueryDataViewService {
