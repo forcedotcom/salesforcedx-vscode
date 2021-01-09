@@ -102,7 +102,10 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.mockReceiveEvent({ type: 'sobject_metadata_request', payload: 'A' });
+    instance.mockReceiveEvent({
+      type: 'sobject_metadata_request',
+      payload: 'A'
+    });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -201,7 +204,7 @@ describe('SoqlEditorInstance should', () => {
 
   it('handles telemetry events and tracks when there is unsupported syntax', async () => {
     const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_TELEMETRY,
       payload: { unsupported: 1 }
     });
@@ -217,7 +220,7 @@ describe('SoqlEditorInstance should', () => {
       type: MessageType.UI_TELEMETRY,
       payload: { unsupported: ['WHERE 1 = 1'] }
     };
-    instance.sendEvent(telemetryEvent);
+    instance.mockReceiveEvent(telemetryEvent);
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
       expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_unsupported');
