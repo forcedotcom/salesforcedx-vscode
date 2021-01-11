@@ -15,7 +15,7 @@ export const channelService = ChannelService.getInstance(
   nls.localize('soql_channel_name')
 );
 
-const workspaceContext = WorkspaceContextUtil.getInstance();
+export const workspaceContext = WorkspaceContextUtil.getInstance();
 
 export async function withSFConnection(
   f: (conn: Connection) => void
