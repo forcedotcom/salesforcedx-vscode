@@ -19,7 +19,6 @@ import {
   PreconditionChecker
 } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
-// import { ChannelService } from './channelService';
 import { notificationService, ProgressNotification } from './index';
 import { EmptyPostChecker } from './postconditionCheckers';
 
@@ -47,12 +46,6 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
-    /* channelService.streamCommandOutput(execution);
-
-    if (this.showChannelOutput) {
-      channelService.showChannelOutput();
-    } */
-
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken
