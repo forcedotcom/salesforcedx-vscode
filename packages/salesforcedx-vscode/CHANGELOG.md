@@ -28,7 +28,7 @@
 
 #### salesforcedx-sobjects-faux-generator
 
-- Prevent SObject refresh from filtering sobjects unexpectedly ([PR #2806](https://github.com/forcedotcom/salesforcedx-vscode/pull/2806))
+- Prevent SObject refresh from filtering sobjects unexpectedly ([PR #2806](https://github.com/forcedotcom/salesforcedx-vscode/pull/2806)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
 
 - Allow Event SObject generation ([PR #2821](https://github.com/forcedotcom/salesforcedx-vscode/pull/2821), [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490))
 
