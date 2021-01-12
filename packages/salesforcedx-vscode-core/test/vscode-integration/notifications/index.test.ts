@@ -8,7 +8,7 @@
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { assert, SinonStub, stub } from 'sinon';
 import { CancellationTokenSource, window } from 'vscode';
-import { DEFAULT_SFDX_CHANNEL } from '../../../src/channels';
+import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
 import { NotificationService } from '../../../src/notifications/notificationService';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
@@ -28,7 +28,7 @@ describe('Notifications', () => {
   let settings: SinonStub;
 
   beforeEach(() => {
-    mShow = stub(DEFAULT_SFDX_CHANNEL, 'show');
+    mShow = stub(channelService, 'showChannelOutput');
     mShowInformation = stub(window, 'showInformationMessage').returns(
       Promise.resolve(null)
     );
