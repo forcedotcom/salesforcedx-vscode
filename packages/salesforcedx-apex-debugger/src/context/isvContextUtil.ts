@@ -4,16 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+import {
+  ForceConfigGet,
+  GlobalCliEnvironment
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ENV_SFDX_DEFAULTUSERNAME,
   ENV_SFDX_INSTANCE_URL,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  ForceConfigGet,
-  GlobalCliEnvironment
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 
 export class IsvContextUtil {
   public async setIsvDebuggerContext(projectWorkspacePath: string) {

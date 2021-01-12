@@ -1,9 +1,29 @@
+/*
+ * Copyright (c) 2020, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 export {
-  SFDX_PROJECT_FILE,
-  ENV_SFDX_DEFAULTUSERNAME,
-  ENV_SFDX_INSTANCE_URL,
-  SFDX_CONFIG_ISV_DEBUGGER_SID,
-  SFDX_CONFIG_ISV_DEBUGGER_URL,
-  DEFAULT_CONNECTION_TIMEOUT_MS,
-  CLIENT_ID
-} from './constants';
+  CompositeParametersGatherer,
+  EmptyParametersGatherer
+} from './commands/parameterGatherers';
+export { EmptyPostChecker } from './commands/postconditionCheckers';
+export {
+  EmptyPreChecker,
+  SfdxWorkspaceChecker
+} from './commands/preconditionCheckers';
+export {
+  CommandletExecutor,
+  SfdxCommandlet,
+  SfdxCommandletExecutor
+} from './commands/sfdxCommandlet';
+
+export {
+  TelemetryService,
+  TelemetryBuilder,
+  TelemetryData,
+  Properties,
+  Measurements
+} from './telemetry/telemetry';

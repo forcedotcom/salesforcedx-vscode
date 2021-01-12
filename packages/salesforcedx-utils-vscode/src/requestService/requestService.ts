@@ -11,7 +11,7 @@ import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_SFDX_DEFAULTUSERNAME,
   ENV_SFDX_INSTANCE_URL
-} from '../constants';
+} from '../types';
 import { BaseCommand } from './baseCommand';
 
 // Right now have POST and DELETE (out of Query, GET, POST, PATCH, DELETE),

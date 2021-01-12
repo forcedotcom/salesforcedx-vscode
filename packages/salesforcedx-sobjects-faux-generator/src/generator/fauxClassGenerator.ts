@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { EOL } from 'os';

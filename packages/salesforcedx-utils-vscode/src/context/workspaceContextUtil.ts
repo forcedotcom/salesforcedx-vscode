@@ -9,8 +9,8 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil } from '../auth';
-import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../constants';
 import { nls } from '../messages';
+import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 
 export interface OrgInfo {
@@ -38,17 +38,29 @@ export class WorkspaceContextUtil {
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
-    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(cliConfigPath);
+    const cliConfigPath = join(
+      getRootWorkspacePath(),
+      SFDX_FOLDER,
+      SFDX_CONFIG_FILE
+    );
+    this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
+      cliConfigPath
+    );
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
-  public getAuthUtil(): AuthUtil { return AuthUtil.getInstance(); }
+  public getAuthUtil(): AuthUtil {
+    return AuthUtil.getInstance();
+  }
 
   public async initialize(context: vscode.ExtensionContext) {
-    context.subscriptions.push(this.cliConfigWatcher, this.onOrgChangeEmitter, this.cliConfigWatcher);
+    context.subscriptions.push(
+      this.cliConfigWatcher,
+      this.onOrgChangeEmitter,
+      this.cliConfigWatcher
+    );
     await this.handleCliConfigChange();
   }
 
@@ -76,7 +88,9 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
-    const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(false);
+    const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
+      false
+    );
 
     if (usernameOrAlias) {
       this._username = await this.getAuthUtil().getUsername(usernameOrAlias);
@@ -87,7 +101,10 @@ export class WorkspaceContextUtil {
       this._alias = undefined;
     }
 
-    this.onOrgChangeEmitter.fire({ username: this._username, alias: this._alias });
+    this.onOrgChangeEmitter.fire({
+      username: this._username,
+      alias: this._alias
+    });
   }
 
   get username(): string | undefined {

@@ -6,13 +6,13 @@
  */
 
 import {
-  CLIENT_ID,
-  DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/index';
-import {
   RequestService,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import {
+  CLIENT_ID,
+  DEFAULT_CONNECTION_TIMEOUT_MS
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/index';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';

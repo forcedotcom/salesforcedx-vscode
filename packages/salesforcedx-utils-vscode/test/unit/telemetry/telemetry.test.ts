@@ -29,6 +29,11 @@ const vscodeStub = {
     parse: stub()
   },
   window: {
+    createOutputChannel: () => {
+      return {
+        show: () => {}
+      };
+    },
     showInformationMessage: mShowInformation
   },
   workspace: {
@@ -71,7 +76,7 @@ describe('Telemetry production mode', () => {
     };
 
     const { TelemetryService, TelemetryBuilder } = proxyquire.noCallThru()(
-      '../../../src/telemetry/index',
+      '../../../src/index',
       {
         vscode: vscodeStub,
         TelemetryReporter: { default: telemetryReporterStub }
@@ -155,7 +160,10 @@ describe('Telemetry production mode', () => {
   xit('Should send correct data format on sendCommandEvent', async () => {
     await telemetryService.initializeService(mockContext, extensionName);
 
-    await telemetryService.sendCommandEvent('create_apex_class_command', [0, 678]);
+    await telemetryService.sendCommandEvent('create_apex_class_command', [
+      0,
+      678
+    ]);
     assert.calledOnce(reporter);
 
     const expectedProps = {
@@ -271,7 +279,10 @@ describe('Telemetry production mode', () => {
     const telemetryEnabled = await telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(false);
 
-    await telemetryService.sendCommandEvent('create_apex_class_command', [0, 123]);
+    await telemetryService.sendCommandEvent('create_apex_class_command', [
+      0,
+      123
+    ]);
     assert.notCalled(reporter);
     expect(teleStub.firstCall.args).to.eql([false]);
   });

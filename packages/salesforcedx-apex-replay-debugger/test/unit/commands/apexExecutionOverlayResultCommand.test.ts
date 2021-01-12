@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CLIENT_ID,
-  DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-utils-vscode/out/src/index';
-import {
   RequestService,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import {
+  CLIENT_ID,
+  DEFAULT_CONNECTION_TIMEOUT_MS
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
@@ -422,11 +422,13 @@ describe('ApexExecutionOverlayResult heapdump parsing with ActionScript SOQL res
             .columnName
         ] as string).startsWith('okToDelete')
       ).to.equal(true);
-      expect(singleEntry[
-        response.SOQLResult!.queryMetadata!.columnMetadata[
-          metadataAccountNumber
-        ].columnName
-      ] as string).to.equal('yyy');
+      expect(
+        singleEntry[
+          response.SOQLResult!.queryMetadata!.columnMetadata[
+            metadataAccountNumber
+          ].columnName
+        ] as string
+      ).to.equal('yyy');
     }
   });
 
