@@ -1,24 +1,24 @@
-# 50.13.0 - Month DD, YYYY
+# 50.13.0 - January 12, 2021
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- One step apex test debugging ([PR #2804](https://github.com/forcedotcom/salesforcedx-vscode/pull/2804))
-
-#### salesforcedx-vscode-apex-replay-debugger
-
-- One step apex test debugging ([PR #2804](https://github.com/forcedotcom/salesforcedx-vscode/pull/2804))
+- Added debug button to test sidebar to automatically run Apex Replay Debugger after test run ([PR #2804](https://github.com/forcedotcom/salesforcedx-vscode/pull/2804))
 
 #### salesforcedx-vscode-core
 
-- Run apex tests using the library ([PR #2828](https://github.com/forcedotcom/salesforcedx-vscode/pull/2828))
+- Run Apex tests using the library ([PR #2828](https://github.com/forcedotcom/salesforcedx-vscode/pull/2828))
 
 #### salesforcedx-vscode-soql
 
-- New query command ([PR #2809](https://github.com/forcedotcom/salesforcedx-vscode/pull/2809))
+- Add SFDX: Create Query in SOQL Builder command ([PR #2809](https://github.com/forcedotcom/salesforcedx-vscode/pull/2809))
 
-- Show api error when running query ([PR #2733](https://github.com/forcedotcom/salesforcedx-vscode/pull/2733))
+- Add indicator to show when a query is running ([PR #2822](https://github.com/forcedotcom/salesforcedx-vscode/pull/2822))
+
+- Add toggle icon to switch between builder editor and text editor ([PR #2825](https://github.com/forcedotcom/salesforcedx-vscode/pull/2825))
+
+- Add code completion for SOQL ([PR #2792](https://github.com/forcedotcom/salesforcedx-vscode/pull/2792))
 
 ## Fixed
 
@@ -26,55 +26,19 @@
 
 - Remove manual listing of palette commands ([PR #2848](https://github.com/forcedotcom/salesforcedx-vscode/pull/2848))
 
-- Update soql-builder.md ([PR #2786](https://github.com/forcedotcom/salesforcedx-vscode/pull/2786))
-
-- Image for opening SOQL Builder ([PR #2753](https://github.com/forcedotcom/salesforcedx-vscode/pull/2753))
-
-- Update beta disclaimer for soql builder docs ([PR #2749](https://github.com/forcedotcom/salesforcedx-vscode/pull/2749))
-
-- Add SOQL Builder to doc site ([PR #2745](https://github.com/forcedotcom/salesforcedx-vscode/pull/2745))
-
 #### salesforcedx-sobjects-faux-generator
 
-- Fix(refresh-sobject): manual refresh does not filter sobjects ([PR #2806](https://github.com/forcedotcom/salesforcedx-vscode/pull/2806))
+- Prevent SObject refresh from filtering sobjects unexpectedly ([PR #2806](https://github.com/forcedotcom/salesforcedx-vscode/pull/2806))
 
-- Allow Event sobject generation  (#2821) ([PR #2490](https://github.com/forcedotcom/salesforcedx-vscode/pull/2490))
-
-#### salesforcedx-utils-vscode
-
-- Remove core extension as dependency on SOQL extension part 1 ([PR #2743](https://github.com/forcedotcom/salesforcedx-vscode/pull/2743))
+- Allow Event SObject generation ([PR #2821](https://github.com/forcedotcom/salesforcedx-vscode/pull/2821), [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490))
 
 #### salesforcedx-vscode-core
 
 - Relative project paths for beta deploy/retrieve output ([PR #2807](https://github.com/forcedotcom/salesforcedx-vscode/pull/2807))
 
-- Remove core extension as dependency on SOQL extension part 2 ([PR #2772](https://github.com/forcedotcom/salesforcedx-vscode/pull/2772))
-
 #### salesforcedx-vscode-soql
 
-- Running query indicator ([PR #2822](https://github.com/forcedotcom/salesforcedx-vscode/pull/2822))
-
-- Capture errors, localized messages to user, send to telemetry ([PR #2810](https://github.com/forcedotcom/salesforcedx-vscode/pull/2810))
-
-- Add toggle icon to switch between builder editor and text editor ([PR #2825](https://github.com/forcedotcom/salesforcedx-vscode/pull/2825))
-
-- Remove core extension as dependency on SOQL extension part 3 ([PR #2837](https://github.com/forcedotcom/salesforcedx-vscode/pull/2837))
-
-- Fix bug causing soql builder does not show ([PR #2827](https://github.com/forcedotcom/salesforcedx-vscode/pull/2827))
-
-- Initial code completion for SOQL ([PR #2792](https://github.com/forcedotcom/salesforcedx-vscode/pull/2792))
-
-- Jhork- Update issue and Q&A url, join publishing automation. ([PR #2794](https://github.com/forcedotcom/salesforcedx-vscode/pull/2794))
-
-- Remove core extension as dependency on SOQL extension part 1 ([PR #2743](https://github.com/forcedotcom/salesforcedx-vscode/pull/2743))
-
-- Include the readme in the vsix ([PR #2742](https://github.com/forcedotcom/salesforcedx-vscode/pull/2742))
-
-- Parse uri for saved results as file ([PR #2732](https://github.com/forcedotcom/salesforcedx-vscode/pull/2732))
-
-- Jhork/publish soql ([PR #2727](https://github.com/forcedotcom/salesforcedx-vscode/pull/2727))
-
-- Prune and ignore files when packaging vsix ([PR #2695](https://github.com/forcedotcom/salesforcedx-vscode/pull/2695))
+- Fixed bug causing SOQL builder to not show ([PR #2827](https://github.com/forcedotcom/salesforcedx-vscode/pull/2827))
 
 # 50.8.0 - December 9, 2020
 
