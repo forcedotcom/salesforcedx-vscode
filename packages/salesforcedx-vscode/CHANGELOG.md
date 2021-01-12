@@ -10,16 +10,6 @@
 
 - Run Apex tests using the Apex library ([PR #2828](https://github.com/forcedotcom/salesforcedx-vscode/pull/2828))
 
-#### salesforcedx-vscode-soql
-
-- Add SFDX: Create Query in SOQL Builder command ([PR #2809](https://github.com/forcedotcom/salesforcedx-vscode/pull/2809))
-
-- Add indicator to show when a query is running ([PR #2822](https://github.com/forcedotcom/salesforcedx-vscode/pull/2822))
-
-- Add toggle icon to switch between builder editor and text editor ([PR #2825](https://github.com/forcedotcom/salesforcedx-vscode/pull/2825))
-
-- Add code completion for SOQL ([PR #2792](https://github.com/forcedotcom/salesforcedx-vscode/pull/2792))
-
 ## Fixed
 
 #### docs
@@ -35,10 +25,6 @@
 #### salesforcedx-vscode-core
 
 - Relative project paths for beta deploy/retrieve output ([PR #2807](https://github.com/forcedotcom/salesforcedx-vscode/pull/2807))
-
-#### salesforcedx-vscode-soql
-
-- Fixed bug causing SOQL builder to not show ([PR #2827](https://github.com/forcedotcom/salesforcedx-vscode/pull/2827))
 
 # 50.8.0 - December 9, 2020
 
