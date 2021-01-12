@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Run Apex tests using the library ([PR #2828](https://github.com/forcedotcom/salesforcedx-vscode/pull/2828))
+- Run Apex tests using the Apex library ([PR #2828](https://github.com/forcedotcom/salesforcedx-vscode/pull/2828))
 
 #### salesforcedx-vscode-soql
 
