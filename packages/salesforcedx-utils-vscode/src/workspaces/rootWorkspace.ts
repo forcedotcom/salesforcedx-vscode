@@ -7,11 +7,11 @@
 
 import { workspace, WorkspaceFolder } from 'vscode';
 
-function hasRootWorkspace(ws: typeof workspace = workspace) {
+export function hasRootWorkspace(ws: typeof workspace = workspace) {
   return ws && ws.workspaceFolders && ws.workspaceFolders.length > 0;
 }
 
-function getRootWorkspace(): WorkspaceFolder {
+export function getRootWorkspace(): WorkspaceFolder {
   return hasRootWorkspace()
     ? workspace.workspaceFolders![0]
     : ({} as WorkspaceFolder);
