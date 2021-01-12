@@ -53,7 +53,7 @@
         ja: Prettier コードフォーマッタ
       url: /user-guide/prettier
     - title:
-        en: Command Reference
+        en: Command Palette
         ja: コマンドリファレンス
       url: /user-guide/vscode-commands
     - title:
