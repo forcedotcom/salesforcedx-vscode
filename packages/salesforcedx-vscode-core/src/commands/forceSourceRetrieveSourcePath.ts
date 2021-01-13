@@ -142,7 +142,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
       )) as string;
       const client = new SourceClient(connection);
       retrieve = client.tooling.retrieve({
-        components: [first],
+        components,
         namespace: projectNamespace
       });
     } else {
