@@ -18,13 +18,13 @@
 
 #### salesforcedx-sobjects-faux-generator
 
-- Prevent SObject refresh from filtering sobjects unexpectedly ([PR #2806](https://github.com/forcedotcom/salesforcedx-vscode/pull/2806)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
+- Prevent SObject refresh from filtering SObjects unexpectedly ([PR #2806](https://github.com/forcedotcom/salesforcedx-vscode/pull/2806)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
 
 - Allow Event SObject generation ([PR #2821](https://github.com/forcedotcom/salesforcedx-vscode/pull/2821), [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490)) - Contribution by [@XVRick](https://github.com/XVRick)
 
 #### salesforcedx-vscode-core
 
-- Relative project paths for beta deploy/retrieve output ([PR #2807](https://github.com/forcedotcom/salesforcedx-vscode/pull/2807))
+- Provides relative project paths for beta deploy/retrieve in the output ([PR #2807](https://github.com/forcedotcom/salesforcedx-vscode/pull/2807))
 
 # 50.8.0 - December 9, 2020
 
