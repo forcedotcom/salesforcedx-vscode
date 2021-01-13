@@ -75,7 +75,9 @@ After the pre-publish steps have run and main has been rebased off of the releas
    1. Click the selection for `hold`.
    1. You should now see the following ![Approval View](./images/contributing-approval-button.png). Click the `Approve` button.
 
-TODO - I do think we should keep some of the documentation below. In the event that something is wrong with circle ci, we will need some of this info. Not sure how out of date it is at this point in time.
+# Manual Publish
+
+In the event that CircleCi is not a viable option for publishing, please see the following...
 
 The scripts/publish-circleci.js contains the end-to-end flow. You run this from the
 **top-level** directory.
