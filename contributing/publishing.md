@@ -7,7 +7,7 @@ extensions through the .vsix files.
 
 # Goal
 
-The goal of publishing is to take the extensions under /packages, bundle them as
+The goal of publishing is to take the extensions under `/packages`, bundle them as
 .vsix files, and push them to the [Visual Studio Code
 Marketplace](https://marketplace.visualstudio.com/vscode).
 
@@ -34,18 +34,18 @@ To create a release branch manually:
 
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
-1. Select `Create Release Branch`. This will launch the script `create-release-branch.js` behind the scenes.
+1. Select `Create Release Branch`.
 
 ## Generating the Change Log
 
-We generate the changelog based off of the new commits that are being staged for production. The change log generator helps us automate the process of determinining which commits we should bring in, putting them in their respective positions, and inserting them into the `CHANGELOG.md` with the correct format.
+We generate the changelog based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
 
 To run the change log generator:
 
 1. Run `git pull` to make sure your local changes are up to date.
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
-1. Select `Create Change Log`. This will launch the script `change-log-generator.js`.
+1. Select `Create Change Log`.
 
 ## Merging the Release Branch into Main
 
@@ -55,7 +55,12 @@ To run the merge process:
 
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
-1. Select `Launch Pre-Publish Steps`. This will launch the script `pre-publish-workflow.sh` which generates an API request to CircleCi for the workflow `pre-publish-workflow`.
+1. Select `Launch Pre-Publish Steps`.
+1. Approve the workflow in CircleCi:
+   1. Navigate to the `#pdt_releases` channel in Slack.
+   1. There should soon be a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCi.
+   1. Click the selection for `hold`.
+   1. You should now see the following ![Approval View](./images/contributing-approval-button.png). Click the `Approve` button.
 
 ## Publishing Main
 
@@ -63,9 +68,12 @@ After the pre-publish steps have run and main has been rebased off of the releas
 
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
-1. Select `Publish Extensions`. This will launch the script `publish-workflow.sh` which generates an API request to CircleCi for the workflow `publish-workflow`.
-1. Navigate to the `#pdt_releases` channel in Slack. There should soon be a 'Pending Approval for Publish' option. Click the 'Visit Workflow' button.
-   TODO - add screen shot of 'Visit Workflow' and also of approving the 'Hold' job.
+1. Select `Publish Extensions`.
+1. Approve the workflow in CircleCi:
+   1. Navigate to the `#pdt_releases` channel in Slack.
+   1. There should soon be a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCi.
+   1. Click the selection for `hold`.
+   1. You should now see the following ![Approval View](./images/contributing-approval-button.png). Click the `Approve` button.
 
 TODO - I do think we should keep some of the documentation below. In the event that something is wrong with circle ci, we will need some of this info. Not sure how out of date it is at this point in time.
 
