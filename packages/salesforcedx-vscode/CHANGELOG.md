@@ -1,3 +1,31 @@
+# 50.13.0 - January 13, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Added debug button to test sidebar to automatically run Apex Replay Debugger after test run ([PR #2804](https://github.com/forcedotcom/salesforcedx-vscode/pull/2804))
+
+#### salesforcedx-vscode-core
+
+- Run Apex tests using the Apex library ([PR #2828](https://github.com/forcedotcom/salesforcedx-vscode/pull/2828))
+
+## Fixed
+
+#### docs
+
+- Remove manual listing of palette commands ([PR #2848](https://github.com/forcedotcom/salesforcedx-vscode/pull/2848))
+
+#### salesforcedx-sobjects-faux-generator
+
+- Prevent SObject refresh from filtering SObjects unexpectedly ([PR #2806](https://github.com/forcedotcom/salesforcedx-vscode/pull/2806)) - Contribution by [@maaaaarco](https://github.com/maaaaarco)
+
+- Allow Event SObject generation ([PR #2821](https://github.com/forcedotcom/salesforcedx-vscode/pull/2821), [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490)) - Contribution by [@XVRick](https://github.com/XVRick)
+
+#### salesforcedx-vscode-core
+
+- Provides relative project paths for beta deploy/retrieve in the output ([PR #2807](https://github.com/forcedotcom/salesforcedx-vscode/pull/2807))
+
 # 50.8.0 - December 9, 2020
 
 ## Added
