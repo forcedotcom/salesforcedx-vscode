@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { notificationService, ProgressNotification } from './index';
 import { CliCommandExecutor, Command, CommandExecution } from '../cli';
 import {
   Measurements,
@@ -18,6 +17,7 @@ import { nls } from '../messages';
 import { ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
+import { notificationService, ProgressNotification } from './index';
 
 export interface FlagParameter<T> {
   flag: T;
