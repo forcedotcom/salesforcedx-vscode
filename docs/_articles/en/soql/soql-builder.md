@@ -54,7 +54,7 @@ As you build your query, watch SOQL Builder display the query syntax while it si
 
 ![Build your query](./images/soql-builder.gif)
 
-**Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting.
+<!-- **Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting. -->
 
 **Beta Limitations:**
 
