@@ -6,9 +6,8 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { JsonMap } from '@salesforce/ts-types';
-import { DescribeGlobalResult, QueryResult } from 'jsforce';
+import { QueryResult } from 'jsforce';
 import { SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
@@ -25,7 +24,11 @@ import {
   QueryDataViewService
 } from '../../src/queryDataView/queryDataViewService';
 
-const workspaceContext = WorkspaceContextUtil.getInstance();
+const soqlExtension = vscode.extensions.getExtension(
+  'salesforce.salesforcedx-vscode-soql'
+);
+const soqlExports = soqlExtension?.exports;
+const { workspaceContext } = soqlExports;
 
 export interface MockConnection {
   authInfo: object;

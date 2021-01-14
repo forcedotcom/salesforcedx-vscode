@@ -7,7 +7,7 @@
 
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
-import { TelemetryService } from '../telemetry';
+import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
 
 export enum ConfigSource {
@@ -51,7 +51,10 @@ export class ConfigUtil {
           return localValue;
         }
       } catch (err) {
-        await TelemetryService.getInstance().sendException('get_config_value_local', err.message);
+        await TelemetryService.getInstance().sendException(
+          'get_config_value_local',
+          err.message
+        );
         return undefined;
       }
     }
@@ -63,7 +66,10 @@ export class ConfigUtil {
           return globalValue;
         }
       } catch (err) {
-        await TelemetryService.getInstance().sendException('get_config_value_global', err.message);
+        await TelemetryService.getInstance().sendException(
+          'get_config_value_global',
+          err.message
+        );
         return undefined;
       }
     }
