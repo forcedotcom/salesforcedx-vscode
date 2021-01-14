@@ -16,10 +16,9 @@ export {
 } from './commands/preconditionCheckers';
 export {
   CommandletExecutor,
-  SfdxCommandlet,
   SfdxCommandletExecutor
-} from './commands/sfdxCommandlet';
-
+} from './commands/commandletExecutors';
+export { SfdxCommandlet } from './commands/sfdxCommandlet';
 export {
   TelemetryService,
   TelemetryBuilder,
