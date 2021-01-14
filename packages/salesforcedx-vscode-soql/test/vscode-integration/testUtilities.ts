@@ -28,18 +28,10 @@ const soqlExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-soql'
 );
 const soqlExports = soqlExtension?.exports;
-const { workspaceContext } = soqlExports;
+const { workspaceContext, channelService } = soqlExports;
 
-export interface MockConnection {
-  authInfo: object;
-  describeGlobal$: (
-    callback: (err: Error | undefined, resp: any) => void
-  ) => void;
-  describe$: (
-    name: string,
-    callback: (err: Error | undefined, resp: any) => void
-  ) => void;
-  query: () => Promise<QueryResult<JsonMap>>;
+export function spyChannelService(sandbox: SinonSandbox) {
+  return sandbox.spy(channelService, 'appendLine');
 }
 
 export const mockQueryText = 'SELECT A, B FROM C';
@@ -284,13 +276,24 @@ export function stubMockConnection(
   sandbox.stub(workspaceContext, 'getConnection').returns(connection);
   return connection;
 }
+export function stubFailingMockConnection(
+  sandbox: SinonSandbox,
+  testUserName = 'test@test.com'
+) {
+  const connection = getFailingMockConnection(sandbox, testUserName);
+  sandbox.stub(workspaceContext, 'getConnection').returns(connection);
+  return connection;
+}
 
 export function getMockConnection(
   sandbox: SinonSandbox,
   testUserName = 'test@test.com'
-) {
-  const mockAuthInfo = { test: 'test' };
-  const mockConnection = {
+): Connection {
+  const mockAuthInfo = new AuthInfo({
+    username: 'test'
+  });
+
+  const mockConnection = ({
     authInfo: mockAuthInfo,
     describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
       callback(undefined, mockDescribeGlobalResponse),
@@ -299,23 +302,30 @@ export function getMockConnection(
       callback: (err: Error | undefined, resp: any) => void
     ) => {
       const sobjectMetadata = mockSObjects.find(s => s.name === name);
-      // if (!sobjectMetadata) {
-      //   throw new Error('Test failure! no mock sobject for name:' + name);
-      // }
       callback(undefined, sobjectMetadata);
     },
     query: () => Promise.resolve(mockQueryData)
-  };
+  } as unknown) as Connection;
 
-  sandbox
-    .stub(AuthInfo, 'create')
-    .withArgs({ username: testUserName })
-    .resolves(mockAuthInfo);
-  sandbox
-    .stub(Connection, 'create')
-    .withArgs({ authInfo: mockAuthInfo })
-    .returns(mockConnection);
   return mockConnection;
+}
+
+export function getFailingMockConnection(
+  sandbox: SinonSandbox,
+  testUserName = 'test@test.com'
+): Connection {
+  const mockAuthInfo = { test: 'test' };
+  const mockConnection = {
+    authInfo: mockAuthInfo,
+    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
+      callback(new Error('Unexpected error'), undefined),
+    describe$: (
+      name: string,
+      callback: (err: Error | undefined, resp: any) => void
+    ) => callback(new Error('Unexpected error'), undefined),
+    query: () => Promise.reject(new Error('Unexpected error'))
+  };
+  return (mockConnection as unknown) as Connection;
 }
 
 export class MockTextDocumentProvider
