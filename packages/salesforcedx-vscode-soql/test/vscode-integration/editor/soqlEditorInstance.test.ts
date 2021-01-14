@@ -88,7 +88,7 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobjects_request' });
+    instance.mockReceiveEvent({ type: 'sobjects_request' });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -102,7 +102,10 @@ describe('SoqlEditorInstance should', () => {
     };
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    instance.sendEvent({ type: 'sobject_metadata_request', payload: 'A' });
+    instance.mockReceiveEvent({
+      type: 'sobject_metadata_request',
+      payload: 'A'
+    });
     // above function has nested async message passing; wait a bit
     await waitForAsync(50);
 
@@ -112,7 +115,7 @@ describe('SoqlEditorInstance should', () => {
   it('handles query event and updates text document with soql', async () => {
     const aQuery = 'select a,b,c from somewhere';
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
@@ -123,9 +126,45 @@ describe('SoqlEditorInstance should', () => {
     expect(updateDocumentSpy.getCall(0).args[1]).to.equal(aQuery);
   });
 
+  it('muffles the postMessage once if soql statement has NOT changed', async () => {
+    const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+    const aQuery = 'select a,b,c from somewhere';
+    instance.mockReceiveEvent({
+      type: MessageType.UI_SOQL_CHANGED,
+      payload: aQuery
+    });
+    // attempt to update webview with unchanged soql statement
+    instance.updateWebview(mockTextDocument);
+    expect(
+      postMessageSpy.callCount === 0,
+      `postMessageSpy callcount expected 0, but got ${postMessageSpy.callCount}`
+    );
+    // a second update with the same statement will send
+    instance.updateWebview(mockTextDocument);
+    expect(
+      postMessageSpy.callCount === 1,
+      `postMessageSpy callcount expected 1, but got ${postMessageSpy.callCount}`
+    );
+  });
+
+  it('does emit if soql statement has changed', async () => {
+    const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
+    const aQuery = 'select a,b,c from somewhere';
+    instance.mockReceiveEvent({
+      type: MessageType.UI_SOQL_CHANGED,
+      payload: aQuery
+    });
+    instance.updateTextDocument(mockTextDocument, 'select d from somewhere');
+    instance.updateWebview(mockTextDocument);
+    expect(
+      postMessageSpy.callCount === 1,
+      `postMessageSpy callcount expected 1, but got ${postMessageSpy.callCount}`
+    );
+  });
+
   it('handles activation event and updates the webview', async () => {
     const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_ACTIVATED
     });
     expect(
@@ -141,7 +180,7 @@ describe('SoqlEditorInstance should', () => {
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
     const openQueryResultsSpy = sandbox.spy(instance, 'openQueryDataView');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.RUN_SOQL_QUERY
     });
 
@@ -165,7 +204,7 @@ describe('SoqlEditorInstance should', () => {
 
   it('handles telemetry events and tracks when there is unsupported syntax', async () => {
     const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
-    instance.sendEvent({
+    instance.mockReceiveEvent({
       type: MessageType.UI_TELEMETRY,
       payload: { unsupported: 1 }
     });
@@ -181,7 +220,7 @@ describe('SoqlEditorInstance should', () => {
       type: MessageType.UI_TELEMETRY,
       payload: { unsupported: ['WHERE 1 = 1'] }
     };
-    instance.sendEvent(telemetryEvent);
+    instance.mockReceiveEvent(telemetryEvent);
     return Promise.resolve().then(() => {
       expect(trackErrorSpy.callCount).to.equal(1);
       expect(trackErrorSpy.getCall(0).args[0]).to.equal('syntax_unsupported');

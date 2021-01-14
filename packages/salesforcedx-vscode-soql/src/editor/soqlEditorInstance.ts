@@ -82,6 +82,7 @@ class ConnectionChangedListener {
 export class SOQLEditorInstance {
   // when destroyed, dispose of all event listeners.
   public subscriptions: vscode.Disposable[] = [];
+  protected lastIncomingSoqlStatement = '';
 
   // Notify soqlEditorProvider when destroyed
   protected disposedCallback:
@@ -134,7 +135,16 @@ export class SOQLEditorInstance {
   }
 
   protected updateWebview(document: vscode.TextDocument): void {
-    this.sendMessageToUi(MessageType.TEXT_SOQL_CHANGED, document.getText());
+    const newSoqlStatement = document.getText();
+    // The automated onDocumentChangeHandler fires unnecessarily
+    // when we manually update the soql statement in the document
+    // this introduced a 'cache once' and muffles the unnecessary postMessage
+    // For more info, see section "From TextDocument to webviews"
+    // url: https://code.visualstudio.com/api/extension-guides/custom-editors#synchronizing-changes-with-the-textdocument
+    if (this.lastIncomingSoqlStatement !== newSoqlStatement) {
+      this.sendMessageToUi(MessageType.TEXT_SOQL_CHANGED, newSoqlStatement);
+    }
+    this.lastIncomingSoqlStatement = '';
   }
 
   protected updateSObjects(sobjectNames: string[]): void {
@@ -159,6 +169,7 @@ export class SOQLEditorInstance {
       }
       case MessageType.UI_SOQL_CHANGED: {
         const soql = event.payload as string;
+        this.lastIncomingSoqlStatement = soql;
         this.updateTextDocument(this.document, soql);
         break;
       }
