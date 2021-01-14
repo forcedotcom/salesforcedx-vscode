@@ -11,15 +11,12 @@ import * as vscode from 'vscode';
 import * as commonUtils from '../../../src/commonUtils';
 import { MessageType } from '../../../src/editor/soqlEditorInstance';
 import {
-  MockConnection,
   mockSObject,
   MockTextDocumentProvider,
-  stubMockConnection,
   TestSoqlEditorInstance
 } from '../testUtilities';
 
 describe('SoqlEditorInstance should', () => {
-  let mockConnection: MockConnection;
   let mockWebviewPanel: vscode.WebviewPanel;
   let docProviderDisposable: vscode.Disposable;
   let mockTextDocument: vscode.TextDocument;
@@ -45,7 +42,6 @@ describe('SoqlEditorInstance should', () => {
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
-    mockConnection = stubMockConnection(sandbox);
     docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
       'sfdc-test',
       new MockTextDocumentProvider()
