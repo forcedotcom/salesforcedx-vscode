@@ -8,6 +8,8 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
+import { stubInterface } from '@salesforce/ts-sinon';
+
 import {
   extensions,
   languages,
@@ -15,14 +17,16 @@ import {
   Uri,
   window,
   workspace,
+  WorkspaceConfiguration,
   commands
 } from 'vscode';
 import { clearDiagnostics } from '../../../src/client/client';
-import { stubMockConnection, MockConnection } from '../testUtilities';
+import { stubMockConnection } from '../testUtilities';
 import {
   SOQL_CONFIGURATION_NAME,
   SOQL_VALIDATION_CONFIG
 } from '../../../src/constants';
+import { Connection } from 'jsforce';
 
 async function sleep(ms: number = 0) {
   return new Promise(resolve => {
@@ -43,7 +47,7 @@ describe('SOQL language client', () => {
   let sandbox: sinon.SinonSandbox;
   let soqlFileUri: Uri;
   let textEditor: TextEditor;
-  let mockConnection: MockConnection;
+  let mockConnection: Connection;
   let soqlExtension: any;
 
   beforeEach(async () => {
@@ -187,9 +191,9 @@ function stubSOQLExtensionConfiguration(
   configValues: { [key: string]: any },
   extension: any
 ) {
-  const mockConfiguration = {
+  const mockConfiguration = stubInterface<WorkspaceConfiguration>(sandbox, {
     get: (key: string) => configValues[key]
-  };
+  });
 
   expect(
     Object.keys(extension.packageJSON.contributes.configuration.properties)

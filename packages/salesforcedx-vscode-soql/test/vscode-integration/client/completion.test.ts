@@ -5,18 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import { Connection } from 'jsforce';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { extensions, Position, Uri, workspace, commands } from 'vscode';
-import { stubMockConnection, MockConnection } from '../testUtilities';
+import {
+  stubMockConnection,
+  spyChannelService,
+  stubFailingMockConnection
+} from '../testUtilities';
 
 let doc: vscode.TextDocument;
 let soqlFileUri: Uri;
 let workspacePath: string;
 let editor: vscode.TextEditor;
 let sandbox: sinon.SinonSandbox;
-let mockConnection: MockConnection;
+let mockConnection: Connection;
 
 describe('Should do completion', async () => {
   beforeEach(async () => {
@@ -168,19 +173,58 @@ describe('Should do completion', async () => {
   ]);
 });
 
+describe('Should not do completion on connection errors', async () => {
+  beforeEach(async () => {
+    workspacePath = workspace.workspaceFolders![0].uri.fsPath;
+    soqlFileUri = Uri.file(
+      path.join(workspacePath, `test_${generateRandomInt()}.soql`)
+    );
+    sandbox = sinon.createSandbox();
+    mockConnection = stubFailingMockConnection(sandbox);
+  });
+
+  afterEach(async () => {
+    sandbox.restore();
+    commands.executeCommand('workbench.action.closeActiveEditor');
+    await workspace.fs.delete(soqlFileUri);
+  });
+
+  testCompletion('SELECT Id FROM |', [], {
+    expectChannelMsg:
+      'ERROR: We can’t retrieve ' +
+      'the objects in the org. Make sure that you’re connected to an authorized org ' +
+      'and have permissions to view the objects in the org.'
+  });
+
+  testCompletion('SELECT | FROM Account', [], {
+    expectChannelMsg:
+      'ERROR: We can’t retrieve the fields for Account. Make sure that you’re connected ' +
+      'to an authorized org and have permissions to view the object and fields.'
+  });
+});
+
 function testCompletion(
   soqlTextWithCursorMarker: string,
   expectedCompletionItems: vscode.CompletionItem[],
-  cursorChar: string = '|'
+  options: {
+    cursorChar?: string;
+    expectChannelMsg?: string;
+    only?: boolean;
+    skip?: boolean;
+  } = {}
 ) {
-  it(soqlTextWithCursorMarker, async () => {
-    const position = getCursorPosition(soqlTextWithCursorMarker, cursorChar);
-    const soqlText = soqlTextWithCursorMarker.replace(cursorChar, '');
+  const { cursorChar = '|', expectChannelMsg } = options;
 
-    const encoder = new TextEncoder();
-    await workspace.fs.writeFile(soqlFileUri, encoder.encode(soqlText));
+  const itFn = options.skip ? xit : options.only ? it.only : it;
 
-    await activate(soqlFileUri);
+  itFn(soqlTextWithCursorMarker, async () => {
+    const position = await prepareSOQLFileAndGetCursorPosition(
+      soqlTextWithCursorMarker,
+      soqlFileUri,
+      cursorChar
+    );
+
+    const channelServiceSpy = spyChannelService(sandbox);
 
     let passed = false;
     for (let tries = 3; !passed && tries > 0; tries--) {
@@ -203,12 +247,19 @@ function testCompletion(
           expect(simplifiedActualCompletionItems).to.deep.include(item);
         });
 
+        if (expectChannelMsg) {
+          expect(channelServiceSpy.called).to.be.true;
+          console.log(channelServiceSpy.getCalls());
+          expect(channelServiceSpy.lastCall.args[0]).to.equal(expectChannelMsg);
+        }
+
         passed = true;
       } catch (failure) {
         if (tries === 1) {
           throw failure;
         } else {
           // give it a bit of time before trying again
+          channelServiceSpy.resetHistory();
           await sleep(100);
         }
       }
@@ -231,7 +282,21 @@ export async function activate(docUri: vscode.Uri) {
   }
 }
 
-function getCursorPosition(text: string, cursorChar: string): Position {
+async function prepareSOQLFileAndGetCursorPosition(
+  soqlTextWithCursorMarker: string,
+  fileUri: vscode.Uri,
+  cursorChar: string = '|'
+): Promise<vscode.Position> {
+  const position = getCursorPosition(soqlTextWithCursorMarker, cursorChar);
+  const soqlText = soqlTextWithCursorMarker.replace(cursorChar, '');
+
+  const encoder = new TextEncoder();
+  await workspace.fs.writeFile(fileUri, encoder.encode(soqlText));
+  await activate(fileUri);
+  return position;
+}
+
+function getCursorPosition(text: string, cursorChar: string = '|'): Position {
   for (const [line, lineText] of text.split('\n').entries()) {
     const column = lineText.indexOf(cursorChar);
     if (column >= 0) return new Position(line, column);

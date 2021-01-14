@@ -6,16 +6,13 @@
  */
 
 import { expect } from 'chai';
+import { Connection } from 'jsforce';
 import * as sinon from 'sinon';
 import { QueryRunner } from '../../../src/editor/queryRunner';
-import {
-  getMockConnection,
-  MockConnection,
-  mockQueryText
-} from '../testUtilities';
+import { getMockConnection, mockQueryText } from '../testUtilities';
 
 describe('Query Runner Should', () => {
-  let mockConnection: MockConnection;
+  let mockConnection: Connection;
   let sandbox: sinon.SinonSandbox;
 
   beforeEach(() => {

@@ -7,10 +7,12 @@
 
 import { CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
-import { retrieveSObject, retrieveSObjects } from '../sfdx';
+import { retrieveSObject, retrieveSObjects, channelService } from '../sfdx';
 
 import { Middleware } from 'vscode-languageclient';
 import { telemetryService } from '../telemetry';
+import { nls } from '../messages';
+import { DescribeSObjectResult } from 'jsforce';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -48,14 +50,21 @@ async function filterByContext(
       !EXPANDABLE_ITEM_PATTERN.test(item.label) &&
       item?.data?.soqlContext?.sobjectName
     ) {
-      const objMetadata = await retrieveSObject(
+      const objMetadata = await safeRetrieveSObjectMetadata(
         item.data.soqlContext.sobjectName
       );
-      const fieldMeta = objMetadata.fields.find(
-        field => field.name === item.data.soqlContext.fieldName
-      );
-      if (fieldMeta && !operatorsByType[fieldMeta.type].includes(item.label)) {
+      if (!objMetadata) {
         continue;
+      } else {
+        const fieldMeta = objMetadata.fields.find(
+          field => field.name === item.data.soqlContext.fieldName
+        );
+        if (
+          fieldMeta &&
+          !operatorsByType[fieldMeta.type].includes(item.label)
+        ) {
+          continue;
+        }
       }
     }
 
@@ -103,7 +112,7 @@ const expandFunctions: {
     soqlContext?: SoqlItemContext
   ): Promise<ProtocolCompletionItem[]> => {
     try {
-      const sobjectItems = (await retrieveSObjects()).map(objName => {
+      const sobjectItems = (await safeRetrieveSObjectsList()).map(objName => {
         const item = new ProtocolCompletionItem(objName);
         item.kind = CompletionItemKind.Class;
         return item;
@@ -126,34 +135,35 @@ const expandFunctions: {
       return [];
     }
 
-    try {
-      const objMetadata = await retrieveSObject(soqlContext.sobjectName);
-      const sobjectFields = objMetadata.fields.reduce((fieldItems, field) => {
-        fieldItems.push(
-          newCompletionItem(
-            field.name,
-            field.name,
-            CompletionItemKind.Field,
-            field.type
-          )
-        );
-        if (field.relationshipName) {
-          fieldItems.push(
-            newCompletionItem(
-              `${field.relationshipName}`,
-              field.relationshipName + '.',
-              CompletionItemKind.Class,
-              'Ref. to ' + field.referenceTo
-            )
-          );
-        }
-
-        return fieldItems;
-      }, [] as ProtocolCompletionItem[]);
-      return sobjectFields;
-    } catch (metadataError) {
+    const objMetadata = await safeRetrieveSObjectMetadata(
+      soqlContext.sobjectName
+    );
+    if (!objMetadata) {
       return [];
     }
+
+    const sobjectFields = objMetadata.fields.reduce((fieldItems, field) => {
+      fieldItems.push(
+        newCompletionItem(
+          field.name,
+          field.name,
+          CompletionItemKind.Field,
+          field.type
+        )
+      );
+      if (field.relationshipName) {
+        fieldItems.push(
+          newCompletionItem(
+            `${field.relationshipName}`,
+            field.relationshipName + '.',
+            CompletionItemKind.Class,
+            'Ref. to ' + field.referenceTo
+          )
+        );
+      }
+      return fieldItems;
+    }, [] as ProtocolCompletionItem[]);
+    return sobjectFields;
   },
   LITERAL_VALUES_FOR_FIELD: async (
     soqlContext?: SoqlItemContext
@@ -168,65 +178,87 @@ const expandFunctions: {
       return [];
     }
 
-    try {
-      const objMetadata = await retrieveSObject(soqlContext.sobjectName);
-      const fieldMeta = objMetadata.fields.find(
-        field => field.name === soqlContext.fieldName
-      );
-      if (fieldMeta) {
-        if (
-          ['picklist', 'multipicklist'].includes(fieldMeta.type) &&
-          fieldMeta?.picklistValues
-        ) {
-          items = items.concat(
-            fieldMeta.picklistValues
-              .filter(v => v.active)
-              .map(v =>
-                newCompletionItem(
-                  v.value,
-                  "'" + v.value + "'",
-                  CompletionItemKind.Value
-                )
-              )
-          );
-        } else if (fieldMeta.type === 'boolean') {
-          items.push(
-            newCompletionItem('TRUE', 'TRUE', CompletionItemKind.Value)
-          );
-          items.push(
-            newCompletionItem('FALSE', 'FALSE', CompletionItemKind.Value)
-          );
-        } else if (fieldMeta.type === 'date') {
-          items.push(
-            newCompletionItem(
-              'YYYY-MM-DD',
-              '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}$0',
-              CompletionItemKind.Snippet
-            )
-          );
-        } else if (fieldMeta.type === 'datetime') {
-          items.push(
-            newCompletionItem(
-              'YYYY-MM-DDThh:mm:ssZ',
-              '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}T${4:${CURRENT_HOUR}}:${5:${CURRENT_MINUTE}}:${6:${CURRENT_SECOND}}Z$0',
-              CompletionItemKind.Snippet
-            )
-          );
-        }
-
-        if (fieldMeta.nillable && !soqlContext.notNillable) {
-          items.push(
-            newCompletionItem('NULL', 'NULL', CompletionItemKind.Keyword)
-          );
-        }
-      }
-
-      return items;
-    } catch (metadataError) {
+    const objMetadata = await safeRetrieveSObjectMetadata(
+      soqlContext.sobjectName
+    );
+    if (!objMetadata) {
       return [];
     }
+
+    const fieldMeta = objMetadata.fields.find(
+      field => field.name === soqlContext.fieldName
+    );
+    if (fieldMeta) {
+      if (
+        ['picklist', 'multipicklist'].includes(fieldMeta.type) &&
+        fieldMeta?.picklistValues
+      ) {
+        items = items.concat(
+          fieldMeta.picklistValues
+            .filter(v => v.active)
+            .map(v =>
+              newCompletionItem(
+                v.value,
+                "'" + v.value + "'",
+                CompletionItemKind.Value
+              )
+            )
+        );
+      } else if (fieldMeta.type === 'boolean') {
+        items.push(newCompletionItem('TRUE', 'TRUE', CompletionItemKind.Value));
+        items.push(
+          newCompletionItem('FALSE', 'FALSE', CompletionItemKind.Value)
+        );
+      } else if (fieldMeta.type === 'date') {
+        items.push(
+          newCompletionItem(
+            'YYYY-MM-DD',
+            '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}$0',
+            CompletionItemKind.Snippet
+          )
+        );
+      } else if (fieldMeta.type === 'datetime') {
+        items.push(
+          newCompletionItem(
+            'YYYY-MM-DDThh:mm:ssZ',
+            '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}T${4:${CURRENT_HOUR}}:${5:${CURRENT_MINUTE}}:${6:${CURRENT_SECOND}}Z$0',
+            CompletionItemKind.Snippet
+          )
+        );
+      }
+
+      if (fieldMeta.nillable && !soqlContext.notNillable) {
+        items.push(
+          newCompletionItem('NULL', 'NULL', CompletionItemKind.Keyword)
+        );
+      }
+    }
+
+    return items;
   }
 };
+
+async function safeRetrieveSObjectMetadata(
+  sobjectName: string
+): Promise<DescribeSObjectResult | undefined> {
+  try {
+    return await retrieveSObject(sobjectName);
+  } catch (metadataError) {
+    const message = nls.localize('error_sobject_metadata_request', sobjectName);
+    channelService.appendLine(message);
+    return undefined;
+  }
+}
+
+async function safeRetrieveSObjectsList(): Promise<string[]> {
+  try {
+    return await retrieveSObjects();
+  } catch (metadataError) {
+    const message = nls.localize('error_sobjects_request');
+    channelService.appendLine(message);
+    return [];
+  }
+}
 
 // All types allow equality operators
 // Here we list the extra operators supported on each type

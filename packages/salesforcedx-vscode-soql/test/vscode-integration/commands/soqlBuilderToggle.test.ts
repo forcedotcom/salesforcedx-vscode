@@ -19,8 +19,11 @@ describe('soqlBuilderToggle should', () => {
 
   beforeEach(() => {
     sb = createSandbox();
-    telemetryStub = sb.stub(telemetryService, 'sendCommandEvent');
-    executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    telemetryStub = sb.stub(telemetryService, 'sendCommandEvent') as SinonStub;
+    executeCommandSpy = (sb.spy(
+      vscode.commands,
+      'executeCommand'
+    ) as unknown) as SinonSpy;
   });
 
   afterEach(async () => {
