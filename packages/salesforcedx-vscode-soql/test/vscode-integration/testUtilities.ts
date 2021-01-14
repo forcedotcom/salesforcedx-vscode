@@ -203,7 +203,7 @@ export class MockTextDocumentProvider
 }
 
 export class TestSoqlEditorInstance extends SOQLEditorInstance {
-  public sendEvent(event: SoqlEditorEvent) {
+  public mockReceiveEvent(event: SoqlEditorEvent) {
     this.onDidRecieveMessageHandler(event);
   }
 
@@ -228,7 +228,7 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
 }
 
 export class TestQueryDataViewService extends QueryDataViewService {
-  public sendEvent(event: DataViewEvent) {
+  public mockReceiveEvent(event: DataViewEvent) {
     this.onDidRecieveMessageHandler(event);
   }
 
