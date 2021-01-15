@@ -60,7 +60,7 @@ To run the merge process:
    1. Navigate to the `#pdt_releases` channel in Slack.
    1. There should soon be a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCi.
    1. Click the selection for `hold`.
-   1. You should now see the following ![Approval View](./images/contributing-approval-button.png). Click the `Approve` button.
+   1. Click the `Approve` button. See ![Approval View](./images/contributing-approval-button.png) for an example.
 
 ## Publishing Main
 
@@ -73,7 +73,7 @@ After the pre-publish steps have run and main has been rebased off of the releas
    1. Navigate to the `#pdt_releases` channel in Slack.
    1. Soon you'll see a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCI.
    1. Click the selection for `hold`.
-   1. You should now see the following ![Approval View](./images/contributing-approval-button.png). Click the `Approve` button.
+   1. Click the `Approve` button. See ![Approval View](./images/contributing-approval-button.png) for an example.
 
 # Manual Publish
 
