@@ -16,7 +16,7 @@ import {
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
@@ -70,7 +70,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
   }
 
   protected async run(): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
     const testService = new TestService(connection);
     const result = await testService.runTestAsynchronous(
       {
