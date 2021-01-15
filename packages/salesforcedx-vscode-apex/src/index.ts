@@ -6,7 +6,6 @@
  */
 
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
@@ -26,6 +25,7 @@ import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   SFDX_APEX_CONFIGURATION_NAME
 } from './constants';
+import { workspaceContext } from './context';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -70,7 +70,7 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Workspace Context
-  await WorkspaceContextUtil.getInstance().initialize(context);
+  await workspaceContext.initialize(context);
 
   // Telemetry
   telemetryService.initializeService(

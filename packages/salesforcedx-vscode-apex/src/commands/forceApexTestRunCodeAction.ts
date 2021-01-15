@@ -16,8 +16,8 @@ import {
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
 
@@ -32,7 +32,6 @@ const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const LibraryCommandletExecutor = sfdxCoreExports.LibraryCommandletExecutor;
 const channelService = sfdxCoreExports.channelService;
 
-const workspaceContext = WorkspaceContextUtil.getInstance();
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
   outputDir: string;
   tests: string[];
