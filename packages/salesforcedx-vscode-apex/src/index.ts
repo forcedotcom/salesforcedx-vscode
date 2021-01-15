@@ -6,6 +6,7 @@
  */
 
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
@@ -67,6 +68,9 @@ export async function activate(context: vscode.ExtensionContext) {
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
+
+  // Workspace Context
+  await WorkspaceContextUtil.getInstance().initialize(context);
 
   // Telemetry
   telemetryService.initializeService(
