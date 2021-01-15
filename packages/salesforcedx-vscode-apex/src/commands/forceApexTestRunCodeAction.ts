@@ -32,6 +32,7 @@ const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 const LibraryCommandletExecutor = sfdxCoreExports.LibraryCommandletExecutor;
 const channelService = sfdxCoreExports.channelService;
 
+const workspaceContext = WorkspaceContextUtil.getInstance();
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
   outputDir: string;
   tests: string[];
@@ -70,7 +71,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
   }
 
   protected async run(): Promise<boolean> {
-    const connection = await WorkspaceContextUtil.getInstance().getConnection();
+    const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
     const result = await testService.runTestAsynchronous(
       {
