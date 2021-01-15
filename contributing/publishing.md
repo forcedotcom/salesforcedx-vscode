@@ -56,9 +56,9 @@ To run the merge process:
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
 1. Select `Launch Pre-Publish Steps`.
-1. Approve the workflow in CircleCi:
+1. Approve the workflow in CircleCI:
    1. Navigate to the `#pdt_releases` channel in Slack.
-   1. There should soon be a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCi.
+   1. Soon you'll see a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCI.
    1. Click the selection for `hold`.
    1. Click the `Approve` button. See ![Approval View](./images/contributing-approval-button.png) for an example.
 
