@@ -8,7 +8,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { extensions, Position, Uri, workspace } from 'vscode';
+import { extensions, Position, Uri, workspace, commands } from 'vscode';
 import { stubMockConnection, MockConnection } from '../testUtilities';
 
 let doc: vscode.TextDocument;
@@ -21,13 +21,17 @@ let mockConnection: MockConnection;
 describe('Should do completion', async () => {
   beforeEach(async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
-    soqlFileUri = Uri.file(path.join(workspacePath, 'test.soql'));
+    soqlFileUri = Uri.file(
+      path.join(workspacePath, `test_${generateRandomInt()}.soql`)
+    );
     sandbox = sinon.createSandbox();
     mockConnection = stubMockConnection(sandbox);
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     sandbox.restore();
+    commands.executeCommand('workbench.action.closeActiveEditor');
+    await workspace.fs.delete(soqlFileUri);
   });
 
   testCompletion('|', [
@@ -136,4 +140,8 @@ function getCursorPosition(text: string, cursorChar: string): Position {
     if (column >= 0) return new Position(line, column);
   }
   throw new Error(`Cursor ${cursorChar} not found in ${text} !`);
+}
+
+function generateRandomInt() {
+  return Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER));
 }

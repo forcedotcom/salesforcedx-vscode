@@ -143,6 +143,17 @@
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "%configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-soql.experimental.validateQueries": {
+          "type": "boolean",
+          "default": false,
+          "description": "%soql_validation_flag%"
+        }
+      }
     }
   }
 }

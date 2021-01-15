@@ -8,9 +8,21 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import { extensions, languages, Uri, window, workspace } from 'vscode';
+import {
+  extensions,
+  languages,
+  TextEditor,
+  Uri,
+  window,
+  workspace,
+  commands
+} from 'vscode';
 import { clearDiagnostics } from '../../../src/client/client';
 import { stubMockConnection, MockConnection } from '../testUtilities';
+import {
+  SOQL_CONFIGURATION_NAME,
+  SOQL_VALIDATION_CONFIG
+} from '../../../src/constants';
 
 async function sleep(ms: number = 0) {
   return new Promise(resolve => {
@@ -20,11 +32,8 @@ async function sleep(ms: number = 0) {
 
 function waitUntil(predicate: () => boolean) {
   return new Promise<void>(async resolve => {
-    let notFound = true;
-    let tries = 5;
-    while (notFound || tries-- > 0) {
+    for (let tries = 5; !predicate() && tries > 0; tries--) {
       await sleep(50);
-      notFound = !predicate();
     }
     resolve();
   });
@@ -32,33 +41,33 @@ function waitUntil(predicate: () => boolean) {
 
 describe('SOQL language client', () => {
   let sandbox: sinon.SinonSandbox;
-  let workspacePath: string;
   let soqlFileUri: Uri;
-  const encoder = new TextEncoder();
+  let textEditor: TextEditor;
   let mockConnection: MockConnection;
+  let soqlExtension: any;
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
     mockConnection = stubMockConnection(sandbox);
-    workspacePath = workspace.workspaceFolders![0].uri.fsPath;
-    soqlFileUri = Uri.file(path.join(workspacePath, 'test.soql'));
-    const ext = extensions.getExtension('salesforce.salesforcedx-vscode-soql')!;
-    await ext.activate();
+    soqlExtension = extensions.getExtension(
+      'salesforce.salesforcedx-vscode-soql'
+    )!;
+    await soqlExtension.activate();
     clearDiagnostics();
   });
 
   afterEach(async () => {
     sandbox.restore();
+    commands.executeCommand('workbench.action.closeActiveEditor');
     await workspace.fs.delete(soqlFileUri);
   });
 
   it('should show diagnostics for syntax error', async () => {
-    await workspace.fs.writeFile(
-      soqlFileUri,
-      encoder.encode(`
-      SELECT Id
+    soqlFileUri = await writeSOQLFile(
+      'testSyntaxError',
+      `SELECT Id
       FRM Account
-    `)
+      `
     );
     await window.showTextDocument(soqlFileUri);
 
@@ -69,16 +78,70 @@ describe('SOQL language client', () => {
     expect(diagnostics[0].message).to.equal(`missing 'from' at 'Account'`);
   });
 
-  it('should create diagnostics based off of limit 0 execute error results', async () => {
-    const expectedError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
-    await workspace.fs.writeFile(
-      soqlFileUri,
-      encoder.encode(`
-      SELECT Ids
-      FROM Account
-    `)
+  it('should not create diagnostics based off of remote query validation by default', async () => {
+    soqlFileUri = await writeSOQLFile(
+      'testSemanticErrors_remoteRunDefault',
+      'SELECT Ids FROM Account'
     );
 
+    const querySpy = sandbox.stub(mockConnection, 'query');
+    textEditor = await window.showTextDocument(soqlFileUri);
+
+    await sleep(100);
+
+    expect(querySpy.notCalled).to.be.true;
+    const diagnostics = languages.getDiagnostics(soqlFileUri);
+    expect(diagnostics)
+      .to.be.an('array')
+      .to.have.lengthOf(0);
+  });
+
+  it('should not create diagnostics based off of remote query validation when disabled', async () => {
+    soqlFileUri = await writeSOQLFile(
+      'testSemanticErrors_remoteRunDisabled',
+      'SELECT Ids FROM Account'
+    );
+
+    stubSOQLExtensionConfiguration(
+      sandbox,
+      {
+        [SOQL_VALIDATION_CONFIG]: false
+      },
+      soqlExtension
+    );
+
+    const expectedError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
+    const querySpy = sandbox.stub(mockConnection, 'query').throws({
+      name: 'INVALID_FIELD',
+      errorCode: 'INVALID_FIELD',
+      message: expectedError
+    });
+    await window.showTextDocument(soqlFileUri);
+
+    await sleep(100);
+
+    expect(querySpy.notCalled).to.be.true;
+    const diagnostics = languages.getDiagnostics(soqlFileUri);
+    expect(diagnostics)
+      .to.be.an('array')
+      .to.have.lengthOf(0);
+  });
+
+  it('should create diagnostics based off of remote query validation when Enabled', async () => {
+    soqlFileUri = await writeSOQLFile(
+      'testSemanticErrors_remoteRunEnabled',
+      'SELECT Ids FROM Account'
+    );
+
+    stubSOQLExtensionConfiguration(
+      sandbox,
+      {
+        [SOQL_VALIDATION_CONFIG]: true
+      },
+      soqlExtension
+    );
+
+    const expectedError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
     sandbox.stub(mockConnection, 'query').throws({
       name: 'INVALID_FIELD',
       errorCode: 'INVALID_FIELD',
@@ -104,3 +167,32 @@ describe('SOQL language client', () => {
     expect(diagnostics[0].range.end.character).to.equal(10, 'range end char');
   });
 });
+
+function generateRandomInt() {
+  return Math.floor(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER));
+}
+
+async function writeSOQLFile(baseName: string, content: string): Promise<Uri> {
+  const fileName = `${baseName}_${generateRandomInt()}.soql`;
+  const workspacePath = workspace.workspaceFolders![0].uri.fsPath;
+  const encoder = new TextEncoder();
+  const fileUri = Uri.file(path.join(workspacePath, fileName));
+  await workspace.fs.writeFile(fileUri, encoder.encode(content));
+
+  return fileUri;
+}
+
+function stubSOQLExtensionConfiguration(
+  sandbox: sinon.SinonSandbox,
+  configValues: { [key: string]: any },
+  extension: any
+) {
+  const mockConfiguration = {
+    get: (key: string) => configValues[key]
+  };
+
+  expect(
+    Object.keys(extension.packageJSON.contributes.configuration.properties)
+  ).to.contain(SOQL_CONFIGURATION_NAME + '.' + SOQL_VALIDATION_CONFIG);
+  sandbox.stub(workspace, 'getConfiguration').returns(mockConfiguration);
+}
