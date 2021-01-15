@@ -134,6 +134,10 @@
         {
           "command": "soql.builder.open.new",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "soql.builder.toggle",
+          "when": "false"
         }
       ],
       "editor/title": [
