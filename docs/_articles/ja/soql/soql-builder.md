@@ -3,7 +3,7 @@ title: SOQL Builder (Beta)
 lang: ja
 ---
 
-OQL Builder is a VS Code extension that eliminates the guesswork when building SOQL queries. With SOQL Query Builder, anyone can visually build, run, and explore results from queries. Build queries using clicks in a visual editor, then save and extend the queries using a text editor. You can instantly view query results, and then save the results to a `.csv` or `.json` file.
+SOQL Builder is a VS Code extension that eliminates the guesswork when building SOQL queries. With SOQL Query Builder, anyone can visually build, run, and explore results from queries. Build queries using clicks in a visual editor, then save and extend the queries using a text editor. You can instantly view query results, and then save the results to a `.csv` or `.json` file.
 
 > **NOTICE:** SOQL Builder is currently in beta. If you find any bugs or have feedback, open a [GitHub issue](https://github.com/forcedotcom/soql-tooling/issues/new/choose). See our [Roadmap](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Roadmap) for more information.
 
