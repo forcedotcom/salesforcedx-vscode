@@ -19,18 +19,18 @@ For more information about publishing take a look at:
 
 # Prerequisites
 
-1. Publisher has a valid CircleCI token for the forcedotcom organization. More info on CircleCI's doc [Create a Personal API token](https://circleci.com/docs/2.0/managing-api-tokens/#creating-a-personal-api-token).
+1. Publisher has a valid CircleCI token for the forcedotcom organization. See [Create a Personal API token](https://circleci.com/docs/2.0/managing-api-tokens/#creating-a-personal-api-token) in the CircleCI docs.
 1. Publisher is a part of the GitHub team 'PDT'.
 
 # Steps
 
 ## Creating a release branch
 
-The release branch is typically created from a scheduled job in CircleCi. This scheduled job cuts the release branch off of the `develop` branch on Mondays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
+The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Mondays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
 
 To create a release branch manually:
 
-<b>Note that this isn't typically required due to the scheduled job in CircleCi</b>
+<b>Note that this isn't typically required due to the scheduled job in CircleCI</b>
 
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
@@ -38,7 +38,7 @@ To create a release branch manually:
 
 ## Generating the Change Log
 
-We generate the changelog based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
+We generate the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
 
 To run the change log generator:
 
@@ -49,7 +49,7 @@ To run the change log generator:
 
 ## Merging the Release Branch into Main
 
-After the change log has been approved and merged into your release branch, it's time to prepare main with the new changes for the publish. We currently utilize a CircleCi workflow that will rebase main off of the release branch. We are specifically using the rebase strategy because we want all of the commits from our release branch to be applied ontop of the commits in main.
+After the change log has been approved and merged into your release branch, it's time to prepare main with the new changes for the publish. We currently use a CircleCI workflow that rebases `main` off of the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in main.
 
 To run the merge process:
 
@@ -69,15 +69,15 @@ After the pre-publish steps have run and main has been rebased off of the releas
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
 1. Select `Publish Extensions`.
-1. Approve the workflow in CircleCi:
+1. Approve the workflow in CircleCI:
    1. Navigate to the `#pdt_releases` channel in Slack.
-   1. There should soon be a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCi.
+   1. Soon you'll see a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCI.
    1. Click the selection for `hold`.
    1. You should now see the following ![Approval View](./images/contributing-approval-button.png). Click the `Approve` button.
 
 # Manual Publish
 
-In the event that CircleCi is not a viable option for publishing, please see the following...
+In the event that CircleCI is not a viable option for publishing, see the following...
 
 The scripts/publish-circleci.js contains the end-to-end flow. You run this from the
 **top-level** directory.
