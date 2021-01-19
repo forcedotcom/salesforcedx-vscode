@@ -20,10 +20,13 @@ describe('soqlOpenNew should', () => {
 
   beforeEach(() => {
     sb = createSandbox();
-    telemetryStub = sb.stub(telemetryService, 'sendCommandEvent');
+    telemetryStub = sb.stub(telemetryService, 'sendCommandEvent') as SinonStub;
     editorOpened = sb.stub();
     vscode.workspace.onDidOpenTextDocument(editorOpened);
-    executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    executeCommandSpy = (sb.spy(
+      vscode.commands,
+      'executeCommand'
+    ) as unknown) as SinonSpy;
   });
 
   afterEach(async () => {
