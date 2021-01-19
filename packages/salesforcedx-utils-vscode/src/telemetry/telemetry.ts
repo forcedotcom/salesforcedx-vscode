@@ -244,9 +244,15 @@ export class TelemetryService {
     }
   }
 
-  public async sendException(name: string, message: string) {
-    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
-      this.reporter.sendExceptionEvent(name, message);
+  public sendException(name: string, message: string) {
+    if (this.reporter !== undefined) {
+      this.isTelemetryEnabled()
+        .then(telemetryEnabled => {
+          if (telemetryEnabled) {
+            this.reporter!.sendExceptionEvent(name, message);
+          }
+        })
+        .catch(err => console.error(err));
     }
   }
 
