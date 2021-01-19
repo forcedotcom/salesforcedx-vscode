@@ -148,11 +148,7 @@ describe('Get code coverage results', () => {
   });
 
   it('should return aggregate code coverage result with 0 records', async () => {
-    toolingQueryStub.resolves({
-      done: true,
-      totalSize: 0,
-      records: []
-    } as ApexCodeCoverageAggregate);
+    toolingQueryStub.throws('Error at Row:1;Column:1');
 
     const testSrv = new TestService(mockConnection);
     const {

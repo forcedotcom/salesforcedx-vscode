@@ -491,6 +491,10 @@ export class TestService {
     totalLines: number;
     coveredLines: number;
   }> {
+    if (apexClassIdSet.size === 0) {
+      return { codeCoverageResults: [], totalLines: 0, coveredLines: 0 };
+    }
+
     let str = '';
     apexClassIdSet.forEach(elem => {
       str += `'${elem}',`;
