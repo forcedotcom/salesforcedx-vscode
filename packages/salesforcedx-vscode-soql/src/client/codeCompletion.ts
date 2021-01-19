@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CompletionItemKind, SnippetString } from 'vscode';
+import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
 import { retrieveSObject, retrieveSObjects, channelService } from '../sfdx';
 
 import { Middleware } from 'vscode-languageclient';
 import { telemetryService } from '../telemetry';
 import { nls } from '../messages';
-import { DescribeSObjectResult } from 'jsforce';
+import { DescribeSObjectResult, Field } from 'jsforce';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -38,6 +38,11 @@ interface SoqlItemContext {
   sobjectName: string;
   fieldName?: string;
   notNillable?: boolean;
+  onlyTypes?: string[];
+  onlyAggregatable?: boolean;
+  onlyGroupable?: boolean;
+  onlySortable?: boolean;
+  mostLikelyItems?: string[];
 }
 
 async function filterByContext(
@@ -142,27 +147,40 @@ const expandFunctions: {
       return [];
     }
 
-    const sobjectFields = objMetadata.fields.reduce((fieldItems, field) => {
-      fieldItems.push(
-        newCompletionItem(
-          field.name,
-          field.name,
-          CompletionItemKind.Field,
-          field.type
-        )
-      );
-      if (field.relationshipName) {
+    const sobjectFields = objMetadata.fields
+      .filter(field => objectFieldMatchesSOQLContext(field, soqlContext))
+      .reduce((fieldItems, field) => {
+        const fieldNameLowercase = field.name.toLowerCase();
+        const isPreferredItem = soqlContext.mostLikelyItems?.some(
+          f => f.toLowerCase() === fieldNameLowercase
+        );
+
         fieldItems.push(
           newCompletionItem(
-            `${field.relationshipName}`,
-            field.relationshipName + '.',
-            CompletionItemKind.Class,
-            'Ref. to ' + field.referenceTo
+            (isPreferredItem ? '★ ' : '') + field.name,
+            field.name,
+            CompletionItemKind.Field,
+            Object.assign(
+              { detail: field.type } as CompletionItem,
+              isPreferredItem
+                ? { preselect: true, sortText: '1 ' + field.name }
+                : {}
+            )
+            // + '\n' + field.inlineHelpText }
           )
         );
-      }
-      return fieldItems;
-    }, [] as ProtocolCompletionItem[]);
+        if (field.relationshipName) {
+          fieldItems.push(
+            newCompletionItem(
+              `${field.relationshipName}`,
+              field.relationshipName + '.',
+              CompletionItemKind.Class,
+              { detail: 'Ref. to ' + field.referenceTo }
+            )
+          );
+        }
+        return fieldItems;
+      }, [] as ProtocolCompletionItem[]);
     return sobjectFields;
   },
   LITERAL_VALUES_FOR_FIELD: async (
@@ -260,6 +278,20 @@ async function safeRetrieveSObjectsList(): Promise<string[]> {
   }
 }
 
+function objectFieldMatchesSOQLContext(
+  field: Field,
+  soqlContext: SoqlItemContext
+) {
+  return (
+    (field.aggregatable || !soqlContext.onlyAggregatable) &&
+    (field.groupable || !soqlContext.onlyGroupable) &&
+    (field.sortable || !soqlContext.onlySortable) &&
+    (!soqlContext.onlyTypes ||
+      soqlContext.onlyTypes.length === 0 ||
+      soqlContext.onlyTypes.includes(field.type))
+  );
+}
+
 // All types allow equality operators
 // Here we list the extra operators supported on each type
 const operatorsByType: { [key: string]: string[] } = {
@@ -291,9 +323,9 @@ const operatorsByType: { [key: string]: string[] } = {
 
 function newCompletionItem(
   label: string,
-  insertText?: string,
+  insertText: string,
   kind: CompletionItemKind = CompletionItemKind.Field,
-  detail?: string
+  extraOptions?: Partial<CompletionItem>
 ): ProtocolCompletionItem {
   const item = new ProtocolCompletionItem(label);
   item.kind = kind;
@@ -301,7 +333,9 @@ function newCompletionItem(
     kind === CompletionItemKind.Snippet
       ? new SnippetString(insertText)
       : insertText;
-  item.detail = detail;
+  if (extraOptions) {
+    Object.assign(item, extraOptions);
+  }
 
   return item;
 }
