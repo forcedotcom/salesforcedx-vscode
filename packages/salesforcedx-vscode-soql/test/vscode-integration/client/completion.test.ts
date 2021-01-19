@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { Connection } from 'jsforce';
+import { Connection } from '@salesforce/core';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
