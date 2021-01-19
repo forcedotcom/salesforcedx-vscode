@@ -31,6 +31,7 @@ import {
 } from './breakpoints/checkpointService';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
+import { workspaceContext } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 let extContext: vscode.ExtensionContext;
@@ -176,6 +177,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(
     processBreakpointChangedForCheckpoints
   );
+
+  // Workspace Context
+  await workspaceContext.initialize(context);
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(

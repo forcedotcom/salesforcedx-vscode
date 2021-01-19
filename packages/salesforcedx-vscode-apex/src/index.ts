@@ -25,6 +25,7 @@ import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   SFDX_APEX_CONFIGURATION_NAME
 } from './constants';
+import { workspaceContext } from './context';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -67,6 +68,9 @@ export async function activate(context: vscode.ExtensionContext) {
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
+
+  // Workspace Context
+  await workspaceContext.initialize(context);
 
   // Telemetry
   telemetryService.initializeService(

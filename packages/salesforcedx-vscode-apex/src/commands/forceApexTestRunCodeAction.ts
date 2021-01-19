@@ -16,8 +16,8 @@ import {
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import * as vscode from 'vscode';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
 
