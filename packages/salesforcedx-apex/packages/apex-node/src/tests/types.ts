@@ -340,7 +340,7 @@ export type ApexTestResultData = {
   /**
    * The associated ApexCodeCoverage object
    */
-  perTestCoverage?: PerTestCoverage;
+  perClassCoverage?: PerClassCoverage[];
 };
 
 export type CodeCoverageResult = {
@@ -403,7 +403,7 @@ export type ApexCodeCoverage = {
   records: ApexCodeCoverageRecord[];
 };
 
-export type PerTestCoverage = {
+export type PerClassCoverage = {
   apexClassOrTriggerName: string;
   apexClassOrTriggerId: string;
   apexTestClassId: string;

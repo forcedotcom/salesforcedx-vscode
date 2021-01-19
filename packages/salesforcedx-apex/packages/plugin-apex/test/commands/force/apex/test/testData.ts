@@ -90,16 +90,18 @@ export const runWithCoverage = {
       runTime: 53,
       testTimestamp: '2020-08-25T00:48:02.000+0000',
       fullName: 'MyApexTests.testConfig',
-      perTestCoverage: {
-        apexTestClassId: '01pxx00000NnP2KQAV',
-        apexClassOrTriggerName: 'ApexClassExample',
-        apexClassOrTriggerId: '01pxx00000avcNeAAL',
-        apexTestMethodName: 'testAssignContains',
-        numLinesCovered: 1,
-        numLinesUncovered: 4,
-        percentage: '20%',
-        coverage: { coveredLines: [1], uncoveredLines: [2, 3, 4, 5] }
-      }
+      perClassCoverage: [
+        {
+          apexTestClassId: '01pxx00000NnP2KQAV',
+          apexClassOrTriggerName: 'ApexClassExample',
+          apexClassOrTriggerId: '01pxx00000avcNeAAL',
+          apexTestMethodName: 'testAssignContains',
+          numLinesCovered: 1,
+          numLinesUncovered: 4,
+          percentage: '20%',
+          coverage: { coveredLines: [1], uncoveredLines: [2, 3, 4, 5] }
+        }
+      ]
     }
   ],
   codecoverage: [

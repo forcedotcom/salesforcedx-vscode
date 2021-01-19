@@ -21,7 +21,7 @@ import {
   ApexTestRunResultStatus,
   TestResult,
   ApexCodeCoverage,
-  PerTestCoverage,
+  PerClassCoverage,
   OutputDirConfig
 } from './types';
 import * as util from 'util';
@@ -108,15 +108,17 @@ export class TestService {
     };
 
     if (codeCoverage) {
-      const perTestCovMap = await this.getPerTestCodeCoverage(
+      const perClassCovMap = await this.getPerClassCodeCoverage(
         apexTestClassIdSet
       );
 
       result.tests.forEach(item => {
         const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
-        const perTestCov = perTestCovMap.get(keyCodeCov);
-        coveredApexClassIdSet.add(perTestCov.apexClassOrTriggerId);
-        item.perTestCoverage = perTestCov;
+        const perClassCov = perClassCovMap.get(keyCodeCov);
+        perClassCov.forEach(classCov =>
+          coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
+        );
+        item.perClassCoverage = perClassCov;
       });
 
       const {
@@ -297,17 +299,19 @@ export class TestService {
     };
 
     if (codeCoverage) {
-      const perTestCovMap = await this.getPerTestCodeCoverage(
+      const perClassCovMap = await this.getPerClassCodeCoverage(
         apexTestClassIdSet
       );
 
       result.tests.forEach(item => {
         const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
-        const perTestCov = perTestCovMap.get(keyCodeCov);
-        // Skipped test is not in coverage map, check to see if perTestCov exists first
-        if (perTestCov) {
-          coveredApexClassIdSet.add(perTestCov.apexClassOrTriggerId);
-          item.perTestCoverage = perTestCov;
+        const perClassCov = perClassCovMap.get(keyCodeCov);
+        // Skipped test is not in coverage map, check to see if perClassCov exists first
+        if (perClassCov) {
+          perClassCov.forEach(classCov =>
+            coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
+          );
+          item.perClassCoverage = perClassCov;
         }
       });
 
@@ -445,31 +449,31 @@ export class TestService {
     return `${orgWideCoverageResult.records[0].PercentCovered}%`;
   }
 
-  public async getPerTestCodeCoverage(
+  //NOTE: a test could cover more than one class, map should contain a record for each covered class
+  public async getPerClassCodeCoverage(
     apexTestClassSet: Set<string>
-  ): Promise<Map<string, PerTestCoverage>> {
+  ): Promise<Map<string, PerClassCoverage[]>> {
     let str = '';
     apexTestClassSet.forEach(elem => {
       str += `'${elem}',`;
     });
     str = str.slice(0, -1);
 
-    const perTestCodeCovQuery =
+    const perClassCodeCovQuery =
       'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
-    const perTestCodeCovResuls = (await this.connection.tooling.query(
-      util.format(perTestCodeCovQuery, `${str}`)
+    const perClassCodeCovResuls = (await this.connection.tooling.query(
+      util.format(perClassCodeCovQuery, `${str}`)
     )) as ApexCodeCoverage;
 
-    const perTestCoverageMap = new Map<string, PerTestCoverage>();
-    perTestCodeCovResuls.records.forEach(item => {
+    const perClassCoverageMap = new Map<string, PerClassCoverage[]>();
+    perClassCodeCovResuls.records.forEach(item => {
       const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
       const percentage = this.calculatePercentage(
         item.NumLinesCovered,
         totalLines
       );
 
-      //NOTE: a test could cover more than one class, we should change this in order to handle that
-      perTestCoverageMap.set(`${item.ApexTestClassId}-${item.TestMethodName}`, {
+      const value = {
         apexClassOrTriggerName: item.ApexClassOrTrigger.Name,
         apexClassOrTriggerId: item.ApexClassOrTrigger.Id,
         apexTestClassId: item.ApexTestClassId,
@@ -478,10 +482,19 @@ export class TestService {
         numLinesUncovered: item.NumLinesUncovered,
         percentage,
         ...(item.Coverage ? { coverage: item.Coverage } : {})
-      });
+      };
+      const key = `${item.ApexTestClassId}-${item.TestMethodName}`;
+      if (perClassCoverageMap.get(key)) {
+        perClassCoverageMap.get(key).push(value);
+      } else {
+        perClassCoverageMap.set(
+          `${item.ApexTestClassId}-${item.TestMethodName}`,
+          [value]
+        );
+      }
     });
 
-    return perTestCoverageMap;
+    return perClassCoverageMap;
   }
 
   public async getAggregateCodeCoverage(
@@ -584,7 +597,7 @@ export class TestService {
 
     if (codeCoverage) {
       const coverageRecords = result.tests.map(record => {
-        return record.perTestCoverage;
+        return record.perClassCoverage;
       });
       fileMap.push({
         path: join(

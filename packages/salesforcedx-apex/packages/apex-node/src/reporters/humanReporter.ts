@@ -129,31 +129,29 @@ export class HumanReporter {
   private formatDetailedCov(testResult: TestResult): string {
     const tb = new Table();
     const testRowArray: Row[] = [];
-    testResult.tests.forEach(
-      (elem: {
-        fullName: string;
-        outcome: string;
-        perTestCoverage?: {
-          apexClassOrTriggerName: string;
-          percentage: string;
-        };
-        message: string | null;
-        runTime: number;
-      }) => {
+    testResult.tests.forEach((elem: ApexTestResultData) => {
+      if (elem.perClassCoverage) {
+        elem.perClassCoverage.forEach(perClassCov => {
+          testRowArray.push({
+            name: elem.fullName,
+            coveredClassName: perClassCov.apexClassOrTriggerName,
+            outcome: elem.outcome,
+            coveredClassPercentage: perClassCov.percentage,
+            msg: elem.message ?? '',
+            runtime: `${elem.runTime}`
+          });
+        });
+      } else {
         testRowArray.push({
           name: elem.fullName,
-          coveredClassName: elem.perTestCoverage
-            ? elem.perTestCoverage.apexClassOrTriggerName
-            : '',
+          coveredClassName: '',
           outcome: elem.outcome,
-          coveredClassPercentage: elem.perTestCoverage
-            ? elem.perTestCoverage.percentage
-            : '',
+          coveredClassPercentage: '',
           msg: elem.message ? elem.message : '',
           runtime: `${elem.runTime}`
         });
       }
-    );
+    });
 
     let detailedCovTable = '\n\n';
     detailedCovTable += tb.createTable(

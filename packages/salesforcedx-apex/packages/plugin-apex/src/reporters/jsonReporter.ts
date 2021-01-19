@@ -38,7 +38,7 @@ type ClassCoverage = {
   coveredPercent: number;
 };
 
-type PerTestCoverage = {
+type PerClassCoverage = {
   ApexTestClass: {
     Id: string;
     Name: string;
@@ -55,7 +55,7 @@ type PerTestCoverage = {
 
 type CliCoverageResult = {
   coverage: ClassCoverage[];
-  records: PerTestCoverage[];
+  records: PerClassCoverage[];
   summary: {
     totalLines: number;
     coveredLines: number;
@@ -161,20 +161,22 @@ export class JsonReporter {
       });
 
       testResult.tests.forEach(test => {
-        if (test.perTestCoverage) {
-          formattedCov.records.push({
-            ApexTestClass: { Id: test.id, Name: test.apexClass.name },
-            ...(test.perTestCoverage.coverage
-              ? { Coverage: test.perTestCoverage.coverage }
-              : {}),
-            TestMethodName: test.methodName,
-            NumLinesCovered: test.perTestCoverage.numLinesCovered,
-            ApexClassOrTrigger: {
-              Id: test.perTestCoverage.apexClassOrTriggerId,
-              Name: test.perTestCoverage.apexClassOrTriggerName
-            },
-            NumLinesUncovered: test.perTestCoverage.numLinesUncovered
-          } as PerTestCoverage);
+        if (test.perClassCoverage) {
+          test.perClassCoverage.forEach(perClassCov => {
+            formattedCov.records.push({
+              ApexTestClass: { Id: test.id, Name: test.apexClass.name },
+              ...(perClassCov.coverage
+                ? { Coverage: perClassCov.coverage }
+                : {}),
+              TestMethodName: test.methodName,
+              NumLinesCovered: perClassCov.numLinesCovered,
+              ApexClassOrTrigger: {
+                Id: perClassCov.apexClassOrTriggerId,
+                Name: perClassCov.apexClassOrTriggerName
+              },
+              NumLinesUncovered: perClassCov.numLinesUncovered
+            } as PerClassCoverage);
+          });
         }
       });
     }
