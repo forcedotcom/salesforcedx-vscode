@@ -26,7 +26,7 @@ import {
   SOQL_CONFIGURATION_NAME,
   SOQL_VALIDATION_CONFIG
 } from '../../../src/constants';
-import { Connection } from 'jsforce';
+import { Connection } from '@salesforce/core';
 
 async function sleep(ms: number = 0) {
   return new Promise(resolve => {
