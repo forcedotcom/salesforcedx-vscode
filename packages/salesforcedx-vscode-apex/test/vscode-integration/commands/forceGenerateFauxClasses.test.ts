@@ -200,7 +200,6 @@ describe('ForceGenerateFauxClasses', () => {
         'logMetric'
       );
       errorStub = sandboxStub.stub(telemetryService, 'sendException');
-      sandboxStub.stub(telemetryService, 'sendCommandEvent');
     });
 
     afterEach(() => {

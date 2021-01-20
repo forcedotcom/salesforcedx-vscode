@@ -167,11 +167,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       this.logMetric(commandName, startTime, result.data);
     } catch (result) {
       console.log('Generate error ' + result.error);
-      await telemetryService.sendCommandEvent(
-        'force_generate_faux_classes_create',
-        startTime,
-        result.error
-      );
+      await telemetryService.sendException(result.name, result.error);
     }
 
     ForceGenerateFauxClassesExecutor.isActive = false;
