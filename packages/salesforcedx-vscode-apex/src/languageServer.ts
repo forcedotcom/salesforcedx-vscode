@@ -77,7 +77,7 @@ async function createServer(
     };
   } catch (err) {
     vscode.window.showErrorMessage(err);
-    telemetryService.sendException(LSP_ERR, err.error);
+    await telemetryService.sendException(LSP_ERR, err.error);
     throw err;
   }
 }

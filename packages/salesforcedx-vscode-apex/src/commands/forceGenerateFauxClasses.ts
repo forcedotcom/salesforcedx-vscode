@@ -167,7 +167,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       this.logMetric(commandName, startTime, result.data);
     } catch (result) {
       console.log('Generate error ' + result.error);
-      telemetryService.sendCommandEvent(
+      await telemetryService.sendCommandEvent(
         'force_generate_faux_classes_create',
         startTime,
         result.error
@@ -234,7 +234,7 @@ export async function checkSObjectsAndRefresh(projectPath: string) {
   const hasDefaultUsernameSet = await getDefaultUsernameOrAlias();
   if (projectPath && hasDefaultUsernameSet) {
     if (!fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
-      telemetryService.sendEventData(
+      await telemetryService.sendEventData(
         'sObjectRefreshNotification',
         { type: 'No SObjects' },
         undefined
@@ -246,26 +246,26 @@ export async function checkSObjectsAndRefresh(projectPath: string) {
         buttonTxt
       );
       if (shouldRefreshNow && shouldRefreshNow === buttonTxt) {
-        telemetryService.sendEventData(
+        await telemetryService.sendEventData(
           'sObjectRefreshNotification',
           { type: 'Requested Refresh' },
           undefined
         );
-        forceGenerateFauxClassesCreate(SObjectRefreshSource.StartupMin).catch(
-          e => {
-            telemetryService.sendException(e.name, e.message);
-            throw e;
-          }
-        );
+        try {
+          await forceGenerateFauxClassesCreate(SObjectRefreshSource.StartupMin);
+        } catch (e) {
+          await telemetryService.sendException(e.name, e.message);
+          throw e;
+        }
       } else {
-        telemetryService.sendEventData(
+        await telemetryService.sendEventData(
           'sObjectRefreshNotification',
           { type: 'Refresh Request Cancelled' },
           undefined
         );
       }
     } else {
-      telemetryService.sendEventData(
+      await telemetryService.sendEventData(
         'sObjectRefreshNotification',
         { type: 'SObjects exist' },
         undefined
