@@ -163,7 +163,6 @@ export async function createLanguageServer(
         data.properties,
         data.measures
       )
-    // sendApexLSPLog(data.properties, data.measures)
   );
 
   return client;
