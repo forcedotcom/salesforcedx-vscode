@@ -1,38 +1,10 @@
-# 50.14.0 - Month DD, YYYY
-
-## Added
-
-#### salesforcedx-vscode-core
-
-- Remove channelService from core extension ([PR #2853](https://github.com/forcedotcom/salesforcedx-vscode/pull/2853))
-
-#### salesforcedx-vscode-soql
-
-- Do not emit message from custom editor to webview if soql has not changed ([PR #2818](https://github.com/forcedotcom/salesforcedx-vscode/pull/2818))
+# 50.14.0 - January 21, 2021
 
 ## Fixed
 
-#### salesforcedx-utils-vscode
-
-- WorkspaceContext initialization across apex & replay-debugger packages ([PR #2868](https://github.com/forcedotcom/salesforcedx-vscode/pull/2868))
-
 #### salesforcedx-vscode-apex
 
-- WorkspaceContext initialization across apex & replay-debugger packages ([PR #2868](https://github.com/forcedotcom/salesforcedx-vscode/pull/2868))
-
-#### salesforcedx-vscode-apex-replay-debugger
-
-- WorkspaceContext initialization across apex & replay-debugger packages ([PR #2868](https://github.com/forcedotcom/salesforcedx-vscode/pull/2868))
-
-#### salesforcedx-vscode-soql
-
-- Do not show toggle command in palette ([PR #2867](https://github.com/forcedotcom/salesforcedx-vscode/pull/2867))
-
-- Disable remote query checks. Make it an experimental option ([PR #2847](https://github.com/forcedotcom/salesforcedx-vscode/pull/2847))
-
-- Revert auto-publish of SOQL extension  (#2859) ([PR #2843](https://github.com/forcedotcom/salesforcedx-vscode/pull/2843))
-
-- Fix local test environment ([PR #2857](https://github.com/forcedotcom/salesforcedx-vscode/pull/2857))
+- Fix issue with recognizing the default org when running tests at the start of a session ([PR #2868](https://github.com/forcedotcom/salesforcedx-vscode/pull/2868))
 
 # 50.13.0 - January 13, 2021
 
