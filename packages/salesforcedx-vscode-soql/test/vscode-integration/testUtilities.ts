@@ -28,18 +28,10 @@ const soqlExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-soql'
 );
 const soqlExports = soqlExtension?.exports;
-const { workspaceContext } = soqlExports;
+const { workspaceContext, channelService } = soqlExports;
 
-export interface MockConnection {
-  authInfo: object;
-  describeGlobal$: (
-    callback: (err: Error | undefined, resp: any) => void
-  ) => void;
-  describe$: (
-    name: string,
-    callback: (err: Error | undefined, resp: any) => void
-  ) => void;
-  query: () => Promise<QueryResult<JsonMap>>;
+export function spyChannelService(sandbox: SinonSandbox) {
+  return sandbox.spy(channelService, 'appendLine');
 }
 
 export const mockQueryText = 'SELECT A, B FROM C';
@@ -91,8 +83,10 @@ export const mockSObjects = [
         label: 'Account ID',
         custom: false,
         groupable: true,
+        nillable: false,
         relationshipName: null,
         sortable: true,
+        type: 'id',
         updateable: false
       },
       {
@@ -103,9 +97,71 @@ export const mockSObjects = [
         label: 'Account Name',
         name: 'Name',
         nameField: true,
+        nillable: false,
         sortable: true,
         type: 'string',
         updateable: true
+      },
+      {
+        aggregatable: true,
+        custom: false,
+        filterable: true,
+        groupable: true,
+        label: 'Billing City',
+        name: 'BillingCity',
+        nameField: false,
+        nillable: true,
+        sortable: true,
+        type: 'string',
+        updateable: true
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'Deleted',
+        name: 'IsDeleted',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'boolean',
+        unique: false,
+        updateable: false
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'LastActivityDate',
+        name: 'LastActivityDate',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'date',
+        unique: false,
+        updateable: false
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'CreatedDate',
+        name: 'CreatedDate',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'datetime',
+        unique: false,
+        updateable: false
       }
     ]
   },
@@ -144,6 +200,68 @@ export const mockSObjects = [
         referenceTo: ['Account'],
         relationshipName: 'Account',
         type: 'reference'
+      },
+      {
+        aggregatable: false,
+        calculated: false,
+        custom: false,
+        defaultValue: false,
+        filterable: true,
+        groupable: true,
+        label: 'Deleted',
+        name: 'IsDeleted',
+        nameField: false,
+        nillable: false,
+        sortable: true,
+        type: 'boolean',
+        unique: false,
+        updateable: false
+      }
+    ]
+  },
+  {
+    name: 'QuickText',
+    fields: [
+      {
+        aggregatable: false,
+        defaultValue: 'Email',
+        filterable: true,
+        groupable: false,
+        label: 'Channel',
+        name: 'Channel',
+        nillable: true,
+        picklistValues: [
+          {
+            active: true,
+            defaultValue: true,
+            label: 'Email',
+            validFor: null,
+            value: 'Email'
+          },
+          {
+            active: true,
+            defaultValue: false,
+            label: 'Portal',
+            validFor: null,
+            value: 'Portal'
+          },
+          {
+            active: true,
+            defaultValue: false,
+            label: 'Phone',
+            validFor: null,
+            value: 'Phone'
+          },
+          {
+            active: false,
+            label: 'INACTIVE',
+            value: 'INACTIVE'
+          }
+        ],
+        sortable: false,
+        type: 'multipicklist',
+        unique: false,
+        updateable: true
       }
     ]
   }
@@ -158,13 +276,24 @@ export function stubMockConnection(
   sandbox.stub(workspaceContext, 'getConnection').returns(connection);
   return connection;
 }
+export function stubFailingMockConnection(
+  sandbox: SinonSandbox,
+  testUserName = 'test@test.com'
+) {
+  const connection = getFailingMockConnection(sandbox, testUserName);
+  sandbox.stub(workspaceContext, 'getConnection').returns(connection);
+  return connection;
+}
 
 export function getMockConnection(
   sandbox: SinonSandbox,
   testUserName = 'test@test.com'
-) {
-  const mockAuthInfo = { test: 'test' };
-  const mockConnection = {
+): Connection {
+  const mockAuthInfo = new AuthInfo({
+    username: 'test'
+  });
+
+  const mockConnection = ({
     authInfo: mockAuthInfo,
     describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
       callback(undefined, mockDescribeGlobalResponse),
@@ -173,23 +302,30 @@ export function getMockConnection(
       callback: (err: Error | undefined, resp: any) => void
     ) => {
       const sobjectMetadata = mockSObjects.find(s => s.name === name);
-      // if (!sobjectMetadata) {
-      //   throw new Error('Test failure! no mock sobject for name:' + name);
-      // }
       callback(undefined, sobjectMetadata);
     },
     query: () => Promise.resolve(mockQueryData)
-  };
+  } as unknown) as Connection;
 
-  sandbox
-    .stub(AuthInfo, 'create')
-    .withArgs({ username: testUserName })
-    .resolves(mockAuthInfo);
-  sandbox
-    .stub(Connection, 'create')
-    .withArgs({ authInfo: mockAuthInfo })
-    .returns(mockConnection);
   return mockConnection;
+}
+
+export function getFailingMockConnection(
+  sandbox: SinonSandbox,
+  testUserName = 'test@test.com'
+): Connection {
+  const mockAuthInfo = { test: 'test' };
+  const mockConnection = {
+    authInfo: mockAuthInfo,
+    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
+      callback(new Error('Unexpected error'), undefined),
+    describe$: (
+      name: string,
+      callback: (err: Error | undefined, resp: any) => void
+    ) => callback(new Error('Unexpected error'), undefined),
+    query: () => Promise.reject(new Error('Unexpected error'))
+  };
+  return (mockConnection as unknown) as Connection;
 }
 
 export class MockTextDocumentProvider
@@ -203,7 +339,7 @@ export class MockTextDocumentProvider
 }
 
 export class TestSoqlEditorInstance extends SOQLEditorInstance {
-  public sendEvent(event: SoqlEditorEvent) {
+  public mockReceiveEvent(event: SoqlEditorEvent) {
     this.onDidRecieveMessageHandler(event);
   }
 
@@ -228,7 +364,7 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
 }
 
 export class TestQueryDataViewService extends QueryDataViewService {
-  public sendEvent(event: DataViewEvent) {
+  public mockReceiveEvent(event: DataViewEvent) {
     this.onDidRecieveMessageHandler(event);
   }
 
