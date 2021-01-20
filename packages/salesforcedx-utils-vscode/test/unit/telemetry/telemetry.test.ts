@@ -287,6 +287,34 @@ describe('Telemetry production mode', () => {
     expect(teleStub.firstCall.args).to.eql([false]);
   });
 
+  xit('Should show telemetry info message', async () => {
+    // create vscode extensionContext in which telemetry msg has never been previously shown
+    mockContext = new MockContext(false);
+
+    await telemetryService.initializeService(mockContext, extensionName);
+
+    const telemetryEnabled = telemetryService.isTelemetryEnabled();
+    expect(telemetryEnabled).to.be.eql(true);
+
+    telemetryService.showTelemetryMessage();
+    assert.calledOnce(mShowInformation);
+    expect(teleStub.firstCall.args).to.eql([true]);
+  });
+
+  xit('Should not show telemetry info message', async () => {
+    // create vscode extensionContext in which telemetry msg has been previously shown
+    mockContext = new MockContext(true);
+
+    await telemetryService.initializeService(mockContext, extensionName);
+
+    const telemetryEnabled = telemetryService.isTelemetryEnabled();
+    expect(telemetryEnabled).to.be.eql(true);
+
+    telemetryService.showTelemetryMessage();
+    assert.notCalled(mShowInformation);
+    expect(teleStub.firstCall.args).to.eql([true]);
+  });
+
   it('should build TelemetryBuilder object with a property set', () => {
     telemetryBuilder.addProperty('test', 'a');
 
