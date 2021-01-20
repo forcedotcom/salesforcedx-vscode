@@ -56,9 +56,12 @@ export abstract class SfdxCommandletExecutor<T>
     properties?: Properties,
     measurements?: Measurements
   ) {
-    TelemetryService.getInstance()
-      .sendCommandEvent(logName, hrstart, properties, measurements)
-      .catch();
+    TelemetryService.getInstance().sendCommandEvent(
+      logName,
+      hrstart,
+      properties,
+      measurements
+    );
   }
 
   public execute(response: ContinueResponse<T>): void {

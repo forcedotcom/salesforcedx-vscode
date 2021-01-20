@@ -263,14 +263,14 @@ async function startServer(
     );
 
     await commandlet.run();
-    telemetryService.sendCommandEvent(logName, startTime).catch();
+    telemetryService.sendCommandEvent(logName, startTime);
   } else if (isDesktop) {
     try {
       const fullUrl = DevServerService.instance.getComponentPreviewUrl(
         componentName
       );
       await openBrowser(fullUrl);
-      telemetryService.sendCommandEvent(logName, startTime).catch();
+      telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
       showError(e, logName, commandName);
     }
@@ -551,7 +551,7 @@ async function executeMobilePreview(
   const previewCancellationTokenSource = new vscode.CancellationTokenSource();
   const previewCancellationToken = previewCancellationTokenSource.token;
   const previewExecution = previewExecutor.execute(previewCancellationToken);
-  telemetryService.sendCommandEvent(logName, startTime).catch();
+  telemetryService.sendCommandEvent(logName, startTime);
   channelService.streamCommandOutput(previewExecution);
   channelService.showChannelOutput();
 

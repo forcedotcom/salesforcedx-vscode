@@ -32,7 +32,7 @@ describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
     let telemetryStub: SinonStub<
       [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
-      Promise<void>
+      void
     >;
     let processHrtimeStub: SinonStub<
       [([number, number] | undefined)?],
@@ -40,7 +40,6 @@ describe('Force LWC Test Run - Code Action', () => {
     >;
     beforeEach(() => {
       telemetryStub = stub(telemetryService, 'sendCommandEvent');
-      telemetryStub.returns(Promise.resolve());
       processHrtimeStub = stub(process, 'hrtime');
       mockSfdxTaskExecute(true);
       mockGetLwcTestRunnerExecutable();

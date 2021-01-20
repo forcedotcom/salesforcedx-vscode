@@ -189,58 +189,72 @@ export class TelemetryService {
     }
   }
 
-  public async sendExtensionActivationEvent(
-    hrstart: [number, number]
-  ): Promise<void> {
-    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
-      const startupTime = this.getEndHRTime(hrstart);
-      this.reporter.sendTelemetryEvent(
-        'activationEvent',
-        {
-          extensionName: this.extensionName
-        },
-        { startupTime }
-      );
+  public sendExtensionActivationEvent(hrstart: [number, number]): void {
+    if (this.reporter !== undefined) {
+      this.isTelemetryEnabled()
+        .then(telemetryEnabled => {
+          if (telemetryEnabled) {
+            const startupTime = this.getEndHRTime(hrstart);
+            this.reporter!.sendTelemetryEvent(
+              'activationEvent',
+              {
+                extensionName: this.extensionName
+              },
+              { startupTime }
+            );
+          }
+        })
+        .catch(err => console.error(err));
     }
   }
 
-  public async sendExtensionDeactivationEvent() {
-    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
-      this.reporter.sendTelemetryEvent('deactivationEvent', {
-        extensionName: this.extensionName
-      });
+  public sendExtensionDeactivationEvent(): void {
+    if (this.reporter !== undefined) {
+      this.isTelemetryEnabled()
+        .then(telemetryEnabled => {
+          if (telemetryEnabled) {
+            this.reporter!.sendTelemetryEvent('deactivationEvent', {
+              extensionName: this.extensionName
+            });
+          }
+        })
+        .catch(err => console.error(err));
     }
   }
 
-  public async sendCommandEvent(
+  public sendCommandEvent(
     commandName?: string,
     hrstart?: [number, number],
     properties?: Properties,
     measurements?: Measurements
-  ) {
-    if (
-      this.reporter !== undefined &&
-      (await this.isTelemetryEnabled()) &&
-      commandName
-    ) {
-      const baseProperties: CommandMetric = {
-        extensionName: this.extensionName,
-        commandName
-      };
-      const aggregatedProps = Object.assign(baseProperties, properties);
+  ): void {
+    if (this.reporter !== undefined && commandName) {
+      this.isTelemetryEnabled()
+        .then(telemetryEnabled => {
+          if (telemetryEnabled) {
+            const baseProperties: CommandMetric = {
+              extensionName: this.extensionName,
+              commandName
+            };
+            const aggregatedProps = Object.assign(baseProperties, properties);
 
-      let aggregatedMeasurements: Measurements | undefined;
-      if (hrstart || measurements) {
-        aggregatedMeasurements = Object.assign({}, measurements);
-        if (hrstart) {
-          aggregatedMeasurements.executionTime = this.getEndHRTime(hrstart);
-        }
-      }
-      this.reporter.sendTelemetryEvent(
-        'commandExecution',
-        aggregatedProps,
-        aggregatedMeasurements
-      );
+            let aggregatedMeasurements: Measurements | undefined;
+            if (hrstart || measurements) {
+              aggregatedMeasurements = Object.assign({}, measurements);
+              if (hrstart) {
+                aggregatedMeasurements.executionTime = this.getEndHRTime(
+                  hrstart
+                );
+              }
+            }
+            this.reporter!.sendTelemetryEvent(
+              'commandExecution',
+              aggregatedProps,
+              aggregatedMeasurements
+            );
+          }
+        })
+        .catch(err => console.error(err));
     }
   }
 
@@ -256,13 +270,19 @@ export class TelemetryService {
     }
   }
 
-  public async sendEventData(
+  public sendEventData(
     eventName: string,
     properties?: { [key: string]: string },
     measures?: { [key: string]: number }
-  ) {
-    if (this.reporter !== undefined && (await this.isTelemetryEnabled())) {
-      this.reporter.sendTelemetryEvent(eventName, properties, measures);
+  ): void {
+    if (this.reporter !== undefined) {
+      this.isTelemetryEnabled()
+        .then(telemetryEnabled => {
+          if (telemetryEnabled) {
+            this.reporter!.sendTelemetryEvent(eventName, properties, measures);
+          }
+        })
+        .catch(err => console.error(err));
     }
   }
 

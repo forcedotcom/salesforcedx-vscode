@@ -151,7 +151,7 @@ export async function activate(context: ExtensionContext) {
   WorkspaceUtils.instance.init(context);
 
   // Notify telemetry that our extension is now active
-  telemetryService.sendExtensionActivationEvent(extensionHRStart).catch();
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 }
 
 export async function deactivate() {
@@ -159,7 +159,7 @@ export async function deactivate() {
     await DevServerService.instance.stopServer();
   }
   console.log('Lightning Web Components Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent().catch();
+  telemetryService.sendExtensionDeactivationEvent();
 }
 
 function getActivationMode(): string {
