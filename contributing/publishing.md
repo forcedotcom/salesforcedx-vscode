@@ -51,6 +51,7 @@ To run the change log generator:
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
 1. Select `Create Change Log`.
+1. When prompted for the `Release Version` leave the value blank to let the script grab the latest release version for you. If you'd like to use a different value from the latest, this can be provided in this prompt manually.
 
 ## Merging the Release Branch into Main
 
