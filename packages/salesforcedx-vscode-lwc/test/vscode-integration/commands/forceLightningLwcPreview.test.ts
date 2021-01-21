@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecution,
   CliCommandExecutor,
@@ -44,10 +45,6 @@ import {
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const { SfdxCommandlet } = sfdxCoreExports;
 const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';
 const rememberDeviceKey = 'preview.rememberDevice';

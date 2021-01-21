@@ -7,6 +7,11 @@
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
 import {
+  EmptyParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src/';
+import {
   CliCommandExecutor,
   CommandOutput,
   SfdxCommandBuilder
@@ -22,15 +27,6 @@ import { PreviewService } from '../service/previewService';
 import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const {
-  SfdxCommandlet,
-  EmptyParametersGatherer,
-  SfdxWorkspaceChecker
-} = sfdxCoreExports;
 
 enum PreviewPlatformType {
   Desktop = 1,

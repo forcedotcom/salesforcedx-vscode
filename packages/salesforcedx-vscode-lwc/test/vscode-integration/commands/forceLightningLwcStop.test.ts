@@ -15,10 +15,6 @@ import {
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-
 describe('forceLightningLwcStop', () => {
   let sandbox: sinon.SinonSandbox;
   let devService: DevServerService;

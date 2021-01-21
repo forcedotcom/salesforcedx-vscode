@@ -6,11 +6,20 @@
  */
 
 import {
+  EmptyParametersGatherer,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src/';
+import {
   CliCommandExecutor,
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  notificationService,
+  ProgressNotification
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
@@ -18,18 +27,6 @@ import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService, ServerHandler } from '../service/devServerService';
 import { openBrowser, showError } from './commandUtils';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const {
-  taskViewService,
-  SfdxCommandlet,
-  ProgressNotification,
-  EmptyParametersGatherer,
-  SfdxWorkspaceChecker
-} = sfdxCoreExports;
-const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
 const logName = 'force_lightning_lwc_start';
 const commandName = nls.localize(`force_lightning_lwc_start_text`);
@@ -96,7 +93,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
     let serverStarted = false;
     let printedError = false;
 
-    const progress = new Subject();
+    const progress = new Subject<number>();
     ProgressNotification.show(
       execution,
       cancellationTokenSource,
@@ -104,17 +101,11 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       progress.asObservable()
     );
 
-    const task = taskViewService.addCommandExecution(
-      execution,
-      cancellationTokenSource
-    );
-
     // listen for server startup
     execution.stdoutSubject.subscribe(async data => {
       if (!serverStarted && data && data.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
-        taskViewService.removeTask(task);
         notificationService.showSuccessfulExecution(executionName).catch();
 
         DevServerService.instance.setBaseUrlFromDevServerUpMessage(
