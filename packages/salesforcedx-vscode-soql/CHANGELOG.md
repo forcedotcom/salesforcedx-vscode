@@ -4,9 +4,7 @@
 
 - SOQL code-completion on WHERE clause expressions ([PR #2839](https://github.com/forcedotcom/salesforcedx-vscode/pull/2839))
 - Experimental option to perform remote query validation ([PR #2847](https://github.com/forcedotcom/salesforcedx-vscode/pull/2847))
-- Do not emit message from custom editor to webview if SOQL has not changed ([PR #2818](https://github.com/forcedotcom/salesforcedx-vscode/pull/2818))
-- Running query indicator ([PR #2822](https://github.com/forcedotcom/salesforcedx-vscode/pull/2822))
-- Capture errors, localized messages to user, send to telemetry ([PR #2810](https://github.com/forcedotcom/salesforcedx-vscode/pull/2810))
+- Display progress notification when query is running ([PR #2822](https://github.com/forcedotcom/salesforcedx-vscode/pull/2822))
 - Add toggle icon to switch between builder editor and text editor ([PR #2825](https://github.com/forcedotcom/salesforcedx-vscode/pull/2825))
 - New query command ([PR #2809](https://github.com/forcedotcom/salesforcedx-vscode/pull/2809))
 - Initial code completion for SOQL ([PR #2792](https://github.com/forcedotcom/salesforcedx-vscode/pull/2792))
