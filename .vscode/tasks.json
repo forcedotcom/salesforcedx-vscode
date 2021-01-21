@@ -10,10 +10,7 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": [
-        "run",
-        "bootstrap"
-      ],
+      "args": ["run", "bootstrap"],
       "isBackground": false
     },
     {
@@ -24,10 +21,7 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": [
-        "run",
-        "clean"
-      ],
+      "args": ["run", "clean"],
       "isBackground": false
     },
     {
@@ -38,10 +32,7 @@
         "focus": true,
         "panel": "shared"
       },
-      "args": [
-        "run",
-        "commit"
-      ],
+      "args": ["run", "commit"],
       "isBackground": false
     },
     {
@@ -52,10 +43,7 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": [
-        "run",
-        "commit-init"
-      ],
+      "args": ["run", "commit-init"],
       "isBackground": false
     },
     {
@@ -70,10 +58,7 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": [
-        "run",
-        "compile"
-      ],
+      "args": ["run", "compile"],
       "isBackground": false,
       "problemMatcher": {
         "owner": "typescript",
@@ -92,9 +77,7 @@
       "label": "Create Release Branch",
       "command": "./scripts/create-release-branch-workflow.sh",
       "type": "shell",
-      "args": [
-        "${input:circleCiId}"
-      ]
+      "args": ["${input:circleCiId}"]
     },
     {
       "label": "Create Change Log",
@@ -103,7 +86,9 @@
       "args": [
         "${input:verboseOutput}",
         "-r",
-        "${input:releaseOverride}"
+        "${input:releaseOverride}",
+        "-i",
+        "${input:packagesToIgnore}"
       ]
     },
     {
@@ -114,28 +99,20 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": [
-        "run",
-        "lint"
-      ],
+      "args": ["run", "lint"],
       "isBackground": false
     },
     {
       "label": "Launch Pre-Publish Steps",
       "command": "./scripts/pre-publish-workflow.sh",
       "type": "shell",
-      "args": [
-        "${input:circleCiId}",
-        "${input:releaseBranch}"
-      ]
+      "args": ["${input:circleCiId}", "${input:releaseBranch}"]
     },
     {
       "label": "Publish Extensions",
       "command": "./scripts/publish-workflow.sh",
       "type": "shell",
-      "args": [
-        "${input:circleCiId}"
-      ]
+      "args": ["${input:circleCiId}"]
     },
     {
       "label": "Watch",
@@ -145,10 +122,7 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": [
-        "run",
-        "watch"
-      ],
+      "args": ["run", "watch"],
       "isBackground": false,
       "problemMatcher": "$tsc-watch"
     }
@@ -160,13 +134,16 @@
       "description": "CircleCi Token"
     },
     {
+      "id": "packagesToIgnore",
+      "type": "promptString",
+      "description": "Packages To Ignore: These are packages that are not to be included in the change log (Ex package1,package2)",
+      "default": "salesforcedx-vscode-soql"
+    },
+    {
       "id": "verboseOutput",
       "type": "pickString",
       "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
-      "options": [
-        "",
-        "-v"
-      ],
+      "options": ["", "-v"],
       "default": "-v"
     },
     {

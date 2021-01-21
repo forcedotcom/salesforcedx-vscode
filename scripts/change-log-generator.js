@@ -14,7 +14,7 @@
  * Overriding Default Values:
  * 1. Override the release. Example: npm run build-change-log -- -r 46.7.0
  * 2. Add verbose logging. Example: npm run build-change-log -- -v
- * 3. Package list to ignore (comma separated without spaces) npm run build-change-log --i package1,package2,package3
+ * 3. Package list to ignore (comma separated list) npm run build-change-log --i package1,package2,package3
  */
 
 const process = require('process');
