@@ -85,10 +85,10 @@
       "type": "shell",
       "args": [
         "${input:verboseOutput}",
-        "-r",
-        "${input:releaseOverride}",
         "-i",
-        "${input:packagesToIgnore}"
+        "${input:packagesToIgnore}",
+        "-r",
+        "${input:releaseOverride}"
       ]
     },
     {
