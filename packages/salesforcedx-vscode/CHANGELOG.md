@@ -1,3 +1,11 @@
+# 50.14.0 - January 21, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix issue with recognizing the default org when running tests at the start of a session ([PR #2868](https://github.com/forcedotcom/salesforcedx-vscode/pull/2868))
+
 # 50.13.0 - January 13, 2021
 
 ## Added
