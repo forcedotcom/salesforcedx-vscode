@@ -10,7 +10,6 @@
  * 1. External contributions
  * 2. Duplicates (ex file changes made in both salesforcedx-apex-debugger and salesforcedx-apex-replay-debugger)
  * 3. Non-salesforce package contributions aside from doc updates
- * 4. Adding vs. Fixed vs. Ignore in change log
  *
  * Overriding Default Values:
  * 1. Override the release. Example: npm run build-change-log -- -r 46.7.0
