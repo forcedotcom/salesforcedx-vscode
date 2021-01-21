@@ -18,7 +18,6 @@ import {
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
-import { create } from 'domain';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -200,7 +199,7 @@ describe('ForceGenerateFauxClasses', () => {
         ForceGenerateFauxClassesExecutor.prototype,
         'logMetric'
       );
-      errorStub = sandboxStub.stub(telemetryService, 'sendErrorEvent');
+      errorStub = sandboxStub.stub(telemetryService, 'sendException');
     });
 
     afterEach(() => {

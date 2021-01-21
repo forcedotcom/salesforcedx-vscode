@@ -22,7 +22,9 @@ import {
   initSObjectDefinitions
 } from './commands';
 import {
+  APEX_EXTENSION_NAME,
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  LSP_ERR,
   SFDX_APEX_CONFIGURATION_NAME
 } from './constants';
 import { workspaceContext } from './context';
@@ -39,11 +41,6 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry';
 import { ApexTestOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const coreTelemetryService = sfdxCoreExports.telemetryService;
 
 let languageClient: LanguageClient | undefined;
 
@@ -73,9 +70,12 @@ export async function activate(context: vscode.ExtensionContext) {
   await workspaceContext.initialize(context);
 
   // Telemetry
-  telemetryService.initializeService(
-    coreTelemetryService.getReporter(),
-    coreTelemetryService.isTelemetryEnabled()
+  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  await telemetryService.initializeService(
+    context,
+    APEX_EXTENSION_NAME,
+    extensionPackage.aiKey,
+    extensionPackage.version
   );
 
   // Initialize Apex language server
@@ -100,21 +100,11 @@ export async function activate(context: vscode.ExtensionContext) {
             if (sobjectRefreshStartup) {
               initSObjectDefinitions(
                 vscode.workspace.workspaceFolders![0].uri.fsPath
-              ).catch(e =>
-                telemetryService.sendErrorEvent({
-                  message: e.message,
-                  stack: e.stack
-                })
-              );
+              ).catch(e => telemetryService.sendException(e.name, e.message));
             } else {
               checkSObjectsAndRefresh(
                 vscode.workspace.workspaceFolders![0].uri.fsPath
-              ).catch(e =>
-                telemetryService.sendErrorEvent({
-                  message: e.message,
-                  stack: e.stack
-                })
-              );
+              ).catch(e => telemetryService.sendException(e.name, e.message));
             }
             await testOutlineProvider.refresh();
           });
@@ -122,11 +112,14 @@ export async function activate(context: vscode.ExtensionContext) {
         // TODO: This currently keeps existing behavior in which we set the language
         // server to ready before it finishes indexing. We'll evaluate this in the future.
         languageClientUtils.setStatus(ClientStatus.Ready, '');
-        telemetryService.sendApexLSPActivationEvent(langClientHRStart);
+        const startTime = telemetryService.getEndHRTime(langClientHRStart);
+        await telemetryService.sendEventData('apexLSPStartup', undefined, {
+          activationTime: startTime
+        });
       })
       .catch(err => {
         // Handled by clients
-        telemetryService.sendApexLSPError(err);
+        telemetryService.sendException(LSP_ERR, err.message).catch();
         languageClientUtils.setStatus(
           ClientStatus.Error,
           nls.localize('apex_language_server_failed_activate')
@@ -153,7 +146,7 @@ export async function activate(context: vscode.ExtensionContext) {
     languageClientUtils
   };
 
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  await telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
 
@@ -279,6 +272,6 @@ async function registerTestView(
   return vscode.Disposable.from(...testViewItems);
 }
 
-export function deactivate() {
-  telemetryService.sendExtensionDeactivationEvent();
+export async function deactivate() {
+  await telemetryService.sendExtensionDeactivationEvent();
 }

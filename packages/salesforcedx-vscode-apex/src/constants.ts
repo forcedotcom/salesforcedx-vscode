@@ -94,3 +94,5 @@ export const SET_JAVA_DOC_LINK =
 export const SFDX_APEX_CONFIGURATION_NAME = 'salesforcedx-vscode-apex';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
+export const APEX_EXTENSION_NAME = 'salesforcedx-vscode-apex';
+export const LSP_ERR = 'apexLSPError';

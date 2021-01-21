@@ -13,6 +13,7 @@ import {
   LanguageClient,
   LanguageClientOptions
 } from 'vscode-languageclient';
+import { LSP_ERR } from './constants';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -76,7 +77,7 @@ async function createServer(
     };
   } catch (err) {
     vscode.window.showErrorMessage(err);
-    telemetryService.sendApexLSPError(err);
+    await telemetryService.sendException(LSP_ERR, err.error);
     throw err;
   }
 }
@@ -155,8 +156,13 @@ export async function createLanguageServer(
     clientOptions
   );
 
-  client.onTelemetry(data =>
-    telemetryService.sendApexLSPLog(data.properties, data.measures)
+  client.onTelemetry(
+    data =>
+      telemetryService.sendEventData(
+        'apexLSPLog',
+        data.properties,
+        data.measures
+      )
   );
 
   return client;
