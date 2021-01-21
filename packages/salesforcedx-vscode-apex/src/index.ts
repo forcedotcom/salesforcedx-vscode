@@ -119,7 +119,7 @@ export async function activate(context: vscode.ExtensionContext) {
       })
       .catch(err => {
         // Handled by clients
-        telemetryService.sendException(LSP_ERR, err.message).catch();
+        telemetryService.sendException(LSP_ERR, err.message);
         languageClientUtils.setStatus(
           ClientStatus.Error,
           nls.localize('apex_language_server_failed_activate')
