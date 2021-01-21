@@ -296,7 +296,7 @@ export class TelemetryService {
   private validateTelemetry(callback: () => void): void {
     if (this.reporter !== undefined) {
       this.isTelemetryEnabled()
-        .then(enabled => Promise.resolve(enabled ? callback() : undefined))
+        .then(enabled => (enabled ? callback() : undefined))
         .catch(err => console.error(err));
     }
   }
