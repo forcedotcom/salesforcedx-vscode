@@ -10,6 +10,7 @@ import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletion
 import { retrieveSObject, retrieveSObjects, channelService } from '../sfdx';
 
 import { Middleware } from 'vscode-languageclient';
+import { SoqlItemContext } from '@salesforce/soql-language-server';
 import { telemetryService } from '../telemetry';
 import { nls } from '../messages';
 import { DescribeSObjectResult, Field } from 'jsforce';
@@ -34,17 +35,6 @@ export const middleware: Middleware = {
   }
 };
 
-interface SoqlItemContext {
-  sobjectName: string;
-  fieldName?: string;
-  notNillable?: boolean;
-  onlyTypes?: string[];
-  onlyAggregatable?: boolean;
-  onlyGroupable?: boolean;
-  onlySortable?: boolean;
-  mostLikelyItems?: string[];
-}
-
 async function filterByContext(
   items: ProtocolCompletionItem[]
 ): Promise<ProtocolCompletionItem[]> {
@@ -53,20 +43,19 @@ async function filterByContext(
   for (const item of items) {
     if (
       !EXPANDABLE_ITEM_PATTERN.test(item.label) &&
-      item?.data?.soqlContext?.sobjectName
+      item?.data?.soqlContext?.sobjectName &&
+      item?.data?.soqlContext?.fieldName
     ) {
       const objMetadata = await safeRetrieveSObjectMetadata(
         item.data.soqlContext.sobjectName
       );
-      if (!objMetadata) {
-        continue;
-      } else {
+      if (objMetadata) {
         const fieldMeta = objMetadata.fields.find(
           field => field.name === item.data.soqlContext.fieldName
         );
         if (
           fieldMeta &&
-          !operatorsByType[fieldMeta.type].includes(item.label)
+          !objectFieldMatchesSOQLContext(fieldMeta, item.data.soqlContext)
         ) {
           continue;
         }
@@ -163,10 +152,14 @@ const expandFunctions: {
             Object.assign(
               { detail: field.type } as CompletionItem,
               isPreferredItem
-                ? { preselect: true, sortText: '1 ' + field.name }
+                ? {
+                    preselect: true,
+                    // extra space prefix to make it appear first
+                    sortText: ' ' + field.name,
+                    filterText: ' ' + field.name
+                  }
                 : {}
             )
-            // + '\n' + field.inlineHelpText }
           )
         );
         if (field.relationshipName) {
@@ -186,8 +179,6 @@ const expandFunctions: {
   LITERAL_VALUES_FOR_FIELD: async (
     soqlContext?: SoqlItemContext
   ): Promise<ProtocolCompletionItem[]> => {
-    let items: ProtocolCompletionItem[] = [];
-
     if (!soqlContext?.sobjectName || !soqlContext?.fieldName) {
       telemetryService.sendException(
         'SOQLLanguageServerException',
@@ -203,6 +194,7 @@ const expandFunctions: {
       return [];
     }
 
+    let items: ProtocolCompletionItem[] = [];
     const fieldMeta = objMetadata.fields.find(
       field => field.name === soqlContext.fieldName
     );
@@ -221,33 +213,6 @@ const expandFunctions: {
                 CompletionItemKind.Value
               )
             )
-        );
-      } else if (fieldMeta.type === 'boolean') {
-        items.push(newCompletionItem('TRUE', 'TRUE', CompletionItemKind.Value));
-        items.push(
-          newCompletionItem('FALSE', 'FALSE', CompletionItemKind.Value)
-        );
-      } else if (fieldMeta.type === 'date') {
-        items.push(
-          newCompletionItem(
-            'YYYY-MM-DD',
-            '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}$0',
-            CompletionItemKind.Snippet
-          )
-        );
-      } else if (fieldMeta.type === 'datetime') {
-        items.push(
-          newCompletionItem(
-            'YYYY-MM-DDThh:mm:ssZ',
-            '${1:${CURRENT_YEAR}}-${2:${CURRENT_MONTH}}-${3:${CURRENT_DATE}}T${4:${CURRENT_HOUR}}:${5:${CURRENT_MINUTE}}:${6:${CURRENT_SECOND}}Z$0',
-            CompletionItemKind.Snippet
-          )
-        );
-      }
-
-      if (fieldMeta.nillable && !soqlContext.notNillable) {
-        items.push(
-          newCompletionItem('NULL', 'NULL', CompletionItemKind.Keyword)
         );
       }
     }
@@ -286,40 +251,12 @@ function objectFieldMatchesSOQLContext(
     (field.aggregatable || !soqlContext.onlyAggregatable) &&
     (field.groupable || !soqlContext.onlyGroupable) &&
     (field.sortable || !soqlContext.onlySortable) &&
+    (field.nillable || !soqlContext.onlyNillable) &&
     (!soqlContext.onlyTypes ||
       soqlContext.onlyTypes.length === 0 ||
       soqlContext.onlyTypes.includes(field.type))
   );
 }
-
-// All types allow equality operators
-// Here we list the extra operators supported on each type
-const operatorsByType: { [key: string]: string[] } = {
-  address: [],
-  anyType: ['<', '<=', '>=', '>'],
-  base64: [],
-  boolean: [],
-  combobox: [],
-  complexvalue: ['<', '<=', '>=', '>'],
-  currency: ['<', '<=', '>=', '>'],
-  date: ['<', '<=', '>=', '>'],
-  datetime: ['<', '<=', '>=', '>'],
-  double: ['<', '<=', '>=', '>'],
-  email: [],
-  encryptedstring: [],
-  int: ['<', '<=', '>=', '>'],
-  id: [],
-  location: [],
-  percent: ['<', '<=', '>=', '>'],
-  phone: [],
-  picklist: [],
-  multipicklist: ['INCLUDES(', 'EXCLUDES('],
-  reference: [],
-  string: ['<', '<=', '>=', '>', 'LIKE'],
-  textarea: ['<', '<=', '>=', '>', 'LIKE'],
-  time: ['<', '<=', '>=', '>', 'LIKE'],
-  url: ['<', '<=', '>=', '>']
-};
 
 function newCompletionItem(
   label: string,

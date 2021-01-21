@@ -9,6 +9,7 @@ import { Connection } from '@salesforce/core';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+import { CompletionItem, CompletionItemKind } from 'vscode';
 import { extensions, Position, Uri, workspace, commands } from 'vscode';
 import {
   stubMockConnection,
@@ -19,9 +20,17 @@ import {
 let doc: vscode.TextDocument;
 let soqlFileUri: Uri;
 let workspacePath: string;
-let editor: vscode.TextEditor;
 let sandbox: sinon.SinonSandbox;
 let mockConnection: Connection;
+
+const aggregateFunctionItems = [
+  { label: 'AVG(...)', kind: CompletionItemKind.Function },
+  { label: 'MAX(...)', kind: CompletionItemKind.Function },
+  { label: 'MIN(...)', kind: CompletionItemKind.Function },
+  { label: 'SUM(...)', kind: CompletionItemKind.Function },
+  { label: 'COUNT(...)', kind: CompletionItemKind.Function },
+  { label: 'COUNT_DISTINCT(...)', kind: CompletionItemKind.Function }
+];
 
 describe('Should do completion', async () => {
   beforeEach(async () => {
@@ -42,60 +51,84 @@ describe('Should do completion', async () => {
   testCompletion('|', [
     {
       label: 'SELECT',
-      kind: vscode.CompletionItemKind.Keyword
+      kind: CompletionItemKind.Keyword
+    },
+    {
+      label: 'SELECT ... FROM ...',
+      kind: CompletionItemKind.Snippet,
+      insertText: 'SELECT $2 FROM $1'
     }
   ]);
 
   testCompletion('SELECT id FROM |', [
-    { label: 'Account', kind: vscode.CompletionItemKind.Class },
-    { label: 'User', kind: vscode.CompletionItemKind.Class }
+    { label: 'Account', kind: CompletionItemKind.Class },
+    { label: 'User', kind: CompletionItemKind.Class }
   ]);
 
   testCompletion('SELECT | FROM Account', [
-    { label: 'Id', kind: vscode.CompletionItemKind.Field, detail: 'id' },
+    { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
     {
       label: 'Name',
-      kind: vscode.CompletionItemKind.Field,
+      kind: CompletionItemKind.Field,
       detail: 'string'
     },
+    { label: 'CreatedDate', kind: 4, detail: 'datetime' },
+    { label: 'BillingCity', kind: 4, detail: 'string' },
+    { label: 'IsDeleted', kind: 4, detail: 'boolean' },
+    { label: 'LastActivityDate', kind: 4, detail: 'date' },
+    ...aggregateFunctionItems,
     {
       label: '(SELECT ... FROM ...)',
-      kind: vscode.CompletionItemKind.Snippet,
+      kind: CompletionItemKind.Snippet,
       insertText: '(SELECT $2 FROM $1)'
-    }
+    },
+    { label: 'COUNT()', kind: CompletionItemKind.Keyword },
+    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword },
+    { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
   ]);
   testCompletion('SELECT | FROM User', [
-    { label: 'Id', kind: vscode.CompletionItemKind.Field, detail: 'id' },
+    { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
     {
       label: 'Name',
-      kind: vscode.CompletionItemKind.Field,
+      kind: CompletionItemKind.Field,
       detail: 'string'
     },
     {
       label: 'AccountId',
-      kind: vscode.CompletionItemKind.Field,
+      kind: CompletionItemKind.Field,
       detail: 'reference'
     },
     {
       label: 'Account',
-      kind: vscode.CompletionItemKind.Class,
+      kind: CompletionItemKind.Class,
       insertText: 'Account.',
       detail: 'Ref. to Account'
     },
+    { label: 'IsDeleted', kind: 4, detail: 'boolean' },
+    ...aggregateFunctionItems,
     {
       label: '(SELECT ... FROM ...)',
-      kind: vscode.CompletionItemKind.Snippet,
+      kind: CompletionItemKind.Snippet,
       insertText: '(SELECT $2 FROM $1)'
-    }
+    },
+    { label: 'COUNT()', kind: CompletionItemKind.Keyword },
+    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword },
+    { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
   ]);
 
   testCompletion('SELECT Id FROM Account WHERE |', [
-    { label: 'Id', kind: vscode.CompletionItemKind.Field, detail: 'id' },
+    { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
     {
       label: 'Name',
-      kind: vscode.CompletionItemKind.Field,
+      kind: CompletionItemKind.Field,
       detail: 'string'
-    }
+    },
+    { label: 'CreatedDate', kind: 4, detail: 'datetime' },
+    { label: 'BillingCity', kind: 4, detail: 'string' },
+    { label: 'IsDeleted', kind: 4, detail: 'boolean' },
+    { label: 'LastActivityDate', kind: 4, detail: 'date' },
+    { label: 'NOT', kind: CompletionItemKind.Keyword },
+    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword }
   ]);
 
   const basicOperators = ['IN (', 'NOT IN (', '=', '!=', '<>'];
@@ -106,71 +139,116 @@ describe('Should do completion', async () => {
     'SELECT Id FROM Account WHERE Id |',
     idOperators.map(operator => ({
       label: operator,
-      kind: vscode.CompletionItemKind.Keyword
+      kind: CompletionItemKind.Keyword
     }))
   );
   testCompletion(
     'SELECT Id FROM Account WHERE Name |',
     stringOperators.map(operator => ({
       label: operator,
-      kind: vscode.CompletionItemKind.Keyword
+      kind: CompletionItemKind.Keyword
     }))
   );
 
   // Account.Name is not Nillable
-  testCompletion('SELECT Id FROM Account WHERE Name = |', []);
+  testCompletion('SELECT Id FROM Account WHERE Name = |', [
+    { label: 'abc123', kind: CompletionItemKind.Snippet }
+  ]);
 
   // Account.BillingCity IS Nillable
   testCompletion('SELECT Id FROM Account WHERE BillingCity = |', [
     {
       label: 'NULL',
-      kind: vscode.CompletionItemKind.Keyword
-    }
+      kind: CompletionItemKind.Keyword
+    },
+    { label: 'abc123', kind: CompletionItemKind.Snippet }
   ]);
   // Account.BillingCity IS Nillable, however, some operators never accept NULL
-  testCompletion('SELECT Id FROM Account WHERE BillingCity < |', []);
-  testCompletion('SELECT Id FROM Account WHERE BillingCity <= |', []);
-  testCompletion('SELECT Id FROM Account WHERE BillingCity > |', []);
-  testCompletion('SELECT Id FROM Account WHERE BillingCity >= |', []);
-  testCompletion('SELECT Id FROM Account WHERE BillingCity LIKE |', []);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity < |', [
+    { label: 'abc123', kind: CompletionItemKind.Snippet }
+  ]);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity <= |', [
+    { label: 'abc123', kind: CompletionItemKind.Snippet }
+  ]);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity > |', [
+    { label: 'abc123', kind: CompletionItemKind.Snippet }
+  ]);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity >= |', [
+    { label: 'abc123', kind: CompletionItemKind.Snippet }
+  ]);
+  testCompletion('SELECT Id FROM Account WHERE BillingCity LIKE |', [
+    { label: 'abc123', kind: CompletionItemKind.Snippet }
+  ]);
 
   testCompletion(
     'SELECT Id FROM Account WHERE IsDeleted = |',
     ['TRUE', 'FALSE'].map(booleanValue => ({
       label: booleanValue,
-      kind: vscode.CompletionItemKind.Value
+      kind: CompletionItemKind.Value
     }))
   );
   testCompletion('SELECT Channel FROM QuickText WHERE Channel = |', [
     {
       label: 'NULL',
-      kind: vscode.CompletionItemKind.Keyword
+      kind: CompletionItemKind.Keyword
     },
     ...['Email', 'Portal', 'Phone'].map(booleanValue => ({
       label: booleanValue,
-      kind: vscode.CompletionItemKind.Value
+      kind: CompletionItemKind.Value
     }))
   ]);
   // NOTE: NULL not supported in INCLUDES/EXCLUDES list
   testCompletion('SELECT Channel FROM QuickText WHERE Channel INCLUDES(|', [
     ...['Email', 'Portal', 'Phone'].map(booleanValue => ({
       label: booleanValue,
-      kind: vscode.CompletionItemKind.Value
+      kind: CompletionItemKind.Value
     }))
   ]);
 
-  testCompletion('SELECT Id FROM Account WHERE CreatedDate < |', [
-    {
-      label: 'YYYY-MM-DDThh:mm:ssZ',
-      kind: vscode.CompletionItemKind.Snippet
-    }
-  ]);
-  testCompletion('SELECT Id FROM Account WHERE LastActivityDate < |', [
-    {
-      label: 'YYYY-MM-DD',
-      kind: vscode.CompletionItemKind.Snippet
-    }
-  ]);
+  testCompletion(
+    'SELECT Id FROM Account WHERE CreatedDate < |',
+    [
+      {
+        label: 'YYYY-MM-DDThh:mm:ssZ',
+        kind: CompletionItemKind.Snippet
+      },
+      {
+        label: 'YESTERDAY',
+        kind: CompletionItemKind.Value
+      },
+      {
+        label: 'LAST_90_DAYS',
+        kind: CompletionItemKind.Value
+      },
+      {
+        label: 'LAST_N_DAYS:n',
+        kind: CompletionItemKind.Snippet
+      }
+    ],
+    { allowExtraCompletionItems: true }
+  );
+  testCompletion(
+    'SELECT Id FROM Account WHERE LastActivityDate < |',
+    [
+      {
+        label: 'YYYY-MM-DD',
+        kind: CompletionItemKind.Snippet
+      },
+      {
+        label: 'YESTERDAY',
+        kind: CompletionItemKind.Value
+      },
+      {
+        label: 'LAST_90_DAYS',
+        kind: CompletionItemKind.Value
+      },
+      {
+        label: 'LAST_N_DAYS:n',
+        kind: CompletionItemKind.Snippet
+      }
+    ],
+    { allowExtraCompletionItems: true }
+  );
 });
 
 describe('Should not do completion on connection errors', async () => {
@@ -196,19 +274,37 @@ describe('Should not do completion on connection errors', async () => {
       'and have permissions to view the objects in the org.'
   });
 
-  testCompletion('SELECT | FROM Account', [], {
-    expectChannelMsg:
-      'ERROR: We can’t retrieve the fields for Account. Make sure that you’re connected ' +
-      'to an authorized org and have permissions to view the object and fields.'
-  });
+  testCompletion(
+    'SELECT | FROM Account',
+    [
+      ...aggregateFunctionItems,
+      {
+        label: '(SELECT ... FROM ...)',
+        kind: CompletionItemKind.Snippet,
+        insertText: '(SELECT $2 FROM $1)'
+      },
+      { label: 'COUNT()', kind: CompletionItemKind.Keyword },
+      { label: 'DISTANCE(', kind: CompletionItemKind.Keyword },
+      { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
+    ],
+    {
+      expectChannelMsg:
+        'ERROR: We can’t retrieve the fields for Account. Make sure that you’re connected ' +
+        'to an authorized org and have permissions to view the object and fields.'
+    }
+  );
 });
+
+const shouldIgnoreCompletionItem = (i: CompletionItem) =>
+  i.detail !== 'tabnine' && i.kind !== CompletionItemKind.Text;
 
 function testCompletion(
   soqlTextWithCursorMarker: string,
-  expectedCompletionItems: vscode.CompletionItem[],
+  expectedCompletionItems: CompletionItem[],
   options: {
     cursorChar?: string;
     expectChannelMsg?: string;
+    allowExtraCompletionItems?: boolean;
     only?: boolean;
     skip?: boolean;
   } = {}
@@ -235,18 +331,26 @@ function testCompletion(
           position
         )) as vscode.CompletionList).items;
 
-        const pickMainItemKeys = (item: vscode.CompletionItem) => ({
+        const pickMainItemKeys = (item: CompletionItem) => ({
           label: item.label,
           kind: item.kind,
           detail: item.detail
         });
-        const simplifiedActualCompletionItems = actualCompletionItems.map(
+        const simplifiedActualCompletionItems = actualCompletionItems
+          .filter(shouldIgnoreCompletionItem)
+          .map(pickMainItemKeys);
+        const simplifiedExpectedCompletionItems = expectedCompletionItems.map(
           pickMainItemKeys
         );
-        expectedCompletionItems.map(pickMainItemKeys).forEach(item => {
+
+        simplifiedExpectedCompletionItems.forEach(item => {
           expect(simplifiedActualCompletionItems).to.deep.include(item);
         });
-
+        if (!options.allowExtraCompletionItems) {
+          simplifiedActualCompletionItems.forEach(item => {
+            expect(simplifiedExpectedCompletionItems).to.deep.include(item);
+          });
+        }
         if (expectChannelMsg) {
           expect(channelServiceSpy.called).to.be.true;
           console.log(channelServiceSpy.getCalls());
@@ -276,7 +380,7 @@ export async function activate(docUri: vscode.Uri) {
   await ext.activate();
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
-    editor = await vscode.window.showTextDocument(doc);
+    await vscode.window.showTextDocument(doc);
   } catch (e) {
     console.error(e);
   }
