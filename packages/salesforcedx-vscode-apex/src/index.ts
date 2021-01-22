@@ -113,7 +113,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // server to ready before it finishes indexing. We'll evaluate this in the future.
         languageClientUtils.setStatus(ClientStatus.Ready, '');
         const startTime = telemetryService.getEndHRTime(langClientHRStart);
-        await telemetryService.sendEventData('apexLSPStartup', undefined, {
+        telemetryService.sendEventData('apexLSPStartup', undefined, {
           activationTime: startTime
         });
       })
@@ -146,7 +146,7 @@ export async function activate(context: vscode.ExtensionContext) {
     languageClientUtils
   };
 
-  await telemetryService.sendExtensionActivationEvent(extensionHRStart);
+  telemetryService.sendExtensionActivationEvent(extensionHRStart);
   return exportedApi;
 }
 
@@ -273,5 +273,5 @@ async function registerTestView(
 }
 
 export async function deactivate() {
-  await telemetryService.sendExtensionDeactivationEvent();
+  telemetryService.sendExtensionDeactivationEvent();
 }

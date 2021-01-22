@@ -165,14 +165,14 @@ export abstract class LibraryCommandletExecutor<T>
       }
       this.telemetry.addProperty('success', String(success));
       const { properties, measurements } = this.telemetry.build();
-      await telemetryService.sendCommandEvent(
+      telemetryService.sendCommandEvent(
         this.logName,
         startTime,
         properties,
         measurements
       );
     } catch (e) {
-      await telemetryService.sendException(e.name, e.message);
+      telemetryService.sendException(e.name, e.message);
       notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
       channelService.showChannelOutput();
