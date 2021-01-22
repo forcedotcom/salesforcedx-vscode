@@ -46,6 +46,7 @@ const vscodeStub = {
   }
 };
 
+// TODO: W-8781071 Resolve issues with unit testing the service and re-enable these tests
 describe('Telemetry production mode', () => {
   const extensionName = 'salesforcedx-test';
   let telemetryService: any;
