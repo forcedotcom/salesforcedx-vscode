@@ -34,7 +34,7 @@ export class AuthUtil {
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      await TelemetryService.getInstance().sendException(
+      TelemetryService.getInstance().sendException(
         'get_default_username_alias',
         err.message
       );
