@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
   Command,
@@ -30,11 +31,6 @@ import {
   ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const { taskViewService, SfdxCommandlet } = sfdxCoreExports;
 
 class FakeExecution implements CommandExecution {
   public command: Command;
@@ -85,7 +81,6 @@ describe('forceLightningLwcStart', () => {
     describe('execute', () => {
       let sandbox: SinonSandbox;
       let appendLineStub: SinonStub;
-      let taskViewServiceStubs: { [key: string]: SinonStub };
       let notificationServiceStubs: any;
       let devServiceStub: any;
       let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
@@ -107,7 +102,6 @@ describe('forceLightningLwcStart', () => {
           'execute'
         );
 
-        taskViewServiceStubs = {};
         notificationServiceStubs = {};
 
         appendLineStub = sandbox.stub(
@@ -115,14 +109,6 @@ describe('forceLightningLwcStart', () => {
           'appendLine' as any
         );
 
-        taskViewServiceStubs.addCommandExecutionStub = sandbox.stub(
-          taskViewService,
-          'addCommandExecution'
-        );
-        taskViewServiceStubs.removeTaskStub = sandbox.stub(
-          taskViewService,
-          'removeTask'
-        );
         notificationServiceStubs.reportExecutionErrorStub = sandbox.stub(
           notificationService,
           'reportExecutionError'
@@ -396,7 +382,7 @@ describe('forceLightningLwcStart', () => {
       Thenable<string | undefined>
     >;
     let devServiceStub: any;
-    let commandletStub: SinonStub<any[], any>;
+    let commandletStub: SinonStub<[], Promise<void>>;
 
     beforeEach(() => {
       sandbox = sinon.createSandbox();
