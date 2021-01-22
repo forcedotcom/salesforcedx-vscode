@@ -117,16 +117,26 @@ export abstract class LibraryCommandletExecutor<T>
   /**
    * Command name visible to user while executing.
    */
-  protected abstract readonly executionName: string;
+  private readonly executionName: string;
   /**
    * Command name for logging purposes such as telemetry
    */
-  protected abstract readonly logName: string;
+  private readonly logName: string;
   /**
    * Output channel to report execution status to.
    */
-  protected abstract readonly outputChannel: vscode.OutputChannel;
+  private readonly outputChannel: vscode.OutputChannel;
   protected readonly telemetry = new TelemetryBuilder();
+
+  constructor(
+    executionName: string,
+    logName: string,
+    outputChannel: vscode.OutputChannel
+  ) {
+    this.executionName = executionName;
+    this.logName = logName;
+    this.outputChannel = outputChannel;
+  }
 
   /**
    * Core logic of the command.

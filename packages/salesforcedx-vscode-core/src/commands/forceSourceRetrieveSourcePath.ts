@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -22,7 +22,7 @@ import {
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { channelService, CORE_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -32,7 +32,6 @@ import {
   createComponentCount,
   createRetrieveOutput,
   FilePathGatherer,
-  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -123,8 +122,13 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
 export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
   string
 > {
-  protected logName = 'force_source_retrieve_with_sourcepath_beta';
-  protected executionName = 'Retrieve (Beta)';
+  constructor() {
+    super(
+      'Retrieve (Beta)',
+      'force_source_retrieve_with_sourcepath_beta',
+      CORE_CHANNEL
+    );
+  }
 
   protected async run(response: ContinueResponse<string>): Promise<boolean> {
     let retrieve;

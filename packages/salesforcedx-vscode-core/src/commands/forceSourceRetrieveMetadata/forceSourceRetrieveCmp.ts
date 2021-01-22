@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
   Command,
@@ -19,7 +20,7 @@ import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
-import { channelService } from '../../channels';
+import { channelService, CORE_CHANNEL } from '../../channels';
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
@@ -28,7 +29,6 @@ import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   createComponentCount,
   createRetrieveOutput,
-  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -140,12 +140,10 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
 export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
   LocalComponent[]
 > {
-  protected logName = 'force_source_retrieve_beta';
-  protected executionName = 'Retrieve (Beta)';
-  private openAfterRetrieve: boolean = false;
+  private openAfterRetrieve: boolean;
 
-  constructor(openAfterRetrieve: boolean = false) {
-    super();
+  constructor(openAfterRetrieve = false) {
+    super('Retrieve (Beta)', 'force_source_retrieve_beta', CORE_CHANNEL);
     this.openAfterRetrieve = openAfterRetrieve;
   }
 

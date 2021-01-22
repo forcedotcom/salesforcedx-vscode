@@ -6,6 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -22,7 +23,7 @@ import {
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { channelService, CORE_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
@@ -32,12 +33,7 @@ import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import {
-  FilePathGatherer,
-  LibraryCommandletExecutor,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from './util';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 import {
   createComponentCount,
   createDeployOutput,
@@ -135,8 +131,13 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
 export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
   string | string[]
 > {
-  protected executionName = 'Deploy (Beta)';
-  protected logName = 'force_source_deploy_with_sourcepath_beta';
+  constructor() {
+    super(
+      'Deploy (Beta)',
+      'force_source_deploy_with_sourcepath_beta',
+      CORE_CHANNEL
+    );
+  }
 
   public async run(
     response: ContinueResponse<string | string[]>
