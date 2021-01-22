@@ -77,7 +77,7 @@ async function createServer(
     };
   } catch (err) {
     vscode.window.showErrorMessage(err);
-    await telemetryService.sendException(LSP_ERR, err.error);
+    telemetryService.sendException(LSP_ERR, err.error);
     throw err;
   }
 }
@@ -156,13 +156,8 @@ export async function createLanguageServer(
     clientOptions
   );
 
-  client.onTelemetry(
-    data =>
-      telemetryService.sendEventData(
-        'apexLSPLog',
-        data.properties,
-        data.measures
-      )
+  client.onTelemetry(data =>
+    telemetryService.sendEventData('apexLSPLog', data.properties, data.measures)
   );
 
   return client;

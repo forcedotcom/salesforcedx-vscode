@@ -198,11 +198,9 @@ export class TestRunner {
       if (this.logName) {
         const startTime = process.hrtime();
         sfdxTask.onDidEnd(() => {
-          telemetryService
-            .sendCommandEvent(this.logName, startTime, {
-              workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
-            })
-            .catch();
+          telemetryService.sendCommandEvent(this.logName, startTime, {
+            workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
+          });
         });
       }
       return sfdxTask.execute();

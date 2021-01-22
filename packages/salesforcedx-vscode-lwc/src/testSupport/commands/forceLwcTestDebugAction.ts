@@ -133,10 +133,12 @@ export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
     configuration.sfdxDebugSessionId
   );
   if (Array.isArray(startTime)) {
-    telemetryService
-      .sendCommandEvent(FORCE_LWC_TEST_DEBUG_LOG_NAME, startTime, {
+    telemetryService.sendCommandEvent(
+      FORCE_LWC_TEST_DEBUG_LOG_NAME,
+      startTime,
+      {
         workspaceType: workspaceService.getCurrentWorkspaceTypeForTelemetry()
-      })
-      .catch();
+      }
+    );
   }
 }

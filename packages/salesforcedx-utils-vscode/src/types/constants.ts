@@ -17,3 +17,7 @@ export const ENV_SFDX_INSTANCE_URL = 'SFDX_INSTANCE_URL';
 
 export const SFDX_CONFIG_ISV_DEBUGGER_SID = 'isvDebuggerSid';
 export const SFDX_CONFIG_ISV_DEBUGGER_URL = 'isvDebuggerUrl';
+
+export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
+export const TELEMETRY_OPT_OUT_LINK =
+  'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';

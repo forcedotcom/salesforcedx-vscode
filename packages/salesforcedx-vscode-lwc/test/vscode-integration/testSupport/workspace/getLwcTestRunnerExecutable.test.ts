@@ -25,7 +25,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
     [string, vscode.MessageOptions, ...vscode.MessageItem[]],
     Thenable<vscode.MessageItem | undefined>
   >;
-  let telemetryStub: SinonStub<[string, string], Promise<void>>;
+  let telemetryStub: SinonStub<[string, string], void>;
   let getCurrentWorkspaceTypeStub: SinonStub<[], lspCommon.WorkspaceType>;
   beforeEach(() => {
     existsSyncStub = stub(fs, 'existsSync');
@@ -35,7 +35,6 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
       workspaceService,
       'getCurrentWorkspaceType'
     );
-    telemetryStub.returns(Promise.resolve());
   });
 
   afterEach(() => {

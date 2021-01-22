@@ -52,9 +52,10 @@ export class ConfigUtil {
           return localValue;
         }
       } catch (err) {
-        TelemetryService.getInstance()
-          .sendException('get_config_value_local', err.message)
-          .catch(error => console.error(error));
+        TelemetryService.getInstance().sendException(
+          'get_config_value_local',
+          err.message
+        );
         return undefined;
       }
     }
@@ -66,9 +67,10 @@ export class ConfigUtil {
           return globalValue;
         }
       } catch (err) {
-        TelemetryService.getInstance()
-          .sendException('get_config_value_global', err.message)
-          .catch(error => console.error(error));
+        TelemetryService.getInstance().sendException(
+          'get_config_value_global',
+          err.message
+        );
         return undefined;
       }
     }

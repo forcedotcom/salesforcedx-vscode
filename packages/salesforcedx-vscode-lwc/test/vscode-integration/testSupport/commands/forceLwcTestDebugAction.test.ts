@@ -60,7 +60,7 @@ describe('Force LWC Test Debug - Code Action', () => {
   >;
   let telemetryStub: SinonStub<
     [(string | undefined)?, ([number, number] | undefined)?, any?, any?],
-    Promise<void>
+    void
   >;
   const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
   beforeEach(() => {
@@ -73,7 +73,6 @@ describe('Force LWC Test Debug - Code Action', () => {
       'getLwcTestRunnerExecutable'
     );
     uuidStub.returns(mockUuid);
-    telemetryStub.returns(Promise.resolve());
     debugStub.returns(Promise.resolve());
   });
 

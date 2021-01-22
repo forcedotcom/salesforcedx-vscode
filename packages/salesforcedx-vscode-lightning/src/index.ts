@@ -191,9 +191,7 @@ export async function activate(context: ExtensionContext) {
   context.subscriptions.push(disp);
 
   // Notify telemetry that our extension is now active
-  TelemetryService.getInstance()
-    .sendExtensionActivationEvent(extensionHRStart)
-    .catch();
+  TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);
 }
 
 let indexingResolve: any;
@@ -224,7 +222,5 @@ function reportIndexing(indexingPromise: Promise<void>) {
 
 export function deactivate() {
   console.log('Aura Components Extension Deactivated');
-  TelemetryService.getInstance()
-    .sendExtensionDeactivationEvent()
-    .catch();
+  TelemetryService.getInstance().sendExtensionDeactivationEvent();
 }
