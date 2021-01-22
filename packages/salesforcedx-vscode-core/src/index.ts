@@ -515,8 +515,6 @@ async function setupOrgBrowser(
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const machineId =
-    vscode && vscode.env ? vscode.env.machineId : 'someValue.machineId';
   const { name, aiKey, version } = require(context.asAbsolutePath(
     './package.json'
   ));
