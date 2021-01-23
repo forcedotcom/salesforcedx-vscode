@@ -28,7 +28,7 @@ import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
-import { channelService, CORE_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { SFDX_FOLDER } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -238,11 +238,11 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     super(
       nls.localize('apex_log_get_text'),
       'force_apex_log_get_library',
-      CORE_CHANNEL
+      OUTPUT_CHANNEL
     );
   }
 
-  protected async run(
+  public async run(
     response: ContinueResponse<{ id: string }>
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();

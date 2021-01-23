@@ -13,7 +13,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService, CORE_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
@@ -53,11 +53,11 @@ export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExec
     super(
       'Retrieve With Manifest (beta)',
       'force_source_retrieve_with_manifest_beta',
-      CORE_CHANNEL
+      OUTPUT_CHANNEL
     );
   }
 
-  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const defaultOutput = join(
       getRootWorkspacePath(),

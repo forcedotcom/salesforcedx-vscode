@@ -20,7 +20,7 @@ import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
-import { channelService, CORE_CHANNEL } from '../../channels';
+import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
@@ -143,11 +143,11 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   private openAfterRetrieve: boolean;
 
   constructor(openAfterRetrieve = false) {
-    super('Retrieve (Beta)', 'force_source_retrieve_beta', CORE_CHANNEL);
+    super('Retrieve (Beta)', 'force_source_retrieve_beta', OUTPUT_CHANNEL);
     this.openAfterRetrieve = openAfterRetrieve;
   }
 
-  protected async run(
+  public async run(
     response: ContinueResponse<LocalComponent[]>
   ): Promise<boolean> {
     const dirPath = (await SfdxPackageDirectories.getDefaultPackageDir()) || '';

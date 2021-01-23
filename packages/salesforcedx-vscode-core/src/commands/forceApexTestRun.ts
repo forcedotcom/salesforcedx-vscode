@@ -25,7 +25,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService, CORE_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
@@ -185,11 +185,11 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
     super(
       nls.localize('apex_test_run_text'),
       'force_apex_execute_library',
-      CORE_CHANNEL
+      OUTPUT_CHANNEL
     );
   }
 
-  protected async run(
+  public async run(
     response: ContinueResponse<ApexTestQuickPickItem>
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();

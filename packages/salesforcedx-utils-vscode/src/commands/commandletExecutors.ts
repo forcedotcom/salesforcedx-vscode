@@ -114,20 +114,16 @@ export abstract class SfdxCommandletExecutor<T>
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
-  /**
-   * Command name visible to user while executing.
-   */
   private readonly executionName: string;
-  /**
-   * Command name for logging purposes such as telemetry
-   */
   private readonly logName: string;
-  /**
-   * Output channel to report execution status to.
-   */
   private readonly outputChannel: vscode.OutputChannel;
   protected readonly telemetry = new TelemetryBuilder();
 
+  /**
+   * @param name Name visible to user while executing.
+   * @param logName Name for logging purposes such as telemetry.
+   * @param outputChannel VS Code output channel to report execution status to.
+   */
   constructor(
     executionName: string,
     logName: string,
@@ -144,7 +140,7 @@ export abstract class LibraryCommandletExecutor<T>
    * @param response Data from the parameter gathering step.
    * @returns Whether or not the execution was a success
    */
-  protected abstract run(response: ContinueResponse<T>): Promise<boolean>;
+  public abstract run(response: ContinueResponse<T>): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();

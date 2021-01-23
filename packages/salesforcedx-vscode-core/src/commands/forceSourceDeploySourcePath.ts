@@ -23,7 +23,7 @@ import {
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService, CORE_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
@@ -135,7 +135,7 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     super(
       'Deploy (Beta)',
       'force_source_deploy_with_sourcepath_beta',
-      CORE_CHANNEL
+      OUTPUT_CHANNEL
     );
   }
 

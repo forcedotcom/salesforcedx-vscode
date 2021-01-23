@@ -22,7 +22,7 @@ import {
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService, CORE_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -126,11 +126,11 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     super(
       'Retrieve (Beta)',
       'force_source_retrieve_with_sourcepath_beta',
-      CORE_CHANNEL
+      OUTPUT_CHANNEL
     );
   }
 
-  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     let retrieve;
     const connection = await workspaceContext.getConnection();
     const components = ComponentSet.fromSource(response.data);

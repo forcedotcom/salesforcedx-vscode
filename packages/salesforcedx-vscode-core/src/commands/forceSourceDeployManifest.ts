@@ -13,7 +13,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/type
 import { ComponentSet, DeployStatus } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService, CORE_CHANNEL } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
@@ -59,11 +59,11 @@ export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecut
     super(
       'Deploy With Manifest (beta)',
       'force_source_deploy_with_manifest',
-      CORE_CHANNEL
+      OUTPUT_CHANNEL
     );
   }
 
-  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     try {
       const components = await ComponentSet.fromManifestFile(response.data, {

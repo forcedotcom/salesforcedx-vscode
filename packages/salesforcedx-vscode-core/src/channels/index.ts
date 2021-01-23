@@ -8,7 +8,7 @@ import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/co
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-export const CORE_CHANNEL = vscode.window.createOutputChannel(
+export const OUTPUT_CHANNEL = vscode.window.createOutputChannel(
   nls.localize('channel_name')
 );
-export const channelService = new ChannelService(CORE_CHANNEL);
+export const channelService = new ChannelService(OUTPUT_CHANNEL);
