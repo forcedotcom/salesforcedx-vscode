@@ -10,11 +10,11 @@
  * 1. External contributions
  * 2. Duplicates (ex file changes made in both salesforcedx-apex-debugger and salesforcedx-apex-replay-debugger)
  * 3. Non-salesforce package contributions aside from doc updates
- * 4. Adding vs. Fixed vs. Ignore in change log
  *
  * Overriding Default Values:
  * 1. Override the release. Example: npm run build-change-log -- -r 46.7.0
  * 2. Add verbose logging. Example: npm run build-change-log -- -v
+ * 3. Package list to ignore (comma separated list) npm run build-change-log --i package1,package2,package3
  */
 
 const process = require('process');
@@ -43,6 +43,16 @@ const TYPE = 'TYPE';
 const MESSAGE = 'MESSAGE';
 const FILES_CHANGED = 'FILES_CHANGED';
 const PACKAGES = 'PACKAGES';
+
+const typesToIgnore = [
+  'chore',
+  'style',
+  'refactor',
+  'test',
+  'build',
+  'ci',
+  'revert'
+];
 
 /**
  * Checks if the user has provided a release branch override. If they
@@ -282,16 +292,10 @@ function getMessagesGroupedByPackage(parsedCommits) {
  * If we have a type that should be ignored, return an empty key.
  */
 function generateKey(packageName, type) {
-  const typesToIgnore = [
-    'chore',
-    'style',
-    'refactor',
-    'test',
-    'build',
-    'ci',
-    'revert'
-  ];
-  if (typesToIgnore.includes(type)) {
+  if (
+    typesToIgnore.includes(type) ||
+    PACKAGES_TO_IGNORE.includes(packageName)
+  ) {
     return '';
   }
   const keyPrefix = type === 'feat' ? 'Added' : 'Fixed';
@@ -354,6 +358,11 @@ function writeAdditionalInfo() {
 console.log("Starting script 'change-log-generator'\n");
 
 let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
+let PACKAGES_TO_IGNORE =
+  process.argv.indexOf('-i') > -1
+    ? process.argv[process.argv.indexOf('-i') + 1]
+    : '';
+
 const releaseBranch = getReleaseBranch();
 const previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
