@@ -99,7 +99,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
       };
       retrieveStub.resolves(retrieveResult);
 
-      const success = await executor.execute({
+      const success = await executor.run({
         data: manifestPath,
         type: 'CONTINUE'
       });
@@ -119,7 +119,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
       };
       retrieveStub.resolves(retrieveResult);
 
-      const success = await executor.execute({
+      const success = await executor.run({
         data: manifestPath,
         type: 'CONTINUE'
       });
