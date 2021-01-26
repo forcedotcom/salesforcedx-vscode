@@ -20,13 +20,13 @@ export async function forceLightningLwcOpen() {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     try {
       await openBrowser(DevServerService.instance.getBaseUrl());
-      telemetryService.sendCommandEvent(logName, startTime).catch();
+      telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
       showError(e, logName, commandName);
     }
   } else {
     console.log(`${logName}: server was not running, starting...`);
     await vscode.commands.executeCommand('sfdx.force.lightning.lwc.start');
-    telemetryService.sendCommandEvent(logName, startTime).catch();
+    telemetryService.sendCommandEvent(logName, startTime);
   }
 }

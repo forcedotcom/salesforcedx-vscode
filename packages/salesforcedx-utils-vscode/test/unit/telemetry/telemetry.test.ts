@@ -46,6 +46,7 @@ const vscodeStub = {
   }
 };
 
+// TODO: W-8781071 Resolve issues with unit testing the service and re-enable these tests
 describe('Telemetry production mode', () => {
   const extensionName = 'salesforcedx-test';
   let telemetryService: any;
@@ -104,7 +105,7 @@ describe('Telemetry production mode', () => {
   xit('Should send telemetry data', async () => {
     await telemetryService.initializeService(mockContext, extensionName);
 
-    await telemetryService.sendExtensionActivationEvent([0, 678]);
+    telemetryService.sendExtensionActivationEvent([0, 678]);
     assert.calledOnce(reporter);
     expect(teleStub.firstCall.args).to.eql([true]);
   });
@@ -117,10 +118,7 @@ describe('Telemetry production mode', () => {
     const telemetryEnabled = await telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(false);
 
-    await telemetryService.sendCommandEvent('create_apex_class_command', [
-      0,
-      678
-    ]);
+    telemetryService.sendCommandEvent('create_apex_class_command', [0, 678]);
     assert.notCalled(reporter);
     expect(teleStub.firstCall.args).to.eql([false]);
   });
@@ -128,7 +126,7 @@ describe('Telemetry production mode', () => {
   xit('Should send correct data format on sendExtensionActivationEvent', async () => {
     await telemetryService.initializeService(mockContext, extensionName);
 
-    await telemetryService.sendExtensionActivationEvent([0, 678]);
+    telemetryService.sendExtensionActivationEvent([0, 678]);
     assert.calledOnce(reporter);
 
     const expectedProps = {
@@ -147,7 +145,7 @@ describe('Telemetry production mode', () => {
   xit('Should send correct data format on sendExtensionDeactivationEvent', async () => {
     await telemetryService.initializeService(mockContext, extensionName);
 
-    await telemetryService.sendExtensionDeactivationEvent();
+    telemetryService.sendExtensionDeactivationEvent();
     assert.calledOnce(reporter);
 
     const expectedData = {
@@ -160,10 +158,7 @@ describe('Telemetry production mode', () => {
   xit('Should send correct data format on sendCommandEvent', async () => {
     await telemetryService.initializeService(mockContext, extensionName);
 
-    await telemetryService.sendCommandEvent('create_apex_class_command', [
-      0,
-      678
-    ]);
+    telemetryService.sendCommandEvent('create_apex_class_command', [0, 678]);
     assert.calledOnce(reporter);
 
     const expectedProps = {
@@ -187,7 +182,7 @@ describe('Telemetry production mode', () => {
       secondParam: 'value'
     };
 
-    await telemetryService.sendCommandEvent(
+    telemetryService.sendCommandEvent(
       'create_apex_class_command',
       [0, 678],
       additionalProps
@@ -217,7 +212,7 @@ describe('Telemetry production mode', () => {
       count: 10
     };
 
-    await telemetryService.sendCommandEvent(
+    telemetryService.sendCommandEvent(
       'create_apex_class_command',
       [0, 678],
       undefined,
@@ -249,7 +244,7 @@ describe('Telemetry production mode', () => {
     const eventName = 'eventName';
     const property = { property: 'property for event' };
     const measure = { measure: 123456 };
-    await telemetryService.sendEventData(eventName, property, measure);
+    telemetryService.sendEventData(eventName, property, measure);
 
     assert.calledWith(reporter, eventName, property, measure);
     expect(teleStub.firstCall.args).to.eql([true]);
@@ -258,7 +253,7 @@ describe('Telemetry production mode', () => {
   xit('Should send data sendExceptionEvent', async () => {
     await telemetryService.initializeService(mockContext, extensionName);
 
-    await telemetryService.sendException(
+    telemetryService.sendException(
       'error_name',
       'this is a test error message'
     );
@@ -279,12 +274,37 @@ describe('Telemetry production mode', () => {
     const telemetryEnabled = await telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(false);
 
-    await telemetryService.sendCommandEvent('create_apex_class_command', [
-      0,
-      123
-    ]);
+    telemetryService.sendCommandEvent('create_apex_class_command', [0, 123]);
     assert.notCalled(reporter);
     expect(teleStub.firstCall.args).to.eql([false]);
+  });
+
+  xit('Should show telemetry info message', async () => {
+    // create vscode extensionContext in which telemetry msg has never been previously shown
+    mockContext = new MockContext(false);
+
+    await telemetryService.initializeService(mockContext, extensionName);
+
+    const telemetryEnabled = telemetryService.isTelemetryEnabled();
+    expect(telemetryEnabled).to.be.eql(true);
+
+    telemetryService.showTelemetryMessage();
+    assert.calledOnce(mShowInformation);
+    expect(teleStub.firstCall.args).to.eql([true]);
+  });
+
+  xit('Should not show telemetry info message', async () => {
+    // create vscode extensionContext in which telemetry msg has been previously shown
+    mockContext = new MockContext(true);
+
+    await telemetryService.initializeService(mockContext, extensionName);
+
+    const telemetryEnabled = telemetryService.isTelemetryEnabled();
+    expect(telemetryEnabled).to.be.eql(true);
+
+    telemetryService.showTelemetryMessage();
+    assert.notCalled(mShowInformation);
+    expect(teleStub.firstCall.args).to.eql([true]);
   });
 
   it('should build TelemetryBuilder object with a property set', () => {

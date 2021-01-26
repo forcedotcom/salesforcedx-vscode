@@ -6,7 +6,6 @@
  */
 
 import { TestLevel, TestService } from '@salesforce/apex-node';
-import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { extensions } from 'vscode';
@@ -18,6 +17,7 @@ import {
   resolveTestClassParam,
   resolveTestMethodParam
 } from '../../../src/commands/forceApexTestRunCodeAction';
+import { workspaceContext } from '../../../src/context';
 
 const sfdxCoreExports = extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'

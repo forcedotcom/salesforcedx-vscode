@@ -13,10 +13,10 @@ import {
 } from '@salesforce/apex-node/lib/src/tests/types';
 import { Connection } from '@salesforce/core';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { workspaceContext } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { getLogDirPath } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';

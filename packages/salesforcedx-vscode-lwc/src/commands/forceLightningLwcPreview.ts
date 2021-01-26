@@ -7,6 +7,11 @@
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
 import {
+  EmptyParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src/';
+import {
   CliCommandExecutor,
   CommandOutput,
   SfdxCommandBuilder
@@ -22,15 +27,6 @@ import { PreviewService } from '../service/previewService';
 import { telemetryService } from '../telemetry';
 import { openBrowser, showError } from './commandUtils';
 import { ForceLightningLwcStartExecutor } from './forceLightningLwcStart';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const {
-  SfdxCommandlet,
-  EmptyParametersGatherer,
-  SfdxWorkspaceChecker
-} = sfdxCoreExports;
 
 enum PreviewPlatformType {
   Desktop = 1,
@@ -263,14 +259,14 @@ async function startServer(
     );
 
     await commandlet.run();
-    telemetryService.sendCommandEvent(logName, startTime).catch();
+    telemetryService.sendCommandEvent(logName, startTime);
   } else if (isDesktop) {
     try {
       const fullUrl = DevServerService.instance.getComponentPreviewUrl(
         componentName
       );
       await openBrowser(fullUrl);
-      telemetryService.sendCommandEvent(logName, startTime).catch();
+      telemetryService.sendCommandEvent(logName, startTime);
     } catch (e) {
       showError(e, logName, commandName);
     }
@@ -551,7 +547,7 @@ async function executeMobilePreview(
   const previewCancellationTokenSource = new vscode.CancellationTokenSource();
   const previewCancellationToken = previewCancellationTokenSource.token;
   const previewExecution = previewExecutor.execute(previewCancellationToken);
-  telemetryService.sendCommandEvent(logName, startTime).catch();
+  telemetryService.sendCommandEvent(logName, startTime);
   channelService.streamCommandOutput(previewExecution);
   channelService.showChannelOutput();
 

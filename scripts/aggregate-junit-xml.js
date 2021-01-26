@@ -3,26 +3,26 @@
 /*
  * Asserts JUnit test results were generated from a test run with the specified
  * test categories and aggregates them into a directory.
- * 
- * 
+ *
+ *
  * e.g. with the following structure:
- * 
+ *
  * packages/salesforcecx-vscode-lwc/test/unit
  * packages/salesforcecx-vscode-lwc/test/vscode-integration
- * 
+ *
  * these files will be asserted to exist:
- * 
+ *
  * packages/salesforcedx-vscode-lwc/junit-custom-unitTests.xml
  * packages/salesforcedx-vscode-lwc/junit-custom-vscodeIntegrationTests.xml
- * 
+ *
  * and then are copied into a top-level directory called junit-aggregate.'
- * 
- * 
+ *
+ *
  * Valid categories: unit, integration, vscode-integration
- * 
+ *
  * By default, all categories will be tested. To only process specific
  * categories, call the script with desired categories separated by a space.
- * 
+ *
  * e.g. node aggregate-junit-xml.js integration vscode-integration
  */
 
@@ -35,10 +35,10 @@ const packagesDir = path.join(cwd, 'packages');
 const aggregateDir = path.join(cwd, 'junit-aggregate');
 const categoryToFile = {
   'vscode-integration': 'junit-custom-vscodeIntegrationTests.xml',
-  'integration': 'junit-custom-integrationTests.xml',
-  'unit': 'junit-custom-unitTests.xml',
-  'system': 'junit-custom.xml',
-}
+  integration: 'junit-custom-integrationTests.xml',
+  unit: 'junit-custom-unitTests.xml',
+  system: 'junit-custom.xml'
+};
 
 // process all test categories if none are specified in arguments
 let flags = new Set(process.argv.slice(2));
@@ -52,10 +52,10 @@ if (!fs.existsSync(aggregateDir)) {
 
 const missingResults = {
   'vscode-integration': [],
-  'integration': [],
-  'unit': [],
-  'system': []
-}
+  integration: [],
+  unit: [],
+  system: []
+};
 
 for (const entry of fs.readdirSync(packagesDir)) {
   const packagePath = path.join(packagesDir, entry);
@@ -67,11 +67,18 @@ for (const entry of fs.readdirSync(packagesDir)) {
         // if package test directory has a test category that matches the
         // category input, copy the junit results to the aggregate folder
         if (flags.has(`--${testEntry}`)) {
-          const junitFilePath = path.join(packagePath, categoryToFile[testEntry]);
+          const junitFilePath = path.join(
+            packagePath,
+            categoryToFile[testEntry]
+          );
           if (fs.existsSync(junitFilePath)) {
             shell.cp(
               junitFilePath,
-              path.join(cwd, 'junit-aggregate', `${entry}-${categoryToFile[testEntry]}`)
+              path.join(
+                cwd,
+                'junit-aggregate',
+                `${entry}-${categoryToFile[testEntry]}`
+              )
             );
           } else {
             missingResults[testEntry].push(entry);
@@ -90,16 +97,22 @@ for (const [testType, pkgs] of Object.entries(missingResults)) {
     if (!missingMessage) {
       missingMessage = 'Missing junit results for the following packages:\n';
     }
-    missingMessage += `\n* ${testType}:`
-    missingMessage = pkgs.reduce((previous, current) => `${previous}\n\t- ${current}`, missingMessage);
+    missingMessage += `\n* ${testType}:`;
+    missingMessage = pkgs.reduce(
+      (previous, current) => `${previous}\n\t- ${current}`,
+      missingMessage
+    );
   }
 }
 
 if (missingMessage) {
-  missingMessage += '\n\nPossible Issues:\n\n'
-  missingMessage += "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.).\n";
-  missingMessage += '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail.\n';
+  missingMessage += '\n\nPossible Issues:\n\n';
+  missingMessage +=
+    "1) Tests in the expected suite categories haven't run yet (unit, integration, etc.).\n";
+  missingMessage +=
+    '2) An unexpected test runner or reporter failure while running tests. Sometimes extension activation issues or issues in the tests can silently fail.\n';
   missingMessage += '3) Test run configuration is improperly set up.\n';
+  missingMessage += '4) Circular imports.\n';
   console.error(missingMessage);
   process.exit(1);
 }
