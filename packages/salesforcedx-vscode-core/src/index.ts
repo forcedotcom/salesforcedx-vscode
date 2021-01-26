@@ -79,9 +79,11 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
+import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_OPT_OUT_LINK } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
+import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -513,13 +515,40 @@ async function setupOrgBrowser(
   );
 }
 
+function showTelemetryMessage(context: vscode.ExtensionContext) {
+  const messageAlreadyPrompted = context.globalState.get(
+    TELEMETRY_GLOBAL_VALUE
+  );
+  if (!messageAlreadyPrompted) {
+    // Show the message and set telemetry to true;
+    const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
+    const showMessage = nls.localize(
+      'telemetry_legal_dialog_message',
+      TELEMETRY_OPT_OUT_LINK
+    );
+    vscode.window
+      .showInformationMessage(showMessage, showButtonText)
+      .then(selection => {
+        // Open disable telemetry link
+        if (selection && selection === showButtonText) {
+          vscode.commands.executeCommand(
+            'vscode.open',
+            vscode.Uri.parse(TELEMETRY_OPT_OUT_LINK)
+          );
+        }
+      });
+    context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
+  }
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const { name, aiKey, version } = require(context.asAbsolutePath(
     './package.json'
   ));
   await telemetryService.initializeService(context, name, aiKey, version);
-  telemetryService.showTelemetryMessage();
+  showTelemetryMessage(context);
+  // telemetryService.showTelemetryMessage();
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
