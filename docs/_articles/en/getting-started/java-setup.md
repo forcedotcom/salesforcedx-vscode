@@ -41,6 +41,14 @@ Windows:
 }
 ```
 
+Linux (Pop! OS 20.04, installation via aptitude):
+
+```json
+{
+    "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-11-openjdk-amd64"
+}
+``` 
+
 ## Zulu
 
 Zulu Java builds are TCK-tested and free to download and use without restrictions.
