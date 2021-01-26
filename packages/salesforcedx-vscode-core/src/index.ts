@@ -548,7 +548,6 @@ export async function activate(context: vscode.ExtensionContext) {
   ));
   await telemetryService.initializeService(context, name, aiKey, version);
   showTelemetryMessage(context);
-  // telemetryService.showTelemetryMessage();
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
