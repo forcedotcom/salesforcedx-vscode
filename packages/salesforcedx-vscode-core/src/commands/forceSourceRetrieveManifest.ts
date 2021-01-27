@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -12,7 +13,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
@@ -26,7 +27,6 @@ import { getRootWorkspacePath } from '../util';
 import {
   createRetrieveOutput,
   FilePathGatherer,
-  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -49,10 +49,15 @@ export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
 export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExecutor<
   string
 > {
-  protected logName = 'force_source_retrieve_with_manifest_beta';
-  protected executionName = 'Retrieve With Manifest (beta)';
+  constructor() {
+    super(
+      'Retrieve With Manifest (beta)',
+      'force_source_retrieve_with_manifest_beta',
+      OUTPUT_CHANNEL
+    );
+  }
 
-  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     const defaultOutput = join(
       getRootWorkspacePath(),

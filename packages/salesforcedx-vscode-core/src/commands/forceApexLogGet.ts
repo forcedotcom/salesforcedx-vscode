@@ -6,6 +6,7 @@
  */
 
 import { LogRecord, LogService } from '@salesforce/apex-node';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
   Command,
@@ -27,7 +28,7 @@ import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
-import { channelService } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { SFDX_FOLDER } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -36,7 +37,6 @@ import { sfdxCoreSettings } from '../settings';
 import { taskViewService } from '../statuses';
 import { getRootWorkspacePath } from '../util';
 import {
-  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -44,7 +44,7 @@ import {
 
 export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
-  > {
+> {
   public build(data: ApexDebugLogIdStartTime): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_log_get_text'))
@@ -101,7 +101,9 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       const localUTCDate = new Date(response.data.startTime);
       const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
       const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
-      const log = Array.isArray(resultJson.result) ? resultJson.result[0].log : resultJson.result.log;
+      const log = Array.isArray(resultJson.result)
+        ? resultJson.result[0].log
+        : resultJson.result.log;
       fs.writeFileSync(logPath, log);
       const document = await vscode.workspace.openTextDocument(logPath);
       vscode.window.showTextDocument(document);
@@ -183,10 +185,13 @@ export class LogFileSelector
   public async getLogRecords(): Promise<LogRecord[]> {
     const connection = await workspaceContext.getConnection();
     const logService = new LogService(connection);
-    return vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: nls.localize('apex_log_list_text')
-    }, () => logService.getLogRecords());
+    return vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: nls.localize('apex_log_list_text')
+      },
+      () => logService.getLogRecords()
+    );
   }
 }
 
@@ -226,11 +231,20 @@ export class ForceApexLogList {
   }
 }
 
-export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{ id: string }> {
-  protected executionName: string = nls.localize('apex_log_get_text');
-  protected logName: string = 'force_apex_log_get_library';
+export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
+  id: string;
+}> {
+  constructor() {
+    super(
+      nls.localize('apex_log_get_text'),
+      'force_apex_log_get_library',
+      OUTPUT_CHANNEL
+    );
+  }
 
-  protected async run(response: ContinueResponse<{ id: string }>): Promise<boolean> {
+  public async run(
+    response: ContinueResponse<{ id: string }>
+  ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;

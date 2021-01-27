@@ -12,13 +12,12 @@ import { RetrieveStatus } from '@salesforce/source-deploy-retrieve/lib/src/clien
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
-import { channelService } from '../../../src/channels';
+import { OUTPUT_CHANNEL } from '../../../src/channels';
 import { ForceSourceRetrieveManifestExecutor } from '../../../src/commands';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
 import { createRetrieveOutput } from '../../../src/commands/util';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
@@ -51,6 +50,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
 
     let mockConnection: Connection;
     let retrieveStub: SinonStub;
+    let outputStub: SinonStub;
 
     const executor = new LibrarySourceRetrieveManifestExecutor();
 
@@ -82,6 +82,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
       retrieveStub = env
         .stub(mockComponents, 'retrieve')
         .withArgs(mockConnection, packageDirFullPaths[0], { merge: true });
+      outputStub = env.stub(OUTPUT_CHANNEL, 'appendLine');
     });
 
     afterEach(() => {
@@ -97,19 +98,15 @@ describe('Force Source Retrieve with Manifest Option', () => {
         status: RetrieveStatus.Succeeded
       };
       retrieveStub.resolves(retrieveResult);
-      const notificationStub = env.stub(
-        notificationService,
-        'showSuccessfulExecution'
-      );
-      const channelServiceStub = env.stub(channelService, 'appendLine');
 
-      await executor.execute({ data: manifestPath, type: 'CONTINUE' });
+      const success = await executor.run({
+        data: manifestPath,
+        type: 'CONTINUE'
+      });
 
-      expect(notificationStub.calledOnce).to.equal(true);
+      expect(success).to.equal(true);
       expect(
-        channelServiceStub.calledWith(
-          createRetrieveOutput(retrieveResult, packageDirs)
-        )
+        outputStub.calledWith(createRetrieveOutput(retrieveResult, packageDirs))
       );
     });
 
@@ -121,19 +118,15 @@ describe('Force Source Retrieve with Manifest Option', () => {
         status: RetrieveStatus.Failed
       };
       retrieveStub.resolves(retrieveResult);
-      const notificationStub = env.stub(
-        notificationService,
-        'showFailedExecution'
-      );
-      const channelServiceStub = env.stub(channelService, 'appendLine');
 
-      await executor.execute({ data: manifestPath, type: 'CONTINUE' });
+      const success = await executor.run({
+        data: manifestPath,
+        type: 'CONTINUE'
+      });
 
-      expect(notificationStub.calledOnce).to.equal(true);
+      expect(success).to.equal(false);
       expect(
-        channelServiceStub.calledWith(
-          createRetrieveOutput(retrieveResult, packageDirs)
-        )
+        outputStub.calledWith(createRetrieveOutput(retrieveResult, packageDirs))
       );
     });
   });

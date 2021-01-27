@@ -11,6 +11,7 @@ import {
   TestLevel,
   TestService
 } from '@salesforce/apex-node';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder,
@@ -24,13 +25,12 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
-  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -177,14 +177,19 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   ApexTestQuickPickItem
 > {
-  protected executionName = nls.localize('apex_test_run_text');
-  protected logName = 'force_apex_execute_library';
-
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
 
-  protected async run(
+  constructor() {
+    super(
+      nls.localize('apex_test_run_text'),
+      'force_apex_execute_library',
+      OUTPUT_CHANNEL
+    );
+  }
+
+  public async run(
     response: ContinueResponse<ApexTestQuickPickItem>
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
