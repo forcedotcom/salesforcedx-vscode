@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import {
   AnonApexGatherer,
@@ -16,8 +17,6 @@ import {
   forceApexExecute,
   ForceApexExecuteExecutor
 } from '../../../src/commands/forceApexExecute';
-import { sfdxCoreSettings } from '../../../src/settings';
-import { getRootWorkspacePath } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('AnonApexGatherer', async () => {
@@ -114,7 +113,13 @@ describe('use CLI Command setting', async () => {
 
   beforeEach(async () => {
     sb = createSandbox();
-    settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary');
+    settingStub = sb
+      .stub()
+      .withArgs('experimental.useApexLibrary')
+      .returns(true);
+    sb.stub(vscode.workspace, 'getConfiguration').returns({
+      get: settingStub
+    });
     apexExecutorStub = sb.stub(ApexLibraryExecuteExecutor.prototype, 'execute');
     cliExecutorStub = sb.stub(ForceApexExecuteExecutor.prototype, 'execute');
     anonGather = sb

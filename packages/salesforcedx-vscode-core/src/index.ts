@@ -283,18 +283,6 @@ function registerCommands(
     'sfdx.force.data.soql.query.selection',
     forceDataSoqlQuery
   );
-
-  const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.execute.document',
-    forceApexExecute,
-    false
-  );
-  const forceApexExecuteSelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.execute.selection',
-    forceApexExecute,
-    true
-  );
-
   const forceProjectCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.create',
     forceSfdxProjectCreate
@@ -304,7 +292,6 @@ function registerCommands(
     'sfdx.force.package.install',
     forcePackageInstall
   );
-
   const forceProjectWithManifestCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.project.with.manifest.create',
     forceProjectWithManifestCreate
@@ -371,8 +358,6 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
-    forceApexExecuteDocumentCmd,
-    forceApexExecuteSelectionCmd,
     forceApexTestRunCmd,
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
