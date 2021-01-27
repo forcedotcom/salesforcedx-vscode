@@ -15,7 +15,10 @@ describe('Human Reporter Tests', () => {
     const result = reporter.format(testResults, false);
     expect(result).to.not.be.empty;
     expect(result).to.contain(
-      'AnimalLocatorTest.testMissingAnimal                   Fail     System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:  5'
+      'AnimalLocatorTest.testMissingAnimal                   Fail     System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:'
+    );
+    expect(result).to.contain(
+      'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1'
     );
     expect(result).to.contain('=== Test Results');
     expect(result).to.contain('=== Test Summary');

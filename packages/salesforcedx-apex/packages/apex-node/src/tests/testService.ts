@@ -22,7 +22,9 @@ import {
   TestResult,
   ApexCodeCoverage,
   PerClassCoverage,
-  OutputDirConfig
+  OutputDirConfig,
+  ApexTestResultRecord,
+  SyncTestFailure
 } from './types';
 import * as util from 'util';
 import { nls } from '../i18n';
@@ -31,6 +33,7 @@ import { formatStartTime, getCurrentTime } from '../utils';
 import { join } from 'path';
 import { JUnitReporter, TapReporter } from '../reporters';
 import { createFiles } from '../utils/fileSystemHandler';
+import { ApexDiagnostic } from '../utils/types';
 
 // Tooling API query char limit is 100,000 after v48; REST API limit for uri + headers is 16,348 bytes
 // local testing shows query char limit to be closer to ~12,400
@@ -95,8 +98,8 @@ export class TestService {
         ),
         skipRate: this.calculatePercentage(0, apiTestResult.numTestsRun),
         testStartTime: formatStartTime(String(startTime)),
-        testExecutionTimeInMs: apiTestResult.totalTime,
-        testTotalTimeInMs: apiTestResult.totalTime,
+        testExecutionTimeInMs: apiTestResult.totalTime ?? 0,
+        testTotalTimeInMs: apiTestResult.totalTime ?? 0,
         commandTimeInMs: getCurrentTime() - startTime,
         hostname: this.connection.instanceUrl,
         orgId: this.connection.getAuthInfoFields().orgId,
@@ -162,7 +165,7 @@ export class TestService {
           namespacePrefix: item.namespace,
           fullName: `${nms}${item.name}`
         },
-        runTime: item.time,
+        runTime: item.time ?? 0,
         testTimestamp: '',
         fullName: `${nms}${item.name}.${item.methodName}`
       });
@@ -171,6 +174,9 @@ export class TestService {
     apiTestResult.failures.forEach(item => {
       const nms = item.namespace ? `${item.namespace}__` : '';
       apexTestClassIdSet.add(item.id);
+      const diagnostic =
+        item.message || item.stackTrace ? this.getSyncDiagnostic(item) : null;
+
       testResults.push({
         id: '',
         queueItemId: '',
@@ -186,13 +192,34 @@ export class TestService {
           namespacePrefix: item.namespace,
           fullName: `${nms}${item.name}`
         },
-        runTime: item.time,
+        runTime: item.time ?? 0,
         testTimestamp: '',
-        fullName: `${nms}${item.name}.${item.methodName}`
+        fullName: `${nms}${item.name}.${item.methodName}`,
+        ...(diagnostic ? { diagnostic } : {})
       });
     });
 
     return { apexTestClassIdSet, testResults };
+  }
+
+  private getSyncDiagnostic(syncRecord: SyncTestFailure): ApexDiagnostic {
+    const diagnostic: ApexDiagnostic = {
+      exceptionMessage: syncRecord.message,
+      exceptionStackTrace: syncRecord.stackTrace,
+      className: syncRecord.stackTrace.split('.')[1],
+      compileProblem: ''
+    };
+
+    const matches = syncRecord.stackTrace.match(/(line (\d+), column (\d+))/);
+    if (matches) {
+      if (matches[2]) {
+        diagnostic.lineNumber = Number(matches[2]);
+      }
+      if (matches[3]) {
+        diagnostic.columnNumber = Number(matches[3]);
+      }
+    }
+    return diagnostic;
   }
 
   // Asynchronous Test Runs
@@ -286,8 +313,8 @@ export class TestService {
           testResults.length
         ),
         testStartTime: formatStartTime(summaryRecord.StartTime),
-        testExecutionTimeInMs: summaryRecord.TestTime,
-        testTotalTimeInMs: summaryRecord.TestTime,
+        testExecutionTimeInMs: summaryRecord.TestTime ?? 0,
+        testTotalTimeInMs: summaryRecord.TestTime ?? 0,
         commandTimeInMs: getCurrentTime() - commandStartTime,
         hostname: this.connection.instanceUrl,
         orgId: this.connection.getAuthInfoFields().orgId,
@@ -409,6 +436,11 @@ export class TestService {
           ? `${item.ApexClass.NamespacePrefix}__${item.ApexClass.Name}`
           : item.ApexClass.Name;
 
+        const diagnostic =
+          item.Message || item.StackTrace
+            ? this.getAsyncDiagnostic(item)
+            : null;
+
         testResults.push({
           id: item.Id,
           queueItemId: item.QueueItemId,
@@ -424,9 +456,10 @@ export class TestService {
             namespacePrefix: item.ApexClass.NamespacePrefix,
             fullName: item.ApexClass.FullName
           },
-          runTime: item.RunTime,
+          runTime: item.RunTime ?? 0,
           testTimestamp: item.TestTimestamp, // TODO: convert timestamp
-          fullName: `${item.ApexClass.FullName}.${item.MethodName}`
+          fullName: `${item.ApexClass.FullName}.${item.MethodName}`,
+          ...(diagnostic ? { diagnostic } : {})
         });
       });
     }
@@ -436,6 +469,26 @@ export class TestService {
       testResults,
       globalTests: { passed, failed, skipped }
     };
+  }
+
+  public getAsyncDiagnostic(asyncRecord: ApexTestResultRecord): ApexDiagnostic {
+    const diagnostic: ApexDiagnostic = {
+      exceptionMessage: asyncRecord.Message,
+      exceptionStackTrace: asyncRecord.StackTrace,
+      className: asyncRecord.StackTrace.split('.')[1],
+      compileProblem: ''
+    };
+
+    const matches = asyncRecord.StackTrace.match(/(line (\d+), column (\d+))/);
+    if (matches) {
+      if (matches[2]) {
+        diagnostic.lineNumber = Number(matches[2]);
+      }
+      if (matches[3]) {
+        diagnostic.columnNumber = Number(matches[3]);
+      }
+    }
+    return diagnostic;
   }
 
   public async getOrgWideCoverage(): Promise<string> {

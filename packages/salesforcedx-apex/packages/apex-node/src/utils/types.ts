@@ -18,3 +18,12 @@ export type CommonOptions = {
   json?: boolean;
   loglevel?: logLevel;
 };
+
+export type ApexDiagnostic = {
+  lineNumber?: number;
+  columnNumber?: number;
+  exceptionMessage: string;
+  compileProblem: string;
+  exceptionStackTrace: string;
+  className?: string;
+};

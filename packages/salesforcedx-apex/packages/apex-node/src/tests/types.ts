@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ApexDiagnostic } from '../utils/types';
+
 export const enum TestLevel {
   /**
    * All tests in your org are run, except the ones that originate from installed managed packages
@@ -341,6 +343,7 @@ export type ApexTestResultData = {
    * The associated ApexCodeCoverage object
    */
   perClassCoverage?: PerClassCoverage[];
+  diagnostic?: ApexDiagnostic;
 };
 
 export type CodeCoverageResult = {

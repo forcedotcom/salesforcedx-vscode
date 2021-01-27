@@ -6,7 +6,12 @@
  */
 
 import { Row, Table } from '../utils';
-import { ApexTestResultData, CodeCoverageResult, TestResult } from '../tests';
+import {
+  ApexTestResultData,
+  ApexTestResultOutcome,
+  CodeCoverageResult,
+  TestResult
+} from '../tests';
 import { nls } from '../i18n';
 
 export class HumanReporter {
@@ -96,15 +101,21 @@ export class HumanReporter {
     tests.forEach(
       (elem: {
         fullName: string;
-        outcome: string;
+        outcome: ApexTestResultOutcome;
         message: string | null;
         runTime: number;
+        stackTrace: string | null;
       }) => {
+        const msg = elem.stackTrace
+          ? `${elem.message}\n${elem.stackTrace}`
+          : elem.message;
+
         testRowArray.push({
           name: elem.fullName,
           outcome: elem.outcome,
-          msg: elem.message ? elem.message : '',
-          runtime: `${elem.runTime}`
+          msg: elem.message ? msg : '',
+          runtime:
+            elem.outcome !== ApexTestResultOutcome.Fail ? `${elem.runTime}` : ''
         });
       }
     );
