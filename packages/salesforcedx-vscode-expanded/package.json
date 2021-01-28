@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "50.14.0",
+  "version": "50.15.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -41,6 +41,7 @@
     "redhat.vscode-xml",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "chuckjonas.apex-pmd"
+    "chuckjonas.apex-pmd",
+    "financialforce.lana"
   ]
 }

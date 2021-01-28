@@ -16,7 +16,8 @@ export {
 } from './commands/preconditionCheckers';
 export {
   CommandletExecutor,
-  SfdxCommandletExecutor
+  SfdxCommandletExecutor,
+  LibraryCommandletExecutor
 } from './commands/commandletExecutors';
 export { SfdxCommandlet } from './commands/sfdxCommandlet';
 export {

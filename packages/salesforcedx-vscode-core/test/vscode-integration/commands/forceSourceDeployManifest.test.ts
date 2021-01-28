@@ -15,7 +15,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
-import { channelService } from '../../../src/channels';
+import { OUTPUT_CHANNEL } from '../../../src/channels';
 
 import { ForceSourceDeployManifestExecutor } from '../../../src/commands';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
@@ -23,7 +23,6 @@ import { createDeployOutput } from '../../../src/commands/util';
 import { workspaceContext } from '../../../src/context';
 
 import { nls } from '../../../src/messages';
-import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
@@ -53,6 +52,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
 
     let mockConnection: Connection;
     let deployStub: SinonStub;
+    let outputStub: SinonStub;
 
     const executor = new LibrarySourceDeployManifestExecutor();
 
@@ -78,6 +78,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
         })
         .returns(mockComponents);
       deployStub = env.stub(mockComponents, 'deploy').withArgs(mockConnection);
+      outputStub = env.stub(OUTPUT_CHANNEL, 'appendLine');
     });
 
     afterEach(() => {
@@ -93,19 +94,15 @@ describe('Force Source Deploy Using Manifest Option', () => {
         components: []
       };
       deployStub.resolves(deployResult);
-      const notificationStub = env.stub(
-        notificationService,
-        'showSuccessfulExecution'
-      );
-      const channelServiceStub = env.stub(channelService, 'appendLine');
 
-      await executor.execute({ data: manifestPath, type: 'CONTINUE' });
+      const success = await executor.run({
+        data: manifestPath,
+        type: 'CONTINUE'
+      });
 
-      expect(notificationStub.calledOnce).to.equal(true);
+      expect(success).to.equal(true);
       expect(
-        channelServiceStub.calledWith(
-          createDeployOutput(deployResult, packageDirs)
-        )
+        outputStub.calledWith(createDeployOutput(deployResult, packageDirs))
       );
     });
 
@@ -117,19 +114,15 @@ describe('Force Source Deploy Using Manifest Option', () => {
         components: []
       };
       deployStub.resolves(deployResult);
-      const notificationStub = env.stub(
-        notificationService,
-        'showFailedExecution'
-      );
-      const channelServiceStub = env.stub(channelService, 'appendLine');
 
-      await executor.execute({ data: manifestPath, type: 'CONTINUE' });
+      const success = await executor.run({
+        data: manifestPath,
+        type: 'CONTINUE'
+      });
 
-      expect(notificationStub.calledOnce).to.equal(true);
+      expect(success).to.equal(false);
       expect(
-        channelServiceStub.calledWith(
-          createDeployOutput(deployResult, packageDirs)
-        )
+        outputStub.calledWith(createDeployOutput(deployResult, packageDirs))
       );
     });
   });
