@@ -41,6 +41,7 @@
     "redhat.vscode-xml",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "chuckjonas.apex-pmd"
+    "chuckjonas.apex-pmd",
+    "financialforce.lana"
   ]
 }
