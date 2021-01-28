@@ -51,7 +51,7 @@ export class ConfigUtil {
           return localValue;
         }
       } catch (err) {
-        await TelemetryService.getInstance().sendException(
+        TelemetryService.getInstance().sendException(
           'get_config_value_local',
           err.message
         );
@@ -66,7 +66,7 @@ export class ConfigUtil {
           return globalValue;
         }
       } catch (err) {
-        await TelemetryService.getInstance().sendException(
+        TelemetryService.getInstance().sendException(
           'get_config_value_global',
           err.message
         );

@@ -22,11 +22,11 @@ export async function startTelemetry(
     extensionPackage.aiKey,
     extensionPackage.version
   );
-  await telemetryService.sendExtensionActivationEvent(hrtime);
+  telemetryService.sendExtensionActivationEvent(hrtime);
 }
 
 export async function stopTelemetry(): Promise<void> {
-  await telemetryService.sendExtensionDeactivationEvent();
+  telemetryService.sendExtensionDeactivationEvent();
 }
 
 export interface TelemetryModelJson extends JsonMap {

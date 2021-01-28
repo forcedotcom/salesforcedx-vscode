@@ -56,9 +56,12 @@ export abstract class SfdxCommandletExecutor<T>
     properties?: Properties,
     measurements?: Measurements
   ) {
-    TelemetryService.getInstance()
-      .sendCommandEvent(logName, hrstart, properties, measurements)
-      .catch();
+    TelemetryService.getInstance().sendCommandEvent(
+      logName,
+      hrstart,
+      properties,
+      measurements
+    );
   }
 
   public execute(response: ContinueResponse<T>): void {
@@ -111,19 +114,25 @@ export abstract class SfdxCommandletExecutor<T>
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
-  /**
-   * Command name visible to user while executing.
-   */
-  protected abstract readonly executionName: string;
-  /**
-   * Command name for logging purposes such as telemetry
-   */
-  protected abstract readonly logName: string;
-  /**
-   * Output channel to report execution status to.
-   */
-  protected abstract readonly outputChannel: vscode.OutputChannel;
+  private readonly executionName: string;
+  private readonly logName: string;
+  private readonly outputChannel: vscode.OutputChannel;
   protected readonly telemetry = new TelemetryBuilder();
+
+  /**
+   * @param name Name visible to user while executing.
+   * @param logName Name for logging purposes such as telemetry.
+   * @param outputChannel VS Code output channel to report execution status to.
+   */
+  constructor(
+    executionName: string,
+    logName: string,
+    outputChannel: vscode.OutputChannel
+  ) {
+    this.executionName = executionName;
+    this.logName = logName;
+    this.outputChannel = outputChannel;
+  }
 
   /**
    * Core logic of the command.
@@ -131,7 +140,7 @@ export abstract class LibraryCommandletExecutor<T>
    * @param response Data from the parameter gathering step.
    * @returns Whether or not the execution was a success
    */
-  protected abstract run(response: ContinueResponse<T>): Promise<boolean>;
+  public abstract run(response: ContinueResponse<T>): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
@@ -162,14 +171,14 @@ export abstract class LibraryCommandletExecutor<T>
       }
       this.telemetry.addProperty('success', String(success));
       const { properties, measurements } = this.telemetry.build();
-      await telemetryService.sendCommandEvent(
+      telemetryService.sendCommandEvent(
         this.logName,
         startTime,
         properties,
         measurements
       );
     } catch (e) {
-      await telemetryService.sendException(e.name, e.message);
+      telemetryService.sendException(e.name, e.message);
       notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
       channelService.showChannelOutput();

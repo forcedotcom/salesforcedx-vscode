@@ -167,14 +167,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       this.logMetric(commandName, startTime, result.data);
     } catch (result) {
       console.log('Generate error ' + result.error);
-      const commandData = {
-        commandName,
-        executionTime: telemetryService.getEndHRTime(startTime)
-      };
-      telemetryService.sendErrorEvent(
-        result.error,
-        Object.assign(result.data, commandData)
-      );
+      telemetryService.sendException(result.name, result.error);
     }
 
     ForceGenerateFauxClassesExecutor.isActive = false;
@@ -203,10 +196,7 @@ export async function verifyUsernameAndInitSObjectDefinitions(
     (await getDefaultUsernameOrAlias()) !== undefined;
   if (hasDefaultUsernameSet) {
     initSObjectDefinitions(projectPath).catch(e =>
-      telemetryService.sendErrorEvent({
-        message: e.message,
-        stack: e.stack
-      })
+      telemetryService.sendException(e.name, e.message)
     );
   }
 }
@@ -257,15 +247,12 @@ export async function checkSObjectsAndRefresh(projectPath: string) {
           { type: 'Requested Refresh' },
           undefined
         );
-        forceGenerateFauxClassesCreate(SObjectRefreshSource.StartupMin).catch(
-          e => {
-            telemetryService.sendErrorEvent({
-              message: e.message,
-              stack: e.stack
-            });
-            throw e;
-          }
-        );
+        try {
+          await forceGenerateFauxClassesCreate(SObjectRefreshSource.StartupMin);
+        } catch (e) {
+          telemetryService.sendException(e.name, e.message);
+          throw e;
+        }
       } else {
         telemetryService.sendEventData(
           'sObjectRefreshNotification',

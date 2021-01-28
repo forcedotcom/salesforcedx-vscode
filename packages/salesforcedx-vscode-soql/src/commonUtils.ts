@@ -34,7 +34,7 @@ export async function trackErrorWithTelemetry(
   error: string
 ): Promise<void> {
   try {
-    await telemetryService.sendException(
+    telemetryService.sendException(
       `soql_error_${problemId.toLocaleLowerCase()}`,
       error
     );
