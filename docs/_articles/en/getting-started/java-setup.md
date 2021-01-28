@@ -27,6 +27,8 @@ Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.ja
 
 MacOS:
 
+It is worth using the command 'Which Java' to find the correct path to your Java_Home.
+
 ```json
 {
   "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home"
