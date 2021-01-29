@@ -9,13 +9,11 @@ const {
   checkNodeVersion,
   checkLernaInstall,
   checkVSCEInstall,
-  checkAWSCliInstall,
-  checkAWSAccess,
   checkSalesforcePublisherAccess,
   checkBaseBranch
 } = require('./validation-utils');
 
-const logger = require('./logger-util')
+const logger = require('./logger-util');
 
 /*
  * Assumptions:
@@ -45,8 +43,6 @@ checkBaseBranch(`release/v${nextVersion}`);
 checkNodeVersion();
 checkLernaInstall();
 checkVSCEInstall();
-checkAWSCliInstall();
-checkAWSAccess();
 checkSalesforcePublisherAccess();
 
 logger.header('\nDownload vsix files from CircleCI');
@@ -60,11 +56,6 @@ shell.exec('./scripts/concatenate-sha256.js');
 
 logger.header('\nRemoving the temp SHA256 file.');
 shell.rm('./SHA256');
-
-logger.header('\nPushing the SHA256 to AWS.');
-shell.exec(
-  'aws s3 cp ./SHA256.md s3://dfc-data-production/media/vscode/SHA256.md'
-);
 
 logger.header('\nAdding the SHA256 to git.');
 shell.exec(`git add SHA256.md`);

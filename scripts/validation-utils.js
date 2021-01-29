@@ -13,7 +13,9 @@ module.exports = {
   checkVSCodeVersion: () => {
     const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
     if (!nextVersion || !nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
-      logger.error(`You must set environment variable 'SALESFORCEDX_VSCODE_VERSION'.`);
+      logger.error(
+        `You must set environment variable 'SALESFORCEDX_VSCODE_VERSION'.`
+      );
       logger.info(
         `To set: 'export SALESFORCEDX_VSCODE_VERSION=xx.yy.zz'. Where xx.yy.zz is the release number.`
       );
@@ -49,7 +51,9 @@ module.exports = {
   },
 
   checkNodeVersion: () => {
-    logger.header('\nVerifying node version ' + NODE_VERSION + ' is installed.');
+    logger.header(
+      '\nVerifying node version ' + NODE_VERSION + ' is installed.'
+    );
     const [version, major, minor, patch] = process.version.match(
       /^v(\d+)\.?(\d+)\.?(\*|\d+)$/
     );
@@ -59,16 +63,18 @@ module.exports = {
     ) {
       logger.error(
         'Please update from node version ' +
-        process.version +
-        ' to ' +
-        NODE_VERSION
+          process.version +
+          ' to ' +
+          NODE_VERSION
       );
       process.exit(-1);
     }
   },
 
   checkLernaInstall: () => {
-    logger.header(`\nVerifying lerna is installed for node version ${NODE_VERSION}.`);
+    logger.header(
+      `\nVerifying lerna is installed for node version ${NODE_VERSION}.`
+    );
     if (!shell.which('lerna') || !shell.which('lerna').includes(NODE_VERSION)) {
       logger.info(`Lerna location: ` + shell.which('lerna'));
       logger.info(
@@ -79,42 +85,15 @@ module.exports = {
   },
 
   checkVSCEInstall: () => {
-    logger.header(`\nVerifying vsce is installed for node version ${NODE_VERSION}.`);
+    logger.header(
+      `\nVerifying vsce is installed for node version ${NODE_VERSION}.`
+    );
     if (!shell.which('vsce') || !shell.which('vsce').includes(NODE_VERSION)) {
       logger.info('VSCE Location: ' + shell.which('vsce'));
-      logger.info(`VSCE not found for node version ${NODE_VERSION} - Installing latest version.`);
-      shell.exec('npm install -g vsce');
-    }
-  },
-
-  checkAWSCliInstall: () => {
-    logger.header(`\nVerifying AWS CLI is installed for node version ${NODE_VERSION}.`);
-    if (!shell.which('aws')) {
-      logger.error('The AWS CLI is not installed or could not be found.');
       logger.info(
-        `For installation, see https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-mac.html#cliv2-mac-install-gui`
+        `VSCE not found for node version ${NODE_VERSION} - Installing latest version.`
       );
-      process.exit(-1);
-    }
-  },
-
-  checkAWSAccess: () => {
-    logger.header('\nVerifying access to AWS bucket.');
-    logger.info(
-      'If you see any errors in the steps below, either...\n' +
-      '1) Your AWS creds need to be setup or 2) You do not have access to the AWS bucket.'
-    );
-    const awsExitCode = shell.exec(
-      'aws s3 ls s3://dfc-data-production/media/vscode/SHA256.md',
-      {
-        silent: true
-      }
-    ).code;
-    if (awsExitCode !== 0) {
-      logger.error(
-        'You do not have the s3 command line installed or you do not have access to the aws s3 bucket.'
-      );
-      process.exit(-1);
+      shell.exec('npm install -g vsce');
     }
   },
 
@@ -124,7 +103,9 @@ module.exports = {
       .exec('vsce ls-publishers', { silent: true })
       .stdout.trim();
     if (!publishers.includes('salesforce')) {
-      logger.error('You do not have access to the salesforce publisher id as part of vsce.');
+      logger.error(
+        'You do not have access to the salesforce publisher id as part of vsce.'
+      );
       logger.info(
         'Either the marketplace token is incorrect or your access to our publisher was removed.'
       );
