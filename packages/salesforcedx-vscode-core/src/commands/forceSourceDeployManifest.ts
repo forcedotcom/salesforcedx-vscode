@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -12,7 +13,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/type
 import { ComponentSet, DeployStatus } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
@@ -29,7 +30,6 @@ import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   createComponentCount,
   FilePathGatherer,
-  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
   useBetaDeployRetrieve
@@ -55,10 +55,15 @@ export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
 export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecutor<
   string
 > {
-  protected logName = 'force_source_deploy_with_manifest';
-  protected executionName = 'Deploy With Manifest (beta)';
+  constructor() {
+    super(
+      'Deploy With Manifest (beta)',
+      'force_source_deploy_with_manifest',
+      OUTPUT_CHANNEL
+    );
+  }
 
-  protected async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     try {
       const components = await ComponentSet.fromManifestFile(response.data, {
