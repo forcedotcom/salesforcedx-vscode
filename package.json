@@ -20,7 +20,7 @@
     "snyk": "^1.364.0",
     "ts-loader": "5.4.5",
     "tslint": "5.5.0",
-    "typescript": "3.7.5",
+    "typescript": "3.8.3",
     "vsce": "1.62.0",
     "vscode-test": "^1.4.0",
     "webpack": "4.30.0",

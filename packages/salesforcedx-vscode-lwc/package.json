@@ -33,7 +33,7 @@
     "ajv": "^6.1.1",
     "applicationinsights": "1.0.7",
     "eslint": "5.0.0",
-    "jest-editor-support": "^26.0.0-beta",
+    "jest-editor-support": "^28.0.0",
     "jest-regex-util": "^24.9.0",
     "rxjs": "^5.4.1",
     "strip-ansi": "^5.2.0",
@@ -59,7 +59,7 @@
     "sinon": "^7.3.1",
     "sinon-chai": "^3.4.0",
     "ts-sinon": "^1.0.25",
-    "typescript": "3.7.5",
+    "typescript": "3.8.3",
     "vscode-uri": "^1.0.8"
   },
   "extensionDependencies": [

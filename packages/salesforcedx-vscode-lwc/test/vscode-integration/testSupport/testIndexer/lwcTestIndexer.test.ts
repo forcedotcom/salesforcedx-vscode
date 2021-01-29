@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as jestTestSupport from 'jest-editor-support';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
@@ -37,46 +38,9 @@ describe('LWC Test Indexer', () => {
     let onDidCreateEventEmitter: vscode.EventEmitter<vscode.Uri>;
     let onDidChangeEventEmitter: vscode.EventEmitter<vscode.Uri>;
     let onDidDeleteEventEmitter: vscode.EventEmitter<vscode.Uri>;
+    let readFileStub: SinonStub;
     let mockFileSystemWatcher;
-    const mockItBlocks = [
-      {
-        type: 'it',
-        name: 'mockTestCase1',
-        nameRange: {
-          start: {
-            line: 10,
-            column: 20
-          },
-          end: {
-            line: 10,
-            column: 25
-          }
-        },
-        ancestorTitles: []
-      },
-      {
-        type: 'it',
-        name: 'mockTestCase2',
-        nameRange: {
-          start: {
-            line: 30,
-            column: 10
-          },
-          end: {
-            line: 30,
-            column: 15
-          }
-        },
-        ancestorTitles: []
-      }
-    ];
-    const mockParseResults = {
-      itBlocks: mockItBlocks,
-      root: {
-        type: 'root',
-        children: [...mockItBlocks]
-      }
-    };
+
     let createFileSystemWatcherStub: SinonStub<
       [
         vscode.GlobPattern,
@@ -106,10 +70,13 @@ describe('LWC Test Indexer', () => {
       createFileSystemWatcherStub.returns(
         mockFileSystemWatcher as vscode.FileSystemWatcher
       );
-      parseStub = stub(jestTestSupport, 'parse');
-      // @ts-ignore
-      parseStub.returns(mockParseResults);
-      // start mock file system watcher
+
+      const mockFile = `it('mockTestCase1', () => {})\nit('mockTestCase2', () => {})\n`;
+      readFileStub = stub(fs, 'readFileSync');
+      readFileStub.callsFake(fileName => {
+        return mockFile;
+      });
+
       await lwcTestIndexer.configureAndIndex();
       lwcTestIndexer.resetIndex();
     });
@@ -118,7 +85,7 @@ describe('LWC Test Indexer', () => {
       onDidChangeEventEmitter.dispose();
       onDidDeleteEventEmitter.dispose();
       createFileSystemWatcherStub.restore();
-      parseStub.restore();
+      readFileStub.restore();
     });
 
     function assertTestCasesMatch(
@@ -221,7 +188,7 @@ describe('LWC Test Indexer', () => {
 
     it('should update index on test file change when parsing has an error', async () => {
       // Mock parsing error
-      parseStub.callsFake(() => {
+      readFileStub.callsFake(fileName => {
         throw new Error();
       });
       const testFileUriToChange = lwcTests[0];
