@@ -7,13 +7,12 @@
 
 import * as util from 'util';
 import { commands, ExtensionContext, Uri, window } from 'vscode';
-import { TELEMETRY_OPT_OUT_LINK } from '../constants';
+import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
 import { sfdxCoreSettings } from '../settings';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../util';
 import TelemetryReporter from './telemetryReporter';
 
-const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 const EXTENSION_NAME = 'salesforcedx-vscode-core';
 
 interface CommandMetric {

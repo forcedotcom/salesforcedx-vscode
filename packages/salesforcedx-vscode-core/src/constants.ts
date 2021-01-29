@@ -14,13 +14,15 @@ export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 export const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 export const SFDX_CONFIG_DISABLE_TELEMETRY = 'disableTelemetry';
 export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
-export const TELEMETRY_OPT_OUT_LINK =
-  'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
 export const SFDX_CLI_DOWNLOAD_LINK =
   'https://developer.salesforce.com/tools/sfdxcli';
 export const DEFAULT_USERNAME_KEY = 'defaultusername';
 export const DEFAULT_DEV_HUB_USERNAME_KEY = 'defaultdevhubusername';
 export const PKG_ID_PREFIX = '04t';
+
+export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
+export const TELEMETRY_OPT_OUT_LINK =
+  'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
 
 // sfdxCore setting config values
 export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';

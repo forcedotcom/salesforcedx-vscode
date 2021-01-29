@@ -6,19 +6,7 @@
  */
 
 import * as util from 'util';
-import {
-  commands,
-  env,
-  ExtensionContext,
-  Uri,
-  window,
-  workspace
-} from 'vscode';
-import { nls } from '../messages';
-import {
-  TELEMETRY_GLOBAL_VALUE,
-  TELEMETRY_OPT_OUT_LINK
-} from '../types/constants';
+import { env, ExtensionContext, workspace } from 'vscode';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import TelemetryReporter from './telemetryReporter';
 
@@ -124,32 +112,6 @@ export class TelemetryService {
         true
       );
       this.context.subscriptions.push(this.reporter);
-    }
-  }
-
-  public showTelemetryMessage() {
-    // check if we've ever shown Telemetry message to user
-    const showTelemetryMessage = this.getHasTelemetryMessageBeenShown();
-
-    if (showTelemetryMessage) {
-      // Show the message and set telemetry to true;
-      const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
-      const showMessage = nls.localize(
-        'telemetry_legal_dialog_message',
-        TELEMETRY_OPT_OUT_LINK
-      );
-      window
-        .showInformationMessage(showMessage, showButtonText)
-        .then(selection => {
-          // Open disable telemetry link
-          if (selection && selection === showButtonText) {
-            commands.executeCommand(
-              'vscode.open',
-              Uri.parse(TELEMETRY_OPT_OUT_LINK)
-            );
-          }
-        });
-      this.setTelemetryMessageShowed();
     }
   }
 
@@ -265,26 +227,6 @@ export class TelemetryService {
   public getEndHRTime(hrstart: [number, number]): number {
     const hrend = process.hrtime(hrstart);
     return Number(util.format('%d%d', hrend[0], hrend[1] / 1000000));
-  }
-
-  private getHasTelemetryMessageBeenShown(): boolean {
-    if (this.context === undefined) {
-      return true;
-    }
-
-    const sfdxTelemetryState = this.context.globalState.get(
-      TELEMETRY_GLOBAL_VALUE
-    );
-
-    return typeof sfdxTelemetryState === 'undefined';
-  }
-
-  private setTelemetryMessageShowed(): void {
-    if (this.context === undefined) {
-      return;
-    }
-
-    this.context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
   }
 
   /**
