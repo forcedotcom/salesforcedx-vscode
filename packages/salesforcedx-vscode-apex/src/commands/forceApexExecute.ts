@@ -22,6 +22,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
+  CommandletExecutor,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -33,11 +34,6 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
 type TempFile = { fileName: string };
-
-function getApexLibrarySetting(): boolean {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-core');
-  return config.get<boolean>('experimental.useApexLibrary', true);
-}
 
 function getRange(lineNumber: string, columnNumber: string): vscode.Range {
   const ln = Number(lineNumber);
@@ -145,9 +141,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
       apexCode
     });
 
-    const { success } = result;
-    const formattedResult = this.formatExecuteResult(result);
-    OUTPUT_CHANNEL.appendLine(formattedResult);
+    this.outputResult(result);
 
     const editor = vscode.window.activeTextEditor;
     const document = editor!.document;
@@ -155,54 +149,52 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 
     this.handleDiagnostics(result, filePath);
 
-    return success;
+    return result.success;
   }
 
-  private formatExecuteResult(
-    execAnonResponse: ExecuteAnonymousResponse
-  ): string {
+  private outputResult(response: ExecuteAnonymousResponse): void {
     let outputText = '';
-    if (execAnonResponse.success) {
+    if (response.success) {
       outputText += `${nls.localize('apex_execute_compile_success')}\n`;
       outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
-      outputText += `\n${execAnonResponse.logs}`;
+      outputText += `\n${response.logs}`;
     } else {
-      const diagnostic = execAnonResponse.diagnostic![0];
+      const diagnostic = response.diagnostic![0];
 
-      if (!execAnonResponse.compiled) {
+      if (!response.compiled) {
         outputText += `Error: Line: ${diagnostic.lineNumber}, Column: ${diagnostic.columnNumber}\n`;
         outputText += `Error: ${diagnostic.compileProblem}\n`;
       } else {
         outputText += `${nls.localize('apex_execute_compile_success')}\n`;
         outputText += `Error: ${diagnostic.exceptionMessage}\n`;
         outputText += `Error: ${diagnostic.exceptionStackTrace}\n`;
-        outputText += `\n${execAnonResponse.logs}`;
+        outputText += `\n${response.logs}`;
       }
     }
-    return outputText;
+    OUTPUT_CHANNEL.appendLine(outputText);
   }
 
   private handleDiagnostics(
-    apexResult: ExecuteAnonymousResponse,
+    response: ExecuteAnonymousResponse,
     filePath: string
   ) {
     ApexLibraryExecuteExecutor.diagnostics.clear();
 
-    if (apexResult.diagnostic) {
+    if (response.diagnostic) {
       const range = getRange(
-        apexResult.diagnostic[0].lineNumber
-          ? apexResult.diagnostic[0].lineNumber.toString()
+        response.diagnostic[0].lineNumber
+          ? response.diagnostic[0].lineNumber.toString()
           : '1',
-        apexResult.diagnostic[0].columnNumber
-          ? apexResult.diagnostic[0].columnNumber.toString()
+        response.diagnostic[0].columnNumber
+          ? response.diagnostic[0].columnNumber.toString()
           : '1'
       );
 
       const diagnostic = {
         message:
-          typeof apexResult.diagnostic[0].compileProblem === 'string'
-            ? apexResult.diagnostic[0].compileProblem
-            : apexResult.diagnostic[0].exceptionMessage,
+          typeof response.diagnostic[0].compileProblem === 'string'
+            ? response.diagnostic[0].compileProblem
+            : response.diagnostic[0].exceptionMessage,
         severity: vscode.DiagnosticSeverity.Error,
         source: filePath,
         range
@@ -216,18 +208,25 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 }
 
 export async function forceApexExecute() {
-  const useApexLibrary = getApexLibrarySetting();
-  const parameterGatherer = useApexLibrary
-    ? new AnonApexGatherer()
-    : new CreateApexTempFile();
-  const executeExecutor = useApexLibrary
-    ? new ApexLibraryExecuteExecutor()
-    : new ForceApexExecuteExecutor();
+  let parametersGatherer: ParametersGatherer<any>;
+  let executor: CommandletExecutor<any>;
+  const apexLibraryEnabled = vscode.workspace
+    .getConfiguration('salesforcedx-vscode-core')
+    .get<boolean>('experimental.useApexLibrary', true);
+
+  if (apexLibraryEnabled) {
+    parametersGatherer = new AnonApexGatherer();
+    executor = new ApexLibraryExecuteExecutor();
+  } else {
+    parametersGatherer = new CreateApexTempFile();
+    executor = new ApexLibraryExecuteExecutor();
+  }
 
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    parameterGatherer,
-    executeExecutor
+    parametersGatherer,
+    executor
   );
+
   await commandlet.run();
 }

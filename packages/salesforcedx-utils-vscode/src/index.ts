@@ -15,7 +15,6 @@ export {
   SfdxWorkspaceChecker
 } from './commands/preconditionCheckers';
 export {
-  CommandletExecutor,
   SfdxCommandletExecutor,
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
