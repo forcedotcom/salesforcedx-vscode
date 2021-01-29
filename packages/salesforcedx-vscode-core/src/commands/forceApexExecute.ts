@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteService } from '@salesforce/apex-node';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -17,7 +18,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { handleApexLibraryDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
@@ -25,7 +26,6 @@ import { sfdxCoreSettings } from '../settings';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
 import {
   CommandletExecutor,
-  LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -131,20 +131,32 @@ export class AnonApexGatherer
   }
 }
 
-export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexExecuteParameters> {
-  protected executionName = nls.localize('apex_execute_text');
-  protected logName = 'force_apex_execute_library';
-
+export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
+  ApexExecuteParameters
+> {
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
 
-  protected async run(response: ContinueResponse<ApexExecuteParameters>): Promise<boolean> {
+  constructor() {
+    super(
+      nls.localize('apex_execute_text'),
+      'force_apex_execute_library',
+      OUTPUT_CHANNEL
+    );
+  }
+
+  public async run(
+    response: ContinueResponse<ApexExecuteParameters>
+  ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath } = response.data;
 
-    const result = await executeService.executeAnonymous({ apexFilePath, apexCode });
+    const result = await executeService.executeAnonymous({
+      apexFilePath,
+      apexCode
+    });
 
     const { success } = result;
     const formattedResult = formatExecuteResult(result);
@@ -154,7 +166,11 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<ApexEx
     const document = editor!.document;
     const filePath = apexFilePath || document.uri.fsPath;
 
-    handleApexLibraryDiagnostics(result, ApexLibraryExecuteExecutor.diagnostics, filePath);
+    handleApexLibraryDiagnostics(
+      result,
+      ApexLibraryExecuteExecutor.diagnostics,
+      filePath
+    );
 
     return success;
   }
