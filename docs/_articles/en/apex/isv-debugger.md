@@ -11,6 +11,7 @@ An ISV can reproduce issues in the specific environment, so problems can be diag
 
 ISV Customer Debugger is part of the Apex Interactive Debugger (`salesforcedx-vscode-apex-debugger`) extension, so you don’t need to install anything other than the Salesforce Extension Pack and its prerequisites. You can debug only sandbox orgs.
 
+1. Log into your License Management Org (LMO) and enable the **View and Debug Managed Apex** permission for your user via Profiles or Permission Sets.
 1. Log in to your subscriber’s sandbox via your License Management Org (LMO). If you’re not familiar with this process, see the _ISVforce Guide_. For information on how to obtain login access to your subscriber’s org, see [Request Login Access from a Customer](https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/lma_requesting_login_access.htm). For information on how to log in via the Subscriber Support Console, see [Logging In to Subscriber Orgs](https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/lma_logging_in_to_sub_org.htm).
 1. In your subscriber’s org, from Setup, enter **Apex Debugger** in the Quick Find box, then click **Apex Debugger**.
 1. Click **Start Partner Debugging Session**.
