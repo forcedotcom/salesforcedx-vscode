@@ -27,7 +27,7 @@ Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.ja
 
 MacOS:
 
-For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
 
 ```json
 {
@@ -67,7 +67,7 @@ Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.ja
 
 MacOS:
 
-For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
 
 ```json
 {
@@ -98,7 +98,7 @@ Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.ja
 
 MacOS:
 
-For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
 
 ```json
 {
@@ -120,7 +120,7 @@ If you are still running Java 8 the values for `salesforcedx-vscode-apex.java.ho
 
 MacOS:
 
-For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
 
 ```json
 {
