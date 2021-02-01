@@ -28,7 +28,6 @@
     "@salesforce/aura-language-server": "3.0.12",
     "@salesforce/core": "2.11.0",
     "@salesforce/lightning-lsp-common": "3.0.12",
-    "@salesforce/lwc-language-server": "3.0.12",
     "@salesforce/salesforcedx-utils-vscode": "50.15.0",
     "applicationinsights": "1.0.7",
     "vscode-extension-telemetry": "0.0.17",
