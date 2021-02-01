@@ -27,7 +27,7 @@ Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.ja
 
 MacOS:
 
-It is worth using the command 'Which Java' to find the correct path to your Java_Home.
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
 
 ```json
 {
@@ -47,9 +47,9 @@ Linux (Pop! OS 20.04, installation via aptitude):
 
 ```json
 {
-    "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-11-openjdk-amd64"
+  "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-11-openjdk-amd64"
 }
-``` 
+```
 
 ## Zulu
 
@@ -66,6 +66,8 @@ Zulu Java builds are TCK-tested and free to download and use without restriction
 Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
 
 MacOS:
+
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
 
 ```json
 {
@@ -96,6 +98,8 @@ Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.ja
 
 MacOS:
 
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
+
 ```json
 {
   "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk-11.0.3.jdk/Contents/Home"
@@ -115,6 +119,8 @@ Windows:
 If you are still running Java 8 the values for `salesforcedx-vscode-apex.java.home` are as follows.
 
 MacOS:
+
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
 
 ```json
 {
