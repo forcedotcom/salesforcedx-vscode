@@ -72,6 +72,7 @@ describe('Should do completion', async () => {
       kind: CompletionItemKind.Field,
       detail: 'string'
     },
+    { label: 'Description', kind: 4, detail: 'string' },
     { label: 'CreatedDate', kind: 4, detail: 'datetime' },
     { label: 'BillingCity', kind: 4, detail: 'string' },
     { label: 'IsDeleted', kind: 4, detail: 'boolean' },
@@ -123,6 +124,7 @@ describe('Should do completion', async () => {
       kind: CompletionItemKind.Field,
       detail: 'string'
     },
+    { label: 'Description', kind: 4, detail: 'string' },
     { label: 'CreatedDate', kind: 4, detail: 'datetime' },
     { label: 'BillingCity', kind: 4, detail: 'string' },
     { label: 'IsDeleted', kind: 4, detail: 'boolean' },
@@ -249,6 +251,50 @@ describe('Should do completion', async () => {
     ],
     { allowExtraCompletionItems: true }
   );
+
+
+
+  testCompletion('SELECT Id, COUNT(Name) FROM Account GROUP BY |', [
+    // NOTE: CreatedDate  and Description are NOT groupable, so we DON'T them:
+    { label: '★ Id', kind: CompletionItemKind.Field, detail: 'id' },
+    {
+      label: 'Name',
+      kind: CompletionItemKind.Field,
+      detail: 'string'
+    },
+    { label: 'BillingCity', kind: CompletionItemKind.Field, detail: 'string' },
+    { label: 'IsDeleted', kind: CompletionItemKind.Field, detail: 'boolean' },
+    {
+      label: 'LastActivityDate',
+      kind: CompletionItemKind.Field,
+      detail: 'date'
+    },
+    { label: 'CUBE', kind: CompletionItemKind.Keyword },
+    { label: 'ROLLUP', kind: CompletionItemKind.Keyword }
+  ]);
+
+  testCompletion('SELECT Id FROM Account ORDER BY |', [
+    // NOTE: Description is NOT sorteable, so we DON'T expect it:
+    { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
+    {
+      label: 'CreatedDate',
+      kind: CompletionItemKind.Field,
+      detail: 'datetime'
+    },
+    {
+      label: 'Name',
+      kind: CompletionItemKind.Field,
+      detail: 'string'
+    },
+    { label: 'BillingCity', kind: CompletionItemKind.Field, detail: 'string' },
+    { label: 'IsDeleted', kind: CompletionItemKind.Field, detail: 'boolean' },
+    {
+      label: 'LastActivityDate',
+      kind: CompletionItemKind.Field,
+      detail: 'date'
+    },
+    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword }
+  ]);
 });
 
 describe('Should not do completion on connection errors', async () => {
