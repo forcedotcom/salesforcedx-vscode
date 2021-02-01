@@ -219,7 +219,7 @@ export async function forceApexExecute() {
     executor = new ApexLibraryExecuteExecutor();
   } else {
     parametersGatherer = new CreateApexTempFile();
-    executor = new ApexLibraryExecuteExecutor();
+    executor = new ForceApexExecuteExecutor();
   }
 
   const commandlet = new SfdxCommandlet(
