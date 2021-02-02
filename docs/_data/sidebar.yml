@@ -127,10 +127,23 @@
         en: Linting
         ja: リンティング
       url: /lwc/linting
+- title:
+    en: LWC Code Preview
+    ja: LWC Code Preview
+  baseUrl: /codepreview/
+  children:
     - title:
-        en: Local Development
-        ja: ローカル開発
-      url: /lwc/localdev
+        en: Overview
+        ja: Overview
+      url: /codepreview/lwccodepreview
+    - title:
+        en: Set Up LWC Code Preview
+        ja: Set Up LWC Code Preview
+      url: /codepreview/set-up-lwc-code-preview
+    - title:
+        en: What's Supported?
+        ja: What's Supported?
+      url: /codepreview/lwc-codepreview-supported-modules
 - title:
     en: Visualforce
     ja: Visualforce
