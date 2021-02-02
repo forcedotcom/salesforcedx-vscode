@@ -11,6 +11,7 @@ During beta, you can build simple query statements that include:
 
 - FROM clause for only one sObject type
 - SELECT clause to pick fields from the selected sObject
+- WHERE clause to filter your data ( ~somethign about simple not complex filters are supported~ )
 - ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
 - LIMIT clause
 
@@ -102,6 +103,7 @@ You can save the query results in a `.csv` or `.json` file. The file is saved in
 
 ### Switching Back to .soql File in Text Editor View Opens It in SOQL Builder
 
+( I don't know if i can reproduce this error anymore )
 **Description:** Let’s say you open a `.soql` file in SOQL Builder, and then open it in a text editor. If you click the SOQL Builder tab, then go back and click the text editor tab, the text editor switches to the SOQL Builder view.
 
 **Workaround:** Reopen the `.soql` file in the text editor.
