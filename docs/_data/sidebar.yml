@@ -128,8 +128,8 @@
         ja: リンティング
       url: /lwc/linting
 - title:
-    en: LWC Code Preview
-    ja: LWC Code Preview
+    en: LWC Local Development
+    ja: LWC Local Development
   baseUrl: /codepreview/
   children:
     - title:
@@ -137,8 +137,8 @@
         ja: Overview
       url: /codepreview/lwccodepreview
     - title:
-        en: Set Up LWC Code Preview
-        ja: Set Up LWC Code Preview
+        en: Set Up LWC Local Development
+        ja: Set Up LWC Local Development
       url: /codepreview/set-up-lwc-code-preview
     - title:
         en: Supported and Unsupported Modules, Components, and Features
