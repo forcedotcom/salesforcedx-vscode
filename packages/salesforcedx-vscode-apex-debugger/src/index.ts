@@ -17,7 +17,7 @@ import {
   SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
   VscodeDebuggerMessage,
-  VscodeDebuggerMessageType
+  VscodeDebuggerMessageType,
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -47,7 +47,7 @@ export async function getDebuggerType(
 
 function registerCommands(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
-    async event => {
+    async (event) => {
       if (event && event.session) {
         const type = await getDebuggerType(event.session);
         if (type === DEBUGGER_TYPE && event.event === SHOW_MESSAGE_EVENT) {
@@ -76,10 +76,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.debug.exception.breakpoint',
     configureExceptionBreakpoint
   );
-  const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
-    cachedExceptionBreakpoints.forEach(breakpoint => {
+  const startSessionHandler = vscode.debug.onDidStartDebugSession((session) => {
+    cachedExceptionBreakpoints.forEach((breakpoint) => {
       const args: SetExceptionBreakpointsArguments = {
-        exceptionInfo: breakpoint
+        exceptionInfo: breakpoint,
       };
       session.customRequest(EXCEPTION_BREAKPOINT_REQUEST, args);
     });
@@ -106,13 +106,13 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
   {
     label: nls.localize('always_break_text'),
     description: '',
-    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS
+    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   },
   {
     label: nls.localize('never_break_text'),
     description: '',
-    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER
-  }
+    breakMode: EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
+  },
 ];
 
 async function configureExceptionBreakpoint(): Promise<void> {
@@ -141,7 +141,7 @@ async function configureExceptionBreakpoint(): Promise<void> {
     );
     const selectExceptionOptions: vscode.QuickPickOptions = {
       placeHolder: nls.localize('select_exception_text'),
-      matchOnDescription: true
+      matchOnDescription: true,
     };
     const selectedException = await vscode.window.showQuickPick(
       processedBreakpointInfos,
@@ -150,7 +150,7 @@ async function configureExceptionBreakpoint(): Promise<void> {
     if (selectedException) {
       const selectBreakModeOptions: vscode.QuickPickOptions = {
         placeHolder: nls.localize('select_break_option_text'),
-        matchOnDescription: true
+        matchOnDescription: true,
       };
       const selectedBreakMode = await vscode.window.showQuickPick(
         EXCEPTION_BREAK_MODES,
@@ -159,7 +159,7 @@ async function configureExceptionBreakpoint(): Promise<void> {
       if (selectedBreakMode) {
         selectedException.breakMode = selectedBreakMode.breakMode;
         const args: SetExceptionBreakpointsArguments = {
-          exceptionInfo: selectedException
+          exceptionInfo: selectedException,
         };
         if (vscode.debug.activeDebugSession) {
           await vscode.debug.activeDebugSession.customRequest(
@@ -221,13 +221,13 @@ export function getExceptionBreakpointCache(): Map<
 
 function registerFileWatchers(): vscode.Disposable {
   const clsWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
-  clsWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  clsWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidChange((uri) => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidCreate((uri) => notifyDebuggerSessionFileChanged());
+  clsWatcher.onDidDelete((uri) => notifyDebuggerSessionFileChanged());
   const trgWatcher = vscode.workspace.createFileSystemWatcher('**/*.trigger');
-  trgWatcher.onDidChange(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidCreate(uri => notifyDebuggerSessionFileChanged());
-  trgWatcher.onDidDelete(uri => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidChange((uri) => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidCreate((uri) => notifyDebuggerSessionFileChanged());
+  trgWatcher.onDidDelete((uri) => notifyDebuggerSessionFileChanged());
   return vscode.Disposable.from(clsWatcher, trgWatcher);
 }
 
@@ -248,9 +248,9 @@ function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
       'sfdx-config.json'
     );
     const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
-    isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidChange((uri) => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidCreate((uri) => setupGlobalDefaultUserIsvAuth());
+    isvAuthWatcher.onDidDelete((uri) => setupGlobalDefaultUserIsvAuth());
     context.subscriptions.push(isvAuthWatcher);
   }
 }
@@ -287,8 +287,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     // Telemetry
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),
       sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
