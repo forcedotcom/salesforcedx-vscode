@@ -1,3 +1,39 @@
+# 50.16.0 - Month DD, YYYY
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Surface project info in apex lsp ([PR #2891](https://github.com/forcedotcom/salesforcedx-vscode/pull/2891))
+
+## Fixed
+
+#### docs
+
+- Add Log Analyzer to recommended ext doc ([PR #2911](https://github.com/forcedotcom/salesforcedx-vscode/pull/2911))
+
+- Update Java path doc for Mac OS ([PR #2910](https://github.com/forcedotcom/salesforcedx-vscode/pull/2910))
+
+- Add missing permission step to ISV Debugger docs ([PR #2901](https://github.com/forcedotcom/salesforcedx-vscode/pull/2901))
+
+#### salesforcedx-vscode-apex-debugger
+
+- Remove use of missing telemetry method  (#2914) ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Remove use of missing telemetry method  (#2914) ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
+#### salesforcedx-vscode-core
+
+- Xyc/upgrade jest editor support ([PR #2904](https://github.com/forcedotcom/salesforcedx-vscode/pull/2904))
+
+- Show telemetry message extension source ([PR #2894](https://github.com/forcedotcom/salesforcedx-vscode/pull/2894))
+
+#### salesforcedx-vscode-visualforce
+
+- Remove use of missing telemetry method  (#2914) ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
 # 50.14.0 - January 21, 2021
 
 ## Fixed
