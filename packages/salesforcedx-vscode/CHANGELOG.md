@@ -1,38 +1,30 @@
-# 50.16.0 - Month DD, YYYY
+# 50.16.0 - February 3, 2021
 
 ## Added
 
 #### salesforcedx-vscode-apex
 
-- Surface project info in apex lsp ([PR #2891](https://github.com/forcedotcom/salesforcedx-vscode/pull/2891))
+- Surface project information in `Apex Language Server` Output panel ([PR #2891](https://github.com/forcedotcom/salesforcedx-vscode/pull/2891))
 
 ## Fixed
 
 #### docs
 
-- Add Log Analyzer to recommended ext doc ([PR #2911](https://github.com/forcedotcom/salesforcedx-vscode/pull/2911))
+- Add Log Analyzer to [Recommended Extensions](https://developer.salesforce.com/tools/vscode/en/getting-started/recommended-extensions) ([PR #2911](https://github.com/forcedotcom/salesforcedx-vscode/pull/2911))
 
-- Update Java path doc for Mac OS ([PR #2910](https://github.com/forcedotcom/salesforcedx-vscode/pull/2910))
+- Add AdoptOpenJDK configuration sample for Linux in [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) ([PR #2870](https://github.com/forcedotcom/salesforcedx-vscode/pull/2870)) - Contribution by [@renatoliveira](https://github.com/renatoliveira)
 
-- Add missing permission step to ISV Debugger docs ([PR #2901](https://github.com/forcedotcom/salesforcedx-vscode/pull/2901))
+- Include steps to get the JDK install path for Mac OS in [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) ([PR #2910](https://github.com/forcedotcom/salesforcedx-vscode/pull/2910)) - Contribution by [@mikeflemingcfs](https://github.com/mikeflemingcfs)
 
-#### salesforcedx-vscode-apex-debugger
+- Add missing permission step to [ISV Customer Debugger](https://developer.salesforce.com/tools/vscode/en/apex/isv-debugger/#configure-isv-customer-debugger) ([PR #2901](https://github.com/forcedotcom/salesforcedx-vscode/pull/2901))
 
-- Remove use of missing telemetry method  (#2914) ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+#### salesforcedx-vscode-lwc
 
-#### salesforcedx-vscode-apex-replay-debugger
+- Reduce extension size by 34% ([PR #2904](https://github.com/forcedotcom/salesforcedx-vscode/pull/2904))
 
-- Remove use of missing telemetry method  (#2914) ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+#### salesforcedx-vscode-lightning
 
-#### salesforcedx-vscode-core
-
-- Xyc/upgrade jest editor support ([PR #2904](https://github.com/forcedotcom/salesforcedx-vscode/pull/2904))
-
-- Show telemetry message extension source ([PR #2894](https://github.com/forcedotcom/salesforcedx-vscode/pull/2894))
-
-#### salesforcedx-vscode-visualforce
-
-- Remove use of missing telemetry method  (#2914) ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+- Reduce extension size by 68% ([PR #2908](https://github.com/forcedotcom/salesforcedx-vscode/pull/2908))
 
 # 50.14.0 - January 21, 2021
 
