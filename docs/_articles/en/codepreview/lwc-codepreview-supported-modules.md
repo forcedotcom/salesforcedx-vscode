@@ -13,7 +13,7 @@ We support these modules.
 : Exposes Apex methods. Use this module to invoke Apex methods. Apex requests are proxied to your scratch org.
 
 **@salesforce/label**
-: Exposes labels in your Salesforce org. The local development server resolves labels from the SFDX project file `force-app/main/default/labels/CustomLabels.labels-meta.xml`. You can configure this value in the `localdevserver.config.json` file. The Code Preview server displays a placeholder for labels that it can't find or that you didn't sync to your local filesystem. The placeholder follows this format: `{unknown label:labelName}`.
+: Exposes labels in your Salesforce org. The local development server resolves labels from the SFDX project file `force-app/main/default/labels/CustomLabels.labels-meta.xml`. The Code Preview server displays a placeholder for labels that it can't find or that you didn't sync to your local filesystem. The placeholder follows this format: `{unknown label:labelName}`.
 
 **@salesforce/resourceUrl**
 : Exposes static resources in your Salesforce org. Static resources are copied and served from the DX project location on your filesystem, `force-app/main/default/staticresources`, to the server.
