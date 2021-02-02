@@ -73,6 +73,7 @@ export const mockDescribeGlobalResponse = {
     { name: 'Z', queryable: false }
   ]
 };
+
 export const mockSObjects = [
   {
     name: 'Account',
@@ -99,6 +100,18 @@ export const mockSObjects = [
         nameField: true,
         nillable: false,
         sortable: true,
+        type: 'string',
+        updateable: true
+      },
+      {
+        aggregatable: false,
+        custom: false,
+        filterable: false,
+        groupable: false,
+        label: 'Account Description',
+        name: 'Description',
+        nameField: false,
+        sortable: false,
         type: 'string',
         updateable: true
       },
@@ -148,12 +161,12 @@ export const mockSObjects = [
         updateable: false
       },
       {
-        aggregatable: false,
+        aggregatable: true,
         calculated: false,
         custom: false,
         defaultValue: false,
         filterable: true,
-        groupable: true,
+        groupable: false,
         label: 'CreatedDate',
         name: 'CreatedDate',
         nameField: false,
