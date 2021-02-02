@@ -26,6 +26,15 @@ const sb = createSandbox();
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Execute', () => {
+  beforeEach(() => {
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('/test')
+      }
+    }));
+    sb.stub(workspaceContext, 'getConnection');
+  });
+
   afterEach(() => sb.restore());
 
   describe('AnonApexGatherer', async () => {
@@ -152,12 +161,6 @@ describe('Force Apex Execute', () => {
     let outputStub: SinonStub;
 
     beforeEach(() => {
-      sb.stub(workspaceContext, 'getConnection');
-      sb.stub(vscode.window, 'activeTextEditor').get(() => ({
-        document: {
-          uri: vscode.Uri.file('/test')
-        }
-      }));
       outputStub = sb.stub(OUTPUT_CHANNEL, 'appendLine');
     });
 
@@ -251,6 +254,124 @@ describe('Force Apex Execute', () => {
       await executor.run({ type: 'CONTINUE', data: {} });
 
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
+    });
+  });
+
+  describe('Report Diagnostics', () => {
+    const executor = new ApexLibraryExecuteExecutor();
+    const file = '/test';
+    const defaultResponse = {
+      compiled: true,
+      success: false,
+      logs:
+        '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
+      diagnostic: [
+        {
+          columnNumber: 1,
+          lineNumber: 6,
+          compileProblem: '',
+          exceptionMessage: 'System.AssertException: Assertion Failed',
+          exceptionStackTrace: 'AnonymousBlock: line 6, column 1'
+        }
+      ]
+    };
+
+    let setDiagnosticStub: SinonStub;
+    let executeStub: SinonStub;
+
+    beforeEach(() => {
+      setDiagnosticStub = sb.stub(
+        ApexLibraryExecuteExecutor.diagnostics,
+        'set'
+      );
+      executeStub = sb
+        .stub(ExecuteService.prototype, 'executeAnonymous')
+        .resolves(defaultResponse);
+    });
+
+    it('should clear diagnostics before setting new ones', async () => {
+      const clearStub = sb.stub(
+        ApexLibraryExecuteExecutor.diagnostics,
+        'clear'
+      );
+
+      await executor.run({ data: { fileName: file }, type: 'CONTINUE' });
+
+      expect(clearStub.calledBefore(setDiagnosticStub)).to.be.true;
+    });
+
+    it('should report diagnostic with zero based range', async () => {
+      const expectedDiagnostic = {
+        message: defaultResponse.diagnostic[0].compileProblem,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: file,
+        range: new vscode.Range(5, 0, 5, 0)
+      };
+
+      await executor.run({ data: { fileName: file }, type: 'CONTINUE' });
+
+      expect(setDiagnosticStub.calledOnce).to.be.true;
+      expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
+        expectedDiagnostic
+      ]);
+    });
+
+    it('should set compile problem as message if present', async () => {
+      const response = Object.assign({}, defaultResponse, {
+        diagnostic: [
+          {
+            columnNumber: 1,
+            lineNumber: 6,
+            compileProblem: 'An error happened while compiling',
+            exceptionMessage: 'System.AssertException: Assertion Failed',
+            exceptionStackTrace: 'AnonymousBlock: line 6, column 1'
+          }
+        ]
+      });
+      const expectedDiagnostic = {
+        message: response.diagnostic[0].compileProblem,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: file,
+        range: new vscode.Range(5, 0, 5, 0)
+      };
+      executeStub.resolves(response);
+
+      await executor.run({ data: { fileName: file }, type: 'CONTINUE' });
+
+      expect(setDiagnosticStub.calledOnce).to.be.true;
+      expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
+        expectedDiagnostic
+      ]);
+    });
+
+    it('should set exception message as message if compile problem not present', async () => {
+      const response = Object.assign({}, defaultResponse, {
+        diagnostic: [
+          {
+            columnNumber: 1,
+            lineNumber: 6,
+            exceptionMessage: 'System.AssertException: Assertion Failed',
+            exceptionStackTrace: 'AnonymousBlock: line 6, column 1'
+          }
+        ]
+      });
+      executeStub.resolves(response);
+      const expectedDiagnostic = {
+        message: response.diagnostic[0].exceptionMessage,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: file,
+        range: new vscode.Range(5, 0, 5, 0)
+      };
+
+      await executor.run({ data: { fileName: file }, type: 'CONTINUE' });
+
+      expect(setDiagnosticStub.calledOnce).to.be.true;
+      expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
+        expectedDiagnostic
+      ]);
     });
   });
 });

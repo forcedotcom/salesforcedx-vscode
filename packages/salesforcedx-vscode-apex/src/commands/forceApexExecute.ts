@@ -35,13 +35,6 @@ import { nls } from '../messages';
 
 type TempFile = { fileName: string };
 
-function getRange(lineNumber: string, columnNumber: string): vscode.Range {
-  const ln = Number(lineNumber);
-  const col = Number(columnNumber);
-  const pos = new vscode.Position(ln > 0 ? ln - 1 : 0, col > 0 ? col - 1 : 0);
-  return new vscode.Range(pos, pos);
-}
-
 export class CreateApexTempFile implements ParametersGatherer<TempFile> {
   public async gather(): Promise<CancelResponse | ContinueResponse<TempFile>> {
     if (hasRootWorkspace()) {
@@ -181,29 +174,32 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     ApexLibraryExecuteExecutor.diagnostics.clear();
 
     if (response.diagnostic) {
-      const range = getRange(
-        response.diagnostic[0].lineNumber
-          ? response.diagnostic[0].lineNumber.toString()
-          : '1',
-        response.diagnostic[0].columnNumber
-          ? response.diagnostic[0].columnNumber.toString()
-          : '1'
-      );
-
-      const diagnostic = {
+      const diagnostic = response.diagnostic[0];
+      const vscDiagnostic: vscode.Diagnostic = {
         message:
-          typeof response.diagnostic[0].compileProblem === 'string'
-            ? response.diagnostic[0].compileProblem
-            : response.diagnostic[0].exceptionMessage,
+          typeof diagnostic.compileProblem === 'string'
+            ? diagnostic.compileProblem
+            : diagnostic.exceptionMessage,
         severity: vscode.DiagnosticSeverity.Error,
         source: filePath,
-        range
-      } as vscode.Diagnostic;
+        range: this.getZeroBasedRange(
+          diagnostic.lineNumber ?? 1,
+          diagnostic.columnNumber ?? 1
+        )
+      };
 
       ApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [
-        diagnostic
+        vscDiagnostic
       ]);
     }
+  }
+
+  private getZeroBasedRange(line: number, column: number): vscode.Range {
+    const pos = new vscode.Position(
+      line > 0 ? line - 1 : 0,
+      column > 0 ? column - 1 : 0
+    );
+    return new vscode.Range(pos, pos);
   }
 }
 
