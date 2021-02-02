@@ -25,6 +25,10 @@ export const messages = {
   java_runtime_missing_text:
     'Java ランタイムが見つかりませんでした。VS Code の設定の salesforcedx-vscode-apex.java.home にパスを指定してください。詳細については、[Java 設定](%s) を参照してください。',
   force_sobjects_refresh: 'SFDX: SObject の定義を更新',
+  force_apex_execute_document_text:
+    'SFDX: エディタの内容で匿名 Apex コードを実行',
+  force_apex_execute_selection_text:
+    'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   force_apex_test_run_codeAction_description_text: 'Apex テストを実行',
   force_apex_test_run_codeAction_no_class_test_param_text:
     'テストクラスがありません。@isTest アノテーションのあるクラスでコードアクションを実行してください。',

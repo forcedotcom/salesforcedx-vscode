@@ -17,6 +17,7 @@ export {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   CLIENT_ID
 } from './constants';
+import { Event } from 'vscode';
 
 // Precondition checking
 ////////////////////////
@@ -44,6 +45,17 @@ export interface CancelResponse {
 
 export interface ParametersGatherer<T> {
   gather(): Promise<CancelResponse | ContinueResponse<T>>;
+}
+
+// Execution
+//////////////////
+export interface FlagParameter<T> {
+  flag: T;
+}
+
+export interface CommandletExecutor<T> {
+  execute(response: ContinueResponse<T>): void;
+  readonly onDidFinishExecution?: Event<[number, number]>;
 }
 
 // Selection

@@ -403,14 +403,6 @@
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
-          "command": "sfdx.force.apex.execute.selection",
-          "when": "sfdx:project_opened && editorHasSelection"
-        },
-        {
-          "command": "sfdx.force.apex.execute.document",
-          "when": "sfdx:project_opened && !editorHasSelection"
-        },
-        {
           "command": "sfdx.force.project.create",
           "when": "!sfdx:internal_dev"
         },
@@ -708,14 +700,6 @@
       {
         "command": "sfdx.force.data.soql.query.selection",
         "title": "%force_data_soql_query_selection_text%"
-      },
-      {
-        "command": "sfdx.force.apex.execute.document",
-        "title": "%force_apex_execute_document_text%"
-      },
-      {
-        "command": "sfdx.force.apex.execute.selection",
-        "title": "%force_apex_execute_selection_text%"
       },
       {
         "command": "sfdx.force.project.create",

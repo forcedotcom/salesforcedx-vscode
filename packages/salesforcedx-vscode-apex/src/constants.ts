@@ -7,6 +7,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { nls } from './messages';
 
 export const DEBUGGER_LINE_BREAKPOINTS = 'debugger/lineBreakpoints';
 export const DEBUGGER_EXCEPTION_BREAKPOINTS = 'debugger/exceptionBreakpoints';
@@ -96,3 +97,6 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
 export const APEX_EXTENSION_NAME = 'salesforcedx-vscode-apex';
 export const LSP_ERR = 'apexLSPError';
+export const OUTPUT_CHANNEL = vscode.window.createOutputChannel(
+  nls.localize('channel_name')
+);

@@ -6,11 +6,11 @@
  */
 import * as vscode from 'vscode';
 import {
+  CommandletExecutor,
   ParametersGatherer,
   PostconditionChecker,
   PreconditionChecker
 } from '../types';
-import { CommandletExecutor } from './commandletExecutors';
 import { notificationService } from './index';
 import { EmptyPostChecker } from './postconditionCheckers';
 

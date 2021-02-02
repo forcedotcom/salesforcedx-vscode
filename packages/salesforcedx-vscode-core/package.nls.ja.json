@@ -29,8 +29,6 @@
   "force_org_display_username_text": "SFDX: 組織の詳細を表示...",
   "force_data_soql_query_input_text": "SFDX: SOQL クエリを実行...",
   "force_data_soql_query_selection_text": "SFDX: 現在選択されているテキストを使用して SOQL クエリを実行",
-  "force_apex_execute_document_text": "SFDX: エディタのコンテンツを使用して匿名 Apex を実行",
-  "force_apex_execute_selection_text": "SFDX: 現在選択されているテキストを使用して匿名 Apex を実行",
   "feature_previews_title": "Salesforce Feature Previews",
   "force_project_create_text": "SFDX: プロジェクトを作成",
   "force_project_with_manifest_create_text": "SFDX: マニフェストファイルを使用してプロジェクトを作成",

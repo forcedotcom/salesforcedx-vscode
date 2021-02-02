@@ -15,7 +15,6 @@ export {
   SfdxWorkspaceChecker
 } from './commands/preconditionCheckers';
 export {
-  CommandletExecutor,
   SfdxCommandletExecutor,
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
@@ -27,3 +26,8 @@ export {
   Properties,
   Measurements
 } from './telemetry/telemetry';
+export {
+  hasRootWorkspace,
+  getRootWorkspace,
+  getRootWorkspacePath
+} from './workspaces';
