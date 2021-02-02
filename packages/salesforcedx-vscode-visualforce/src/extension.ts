@@ -16,7 +16,7 @@ import {
   languages,
   Position,
   Range,
-  TextDocument,
+  TextDocument
 } from 'vscode';
 import {
   BaseLanguageClient,
@@ -25,7 +25,7 @@ import {
   RequestType,
   ServerOptions,
   TextDocumentPositionParams,
-  TransportKind,
+  TransportKind
 } from 'vscode-languageclient';
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';
@@ -35,7 +35,7 @@ import {
   ColorPresentationParams,
   ColorPresentationRequest,
   DocumentColorParams,
-  DocumentColorRequest,
+  DocumentColorRequest
 } from 'vscode-languageserver-protocol';
 import { telemetryService } from './telemetry';
 
@@ -74,15 +74,15 @@ export async function activate(context: ExtensionContext) {
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
-      options: debugOptions,
-    },
+      options: debugOptions
+    }
   };
 
   const documentSelector = [
     {
       language: 'visualforce',
-      scheme: 'file',
-    },
+      scheme: 'file'
+    }
   ];
   const embeddedLanguages = { css: true, javascript: true };
 
@@ -90,11 +90,11 @@ export async function activate(context: ExtensionContext) {
   const clientOptions: LanguageClientOptions = {
     documentSelector,
     synchronize: {
-      configurationSection: ['visualforce', 'css', 'javascript'], // the settings to synchronize
+      configurationSection: ['visualforce', 'css', 'javascript'] // the settings to synchronize
     },
     initializationOptions: {
-      embeddedLanguages,
-    },
+      embeddedLanguages
+    }
   };
 
   // Create the language client and start the client.
@@ -118,12 +118,12 @@ export async function activate(context: ExtensionContext) {
           const params: DocumentColorParams = {
             textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(
               document
-            ),
+            )
           };
           return client
             .sendRequest(DocumentColorRequest.type, params)
-            .then((symbols) => {
-              return symbols.map((symbol) => {
+            .then(symbols => {
+              return symbols.map(symbol => {
                 const range = client.protocol2CodeConverter.asRange(
                   symbol.range
                 );
@@ -146,12 +146,12 @@ export async function activate(context: ExtensionContext) {
               colorContext.document
             ),
             range: client.code2ProtocolConverter.asRange(colorContext.range),
-            color,
+            color
           };
           return client
             .sendRequest(ColorPresentationRequest.type, params)
-            .then((presentations) => {
-              return presentations.map((p) => {
+            .then(presentations => {
+              return presentations.map(p => {
                 const presentation = new ColorPresentation(p.label);
                 presentation.textEdit =
                   p.textEdit &&
@@ -164,7 +164,7 @@ export async function activate(context: ExtensionContext) {
                 return presentation;
               });
             });
-        },
+        }
       });
       toDispose.push(disposable);
 
@@ -182,14 +182,14 @@ export async function activate(context: ExtensionContext) {
       );
       toDispose.push(disposable);
     })
-    .catch((err) => {
+    .catch(err => {
       // Handled by clients
       telemetryService.sendExtensionActivationEvent(err);
     });
   languages.setLanguageConfiguration('visualforce', {
     indentationRules: {
       increaseIndentPattern: /<(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*\/>)([-_\.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*<\/\1>)|<!--(?!.*-->)|\{[^}"']*$/,
-      decreaseIndentPattern: /^\s*(<\/(?!html)[-_\.A-Za-z0-9]+\b[^>]*>|-->|\})/,
+      decreaseIndentPattern: /^\s*(<\/(?!html)[-_\.A-Za-z0-9]+\b[^>]*>|-->|\})/
     },
     wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\s]+)/g,
     onEnterRules: [
@@ -201,7 +201,7 @@ export async function activate(context: ExtensionContext) {
           'i'
         ),
         afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>$/i,
-        action: { indentAction: IndentAction.IndentOutdent },
+        action: { indentAction: IndentAction.IndentOutdent }
       },
       {
         beforeText: new RegExp(
@@ -210,9 +210,9 @@ export async function activate(context: ExtensionContext) {
           )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
           'i'
         ),
-        action: { indentAction: IndentAction.Indent },
-      },
-    ],
+        action: { indentAction: IndentAction.Indent }
+      }
+    ]
   });
 
   languages.setLanguageConfiguration('handlebars', {
@@ -226,7 +226,7 @@ export async function activate(context: ExtensionContext) {
           'i'
         ),
         afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>$/i,
-        action: { indentAction: IndentAction.IndentOutdent },
+        action: { indentAction: IndentAction.IndentOutdent }
       },
       {
         beforeText: new RegExp(
@@ -235,9 +235,9 @@ export async function activate(context: ExtensionContext) {
           )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
           'i'
         ),
-        action: { indentAction: IndentAction.Indent },
-      },
-    ],
+        action: { indentAction: IndentAction.Indent }
+      }
+    ]
   });
 
   languages.setLanguageConfiguration('razor', {
@@ -251,7 +251,7 @@ export async function activate(context: ExtensionContext) {
           'i'
         ),
         afterText: /^<\/([_:\w][_:\w-.\d]*)\s*>$/i,
-        action: { indentAction: IndentAction.IndentOutdent },
+        action: { indentAction: IndentAction.IndentOutdent }
       },
       {
         beforeText: new RegExp(
@@ -260,9 +260,9 @@ export async function activate(context: ExtensionContext) {
           )}))(\\w[\\w\\d]*)([^/>]*(?!/)>)[^<]*$`,
           'i'
         ),
-        action: { indentAction: IndentAction.Indent },
-      },
-    ],
+        action: { indentAction: IndentAction.Indent }
+      }
+    ]
   });
 
   // Telemetry

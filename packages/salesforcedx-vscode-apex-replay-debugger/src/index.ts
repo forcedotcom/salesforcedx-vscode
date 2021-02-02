@@ -7,7 +7,7 @@
 
 import {
   MetricError,
-  MetricLaunch,
+  MetricLaunch
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
@@ -17,7 +17,7 @@ import {
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT,
+  SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
@@ -27,7 +27,7 @@ import {
   checkpointService,
   processBreakpointChangedForCheckpoints,
   sfdxCreateCheckpoints,
-  sfdxToggleCheckpoint,
+  sfdxToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
@@ -39,7 +39,7 @@ let extContext: vscode.ExtensionContext;
 export enum VSCodeWindowTypeEnum {
   Error = 1,
   Informational = 2,
-  Warning = 3,
+  Warning = 3
 }
 
 const sfdxCoreExtension = vscode.extensions.getExtension(
@@ -49,14 +49,14 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 function registerCommands(): vscode.Disposable {
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
-    async (config) => {
+    async config => {
       const fileUris:
         | vscode.Uri[]
         | undefined = await vscode.window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: getDialogStartingPath(),
+        defaultUri: getDialogStartingPath()
       });
       if (fileUris && fileUris.length === 1) {
         updateLastOpened(extContext, fileUris[0].fsPath);
@@ -66,7 +66,7 @@ function registerCommands(): vscode.Disposable {
   );
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.logfile',
-    (editorUri) => {
+    editorUri => {
       let logFile: string | undefined;
       if (!editorUri) {
         const editor = vscode.window.activeTextEditor;
@@ -83,7 +83,7 @@ function registerCommands(): vscode.Disposable {
   );
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.last.logfile',
-    (lastLogFileUri) => {
+    lastLogFileUri => {
       const lastOpenedLog = extContext.workspaceState.get<string>(
         LAST_OPENED_LOG_KEY
       );
@@ -132,7 +132,7 @@ export async function getDebuggerType(
 
 function registerDebugHandlers(): vscode.Disposable {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(
-    async (event) => {
+    async event => {
       if (event && event.session) {
         const type = await getDebuggerType(event.session);
         if (type !== DEBUGGER_TYPE) {
@@ -184,7 +184,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(
     'sfdx.force.test.view.debugTests',
-    async (test) => {
+    async test => {
       await setupAndDebugTests(test.name);
     }
   );
@@ -192,7 +192,7 @@ export async function activate(context: vscode.ExtensionContext) {
   // Debug Single Test command
   const debugTest = vscode.commands.registerCommand(
     'sfdx.force.test.view.debugSingleTest',
-    async (test) => {
+    async test => {
       const name = test.name.split('.');
       await setupAndDebugTests(name[0], name[1]);
     }
@@ -311,7 +311,7 @@ export async function retrieveLineBreakpointInfo(): Promise<boolean> {
 }
 
 function imposeSlightDelay(ms = 0) {
-  return new Promise((r) => setTimeout(r, ms));
+  return new Promise(r => setTimeout(r, ms));
 }
 
 export function writeToDebuggerOutputWindow(
