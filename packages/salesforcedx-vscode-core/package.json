@@ -61,7 +61,7 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "sinon": "^7.3.1",
-    "typescript": "3.7.5",
+    "typescript": "3.8.3",
     "yeoman-assert": "^3.1.1"
   },
   "scripts": {
