@@ -287,8 +287,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     // Telemetry
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),
       sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()

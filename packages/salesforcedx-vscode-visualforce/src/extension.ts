@@ -271,8 +271,6 @@ export async function activate(context: ExtensionContext) {
   );
 
   if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.telemetryService.showTelemetryMessage();
-
     telemetryService.initializeService(
       sfdxCoreExtension.exports.telemetryService.getReporter(),
       sfdxCoreExtension.exports.telemetryService.isTelemetryEnabled()
