@@ -10,7 +10,6 @@ import {
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
-  forceApexExecute,
   forceApexLogGet,
   forceApexTestRun,
   forceApexTriggerCreate,
