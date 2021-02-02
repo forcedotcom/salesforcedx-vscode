@@ -128,22 +128,22 @@
         ja: リンティング
       url: /lwc/linting
 - title:
-    en: LWC Local Development
-    ja: LWC Local Development
-  baseUrl: /codepreview/
+    en: Local Development
+    ja: ローカル開発
+  baseUrl: /localdev/
   children:
     - title:
         en: Overview
         ja: Overview
-      url: /codepreview/lwccodepreview
+      url: /localdev/lwclocaldev
     - title:
         en: Set Up LWC Local Development
         ja: Set Up LWC Local Development
-      url: /codepreview/set-up-lwc-code-preview
+      url: /localdev/set-up-lwc-local-dev
     - title:
         en: Supported and Unsupported Modules, Components, and Features
         ja: Supported and Unsupported Modules, Components, and Features
-      url: /codepreview/lwc-codepreview-supported-modules
+      url: /localdev/lwc-localdev-supported-modules
 - title:
     en: Visualforce
     ja: Visualforce
