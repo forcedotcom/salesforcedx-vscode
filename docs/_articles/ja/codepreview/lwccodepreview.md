@@ -11,7 +11,7 @@ The Local Development server uses the following Salesforce CLI commands.
 
 View the commands from VS Code's command palette by pressing `command` + `shift` + `p`. By typing in "code previewvs," all three commands are visible.
 
-![VS Code commands for Local Development](./images/vscode_codepreview_commands.png)
+![VS Code commands for Local Development](./images/vscode_localdev_sfdx_commands.png)
 
 **SFDX: Open Local Development Home**  
 If the Local Development server isn't currently running, this command starts the server and opens `localhost:3333` in your web browser. If the server is already running, then the command only opens `localhost:3333` in your browser.
@@ -28,16 +28,16 @@ This command stops the Local Development server.
 To preview Lightning web components, right-click any line of code in the component's HTML, CSS, or JavaScript files. You can also right-click any of the HTML, CSS, or JavaScript filenames or the component folder.
 
 Preview `c-hello` from the HTML code.
-![Preview component from HTML.](./images/vscode_preview_component_code.png)
+![Preview component from HTML.](./images/vscode_localdev_preview_html.png)
 
 Preview `c-hello` from the HTML file.
-![Preview component from file.](./images/vscode_codepreview_file_preview.png)
+![Preview component from file.](./images/vscode_localdev_file_preview.png)
 
 After you select SFDX: Preview Component Locally, the Command Palette displays a list of preview options. You can choose to preview your component in the desktop browser or in a virtual mobile device (iOS or Android). Mobile previews require additional setup. See ["Set Up Your Dev Environment" in the Lightning Web Components Dev Guide.](https://developer.salesforce.com/docs/component-library/documentation/lwc/lwc.install_setup_develop)
-![Choose to preview in the desktop browser, an Android emulator, or an iOS simulator.](./images/vscode_codepreview_mobile_options.png)
+![Choose to preview in the desktop browser, an Android emulator, or an iOS simulator.](./images/vscode_localdev_command_palette_preview_options.png)
 
 Here’s the previewed component on the local development server’s desktop browser.
-![Previewed component in a browser.](./images/vscode_codepreview.png)
+![Previewed component in a browser.](./images/vscode_localdev_preview.png)
 
 Here's the previewed component on a virtual mobile device.
-![Previewed component in a virtual mobile device.](./images/vscode_codepreview_ios.png)
+![Previewed component in a virtual mobile device.](./images/vscode_localdev_preview_ios.png)
