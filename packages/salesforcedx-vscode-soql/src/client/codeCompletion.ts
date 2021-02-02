@@ -136,44 +136,46 @@ const expandFunctions: {
       return [];
     }
 
-    const sobjectFields = objMetadata.fields
-      .filter(field => objectFieldMatchesSOQLContext(field, soqlContext))
-      .reduce((fieldItems, field) => {
-        const fieldNameLowercase = field.name.toLowerCase();
-        const isPreferredItem = soqlContext.mostLikelyItems?.some(
-          f => f.toLowerCase() === fieldNameLowercase
-        );
+    const sobjectFields = objMetadata.fields.reduce((fieldItems, field) => {
+      if (!objectFieldMatchesSOQLContext(field, soqlContext)) {
+        return fieldItems;
+      }
 
+      const fieldNameLowercase = field.name.toLowerCase();
+      const isPreferredItem = soqlContext.mostLikelyItems?.some(
+        f => f.toLowerCase() === fieldNameLowercase
+      );
+
+      fieldItems.push(
+        newCompletionItem(
+          (isPreferredItem ? '★ ' : '') + field.name,
+          field.name,
+          CompletionItemKind.Field,
+          Object.assign(
+            { detail: field.type } as CompletionItem,
+            isPreferredItem
+              ? {
+                  preselect: true,
+                  // extra space prefix to make it appear first
+                  sortText: ' ' + field.name,
+                  filterText: ' ' + field.name
+                }
+              : {}
+          )
+        )
+      );
+      if (field.relationshipName) {
         fieldItems.push(
           newCompletionItem(
-            (isPreferredItem ? '★ ' : '') + field.name,
-            field.name,
-            CompletionItemKind.Field,
-            Object.assign(
-              { detail: field.type } as CompletionItem,
-              isPreferredItem
-                ? {
-                    preselect: true,
-                    // extra space prefix to make it appear first
-                    sortText: ' ' + field.name,
-                    filterText: ' ' + field.name
-                  }
-                : {}
-            )
+            `${field.relationshipName}`,
+            field.relationshipName + '.',
+            CompletionItemKind.Class,
+            { detail: 'Ref. to ' + field.referenceTo }
           )
         );
-        if (field.relationshipName) {
-          fieldItems.push(
-            newCompletionItem(
-              `${field.relationshipName}`,
-              field.relationshipName + '.',
-              CompletionItemKind.Class,
-              { detail: 'Ref. to ' + field.referenceTo }
-            )
-          );
-        }
-        return fieldItems;
-      }, [] as ProtocolCompletionItem[]);
+      }
+      return fieldItems;
+    }, [] as ProtocolCompletionItem[]);
     return sobjectFields;
   },
   LITERAL_VALUES_FOR_FIELD: async (
