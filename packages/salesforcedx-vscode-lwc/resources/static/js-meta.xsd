@@ -102,6 +102,11 @@
                 <xs:documentation>Enables a component to be used in Lightning App Builder to add to email application panes for the Outlook and Gmail integrations.</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="lightningStatic__Email">
+              <xs:annotation>
+                <xs:documentation>Enables a component to be used in Email Template Builder.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
             <xs:enumeration value="lightningCommunity__Page">
               <xs:annotation>
                 <xs:documentation>Enables a component to be used on a Lightning community page in Experience Builder.</xs:documentation>
