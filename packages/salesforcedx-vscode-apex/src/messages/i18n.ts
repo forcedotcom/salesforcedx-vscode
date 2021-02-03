@@ -39,7 +39,7 @@ export const messages = {
     'SFDX: Execute Anonymous Apex with Editor Contents',
   force_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
-  force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
+  force_apex_log_get_text: 'SFDX: Get Apex Debug Logs',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   force_apex_log_list_text: 'Getting Apex debug logs',
