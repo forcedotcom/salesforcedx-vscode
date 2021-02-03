@@ -14,7 +14,7 @@
 
 - Add AdoptOpenJDK configuration sample for Linux in [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) ([PR #2870](https://github.com/forcedotcom/salesforcedx-vscode/pull/2870)) - Contribution by [@renatoliveira](https://github.com/renatoliveira)
 
-- Include steps to get the JDK install path for Mac OS in [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) ([PR #2910](https://github.com/forcedotcom/salesforcedx-vscode/pull/2910)) - Contribution by [@mikeflemingcfs](https://github.com/mikeflemingcfs)
+- Include steps to get the JDK install path for MacOS in [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) ([PR #2910](https://github.com/forcedotcom/salesforcedx-vscode/pull/2910)) - Contribution by [@mikeflemingcfs](https://github.com/mikeflemingcfs)
 
 - Add missing permission step to [ISV Customer Debugger](https://developer.salesforce.com/tools/vscode/en/apex/isv-debugger/#configure-isv-customer-debugger) ([PR #2901](https://github.com/forcedotcom/salesforcedx-vscode/pull/2901))
 
