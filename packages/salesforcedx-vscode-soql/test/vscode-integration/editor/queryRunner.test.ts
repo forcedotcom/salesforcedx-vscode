@@ -44,4 +44,21 @@ describe('Query Runner Should', () => {
       expect(error.name).equal(errorName);
     }
   });
+
+  it('strip comments before passing query to connection', async () => {
+    const querySpy = sandbox.spy(mockConnection, 'query');
+    const soqlNoComments = 'SELECT Id\nFROM Account\n';
+    const soqlWithComments =
+      '// Comment line 1\n//Comment line2\n' + soqlNoComments;
+
+    const queryRunner = new QueryRunner(mockConnection);
+    const queryData = await queryRunner.runQuery(soqlWithComments);
+    queryData.records.forEach((result: {}) => {
+      expect(result).to.not.have.key('attributes');
+    });
+
+    expect(querySpy.calledOnce).to.be.true;
+    expect(querySpy.firstCall.args[0]).to.equal(soqlNoComments);
+  });
+
 });

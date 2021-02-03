@@ -114,11 +114,11 @@ describe('SOQL language client', () => {
       soqlExtension
     );
 
-    const expectedError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
+    const serverError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
     const querySpy = sandbox.stub(mockConnection, 'query').throws({
       name: 'INVALID_FIELD',
       errorCode: 'INVALID_FIELD',
-      message: expectedError
+      message: serverError
     });
     await window.showTextDocument(soqlFileUri);
 
@@ -145,11 +145,13 @@ describe('SOQL language client', () => {
       soqlExtension
     );
 
-    const expectedError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
+    const serverError = `SELECT Ids FROM ACCOUNT\nERROR at Row:1:Column:8\nSome error at 'Ids'`;
+    const expectedError = `SELECT Ids FROM ACCOUNT\nError:\nSome error at 'Ids'`;
+
     sandbox.stub(mockConnection, 'query').throws({
       name: 'INVALID_FIELD',
       errorCode: 'INVALID_FIELD',
-      message: expectedError
+      message: serverError
     });
 
     await window.showTextDocument(soqlFileUri);
