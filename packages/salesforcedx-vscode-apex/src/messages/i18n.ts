@@ -25,6 +25,13 @@ export const messages = {
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  apex_execute_compile_success: 'Compiled successfully.',
+  apex_execute_runtime_success: 'Executed successfully.',
+  apex_execute_text: 'Execute Anonymous Apex',
+  force_apex_execute_document_text:
+    'SFDX: Execute Anonymous Apex with Editor Contents',
+  force_apex_execute_selection_text:
+    'SFDX: Execute Anonymous Apex with Currently Selected Text',
   apex_test_run_text: 'Run Apex Tests',
   force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
   force_apex_test_run_codeAction_no_class_test_param_text:
@@ -40,6 +47,7 @@ export const messages = {
   wrong_java_version_text:
     'An unsupported Java version was detected. Download and install [Java 8](https://java.com/en/download/) or [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) to run the extensions. For more information, see [Set Your Java Version](%s).',
   client_name: 'Apex Language Server',
+  channel_name: 'Apex Extension',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
   colorizer_no_code_coverage_on_project:
@@ -58,6 +66,7 @@ export const messages = {
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
-  sobjects_refresh_needed: "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
+  sobjects_refresh_needed:
+    "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions'
 };

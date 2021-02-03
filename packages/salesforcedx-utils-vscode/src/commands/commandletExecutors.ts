@@ -14,19 +14,10 @@ import {
   TelemetryService
 } from '../index';
 import { nls } from '../messages';
-import { ContinueResponse } from '../types';
+import { CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
 import { notificationService, ProgressNotification } from './index';
-
-export interface FlagParameter<T> {
-  flag: T;
-}
-
-export interface CommandletExecutor<T> {
-  execute(response: ContinueResponse<T>): void;
-  readonly onDidFinishExecution?: vscode.Event<[number, number]>;
-}
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
