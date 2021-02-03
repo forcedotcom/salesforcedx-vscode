@@ -21,6 +21,7 @@ import {
   forceGenerateFauxClassesCreate,
   initSObjectDefinitions
 } from './commands';
+import { forceApexExecute } from './commands/forceApexExecute';
 import {
   APEX_EXTENSION_NAME,
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
@@ -198,6 +199,16 @@ function registerCommands(
     'sfdx.force.internal.refreshsobjects',
     forceGenerateFauxClassesCreate
   );
+  const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.document',
+    forceApexExecute,
+    false
+  );
+  const forceApexExecuteSelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.execute.selection',
+    forceApexExecute,
+    true
+  );
   return vscode.Disposable.from(
     forceApexToggleColorizerCmd,
     forceApexTestLastClassRunCmd,
@@ -205,6 +216,8 @@ function registerCommands(
     forceApexTestClassRunDelegateCmd,
     forceApexDebugClassRunDelegateCmd,
     forceApexDebugMethodRunDelegateCmd,
+    forceApexExecuteDocumentCmd,
+    forceApexExecuteSelectionCmd,
     forceApexTestLastMethodRunCmd,
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
