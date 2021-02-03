@@ -75,11 +75,9 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
-import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_OPT_OUT_LINK } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
-import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -87,7 +85,7 @@ import { OrgList } from './orgPicker';
 import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
-import { telemetryService } from './telemetry';
+import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
@@ -482,32 +480,6 @@ async function setupOrgBrowser(
       await forceSourceRetrieveCmp(trigger, true);
     }
   );
-}
-
-function showTelemetryMessage(context: vscode.ExtensionContext) {
-  const messageAlreadyPrompted = context.globalState.get(
-    TELEMETRY_GLOBAL_VALUE
-  );
-  if (!messageAlreadyPrompted) {
-    // Show the message and set telemetry to true;
-    const showButtonText = nls.localize('telemetry_legal_dialog_button_text');
-    const showMessage = nls.localize(
-      'telemetry_legal_dialog_message',
-      TELEMETRY_OPT_OUT_LINK
-    );
-    vscode.window
-      .showInformationMessage(showMessage, showButtonText)
-      .then(selection => {
-        // Open disable telemetry link
-        if (selection && selection === showButtonText) {
-          vscode.commands.executeCommand(
-            'vscode.open',
-            vscode.Uri.parse(TELEMETRY_OPT_OUT_LINK)
-          );
-        }
-      });
-    context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
-  }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
