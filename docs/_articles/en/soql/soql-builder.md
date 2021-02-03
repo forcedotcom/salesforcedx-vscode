@@ -11,9 +11,14 @@ During beta, you can build simple query statements that include:
 
 - FROM clause for only one sObject type
 - SELECT clause to pick fields from the selected sObject
-- WHERE clause to filter your data ( ~somethign about simple not complex filters are supported~ )
+- WHERE clause to filter your data
 - ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
 - LIMIT clause
+
+**Beta Limitations:**
+
+- You can still run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
+- WHERE clauses can be quite complex. SOQL Editor supports simple WHERE expressions. You can combine conditions using AND or OR, but not both. SOQL Editor supports only one level of nesting.
 
 ## Install the SOQL Builder Extension
 
@@ -53,16 +58,17 @@ DX projects have a sample `accounts.soql` file in the `<project-folder>/scripts/
 
 As you build your query, watch SOQL Builder display the query syntax while it simultaneously updates the `.soql` file. After you’re done building your statements, click **Run Query** to view the output.
 
+You can select objects and fields from the drop-down list, or type to narrow the list results. You can select an object or a field only once. If a value is already selected, it doesn't appear in the drop-down or search results.
+
 ![Build your query](./images/soql-builder.gif)
 
-<!-- **Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting. -->
+<!-- **Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting. ekapner update, 2/2/2021: this setting not ready for GA-->
 
 **Beta Limitations:**
 
 - SOQL Builder currently supports interactively building simple queries. We plan to add more functionality soon. However, you can still open a more complex `.soql` file and run the query from within SOQL Builder, but you must use a text editor to update it.
 - When selecting fields, you can select (click) only one at a time.
 - Every time you click Run Query, a SOQL Query Results tab appears. There’s no way to associate the results with the specific query statements. The SOQL Builder editor reflects your most-recent updates.
-- If you manually update the `.soql` file using a text editor, we don’t currently support any of the syntax validation that comes with the Apex Language Server.
 
 **Next:**
 
@@ -95,15 +101,12 @@ You can save the query results in a `.csv` or `.json` file. The file is saved in
 
 ## Known Issues
 
+### Syntax Error Message Blocks SOQL Builder Interface
+
+**Description:** Sometimes, a popup error message blocks the SOQL Builder interface. Unfortunately, you can't continue editing the query. Until we fix this or provide a way to dismiss the window, the only option is to close the query without saving it.
+
 ### Can’t Use SOQL Builder If Authentication to Default Org Has Expired
 
 **Description:** If the authentication token has expired for your default org, or your default scratch org has expired, SOQL Builder isn’t usable.
 
-**Workaround:** Authorize a default org, then re-open the file in SOQL Builder. If that doesn’t work, restart VS Code.
-
-### Switching Back to .soql File in Text Editor View Opens It in SOQL Builder
-
-( I don't know if i can reproduce this error anymore )
-**Description:** Let’s say you open a `.soql` file in SOQL Builder, and then open it in a text editor. If you click the SOQL Builder tab, then go back and click the text editor tab, the text editor switches to the SOQL Builder view.
-
-**Workaround:** Reopen the `.soql` file in the text editor.
+**Workaround:** Authorize a default org, then reopen the file in SOQL Builder. If that doesn’t work, restart VS Code.
