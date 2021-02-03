@@ -6,7 +6,7 @@
  */
 import { TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { expect } from 'chai';
-import { assert, match, mock, SinonStub, spy, stub } from 'sinon';
+import { assert, match, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
@@ -121,6 +121,8 @@ describe('Telemetry', () => {
         SfdxCoreSettings.prototype,
         'getTelemetryEnabled'
       ).returns(true);
+      reporter = stub(TelemetryReporter.prototype, 'sendTelemetryEvent');
+      exceptionEvent = stub(TelemetryReporter.prototype, 'sendExceptionEvent');
       teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
       cliStub = stub(telemetryService, 'checkCliTelemetry');
       cliStub.returns(Promise.resolve(true));
