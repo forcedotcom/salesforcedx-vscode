@@ -9,10 +9,6 @@ import {
   TestService,
   JUnitReporter,
   HumanReporter,
-  AsyncTestConfiguration,
-  AsyncTestArrayConfiguration,
-  SyncTestConfiguration,
-  TestItem,
   TestResult
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
@@ -29,25 +25,6 @@ export const TestLevel = [
   'RunAllTestsInOrg',
   'RunSpecifiedTests'
 ];
-
-const CLASS_ID_PREFIX = '01p';
-
-export function buildTestItem(testNames: string): TestItem[] {
-  const testNameArray = testNames.split(',');
-  const tItems = testNameArray.map(item => {
-    if (item.indexOf('.') > 0) {
-      const splitItemData = item.split('.');
-      return {
-        className: splitItemData[0],
-        testMethods: [splitItemData[1]]
-      } as TestItem;
-    }
-
-    return { className: item } as TestItem;
-  });
-  return tItems;
-}
-
 export default class Run extends SfdxCommand {
   protected static requiresUsername = true;
   // Guaranteed by requires username
@@ -137,53 +114,22 @@ export default class Run extends SfdxCommand {
     let result: TestResult;
 
     if (this.flags.synchronous) {
-      let testOptions: SyncTestConfiguration;
-      if (this.flags.tests) {
-        testOptions = {
-          tests: buildTestItem(this.flags.tests),
-          testLevel
-        };
-
-        const classes = testOptions.tests?.map(testItem => {
-          if (testItem.className) {
-            return testItem.className;
-          }
-        });
-        if (new Set(classes).size !== 1) {
-          return Promise.reject(new Error(messages.getMessage('syncClassErr')));
-        }
-      } else {
-        const prop = this.flags.classnames
-          .toLowerCase()
-          .startsWith(CLASS_ID_PREFIX)
-          ? 'classId'
-          : 'className';
-        testOptions = {
-          tests: [{ [prop]: this.flags.classnames }],
-          testLevel
-        };
-      }
-
+      const payload = await testService.buildSyncPayload(
+        testLevel,
+        this.flags.tests,
+        this.flags.classnames
+      );
       result = await testService.runTestSynchronous(
-        testOptions,
+        payload,
         this.flags.codecoverage
       );
     } else {
-      let payload: AsyncTestConfiguration | AsyncTestArrayConfiguration;
-
-      if (this.flags.tests) {
-        payload = {
-          tests: buildTestItem(this.flags.tests),
-          testLevel
-        };
-      } else {
-        payload = {
-          classNames: this.flags.classnames,
-          suiteNames: this.flags.suitenames,
-          testLevel
-        };
-      }
-
+      const payload = await testService.buildAsyncPayload(
+        testLevel,
+        this.flags.tests,
+        this.flags.classnames,
+        this.flags.suitenames
+      );
       result = await testService.runTestAsynchronous(
         payload,
         this.flags.codecoverage

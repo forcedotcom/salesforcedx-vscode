@@ -24,7 +24,10 @@ import {
   PerClassCoverage,
   OutputDirConfig,
   ApexTestResultRecord,
-  SyncTestFailure
+  SyncTestFailure,
+  TestItem,
+  TestLevel,
+  NamespaceQueryResult
 } from './types';
 import * as util from 'util';
 import { nls } from '../i18n';
@@ -38,12 +41,142 @@ import { ApexDiagnostic } from '../utils/types';
 // Tooling API query char limit is 100,000 after v48; REST API limit for uri + headers is 16,348 bytes
 // local testing shows query char limit to be closer to ~12,400
 const QUERY_CHAR_LIMIT = 12400;
-
+const CLASS_ID_PREFIX = '01p';
 export class TestService {
   public readonly connection: Connection;
 
   constructor(connection: Connection) {
     this.connection = connection;
+  }
+
+  // utils to build test run payloads that may contain namespaces
+  public async buildSyncPayload(
+    testLevel: TestLevel,
+    tests?: string,
+    classnames?: string
+  ): Promise<SyncTestConfiguration> {
+    let payload: SyncTestConfiguration;
+    if (tests) {
+      payload = await this.buildTestPayload(tests);
+      const classes = payload.tests?.map(testItem => {
+        if (testItem.className) {
+          return testItem.className;
+        }
+      });
+      if (new Set(classes).size !== 1) {
+        return Promise.reject(new Error(nls.localize('syncClassErr')));
+      }
+    } else {
+      const prop = classnames.toLowerCase().startsWith(CLASS_ID_PREFIX)
+        ? 'classId'
+        : 'className';
+      payload = {
+        tests: [{ [prop]: classnames }],
+        testLevel
+      };
+    }
+    return payload;
+  }
+
+  public async buildAsyncPayload(
+    testLevel: TestLevel,
+    tests?: string,
+    classNames?: string,
+    suiteNames?: string
+  ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
+    if (tests) {
+      return (await this.buildTestPayload(
+        tests
+      )) as AsyncTestArrayConfiguration;
+    } else if (classNames) {
+      return await this.buildAsyncClassPayload(classNames);
+    } else {
+      return {
+        suiteNames,
+        testLevel
+      };
+    }
+  }
+
+  private async buildTestPayload(
+    testNames: string
+  ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
+    const testNameArray = testNames.split(',');
+    const testItems: TestItem[] = [];
+    let namespaces: Set<string>;
+
+    for (const test of testNameArray) {
+      if (test.indexOf('.') > 0) {
+        const testParts = test.split('.');
+        if (testParts.length === 3) {
+          testItems.push({
+            namespace: `${testParts[0]}`,
+            className: `${testParts[1]}`,
+            testMethods: [testParts[2]]
+          });
+        } else {
+          if (typeof namespaces === 'undefined') {
+            namespaces = await this.queryNamespaces();
+          }
+
+          if (namespaces.has(testParts[0])) {
+            testItems.push({
+              namespace: `${testParts[0]}`,
+              className: `${testParts[1]}`
+            });
+          } else {
+            testItems.push({
+              className: testParts[0],
+              testMethods: [testParts[1]]
+            });
+          }
+        }
+      } else {
+        testItems.push({ className: test });
+      }
+    }
+
+    return {
+      tests: testItems,
+      testLevel: TestLevel.RunSpecifiedTests
+    };
+  }
+
+  private async buildAsyncClassPayload(
+    classNames: string
+  ): Promise<AsyncTestArrayConfiguration> {
+    const classNameArray = classNames.split(',') as string[];
+    const classItems = classNameArray.map(item => {
+      const classParts = item.split('.');
+      if (classParts.length > 1) {
+        return {
+          namespace: `${classParts[0]}`,
+          className: `${classParts[1]}`
+        };
+      }
+      return { className: item } as TestItem;
+    });
+    return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
+  }
+
+  public async queryNamespaces(): Promise<Set<string>> {
+    const installedNsQuery = 'SELECT NamespacePrefix FROM PackageLicense';
+    const installedNsResult = (await this.connection.query(
+      installedNsQuery
+    )) as NamespaceQueryResult;
+    const installedNamespaces = installedNsResult.records.map(record => {
+      return record.NamespacePrefix;
+    });
+
+    const orgNsQuery = 'SELECT NamespacePrefix FROM Organization';
+    const orgNsResult = (await this.connection.query(
+      orgNsQuery
+    )) as NamespaceQueryResult;
+    const orgNamespaces = orgNsResult.records.map(record => {
+      return record.NamespacePrefix;
+    });
+
+    return new Set([...orgNamespaces, ...installedNamespaces]);
   }
 
   // Synchronous Test Runs

@@ -8,7 +8,13 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import {
+  assert,
+  createSandbox,
+  SinonSandbox,
+  SinonSpy,
+  SinonStub
+} from 'sinon';
 import {
   SyncTestConfiguration,
   TestService,
@@ -202,6 +208,98 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.tests.length).to.equal(1);
     expect(testResult.codecoverage).to.be.a('array');
     expect(testResult.codecoverage.length).to.equal(3);
+  });
+
+  describe('Build sync payload', async () => {
+    it('should build synchronous payload for tests without namespace', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildSyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myClass.myTest'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [{ className: 'myClass', testMethods: ['myTest'] }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.calledOnce).to.be.true;
+    });
+
+    it('should build synchronous payload for tests with namespace', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildSyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myNamespace.myClass.myTest'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [
+          {
+            namespace: 'myNamespace',
+            className: 'myClass',
+            testMethods: ['myTest']
+          }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should build synchronous payload for class without namespace', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildSyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        'myClass'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [{ className: 'myClass' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should build synchronous payload for class with namespace', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildSyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        'myNamespace.myClass'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [{ className: 'myNamespace.myClass' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should throw an error if multiple classes are specified', async () => {
+      const testSrv = new TestService(mockConnection);
+
+      try {
+        await testSrv.buildSyncPayload(
+          TestLevel.RunSpecifiedTests,
+          'myNamespace.myClass.myTest, myNamespace.otherClass.otherTest'
+        );
+        assert.fail();
+      } catch (e) {
+        expect(e.message).to.equal(nls.localize('syncClassErr'));
+      }
+    });
   });
 });
 
@@ -1005,6 +1103,217 @@ describe('Run Apex tests asynchronously', () => {
       ).to.be.true;
       expect(stringifySpy.callCount).to.eql(1);
       expect(createStreamStub.callCount).to.eql(2);
+    });
+  });
+
+  describe('Build async payload', async () => {
+    it('should build async payload for tests without namespace', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myClass.myTest'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [{ className: 'myClass', testMethods: ['myTest'] }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.calledOnce).to.be.true;
+    });
+
+    it('should build async payload for test with namespace when org returns 0 namespaces', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set([]));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myNamespace.myClass'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [{ className: 'myNamespace', testMethods: ['myClass'] }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.calledOnce).to.be.true;
+    });
+
+    it('should build async payload for tests with namespace', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myNamespace.myClass'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [
+          {
+            namespace: 'myNamespace',
+            className: 'myClass'
+          }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.calledOnce).to.be.true;
+    });
+
+    it('should only query for namespaces once when multiple tests are specified', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myNamespace.myClass,myNamespace.mySecondClass'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [
+          {
+            namespace: 'myNamespace',
+            className: 'myClass'
+          },
+          {
+            namespace: 'myNamespace',
+            className: 'mySecondClass'
+          }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.calledOnce).to.be.true;
+    });
+
+    it('should build async payload for tests with 3 parts', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myNamespace.myClass.myTest'
+      );
+
+      expect(payload).to.deep.equal({
+        tests: [
+          {
+            namespace: 'myNamespace',
+            className: 'myClass',
+            testMethods: ['myTest']
+          }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should build async payload for tests with only classname', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        'myClass'
+      );
+      expect(payload).to.deep.equal({
+        tests: [{ className: 'myClass' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should build async payload for class with only classname', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        'myClass'
+      );
+      expect(payload).to.deep.equal({
+        tests: [{ className: 'myClass' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should build async payload for class with namespace', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        'myNamespace.myClass'
+      );
+      expect(payload).to.deep.equal({
+        tests: [{ namespace: 'myNamespace', className: 'myClass' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should build async payload for suite', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        undefined,
+        'mySuite'
+      );
+      expect(payload).to.deep.equal({
+        suiteNames: 'mySuite',
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+  });
+
+  describe('Query Namespaces', async () => {
+    it('should query for installed packages and namespaced orgs', async () => {
+      const queryStub = sandboxStub
+        .stub(mockConnection, 'query')
+        //@ts-ignore
+        .resolves({ records: [{ NamespacePrefix: 'myNamespace' }] });
+      const testSrv = new TestService(mockConnection);
+      await testSrv.queryNamespaces();
+      expect(queryStub.calledTwice).to.be.true;
+    });
+
+    it('should output set of namespaces from both queries', async () => {
+      const queryStub = sandboxStub.stub(mockConnection, 'query');
+      queryStub
+        .onFirstCall()
+        //@ts-ignore
+        .resolves({
+          records: [
+            { NamespacePrefix: 'myNamespace' },
+            { NamespacePrefix: 'otherNamespace' }
+          ]
+        });
+      //@ts-ignore
+      queryStub.onSecondCall().resolves({
+        records: [{ NamespacePrefix: 'otherNamespace' }]
+      });
+
+      const testSrv = new TestService(mockConnection);
+      const namespaces = await testSrv.queryNamespaces();
+      expect(queryStub.calledTwice).to.be.true;
+      expect(namespaces).to.deep.equal(
+        new Set(['myNamespace', 'otherNamespace'])
+      );
     });
   });
 });

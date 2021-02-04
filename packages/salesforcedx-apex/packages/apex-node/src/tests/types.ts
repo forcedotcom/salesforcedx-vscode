@@ -73,6 +73,10 @@ export type TestItem = {
    * Array of test names to run. Not specifying it will run all test methods in a test class
    */
   testMethods?: string[];
+  /**
+   * Namespace associated with the test class or method
+   */
+  namespace?: string;
 };
 
 export type AsyncTestArrayConfiguration = {
@@ -440,4 +444,12 @@ export type ApexOrgWideCoverage = {
   done: boolean;
   totalSize: number;
   records: { PercentCovered: string }[];
+};
+
+export type NamespaceRecord = {
+  NamespacePrefix: string;
+};
+
+export type NamespaceQueryResult = {
+  records: NamespaceRecord[];
 };

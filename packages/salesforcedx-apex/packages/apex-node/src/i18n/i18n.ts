@@ -64,5 +64,7 @@ export const messages = {
   class_tested_header: 'CLASS BEING TESTED',
   uncovered_lines_col_header: 'UNCOVERED LINES',
   code_cov_header: 'Apex Code Coverage by Class',
-  detailed_code_cov_header: 'Apex Code Coverage for Test Run %s'
+  detailed_code_cov_header: 'Apex Code Coverage for Test Run %s',
+  syncClassErr:
+    'Synchronous test runs can include test methods from only one Apex class. Omit the --synchronous flag or include tests from only one class'
 };
