@@ -10,7 +10,6 @@ import {
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
-  forceApexLogGet,
   forceApexTestRun,
   forceApexTriggerCreate,
   forceAuthDevHub,
@@ -318,11 +317,6 @@ function registerCommands(
     isvDebugBootstrap
   );
 
-  const forceApexLogGetCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.log.get',
-    forceApexLogGet
-  );
-
   const forceConfigSetCmd = vscode.commands.registerCommand(
     'sfdx.force.config.set',
     forceConfigSet
@@ -415,7 +409,6 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
-    forceApexLogGetCmd,
     forceConfigSetCmd
   );
 }

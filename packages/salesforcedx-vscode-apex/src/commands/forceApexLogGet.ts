@@ -6,13 +6,25 @@
  */
 
 import { LogRecord, LogService } from '@salesforce/apex-node';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  getRootWorkspacePath,
+  getRootWorkspaceSfdxPath,
+  LibraryCommandletExecutor,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
   Command,
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  ChannelService,
+  notificationService,
+  ProgressNotification
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import {
   getYYYYMMddHHmmssDateFormat,
   optionYYYYMMddHHmmss
@@ -24,91 +36,23 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
-import { CommandExecution } from '../../../salesforcedx-utils-vscode/out/src/cli/commandExecutor';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { SFDX_FOLDER } from '../constants';
+import { OUTPUT_CHANNEL } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { taskViewService } from '../statuses';
-import { getRootWorkspacePath } from '../util';
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './util';
+import { useApexLibrary } from '../utils';
 
-export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
-  ApexDebugLogIdStartTime
-> {
-  public build(data: ApexDebugLogIdStartTime): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_log_get_text'))
-      .withArg('force:apex:log:get')
-      .withFlag('--logid', data.id)
-      .withJson()
-      .withLogName('force_apex_log_get')
-      .build();
-  }
+const LOG_DIRECTORY = path.join(
+  getRootWorkspaceSfdxPath(),
+  'tools',
+  'debug',
+  'logs'
+);
 
-  protected attachExecution(
-    execution: CommandExecution,
-    cancellationTokenSource: vscode.CancellationTokenSource,
-    cancellationToken: vscode.CancellationToken
-  ) {
-    channelService.streamCommandStartStop(execution);
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
-  }
-
-  public async execute(
-    response: ContinueResponse<ApexDebugLogIdStartTime>
-  ): Promise<void> {
-    const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
-    }).execute(cancellationToken);
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-
-    execution.processExitSubject.subscribe(() => {
-      this.logMetric(execution.command.logName, startTime);
-    });
-
-    const result = await new CommandOutput().getCmdResult(execution);
-    const resultJson = JSON.parse(result);
-    if (resultJson.status === 0) {
-      const logDir = path.join(
-        getRootWorkspacePath(),
-        '.sfdx',
-        'tools',
-        'debug',
-        'logs'
-      );
-      if (!fs.existsSync(logDir)) {
-        mkdir('-p', logDir);
-      }
-
-      const localUTCDate = new Date(response.data.startTime);
-      const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
-      const logPath = path.join(logDir, `${response.data.id}_${date}.log`);
-      const log = Array.isArray(resultJson.result)
-        ? resultJson.result[0].log
-        : resultJson.result.log;
-      fs.writeFileSync(logPath, log);
-      const document = await vscode.workspace.openTextDocument(logPath);
-      vscode.window.showTextDocument(document);
-    }
-  }
+interface ApexDebugLogItem extends vscode.QuickPickItem {
+  id: string;
+  startTime: string;
 }
 
 export type ApexDebugLogIdStartTime = {
@@ -116,32 +60,13 @@ export type ApexDebugLogIdStartTime = {
   startTime: string;
 };
 
-export type ApexDebugLogUser = {
-  Name: string;
-};
-
-export type ApexDebugLogObject = {
-  Id: string;
-  StartTime: string;
-  LogLength: number;
-  Operation: string;
-  Request: string;
-  Status: string;
-  LogUser: ApexDebugLogUser;
-};
-
-interface ApexDebugLogItem extends vscode.QuickPickItem {
-  id: string;
-  startTime: string;
-}
-
 export class LogFileSelector
   implements ParametersGatherer<ApexDebugLogIdStartTime> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const logInfos = sfdxCoreSettings.getApexLibrary()
+    const logInfos = useApexLibrary()
       ? await this.getLogRecords()
       : await ForceApexLogList.getLogs(cancellationTokenSource);
 
@@ -188,12 +113,24 @@ export class LogFileSelector
     return vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: nls.localize('apex_log_list_text')
+        title: nls.localize('force_apex_log_list_text')
       },
       () => logService.getLogRecords()
     );
   }
 }
+
+export type ApexDebugLogObject = {
+  Id: string;
+  StartTime: string;
+  LogLength: number;
+  Operation: string;
+  Request: string;
+  Status: string;
+  LogUser: {
+    Name: string;
+  };
+};
 
 export class ForceApexLogList {
   public static async getLogs(
@@ -209,10 +146,9 @@ export class ForceApexLogList {
       { cwd: getRootWorkspacePath() }
     ).execute();
     ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
     notificationService.reportExecutionError(
       execution.command.toString(),
-      (execution.processErrorSubject as any) as Observable<Error | undefined>
+      execution.processErrorSubject
     );
     const cmdOutput = new CommandOutput();
     const result = await cmdOutput.getCmdResult(execution);
@@ -231,12 +167,67 @@ export class ForceApexLogList {
   }
 }
 
+export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
+  ApexDebugLogIdStartTime
+> {
+  public build(data: ApexDebugLogIdStartTime): Command {
+    return new SfdxCommandBuilder()
+      .withDescription(nls.localize('force_apex_log_get_text'))
+      .withArg('force:apex:log:get')
+      .withFlag('--logid', data.id)
+      .withJson()
+      .withLogName('force_apex_log_get')
+      .build();
+  }
+
+  public async execute(
+    response: ContinueResponse<ApexDebugLogIdStartTime>
+  ): Promise<void> {
+    const startTime = process.hrtime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: getRootWorkspacePath()
+    }).execute(cancellationToken);
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+
+    ChannelService.getInstance(OUTPUT_CHANNEL.name).streamCommandOutput(
+      execution
+    );
+
+    const result = await new CommandOutput().getCmdResult(execution);
+    const resultJson = JSON.parse(result);
+    if (resultJson.status === 0) {
+      if (!fs.existsSync(LOG_DIRECTORY)) {
+        mkdir('-p', LOG_DIRECTORY);
+      }
+
+      const localUTCDate = new Date(response.data.startTime);
+      const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
+      const logPath = path.join(
+        LOG_DIRECTORY,
+        `${response.data.id}_${date}.log`
+      );
+      const log = Array.isArray(resultJson.result)
+        ? resultJson.result[0].log
+        : resultJson.result.log;
+      fs.writeFileSync(logPath, log);
+      const document = await vscode.workspace.openTextDocument(logPath);
+      vscode.window.showTextDocument(document);
+    }
+  }
+}
+
 export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   id: string;
 }> {
   constructor() {
     super(
-      nls.localize('apex_log_get_text'),
+      nls.localize('force_apex_log_get_text'),
       'force_apex_log_get_library',
       OUTPUT_CHANNEL
     );
@@ -248,17 +239,10 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const connection = await workspaceContext.getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;
-    const outputDir = path.join(
-      getRootWorkspacePath(),
-      SFDX_FOLDER,
-      'tools',
-      'debug',
-      'logs'
-    );
 
-    await logService.getLogs({ logId, outputDir });
+    await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
 
-    const logPath = path.join(outputDir, `${logId}.log`);
+    const logPath = path.join(LOG_DIRECTORY, `${logId}.log`);
     const document = await vscode.workspace.openTextDocument(logPath);
     vscode.window.showTextDocument(document);
 
@@ -267,14 +251,13 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
 }
 
 export async function forceApexLogGet(explorerDir?: any) {
-  const parameterGatherer = new LogFileSelector();
-  const logGetExecutor = sfdxCoreSettings.getApexLibrary()
+  const logGetExecutor = useApexLibrary()
     ? new ApexLibraryGetLogsExecutor()
     : new ForceApexLogGetExecutor();
 
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    parameterGatherer,
+    new LogFileSelector(),
     logGetExecutor
   );
   await commandlet.run();

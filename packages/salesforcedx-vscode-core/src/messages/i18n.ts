@@ -240,13 +240,6 @@ export const messages = {
   isv_debug_bootstrap_generate_launchjson: 'Creating launch configuration',
   isv_debug_bootstrap_open_project: 'Opening project in Visual Studio Code',
 
-  force_apex_log_get_text: 'SFDX: Get Apex Debug Logs...',
-  force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
-  force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
-  force_apex_log_list_text: 'Getting Apex debug logs',
-  apex_log_get_text: 'Get Apex Logs',
-  apex_log_list_text: 'Fetching Apex debug log list',
-
   error_creating_packagexml: 'Error creating package.xml. %s',
   error_extracting_org_source: 'Error extracting downloaded Apex source. %s',
   error_extracting_packages: 'Error extracting packages: %s',
