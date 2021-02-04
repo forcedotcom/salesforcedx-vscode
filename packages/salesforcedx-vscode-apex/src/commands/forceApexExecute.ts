@@ -131,6 +131,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     response: ContinueResponse<ApexExecuteParameters>
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
+    // @ts-ignore
     const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath } = response.data;
 
