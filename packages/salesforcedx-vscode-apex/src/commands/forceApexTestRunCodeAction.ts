@@ -92,7 +92,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     const humanOutput = new HumanReporter().format(result, this.codeCoverage);
     channelService.appendLine(humanOutput);
 
-    this.handleDiagnostics(result);
+    await this.handleDiagnostics(result);
     return result.summary.outcome === 'Passed';
   }
 
