@@ -11,6 +11,7 @@
   "apex_semantic_errors_description": "Apex 言語サーバがセマンティックエラーを表示することを許可します。",
   "force_apex_execute_document_text": "SFDX: エディタのコンテンツを使用して匿名 Apex を実行",
   "force_apex_execute_selection_text": "SFDX: 現在選択されているテキストを使用して匿名 Apex を実行",
+  "force_apex_log_get_text": "SFDX: Apex デバッグログを取得",
   "force_apex_test_last_class_run_text": "SFDX: 最後に呼び出されたテストクラスを再実行",
   "force_apex_test_last_method_run_text": "SFDX: 最後に呼び出されたテストメソッドを再実行",
   "force_apex_test_class_run_text": "SFDX: テストクラスを呼び出す",

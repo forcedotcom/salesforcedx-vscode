@@ -32,6 +32,7 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import { useApexLibrary } from '../utils';
 
 type TempFile = { fileName: string };
 
@@ -206,11 +207,8 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 export async function forceApexExecute() {
   let parametersGatherer: ParametersGatherer<any>;
   let executor: CommandletExecutor<any>;
-  const apexLibraryEnabled = vscode.workspace
-    .getConfiguration('salesforcedx-vscode-core')
-    .get<boolean>('experimental.useApexLibrary', true);
 
-  if (apexLibraryEnabled) {
+  if (useApexLibrary()) {
     parametersGatherer = new AnonApexGatherer();
     executor = new ApexLibraryExecuteExecutor();
   } else {

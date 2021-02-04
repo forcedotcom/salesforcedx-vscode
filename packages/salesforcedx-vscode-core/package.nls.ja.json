@@ -37,7 +37,6 @@
   "force_start_apex_debug_logging": "SFDX: Replay Debugger 用の Apex デバッグログを有効化",
   "force_stop_apex_debug_logging": "SFDX: Replay Debugger 用の Apex デバッグログを無効化",
   "isv_bootstrap_command_text": "SFDX: ISV デバッグ用のプロジェクトを新規作成し設定",
-  "force_apex_log_get_text": "SFDX: Apex デバッグログを取得...",
   "retrieve_test_code_coverage_text": "Apex テストの実行時にコードカバレッジの結果を計算して取得するかどうかを指定します。",
   "telemetry_enabled_description": "Salesforce による利用状況データの収集を有効化するかどうかを指定します。この設定で有効化していても、VS Code 全体の設定 `telemetry.enableTelemetry` が優先されます。",
   "push_or_deploy_on_save_enabled_description": "ローカルのソースファイルを保存した際に、自動的に force:source:push コマンド (ソースが追跡される組織) または、force:source:deploy コマンド (ソースが追跡されない組織) を実行するかどうかを指定します。",

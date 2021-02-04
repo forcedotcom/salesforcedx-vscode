@@ -19,7 +19,7 @@ import {
   LogFileSelector
 } from '../../../src/commands/forceApexLogGet';
 import { nls } from '../../../src/messages';
-import { sfdxCoreSettings } from '../../../src/settings';
+import * as utils from '../../../src/utils';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Log Get Logging', () => {
@@ -63,15 +63,13 @@ describe('Force Apex Log Get Logging', () => {
   ];
 
   let sb: SinonSandbox;
-  let cliGetLogsStub: sinon.SinonStub;
   let showQuickPickStub: sinon.SinonStub;
   let apexLogListStub: sinon.SinonStub;
   let settingStub: SinonStub;
 
   before(() => {
     sb = createSandbox();
-    cliGetLogsStub = sb
-      .stub(ForceApexLogList, 'getLogs')
+    sb.stub(ForceApexLogList, 'getLogs')
       .onFirstCall()
       .returns([])
       .onSecondCall()
@@ -94,7 +92,7 @@ describe('Force Apex Log Get Logging', () => {
       .stub(vscode.window, 'showQuickPick')
       .returns(logInfos[0]);
 
-    settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
+    settingStub = sb.stub(utils, 'useApexLibrary').returns(false);
   });
 
   after(() => {
@@ -183,7 +181,7 @@ describe('use CLI Command setting', async () => {
 
   beforeEach(async () => {
     sb = createSandbox();
-    settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary');
+    settingStub = sb.stub(utils, 'useApexLibrary');
     apexLogGetStub = sb.stub(ApexLibraryGetLogsExecutor.prototype, 'execute');
     apexLogListStub = sb
       .stub(LogFileSelector.prototype, 'getLogRecords')

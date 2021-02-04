@@ -29,5 +29,6 @@ export {
 export {
   hasRootWorkspace,
   getRootWorkspace,
-  getRootWorkspacePath
+  getRootWorkspacePath,
+  getRootWorkspaceSfdxPath
 } from './workspaces';
