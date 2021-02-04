@@ -40,8 +40,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
   private tests: string[];
   private codeCoverage: boolean = false;
   private outputDir: string;
-  protected executionName = nls.localize('apex_test_run_text');
-  protected logName = 'force_apex_execute_library';
+  protected executionName = nls.localize('force_apex_test_run_text');
+  protected logName = 'force_apex_test_run_code_action_library';
 
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
@@ -110,9 +110,7 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
 
   public build(data: {}): Command {
     this.builder = this.builder
-      .withDescription(
-        nls.localize('force_apex_test_run_codeAction_description_text')
-      )
+      .withDescription(nls.localize('force_apex_test_run_text'))
       .withArg('force:apex:test:run')
       .withFlag('--tests', this.tests)
       .withFlag('--resultformat', 'human')

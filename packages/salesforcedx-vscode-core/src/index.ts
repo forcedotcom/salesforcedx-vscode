@@ -10,7 +10,6 @@ import {
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
-  forceApexTestRun,
   forceApexTriggerCreate,
   forceAuthDevHub,
   forceAuthLogoutAll,
@@ -185,11 +184,6 @@ function registerCommands(
     forceSourceStatus,
     { flag: '--remote' }
   );
-  const forceApexTestRunCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.test.run',
-    forceApexTestRun
-  );
-
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
     forceTaskStop
@@ -353,7 +347,6 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
-    forceApexTestRunCmd,
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,

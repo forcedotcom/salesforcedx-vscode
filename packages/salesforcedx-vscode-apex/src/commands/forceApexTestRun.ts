@@ -11,7 +11,14 @@ import {
   TestLevel,
   TestService
 } from '@salesforce/apex-node';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  getRootWorkspacePath,
+  hasRootWorkspace,
+  LibraryCommandletExecutor,
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder,
@@ -25,16 +32,10 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { OUTPUT_CHANNEL } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
-import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from './util';
+import * as settings from '../settings';
 
 export enum TestType {
   All,
@@ -162,8 +163,12 @@ function getTempFolder(): string {
 export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
   ApexTestQuickPickItem
 > {
+  constructor() {
+    super(OUTPUT_CHANNEL);
+  }
+
   public build(data: ApexTestQuickPickItem): Command {
-    const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+    const getCodeCoverage = settings.retrieveTestCodeCoverage();
     const outputToJson = getTempFolder();
     const factory: ForceApexTestRunCommandFactory = new ForceApexTestRunCommandFactory(
       data,
@@ -183,7 +188,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
 
   constructor() {
     super(
-      nls.localize('apex_test_run_text'),
+      nls.localize('force_apex_test_run_text'),
       'force_apex_execute_library',
       OUTPUT_CHANNEL
     );
@@ -195,7 +200,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
     const testLevel = TestLevel.RunSpecifiedTests;
-    const codeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+    const codeCoverage = settings.retrieveTestCodeCoverage();
 
     let payload: AsyncTestConfiguration;
 
@@ -217,7 +222,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
       codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, codeCoverage);
-    channelService.appendLine(humanOutput);
+    OUTPUT_CHANNEL.appendLine(humanOutput);
     return true;
   }
 }
@@ -229,7 +234,7 @@ export async function forceApexTestRun() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    sfdxCoreSettings.getApexLibrary()
+    settings.useApexLibrary()
       ? new ApexLibraryTestRunExecutor()
       : new ForceApexTestRunExecutor()
   );

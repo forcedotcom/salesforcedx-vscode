@@ -6,9 +6,14 @@
  */
 
 import { TestLevel, TestService } from '@salesforce/apex-node';
+import {
+  EmptyParametersGatherer,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { join } from 'path';
+import { createSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
@@ -17,22 +22,28 @@ import {
   ForceApexTestRunExecutor,
   TestsSelector,
   TestType
-} from '../../../src/commands';
-import {
-  EmptyParametersGatherer,
-  SfdxWorkspaceChecker
-} from '../../../src/commands/util';
+} from '../../../src/commands/forceApexTestRun';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { sfdxCoreSettings } from '../../../src/settings';
+import * as settings from '../../../src/settings';
+
+const sb = createSandbox();
 
 describe('Force Apex Test Run', () => {
+  const testResultsOutput = join('test', 'results', 'apex');
+
+  let retrieveCoverageStub: SinonStub;
+
+  beforeEach(() => {
+    retrieveCoverageStub = sb
+      .stub(settings, 'retrieveTestCodeCoverage')
+      .returns(false);
+    sb.stub(TestRunner.prototype, 'getTempFolder').returns(testResultsOutput);
+  });
+
+  afterEach(() => sb.restore());
+
   describe('Command builder', () => {
-    sinon
-      .stub(TestRunner.prototype, 'getTempFolder')
-      .returns(
-        '/Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex'
-      );
     const builder = new ForceApexTestRunExecutor();
 
     it('Should build command for test suite', () => {
@@ -43,7 +54,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --suitenames MySuite --resultformat human --outputdir /Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex --loglevel error'
+        `sfdx force:apex:test:run --suitenames MySuite --resultformat human --outputdir ${testResultsOutput} --loglevel error`
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -58,7 +69,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --classnames MyTestClass --resultformat human --outputdir /Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex --loglevel error'
+        `sfdx force:apex:test:run --classnames MyTestClass --resultformat human --outputdir ${testResultsOutput} --loglevel error`
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -75,7 +86,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        'sfdx force:apex:test:run --resultformat human --outputdir /Users/a.jha/Documents/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple/.sfdx/tools/testresults/apex --loglevel error'
+        `sfdx force:apex:test:run --resultformat human --outputdir ${testResultsOutput} --loglevel error`
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -84,20 +95,12 @@ describe('Force Apex Test Run', () => {
   });
 
   describe('Apex Library Test Run Executor', async () => {
-    let sb: sinon.SinonSandbox;
     let runTestStub: sinon.SinonStub;
-    let getCoverageStub: sinon.SinonStub;
 
     beforeEach(async () => {
-      sb = sinon.createSandbox();
-      getCoverageStub = sb
-        .stub(sfdxCoreSettings, 'getRetrieveTestCodeCoverage')
-        .returns(true);
+      retrieveCoverageStub.returns(true);
       runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous');
       sb.stub(workspaceContext, 'getConnection');
-    });
-    afterEach(async () => {
-      sb.restore();
     });
 
     it('should run test with correct parameters for specified class', async () => {
@@ -142,14 +145,12 @@ describe('Force Apex Test Run', () => {
 
   // tslint:disable:no-unused-expression
   describe('Use Apex Library Setting', () => {
-    let sb: sinon.SinonSandbox;
-    let settingStub: sinon.SinonStub;
-    let apexExecutorStub: sinon.SinonSpy;
-    let cliExecutorStub: sinon.SinonSpy;
+    let settingStub: SinonStub;
+    let apexExecutorStub: SinonSpy;
+    let cliExecutorStub: SinonSpy;
 
     beforeEach(async () => {
-      sb = sinon.createSandbox();
-      settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary');
+      settingStub = sb.stub(settings, 'useApexLibrary');
       apexExecutorStub = sb.spy(
         ApexLibraryTestRunExecutor.prototype,
         'execute'
@@ -157,9 +158,6 @@ describe('Force Apex Test Run', () => {
       cliExecutorStub = sb.spy(ForceApexTestRunExecutor.prototype, 'execute');
       sb.stub(EmptyParametersGatherer.prototype, 'gather');
       sb.stub(SfdxWorkspaceChecker.prototype, 'check');
-    });
-    afterEach(async () => {
-      sb.restore();
     });
 
     it('should use the ApexLibraryTestRunExecutor if setting is true', async () => {
@@ -177,18 +175,15 @@ describe('Force Apex Test Run', () => {
 
   describe('Tests selector', () => {
     let quickPickStub: sinon.SinonStub;
+
     beforeEach(() => {
-      quickPickStub = sinon.stub(vscode.window, 'showQuickPick').returns({
+      quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns({
         label: nls.localize('force_apex_test_run_all_test_label'),
         description: nls.localize(
           'force_apex_test_run_all_tests_description_text'
         ),
         type: TestType.All
       });
-    });
-
-    afterEach(() => {
-      quickPickStub.restore();
     });
 
     it('Should have test suite and class', async () => {

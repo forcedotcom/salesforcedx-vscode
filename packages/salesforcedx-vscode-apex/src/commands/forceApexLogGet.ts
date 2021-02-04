@@ -41,7 +41,7 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { useApexLibrary } from '../utils';
+import { useApexLibrary } from '../settings';
 
 const LOG_DIRECTORY = path.join(
   getRootWorkspaceSfdxPath(),
@@ -170,6 +170,10 @@ export class ForceApexLogList {
 export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
   ApexDebugLogIdStartTime
 > {
+  constructor() {
+    super(OUTPUT_CHANNEL);
+  }
+
   public build(data: ApexDebugLogIdStartTime): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_log_get_text'))

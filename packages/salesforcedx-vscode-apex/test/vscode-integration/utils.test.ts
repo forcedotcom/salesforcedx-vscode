@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { useApexLibrary } from '../../src/utils';
+import { useApexLibrary } from '../../src/settings';
 
 const sandbox = createSandbox();
 

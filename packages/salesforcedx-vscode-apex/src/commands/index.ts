@@ -21,3 +21,4 @@ export {
   forceGenerateFauxClassesCreate,
   verifyUsernameAndInitSObjectDefinitions as initSObjectDefinitions
 } from './forceGenerateFauxClasses';
+export { forceApexTestRun } from './forceApexTestRun';
