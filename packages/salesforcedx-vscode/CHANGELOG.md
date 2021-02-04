@@ -1,3 +1,31 @@
+# 50.16.0 - February 3, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Surface project information in `Apex Language Server` Output panel ([PR #2891](https://github.com/forcedotcom/salesforcedx-vscode/pull/2891))
+
+## Fixed
+
+#### docs
+
+- Add Log Analyzer to [Recommended Extensions](https://developer.salesforce.com/tools/vscode/en/getting-started/recommended-extensions) ([PR #2911](https://github.com/forcedotcom/salesforcedx-vscode/pull/2911))
+
+- Add AdoptOpenJDK configuration sample for Linux in [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) ([PR #2870](https://github.com/forcedotcom/salesforcedx-vscode/pull/2870)) - Contribution by [@renatoliveira](https://github.com/renatoliveira)
+
+- Include steps to get the JDK install path for MacOS in [Java Setup](https://developer.salesforce.com/tools/vscode/en/getting-started/java-setup) ([PR #2910](https://github.com/forcedotcom/salesforcedx-vscode/pull/2910)) - Contribution by [@mikeflemingcfs](https://github.com/mikeflemingcfs)
+
+- Add missing permission step to [ISV Customer Debugger](https://developer.salesforce.com/tools/vscode/en/apex/isv-debugger/#configure-isv-customer-debugger) ([PR #2901](https://github.com/forcedotcom/salesforcedx-vscode/pull/2901))
+
+#### salesforcedx-vscode-lwc
+
+- Reduce extension size by 34% ([PR #2904](https://github.com/forcedotcom/salesforcedx-vscode/pull/2904))
+
+#### salesforcedx-vscode-lightning
+
+- Reduce extension size by 68% ([PR #2908](https://github.com/forcedotcom/salesforcedx-vscode/pull/2908))
+
 # 50.14.0 - January 21, 2021
 
 ## Fixed
