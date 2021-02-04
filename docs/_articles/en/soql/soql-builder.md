@@ -18,7 +18,7 @@ During beta, you can build simple query statements that include:
 **Beta Limitations:**
 
 - You can still run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
-- WHERE clauses can be quite complex. SOQL Editor supports simple WHERE expressions. You can combine conditions using AND or OR, but not both. SOQL Editor supports only one level of nesting.
+- WHERE clauses can be quite complex. SOQL Builder supports simple WHERE expressions. You can combine conditions using AND or OR, but not both.
 
 ## Install the SOQL Builder Extension
 
