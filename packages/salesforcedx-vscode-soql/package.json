@@ -36,7 +36,7 @@
     "@salesforce/apex-tmlanguage": "1.6.0",
     "@salesforce/core": "^2.15.2",
     "@salesforce/salesforcedx-utils-vscode": "50.16.0",
-    "@salesforce/soql-builder-ui": "0.0.30",
+    "@salesforce/soql-builder-ui": "0.0.1-snapshot-where-rc1",
     "@salesforce/soql-data-view": "0.0.8",
     "@salesforce/soql-language-server": "0.3.4",
     "debounce": "^1.2.0",
