@@ -8,7 +8,6 @@
 import { TestLevel, TestService } from '@salesforce/apex-node';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { extensions } from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
   forceApexTestClassRunCodeAction,
@@ -18,11 +17,7 @@ import {
   resolveTestMethodParam
 } from '../../../src/commands/forceApexTestRunCodeAction';
 import { workspaceContext } from '../../../src/context';
-
-const sfdxCoreExports = extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const sfdxCoreSetting = sfdxCoreExports.sfdxCoreSettings;
+import * as settings from '../../../src/settings';
 
 // return undefined: used to get around strict checks
 function getUndefined(): any {
@@ -170,7 +165,7 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         true
       );
-      await apexLibExecutor.execute();
+      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [{ className: 'testClass', testMethods: ['oneTest'] }],
@@ -186,7 +181,7 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         false
       );
-      await apexLibExecutor.execute();
+      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [
@@ -205,7 +200,7 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         true
       );
-      await apexLibExecutor.execute();
+      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [{ className: 'testClass' }],
@@ -221,7 +216,7 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         false
       );
-      await apexLibExecutor.execute();
+      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [{ className: 'testClass' }, { className: 'secondTestClass' }],
@@ -240,7 +235,7 @@ describe('Force Apex Test Run - Code Action', () => {
 
     beforeEach(async () => {
       sb = createSandbox();
-      settingStub = sb.stub(sfdxCoreSetting, 'getApexLibrary');
+      settingStub = sb.stub(settings, 'useApexLibrary');
       apexExecutorStub = sb.stub(
         ApexLibraryTestRunExecutor.prototype,
         'execute'

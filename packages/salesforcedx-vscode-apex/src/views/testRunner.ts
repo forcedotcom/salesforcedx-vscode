@@ -8,7 +8,11 @@
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as events from 'events';
 import * as vscode from 'vscode';
-import { ApexLibraryTestRunExecutor, ForceApexTestRunCodeActionExecutor } from '../commands';
+import {
+  ApexLibraryTestRunExecutor,
+  ForceApexTestRunCodeActionExecutor
+} from '../commands';
+import { OUTPUT_CHANNEL } from '../constants';
 import {
   LanguageClientStatus,
   languageClientUtils
@@ -28,7 +32,6 @@ const sfdxCoreExports = vscode.extensions.getExtension(
 const EmptyParametersGatherer = sfdxCoreExports.EmptyParametersGatherer;
 const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
-const channelService = sfdxCoreExports.channelService;
 const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 
 export enum TestRunType {
@@ -74,11 +77,11 @@ export class ApexTestRunner {
             ),
             10
           ) - 1; // Remove one because vscode location is zero based
-        channelService.appendLine('-----------------------------------------');
-        channelService.appendLine(stackTrace);
-        channelService.appendLine(errorMessage);
-        channelService.appendLine('-----------------------------------------');
-        channelService.showChannelOutput();
+        OUTPUT_CHANNEL.appendLine('-----------------------------------------');
+        OUTPUT_CHANNEL.appendLine(stackTrace);
+        OUTPUT_CHANNEL.appendLine(errorMessage);
+        OUTPUT_CHANNEL.appendLine('-----------------------------------------');
+        OUTPUT_CHANNEL.show(true);
       }
     }
 
@@ -140,12 +143,13 @@ export class ApexTestRunner {
     } else if (testRunType === TestRunType.Method) {
       await forceApexTestRunCacheService.setCachedMethodTestParam(tests[0]);
     }
-    const executor = sfdxCoreSettings.getApexLibrary() ? new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage) :
-    new ForceApexTestRunCodeActionExecutor(
-      tests,
-      getCodeCoverage,
-      tmpFolder
-    );
+    const executor = sfdxCoreSettings.getApexLibrary()
+      ? new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
+      : new ForceApexTestRunCodeActionExecutor(
+          tests,
+          getCodeCoverage,
+          tmpFolder
+        );
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       new EmptyParametersGatherer(),
