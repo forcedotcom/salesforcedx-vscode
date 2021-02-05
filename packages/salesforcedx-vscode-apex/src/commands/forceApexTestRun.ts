@@ -189,7 +189,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   constructor() {
     super(
       nls.localize('force_apex_test_run_text'),
-      'force_apex_execute_library',
+      'force_apex_test_run_library',
       OUTPUT_CHANNEL
     );
   }
