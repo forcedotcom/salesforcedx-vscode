@@ -14,6 +14,7 @@ import {
   checkSObjectsAndRefresh,
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
+  forceApexLogGet,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
@@ -187,6 +188,10 @@ function registerCommands(
     'sfdx.force.apex.debug.method.run.delegate',
     forceApexDebugMethodRunCodeActionDelegate
   );
+  const forceApexLogGetCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.log.get',
+    forceApexLogGet
+  );
   const forceApexTestLastMethodRunCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.test.last.method.run',
     forceApexTestMethodRunCodeAction
@@ -218,6 +223,7 @@ function registerCommands(
     forceApexDebugMethodRunDelegateCmd,
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
+    forceApexLogGetCmd,
     forceApexTestLastMethodRunCmd,
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
