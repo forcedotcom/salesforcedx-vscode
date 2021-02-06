@@ -427,10 +427,6 @@
           "when": "!sfdx:internal_dev"
         },
         {
-          "command": "sfdx.force.apex.log.get",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.source.retrieve.source.path",
           "when": "false"
         },
@@ -724,10 +720,6 @@
       {
         "command": "sfdx.debug.isv.bootstrap",
         "title": "%isv_bootstrap_command_text%"
-      },
-      {
-        "command": "sfdx.force.apex.log.get",
-        "title": "%force_apex_log_get_text%"
       },
       {
         "command": "sfdx.force.source.retrieve.source.path",

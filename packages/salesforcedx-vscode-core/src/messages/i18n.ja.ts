@@ -199,11 +199,6 @@ export const messages = {
   isv_debug_bootstrap_open_project:
     'プロジェクトを新しい Visual Studio Code のウィンドウで開いています',
 
-  force_apex_log_get_text: 'SFDX: Apex デバッグログを取得...',
-  force_apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',
-  force_apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
-  force_apex_log_list_text: 'Apex デバッグログを取得しています',
-
   error_creating_packagexml: 'package.xml の作成中にエラー: %s',
   error_extracting_org_source:
     'ダウンロードされたApex ソースの抽出中にエラー: %s',

@@ -127,6 +127,18 @@
       ],
       "commandPalette": [
         {
+          "command": "sfdx.force.apex.execute.selection",
+          "when": "sfdx:project_opened && editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.apex.execute.document",
+          "when": "sfdx:project_opened && !editorHasSelection"
+        },
+        {
+          "command": "sfdx.force.apex.log.get",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.apex.test.last.class.run",
           "when": "sfdx:project_opened && sfdx:has_cached_test_class"
         },
@@ -169,18 +181,22 @@
         {
           "command": "sfdx.force.test.view.refresh",
           "when": "false"
-        },
-        {
-          "command": "sfdx.force.apex.execute.selection",
-          "when": "sfdx:project_opened && editorHasSelection"
-        },
-        {
-          "command": "sfdx.force.apex.execute.document",
-          "when": "sfdx:project_opened && !editorHasSelection"
         }
       ]
     },
     "commands": [
+      {
+        "command": "sfdx.force.apex.execute.document",
+        "title": "%force_apex_execute_document_text%"
+      },
+      {
+        "command": "sfdx.force.apex.execute.selection",
+        "title": "%force_apex_execute_selection_text%"
+      },
+      {
+        "command": "sfdx.force.apex.log.get",
+        "title": "%force_apex_log_get_text%"
+      },
       {
         "command": "sfdx.force.test.view.run",
         "title": "%run_tests_title%",
@@ -248,14 +264,6 @@
       {
         "command": "sfdx.force.internal.refreshsobjects",
         "title": "%force_sobjects_refresh%"
-      },
-      {
-        "command": "sfdx.force.apex.execute.document",
-        "title": "%force_apex_execute_document_text%"
-      },
-      {
-        "command": "sfdx.force.apex.execute.selection",
-        "title": "%force_apex_execute_selection_text%"
       }
     ],
     "configuration": {
