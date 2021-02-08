@@ -11,7 +11,7 @@ import { Messages, SfdxProject } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as stream from 'stream';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import {
   testRunSimple,
   runWithCoverage,
@@ -350,7 +350,7 @@ describe('force:apex:test:run', () => {
       'should format request with correct properties for sync run with class name',
       ctx => {
         expect(
-          ctx.myStub.calledWith({
+          (ctx.myStub as SinonStub).calledWith({
             tests: [{ className: 'MyApexTests' }],
             testLevel: 'RunSpecifiedTests'
           })
@@ -382,7 +382,7 @@ describe('force:apex:test:run', () => {
       'should format request with correct properties for sync run with class id',
       ctx => {
         expect(
-          ctx.myStub.calledWith({
+          (ctx.myStub as SinonStub).calledWith({
             tests: [{ classId: '01p45678x123456' }],
             testLevel: 'RunSpecifiedTests'
           })
@@ -414,7 +414,7 @@ describe('force:apex:test:run', () => {
       'should format request with correct properties for sync run with tests',
       ctx => {
         expect(
-          ctx.myStub.calledWith({
+          (ctx.myStub as SinonStub).calledWith({
             tests: [
               {
                 className: 'MyApexTests',
@@ -489,7 +489,7 @@ describe('force:apex:test:run', () => {
     .it(
       'should create test-run-codecoverage file with correct content when code cov is specified',
       ctx => {
-        expect(ctx.myStub.args).to.deep.equal([
+        expect((ctx.myStub as SinonStub).args).to.deep.equal([
           [
             runWithCoverage,
             {

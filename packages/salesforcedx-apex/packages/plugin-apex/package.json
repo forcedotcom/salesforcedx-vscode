@@ -1,16 +1,16 @@
 {
   "name": "@salesforce/plugin-apex",
   "description": "Apex commands",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "dependencies": {
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/errors": "^1",
-    "@salesforce/apex-node": "0.1.12",
+    "@salesforce/apex-node": "0.1.13",
     "@salesforce/command": "3.0.3",
-    "@salesforce/core": "2.11.0",
+    "@salesforce/core": "2.12.0",
     "chalk": "^4.1.0",
     "tslib": "^1"
   },
@@ -20,10 +20,11 @@
     "@oclif/plugin-help": "^2",
     "@oclif/test": "^1",
     "@salesforce/dev-config": "1.4.1",
-    "@salesforce/plugin-command-reference": "^1.1.0",
+    "@salesforce/plugin-command-reference": "1.1.0",
     "@salesforce/ts-sinon": "^1.1.2",
     "@salesforce/ts-types": "1.2.2",
     "@types/chai": "^4",
+    "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
     "@types/node": "^10",
     "chai": "^4",
@@ -35,6 +36,9 @@
     "sinon": "^7.3.1",
     "ts-node": "^8.7.0",
     "typescript": "3.7.5"
+  },
+  "resolutions": {
+    "**/@salesforce/core": "2.12.0"
   },
   "engines": {
     "node": ">=10.17.0"

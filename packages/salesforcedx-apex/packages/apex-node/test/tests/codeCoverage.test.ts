@@ -28,6 +28,10 @@ describe('Get code coverage results', () => {
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
+    // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
+    sandboxStub
+      .stub(Connection.prototype, 'retrieveMaxApiVersion')
+      .resolves('50.0');
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
