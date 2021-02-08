@@ -128,7 +128,7 @@ describe('Force Apex Class Create', () => {
       assert.file([apexClassPath, apexClassMetaPath]);
       assert.fileContent(
         apexClassPath,
-        'public with sharing class TestApexClass'
+        'public inherited sharing class TestApexClass'
       );
       assert.fileContent(
         apexClassMetaPath,
