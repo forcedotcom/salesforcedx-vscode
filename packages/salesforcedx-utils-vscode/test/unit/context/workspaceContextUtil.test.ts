@@ -98,7 +98,7 @@ export class MockFileWatcher {
 }
 
 const { WorkspaceContextUtil } = proxyquire.noCallThru()(
-  '../../../src/context/index',
+  '../../../src/index',
   {
     vscode: vscodeStub
   }
