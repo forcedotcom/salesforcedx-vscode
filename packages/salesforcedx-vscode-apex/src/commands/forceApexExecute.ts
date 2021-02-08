@@ -29,7 +29,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../constants';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { useApexLibrary } from '../settings';
@@ -169,7 +169,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         outputText += `\n${response.logs}`;
       }
     }
-    OUTPUT_CHANNEL.appendLine(outputText);
+    channelService.appendLine(outputText);
   }
 
   private handleDiagnostics(

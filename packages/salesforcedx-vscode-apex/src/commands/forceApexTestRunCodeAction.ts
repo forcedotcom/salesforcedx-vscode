@@ -21,7 +21,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../constants';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -89,7 +89,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       this.codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, this.codeCoverage);
-    OUTPUT_CHANNEL.appendLine(humanOutput);
+    channelService.appendLine(humanOutput);
     return true;
   }
 }

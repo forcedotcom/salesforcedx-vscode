@@ -8,11 +8,11 @@
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as events from 'events';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import {
   ApexLibraryTestRunExecutor,
   ForceApexTestRunCodeActionExecutor
 } from '../commands';
-import { OUTPUT_CHANNEL } from '../constants';
 import {
   LanguageClientStatus,
   languageClientUtils
@@ -77,11 +77,11 @@ export class ApexTestRunner {
             ),
             10
           ) - 1; // Remove one because vscode location is zero based
-        OUTPUT_CHANNEL.appendLine('-----------------------------------------');
-        OUTPUT_CHANNEL.appendLine(stackTrace);
-        OUTPUT_CHANNEL.appendLine(errorMessage);
-        OUTPUT_CHANNEL.appendLine('-----------------------------------------');
-        OUTPUT_CHANNEL.show(true);
+        channelService.appendLine('-----------------------------------------');
+        channelService.appendLine(stackTrace);
+        channelService.appendLine(errorMessage);
+        channelService.appendLine('-----------------------------------------');
+        channelService.showChannelOutput();
       }
     }
 

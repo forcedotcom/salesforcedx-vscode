@@ -32,7 +32,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../constants';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -222,7 +222,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
       codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, codeCoverage);
-    OUTPUT_CHANNEL.appendLine(humanOutput);
+    channelService.appendLine(humanOutput);
     return true;
   }
 }

@@ -21,7 +21,6 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  ChannelService,
   notificationService,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
@@ -38,7 +37,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../constants';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { useApexLibrary } from '../settings';
@@ -199,9 +198,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime);
     });
 
-    ChannelService.getInstance(OUTPUT_CHANNEL.name).streamCommandOutput(
-      execution
-    );
+    channelService.streamCommandOutput(execution);
 
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
