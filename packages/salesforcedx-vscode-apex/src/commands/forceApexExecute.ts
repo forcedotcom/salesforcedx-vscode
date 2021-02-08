@@ -182,9 +182,9 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         columnNumber
       } = response.diagnostic[0];
       let message;
-      if (compileProblem !== '') {
+      if (compileProblem && compileProblem !== '') {
         message = compileProblem;
-      } else if (exceptionMessage !== '') {
+      } else if (exceptionMessage && exceptionMessage !== '') {
         message = exceptionMessage;
       } else {
         message = nls.localize('apex_execute_unexpected_error');
@@ -194,8 +194,8 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         severity: vscode.DiagnosticSeverity.Error,
         source: filePath,
         range: this.getZeroBasedRange(
-          Number(lineNumber) ?? 1,
-          Number(columnNumber) ?? 1
+          Number(lineNumber) || 1,
+          Number(columnNumber) || 1
         )
       };
 
