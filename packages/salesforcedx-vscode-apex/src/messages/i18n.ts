@@ -19,6 +19,7 @@ export const messages = {
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
+  apex_execute_unexpected_error: 'Unexpected error',
   apex_language_server_failed_activate:
     'Unable to activate the Apex Language Server',
   apex_test_run_text: 'Run Apex Tests',

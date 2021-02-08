@@ -179,17 +179,27 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     ApexLibraryExecuteExecutor.diagnostics.clear();
 
     if (response.diagnostic) {
-      const diagnostic = response.diagnostic[0];
+      const {
+        compileProblem,
+        exceptionMessage,
+        lineNumber,
+        columnNumber
+      } = response.diagnostic[0];
+      let message;
+      if (compileProblem && compileProblem !== '') {
+        message = compileProblem;
+      } else if (exceptionMessage && exceptionMessage !== '') {
+        message = exceptionMessage;
+      } else {
+        message = nls.localize('apex_execute_unexpected_error');
+      }
       const vscDiagnostic: vscode.Diagnostic = {
-        message:
-          typeof diagnostic.compileProblem === 'string'
-            ? diagnostic.compileProblem
-            : diagnostic.exceptionMessage,
+        message,
         severity: vscode.DiagnosticSeverity.Error,
         source: filePath,
         range: this.getZeroBasedRange(
-          diagnostic.lineNumber ?? 1,
-          diagnostic.columnNumber ?? 1
+          Number(lineNumber) || 1,
+          Number(columnNumber) || 1
         )
       };
 
