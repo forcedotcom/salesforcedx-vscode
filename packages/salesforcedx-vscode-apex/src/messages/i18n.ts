@@ -24,7 +24,7 @@ export const messages = {
   apex_test_run_text: 'Run Apex Tests',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
-  channel_name: 'Apex Extension',
+  channel_name: 'Apex',
   client_name: 'Apex Language Server',
   colorizer_no_code_coverage_on_project:
     'No test run information was found for this project. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
