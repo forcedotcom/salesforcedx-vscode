@@ -1,3 +1,11 @@
+# 50.17.0 - February 11, 2021
+
+## Added
+
+- Extract comments out of SOQL text before running query ([PR #2916](https://github.com/forcedotcom/salesforcedx-vscode/pull/2916))
+- Improve code-completion on GROUP BY clause ([PR #2903](https://github.com/forcedotcom/salesforcedx-vscode/pull/2903))
+- WHERE clause support in SOQL Builder ([PR #2822](https://github.com/forcedotcom/salesforcedx-vscode/pull/2822))
+
 # 50.14.0 - January 21, 2021
 
 ## Added
