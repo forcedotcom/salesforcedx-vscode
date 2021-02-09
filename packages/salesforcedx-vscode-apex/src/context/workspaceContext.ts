@@ -24,7 +24,6 @@ export class WorkspaceContext {
   }
 
   public async getConnection(): Promise<Connection> {
-    // @ts-ignore
     return await WorkspaceContextUtil.getInstance().getConnection();
   }
 }

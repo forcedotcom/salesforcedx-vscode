@@ -78,7 +78,6 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
 
   public async run(): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
-    // @ts-ignore
     const testService = new TestService(connection);
     const result = await testService.runTestAsynchronous(
       {
