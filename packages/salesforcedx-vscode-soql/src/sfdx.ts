@@ -7,7 +7,7 @@
 
 import { Connection } from '@salesforce/core';
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { DescribeSObjectResult } from 'jsforce';
 import { nls } from './messages';
 

@@ -5,4 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { AuthUtil } from './authUtil';
+/**
+ * This file is intentionally left blank. AuthUtil is exported
+ * in the root of salesforcedx-utils-vscode.
+ */

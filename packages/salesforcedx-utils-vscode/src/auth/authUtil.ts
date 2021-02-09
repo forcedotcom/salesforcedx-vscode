@@ -6,7 +6,7 @@
  */
 
 import { Aliases } from '@salesforce/core';
-import { ConfigUtil } from '../config';
+import { ConfigUtil } from '..';
 import { TelemetryService } from '../telemetry/telemetry';
 import { DEFAULT_USERNAME_KEY } from '../types';
 

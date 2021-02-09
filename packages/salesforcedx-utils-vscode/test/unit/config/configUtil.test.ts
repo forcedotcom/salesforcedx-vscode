@@ -31,7 +31,7 @@ const vscodeStub = {
 };
 
 const { ConfigSource, ConfigUtil } = proxyquire.noCallThru()(
-  '../../../src/config/index',
+  '../../../src/index',
   {
     vscode: vscodeStub
   }
