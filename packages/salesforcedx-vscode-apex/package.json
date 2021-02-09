@@ -155,6 +155,10 @@
           "when": "sfdx:project_opened && sfdx:has_cached_test_method"
         },
         {
+          "command": "sfdx.force.apex.test.run",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "sfdx:project_opened"
         },
@@ -196,6 +200,10 @@
       {
         "command": "sfdx.force.apex.log.get",
         "title": "%force_apex_log_get_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.run",
+        "title": "%force_apex_test_run_text%"
       },
       {
         "command": "sfdx.force.test.view.run",
