@@ -11,6 +11,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+import { channelService } from '../../../src/channels';
 import {
   AnonApexGatherer,
   ApexLibraryExecuteExecutor,
@@ -18,7 +19,6 @@ import {
   forceApexExecute,
   ForceApexExecuteExecutor
 } from '../../../src/commands/forceApexExecute';
-import { OUTPUT_CHANNEL } from '../../../src/constants';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
@@ -161,7 +161,7 @@ describe('Force Apex Execute', () => {
     let outputStub: SinonStub;
 
     beforeEach(() => {
-      outputStub = sb.stub(OUTPUT_CHANNEL, 'appendLine');
+      outputStub = sb.stub(channelService, 'appendLine');
     });
 
     it('should format result correctly for a successful execution', async () => {

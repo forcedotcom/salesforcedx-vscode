@@ -11,44 +11,48 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import {
+  LibraryCommandletExecutor,
+  SfdxCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
   Command,
   SfdxCommandBuilder,
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as vscode from 'vscode';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import * as settings from '../settings';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
 
 const sfdxCoreExports = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-core'
 )!.exports;
 const EmptyParametersGatherer = sfdxCoreExports.EmptyParametersGatherer;
-const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
 const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
-const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
-const LibraryCommandletExecutor = sfdxCoreExports.LibraryCommandletExecutor;
-const channelService = sfdxCoreExports.channelService;
 
-export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
-  outputDir: string;
-  tests: string[];
-  codeCoverage: boolean;
-}> {
+export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private tests: string[];
   private codeCoverage: boolean = false;
   private outputDir: string;
-  protected executionName = nls.localize('apex_test_run_text');
-  protected logName = 'force_apex_execute_library';
 
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
 
-  constructor(tests: string[], outputDir: string, codeCoverage: boolean) {
-    super();
+  constructor(
+    tests: string[],
+    outputDir = getTempFolder(),
+    codeCoverage = settings.retrieveTestCodeCoverage()
+  ) {
+    super(
+      nls.localize('force_apex_test_run_text'),
+      'force_apex_test_run_code_action_library',
+      OUTPUT_CHANNEL
+    );
     this.tests = tests;
     this.outputDir = outputDir;
     this.codeCoverage = codeCoverage;
@@ -69,7 +73,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{
     return tItems;
   }
 
-  protected async run(): Promise<boolean> {
+  public async run(): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
     const result = await testService.runTestAsynchronous(
@@ -99,10 +103,10 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
 
   public constructor(
     tests: string[],
-    shouldGetCodeCoverage: boolean,
-    outputToJson: string
+    shouldGetCodeCoverage = settings.retrieveTestCodeCoverage(),
+    outputToJson = getTempFolder()
   ) {
-    super();
+    super(OUTPUT_CHANNEL);
     this.tests = tests.join(',') || '';
     this.shouldGetCodeCoverage = shouldGetCodeCoverage;
     this.outputToJson = outputToJson;
@@ -110,9 +114,7 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
 
   public build(data: {}): Command {
     this.builder = this.builder
-      .withDescription(
-        nls.localize('force_apex_test_run_codeAction_description_text')
-      )
+      .withDescription(nls.localize('force_apex_test_run_text'))
       .withArg('force:apex:test:run')
       .withFlag('--tests', this.tests)
       .withFlag('--resultformat', 'human')
@@ -129,15 +131,9 @@ export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{
 }
 
 async function forceApexTestRunCodeAction(tests: string[]) {
-  const outputToJson = getTempFolder();
-  const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
-  const testRunExecutor = sfdxCoreSettings.getApexLibrary()
-    ? new ApexLibraryTestRunExecutor(tests, outputToJson, getCodeCoverage)
-    : new ForceApexTestRunCodeActionExecutor(
-        tests,
-        getCodeCoverage,
-        outputToJson
-      );
+  const testRunExecutor = settings.useApexLibrary()
+    ? new ApexLibraryTestRunExecutor(tests)
+    : new ForceApexTestRunCodeActionExecutor(tests);
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),

@@ -22,14 +22,6 @@ export {
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from './forceAuthDevHub';
-export {
-  ApexLibraryTestRunExecutor,
-  forceApexTestRun,
-  ApexTestQuickPickItem,
-  ForceApexTestRunExecutor,
-  TestsSelector,
-  TestType
-} from './forceApexTestRun';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export {
   forceOrgCreate,

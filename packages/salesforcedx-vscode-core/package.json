@@ -351,10 +351,6 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
-          "command": "sfdx.force.apex.test.run",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.task.stop",
           "when": "sfdx:project_opened"
         },
@@ -600,10 +596,6 @@
       {
         "command": "sfdx.force.source.status.remote",
         "title": "%force_source_status_remote_text%"
-      },
-      {
-        "command": "sfdx.force.apex.test.run",
-        "title": "%force_apex_test_run_text%"
       },
       {
         "command": "sfdx.force.task.stop",

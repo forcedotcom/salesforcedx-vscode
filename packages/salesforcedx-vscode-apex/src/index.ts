@@ -19,6 +19,7 @@ import {
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
+  forceApexTestRun,
   forceGenerateFauxClassesCreate,
   initSObjectDefinitions
 } from './commands';
@@ -200,6 +201,10 @@ function registerCommands(
     'sfdx.force.apex.test.method.run',
     forceApexTestMethodRunCodeAction
   );
+  const forceApexTestRunCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.test.run',
+    forceApexTestRun
+  );
   const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
     'sfdx.force.internal.refreshsobjects',
     forceGenerateFauxClassesCreate
@@ -215,18 +220,19 @@ function registerCommands(
     true
   );
   return vscode.Disposable.from(
-    forceApexToggleColorizerCmd,
-    forceApexTestLastClassRunCmd,
-    forceApexTestClassRunCmd,
-    forceApexTestClassRunDelegateCmd,
     forceApexDebugClassRunDelegateCmd,
     forceApexDebugMethodRunDelegateCmd,
     forceApexExecuteDocumentCmd,
     forceApexExecuteSelectionCmd,
     forceApexLogGetCmd,
+    forceApexTestClassRunCmd,
+    forceApexTestClassRunDelegateCmd,
+    forceApexTestLastClassRunCmd,
     forceApexTestLastMethodRunCmd,
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
+    forceApexTestRunCmd,
+    forceApexToggleColorizerCmd,
     forceGenerateFauxClassesCmd
   );
 }

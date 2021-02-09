@@ -21,6 +21,7 @@ import { notificationService, ProgressNotification } from './index';
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
@@ -29,11 +30,18 @@ export abstract class SfdxCommandletExecutor<T>
   public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
     .onDidFinishExecutionEventEmitter.event;
 
+  constructor(outputChannel?: vscode.OutputChannel) {
+    this.outputChannel = outputChannel;
+  }
+
   protected attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
+    if (this.outputChannel) {
+      new ChannelService(this.outputChannel).streamCommandOutput(execution);
+    }
     notificationService.reportCommandExecutionStatus(
       execution,
       cancellationToken

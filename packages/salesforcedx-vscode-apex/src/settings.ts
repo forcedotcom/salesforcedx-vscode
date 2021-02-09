@@ -5,3 +5,9 @@ export function useApexLibrary(): boolean {
     .getConfiguration('salesforcedx-vscode-core')
     .get<boolean>('experimental.useApexLibrary', true);
 }
+
+export function retrieveTestCodeCoverage(): boolean {
+  return vscode.workspace
+    .getConfiguration('salesforcedx-vscode-core')
+    .get<boolean>('retrieve-test-code-coverage', false);
+}
