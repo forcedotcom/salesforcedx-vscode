@@ -16,6 +16,11 @@ import {
   FauxClassGenerator,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  notificationService,
+  ProgressNotification
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -30,18 +35,9 @@ import {
   SObjectRefreshGatherer,
   verifyUsernameAndInitSObjectDefinitions
 } from '../../../src/commands/forceGenerateFauxClasses';
+import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const {
-  OrgAuthInfo,
-  ProgressNotification,
-  SfdxCommandlet,
-  notificationService
-} = sfdxCoreExports;
 
 describe('ForceGenerateFauxClasses', () => {
   describe('initSObjectDefinitions', () => {
@@ -62,10 +58,10 @@ describe('ForceGenerateFauxClasses', () => {
     beforeEach(() => {
       sandboxStub = createSandbox();
       existsSyncStub = sandboxStub.stub(fs, 'existsSync');
-      getUsernameStub = sandboxStub.stub(
-        OrgAuthInfo,
-        'getDefaultUsernameOrAlias'
-      );
+      getUsernameStub = sandboxStub.stub();
+      sandboxStub
+        .stub(workspaceContext, 'getConnection')
+        .resolves({ getUsername: getUsernameStub });
       commandletSpy = sandboxStub.stub(SfdxCommandlet.prototype, 'run');
       notificationStub = sandboxStub.stub(
         notificationService,
@@ -134,10 +130,10 @@ describe('ForceGenerateFauxClasses', () => {
         notificationService,
         'showInformationMessage'
       );
-      getUsernameStub = sandboxStub.stub(
-        OrgAuthInfo,
-        'getDefaultUsernameOrAlias'
-      );
+      getUsernameStub = sandboxStub.stub();
+      sandboxStub
+        .stub(workspaceContext, 'getConnection')
+        .resolves({ getUsername: getUsernameStub });
     });
 
     afterEach(() => {
