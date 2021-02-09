@@ -2,7 +2,7 @@
 
 SOQL Builder enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 
-![GIF showing SOQL query builder, viewing query results, and saving results to csv](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-soql/images/SOQL_Builder.gif)
+![GIF showing SOQL query builder, viewing query results, and saving results to csv](https://raw.githubusercontent.com/forcedotcom/salesforcedx-vscode/develop/packages/salesforcedx-vscode-soql/images/SOQL_Builder_50.16.0.gif)
 
 ## Documentation
 
