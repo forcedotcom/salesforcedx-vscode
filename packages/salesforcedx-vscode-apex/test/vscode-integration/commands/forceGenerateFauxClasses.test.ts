@@ -179,7 +179,7 @@ describe('ForceGenerateFauxClasses', () => {
     let logStub: SinonStub;
     let errorStub: SinonStub;
 
-    const expectedData: any = {
+    const expectedData = {
       cancelled: false,
       standardObjects: 1,
       customObjects: 2
@@ -249,7 +249,13 @@ describe('ForceGenerateFauxClasses', () => {
     it('Should log correct information to telemetry', async () => {
       // Success
       await doExecute(SObjectRefreshSource.Startup);
-      expect(logStub.getCall(0).args[2]).to.eqls(expectedData);
+      expect(logStub.getCall(0).args[2]).to.deep.contain({
+        cancelled: 'false'
+      });
+      expect(logStub.getCall(0).args[3]).to.deep.contain({
+        standardObjects: expectedData.standardObjects,
+        customObjects: expectedData.customObjects
+      });
 
       // Error
       const error = { message: 'sample error', stack: 'sample stack' };
