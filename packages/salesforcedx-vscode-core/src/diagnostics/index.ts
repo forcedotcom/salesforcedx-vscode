@@ -8,6 +8,5 @@
 export {
   getRange,
   handleDiagnosticErrors,
-  handleApexLibraryDiagnostics,
   handleDeployRetrieveLibraryDiagnostics
 } from './diagnostics';

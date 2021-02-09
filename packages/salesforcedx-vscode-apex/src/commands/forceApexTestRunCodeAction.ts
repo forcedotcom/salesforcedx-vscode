@@ -26,7 +26,10 @@ import {
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { join } from 'path';
+import {
+  ComponentSet,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
@@ -105,26 +108,31 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     result.tests.forEach(test => {
       if (test.diagnostic) {
         const diagnostic = test.diagnostic;
-        const filepath = join(
-          defaultPackage,
-          'main',
-          'default',
-          'classes',
-          `${diagnostic.className}.cls` ?? ''
-        );
+        const components = ComponentSet.fromSource(defaultPackage);
+        const testClassCmp = components
+          .getSourceComponents({
+            fullName: test.apexClass.fullName,
+            type: 'ApexClass'
+          })
+          .next().value as SourceComponent;
+        const componentPath = testClassCmp.content;
+
         const vscDiagnostic: vscode.Diagnostic = {
           message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
           severity: vscode.DiagnosticSeverity.Error,
-          source: filepath,
+          source: componentPath,
           range: this.getZeroBasedRange(
             diagnostic.lineNumber ?? 1,
             diagnostic.columnNumber ?? 1
           )
         };
 
-        ApexLibraryTestRunExecutor.diagnostics.set(vscode.Uri.file(filepath), [
-          vscDiagnostic
-        ]);
+        if (componentPath) {
+          ApexLibraryTestRunExecutor.diagnostics.set(
+            vscode.Uri.file(componentPath),
+            [vscDiagnostic]
+          );
+        }
       }
     });
   }

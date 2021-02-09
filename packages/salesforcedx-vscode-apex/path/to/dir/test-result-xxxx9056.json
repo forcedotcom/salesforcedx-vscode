@@ -1,0 +1,61 @@
+{
+  "summary": {
+    "failRate": "0%",
+    "failing": 0,
+    "testsRan": 2,
+    "orgId": "xxxx908373",
+    "outcome": "Passed",
+    "passRate": "100%",
+    "passing": 5,
+    "skipRate": "0%",
+    "skipped": 0,
+    "testExecutionTimeInMs": 25,
+    "testStartTime": "2:00:00PM",
+    "testTotalTimeInMs": 25,
+    "commandTimeInMs": 25,
+    "hostname": "NA95",
+    "username": "testusername@testing.com",
+    "testRunId": "xxxx9056",
+    "userId": "xxx555"
+  },
+  "tests": [
+    {
+      "asyncApexJobId": "xxx9678",
+      "id": "xxxx56",
+      "apexClass": {
+        "fullName": "TestClass",
+        "name": "TestClass",
+        "namespacePrefix": "",
+        "id": "xx567"
+      },
+      "queueItemId": "xxxQUEUEID",
+      "stackTrace": "",
+      "message": "",
+      "methodName": "testMethod",
+      "outcome": "Pass",
+      "runTime": 5,
+      "apexLogId": "xxxLogId90",
+      "testTimestamp": "2:00:00PM",
+      "fullName": "TestClass.testMethod"
+    },
+    {
+      "asyncApexJobId": "xxx9678",
+      "id": "xxxx56",
+      "apexClass": {
+        "fullName": "TestClass",
+        "name": "TestClassTwo",
+        "namespacePrefix": "",
+        "id": "xx567"
+      },
+      "queueItemId": "xxxQUEUEID",
+      "stackTrace": "",
+      "message": "",
+      "methodName": "testMethodTwo",
+      "outcome": "Pass",
+      "runTime": 5,
+      "apexLogId": "xxxLogId90",
+      "testTimestamp": "2:00:00PM",
+      "fullName": "TestClassTwo.testMethodTwo"
+    }
+  ]
+}
