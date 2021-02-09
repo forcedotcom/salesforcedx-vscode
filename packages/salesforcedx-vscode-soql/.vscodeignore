@@ -12,6 +12,7 @@ tsconfig.json
 *.xml
 **/*[!README].md
 *.vsix
+images/SOQL_Builder_50.16.0.gif
 
 # local rxjs node modules
 node_modules/rxjs/src/**

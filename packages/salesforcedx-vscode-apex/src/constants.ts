@@ -97,6 +97,3 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
 export const APEX_EXTENSION_NAME = 'salesforcedx-vscode-apex';
 export const LSP_ERR = 'apexLSPError';
-export const OUTPUT_CHANNEL = vscode.window.createOutputChannel(
-  nls.localize('channel_name')
-);

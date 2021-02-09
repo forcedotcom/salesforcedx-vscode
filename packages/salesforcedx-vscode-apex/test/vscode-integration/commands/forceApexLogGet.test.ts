@@ -19,7 +19,7 @@ import {
   LogFileSelector
 } from '../../../src/commands/forceApexLogGet';
 import { nls } from '../../../src/messages';
-import * as utils from '../../../src/utils';
+import * as utils from '../../../src/settings';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Log Get Logging', () => {
