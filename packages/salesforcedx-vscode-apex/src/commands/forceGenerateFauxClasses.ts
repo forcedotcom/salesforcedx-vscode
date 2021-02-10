@@ -17,10 +17,19 @@ import {
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
   Command,
   LocalCommandExecution,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {
+  notificationService,
+  ProgressNotification
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import {
   CancelResponse,
   ContinueResponse,
@@ -29,22 +38,10 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const {
-  channelService,
-  getDefaultUsernameOrAlias,
-  notificationService,
-  ProgressNotification,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  taskViewService
-} = sfdxCoreExports;
-const SfdxCommandletExecutor = sfdxCoreExports.SfdxCommandletExecutor;
 
 export type RefreshSelection = {
   category: SObjectCategory;
@@ -140,8 +137,6 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       progressLocation
     );
 
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
-
     const gen: FauxClassGenerator = new FauxClassGenerator(
       execution.cmdEmitter,
       cancellationToken
@@ -164,7 +159,19 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       }
 
       console.log('Generate success ' + result.data);
-      this.logMetric(commandName, startTime, result.data);
+      this.logMetric(
+        commandName,
+        startTime,
+        {
+          category: result.data.category ?? '',
+          source: result.data.source ?? '',
+          cancelled: String(result.data.cancelled)
+        },
+        {
+          standardObjects: result.data.standardObjects ?? 0,
+          customObjects: result.data.customObjects ?? 0
+        }
+      );
     } catch (result) {
       console.log('Generate error ' + result.error);
       telemetryService.sendException(result.name, result.error);
@@ -193,7 +200,7 @@ export async function verifyUsernameAndInitSObjectDefinitions(
   projectPath: string
 ) {
   const hasDefaultUsernameSet =
-    (await getDefaultUsernameOrAlias()) !== undefined;
+    (await workspaceContext.getConnection()).getUsername() !== undefined;
   if (hasDefaultUsernameSet) {
     initSObjectDefinitions(projectPath).catch(e =>
       telemetryService.sendException(e.name, e.message)
@@ -227,7 +234,8 @@ function getStandardSObjectsDirectory(projectPath: string) {
 }
 
 export async function checkSObjectsAndRefresh(projectPath: string) {
-  const hasDefaultUsernameSet = await getDefaultUsernameOrAlias();
+  const hasDefaultUsernameSet =
+    (await workspaceContext.getConnection()).getUsername() !== undefined;
   if (projectPath && hasDefaultUsernameSet) {
     if (!fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
       telemetryService.sendEventData(

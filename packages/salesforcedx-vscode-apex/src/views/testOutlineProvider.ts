@@ -25,18 +25,16 @@ import {
   languageClientUtils
 } from '../languageClientUtils';
 import { nls } from '../messages';
+import * as settings from '../settings';
 import { ApexTestMethod } from './lspConverter';
 import { FullTestResult } from './testDataAccessObjects';
+
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
 const NO_TESTS_MESSAGE = nls.localize('force_test_view_no_tests_message');
 const NO_TESTS_DESCRIPTION = nls.localize(
   'force_test_view_no_tests_description'
 );
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 
 export class ApexTestOutlineProvider
   implements vscode.TreeDataProvider<TestNode> {
@@ -183,7 +181,7 @@ export class ApexTestOutlineProvider
     const testResultOutput = readFileSync(testResultFilePath, 'utf8');
     const testResultContent = JSON.parse(testResultOutput);
 
-    sfdxCoreSettings.getApexLibrary()
+    settings.useApexLibrary()
       ? this.updateTestsFromLibrary(testResultContent as TestResult)
       : this.updateTestsFromJSON(testResultContent as FullTestResult);
     this.onDidChangeTestData.fire(undefined);
