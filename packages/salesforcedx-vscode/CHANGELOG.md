@@ -24,7 +24,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Fixes an issue ([Issue #2923](https://github.com/forcedotcom/salesforcedx-vscode/issues/2923)) with LWC extension activation. Activate redhat XML extension only if it is version 0.14.0 (#2936) ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934))
+- Activate Redhat XML extension only if it is version 0.14.0 ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934)). This is an interim fix for the issue ([Issue #2923] (https://github.com/forcedotcom/salesforcedx-vscode/issues/2923)).
 
 - Adds VS Code support for Email Templates as a target for custom components. ([PR #2918](https://github.com/forcedotcom/salesforcedx-vscode/pull/2918))
 
