@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Apex execute diagnostic reporting ([PR #2927](https://github.com/forcedotcom/salesforcedx-vscode/pull/2927))
+- Fix 'SFDX: Execute Anonymous Apex' diagnostic reporting for runtime failures ([PR #2927](https://github.com/forcedotcom/salesforcedx-vscode/pull/2927))
 
 #### salesforcedx-vscode-apex-debugger
 
