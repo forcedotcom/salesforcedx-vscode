@@ -138,6 +138,16 @@
               </xs:annotation>
 
             </xs:enumeration>
+             <xs:enumeration value="lightning__RecordAction">
+              <xs:annotation>
+                <xs:documentation>Makes Lightning web component record action available for quick action.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="lightning__GlobalAction">
+              <xs:annotation>
+                <xs:documentation>Makes Lightning web component global action available for quick action.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
           </xs:restriction>
         </xs:simpleType>
       </xs:element>
@@ -248,6 +258,21 @@
       <xs:enumeration value="Small">
         <xs:annotation>
           <xs:documentation>Represents the phone form factor. Supported for lightning__AppPage and lightning__RecordPage only.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- supportedActionType XSD -->
+  <xs:simpleType name="actionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ScreenAction">
+        <xs:annotation>
+          <xs:documentation>Represents screen action.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="Action">
+        <xs:annotation>
+          <xs:documentation>Represents headless action.</xs:documentation>
         </xs:annotation>
       </xs:enumeration>
     </xs:restriction>
