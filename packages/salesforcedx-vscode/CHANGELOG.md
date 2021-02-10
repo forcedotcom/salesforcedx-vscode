@@ -1,3 +1,39 @@
+# 50.17.0 - Month DD, YYYY
+
+## Fixed
+
+#### docs
+
+- Soql Builder Release - Where Clause Support ([PR #2896](https://github.com/forcedotcom/salesforcedx-vscode/pull/2896))
+
+- Update documentation for local development ([PR #2917](https://github.com/forcedotcom/salesforcedx-vscode/pull/2917))
+
+#### salesforcedx-vscode-apex
+
+- Apex execute diagnostic reporting ([PR #2927](https://github.com/forcedotcom/salesforcedx-vscode/pull/2927))
+
+#### salesforcedx-vscode-apex-debugger
+
+- Remove use of missing telemetry method ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Remove use of missing telemetry method ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
+#### salesforcedx-vscode-core
+
+- Add new template updates for apex class and project config ([PR #2919](https://github.com/forcedotcom/salesforcedx-vscode/pull/2919))
+
+#### salesforcedx-vscode-lwc
+
+- Activate redhat XML extension only if it is version 0.14.0 @W-8852786@  (#2936) ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934))
+
+- Improvement(js-meta.xsd): Added lightningStatic__Email to targets enum, to add Email Template Builde ([PR #2918](https://github.com/forcedotcom/salesforcedx-vscode/pull/2918))
+
+#### salesforcedx-vscode-visualforce
+
+- Remove use of missing telemetry method ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
 # 50.16.0 - February 3, 2021
 
 ## Added
