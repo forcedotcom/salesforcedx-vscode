@@ -20,7 +20,7 @@ let mockRhExtension: any;
 let rhExtension: any;
 let appendLineSpy: sinon.SinonSpy<any, any>;
 
-describe('MetaSupport: Extension version too old', () => {
+describe('MetaSupport: Extension version supported', () => {
   beforeEach(() => {
     appendLineSpy = sinon.spy(ChannelService.prototype, 'appendLine');
   });
@@ -47,6 +47,16 @@ describe('MetaSupport: Extension version too old', () => {
     await metaSupport.getMetaSupport();
     expect(appendLineSpy).to.have.calledOnceWith(
       nls.localize('force_lightning_lwc_deprecated_redhat_extension')
+    );
+  });
+
+  it('Should post error message if XML extension is 0.15.0', async () => {
+    mockRhExtension = sandbox
+      .stub(extensions, 'getExtension')
+      .returns(new MockRedhatExtension('0.15.0'));
+    await metaSupport.getMetaSupport();
+    expect(appendLineSpy).to.have.calledOnceWith(
+      nls.localize('force_lightning_lwc_redhat_extension_regression')
     );
   });
 });
