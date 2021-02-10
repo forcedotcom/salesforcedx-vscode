@@ -11,6 +11,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
+import { channelService } from '../../../src/channels';
 import {
   AnonApexGatherer,
   ApexLibraryExecuteExecutor,
@@ -18,7 +19,6 @@ import {
   forceApexExecute,
   ForceApexExecuteExecutor
 } from '../../../src/commands/forceApexExecute';
-import { OUTPUT_CHANNEL } from '../../../src/constants';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
@@ -161,7 +161,7 @@ describe('Force Apex Execute', () => {
     let outputStub: SinonStub;
 
     beforeEach(() => {
-      outputStub = sb.stub(OUTPUT_CHANNEL, 'appendLine');
+      outputStub = sb.stub(channelService, 'appendLine');
     });
 
     it('should format result correctly for a successful execution', async () => {
@@ -267,8 +267,8 @@ describe('Force Apex Execute', () => {
         '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
       diagnostic: [
         {
-          columnNumber: 1,
-          lineNumber: 6,
+          columnNumber: '1',
+          lineNumber: '6',
           compileProblem: '',
           exceptionMessage: 'System.AssertException: Assertion Failed',
           exceptionStackTrace: 'AnonymousBlock: line 6, column 1'
@@ -302,7 +302,7 @@ describe('Force Apex Execute', () => {
 
     it('should report diagnostic with zero based range', async () => {
       const expectedDiagnostic = {
-        message: defaultResponse.diagnostic[0].compileProblem,
+        message: defaultResponse.diagnostic[0].exceptionMessage,
         severity: vscode.DiagnosticSeverity.Error,
         source: file,
         range: new vscode.Range(5, 0, 5, 0)
@@ -324,7 +324,7 @@ describe('Force Apex Execute', () => {
             columnNumber: 1,
             lineNumber: 6,
             compileProblem: 'An error happened while compiling',
-            exceptionMessage: 'System.AssertException: Assertion Failed',
+            exceptionMessage: '',
             exceptionStackTrace: 'AnonymousBlock: line 6, column 1'
           }
         ]
@@ -360,6 +360,64 @@ describe('Force Apex Execute', () => {
       executeStub.resolves(response);
       const expectedDiagnostic = {
         message: response.diagnostic[0].exceptionMessage,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: file,
+        range: new vscode.Range(5, 0, 5, 0)
+      };
+
+      await executor.run({ data: { fileName: file }, type: 'CONTINUE' });
+
+      expect(setDiagnosticStub.calledOnce).to.be.true;
+      expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
+        expectedDiagnostic
+      ]);
+    });
+
+    it('should set exception message as message if compile problem empty string', async () => {
+      const response = Object.assign({}, defaultResponse, {
+        diagnostic: [
+          {
+            columnNumber: 1,
+            lineNumber: 6,
+            compileProblem: '',
+            exceptionMessage: 'System.AssertException: Assertion Failed',
+            exceptionStackTrace: 'AnonymousBlock: line 6, column 1'
+          }
+        ]
+      });
+      executeStub.resolves(response);
+      const expectedDiagnostic = {
+        message: response.diagnostic[0].exceptionMessage,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: file,
+        range: new vscode.Range(5, 0, 5, 0)
+      };
+
+      await executor.run({ data: { fileName: file }, type: 'CONTINUE' });
+
+      expect(setDiagnosticStub.calledOnce).to.be.true;
+      expect(setDiagnosticStub.firstCall.args[0].path).to.deep.equal(file);
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
+        expectedDiagnostic
+      ]);
+    });
+
+    it('should set unexpected message as message if compile problem and exception message empty strings', async () => {
+      const response = Object.assign({}, defaultResponse, {
+        diagnostic: [
+          {
+            columnNumber: 1,
+            lineNumber: 6,
+            compileProblem: '',
+            exceptionMessage: '',
+            exceptionStackTrace: 'AnonymousBlock: line 6, column 1'
+          }
+        ]
+      });
+      executeStub.resolves(response);
+      const expectedDiagnostic = {
+        message: nls.localize('apex_execute_unexpected_error'),
         severity: vscode.DiagnosticSeverity.Error,
         source: file,
         range: new vscode.Range(5, 0, 5, 0)

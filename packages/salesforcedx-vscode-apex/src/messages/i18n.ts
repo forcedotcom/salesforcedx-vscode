@@ -19,12 +19,13 @@ export const messages = {
   apex_execute_compile_success: 'Compiled successfully.',
   apex_execute_runtime_success: 'Executed successfully.',
   apex_execute_text: 'Execute Anonymous Apex',
+  apex_execute_unexpected_error: 'Unexpected error',
   apex_language_server_failed_activate:
     'Unable to activate the Apex Language Server',
   apex_test_run_text: 'Run Apex Tests',
   cannot_determine_workspace:
     'Unable to determine workspace folders for workspace',
-  channel_name: 'Apex Extension',
+  channel_name: 'Apex',
   client_name: 'Apex Language Server',
   colorizer_no_code_coverage_on_project:
     'No test run information was found for this project. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings, then run Apex tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within a test class file.',
@@ -43,12 +44,15 @@ export const messages = {
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   force_apex_log_list_text: 'Getting Apex debug logs',
-  force_apex_test_run_codeAction_description_text: 'Run Apex test(s)',
+  force_apex_test_run_all_test_label: 'All tests',
+  force_apex_test_run_all_tests_description_text:
+    'Runs all tests in the current project',
+  force_apex_test_run_description_text: 'Run Apex test(s)',
   force_apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',
   force_apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
-  force_apex_test_run_description_text: 'Run Apex test(s)',
+  force_apex_test_run_text: 'SFDX: Run Apex Tests',
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   force_sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',

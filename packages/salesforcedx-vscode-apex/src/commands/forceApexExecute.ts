@@ -29,10 +29,10 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../constants';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { useApexLibrary } from '../utils';
+import { useApexLibrary } from '../settings';
 
 type TempFile = { fileName: string };
 
@@ -64,6 +64,10 @@ export class CreateApexTempFile implements ParametersGatherer<TempFile> {
 }
 
 export class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
+  constructor() {
+    super(OUTPUT_CHANNEL);
+  }
+
   public build(data: TempFile): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_apex_execute_document_text'))
@@ -165,7 +169,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         outputText += `\n${response.logs}`;
       }
     }
-    OUTPUT_CHANNEL.appendLine(outputText);
+    channelService.appendLine(outputText);
   }
 
   private handleDiagnostics(
@@ -175,17 +179,27 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     ApexLibraryExecuteExecutor.diagnostics.clear();
 
     if (response.diagnostic) {
-      const diagnostic = response.diagnostic[0];
+      const {
+        compileProblem,
+        exceptionMessage,
+        lineNumber,
+        columnNumber
+      } = response.diagnostic[0];
+      let message;
+      if (compileProblem && compileProblem !== '') {
+        message = compileProblem;
+      } else if (exceptionMessage && exceptionMessage !== '') {
+        message = exceptionMessage;
+      } else {
+        message = nls.localize('apex_execute_unexpected_error');
+      }
       const vscDiagnostic: vscode.Diagnostic = {
-        message:
-          typeof diagnostic.compileProblem === 'string'
-            ? diagnostic.compileProblem
-            : diagnostic.exceptionMessage,
+        message,
         severity: vscode.DiagnosticSeverity.Error,
         source: filePath,
         range: this.getZeroBasedRange(
-          diagnostic.lineNumber ?? 1,
-          diagnostic.columnNumber ?? 1
+          Number(lineNumber) || 1,
+          Number(columnNumber) || 1
         )
       };
 

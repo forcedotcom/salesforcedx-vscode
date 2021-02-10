@@ -33,7 +33,7 @@ const vscodeStub = {
 };
 
 const { AuthUtil } = proxyquire.noCallThru()(
-  '../../../src/auth/index',
+  '../../../src/index',
   {
     vscode: vscodeStub
   }

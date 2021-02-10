@@ -5,4 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ConfigSource, ConfigUtil } from './configUtil';
+/**
+ * This file is intentionally left blank. ConfigSource and ConfigUtil are exported
+ * in the root of salesforcedx-utils-vscode.
+ */

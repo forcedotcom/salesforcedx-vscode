@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export { AuthUtil } from './auth/authUtil';
 export {
   CompositeParametersGatherer,
   EmptyParametersGatherer
@@ -19,6 +20,8 @@ export {
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
 export { SfdxCommandlet } from './commands/sfdxCommandlet';
+export { ConfigSource, ConfigUtil } from './config/configUtil';
+export { OrgInfo, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export {
   TelemetryService,
   TelemetryBuilder,

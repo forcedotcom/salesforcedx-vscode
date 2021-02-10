@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src/context';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 
 export class WorkspaceContext {
