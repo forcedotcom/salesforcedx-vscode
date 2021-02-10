@@ -1,4 +1,4 @@
-# 50.17.0 - Month DD, YYYY
+# 50.17.0 - Feb 10, 2021
 
 ## Fixed
 
