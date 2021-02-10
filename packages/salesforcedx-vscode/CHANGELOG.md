@@ -1,3 +1,37 @@
+# 50.17.0 - February 10, 2021
+
+## Fixed
+
+#### docs
+
+- Update documentation for [local development](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) ([PR #2917](https://github.com/forcedotcom/salesforcedx-vscode/pull/2917))
+
+#### salesforcedx-vscode-apex
+
+- Fix 'SFDX: Execute Anonymous Apex' diagnostic reporting for runtime failures ([PR #2927](https://github.com/forcedotcom/salesforcedx-vscode/pull/2927))
+
+#### salesforcedx-vscode-apex-debugger
+
+- Remove use of missing telemetry method ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Remove use of missing telemetry method ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
+#### salesforcedx-vscode-core
+
+- Add new template updates for apex class and project config ([PR #2919](https://github.com/forcedotcom/salesforcedx-vscode/pull/2919))
+
+#### salesforcedx-vscode-lwc
+
+- Activate Redhat XML extension only if it is version 0.14.0 ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934)). This is an interim fix for the issue ([Issue #2923] (https://github.com/forcedotcom/salesforcedx-vscode/issues/2923)).
+
+- Adds VS Code support for Email Templates as a target for custom components. ([PR #2918](https://github.com/forcedotcom/salesforcedx-vscode/pull/2918))
+
+#### salesforcedx-vscode-visualforce
+
+- Remove use of missing telemetry method ([PR #2913](https://github.com/forcedotcom/salesforcedx-vscode/pull/2913))
+
 # 50.16.0 - February 3, 2021
 
 ## Added
