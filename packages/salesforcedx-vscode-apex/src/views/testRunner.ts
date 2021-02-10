@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  EmptyParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
 import * as events from 'events';
 import * as vscode from 'vscode';
@@ -18,6 +23,7 @@ import {
   languageClientUtils
 } from '../languageClientUtils';
 import { nls } from '../messages';
+import * as settings from '../settings';
 import { forceApexTestRunCacheService } from '../testRunCache';
 import {
   ApexTestGroupNode,
@@ -25,14 +31,6 @@ import {
   ApexTestOutlineProvider,
   TestNode
 } from './testOutlineProvider';
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-
-const EmptyParametersGatherer = sfdxCoreExports.EmptyParametersGatherer;
-const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
-const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
-const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 
 export enum TestRunType {
   All,
@@ -137,13 +135,13 @@ export class ApexTestRunner {
     }
 
     const tmpFolder = this.getTempFolder();
-    const getCodeCoverage = sfdxCoreSettings.getRetrieveTestCodeCoverage();
+    const getCodeCoverage = settings.retrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {
       await forceApexTestRunCacheService.setCachedClassTestParam(tests[0]);
     } else if (testRunType === TestRunType.Method) {
       await forceApexTestRunCacheService.setCachedMethodTestParam(tests[0]);
     }
-    const executor = sfdxCoreSettings.getApexLibrary()
+    const executor = settings.useApexLibrary()
       ? new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
       : new ForceApexTestRunCodeActionExecutor(
           tests,

@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
+import * as settings from '../../../src/settings';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
@@ -26,11 +27,6 @@ import {
   jsonMultipleNSFiles,
   jsonOneNSFilePass
 } from './testNamespacedOutputs';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const sfdxCoreSettings = sfdxCoreExports.sfdxCoreSettings;
 
 describe('Test View with namespace', () => {
   let testOutline: ApexTestOutlineProvider;
@@ -118,7 +114,7 @@ describe('Test View with namespace', () => {
         return 'nonsense';
       });
       parseJSONStub = sb.stub(JSON, 'parse');
-      settingStub = sb.stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
+      settingStub = sb.stub(settings, 'useApexLibrary').returns(false);
     });
 
     afterEach(() => {
@@ -237,7 +233,7 @@ describe('Test View with namespace', () => {
       eventEmitterStub = sb.stub(eventEmitter, 'emit');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
       showTextDocumentStub.returns(Promise.resolve());
-      sb.stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
+      sb.stub(settings, 'useApexLibrary').returns(false);
 
       testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo);
       testOutline.updateTestResults('multipleFilesMixed');

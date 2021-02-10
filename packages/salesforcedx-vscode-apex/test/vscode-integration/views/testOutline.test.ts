@@ -6,6 +6,7 @@
  */
 
 // tslint:disable:no-unused-expression
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
@@ -17,6 +18,7 @@ import {
   LanguageClientUtils
 } from '../../../src/languageClientUtils/languageClientUtils';
 import { nls } from '../../../src/messages';
+import * as settings from '../../../src/settings';
 import { forceApexTestRunCacheService } from '../../../src/testRunCache';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
@@ -38,11 +40,6 @@ const NO_TESTS_DESCRIPTION = nls.localize(
   'force_test_view_no_tests_description'
 );
 
-const coreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const sfdxCoreSettings = coreExports.sfdxCoreSettings;
-
 describe('TestView', () => {
   let testOutline: ApexTestOutlineProvider;
   const apexTestInfo: ApexTestMethod[] = generateApexTestMethod();
@@ -54,11 +51,11 @@ describe('TestView', () => {
     let settingStub: SinonStub;
 
     beforeEach(() => {
-      commandletSpy = spy(coreExports.SfdxCommandlet.prototype, 'run');
-      getCoverageStub = stub(sfdxCoreSettings, 'getRetrieveTestCodeCoverage');
+      commandletSpy = spy(SfdxCommandlet.prototype, 'run');
+      getCoverageStub = stub(settings, 'retrieveTestCodeCoverage');
       languageClientUtils = LanguageClientUtils.getInstance();
       languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
-      settingStub = stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
+      settingStub = stub(settings, 'useApexLibrary').returns(false);
     });
 
     afterEach(() => {
@@ -222,7 +219,7 @@ describe('TestView', () => {
         return 'nonsense';
       });
       parseJSONStub = stub(JSON, 'parse');
-      settingStub = stub(sfdxCoreSettings, 'getApexLibrary');
+      settingStub = stub(settings, 'useApexLibrary');
     });
 
     afterEach(() => {
@@ -344,7 +341,7 @@ describe('TestView', () => {
       eventEmitterStub = stub(eventEmitter, 'emit');
       showTextDocumentStub = stub(vscode.window, 'showTextDocument');
       showTextDocumentStub.returns(Promise.resolve());
-      settingStub = stub(sfdxCoreSettings, 'getApexLibrary').returns(false);
+      settingStub = stub(settings, 'useApexLibrary').returns(false);
 
       testOutline = new ApexTestOutlineProvider(apexTestInfo);
       testOutline.updateTestResults('multipleFilesMixed');

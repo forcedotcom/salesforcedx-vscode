@@ -11,8 +11,11 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import {
+  EmptyParametersGatherer,
   LibraryCommandletExecutor,
-  SfdxCommandletExecutor
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
@@ -26,13 +29,6 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-const EmptyParametersGatherer = sfdxCoreExports.EmptyParametersGatherer;
-const SfdxCommandlet = sfdxCoreExports.SfdxCommandlet;
-const SfdxWorkspaceChecker = sfdxCoreExports.SfdxWorkspaceChecker;
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private tests: string[];
