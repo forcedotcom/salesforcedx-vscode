@@ -277,17 +277,17 @@
     chalk "^2.4.2"
     cli-ux "^4.9.3"
 
-"@salesforce/core@2.12.0", "@salesforce/core@^2.2.0", "@salesforce/core@^2.6.0":
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.12.0.tgz#c719bfb3b286922d9b312b9b6a61dfc9ad53e8d8"
-  integrity sha512-sXTYoCjWeWD/xY1+fdHgaS71ldq4pqIBAZncnxNUOr7NgvVM++omgMQ4Ey/ZqeRjuWZ7YGXzJMqwbktpptoQ6w==
+"@salesforce/core@2.13.0", "@salesforce/core@^2.2.0", "@salesforce/core@^2.6.0":
+  version "2.13.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.13.0.tgz#217a703d901aeac45ce29aa1c2473d6c24221340"
+  integrity sha512-lPijkej9cBix3QztRDa4YYbGJcLkrc+wNDE+bgOxI9VxTpoNuclOGkaKsqqE6HUItCS7p5iJTcK0gEJ2Xl81lA==
   dependencies:
     "@salesforce/bunyan" "^2.0.0"
     "@salesforce/kit" "^1.3.2"
     "@salesforce/schemas" "^1.0.1"
     "@salesforce/ts-types" "^1.0.0"
     "@types/graceful-fs" "^4.1.3"
-    "@types/jsforce" "1.9.20"
+    "@types/jsforce" "1.9.23"
     debug "^3.1.0"
     graceful-fs "^4.2.4"
     jsen "0.6.6"
@@ -427,10 +427,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/jsforce@1.9.20":
-  version "1.9.20"
-  resolved "https://registry.yarnpkg.com/@types/jsforce/-/jsforce-1.9.20.tgz#7bd379c9bdc499973814d8948dbc2ef5fa4f8d2a"
-  integrity sha512-eeQ3WynhRhK1JLi0WzILHkHalYBEcf1NhQWk9l30S9UqIy6Df/OOOJGYjORSLBsuF8dNWxKVWMRNsSktXmXh6A==
+"@types/jsforce@1.9.23":
+  version "1.9.23"
+  resolved "https://registry.yarnpkg.com/@types/jsforce/-/jsforce-1.9.23.tgz#06c2b604e02bfc8ba1143c6bf53530e565f18bae"
+  integrity sha512-p1aqPWapTAG5xpTpebj4jSs5cwpNHe5PYFtEXCIjsSgfFgIW7GgQb5X/43/M8gkZNcGe8kchykrD9UgYKjz3eQ==
   dependencies:
     "@types/node" "*"
 
