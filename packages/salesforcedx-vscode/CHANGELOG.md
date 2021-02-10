@@ -4,9 +4,7 @@
 
 #### docs
 
-- Soql Builder Release - Where Clause Support ([PR #2896](https://github.com/forcedotcom/salesforcedx-vscode/pull/2896))
-
-- Update documentation for local development ([PR #2917](https://github.com/forcedotcom/salesforcedx-vscode/pull/2917))
+- Update documentation for [local development](https://developer.salesforce.com/tools/vscode/en/lwc/localdev) ([PR #2917](https://github.com/forcedotcom/salesforcedx-vscode/pull/2917))
 
 #### salesforcedx-vscode-apex
 
@@ -26,9 +24,9 @@
 
 #### salesforcedx-vscode-lwc
 
-- Activate redhat XML extension only if it is version 0.14.0 @W-8852786@  (#2936) ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934))
+- Fixes an issue with LWC extension activation. Activate redhat XML extension only if it is version 0.14.0 @W-8852786@  (#2936) ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934))
 
-- Improvement(js-meta.xsd): Added lightningStatic__Email to targets enum, to add Email Template Builde ([PR #2918](https://github.com/forcedotcom/salesforcedx-vscode/pull/2918))
+- Adds VS Code support for Email Templates as a target for custom components. ([PR #2918](https://github.com/forcedotcom/salesforcedx-vscode/pull/2918))
 
 #### salesforcedx-vscode-visualforce
 
