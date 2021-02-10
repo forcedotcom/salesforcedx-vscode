@@ -87,7 +87,7 @@ export class MetaSupport {
         channelService.appendLine(
           nls.localize('force_lightning_lwc_redhat_extension_regression')
         );
-      } else if (parseInt(pluginVersionNumber.split('.')[1], 10) >= 14) {
+      } else if (parseInt(pluginVersionNumber.split('.')[1], 10) === 14) {
         const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
         const fileAssociations = [
           {
