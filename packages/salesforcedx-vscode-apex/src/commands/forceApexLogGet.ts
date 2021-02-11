@@ -198,7 +198,7 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime);
     });
 
-    channelService.streamCommandOutput(execution);
+    // channelService.streamCommandOutput(execution);
 
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);

@@ -10,7 +10,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "2.12.0",
+    "@salesforce/core": "2.13.0",
     "applicationinsights": "1.0.7",
     "cross-spawn": "6.0.5",
     "path-exists": "3.0.0",
