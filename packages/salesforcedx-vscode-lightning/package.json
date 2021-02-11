@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/aura-language-server": "3.0.12",
-    "@salesforce/core": "2.11.0",
+    "@salesforce/core": "2.13.0",
     "@salesforce/lightning-lsp-common": "3.0.12",
     "@salesforce/salesforcedx-utils-vscode": "50.17.0",
     "applicationinsights": "1.0.7",
@@ -37,6 +37,7 @@
     "@salesforce/salesforcedx-test-utils-vscode": "50.17.0",
     "@types/chai": "^4.0.0",
     "@types/mocha": "^5",
+    "@types/mkdirp": "0.5.2",
     "@types/node": "12.0.12",
     "@types/open": "6.0.0",
     "@types/sinon": "^7.5.1",
