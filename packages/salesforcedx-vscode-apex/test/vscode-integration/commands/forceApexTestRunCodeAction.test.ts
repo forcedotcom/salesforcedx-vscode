@@ -407,7 +407,7 @@ describe('Force Apex Test Run - Code Action', () => {
     let setDiagnosticStub: SinonStub;
     let runTestStub: SinonStub;
     let componentPathStub: SinonStub;
-    
+
     beforeEach(() => {
       sb.stub(workspaceContext, 'getConnection');
       sb.stub(SfdxProject, 'resolve').returns({
