@@ -8,8 +8,11 @@ import {
   HumanReporter,
   TestItem,
   TestLevel,
+  TestResult,
   TestService
 } from '@salesforce/apex-node';
+import { SfdxProject } from '@salesforce/core';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
@@ -23,6 +26,10 @@ import {
   TestRunner
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  ComponentSet,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
@@ -86,7 +93,55 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     );
     const humanOutput = new HumanReporter().format(result, this.codeCoverage);
     channelService.appendLine(humanOutput);
-    return true;
+
+    await this.handleDiagnostics(result);
+    return result.summary.outcome === 'Passed';
+  }
+
+  private async handleDiagnostics(result: TestResult) {
+    ApexLibraryTestRunExecutor.diagnostics.clear();
+    const projectPath = getRootWorkspacePath();
+    const project = await SfdxProject.resolve(projectPath);
+    const defaultPackage = project.getDefaultPackage().fullPath;
+
+    result.tests.forEach(test => {
+      if (test.diagnostic) {
+        const diagnostic = test.diagnostic;
+        const components = ComponentSet.fromSource(defaultPackage);
+        const testClassCmp = components
+          .getSourceComponents({
+            fullName: test.apexClass.fullName,
+            type: 'ApexClass'
+          })
+          .next().value as SourceComponent;
+        const componentPath = testClassCmp.content;
+
+        const vscDiagnostic: vscode.Diagnostic = {
+          message: `${diagnostic.exceptionMessage}\n${diagnostic.exceptionStackTrace}`,
+          severity: vscode.DiagnosticSeverity.Error,
+          source: componentPath,
+          range: this.getZeroBasedRange(
+            diagnostic.lineNumber ?? 1,
+            diagnostic.columnNumber ?? 1
+          )
+        };
+
+        if (componentPath) {
+          ApexLibraryTestRunExecutor.diagnostics.set(
+            vscode.Uri.file(componentPath),
+            [vscDiagnostic]
+          );
+        }
+      }
+    });
+  }
+
+  private getZeroBasedRange(line: number, column: number): vscode.Range {
+    const pos = new vscode.Position(
+      line > 0 ? line - 1 : 0,
+      column > 0 ? column - 1 : 0
+    );
+    return new vscode.Range(pos, pos);
   }
 }
 
