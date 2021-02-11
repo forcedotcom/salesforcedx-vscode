@@ -12,6 +12,7 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { SfdxProject } from '@salesforce/core';
+import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { join } from 'path';
@@ -406,15 +407,13 @@ describe('Force Apex Test Run - Code Action', () => {
     let setDiagnosticStub: SinonStub;
     let runTestStub: SinonStub;
     let componentPathStub: SinonStub;
+    
     beforeEach(() => {
       sb.stub(workspaceContext, 'getConnection');
       sb.stub(SfdxProject, 'resolve').returns({
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };
         }
-      });
-      sb.stub(SfdxProject.prototype, 'getDefaultPackage').returns({
-        fullPath: defaultPackageDir
       });
       componentPathStub = sb.stub(ComponentSet, 'fromSource').returns({
         getSourceComponents: () => {
@@ -432,7 +431,9 @@ describe('Force Apex Test Run - Code Action', () => {
       runTestStub = sb
         .stub(TestService.prototype, 'runTestAsynchronous')
         .resolves(testResult);
+      sb.stub(TestRunner.prototype, 'getTempFolder');
     });
+
     afterEach(() => {
       sb.restore();
     });
