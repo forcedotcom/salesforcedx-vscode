@@ -12,6 +12,7 @@ During beta, you can build simple query statements that include:
 - FROM clause for only one sObject type
 - SELECT clause to pick fields from the selected sObject
 - WHERE clause to filter your data
+- COUNT clause to return the number of rows that match the filtering conditions <!-- ekapner, 2/12: new docs -->
 - ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
 - LIMIT clause
 
@@ -60,6 +61,8 @@ As you build your query, watch SOQL Builder display the query syntax while it si
 
 You can select objects and fields from the drop-down list, or type to narrow the list results. You can select an object or a field only once. If a value is already selected, it doesn't appear in the drop-down or search results.
 
+If building a query using COUNT(), all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. <!-- ekapner, 2/12: new doc -->
+
 ![Build your query](./images/soql-builder.gif)
 
 <!-- **Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting. ekapner update, 2/2/2021: this setting not ready for GA-->
@@ -103,7 +106,7 @@ You can save the query results in a `.csv` or `.json` file. The file is saved in
 
 ### Syntax Error Message Blocks SOQL Builder Interface
 
-**Description:** Sometimes, a popup error message blocks the SOQL Builder interface. Unfortunately, you can't continue editing the query. Until we fix this or provide a way to dismiss the window, the only option is to close the query without saving it.
+**Description:** Sometimes, a popup error message blocks the SOQL Builder interface. Unfortunately, you can't continue editing the query. Until we fix this or provide a way to dismiss the window, the only option is to close the query without saving it. <!-- ekapner, 2/21, @dehru - I can delete this now, yes? -->
 
 ### Can’t Use SOQL Builder If Authentication to Default Org Has Expired
 
