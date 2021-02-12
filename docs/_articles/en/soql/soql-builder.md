@@ -61,9 +61,11 @@ As you build your query, watch SOQL Builder display the query syntax while it si
 
 You can select objects and fields from the drop-down list, or type to narrow the list results. You can select an object or a field only once. If a value is already selected, it doesn't appear in the drop-down or search results.
 
-If building a query using COUNT(), all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. <!-- ekapner, 2/12: new doc -->
-
 ![Build your query](./images/soql-builder.gif)
+
+If building a query using COUNT(), all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. In this example, the COUNT is 3.<!-- ekapner, 2/12: new doc -->
+
+![Total number of records is the COUNT](./images/soql-builder-count.png)
 
 <!-- **Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting. ekapner update, 2/2/2021: this setting not ready for GA-->
 
