@@ -10,9 +10,8 @@ SOQL Builder is a VS Code extension that eliminates the guesswork when building 
 During beta, you can build simple query statements that include:
 
 - FROM clause for only one sObject type
-- SELECT clause to pick fields from the selected sObject
+- SELECT clause to pick fields from the selected sObject, or COUNT() to perform an aggregation of the results <!-- ekapner, 2/12: new docs -->
 - WHERE clause to filter your data
-- COUNT clause to return the number of rows that match the filtering conditions <!-- ekapner, 2/12: new docs -->
 - ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
 - LIMIT clause
 
@@ -63,7 +62,7 @@ You can select objects and fields from the drop-down list, or type to narrow the
 
 ![Build your query](./images/soql-builder.gif)
 
-If building a query using COUNT(), all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. In this example, the COUNT is 3.<!-- ekapner, 2/12: new doc -->
+Because COUNT() is an aggregate function, all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. In this example, the COUNT is 3.<!-- ekapner, 2/12: new doc -->
 
 ![Total number of records is the COUNT](./images/soql-builder-count.png)
 
@@ -108,7 +107,7 @@ You can save the query results in a `.csv` or `.json` file. The file is saved in
 
 ### Syntax Error Message Blocks SOQL Builder Interface
 
-**Description:** Sometimes, a popup error message blocks the SOQL Builder interface. Unfortunately, you can't continue editing the query. Until we fix this or provide a way to dismiss the window, the only option is to close the query without saving it. <!-- ekapner, 2/21, @dehru - I can delete this now, yes? -->
+**Description:** Sometimes, a popup error message blocks the SOQL Builder interface. Unfortunately, you can't continue editing the query. Until we fix this or provide a way to dismiss the window, the only option is to close the query without saving it. <!-- ekapner, 2/21, @dehru - I can delete this now, yes?-->
 
 ### Can’t Use SOQL Builder If Authentication to Default Org Has Expired
 
