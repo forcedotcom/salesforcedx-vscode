@@ -10,7 +10,7 @@ SOQL Builder is a VS Code extension that eliminates the guesswork when building 
 During beta, you can build simple query statements that include:
 
 - FROM clause for only one sObject type
-- SELECT clause to pick fields from the selected sObject
+- SELECT clause to pick fields from the selected sObject, or COUNT() to perform an aggregation of the results
 - WHERE clause to filter your data
 - ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
 - LIMIT clause
@@ -62,6 +62,10 @@ You can select objects and fields from the drop-down list, or type to narrow the
 
 ![Build your query](./images/soql-builder.gif)
 
+Because COUNT() is an aggregate function, all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. In this example, the COUNT is 3.
+
+![Total number of records is the COUNT](./images/soql-builder-count.png)
+
 <!-- **Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting. -->
 
 **Beta Limitations:**
@@ -100,10 +104,6 @@ You can save the query results in a `.csv` or `.json` file. The file is saved in
 - If you click the **Save .csv** or **Save .json** button again, the previous file is overwritten. To avoid overwriting the file, save it to a different file name or move it to a different location.
 
 ## Known Issues
-
-### Syntax Error Message Blocks SOQL Builder Interface
-
-**Description:** Sometimes, a popup error message blocks the SOQL Builder interface. Unfortunately, you can't continue editing the query. Until we fix this or provide a way to dismiss the window, the only option is to close the query without saving it.
 
 ### Can’t Use SOQL Builder If Authentication to Default Org Has Expired
 
