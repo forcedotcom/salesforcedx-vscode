@@ -132,6 +132,7 @@ class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
   }
 }
 
+// tslint:disable:no-unused-expression
 describe('LibraryCommandletExecutor', () => {
   const executor = new TestExecutor(new MockChannel());
   let sb: SinonSandbox;
