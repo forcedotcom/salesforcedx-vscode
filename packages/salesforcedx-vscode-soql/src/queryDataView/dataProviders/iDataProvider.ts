@@ -11,5 +11,5 @@ export interface DataProvider {
   fileExtension: string;
   documentName: string;
   getFileName(): string;
-  getFileContent(data: JsonMap[]): string;
+  getFileContent(query: string, data: JsonMap[]): string;
 }

@@ -30,7 +30,7 @@ import {
   FileFormat,
   QueryDataFileService as FileService
 } from './queryDataFileService';
-import { flattenQueryData } from './queryDataFlattener';
+import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
 export interface DataViewEvent {
@@ -60,7 +60,7 @@ export class QueryDataViewService {
     this.currentPanel?.webview
       .postMessage({
         type: 'update',
-        data: flattenQueryData(this.queryText, queryData),
+        data: extendQueryData(this.queryText, queryData),
         documentName: getDocumentName(this.document)
       })
       .then(undefined, async (err: string) => {
@@ -149,6 +149,7 @@ export class QueryDataViewService {
   protected handleSaveRecords(format: FileFormat): void {
     try {
       const fileService = new FileService(
+        this.queryText,
         this.queryData,
         format,
         getDocumentName(this.document)

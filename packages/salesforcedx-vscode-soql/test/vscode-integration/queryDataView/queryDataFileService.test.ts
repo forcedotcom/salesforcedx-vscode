@@ -15,7 +15,7 @@ import {
   JsonDataProvider
 } from '../../../src/queryDataView/dataProviders';
 import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
-import { mockQueryData, TestFileService } from '../testUtilities';
+import { mockQueryData, mockQueryText, TestFileService } from '../testUtilities';
 
 describe('Query Data File Service', () => {
   const documentName = 'example.soql';
@@ -30,6 +30,7 @@ describe('Query Data File Service', () => {
 
   it('should use the correct data provider', () => {
     const csvFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.CSV,
       documentName
@@ -37,6 +38,7 @@ describe('Query Data File Service', () => {
     expect(csvFileService.getDataProvider()).instanceOf(CsvDataProvider);
 
     const jsonFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.JSON,
       documentName
@@ -46,6 +48,7 @@ describe('Query Data File Service', () => {
 
   it('will save json file to disk on save', () => {
     const jsonFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.JSON,
       documentName
@@ -58,6 +61,7 @@ describe('Query Data File Service', () => {
 
   it('will save csv to file to disk on save', () => {
     const csvFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.CSV,
       documentName
@@ -67,7 +71,7 @@ describe('Query Data File Service', () => {
     const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
     const mockCsvData = csvFileService
       .getDataProvider()
-      .getFileContent(mockQueryData.records);
+      .getFileContent(mockQueryText, mockQueryData.records);
 
     expect(savedFileContent).to.equal(mockCsvData);
   });

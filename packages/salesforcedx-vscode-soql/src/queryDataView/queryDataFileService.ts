@@ -28,6 +28,7 @@ export class QueryDataFileService {
   private dataProvider: DataProvider;
 
   constructor(
+    private queryText: string,
     private queryData: QueryResult<JsonMap>,
     private format: FileFormat,
     private documentName: string
@@ -48,6 +49,7 @@ export class QueryDataFileService {
 
   public save(): string {
     const fileContent = this.dataProvider.getFileContent(
+      this.queryText,
       this.queryData.records
     );
     const savedFileName = this.dataProvider.getFileName();
