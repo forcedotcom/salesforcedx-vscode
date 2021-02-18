@@ -29,6 +29,7 @@ import * as settings from '../../../src/settings';
 
 const sb = createSandbox();
 
+// tslint:disable:no-unused-expression
 describe('Force Apex Test Run', () => {
   const testResultsOutput = join('test', 'results', 'apex');
 

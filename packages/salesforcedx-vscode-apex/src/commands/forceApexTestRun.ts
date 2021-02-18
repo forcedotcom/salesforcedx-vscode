@@ -206,7 +206,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
 
     switch (response.data.type) {
       case TestType.Class:
-        payload = await testService.buildAsyncPayload(testLevel, undefined, response.data.label)
+        payload = await testService.buildAsyncPayload(testLevel, undefined, response.data.label);
         break;
       case TestType.Suite:
         payload = await testService.buildAsyncPayload(testLevel, undefined, undefined, response.data.label);

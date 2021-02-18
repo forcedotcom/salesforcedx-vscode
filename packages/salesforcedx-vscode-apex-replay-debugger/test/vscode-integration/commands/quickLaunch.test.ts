@@ -23,6 +23,7 @@ import * as utils from '../../../src/utils';
 
 const $$ = testSetup();
 
+// tslint:disable:no-unused-expression
 describe('Quick launch apex tests', () => {
   const testData = new MockTestOrgData();
   const testDebuggerExec = new TestDebuggerExecutor();
