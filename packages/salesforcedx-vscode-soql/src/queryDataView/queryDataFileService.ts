@@ -46,23 +46,50 @@ export class QueryDataFileService {
     }
   }
 
-  public save(): string {
+  public async save(): Promise<string> {
+    let queryDataSelectedPath = '';
     const fileContent = this.dataProvider.getFileContent(
       this.queryData.records
     );
-    const savedFileName = this.dataProvider.getFileName();
-    const queryDataFilePath = path.join(
+    const defaultFileName = this.dataProvider.getFileName();
+    /* queryDataDefaultFilePath will be used as the default options in the save dialog:
+        fileName: The name of the soqlFile viewed in the builder
+        path: <workspaceDir>/<QUERY_RESULTS_DIR_PATH>
+    however the default dir must exist for it to show up
+    in the save dialog.
+    */
+    const queryDataDefaultFilePath = path.join(
       this.getResultsDirectoryPath(),
-      savedFileName
+      defaultFileName
     );
 
+    const saveDialogOptions = {
+      defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
+    };
+    /* We should probably change this to just save in scripts/soql,
+    instead of make a new directory.
     this.createResultsDirectoryIfDoesNotExist();
-    // Save query results to disk
-    fs.writeFileSync(queryDataFilePath, fileContent);
-    this.showSaveSuccessMessage(savedFileName);
-    this.showFileInExplorer(queryDataFilePath);
+    */
+    this.createResultsDirectoryIfDoesNotExist();
+    queryDataSelectedPath = await vscode.window
+      .showSaveDialog({ ...saveDialogOptions })
+      .then((fileInfo: vscode.Uri | undefined) => {
+        if (fileInfo) {
+          queryDataSelectedPath = fileInfo.path;
+          // Save query results to disk
+          fs.writeFileSync(fileInfo.path, fileContent);
+          // Only reveal saved file if its inside current workspace
+          if (fileInfo.path.startsWith(getRootWorkspacePath())) {
+            this.showFileInExplorer(fileInfo.path);
+          }
+          this.showSaveSuccessMessage(path.basename(fileInfo.path));
 
-    return queryDataFilePath;
+          return fileInfo.path;
+        }
+        return '';
+      });
+
+    return queryDataSelectedPath;
   }
 
   private getResultsDirectoryPath() {

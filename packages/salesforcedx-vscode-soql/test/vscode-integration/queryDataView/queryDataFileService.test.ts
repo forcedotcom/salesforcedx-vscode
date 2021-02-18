@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { QUERY_RESULTS_DIR_PATH } from '../../../src/constants';
 import {
@@ -21,11 +22,17 @@ describe('Query Data File Service', () => {
   const documentName = 'example.soql';
   const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
+  let sandbox: sinon.SinonSandbox;
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+  });
 
   afterEach(() => {
     // delete the query-results directory and its files.
     // @ts-ignore
     fs.rmdirSync(testResultsDirPath, { recursive: true });
+    sandbox.restore();
   });
 
   it('should use the correct data provider', () => {
@@ -44,26 +51,36 @@ describe('Query Data File Service', () => {
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
   });
 
-  it('will save json file to disk on save', () => {
+  it('will save json file to disk on save', async () => {
     const jsonFileService = new TestFileService(
       mockQueryData,
       FileFormat.JSON,
       documentName
     );
 
-    const savedFilePath = jsonFileService.save();
+    const mockURI = {
+      path: `${testResultsDirPath}/${documentName}`
+    } as vscode.Uri;
+    sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
+
+    const savedFilePath = await jsonFileService.save();
     const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
     expect(JSON.parse(savedFileContent)).to.eql(mockQueryData.records);
   });
 
-  it('will save csv to file to disk on save', () => {
+  it('will save csv to file to disk on save', async () => {
     const csvFileService = new TestFileService(
       mockQueryData,
       FileFormat.CSV,
       documentName
     );
 
-    const savedFilePath = csvFileService.save();
+    const mockURI = {
+      path: `${testResultsDirPath}/${documentName}`
+    } as vscode.Uri;
+    sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
+
+    const savedFilePath = await csvFileService.save();
     const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
     const mockCsvData = csvFileService
       .getDataProvider()
