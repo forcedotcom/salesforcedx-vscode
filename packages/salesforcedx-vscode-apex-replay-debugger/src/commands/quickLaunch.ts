@@ -7,8 +7,6 @@
 import {
   ApexTestResultData,
   LogService,
-  SyncTestConfiguration,
-  TestItem,
   TestLevel,
   TestResult,
   TestService
