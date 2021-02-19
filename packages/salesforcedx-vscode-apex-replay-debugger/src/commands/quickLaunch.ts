@@ -4,32 +4,26 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LogService, TestService } from '@salesforce/apex-node';
 import {
   ApexTestResultData,
+  LogService,
   SyncTestConfiguration,
   TestItem,
   TestLevel,
-  TestResult
-} from '@salesforce/apex-node/lib/src/tests/types';
+  TestResult,
+  TestService
+} from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { getLogDirPath } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 import { TraceFlags } from './traceFlags';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-
-export const LibraryCommandletExecutor =
-  sfdxCoreExports.LibraryCommandletExecutor;
-
 interface TestRunResult {
   logFileId?: string;
   message?: string;
@@ -121,8 +115,9 @@ export class QuickLaunch {
 }
 
 export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
-  protected executionName = nls.localize('debug_test_exec_name');
-  protected logName = 'debug_test_replay_debugger';
+  constructor() {
+    super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL)
+  }
 
   public async run(response: ContinueResponse<string[]>): Promise<boolean> {
     if (!response.data) {

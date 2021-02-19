@@ -6,97 +6,11 @@
  */
 
 import { expect } from 'chai';
-import { EOL } from 'os';
 import * as proxyquire from 'proxyquire';
-import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
+import { assert, createSandbox, SinonSandbox, stub } from 'sinon';
 import { nls } from '../../../src/messages';
 import { ContinueResponse } from '../../../src/types';
-
-class MockChannel {
-  public readonly name = 'MockChannel';
-  public value = '';
-
-  public append(value: string): void {
-    this.value += value;
-  }
-
-  public appendLine(value: string): void {
-    this.value += value;
-    this.value += EOL;
-  }
-
-  public clear(): void {}
-  public show(preserveFocus?: boolean | undefined): void;
-  public show(column?: any, preserveFocus?: any): void {}
-  public hide(): void {}
-  public dispose(): void {}
-}
-
-const vscodeStub = {
-  CancellationTokenSource: class {
-    private listeners: any[] = [];
-    public token = {
-      isCancellationRequested: false,
-      onCancellationRequested: (listener: any) => {
-        this.listeners.push(listener);
-        return {
-          dispose: () => {
-            this.listeners = [];
-          }
-        };
-      }
-    };
-    public cancel = () => {
-      this.listeners.forEach(listener => {
-        listener.call();
-      });
-    };
-    public dispose = () => {};
-  },
-  commands: stub(),
-  Disposable: stub(),
-  env: {
-    machineId: '12345534'
-  },
-  Uri: {
-    parse: stub()
-  },
-  ProgressLocation: {
-    SourceControl: 1,
-    Window: 10,
-    Notification: 15
-  },
-  window: {
-    showInformationMessage: () => {
-      return Promise.resolve(null);
-    },
-    showWarningMessage: stub(),
-    showErrorMessage: () => {
-      return Promise.resolve(null);
-    },
-    setStatusBarMessage: () => {
-      return Promise.resolve(null);
-    },
-    withProgress: () => {
-      return Promise.resolve(true);
-    },
-    createOutputChannel: () => {
-      return {
-        show: () => {}
-      };
-    },
-    OutputChannel: { show: () => {} }
-  },
-  workspace: {
-    getConfiguration: () => {
-      return {
-        get: () => true,
-        update: () => true
-      };
-    },
-    onDidChangeConfiguration: stub()
-  }
-};
+import { MockChannel, vscodeStub } from './mocks';
 
 const { ChannelService } = proxyquire.noCallThru()(
   '../../../src/commands/index',
