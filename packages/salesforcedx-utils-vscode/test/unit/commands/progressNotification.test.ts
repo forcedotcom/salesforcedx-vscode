@@ -15,38 +15,11 @@ import {
   SfdxCommandBuilder
 } from '../../../src/cli';
 import { nls } from '../../../src/messages';
+import { vscodeStub } from './mocks';
 
 interface Progress<T> {
   report(value: T): void;
 }
-
-const vscodeStub = {
-  CancellationTokenSource: class {
-    public token = {
-      isCancellationRequested: false,
-      onCancellationRequested: (listener: any) => {
-        return {
-          dispose: () => {}
-        };
-      }
-    };
-    public cancel = () => {};
-    public dispose = () => {};
-  },
-  ProgressLocation: {
-    SourceControl: 1,
-    Window: 10,
-    Notification: 15
-  },
-  window: {
-    withProgress: () => {},
-    createOutputChannel: () => {
-      return {
-        show: () => {}
-      };
-    }
-  }
-};
 
 const { ProgressNotification } = proxyquire.noCallThru()(
   '../../../src/commands',

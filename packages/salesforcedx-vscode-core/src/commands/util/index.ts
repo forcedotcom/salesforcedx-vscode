@@ -40,7 +40,6 @@ export {
   DevUsernameChecker,
   EmptyPreChecker
 } from './preconditionCheckers';
-export { LibraryCommandletExecutor } from './libraryCommandlet';
 export {
   createComponentCount,
   useBetaDeployRetrieve
