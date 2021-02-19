@@ -17,9 +17,10 @@ import {
   SourcePathStrategy
 } from '../util';
 
+import { Properties } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
-import { Properties, telemetryService } from '../../telemetry';
+import { telemetryService } from '../../telemetry';
 import {
   getRootWorkspacePath,
   hasRootWorkspace,

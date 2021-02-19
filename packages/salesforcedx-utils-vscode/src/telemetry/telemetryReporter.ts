@@ -10,7 +10,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 
-export default class TelemetryReporter extends Disposable {
+export class TelemetryReporter extends Disposable {
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];

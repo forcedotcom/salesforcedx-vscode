@@ -8,7 +8,7 @@
 import * as util from 'util';
 import { env, ExtensionContext, workspace } from 'vscode';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
-import TelemetryReporter from './telemetryReporter';
+import { TelemetryReporter } from './telemetryReporter';
 
 interface CommandMetric {
   extensionName: string;
