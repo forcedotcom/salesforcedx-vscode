@@ -6,19 +6,14 @@
  */
 
 import {
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode/src/types';
+import {
   TemplateType,
   VisualforceComponentOptions
 } from '@salesforce/templates';
-import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -28,7 +23,7 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import { BaseTemplateCommand } from './baseTemplateCommand';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import {
   VISUALFORCE_COMPONENT_DIRECTORY,
   VISUALFORCE_COMPONENT_TYPE
@@ -57,23 +52,6 @@ export class LibraryForceVisualForceComponentCreateExecutor extends LibraryBaseT
   }
 }
 
-export class ForceVisualForceComponentCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super(VISUALFORCE_COMPONENT_TYPE);
-  }
-
-  public build(data: DirFileNameSelection): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_visualforce_component_create_text'))
-      .withArg('force:visualforce:component:create')
-      .withFlag('--componentname', data.fileName)
-      .withFlag('--label', data.fileName)
-      .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_visualforce_component_create')
-      .build();
-  }
-}
-
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(VISUALFORCE_COMPONENT_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(
@@ -81,9 +59,7 @@ const metadataTypeGatherer = new MetadataTypeGatherer(
 );
 
 export async function forceVisualforceComponentCreate() {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceVisualForceComponentCreateExecutor()
-    : new ForceVisualForceComponentCreateExecutor();
+  const createTemplateExecutor = new LibraryForceVisualForceComponentCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
