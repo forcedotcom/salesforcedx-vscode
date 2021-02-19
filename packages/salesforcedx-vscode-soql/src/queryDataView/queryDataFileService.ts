@@ -100,11 +100,7 @@ export class QueryDataFileService {
 
   private showSaveSuccessMessage(savedFileName: string) {
     vscode.window.showInformationMessage(
-      nls.localize(
-        'info_file_save_success',
-        QUERY_RESULTS_DIR_NAME,
-        savedFileName
-      )
+      nls.localize('info_file_save_success', savedFileName)
     );
   }
 }
