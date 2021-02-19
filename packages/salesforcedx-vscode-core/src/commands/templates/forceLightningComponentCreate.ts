@@ -5,15 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
-import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
@@ -26,11 +22,11 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import {
   AURA_COMPONENT_EXTENSION,
   AURA_DIRECTORY,
@@ -63,39 +59,12 @@ export class LibraryForceLightningComponentCreateExecutor extends LibraryBaseTem
   }
 }
 
-export class ForceLightningComponentCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super(AURA_TYPE);
-  }
-
-  public build(data: DirFileNameSelection): Command {
-    const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_lightning_component_create_text'))
-      .withArg('force:lightning:component:create')
-      .withFlag('--componentname', data.fileName)
-      .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_component_create');
-
-    if (sfdxCoreSettings.getInternalDev()) {
-      builder.withArg('--internal');
-    }
-
-    return builder.build();
-  }
-
-  public getFileExtension() {
-    return AURA_COMPONENT_EXTENSION;
-  }
-}
-
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(AURA_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(AURA_TYPE);
 
 export async function forceLightningComponentCreate() {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceLightningComponentCreateExecutor()
-    : new ForceLightningComponentCreateExecutor();
+  const createTemplateExecutor = new LibraryForceLightningComponentCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -110,9 +79,7 @@ export async function forceLightningComponentCreate() {
 }
 
 export async function forceInternalLightningComponentCreate(sourceUri: Uri) {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceLightningComponentCreateExecutor()
-    : new ForceLightningComponentCreateExecutor();
+  const createTemplateExecutor = new LibraryForceLightningComponentCreateExecutor();
 
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),

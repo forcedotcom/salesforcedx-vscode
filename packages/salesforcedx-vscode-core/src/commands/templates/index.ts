@@ -26,23 +26,12 @@ export {
   forceLightningInterfaceCreate,
   forceInternalLightningInterfaceCreate
 } from './forceLightningInterfaceCreate';
-export {
-  forceVisualforceComponentCreate
-} from './forceVisualforceComponentCreate';
+export { forceVisualforceComponentCreate } from './forceVisualforceComponentCreate';
 export { forceVisualforcePageCreate } from './forceVisualforcePageCreate';
 export { forceApexTriggerCreate } from './forceApexTriggerCreate';
 export { forceApexClassCreate } from './forceApexClassCreate';
 export { forceAnalyticsTemplateCreate } from './forceAnalyticsTemplateCreate';
-export {
-  ForceVisualForceComponentCreateExecutor
-} from './forceVisualforceComponentCreate';
-export {
-  ForceVisualForcePageCreateExecutor
-} from './forceVisualforcePageCreate';
-export {
-  ForceLightningLwcTestCreateExecutor
-} from './forceLightningLwcTestCreate';
-export { ForceLightningLwcCreateExecutor } from './forceLightningLwcCreate';
+export { ForceLightningLwcTestCreateExecutor } from './forceLightningLwcTestCreate';
 export {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker

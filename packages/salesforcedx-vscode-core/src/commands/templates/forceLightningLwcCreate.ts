@@ -5,15 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
-import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
@@ -26,11 +22,11 @@ import {
 } from '../util';
 import { MetadataTypeGatherer } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import { BaseTemplateCommand } from './baseTemplateCommand';
 import {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
+import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
 
 export class LibraryForceLightningLwcCreateExecutor extends LibraryBaseTemplateCommand<
@@ -56,36 +52,12 @@ export class LibraryForceLightningLwcCreateExecutor extends LibraryBaseTemplateC
   }
 }
 
-export class ForceLightningLwcCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super(LWC_TYPE);
-  }
-
-  public build(data: DirFileNameSelection): Command {
-    const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_lightning_lwc_create_text'))
-      .withArg('force:lightning:component:create')
-      .withFlag('--type', 'lwc')
-      .withFlag('--componentname', data.fileName)
-      .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_lightning_web_component_create');
-
-    if (sfdxCoreSettings.getInternalDev()) {
-      builder.withArg('--internal');
-    }
-
-    return builder.build();
-  }
-}
-
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(LWC_DIRECTORY, true);
 const metadataTypeGatherer = new MetadataTypeGatherer(LWC_TYPE);
 
 export async function forceLightningLwcCreate() {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceLightningLwcCreateExecutor()
-    : new ForceLightningLwcCreateExecutor();
+  const createTemplateExecutor = new LibraryForceLightningLwcCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
@@ -100,9 +72,7 @@ export async function forceLightningLwcCreate() {
 }
 
 export async function forceInternalLightningLwcCreate(sourceUri: Uri) {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceLightningLwcCreateExecutor()
-    : new ForceLightningLwcCreateExecutor();
+  const createTemplateExecutor = new LibraryForceLightningLwcCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new InternalDevWorkspaceChecker(),
     new CompositeParametersGatherer(

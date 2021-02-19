@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import {
   Command,
   SfdxCommandBuilder
@@ -18,7 +24,7 @@ import { MetadataTypeGatherer } from '../util';
 import { SelectLwcComponentDir } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { BaseTemplateCommand } from './baseTemplateCommand';
-import { LWC_DIRECTORY, LWC_TYPE } from './metadataTypeConstants';
+import { LWC_TYPE } from './metadataTypeConstants';
 
 export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   constructor() {

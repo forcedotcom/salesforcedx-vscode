@@ -105,7 +105,6 @@ export {
 export {
   forceSfdxProjectCreate,
   forceProjectWithManifestCreate,
-  ForceProjectCreateExecutor,
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
   projectTemplateEnum,

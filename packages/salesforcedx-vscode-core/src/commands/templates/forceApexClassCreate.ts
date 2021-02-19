@@ -5,16 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexClassOptions, TemplateType } from '@salesforce/templates';
-
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
+  DirFileNameSelection,
+  LocalComponent
+} from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { ApexClassOptions, TemplateType } from '@salesforce/templates';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
 import {
   CompositeParametersGatherer,
   MetadataTypeGatherer,
@@ -24,7 +20,6 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
-import { BaseTemplateCommand } from './baseTemplateCommand';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { APEX_CLASS_DIRECTORY, APEX_CLASS_TYPE } from './metadataTypeConstants';
 
@@ -48,31 +43,12 @@ export class LibraryForceApexClassCreateExecutor extends LibraryBaseTemplateComm
   }
 }
 
-export class ForceApexClassCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super(APEX_CLASS_TYPE);
-  }
-
-  public build(data: DirFileNameSelection): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_class_create_text'))
-      .withArg('force:apex:class:create')
-      .withFlag('--classname', data.fileName)
-      .withFlag('--template', 'DefaultApexClass')
-      .withFlag('--outputdir', data.outputdir)
-      .withLogName('force_apex_class_create')
-      .build();
-  }
-}
-
 const fileNameGatherer = new SelectFileName();
 const outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
 
 export async function forceApexClassCreate() {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceApexClassCreateExecutor()
-    : new ForceApexClassCreateExecutor();
+  const createTemplateExecutor = new LibraryForceApexClassCreateExecutor();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new CompositeParametersGatherer<LocalComponent>(
