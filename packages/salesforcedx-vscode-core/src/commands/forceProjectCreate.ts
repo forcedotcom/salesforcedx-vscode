@@ -5,34 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ProjectOptions, TemplateType } from '@salesforce/templates';
-
-import {
-  CliCommandExecutor,
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ProjectOptions, TemplateType } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
+import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
-import { taskViewService } from '../statuses';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,
-  SfdxCommandlet,
-  SfdxCommandletExecutor
+  SfdxCommandlet
 } from './util';
 
 export enum projectTemplateEnum {
@@ -93,65 +83,6 @@ export class LibraryForceProjectCreateExecutor extends LibraryBaseTemplateComman
     };
     this.telemetryProperties = { projectTemplate: data.projectTemplate };
     return templateOptions;
-  }
-}
-
-export class ForceProjectCreateExecutor extends SfdxCommandletExecutor<
-  ProjectNameAndPathAndTemplate
-> {
-  private readonly options: forceProjectCreateOptions;
-
-  public constructor(options = { isProjectWithManifest: false }) {
-    super();
-    this.options = options;
-  }
-
-  public build(data: ProjectNameAndPathAndTemplate): Command {
-    const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_project_create_text'))
-      .withArg('force:project:create')
-      .withFlag('--projectname', data.projectName)
-      .withFlag('--outputdir', data.projectUri)
-      .withFlag('--template', data.projectTemplate)
-      .withLogName('force_project_create');
-
-    if (this.options.isProjectWithManifest) {
-      builder.withArg('--manifest');
-    }
-
-    return builder.build();
-  }
-
-  public execute(
-    response: ContinueResponse<ProjectNameAndPathAndTemplate>
-  ): void {
-    const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: response.data.projectUri
-    }).execute(cancellationToken);
-
-    execution.processExitSubject.subscribe(async data => {
-      this.logMetric(execution.command.logName, startTime);
-      if (data !== undefined && String(data) === '0') {
-        await vscode.commands.executeCommand(
-          'vscode.openFolder',
-          vscode.Uri.file(
-            path.join(response.data.projectUri, response.data.projectName)
-          )
-        );
-      }
-    });
-
-    notificationService.reportExecutionError(
-      execution.command.toString(),
-      (execution.stderrSubject as any) as Observable<Error | undefined>
-    );
-    channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 }
 
@@ -304,9 +235,7 @@ const parameterGatherer = new CompositeParametersGatherer(
 const pathExistsChecker = new PathExistsChecker();
 
 export async function forceSfdxProjectCreate() {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceProjectCreateExecutor()
-    : new ForceProjectCreateExecutor();
+  const createTemplateExecutor = new LibraryForceProjectCreateExecutor();
   const sfdxProjectCreateCommandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
@@ -317,9 +246,9 @@ export async function forceSfdxProjectCreate() {
 }
 
 export async function forceProjectWithManifestCreate() {
-  const createTemplateExecutor = sfdxCoreSettings.getTemplatesLibrary()
-    ? new LibraryForceProjectCreateExecutor({ isProjectWithManifest: true })
-    : new ForceProjectCreateExecutor({ isProjectWithManifest: true });
+  const createTemplateExecutor = new LibraryForceProjectCreateExecutor({
+    isProjectWithManifest: true
+  });
   const projectWithManifestCreateCommandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

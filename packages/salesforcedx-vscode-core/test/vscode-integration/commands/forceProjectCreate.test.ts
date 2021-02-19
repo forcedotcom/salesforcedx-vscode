@@ -15,7 +15,6 @@ import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
 import { channelService } from '../../../src/channels';
 import {
-  ForceProjectCreateExecutor,
   forceProjectWithManifestCreate,
   forceSfdxProjectCreate,
   PathExistsChecker,
@@ -28,7 +27,6 @@ import {
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { telemetryService } from '../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../src/util';
 
@@ -228,74 +226,7 @@ describe('Force Project Create', () => {
     });
   });
 
-  describe('Project Create Builder', () => {
-    it('Should build the project create command', async () => {
-      const forceProjectCreateBuilder = new ForceProjectCreateExecutor();
-      const createCommand = forceProjectCreateBuilder.build({
-        projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath,
-        projectTemplate: projectTemplateEnum.standard
-      });
-      expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template standard`
-      );
-      expect(createCommand.description).to.equal(
-        nls.localize('force_project_create_text')
-      );
-    });
-
-    it('Should build the analytics project create command', async () => {
-      const forceProjectCreateBuilder = new ForceProjectCreateExecutor();
-      const createCommand = forceProjectCreateBuilder.build({
-        projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath,
-        projectTemplate: projectTemplateEnum.analytics
-      });
-      expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template analytics`
-      );
-      expect(createCommand.description).to.equal(
-        nls.localize('force_project_create_text')
-      );
-    });
-
-    it('Should build the analytics project with manifest create command', async () => {
-      const forceProjectCreateBuilder = new ForceProjectCreateExecutor({
-        isProjectWithManifest: true
-      });
-      const createCommand = forceProjectCreateBuilder.build({
-        projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath,
-        projectTemplate: projectTemplateEnum.analytics
-      });
-      expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template analytics --manifest`
-      );
-      expect(createCommand.description).to.equal(
-        nls.localize('force_project_create_text')
-      );
-    });
-
-    it('Should build the project with manifest create command', async () => {
-      const forceProjectCreateBuilder = new ForceProjectCreateExecutor({
-        isProjectWithManifest: true
-      });
-      const createCommand = forceProjectCreateBuilder.build({
-        projectName: PROJECT_NAME,
-        projectUri: PROJECT_DIR[0].fsPath,
-        projectTemplate: projectTemplateEnum.standard
-      });
-      expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template standard --manifest`
-      );
-      expect(createCommand.description).to.equal(
-        nls.localize('force_project_create_text')
-      );
-    });
-  });
-
-  describe('Library Create', () => {
-    let settings: SinonStub;
+  describe('Project Create', () => {
     let showInputBoxStub: SinonStub;
     let quickPickStub: SinonStub;
     let openDialogStub: SinonStub;
@@ -307,9 +238,6 @@ describe('Force Project Create', () => {
     let showWarningStub: SinonStub;
 
     beforeEach(() => {
-      // mock experimental setting
-      settings = stub(SfdxCoreSettings.prototype, 'getTemplatesLibrary');
-      settings.returns(true);
       showInputBoxStub = stub(vscode.window, 'showInputBox');
       quickPickStub = stub(vscode.window, 'showQuickPick');
       openDialogStub = stub(vscode.window, 'showOpenDialog');
@@ -329,7 +257,6 @@ describe('Force Project Create', () => {
     });
 
     afterEach(() => {
-      settings.restore();
       showInputBoxStub.restore();
       quickPickStub.restore();
       openDialogStub.restore();

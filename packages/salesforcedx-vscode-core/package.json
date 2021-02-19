@@ -866,11 +866,6 @@
           "default": true,
           "description": "%experimental_apex_library_description%"
         },
-        "salesforcedx-vscode-core.experimental.useTemplatesLibrary": {
-          "type": "boolean",
-          "default": true,
-          "description": "%experimental_templates_library_description%"
-        },
         "salesforcedx-vscode-core.experimental.functions_install_dependencies": {
           "type": "boolean",
           "default": true,
