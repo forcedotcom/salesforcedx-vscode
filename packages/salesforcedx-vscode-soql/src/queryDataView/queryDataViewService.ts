@@ -147,7 +147,7 @@ export class QueryDataViewService {
       const fileService = new FileService(
         this.queryData,
         format,
-        getDocumentName(this.document)
+        this.document
       );
       fileService.save();
     } catch (err) {

@@ -10,8 +10,8 @@ import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getRootWorkspacePath } from '../commonUtils';
-import { QUERY_RESULTS_DIR_NAME, QUERY_RESULTS_DIR_PATH } from '../constants';
+import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
+import { QUERY_RESULTS_DIR_NAME } from '../constants';
 import { nls } from '../messages';
 import {
   CsvDataProvider,
@@ -26,12 +26,14 @@ export enum FileFormat {
 
 export class QueryDataFileService {
   private dataProvider: DataProvider;
+  private documentName: string;
 
   constructor(
     private queryData: QueryResult<JsonMap>,
     private format: FileFormat,
-    private documentName: string
+    private document: vscode.TextDocument
   ) {
+    this.documentName = getDocumentName(document);
     this.dataProvider = this.getDataProvider();
   }
 
@@ -52,27 +54,24 @@ export class QueryDataFileService {
       this.queryData.records
     );
     const defaultFileName = this.dataProvider.getFileName();
-    /* queryDataDefaultFilePath will be used as the default options in the save dialog:
+    /* queryDataDefaultFilePath will be used as the default options in the save dialog
         fileName: The name of the soqlFile viewed in the builder
-        path: <workspaceDir>/<QUERY_RESULTS_DIR_PATH>
-    however the default dir must exist for it to show up
-    in the save dialog.
+        path: the same directory as the .soql file text doc.
+    note: directory must exist to show up in save dialog.
     */
     const queryDataDefaultFilePath = path.join(
-      this.getResultsDirectoryPath(),
+      path.parse(this.document.uri.path).dir,
       defaultFileName
     );
 
     const saveDialogOptions = {
       defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
     };
-    /* We should probably change this to just save in scripts/soql,
-    instead of make a new directory.
-    this.createResultsDirectoryIfDoesNotExist();
-    */
-    this.createResultsDirectoryIfDoesNotExist();
+
     queryDataSelectedPath = await vscode.window
-      .showSaveDialog({ ...saveDialogOptions })
+      .showSaveDialog({
+        ...saveDialogOptions
+      })
       .then((fileInfo: vscode.Uri | undefined) => {
         if (fileInfo) {
           queryDataSelectedPath = fileInfo.path;
@@ -90,16 +89,6 @@ export class QueryDataFileService {
       });
 
     return queryDataSelectedPath;
-  }
-
-  private getResultsDirectoryPath() {
-    return path.join(getRootWorkspacePath(), QUERY_RESULTS_DIR_PATH);
-  }
-
-  private createResultsDirectoryIfDoesNotExist() {
-    fs.mkdirSync(this.getResultsDirectoryPath(), {
-      recursive: true
-    });
   }
 
   private showFileInExplorer(targetPath: string) {
