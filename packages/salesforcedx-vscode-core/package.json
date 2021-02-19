@@ -32,7 +32,6 @@
     "@salesforce/source-deploy-retrieve": "1.1.17",
     "@salesforce/templates": "50.7.0",
     "adm-zip": "0.4.13",
-    "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
