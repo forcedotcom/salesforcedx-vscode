@@ -9,6 +9,7 @@ import {
   ApexTestResultData,
   SyncTestConfiguration,
   TestItem,
+  TestLevel,
   TestResult
 } from '@salesforce/apex-node/lib/src/tests/types';
 import { Connection } from '@salesforce/core';
@@ -78,21 +79,14 @@ export class QuickLaunch {
     testClass: string,
     testMethod?: string
   ): Promise<TestRunResult> {
-    const testOptions: SyncTestConfiguration = {
-      tests: [
-        {
-          className: testClass,
-          testMethods: testMethod ? [testMethod] : undefined
-        } as TestItem
-      ],
-      testLevel: 'RunSpecifiedTests'
-    };
-
     const testService = new TestService(connection);
     try {
-      const result: TestResult = await testService.runTestSynchronous(
-        testOptions
+      const payload = await testService.buildSyncPayload(
+        TestLevel.RunSpecifiedTests,
+        testMethod,
+        testClass
       );
+      const result: TestResult = await testService.runTestSynchronous(payload);
       const tests: ApexTestResultData[] = result.tests;
       if (tests.length === 0) {
         return {

@@ -18,7 +18,7 @@ import {
 
 const apexLibClass = {
   id: 'fakeId',
-  name: 'fakeName',
+  name: 'file0',
   namespacePrefix: 'tester',
   fullName: 'tester.file0'
 };
@@ -108,16 +108,19 @@ export const apexLibNsTestInfo = [
   { methodName: 'test2', definingType, location }
 ];
 
-const fakeApexClass = {
-  attributes: { type: 'FakeType' },
-  Id: 'fakeId',
-  Name: 'fakeName',
-  NamespacePrefix: 'tester'
-};
+const fakeApexClasses = [];
+for (let i = 0; i < 4; i++) {
+  fakeApexClasses.push({
+    attributes: { type: 'FakeType' },
+    Id: 'fakeId',
+    Name: `file${i}`,
+    NamespacePrefix: 'tester'
+  });
+}
 
 export const testResultsOneFile = [
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[0],
     MethodName: 'test0',
     Outcome: 'Pass',
     RunTime: 1,
@@ -129,7 +132,7 @@ export const testResultsOneFile = [
 
 export const testResultsMultipleFiles = [
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[0],
     MethodName: 'test0',
     Outcome: 'Pass',
     RunTime: 1,
@@ -138,7 +141,7 @@ export const testResultsMultipleFiles = [
     FullName: 'file0.test0'
   },
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[0],
     MethodName: 'test1',
     Outcome: 'Fail',
     RunTime: 1,
@@ -147,7 +150,7 @@ export const testResultsMultipleFiles = [
     FullName: 'file0.test1'
   },
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[1],
     MethodName: 'test2',
     Outcome: 'Pass',
     RunTime: 1,
@@ -156,7 +159,7 @@ export const testResultsMultipleFiles = [
     FullName: 'file1.test2'
   },
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[1],
     MethodName: 'test3',
     Outcome: 'Pass',
     RunTime: 1,
@@ -165,7 +168,7 @@ export const testResultsMultipleFiles = [
     FullName: 'file1.test3'
   },
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[2],
     MethodName: 'test4',
     Outcome: 'Pass',
     RunTime: 1,
@@ -174,7 +177,7 @@ export const testResultsMultipleFiles = [
     FullName: 'file2.test4'
   },
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[2],
     MethodName: 'test5',
     Outcome: 'Pass',
     RunTime: 1,
@@ -183,7 +186,7 @@ export const testResultsMultipleFiles = [
     FullName: 'file2.test5'
   },
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[3],
     MethodName: 'test6',
     Outcome: 'Fail',
     RunTime: 1,
@@ -192,7 +195,7 @@ export const testResultsMultipleFiles = [
     FullName: 'file3.test6'
   },
   {
-    ApexClass: fakeApexClass,
+    ApexClass: fakeApexClasses[3],
     MethodName: 'test7',
     Outcome: 'Pass',
     RunTime: 1,

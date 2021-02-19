@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestLevel, TestService } from '@salesforce/apex-node';
+import { HumanReporter, TestLevel, TestService } from '@salesforce/apex-node';
 import {
   EmptyParametersGatherer,
   SfdxWorkspaceChecker
@@ -29,6 +29,7 @@ import * as settings from '../../../src/settings';
 
 const sb = createSandbox();
 
+// tslint:disable:no-unused-expression
 describe('Force Apex Test Run', () => {
   const testResultsOutput = join('test', 'results', 'apex');
 
@@ -95,21 +96,36 @@ describe('Force Apex Test Run', () => {
   });
 
   describe('Apex Library Test Run Executor', async () => {
-    let runTestStub: sinon.SinonStub;
+    let runTestStub: SinonStub;
+    let buildPayloadStub: SinonStub;
 
     beforeEach(async () => {
       retrieveCoverageStub.returns(true);
       runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous');
       sb.stub(workspaceContext, 'getConnection');
+      buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
+      sb.stub(HumanReporter.prototype, 'format');
+      sb.stub(TestService.prototype, 'writeResultFiles');
     });
 
     it('should run test with correct parameters for specified class', async () => {
+      buildPayloadStub.resolves({
+        classNames: 'testClass',
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.execute({
+      await apexLibExecutor.run({
         data: { type: TestType.Class, label: 'testClass' },
         type: 'CONTINUE'
       });
 
+      expect(buildPayloadStub.called).to.be.true;
+      expect(buildPayloadStub.args[0]).to.eql([
+        'RunSpecifiedTests',
+        undefined,
+        'testClass'
+      ]);
       expect(runTestStub.args[0]).to.deep.equal([
         { classNames: 'testClass', testLevel: TestLevel.RunSpecifiedTests },
         true
@@ -117,12 +133,24 @@ describe('Force Apex Test Run', () => {
     });
 
     it('should run test with correct parameters for specified suite', async () => {
+      buildPayloadStub.resolves({
+        suiteNames: 'testSuite',
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.execute({
+      await apexLibExecutor.run({
         data: { type: TestType.Suite, label: 'testSuite' },
         type: 'CONTINUE'
       });
 
+      expect(buildPayloadStub.called).to.be.true;
+      expect(buildPayloadStub.args[0]).to.eql([
+        'RunSpecifiedTests',
+        undefined,
+        undefined,
+        'testSuite'
+      ]);
       expect(runTestStub.args[0]).to.deep.equal([
         { suiteNames: 'testSuite', testLevel: TestLevel.RunSpecifiedTests },
         true
@@ -131,7 +159,7 @@ describe('Force Apex Test Run', () => {
 
     it('should run test with correct parameters for all tests', async () => {
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.execute({
+      await apexLibExecutor.run({
         data: { type: TestType.All, label: '' },
         type: 'CONTINUE'
       });
@@ -151,10 +179,7 @@ describe('Force Apex Test Run', () => {
 
     beforeEach(async () => {
       settingStub = sb.stub(settings, 'useApexLibrary');
-      apexExecutorStub = sb.spy(
-        ApexLibraryTestRunExecutor.prototype,
-        'execute'
-      );
+      apexExecutorStub = sb.spy(ApexLibraryTestRunExecutor.prototype, 'run');
       cliExecutorStub = sb.spy(ForceApexTestRunExecutor.prototype, 'execute');
       sb.stub(EmptyParametersGatherer.prototype, 'gather');
       sb.stub(SfdxWorkspaceChecker.prototype, 'check');

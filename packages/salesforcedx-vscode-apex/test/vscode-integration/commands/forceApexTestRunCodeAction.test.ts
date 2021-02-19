@@ -7,6 +7,7 @@
 
 import {
   ApexTestResultOutcome,
+  HumanReporter,
   TestLevel,
   TestResult,
   TestService
@@ -16,8 +17,8 @@ import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { join } from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { DiagnosticSeverity, extensions, Range, Uri } from 'vscode';
+import { createSandbox, SinonStub } from 'sinon';
+import { DiagnosticSeverity, Range, Uri } from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
   forceApexTestClassRunCodeAction,
@@ -155,26 +156,203 @@ describe('Force Apex Test Run - Code Action', () => {
     });
   });
 
+  const testResult: TestResult = {
+    summary: {
+      failRate: '0%',
+      failing: 0,
+      testsRan: 2,
+      orgId: 'xxxx908373',
+      outcome: 'Failed',
+      passRate: '100%',
+      passing: 5,
+      skipRate: '0%',
+      skipped: 0,
+      testExecutionTimeInMs: 25,
+      testStartTime: '2:00:00PM',
+      testTotalTimeInMs: 25,
+      commandTimeInMs: 25,
+      hostname: 'NA95',
+      username: 'testusername@testing.com',
+      testRunId: 'xxxx9056',
+      userId: 'xxx555'
+    },
+    tests: [
+      {
+        asyncApexJobId: 'xxx9678',
+        id: 'xxxx56',
+        apexClass: {
+          fullName: 'TestClass',
+          name: 'TestClass',
+          namespacePrefix: '',
+          id: 'xx567'
+        },
+        queueItemId: 'xxxQUEUEID',
+        stackTrace: 'System.AssertException: Assertion Failed Col: 18 Line: 2',
+        message: 'System.AssertException: Assertion Failed',
+        methodName: 'testMethod',
+        outcome: ApexTestResultOutcome.Fail,
+        runTime: 5,
+        apexLogId: 'xxxLogId90',
+        testTimestamp: '2:00:00PM',
+        fullName: 'TestClass.testMethod',
+        diagnostic: {
+          exceptionMessage: 'System.AssertException: Assertion Failed',
+          exceptionStackTrace:
+            'System.AssertException: Assertion Failed Col: 18 Line: 2',
+          compileProblem: '',
+          lineNumber: 6,
+          columnNumber: 1,
+          className: 'TestClass'
+        }
+      },
+      {
+        asyncApexJobId: 'xxx9678',
+        id: 'xxxx56',
+        apexClass: {
+          fullName: 'TestClass',
+          name: 'TestClassTwo',
+          namespacePrefix: '',
+          id: 'xx567'
+        },
+        queueItemId: 'xxxQUEUEID',
+        stackTrace: 'System.AssertException: Assertion Failed Col: 15 Line: 3',
+        message: 'System.AssertException: Assertion Failed',
+        methodName: 'testMethodTwo',
+        outcome: ApexTestResultOutcome.Fail,
+        runTime: 5,
+        apexLogId: 'xxxLogId90',
+        testTimestamp: '2:00:00PM',
+        fullName: 'TestClassTwo.testMethodTwo',
+        diagnostic: {
+          exceptionMessage: 'System.AssertException: Assertion Failed',
+          exceptionStackTrace:
+            'System.AssertException: Assertion Failed Col: 15 Line: 3',
+          compileProblem: '',
+          lineNumber: 3,
+          columnNumber: 15,
+          className: 'TestClassTwo'
+        }
+      }
+    ]
+  };
+  const passingResult: TestResult = {
+    summary: {
+      failRate: '0%',
+      failing: 0,
+      testsRan: 2,
+      orgId: 'xxxx908373',
+      outcome: 'Passed',
+      passRate: '100%',
+      passing: 5,
+      skipRate: '0%',
+      skipped: 0,
+      testExecutionTimeInMs: 25,
+      testStartTime: '2:00:00PM',
+      testTotalTimeInMs: 25,
+      commandTimeInMs: 25,
+      hostname: 'NA95',
+      username: 'testusername@testing.com',
+      testRunId: 'xxxx9056',
+      userId: 'xxx555'
+    },
+    tests: [
+      {
+        asyncApexJobId: 'xxx9678',
+        id: 'xxxx56',
+        apexClass: {
+          fullName: 'TestClass',
+          name: 'TestClass',
+          namespacePrefix: '',
+          id: 'xx567'
+        },
+        queueItemId: 'xxxQUEUEID',
+        stackTrace: '',
+        message: '',
+        methodName: 'testMethod',
+        outcome: ApexTestResultOutcome.Pass,
+        runTime: 5,
+        apexLogId: 'xxxLogId90',
+        testTimestamp: '2:00:00PM',
+        fullName: 'TestClass.testMethod'
+      },
+      {
+        asyncApexJobId: 'xxx9678',
+        id: 'xxxx56',
+        apexClass: {
+          fullName: 'TestClass',
+          name: 'TestClassTwo',
+          namespacePrefix: '',
+          id: 'xx567'
+        },
+        queueItemId: 'xxxQUEUEID',
+        stackTrace: '',
+        message: '',
+        methodName: 'testMethodTwo',
+        outcome: ApexTestResultOutcome.Pass,
+        runTime: 5,
+        apexLogId: 'xxxLogId90',
+        testTimestamp: '2:00:00PM',
+        fullName: 'TestClassTwo.testMethodTwo'
+      }
+    ]
+  };
   const sb = createSandbox();
   // tslint:disable:no-unused-expression
   describe('Apex Library Test Run Executor', async () => {
     let runTestStub: SinonStub;
-
+    let buildPayloadStub: SinonStub;
+    const defaultPackageDir = 'default/package/dir';
+    const componentPath = join(
+      defaultPackageDir,
+      'main',
+      'default',
+      'TestClass.cls'
+    );
     beforeEach(async () => {
-      runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous');
+      runTestStub = sb
+        .stub(TestService.prototype, 'runTestAsynchronous')
+        .resolves(passingResult);
       sb.stub(workspaceContext, 'getConnection');
+      buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
+      sb.stub(HumanReporter.prototype, 'format');
+      sb.stub(TestService.prototype, 'writeResultFiles');
+      sb.stub(SfdxProject, 'resolve').returns({
+        getDefaultPackage: () => {
+          return { fullPath: 'default/package/dir' };
+        }
+      });
+      sb.stub(ComponentSet, 'fromSource').returns({
+        getSourceComponents: () => {
+          return {
+            next: () => {
+              return { value: { content: componentPath } };
+            }
+          } as IterableIterator<{ content: string }>;
+        }
+      });
+      sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
     });
     afterEach(async () => {
       sb.restore();
     });
 
     it('should run test with correct parameters for single test method with code coverage', async () => {
+      buildPayloadStub.resolves({
+        tests: [{ className: 'testClass', testMethods: ['oneTest'] }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
       const apexLibExecutor = new ApexLibraryTestRunExecutor(
         ['testClass.oneTest'],
         'path/to/dir',
         true
       );
-      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
+      await apexLibExecutor.run();
+
+      expect(buildPayloadStub.called).to.be.true;
+      expect(buildPayloadStub.args[0]).to.eql([
+        'RunSpecifiedTests',
+        'testClass.oneTest'
+      ]);
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [{ className: 'testClass', testMethods: ['oneTest'] }],
@@ -185,12 +363,25 @@ describe('Force Apex Test Run - Code Action', () => {
     });
 
     it('should run test with correct parameters for multiple test methods without code coverage', async () => {
+      buildPayloadStub.resolves({
+        tests: [
+          { className: 'testClass', testMethods: ['oneTest'] },
+          { className: 'testClass', testMethods: ['twoTest'] }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
       const apexLibExecutor = new ApexLibraryTestRunExecutor(
         ['testClass.oneTest', 'testClass.twoTest'],
         'path/to/dir',
         false
       );
-      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
+      await apexLibExecutor.run();
+
+      expect(buildPayloadStub.called).to.be.true;
+      expect(buildPayloadStub.args[0]).to.eql([
+        'RunSpecifiedTests',
+        'testClass.oneTest,testClass.twoTest'
+      ]);
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [
@@ -204,12 +395,22 @@ describe('Force Apex Test Run - Code Action', () => {
     });
 
     it('should run test with correct parameters for single test class with code coverage', async () => {
+      buildPayloadStub.resolves({
+        tests: [{ className: 'testClass' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
       const apexLibExecutor = new ApexLibraryTestRunExecutor(
         ['testClass'],
         'path/to/dir',
         true
       );
-      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
+      await apexLibExecutor.run();
+
+      expect(buildPayloadStub.called).to.be.true;
+      expect(buildPayloadStub.args[0]).to.eql([
+        'RunSpecifiedTests',
+        'testClass'
+      ]);
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [{ className: 'testClass' }],
@@ -220,12 +421,22 @@ describe('Force Apex Test Run - Code Action', () => {
     });
 
     it('should run test with correct parameters for multiple test classes without code coverage', async () => {
+      buildPayloadStub.resolves({
+        tests: [{ className: 'testClass' }, { className: 'secondTestClass' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
       const apexLibExecutor = new ApexLibraryTestRunExecutor(
         ['testClass', 'secondTestClass'],
         'path/to/dir',
         false
       );
-      await apexLibExecutor.execute({ data: {}, type: 'CONTINUE' });
+      await apexLibExecutor.run();
+
+      expect(buildPayloadStub.called).to.be.true;
+      expect(buildPayloadStub.args[0]).to.eql([
+        'RunSpecifiedTests',
+        'testClass,secondTestClass'
+      ]);
       expect(runTestStub.args[0]).to.deep.equal([
         {
           tests: [{ className: 'testClass' }, { className: 'secondTestClass' }],
@@ -237,148 +448,6 @@ describe('Force Apex Test Run - Code Action', () => {
   });
 
   describe('Report Diagnostics', () => {
-    const testResult: TestResult = {
-      summary: {
-        failRate: '0%',
-        failing: 0,
-        testsRan: 2,
-        orgId: 'xxxx908373',
-        outcome: 'Failed',
-        passRate: '100%',
-        passing: 5,
-        skipRate: '0%',
-        skipped: 0,
-        testExecutionTimeInMs: 25,
-        testStartTime: '2:00:00PM',
-        testTotalTimeInMs: 25,
-        commandTimeInMs: 25,
-        hostname: 'NA95',
-        username: 'testusername@testing.com',
-        testRunId: 'xxxx9056',
-        userId: 'xxx555'
-      },
-      tests: [
-        {
-          asyncApexJobId: 'xxx9678',
-          id: 'xxxx56',
-          apexClass: {
-            fullName: 'TestClass',
-            name: 'TestClass',
-            namespacePrefix: '',
-            id: 'xx567'
-          },
-          queueItemId: 'xxxQUEUEID',
-          stackTrace:
-            'System.AssertException: Assertion Failed Col: 18 Line: 2',
-          message: 'System.AssertException: Assertion Failed',
-          methodName: 'testMethod',
-          outcome: ApexTestResultOutcome.Fail,
-          runTime: 5,
-          apexLogId: 'xxxLogId90',
-          testTimestamp: '2:00:00PM',
-          fullName: 'TestClass.testMethod',
-          diagnostic: {
-            exceptionMessage: 'System.AssertException: Assertion Failed',
-            exceptionStackTrace:
-              'System.AssertException: Assertion Failed Col: 18 Line: 2',
-            compileProblem: '',
-            lineNumber: 6,
-            columnNumber: 1,
-            className: 'TestClass'
-          }
-        },
-        {
-          asyncApexJobId: 'xxx9678',
-          id: 'xxxx56',
-          apexClass: {
-            fullName: 'TestClass',
-            name: 'TestClassTwo',
-            namespacePrefix: '',
-            id: 'xx567'
-          },
-          queueItemId: 'xxxQUEUEID',
-          stackTrace:
-            'System.AssertException: Assertion Failed Col: 15 Line: 3',
-          message: 'System.AssertException: Assertion Failed',
-          methodName: 'testMethodTwo',
-          outcome: ApexTestResultOutcome.Fail,
-          runTime: 5,
-          apexLogId: 'xxxLogId90',
-          testTimestamp: '2:00:00PM',
-          fullName: 'TestClassTwo.testMethodTwo',
-          diagnostic: {
-            exceptionMessage: 'System.AssertException: Assertion Failed',
-            exceptionStackTrace:
-              'System.AssertException: Assertion Failed Col: 15 Line: 3',
-            compileProblem: '',
-            lineNumber: 3,
-            columnNumber: 15,
-            className: 'TestClassTwo'
-          }
-        }
-      ]
-    };
-    const passingResult: TestResult = {
-      summary: {
-        failRate: '0%',
-        failing: 0,
-        testsRan: 2,
-        orgId: 'xxxx908373',
-        outcome: 'Passed',
-        passRate: '100%',
-        passing: 5,
-        skipRate: '0%',
-        skipped: 0,
-        testExecutionTimeInMs: 25,
-        testStartTime: '2:00:00PM',
-        testTotalTimeInMs: 25,
-        commandTimeInMs: 25,
-        hostname: 'NA95',
-        username: 'testusername@testing.com',
-        testRunId: 'xxxx9056',
-        userId: 'xxx555'
-      },
-      tests: [
-        {
-          asyncApexJobId: 'xxx9678',
-          id: 'xxxx56',
-          apexClass: {
-            fullName: 'TestClass',
-            name: 'TestClass',
-            namespacePrefix: '',
-            id: 'xx567'
-          },
-          queueItemId: 'xxxQUEUEID',
-          stackTrace: '',
-          message: '',
-          methodName: 'testMethod',
-          outcome: ApexTestResultOutcome.Pass,
-          runTime: 5,
-          apexLogId: 'xxxLogId90',
-          testTimestamp: '2:00:00PM',
-          fullName: 'TestClass.testMethod'
-        },
-        {
-          asyncApexJobId: 'xxx9678',
-          id: 'xxxx56',
-          apexClass: {
-            fullName: 'TestClass',
-            name: 'TestClassTwo',
-            namespacePrefix: '',
-            id: 'xx567'
-          },
-          queueItemId: 'xxxQUEUEID',
-          stackTrace: '',
-          message: '',
-          methodName: 'testMethodTwo',
-          outcome: ApexTestResultOutcome.Pass,
-          runTime: 5,
-          apexLogId: 'xxxLogId90',
-          testTimestamp: '2:00:00PM',
-          fullName: 'TestClassTwo.testMethodTwo'
-        }
-      ]
-    };
     const executor = new ApexLibraryTestRunExecutor(
       ['TestClass', 'TestClassTwo'],
       'path/to/dir',
@@ -502,7 +571,7 @@ describe('Force Apex Test Run - Code Action', () => {
       settingStub = sb.stub(settings, 'useApexLibrary');
       apexExecutorStub = sb.stub(
         ApexLibraryTestRunExecutor.prototype,
-        'execute'
+        'run'
       );
       cliExecutorStub = sb.stub(
         ForceApexTestRunCodeActionExecutor.prototype,

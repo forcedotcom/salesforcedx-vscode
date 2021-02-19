@@ -79,11 +79,12 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   public async run(): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
+    const payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      this.tests.join()
+    );
     const result = await testService.runTestAsynchronous(
-      {
-        tests: this.buildTestItem(this.tests),
-        testLevel: TestLevel.RunSpecifiedTests
-      },
+      payload,
       this.codeCoverage
     );
     await testService.writeResultFiles(
@@ -110,7 +111,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
         const components = ComponentSet.fromSource(defaultPackage);
         const testClassCmp = components
           .getSourceComponents({
-            fullName: test.apexClass.fullName,
+            fullName: test.apexClass.name,
             type: 'ApexClass'
           })
           .next().value as SourceComponent;

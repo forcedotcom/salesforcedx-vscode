@@ -27,7 +27,7 @@ import {
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { ApexTestMethod } from './lspConverter';
-import { FullTestResult } from './testDataAccessObjects';
+import { ApexClass, FullTestResult } from './testDataAccessObjects';
 
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
@@ -187,29 +187,27 @@ export class ApexTestOutlineProvider
     this.onDidChangeTestData.fire(undefined);
   }
 
-  private generateFullName(namespace: string, initialName: string): string {
-    return namespace ? `${namespace}.${initialName}` : initialName;
-  }
-
   private updateTestsFromJSON(jsonSummary: FullTestResult) {
     const groups = new Set<ApexTestGroupNode>();
     for (const testResult of jsonSummary.tests) {
-      const apexGroupName = this.generateFullName(
-        testResult.ApexClass.NamespacePrefix,
-        testResult.FullName.split('.')[0]
-      );
+      const { Name, NamespacePrefix } = testResult.ApexClass;
+      const apexGroupName = NamespacePrefix
+        ? `${NamespacePrefix}.${Name}`
+        : Name;
+
       const apexGroup = this.apexTestMap.get(
         apexGroupName
       ) as ApexTestGroupNode;
       // Check if new group, if so, set to pass
       if (apexGroup) {
-        groups.add(apexGroup);
+        groups.add(apexGroup as ApexTestGroupNode);
       }
-      const testFullName = this.generateFullName(
-        testResult.ApexClass.NamespacePrefix,
-        testResult.FullName
-      );
+
+      const testFullName = NamespacePrefix
+        ? `${NamespacePrefix}.${Name}.${testResult.MethodName}`
+        : `${Name}.${testResult.MethodName}`;
       const apexTest = this.apexTestMap.get(testFullName) as ApexTestNode;
+
       if (apexTest) {
         apexTest.outcome = testResult.Outcome;
         apexTest.updateOutcome();
@@ -229,7 +227,11 @@ export class ApexTestOutlineProvider
   private updateTestsFromLibrary(testResult: TestResult) {
     const groups = new Set<ApexTestGroupNode>();
     for (const test of testResult.tests) {
-      const apexGroupName = test.apexClass.fullName;
+      const { name, namespacePrefix } = test.apexClass;
+      const apexGroupName = namespacePrefix
+        ? `${namespacePrefix}.${name}`
+        : name;
+
       const apexGroupNode = this.apexTestMap.get(
         apexGroupName
       ) as ApexTestGroupNode;
@@ -238,7 +240,9 @@ export class ApexTestOutlineProvider
         groups.add(apexGroupNode);
       }
 
-      const testFullName = test.fullName;
+      const testFullName = namespacePrefix
+        ? `${namespacePrefix}.${name}.${test.methodName}`
+        : `${name}.${test.methodName}`;
       const apexTestNode = this.apexTestMap.get(testFullName) as ApexTestNode;
       if (apexTestNode) {
         apexTestNode.outcome = test.outcome;
