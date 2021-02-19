@@ -40,7 +40,11 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationToken: vscode.CancellationToken
   ) {
     if (this.outputChannel) {
-      new ChannelService(this.outputChannel).streamCommandOutput(execution);
+      const channel = new ChannelService(this.outputChannel);
+      channel.streamCommandOutput(execution);
+      if (this.showChannelOutput) {
+        channel.showChannelOutput();
+      }
     }
     notificationService.reportCommandExecutionStatus(
       execution,
