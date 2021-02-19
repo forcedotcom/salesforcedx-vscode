@@ -14,12 +14,10 @@ import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import { forceVisualforceComponentCreate } from '../../../../src/commands/templates';
 import { notificationService } from '../../../../src/notifications';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { getRootWorkspacePath } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Visualforce Component Create', () => {
-  let getTemplatesLibraryStub: SinonStub;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -28,12 +26,6 @@ describe('Force Visualforce Component Create', () => {
   let openTextDocumentStub: SinonStub;
 
   beforeEach(() => {
-    // mock experimental setting
-    getTemplatesLibraryStub = stub(
-      SfdxCoreSettings.prototype,
-      'getTemplatesLibrary'
-    );
-    getTemplatesLibraryStub.returns(true);
     showInputBoxStub = stub(vscode.window, 'showInputBox');
     quickPickStub = stub(vscode.window, 'showQuickPick');
     appendLineStub = stub(channelService, 'appendLine');
@@ -47,7 +39,6 @@ describe('Force Visualforce Component Create', () => {
   });
 
   afterEach(() => {
-    getTemplatesLibraryStub.restore();
     showInputBoxStub.restore();
     quickPickStub.restore();
     showSuccessfulExecutionStub.restore();
