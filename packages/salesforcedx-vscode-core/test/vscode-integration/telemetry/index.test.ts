@@ -131,6 +131,8 @@ describe('Telemetry', () => {
     afterEach(() => {
       mShowInformation.restore();
       settings.restore();
+      reporter.restore();
+      exceptionEvent.restore();
       teleStub.restore();
       cliStub.restore();
     });
@@ -184,15 +186,11 @@ describe('Telemetry', () => {
         'v0.0.1'
       );
 
-      const reporterSpy = stub(
-        TelemetryReporter.prototype,
-        'sendTelemetryEvent'
-      );
       const telemetryEnabled = await telemetryService.isTelemetryEnabled();
       expect(telemetryEnabled).to.be.eql(true);
 
       telemetryService.sendExtensionActivationEvent([0, 678]);
-      assert.calledOnce(reporterSpy);
+      assert.calledOnce(reporter);
       expect(teleStub.firstCall.args).to.eql([true]);
     });
 
