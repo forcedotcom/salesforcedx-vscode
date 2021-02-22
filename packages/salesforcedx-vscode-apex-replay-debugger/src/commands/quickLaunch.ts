@@ -4,31 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LogService, TestService } from '@salesforce/apex-node';
 import {
   ApexTestResultData,
-  SyncTestConfiguration,
-  TestItem,
-  TestResult
-} from '@salesforce/apex-node/lib/src/tests/types';
+  LogService,
+  TestLevel,
+  TestResult,
+  TestService
+} from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { getLogDirPath } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 import { TraceFlags } from './traceFlags';
-
-const sfdxCoreExports = vscode.extensions.getExtension(
-  'salesforce.salesforcedx-vscode-core'
-)!.exports;
-
-export const LibraryCommandletExecutor =
-  sfdxCoreExports.LibraryCommandletExecutor;
-
 interface TestRunResult {
   logFileId?: string;
   message?: string;
@@ -78,21 +71,14 @@ export class QuickLaunch {
     testClass: string,
     testMethod?: string
   ): Promise<TestRunResult> {
-    const testOptions: SyncTestConfiguration = {
-      tests: [
-        {
-          className: testClass,
-          testMethods: testMethod ? [testMethod] : undefined
-        } as TestItem
-      ],
-      testLevel: 'RunSpecifiedTests'
-    };
-
     const testService = new TestService(connection);
     try {
-      const result: TestResult = await testService.runTestSynchronous(
-        testOptions
+      const payload = await testService.buildSyncPayload(
+        TestLevel.RunSpecifiedTests,
+        testMethod,
+        testClass
       );
+      const result: TestResult = await testService.runTestSynchronous(payload);
       const tests: ApexTestResultData[] = result.tests;
       if (tests.length === 0) {
         return {
@@ -127,8 +113,9 @@ export class QuickLaunch {
 }
 
 export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
-  protected executionName = nls.localize('debug_test_exec_name');
-  protected logName = 'debug_test_replay_debugger';
+  constructor() {
+    super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL);
+  }
 
   public async run(response: ContinueResponse<string[]>): Promise<boolean> {
     if (!response.data) {
