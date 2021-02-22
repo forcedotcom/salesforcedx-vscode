@@ -15,6 +15,10 @@ During beta, you can build simple query statements that include:
 - ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
 - LIMIT clause
 
+  <!-- ekapner, 2/19, add this to JA version -->
+
+  To dig deeper regarding SOQL syntax or to build more complex queries in the text editor, see the [SOQL and SOSL Reference guide](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_sosl_intro.htm).
+
 **Beta Limitations:**
 
 - You can still run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
@@ -44,10 +48,15 @@ Launch SOQL Builder from within a Salesforce DX project. How you launch SOQL Bui
 
 DX projects have a sample `accounts.soql` file in the `<project-folder>/scripts/soql` directory. However, you can create and store your `.soql` files in any directory.
 
-1. (If necessary) Create a `.soql` file.
-1. Right-click the file name, select **Open With**, then **SOQL Builder**.
+<!-- ekapner, 2/18, doc update -->
 
-![Right-click to open SOQL Builder](./images/soql-builder-open.gif)
+1. (If necessary) Create a `.soql` file.
+1. Click on the `.soql` file.
+1. Click the **Switch Between SOQL Builder and Text Editor** icon.
+
+![Click the Switch Between SOQL Builder and Text Editor button to open the .soql file in SOQL Builder](./images/soql-builder-open.gif)
+
+You can also open a `.soql` file in SOQL Builder from the VS Code menu. Right-click the file name, select **Open With**, then **SOQL Builder**.
 
 ### Launch SOQL Builder and Create a Query
 
@@ -60,7 +69,27 @@ As you build your query, watch SOQL Builder display the query syntax while it si
 
 You can select objects and fields from the drop-down list, or type to narrow the list results. You can select an object or a field only once. If a value is already selected, it doesn't appear in the drop-down or search results.
 
-![Build your query](./images/soql-builder.gif)
+![Build your query](./images/soql-builder-build-a-query.gif)
+
+<!-- ekapner, 2/18/2021 - new gif with new name -->
+
+### Filter with the LIKE Operator <!-- ekapner, copy to JA version -->
+
+When filtering your results, you can narrow and target those results even further by using the LIKE operator using wildcards to match partial text strings. This query returns only last names that start with with `mc`.
+
+```
+SELECT AccountId, FirstName, lastname
+FROM Contact
+WHERE lastname LIKE 'mc%'
+```
+
+You can build your own filter using LIKE, or you can select one of these pre-built options.
+
+- starts with
+- ends with
+- contains
+
+### View COUNT Results <!-- ekapner, 2/19, new title here -->
 
 Because COUNT() is an aggregate function, all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. In this example, the COUNT is 3.
 
@@ -86,7 +115,9 @@ Split your view to see your query in both SOQL Builder and the text editor.
 1. Right-click the tab, then select one of the Split options.
 1. Right-click on the new tab, select **Reopen Editor With**, then select **Text Editor**.
 
-![Split your screen to see both SOQL Builder and Text Editor](./images/split-panels.gif)
+![Split your screen to see both SOQL Builder and Text Editor](./images/soql-builder-split-panels.gif)
+
+<!-- ekapner, 2/18/2021, update to image/gif name -->
 
 ## Switch Between SOQL Builder and Text Editor
 
