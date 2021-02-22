@@ -14,8 +14,10 @@ During beta, you can build simple query statements that include:
 - WHERE clause to filter your data
 - ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
 - LIMIT clause
+
   <!-- ekapner, 2/19, add this to JA version -->
-  To dig deeper regarding SOQL syntax, or if you want to build more complex queries in the text editor, you can find all the details in the [SOQL and SOSL Reference guide](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_sosl_intro.htm).
+
+  To dig deeper regarding SOQL syntax or to build more complex queries in the text editor, see the [SOQL and SOSL Reference guide](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_sosl_intro.htm).
 
 **Beta Limitations:**
 
@@ -50,7 +52,7 @@ DX projects have a sample `accounts.soql` file in the `<project-folder>/scripts/
 
 1. (If necessary) Create a `.soql` file.
 1. Click on the `.soql` file.
-1. Click the Switch Between SOQL Builder and Text Editor.
+1. Click the **Switch Between SOQL Builder and Text Editor** icon.
 
 ![Click the Switch Between SOQL Builder and Text Editor button to open the .soql file in SOQL Builder](./images/soql-builder-open.gif)
 
@@ -73,12 +75,12 @@ You can select objects and fields from the drop-down list, or type to narrow the
 
 ### Filter with the LIKE Operator <!-- ekapner, copy to JA version -->
 
-When filtering your results, you can narrow and target those results even further by using the LIKE operator to match partial text strings using wildcards. This query returns only last names that start with with `appl`.
+When filtering your results, you can narrow and target those results even further by using the LIKE operator using wildcards to match partial text strings. This query returns only last names that start with with `mc`.
 
 ```
 SELECT AccountId, FirstName, lastname
 FROM Contact
-WHERE lastname LIKE 'appl%'
+WHERE lastname LIKE 'mc%'
 ```
 
 You can build your own filter using LIKE, or you can select one of these pre-built options.
