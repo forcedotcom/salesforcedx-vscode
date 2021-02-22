@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils-vscode": "50.18.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "1.1.17",
-    "@salesforce/templates": "50.7.0",
+    "@salesforce/templates": "51.2.0",
     "adm-zip": "0.4.13",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
