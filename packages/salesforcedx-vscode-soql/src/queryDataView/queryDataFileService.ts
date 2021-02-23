@@ -11,7 +11,6 @@ import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
-import { QUERY_RESULTS_DIR_NAME } from '../constants';
 import { nls } from '../messages';
 import {
   CsvDataProvider,
