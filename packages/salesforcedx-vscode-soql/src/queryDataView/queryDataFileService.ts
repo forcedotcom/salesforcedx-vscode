@@ -63,15 +63,11 @@ export class QueryDataFileService {
       defaultFileName
     );
 
-    const saveDialogOptions = {
-      defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
-    };
-
-    queryDataSelectedPath = await vscode.window
+    const fileInfo: vscode.Uri | undefined = await vscode.window
       .showSaveDialog({
-        ...saveDialogOptions
+        defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
       })
-      .then((fileInfo: vscode.Uri | undefined) => {
+      
         if (fileInfo) {
           queryDataSelectedPath = fileInfo.path;
           // Save query results to disk
@@ -81,13 +77,8 @@ export class QueryDataFileService {
             this.showFileInExplorer(fileInfo.path);
           }
           this.showSaveSuccessMessage(path.basename(fileInfo.path));
-
-          return fileInfo.path;
         }
-        return '';
-      });
-
-    return queryDataSelectedPath;
+        return queryDataSelectedPath;
   }
 
   private showFileInExplorer(targetPath: string) {
