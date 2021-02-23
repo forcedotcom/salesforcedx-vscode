@@ -150,9 +150,7 @@ export class QueryDataViewService {
       );
       fileService.save();
     } catch (err) {
-      const message = nls.localize(
-        'error_data_view_save'
-      );
+      const message = nls.localize('error_data_view_save');
       vscode.window.showErrorMessage(message);
       trackErrorWithTelemetry('data_view_save', message);
     }
