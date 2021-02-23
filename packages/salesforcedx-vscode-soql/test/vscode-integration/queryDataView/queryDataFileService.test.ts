@@ -33,6 +33,7 @@ describe('Query Data File Service', () => {
   const documentName = 'example.soql';
   const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
+  const mockUriPath = path.join(testResultsDirPath, documentName);
   let sandbox: sinon.SinonSandbox;
 
   function createResultsDirectory() {
@@ -76,7 +77,7 @@ describe('Query Data File Service', () => {
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
   });
 
-  it('will save json file to disk on save', async () => {
+  it('should save json file to disk on save', async () => {
     const jsonFileService = new TestFileService(
       mockQueryData,
       FileFormat.JSON,
@@ -84,7 +85,7 @@ describe('Query Data File Service', () => {
     );
 
     const mockURI = {
-      path: `${testResultsDirPath}/${documentName}`
+      path: mockUriPath
     } as vscode.Uri;
     sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
 
@@ -93,7 +94,7 @@ describe('Query Data File Service', () => {
     expect(JSON.parse(savedFileContent)).to.eql(mockQueryData.records);
   });
 
-  it('will save csv to file to disk on save', async () => {
+  it('should save csv to file to disk on save', async () => {
     const csvFileService = new TestFileService(
       mockQueryData,
       FileFormat.CSV,
@@ -101,7 +102,7 @@ describe('Query Data File Service', () => {
     );
 
     const mockURI = {
-      path: `${testResultsDirPath}/${documentName}`
+      path: mockUriPath
     } as vscode.Uri;
     sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
 
