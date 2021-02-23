@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TelemetryBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
   ForceDeployResultParser
@@ -14,9 +15,7 @@ import {
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  ComponentSet
-} from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -24,7 +23,7 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
-import { TelemetryBuilder, telemetryService } from '../telemetry';
+import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { createComponentCount } from './util/betaDeployRetrieve';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
@@ -105,7 +104,11 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
         console.error(e.message);
       }
       telemetry.addProperty('success', String(success));
-      this.logMetric(execution.command.logName, startTime, telemetry.build().properties);
+      this.logMetric(
+        execution.command.logName,
+        startTime,
+        telemetry.build().properties
+      );
       await DeployQueue.get().unlock();
     });
 

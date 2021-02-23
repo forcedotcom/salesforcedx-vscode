@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExecuteAnonymousResponse } from '@salesforce/apex-node';
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { SourceDeployResult } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
@@ -127,38 +126,6 @@ export function handleDeployRetrieveLibraryDiagnostics(
   diagnosticMap.forEach((diagnostics, file) =>
     errorCollection.set(vscode.Uri.file(file), diagnostics)
   );
-
-  return errorCollection;
-}
-
-export function handleApexLibraryDiagnostics(
-  apexResult: ExecuteAnonymousResponse,
-  errorCollection: vscode.DiagnosticCollection,
-  filePath: string
-) {
-  errorCollection.clear();
-  if (apexResult.diagnostic) {
-    const range = getRange(
-      apexResult.diagnostic[0].lineNumber
-        ? apexResult.diagnostic[0].lineNumber.toString()
-        : '1',
-      apexResult.diagnostic[0].columnNumber
-        ? apexResult.diagnostic[0].columnNumber.toString()
-        : '1'
-    );
-
-    const diagnostic = {
-      message:
-        typeof apexResult.diagnostic[0].compileProblem === 'string'
-          ? apexResult.diagnostic[0].compileProblem
-          : apexResult.diagnostic[0].exceptionMessage,
-      severity: vscode.DiagnosticSeverity.Error,
-      source: filePath,
-      range
-    } as vscode.Diagnostic;
-
-    errorCollection.set(vscode.Uri.file(filePath), [diagnostic]);
-  }
 
   return errorCollection;
 }

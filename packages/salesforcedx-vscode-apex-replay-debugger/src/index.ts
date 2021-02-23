@@ -29,6 +29,7 @@ import {
   sfdxCreateCheckpoints,
   sfdxToggleCheckpoint
 } from './breakpoints/checkpointService';
+import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
 import { workspaceContext } from './context';
@@ -319,10 +320,8 @@ export function writeToDebuggerOutputWindow(
   showVSCodeWindow?: boolean,
   vsCodeWindowType?: VSCodeWindowTypeEnum
 ) {
-  if (sfdxCoreExtension && sfdxCoreExtension.exports) {
-    sfdxCoreExtension.exports.channelService.appendLine(output);
-    sfdxCoreExtension.exports.channelService.showChannelOutput();
-  }
+  channelService.appendLine(output);
+  channelService.showChannelOutput();
   if (showVSCodeWindow && vsCodeWindowType) {
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
