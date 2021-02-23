@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { TelemetryData } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
   Command,
@@ -24,7 +25,7 @@ import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
-import { TelemetryData, telemetryService } from '../../telemetry';
+import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   createComponentCount,
