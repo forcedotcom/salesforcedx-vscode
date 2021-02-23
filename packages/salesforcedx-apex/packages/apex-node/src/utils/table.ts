@@ -72,7 +72,7 @@ export class Table {
               outputRow +=
                 '\n' +
                 this.fillColumn('', rowWidth, COLUMN_FILLER, true) +
-                this.fillColumn(line, rowWidth, COLUMN_FILLER, isLastCol);
+                this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol);
             }
           }
         });

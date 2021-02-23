@@ -72,6 +72,32 @@ describe('Table Utils', () => {
     expect(table).to.eq(expectedTable);
   });
 
+  it('Should correctly format another multiline cell', () => {
+    const expectedTable =
+      'Column 1  Column 2                    Column 3\n' +
+      '────────  ──────────────────────────  ────────\n' +
+      'test1     first line which is longer  \n' +
+      '          second line                 value1  \n' +
+      'test2     test3                       value2  \n';
+    const rows = [
+      {
+        col1: 'test1',
+        col2: 'first line which is longer\nsecond line',
+        col3: 'value1'
+      },
+      { col1: 'test2', col2: 'test3', col3: 'value2' }
+    ];
+    const cols = [
+      { key: 'col1', label: 'Column 1' },
+      { key: 'col2', label: 'Column 2' },
+      { key: 'col3', label: 'Column 3' }
+    ];
+
+    const table = new Table().createTable(rows, cols);
+
+    expect(table).to.eq(expectedTable);
+  });
+
   it('Should throw an error if a row is missing the key of a given column', () => {
     const rows = [
       { col1: 'test', col2: 'test2' },
