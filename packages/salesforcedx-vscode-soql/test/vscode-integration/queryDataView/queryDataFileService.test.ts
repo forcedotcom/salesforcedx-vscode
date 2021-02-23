@@ -10,22 +10,47 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { QUERY_RESULTS_DIR_PATH } from '../../../src/constants';
 import {
   CsvDataProvider,
   JsonDataProvider
 } from '../../../src/queryDataView/dataProviders';
 import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
-import { mockQueryData, TestFileService } from '../testUtilities';
+import {
+  mockQueryData,
+  MockTextDocumentProvider,
+  TestFileService
+} from '../testUtilities';
+
+export const QUERY_RESULTS_DIR_PATH = path.join(
+  'scripts',
+  'soql',
+  'query-results'
+);
 
 describe('Query Data File Service', () => {
+  let mockTextDocument: vscode.TextDocument;
+  let docProviderDisposable: vscode.Disposable;
   const documentName = 'example.soql';
   const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
   let sandbox: sinon.SinonSandbox;
 
-  beforeEach(() => {
+  function createResultsDirectory() {
+    fs.mkdirSync(testResultsDirPath, {
+      recursive: true
+    });
+  }
+
+  beforeEach(async () => {
     sandbox = sinon.createSandbox();
+    docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
+      'sfdc-test',
+      new MockTextDocumentProvider()
+    );
+    mockTextDocument = await vscode.workspace.openTextDocument(
+      vscode.Uri.parse('sfdc-test:test/examples/soql/mocksoql.soql')
+    );
+    createResultsDirectory();
   });
 
   afterEach(() => {
@@ -39,14 +64,14 @@ describe('Query Data File Service', () => {
     const csvFileService = new TestFileService(
       mockQueryData,
       FileFormat.CSV,
-      documentName
+      mockTextDocument
     );
     expect(csvFileService.getDataProvider()).instanceOf(CsvDataProvider);
 
     const jsonFileService = new TestFileService(
       mockQueryData,
       FileFormat.JSON,
-      documentName
+      mockTextDocument
     );
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
   });
@@ -55,7 +80,7 @@ describe('Query Data File Service', () => {
     const jsonFileService = new TestFileService(
       mockQueryData,
       FileFormat.JSON,
-      documentName
+      mockTextDocument
     );
 
     const mockURI = {
@@ -72,7 +97,7 @@ describe('Query Data File Service', () => {
     const csvFileService = new TestFileService(
       mockQueryData,
       FileFormat.CSV,
-      documentName
+      mockTextDocument
     );
 
     const mockURI = {
