@@ -1,3 +1,37 @@
+# 51.2.0 - Month DD, YYYY
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add namespace support to test:run & debug commands ([PR #2961](https://github.com/forcedotcom/salesforcedx-vscode/pull/2961))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Add namespace support to test:run & debug commands ([PR #2961](https://github.com/forcedotcom/salesforcedx-vscode/pull/2961))
+
+## Fixed
+
+#### docs
+
+- Update both en and ja versions ([PR #2974](https://github.com/forcedotcom/salesforcedx-vscode/pull/2974))
+
+- [DOCS - ekapner] Add LIKE, swap out gifs for inclusive lang ([PR #2971](https://github.com/forcedotcom/salesforcedx-vscode/pull/2971))
+
+- SOQL Builder doc updates - COUNT ([PR #2946](https://github.com/forcedotcom/salesforcedx-vscode/pull/2946))
+
+#### salesforcedx-utils-vscode
+
+- Execute anonymous apex command not focusing the output channel ([PR #2962](https://github.com/forcedotcom/salesforcedx-vscode/pull/2962))
+
+#### salesforcedx-vscode-apex
+
+- Execute anonymous apex command not focusing the output channel ([PR #2962](https://github.com/forcedotcom/salesforcedx-vscode/pull/2962))
+
+#### salesforcedx-vscode-core
+
+- Add applicationinsights dependency to core ([PR #2976](https://github.com/forcedotcom/salesforcedx-vscode/pull/2976))
+
 # 50.17.0 - February 10, 2021
 
 ## Fixed
