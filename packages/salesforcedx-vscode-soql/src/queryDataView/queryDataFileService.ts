@@ -48,7 +48,7 @@ export class QueryDataFileService {
   }
 
   public async save(): Promise<string> {
-    let queryDataSelectedPath = '';
+    let selectedFileSavePath = '';
     const fileContent = this.dataProvider.getFileContent(
       this.queryData.records
     );
@@ -70,14 +70,14 @@ export class QueryDataFileService {
     );
 
     if (fileInfo) {
-      queryDataSelectedPath = fileInfo.path;
+      // use .fsPath, not .path to account for OS.
+      selectedFileSavePath = fileInfo.fsPath;
       // Save query results to disk
-      const saveFilePath = path.join(fileInfo.path);
-      fs.writeFileSync(saveFilePath, fileContent);
-      this.showFileInExplorer(saveFilePath);
-      this.showSaveSuccessMessage(path.basename(saveFilePath));
+      fs.writeFileSync(selectedFileSavePath, fileContent);
+      this.showFileInExplorer(selectedFileSavePath);
+      this.showSaveSuccessMessage(path.basename(selectedFileSavePath));
     }
-    return queryDataSelectedPath;
+    return selectedFileSavePath;
   }
 
   private showFileInExplorer(targetPath: string) {
