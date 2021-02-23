@@ -9,56 +9,7 @@ import * as proxyquire from 'proxyquire';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { assert, SinonStub, stub } from 'sinon';
 import { nls } from '../../../src/messages';
-
-const vscodeStub = {
-  CancellationTokenSource: class {
-    private listeners: any[] = [];
-    public token = {
-      isCancellationRequested: false,
-      onCancellationRequested: (listener: any) => {
-        this.listeners.push(listener);
-        return {
-          dispose: () => {
-            this.listeners = [];
-          }
-        };
-      }
-    };
-    public cancel = () => {
-      this.listeners.forEach(listener => {
-        listener.call();
-      });
-    };
-    public dispose = () => {};
-  },
-  window: {
-    createOutputChannel: () => {
-      return {
-        show: () => {}
-      };
-    },
-    showInformationMessage: () => {
-      return Promise.resolve(null);
-    },
-    showWarningMessage: () => {
-      return Promise.resolve(null);
-    },
-    showErrorMessage: () => {
-      return Promise.resolve(null);
-    },
-    setStatusBarMessage: () => {
-      return Promise.resolve(null);
-    }
-  },
-  workspace: {
-    getConfiguration: () => {
-      return {
-        get: () => true,
-        update: () => {}
-      };
-    }
-  }
-};
+import { vscodeStub } from './mocks';
 
 const { NotificationService } = proxyquire.noCallThru()(
   '../../../src/commands',

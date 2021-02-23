@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  Measurements,
+  Properties,
+  TelemetryData
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
   CliCommandExecutor,
   Command,
   CommandExecution
@@ -20,8 +25,7 @@ import { EmptyPostChecker } from '.';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
-import { TelemetryData, telemetryService } from '../../telemetry';
-import { Measurements, Properties } from '../../telemetry';
+import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
 
 export interface FlagParameter<T> {

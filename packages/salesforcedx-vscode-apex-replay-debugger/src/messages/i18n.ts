@@ -69,5 +69,6 @@ export const messages = {
   trace_flags_failed_to_create_debug_level: 'Failed to create a debug level',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_no_results_found: 'No test results found',
-  debug_test_no_debug_log: 'No debug log associated with test results'
+  debug_test_no_debug_log: 'No debug log associated with test results',
+  channel_name: 'Apex Replay Debugger'
 };
