@@ -63,22 +63,22 @@ export class QueryDataFileService {
       defaultFileName
     );
 
-    const fileInfo: vscode.Uri | undefined = await vscode.window
-      .showSaveDialog({
+    const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog(
+      {
         defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
-      })
-      
-        if (fileInfo) {
-          queryDataSelectedPath = fileInfo.path;
-          // Save query results to disk
-          fs.writeFileSync(fileInfo.path, fileContent);
-          // Only reveal saved file if its inside current workspace
-          if (fileInfo.path.startsWith(getRootWorkspacePath())) {
-            this.showFileInExplorer(fileInfo.path);
-          }
-          this.showSaveSuccessMessage(path.basename(fileInfo.path));
-        }
-        return queryDataSelectedPath;
+      });
+
+    if (fileInfo) {
+      queryDataSelectedPath = fileInfo.path;
+      // Save query results to disk
+      fs.writeFileSync(fileInfo.path, fileContent);
+      // Only reveal saved file if its inside current workspace
+      if (fileInfo.path.startsWith(getRootWorkspacePath())) {
+        this.showFileInExplorer(fileInfo.path);
+      }
+      this.showSaveSuccessMessage(path.basename(fileInfo.path));
+    }
+    return queryDataSelectedPath;
   }
 
   private showFileInExplorer(targetPath: string) {
