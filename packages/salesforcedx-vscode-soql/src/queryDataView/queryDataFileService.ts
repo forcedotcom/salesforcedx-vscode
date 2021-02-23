@@ -74,20 +74,20 @@ export class QueryDataFileService {
       // Save query results to disk
       const saveFilePath = path.join(fileInfo.path);
       fs.writeFileSync(saveFilePath, fileContent);
-      // Only reveal saved file if its inside current workspace
-      if (saveFilePath.startsWith(getRootWorkspacePath())) {
-        this.showFileInExplorer(saveFilePath);
-      }
+      this.showFileInExplorer(saveFilePath);
       this.showSaveSuccessMessage(path.basename(saveFilePath));
     }
     return queryDataSelectedPath;
   }
 
   private showFileInExplorer(targetPath: string) {
-    vscode.commands.executeCommand(
-      'revealInExplorer',
-      vscode.Uri.file(targetPath)
-    );
+    // Only reveal saved file if its inside current workspace
+    if (targetPath.startsWith(getRootWorkspacePath())) {
+      vscode.commands.executeCommand(
+        'revealInExplorer',
+        vscode.Uri.file(targetPath)
+      );
+    }
   }
 
   private showSaveSuccessMessage(savedFileName: string) {
