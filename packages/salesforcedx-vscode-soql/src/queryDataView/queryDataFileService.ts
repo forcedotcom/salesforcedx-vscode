@@ -66,7 +66,8 @@ export class QueryDataFileService {
     const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog(
       {
         defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
-      });
+      }
+    );
 
     if (fileInfo) {
       queryDataSelectedPath = fileInfo.path;
