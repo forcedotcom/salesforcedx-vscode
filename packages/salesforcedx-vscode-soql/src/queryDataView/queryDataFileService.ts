@@ -72,12 +72,13 @@ export class QueryDataFileService {
     if (fileInfo) {
       queryDataSelectedPath = fileInfo.path;
       // Save query results to disk
-      fs.writeFileSync(fileInfo.path, fileContent);
+      const saveFilePath = path.join(fileInfo.path);
+      fs.writeFileSync(saveFilePath, fileContent);
       // Only reveal saved file if its inside current workspace
-      if (fileInfo.path.startsWith(getRootWorkspacePath())) {
-        this.showFileInExplorer(fileInfo.path);
+      if (saveFilePath.startsWith(getRootWorkspacePath())) {
+        this.showFileInExplorer(saveFilePath);
       }
-      this.showSaveSuccessMessage(path.basename(fileInfo.path));
+      this.showSaveSuccessMessage(path.basename(saveFilePath));
     }
     return queryDataSelectedPath;
   }
