@@ -19,7 +19,6 @@ import {
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
   QUERY_DATA_VIEW_STYLE_FILENAME,
   QUERY_DATA_VIEW_TYPE,
-  QUERY_RESULTS_DIR_NAME,
   SAVE_ICON_FILENAME,
   TABULATOR_SCRIPT_FILENAME,
   TABULATOR_STYLE_FILENAME
@@ -147,14 +146,11 @@ export class QueryDataViewService {
       const fileService = new FileService(
         this.queryData,
         format,
-        getDocumentName(this.document)
+        this.document
       );
       fileService.save();
     } catch (err) {
-      const message = nls.localize(
-        'error_data_view_save',
-        QUERY_RESULTS_DIR_NAME
-      );
+      const message = nls.localize('error_data_view_save');
       vscode.window.showErrorMessage(message);
       trackErrorWithTelemetry('data_view_save', message);
     }
