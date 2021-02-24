@@ -1,0 +1,13 @@
+{
+  "productTag": "a1aB000000005G3IAI",
+  "issueTypeLabels": {
+    "type:feature": "",
+    "type:bug": "BUG P3",
+    "type:security": "BUG P2",
+    "type:feedback": "",
+    "type:duplicate": ""
+  },
+  "defaultBuild": "offcore.tooling.51",
+  "hideWorkItemUrl": "true",
+  "statusWhenClosed": "CLOSED"
+}
