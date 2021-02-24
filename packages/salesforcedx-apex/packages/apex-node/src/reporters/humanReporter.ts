@@ -141,6 +141,10 @@ export class HumanReporter {
     const tb = new Table();
     const testRowArray: Row[] = [];
     testResult.tests.forEach((elem: ApexTestResultData) => {
+      const msg = elem.stackTrace
+        ? `${elem.message}\n${elem.stackTrace}`
+        : elem.message;
+
       if (elem.perClassCoverage) {
         elem.perClassCoverage.forEach(perClassCov => {
           testRowArray.push({
@@ -148,7 +152,7 @@ export class HumanReporter {
             coveredClassName: perClassCov.apexClassOrTriggerName,
             outcome: elem.outcome,
             coveredClassPercentage: perClassCov.percentage,
-            msg: elem.message ?? '',
+            msg: elem.message ? msg : '',
             runtime: `${elem.runTime}`
           });
         });
@@ -158,7 +162,7 @@ export class HumanReporter {
           coveredClassName: '',
           outcome: elem.outcome,
           coveredClassPercentage: '',
-          msg: elem.message ? elem.message : '',
+          msg: elem.message ? msg : '',
           runtime: `${elem.runTime}`
         });
       }

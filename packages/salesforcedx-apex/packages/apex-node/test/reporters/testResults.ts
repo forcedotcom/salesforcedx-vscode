@@ -87,6 +87,45 @@ export const coverageResult: TestResult = {
   ]
 };
 
+export const coverageFailResult: TestResult = {
+  summary: {
+    ...coverageResult.summary,
+    ...{
+      testsRan: 3,
+      failing: 1,
+      failRate: '67%',
+      passRate: '33%'
+    }
+  },
+  tests: [
+    ...coverageResult.tests,
+    ...[
+      {
+        id: '07M3t000003bQwgEAE',
+        queueItemId: '7093t000000c0eZAAQ',
+        stackTrace:
+          'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
+        message:
+          'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
+        asyncApexJobId: '7073t000061uwZIAAY',
+        methodName: 'testMissingAnimal',
+        outcome: ApexTestResultOutcome.Fail,
+        apexLogId: null,
+        apexClass: {
+          id: '01p3t000001ytUmAAI',
+          name: 'AnimalLocatorTest',
+          namespacePrefix: null,
+          fullName: 'AnimalLocatorTest'
+        },
+        runTime: 5,
+        testTimestamp: '2020-11-09T18:02:51.000+0000',
+        fullName: 'AnimalLocatorTest.testMissingAnimal'
+      }
+    ]
+  ],
+  codecoverage: [...coverageResult.codecoverage]
+};
+
 export const successResult: TestResult = {
   summary: {
     failRate: '0%',
