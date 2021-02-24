@@ -41,6 +41,8 @@ import {
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
+  forceSandboxClone,
+  forceSandboxCreate,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
@@ -108,6 +110,14 @@ function registerCommands(
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
     forceOrgCreate
+  );
+  const forceSandboxCreateCmd = vscode.commands.registerCommand(
+    'sfdx.force.sandbox.create',
+    forceSandboxCreate
+  );
+  const forceSandboxCloneCmd = vscode.commands.registerCommand(
+    'sfdx.force.sandbox.clone',
+    forceSandboxClone
   );
   const forceOrgOpenCmd = vscode.commands.registerCommand(
     'sfdx.force.org.open',
@@ -357,12 +367,13 @@ function registerCommands(
     forceFunctionStopCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
-    forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,
+    forceSandboxCreateCmd,
+    forceSandboxCreateCmd,
+    forceSandboxCloneCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
-    forceSourceDeployCurrentSourceFileCmd,
     forceSourceDeployInManifestCmd,
     forceSourceDeployMultipleSourcePathsCmd,
     forceSourceDeploySourcePathCmd,
