@@ -16,6 +16,7 @@ import {
 } from '../../../src/queryDataView/dataProviders';
 import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
 import {
+  mockQueryText,
   mockQueryData,
   MockTextDocumentProvider,
   TestFileService
