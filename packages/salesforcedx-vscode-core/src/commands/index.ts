@@ -157,3 +157,4 @@ export {
   forceFunctionInvoke,
   registerFunctionInvokeCodeLensProvider
 } from './functions';
+export { forceRefreshSObjects } from './forceRefreshSObjects';

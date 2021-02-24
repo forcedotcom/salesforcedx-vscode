@@ -20,7 +20,6 @@ import {
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
-  forceGenerateFauxClassesCreate,
   initSObjectDefinitions
 } from './commands';
 import { forceApexExecute } from './commands/forceApexExecute';
@@ -205,10 +204,6 @@ function registerCommands(
     'sfdx.force.apex.test.run',
     forceApexTestRun
   );
-  const forceGenerateFauxClassesCmd = vscode.commands.registerCommand(
-    'sfdx.force.internal.refreshsobjects',
-    forceGenerateFauxClassesCreate
-  );
   const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.execute.document',
     forceApexExecute,
@@ -232,8 +227,7 @@ function registerCommands(
     forceApexTestMethodRunCmd,
     forceApexTestMethodRunDelegateCmd,
     forceApexTestRunCmd,
-    forceApexToggleColorizerCmd,
-    forceGenerateFauxClassesCmd
+    forceApexToggleColorizerCmd
   );
 }
 

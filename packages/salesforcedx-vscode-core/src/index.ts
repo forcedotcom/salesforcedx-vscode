@@ -41,6 +41,7 @@ import {
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
+  forceRefreshSObjects,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
@@ -343,6 +344,11 @@ function registerCommands(
     forceFunctionStop
   );
 
+  const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
+    'sfdx.force.internal.refreshsobjects',
+    forceRefreshSObjects
+  );
+
   return vscode.Disposable.from(
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
@@ -360,6 +366,7 @@ function registerCommands(
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,
+    forceRefreshSObjectsCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,

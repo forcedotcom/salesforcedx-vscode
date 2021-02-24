@@ -158,10 +158,6 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.internal.refreshsobjects",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.test.view.runClassTests",
           "when": "false"
         },
@@ -267,10 +263,6 @@
       {
         "command": "sfdx.force.apex.test.last.method.run",
         "title": "%force_apex_test_last_method_run_text%"
-      },
-      {
-        "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_sobjects_refresh%"
       }
     ],
     "configuration": {

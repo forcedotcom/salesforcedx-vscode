@@ -18,6 +18,5 @@
   "force_apex_test_class_run_text": "SFDX: Run Apex Test Class",
   "force_apex_test_method_run_text": "SFDX: Run Apex Test Method",
   "force_apex_test_run_text": "SFDX: Run Apex Tests",
-  "force_sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false)."
 }
