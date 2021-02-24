@@ -8,24 +8,57 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { QUERY_RESULTS_DIR_PATH } from '../../../src/constants';
 import {
   CsvDataProvider,
   JsonDataProvider
 } from '../../../src/queryDataView/dataProviders';
 import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
-import { mockQueryData, mockQueryText, TestFileService } from '../testUtilities';
+import {
+  mockQueryData,
+  MockTextDocumentProvider,
+  TestFileService
+} from '../testUtilities';
+
+export const QUERY_RESULTS_DIR_PATH = path.join(
+  'scripts',
+  'soql',
+  'query-results'
+);
 
 describe('Query Data File Service', () => {
+  let mockTextDocument: vscode.TextDocument;
+  let docProviderDisposable: vscode.Disposable;
   const documentName = 'example.soql';
   const workspacePath = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const testResultsDirPath = path.join(workspacePath, QUERY_RESULTS_DIR_PATH);
+  const mockUriPath = path.join(testResultsDirPath, documentName);
+  let sandbox: sinon.SinonSandbox;
+
+  function createResultsDirectory() {
+    fs.mkdirSync(testResultsDirPath, {
+      recursive: true
+    });
+  }
+
+  beforeEach(async () => {
+    sandbox = sinon.createSandbox();
+    docProviderDisposable = vscode.workspace.registerTextDocumentContentProvider(
+      'sfdc-test',
+      new MockTextDocumentProvider()
+    );
+    mockTextDocument = await vscode.workspace.openTextDocument(
+      vscode.Uri.parse('sfdc-test:test/examples/soql/mocksoql.soql')
+    );
+    createResultsDirectory();
+  });
 
   afterEach(() => {
     // delete the query-results directory and its files.
     // @ts-ignore
     fs.rmdirSync(testResultsDirPath, { recursive: true });
+    sandbox.restore();
   });
 
   it('should use the correct data provider', () => {
@@ -33,7 +66,7 @@ describe('Query Data File Service', () => {
       mockQueryText,
       mockQueryData,
       FileFormat.CSV,
-      documentName
+      mockTextDocument
     );
     expect(csvFileService.getDataProvider()).instanceOf(CsvDataProvider);
 
@@ -41,33 +74,43 @@ describe('Query Data File Service', () => {
       mockQueryText,
       mockQueryData,
       FileFormat.JSON,
-      documentName
+      mockTextDocument
     );
     expect(jsonFileService.getDataProvider()).instanceOf(JsonDataProvider);
   });
 
-  it('will save json file to disk on save', () => {
+  it('should save json file to disk on save', async () => {
     const jsonFileService = new TestFileService(
       mockQueryText,
       mockQueryData,
       FileFormat.JSON,
-      documentName
+      mockTextDocument
     );
 
-    const savedFilePath = jsonFileService.save();
+    const mockURI = {
+      fsPath: mockUriPath
+    } as vscode.Uri;
+    sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
+
+    const savedFilePath = await jsonFileService.save();
     const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
     expect(JSON.parse(savedFileContent)).to.eql(mockQueryData.records);
   });
 
-  it('will save csv to file to disk on save', () => {
+  it('should save csv to file to disk on save', async () => {
     const csvFileService = new TestFileService(
       mockQueryText,
       mockQueryData,
       FileFormat.CSV,
-      documentName
+      mockTextDocument
     );
 
-    const savedFilePath = csvFileService.save();
+    const mockURI = {
+      fsPath: mockUriPath
+    } as vscode.Uri;
+    sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
+
+    const savedFilePath = await csvFileService.save();
     const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
     const mockCsvData = csvFileService
       .getDataProvider()

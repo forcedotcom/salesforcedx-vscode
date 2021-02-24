@@ -10,8 +10,7 @@ import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getRootWorkspacePath } from '../commonUtils';
-import { QUERY_RESULTS_DIR_NAME, QUERY_RESULTS_DIR_PATH } from '../constants';
+import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
 import { nls } from '../messages';
 import {
   CsvDataProvider,
@@ -26,13 +25,15 @@ export enum FileFormat {
 
 export class QueryDataFileService {
   private dataProvider: DataProvider;
+  private documentName: string;
 
   constructor(
     private queryText: string,
     private queryData: QueryResult<JsonMap>,
     private format: FileFormat,
-    private documentName: string
+    private document: vscode.TextDocument
   ) {
+    this.documentName = getDocumentName(document);
     this.dataProvider = this.getDataProvider();
   }
 
@@ -47,50 +48,53 @@ export class QueryDataFileService {
     }
   }
 
-  public save(): string {
+  public async save(): Promise<string> {
+    let selectedFileSavePath = '';
     const fileContent = this.dataProvider.getFileContent(
       this.queryText,
       this.queryData.records
     );
-    const savedFileName = this.dataProvider.getFileName();
-    const queryDataFilePath = path.join(
-      this.getResultsDirectoryPath(),
-      savedFileName
+    const defaultFileName = this.dataProvider.getFileName();
+    /* queryDataDefaultFilePath will be used as the default options in the save dialog
+        fileName: The name of the soqlFile viewed in the builder
+        path: the same directory as the .soql file text doc.
+    note: directory must exist to show up in save dialog.
+    */
+    const queryDataDefaultFilePath = path.join(
+      path.parse(this.document.uri.path).dir,
+      defaultFileName
     );
 
-    this.createResultsDirectoryIfDoesNotExist();
-    // Save query results to disk
-    fs.writeFileSync(queryDataFilePath, fileContent);
-    this.showSaveSuccessMessage(savedFileName);
-    this.showFileInExplorer(queryDataFilePath);
+    const fileInfo: vscode.Uri | undefined = await vscode.window.showSaveDialog(
+      {
+        defaultUri: vscode.Uri.file(queryDataDefaultFilePath)
+      }
+    );
 
-    return queryDataFilePath;
-  }
-
-  private getResultsDirectoryPath() {
-    return path.join(getRootWorkspacePath(), QUERY_RESULTS_DIR_PATH);
-  }
-
-  private createResultsDirectoryIfDoesNotExist() {
-    fs.mkdirSync(this.getResultsDirectoryPath(), {
-      recursive: true
-    });
+    if (fileInfo && fileInfo.fsPath) {
+      // use .fsPath, not .path to account for OS.
+      selectedFileSavePath = fileInfo.fsPath;
+      // Save query results to disk
+      fs.writeFileSync(selectedFileSavePath, fileContent);
+      this.showFileInExplorer(selectedFileSavePath);
+      this.showSaveSuccessMessage(path.basename(selectedFileSavePath));
+    }
+    return selectedFileSavePath;
   }
 
   private showFileInExplorer(targetPath: string) {
-    vscode.commands.executeCommand(
-      'revealInExplorer',
-      vscode.Uri.file(targetPath)
-    );
+    // Only reveal saved file if its inside current workspace
+    if (targetPath.startsWith(getRootWorkspacePath())) {
+      vscode.commands.executeCommand(
+        'revealInExplorer',
+        vscode.Uri.file(targetPath)
+      );
+    }
   }
 
   private showSaveSuccessMessage(savedFileName: string) {
     vscode.window.showInformationMessage(
-      nls.localize(
-        'info_file_save_success',
-        QUERY_RESULTS_DIR_NAME,
-        savedFileName
-      )
+      nls.localize('info_file_save_success', savedFileName)
     );
   }
 }
