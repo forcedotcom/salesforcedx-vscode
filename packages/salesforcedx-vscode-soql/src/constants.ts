@@ -47,13 +47,6 @@ export const DATA_VIEW_UI_PATH = path.join(
 export const DATA_VIEW_ICONS_PATH = path.join(DATA_VIEW_UI_PATH, 'icons');
 
 /* ==== QUERY DATA FILE SERVICE ==== */
-// The name of the directory query data is saved
-export const QUERY_RESULTS_DIR_NAME = 'query-results';
-export const QUERY_RESULTS_DIR_PATH = path.join(
-  'scripts',
-  'soql',
-  QUERY_RESULTS_DIR_NAME
-);
 export const DATA_CSV_EXT = 'csv';
 export const DATA_JSON_EXT = 'json';
 
