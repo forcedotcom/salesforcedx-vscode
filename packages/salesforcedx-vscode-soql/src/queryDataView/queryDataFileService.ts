@@ -69,7 +69,7 @@ export class QueryDataFileService {
       }
     );
 
-    if (fileInfo) {
+    if (fileInfo && fileInfo.fsPath) {
       // use .fsPath, not .path to account for OS.
       selectedFileSavePath = fileInfo.fsPath;
       // Save query results to disk

@@ -85,7 +85,7 @@ describe('Query Data File Service', () => {
     );
 
     const mockURI = {
-      path: mockUriPath
+      fsPath: mockUriPath
     } as vscode.Uri;
     sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
 
@@ -102,7 +102,7 @@ describe('Query Data File Service', () => {
     );
 
     const mockURI = {
-      path: mockUriPath
+      fsPath: mockUriPath
     } as vscode.Uri;
     sandbox.stub(vscode.window, 'showSaveDialog').resolves(mockURI);
 
