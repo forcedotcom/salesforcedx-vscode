@@ -1,3 +1,23 @@
+# 51.2.0 - February 24, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add namespace support for running and debugging tests ([PR #2961](https://github.com/forcedotcom/salesforcedx-vscode/pull/2961)), ([Issue #2865](https://github.com/forcedotcom/salesforcedx-vscode/issues/2865))
+
+## Fixed
+
+#### docs
+
+- SOQL Builder - Add LIKE support ([PR #2971](https://github.com/forcedotcom/salesforcedx-vscode/pull/2971))
+
+- SOQL Builder - Add COUNT support ([PR #2946](https://github.com/forcedotcom/salesforcedx-vscode/pull/2946))
+
+#### salesforcedx-vscode-apex
+
+- Execute anonymous Apex command not focusing the output channel ([PR #2962](https://github.com/forcedotcom/salesforcedx-vscode/pull/2962)), ([Issue #2947](https://github.com/forcedotcom/salesforcedx-vscode/issues/2947))
+
 # 50.17.0 - February 10, 2021
 
 ## Fixed
