@@ -18,12 +18,12 @@ import {
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
-  forceApexTestRun,
+  forceApexTestRun
 } from './commands';
 import { forceApexExecute } from './commands/forceApexExecute';
 import {
   APEX_EXTENSION_NAME,
-  LSP_ERR,
+  LSP_ERR
 } from './constants';
 import { workspaceContext } from './context';
 import {
