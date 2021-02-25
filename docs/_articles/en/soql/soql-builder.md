@@ -113,9 +113,7 @@ Split your view to see your query in both SOQL Builder and the text editor.
 
 ## Save Query Results
 
-<!-- ekapner, 2/25, update, moved section closer to graphic that shows the save icons  -->
-
-Click one of the Save icons to save the query results in a `.csv` or `.json` file in the location of your choice. Include any paths to saved files in the `.gitignore` file so that you don’t deploy it to your org or include it in source control.
+Click one of the Save icons to save the query results in a `.csv` or `.json` file in the location of your choice. To avoid deploying these files to your org or adding them in source control, remember to include any paths to saved files in the `.gitignore` file.
 
 ## Switch Between SOQL Builder and Text Editor
 

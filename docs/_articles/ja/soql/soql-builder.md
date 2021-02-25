@@ -111,15 +111,15 @@ Split your view to see your query in both SOQL Builder and the text editor.
 
 ![Split your screen to see both SOQL Builder and Text Editor](./images/soql-builder-split-panels.gif)
 
+## Save Query Results
+
+Click one of the Save icons to save the query results in a `.csv` or `.json` file in the location of your choice. To avoid deploying these files to your org or adding them in source control, remember to include any paths to saved files in the `.gitignore` file.
+
 ## Switch Between SOQL Builder and Text Editor
 
 You can easily toggle between viewing your SOQL statements in SOQL Builder and the text editor.
 
 ![Click the Switch Between SOQL Builder and Text Editor icon to toggle views](./images/soql-toggle.png)
-
-## Save Query Results
-
-You can save the query results in a `.csv` or `.json` file. The file is saved in `<project-dir>/scripts/soql/query-results` with a `.csv` or `.json` extension. This path is included in the `.gitignore` file so that you don’t deploy it to your org or include it in source control.
 
 **Beta Limitations:**
 
