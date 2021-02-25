@@ -643,7 +643,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.workspace.workspaceFolders![0].uri.fsPath
     ).catch(e => telemetryService.sendException(e.name, e.message));
   }
-  
+
   return api;
 }
 
