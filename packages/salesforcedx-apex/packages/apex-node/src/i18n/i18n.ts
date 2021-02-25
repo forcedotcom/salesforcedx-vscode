@@ -66,5 +66,7 @@ export const messages = {
   code_cov_header: 'Apex Code Coverage by Class',
   detailed_code_cov_header: 'Apex Code Coverage for Test Run %s',
   syncClassErr:
-    'Synchronous test runs can include test methods from only one Apex class. Omit the --synchronous flag or include tests from only one class'
+    'Synchronous test runs can include test methods from only one Apex class. Omit the --synchronous flag or include tests from only one class',
+  resultFormatErr:
+    'Specified result formats must be of type json, junit, or tap'
 };

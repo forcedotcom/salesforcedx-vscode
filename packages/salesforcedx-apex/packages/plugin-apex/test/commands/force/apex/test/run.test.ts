@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestService } from '@salesforce/apex-node';
+import {
+  HumanReporter,
+  JUnitReporter,
+  ResultFormat,
+  TestService
+} from '@salesforce/apex-node';
 import { expect, test } from '@salesforce/command/lib/test';
 import { Messages, SfdxProject } from '@salesforce/core';
 import * as fs from 'fs';
@@ -466,11 +471,6 @@ describe('force:apex:test:run', () => {
     })
     .stub(process, 'cwd', () => projectPath)
     .stub(TestService.prototype, 'runTestAsynchronous', () => runWithCoverage)
-    .stub(fs, 'existsSync', () => true)
-    .stub(fs, 'mkdirSync', () => true)
-    .stub(fs, 'createWriteStream', () => new stream.PassThrough())
-    .stub(fs, 'openSync', () => 10)
-    .stub(fs, 'closeSync', () => true)
     .do(ctx => {
       ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
     })
@@ -503,7 +503,168 @@ describe('force:apex:test:run', () => {
                   filename: `test-result-codecoverage.json`,
                   content: jsonWithCoverage.coverage.coverage
                 }
-              ]
+              ],
+              resultFormats: [ResultFormat.junit]
+            },
+            true
+          ]
+        ]);
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => runWithCoverage)
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '-d',
+      'path/to/dir',
+      '--resultformat',
+      'tap',
+      '-c'
+    ])
+    .it(
+      'should create tap file with correct content when tap format is specified',
+      ctx => {
+        expect((ctx.myStub as SinonStub).args).to.deep.equal([
+          [
+            runWithCoverage,
+            {
+              dirPath: 'path/to/dir',
+              fileInfos: [
+                {
+                  filename: `test-result-${jsonWithCoverage.summary.testRunId}.json`,
+                  content: jsonWithCoverage
+                },
+                {
+                  filename: `test-result-codecoverage.json`,
+                  content: jsonWithCoverage.coverage.coverage
+                },
+                {
+                  content: `1..1\nok 1 MyApexTests.testConfig\n`,
+                  filename: `test-result.txt`
+                }
+              ],
+              resultFormats: [ResultFormat.junit, ResultFormat.tap]
+            },
+            true
+          ]
+        ]);
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => runWithCoverage)
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '-d',
+      'path/to/dir',
+      '--resultformat',
+      'junit',
+      '-c'
+    ])
+    .it(
+      'should create junit file with correct content when junit format is specified',
+      ctx => {
+        // @ts-ignore
+        const result = new JUnitReporter().format(runWithCoverage);
+        expect((ctx.myStub as SinonStub).args).to.deep.equal([
+          [
+            runWithCoverage,
+            {
+              dirPath: 'path/to/dir',
+              fileInfos: [
+                {
+                  filename: `test-result-${jsonWithCoverage.summary.testRunId}.json`,
+                  content: jsonWithCoverage
+                },
+                {
+                  filename: `test-result-codecoverage.json`,
+                  content: jsonWithCoverage.coverage.coverage
+                },
+                {
+                  filename: `test-result.xml`,
+                  content: result
+                }
+              ],
+              resultFormats: [ResultFormat.junit]
+            },
+            true
+          ]
+        ]);
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => runWithCoverage)
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '-d',
+      'path/to/dir',
+      '--resultformat',
+      'human',
+      '-c'
+    ])
+    .it(
+      'should create human-readable file with correct content when human-readable format is specified',
+      ctx => {
+        // @ts-ignore
+        const result = new HumanReporter().format(runWithCoverage);
+        expect((ctx.myStub as SinonStub).args).to.deep.equal([
+          [
+            runWithCoverage,
+            {
+              dirPath: 'path/to/dir',
+              fileInfos: [
+                {
+                  filename: `test-result-${jsonWithCoverage.summary.testRunId}.json`,
+                  content: jsonWithCoverage
+                },
+                {
+                  filename: `test-result-codecoverage.json`,
+                  content: jsonWithCoverage.coverage.coverage
+                },
+                {
+                  filename: `test-result.txt`,
+                  content: result
+                }
+              ],
+              resultFormats: [ResultFormat.junit]
             },
             true
           ]

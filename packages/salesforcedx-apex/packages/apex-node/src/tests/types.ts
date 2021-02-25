@@ -51,9 +51,16 @@ export type AsyncTestConfiguration = {
   skipCodeCoverage?: boolean;
 };
 
+export enum ResultFormat {
+  junit = 'junit',
+  tap = 'tap',
+  json = 'json',
+  human = 'human'
+}
+
 export type OutputDirConfig = {
   dirPath: string;
-  resultFormat?: 'tap' | 'junit' | 'json';
+  resultFormats?: ResultFormat[];
   fileInfos?: { filename: string; content: string | object }[];
 };
 

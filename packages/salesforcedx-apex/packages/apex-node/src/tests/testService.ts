@@ -27,7 +27,8 @@ import {
   SyncTestFailure,
   TestItem,
   TestLevel,
-  NamespaceQueryResult
+  NamespaceQueryResult,
+  ResultFormat
 } from './types';
 import * as util from 'util';
 import { nls } from '../i18n';
@@ -745,40 +746,52 @@ export class TestService {
     outputDirConfig: OutputDirConfig,
     codeCoverage = false
   ): Promise<string[]> {
-    const { dirPath, resultFormat, fileInfos } = outputDirConfig;
+    const { dirPath, resultFormats, fileInfos } = outputDirConfig;
     const fileMap: { path: string; content: string }[] = [];
 
     fileMap.push({
       path: join(dirPath, 'test-run-id.txt'),
       content: result.summary.testRunId
     });
-    switch (resultFormat) {
-      case 'json':
-        fileMap.push({
-          path: join(dirPath, `test-result-${result.summary.testRunId}.json`),
-          content: this.stringify(result)
-        });
-        break;
-      case 'tap':
-        const tapResult = new TapReporter().format(result);
-        fileMap.push({
-          path: join(
-            dirPath,
-            `test-result-${result.summary.testRunId}-tap.txt`
-          ),
-          content: tapResult
-        });
-        break;
-      case 'junit':
-        const junitResult = new JUnitReporter().format(result);
-        fileMap.push({
-          path: join(
-            dirPath,
-            `test-result-${result.summary.testRunId}-junit.xml`
-          ),
-          content: junitResult
-        });
-        break;
+
+    if (resultFormats) {
+      for (const format of resultFormats) {
+        if (!(format in ResultFormat)) {
+          throw new Error(nls.localize('resultFormatErr'));
+        }
+
+        switch (format) {
+          case ResultFormat.json:
+            fileMap.push({
+              path: join(
+                dirPath,
+                `test-result-${result.summary.testRunId}.json`
+              ),
+              content: this.stringify(result)
+            });
+            break;
+          case ResultFormat.tap:
+            const tapResult = new TapReporter().format(result);
+            fileMap.push({
+              path: join(
+                dirPath,
+                `test-result-${result.summary.testRunId}-tap.txt`
+              ),
+              content: tapResult
+            });
+            break;
+          case ResultFormat.junit:
+            const junitResult = new JUnitReporter().format(result);
+            fileMap.push({
+              path: join(
+                dirPath,
+                `test-result-${result.summary.testRunId}-junit.xml`
+              ),
+              content: junitResult
+            });
+            break;
+        }
+      }
     }
 
     if (codeCoverage) {

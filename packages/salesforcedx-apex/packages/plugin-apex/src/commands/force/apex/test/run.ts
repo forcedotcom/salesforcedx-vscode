@@ -14,7 +14,11 @@ import {
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Org } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
-import { CliJsonFormat, JsonReporter } from '../../../../reporters';
+import {
+  buildOutputDirConfig,
+  CliJsonFormat,
+  JsonReporter
+} from '../../../../reporters';
 import { buildDescription, logLevels, resultFormat } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
@@ -138,27 +142,13 @@ export default class Run extends SfdxCommand {
 
     if (this.flags.outputdir) {
       const jsonOutput = this.logJson(result);
-      const outputDirConfig = {
-        dirPath: this.flags.outputdir,
-        fileInfos: [
-          {
-            filename: `test-result-${result.summary.testRunId}.json`,
-            content: jsonOutput
-          },
-          ...(jsonOutput.coverage
-            ? [
-                {
-                  filename: `test-result-codecoverage.json`,
-                  content: jsonOutput.coverage.coverage
-                }
-              ]
-            : [])
-        ],
-        ...(this.flags.resultformat === 'junit' ||
-        this.flags.resultformat === 'tap'
-          ? { resultFormat: this.flags.resultformat }
-          : {})
-      };
+      const outputDirConfig = buildOutputDirConfig(
+        result,
+        jsonOutput,
+        this.flags.outputdir,
+        this.flags.resultformat,
+        this.flags.detailedcoverage
+      );
 
       await testService.writeResultFiles(
         result,

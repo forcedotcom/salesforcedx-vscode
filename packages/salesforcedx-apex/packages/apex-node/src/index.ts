@@ -18,6 +18,8 @@ export {
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
   CodeCoverageResult,
+  OutputDirConfig,
+  ResultFormat,
   SyncTestConfiguration,
   TestItem,
   TestLevel,

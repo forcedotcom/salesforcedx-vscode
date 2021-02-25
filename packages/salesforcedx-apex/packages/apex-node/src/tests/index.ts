@@ -14,6 +14,7 @@ export {
   ApexTestResultData,
   ApexTestResultOutcome,
   CodeCoverageResult,
+  ResultFormat,
   TestItem,
   TestResult,
   TestLevel
