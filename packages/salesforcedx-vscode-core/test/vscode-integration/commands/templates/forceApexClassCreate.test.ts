@@ -17,7 +17,6 @@ import { channelService } from '../../../../src/channels';
 import { forceApexClassCreate } from '../../../../src/commands/templates/forceApexClassCreate';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
 
@@ -85,7 +84,7 @@ describe('Force Apex Class Create', () => {
     assert.file([apexClassPath, apexClassMetaPath]);
     assert.fileContent(
       apexClassPath,
-      'public inherited sharing class TestApexClass'
+      'public with sharing class TestApexClass'
     );
     assert.fileContent(
       apexClassMetaPath,
