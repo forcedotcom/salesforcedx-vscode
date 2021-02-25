@@ -20,7 +20,8 @@ Code Builder is a browser-based version of Salesforce Extensions, with everythin
 
 ## Additional Resources
 
-- Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
+- [Salesforce Developer Tooling Learning Map](https://developertoolinglearningmap.herokuapp.com/)
+- Trailhead: [Build Apps Together with Package Development](https://trailhead.salesforce.com/trails/sfdx_get_started)
 - [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
 - [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
 
