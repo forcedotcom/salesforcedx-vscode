@@ -628,7 +628,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
-  return api;
 
   // Refresh SObject definitions if there aren't any faux classes
   const sobjectRefreshStartup: boolean = vscode.workspace
@@ -644,6 +643,8 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.workspace.workspaceFolders![0].uri.fsPath
     ).catch(e => telemetryService.sendException(e.name, e.message));
   }
+  
+  return api;
 }
 
 export function deactivate(): Promise<void> {
