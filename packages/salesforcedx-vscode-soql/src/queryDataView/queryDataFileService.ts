@@ -28,6 +28,7 @@ export class QueryDataFileService {
   private documentName: string;
 
   constructor(
+    private queryText: string,
     private queryData: QueryResult<JsonMap>,
     private format: FileFormat,
     private document: vscode.TextDocument
@@ -50,6 +51,7 @@ export class QueryDataFileService {
   public async save(): Promise<string> {
     let selectedFileSavePath = '';
     const fileContent = this.dataProvider.getFileContent(
+      this.queryText,
       this.queryData.records
     );
     const defaultFileName = this.dataProvider.getFileName();

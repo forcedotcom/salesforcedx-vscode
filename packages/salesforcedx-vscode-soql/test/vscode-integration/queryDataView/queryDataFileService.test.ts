@@ -16,6 +16,7 @@ import {
 } from '../../../src/queryDataView/dataProviders';
 import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
 import {
+  mockQueryText,
   mockQueryData,
   MockTextDocumentProvider,
   TestFileService
@@ -63,6 +64,7 @@ describe('Query Data File Service', () => {
 
   it('should use the correct data provider', () => {
     const csvFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.CSV,
       mockTextDocument
@@ -70,6 +72,7 @@ describe('Query Data File Service', () => {
     expect(csvFileService.getDataProvider()).instanceOf(CsvDataProvider);
 
     const jsonFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.JSON,
       mockTextDocument
@@ -79,6 +82,7 @@ describe('Query Data File Service', () => {
 
   it('should save json file to disk on save', async () => {
     const jsonFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.JSON,
       mockTextDocument
@@ -96,6 +100,7 @@ describe('Query Data File Service', () => {
 
   it('should save csv to file to disk on save', async () => {
     const csvFileService = new TestFileService(
+      mockQueryText,
       mockQueryData,
       FileFormat.CSV,
       mockTextDocument
@@ -110,7 +115,7 @@ describe('Query Data File Service', () => {
     const savedFileContent = fs.readFileSync(savedFilePath, 'utf8');
     const mockCsvData = csvFileService
       .getDataProvider()
-      .getFileContent(mockQueryData.records);
+      .getFileContent(mockQueryText, mockQueryData.records);
 
     expect(savedFileContent).to.equal(mockCsvData);
   });

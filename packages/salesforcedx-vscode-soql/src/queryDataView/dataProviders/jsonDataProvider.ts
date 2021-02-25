@@ -14,7 +14,7 @@ export class JsonDataProvider implements DataProvider {
 
   constructor(public readonly documentName: string) {}
 
-  public getFileContent(data: JsonMap[]): string {
+  public getFileContent(query: string, data: JsonMap[]): string {
     const queryRecordsJson = JSON.stringify(data, null, 2);
     return queryRecordsJson;
   }
