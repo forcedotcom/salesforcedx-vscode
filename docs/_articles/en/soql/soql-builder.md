@@ -119,12 +119,9 @@ You can easily toggle between viewing your SOQL statements in SOQL Builder and t
 
 ## Save Query Results
 
-You can save the query results in a `.csv` or `.json` file. The file is saved in `<project-dir>/scripts/soql/query-results` with a `.csv` or `.json` extension. This path is included in the `.gitignore` file so that you don’t deploy it to your org or include it in source control.
+<!-- ekapner, 2/25, update  -->
 
-**Beta Limitations:**
-
-- You can’t select the file name or where the query results file is saved. However, you can move it afterward.
-- If you click the **Save .csv** or **Save .json** button again, the previous file is overwritten. To avoid overwriting the file, save it to a different file name or move it to a different location.
+Click one of the Save icons to save the query results in a `.csv` or `.json` file in the location of your choice. Include any paths to saved files in the `.gitignore` file so that you don’t deploy it to your org or include it in source control.
 
 ## Known Issues
 
