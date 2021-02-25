@@ -91,7 +91,7 @@ export class SObjectRefreshGatherer
   }
 }
 
-export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
@@ -104,14 +104,14 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
   public async execute(
     response: ContinueResponse<RefreshSelection>
   ): Promise<void> {
-    if (ForceGenerateFauxClassesExecutor.isActive) {
+    if (ForceRefreshSObjectsExecutor.isActive) {
       vscode.window.showErrorMessage(
         nls.localize('force_sobjects_no_refresh_if_already_active_error_text')
       );
       return;
     }
     const startTime = process.hrtime();
-    ForceGenerateFauxClassesExecutor.isActive = true;
+    ForceRefreshSObjectsExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new LocalCommandExecution(this.build(response.data));
@@ -177,7 +177,7 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       telemetryService.sendException(result.name, result.error);
     }
 
-    ForceGenerateFauxClassesExecutor.isActive = false;
+    ForceRefreshSObjectsExecutor.isActive = false;
     return;
   }
 }
@@ -191,7 +191,7 @@ export async function forceRefreshSObjects(
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceGenerateFauxClassesExecutor()
+    new ForceRefreshSObjectsExecutor()
   );
   await commandlet.run();
 }

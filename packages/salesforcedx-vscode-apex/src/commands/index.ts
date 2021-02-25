@@ -16,9 +16,4 @@ export {
   ForceApexTestRunCodeActionExecutor
 } from './forceApexTestRunCodeAction';
 export { forceApexLogGet } from './forceApexLogGet';
-export {
-  checkSObjectsAndRefresh,
-  forceGenerateFauxClassesCreate,
-  verifyUsernameAndInitSObjectDefinitions as initSObjectDefinitions
-} from './forceGenerateFauxClasses';
 export { forceApexTestRun } from './forceApexTestRun';

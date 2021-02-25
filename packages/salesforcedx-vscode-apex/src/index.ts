@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
-  checkSObjectsAndRefresh,
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
   forceApexLogGet,
@@ -20,14 +19,11 @@ import {
   forceApexTestMethodRunCodeAction,
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun,
-  initSObjectDefinitions
 } from './commands';
 import { forceApexExecute } from './commands/forceApexExecute';
 import {
   APEX_EXTENSION_NAME,
-  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   LSP_ERR,
-  SFDX_APEX_CONFIGURATION_NAME
 } from './constants';
 import { workspaceContext } from './context';
 import {
@@ -94,20 +90,6 @@ export async function activate(context: vscode.ExtensionContext) {
       .then(async () => {
         if (languageClient) {
           languageClient.onNotification('indexer/done', async () => {
-            // Refresh SObject definitions if there aren't any faux classes
-            const sobjectRefreshStartup: boolean = vscode.workspace
-              .getConfiguration(SFDX_APEX_CONFIGURATION_NAME)
-              .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
-
-            if (sobjectRefreshStartup) {
-              initSObjectDefinitions(
-                vscode.workspace.workspaceFolders![0].uri.fsPath
-              ).catch(e => telemetryService.sendException(e.name, e.message));
-            } else {
-              checkSObjectsAndRefresh(
-                vscode.workspace.workspaceFolders![0].uri.fsPath
-              ).catch(e => telemetryService.sendException(e.name, e.message));
-            }
             await testOutlineProvider.refresh();
           });
         }

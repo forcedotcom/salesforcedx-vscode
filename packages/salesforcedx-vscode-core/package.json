@@ -883,6 +883,11 @@
           "type": "boolean",
           "default": false,
           "description": "%experimental_support_functions%"
+        },
+        "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
+          "type": "boolean",
+          "default": false,
+          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },

@@ -7,6 +7,7 @@
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
+  checkSObjectsAndRefresh,
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
@@ -59,6 +60,7 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
+  initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
   turnOffLogging
 } from './commands';
@@ -76,6 +78,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
+import { SFDX_CORE_CONFIGURATION_NAME, ENABLE_SOBJECT_REFRESH_ON_STARTUP} from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
@@ -497,6 +500,7 @@ export async function activate(context: vscode.ExtensionContext) {
   await telemetryService.initializeService(context, name, aiKey, version);
   showTelemetryMessage(context);
 
+
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
     'sfdx.force.tasks.view',
@@ -626,6 +630,21 @@ export async function activate(context: vscode.ExtensionContext) {
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
   return api;
+
+  // Refresh SObject definitions if there aren't any faux classes
+  const sobjectRefreshStartup: boolean = vscode.workspace
+  .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+  .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+
+  if (sobjectRefreshStartup) {
+    initSObjectDefinitions(
+      vscode.workspace.workspaceFolders![0].uri.fsPath
+    ).catch(e => telemetryService.sendException(e.name, e.message));
+  } else {
+    checkSObjectsAndRefresh(
+      vscode.workspace.workspaceFolders![0].uri.fsPath
+    ).catch(e => telemetryService.sendException(e.name, e.message));
+  }
 }
 
 export function deactivate(): Promise<void> {

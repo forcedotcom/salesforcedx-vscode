@@ -157,4 +157,4 @@ export {
   forceFunctionInvoke,
   registerFunctionInvokeCodeLensProvider
 } from './functions';
-export { forceRefreshSObjects } from './forceRefreshSObjects';
+export { checkSObjectsAndRefresh, forceRefreshSObjects, initSObjectDefinitions } from './forceRefreshSObjects';

@@ -72,5 +72,6 @@
   "force_function_debug_invoke": "SFDX: Debug Function",
   "force_function_stop": "SFDX: Stop Function",
   "experimental_support_functions": "Enable building and managing Salesforce functions from VS Code",
-  "force_sobjects_refresh": "SFDX: Refresh SObject Definitions"
+  "force_sobjects_refresh": "SFDX: Refresh SObject Definitions",
+  "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false)."
 }
