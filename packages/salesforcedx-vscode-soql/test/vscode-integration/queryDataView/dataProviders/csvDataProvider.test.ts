@@ -140,20 +140,20 @@ const alias: TestQuery = {
   ]
 };
 
-describe('CsvDataProvider should', () => {
-  it('output appropriate CSV for simple selections in a query', () => {
+describe('CsvDataProvider', () => {
+  it('should output appropriate CSV for simple selections in a query', () => {
     testQuery(simpleQuery);
   });
-  it('output appropriate CSV for child to parent relationship queries', () => {
+  it('should output appropriate CSV for child to parent relationship queries', () => {
     testQuery(childToParentRel);
   });
-  it('output appropriate CSV for parent to child relationship queries', () => {
+  it('should output appropriate CSV for parent to child relationship queries', () => {
     testQuery(parentToChildRel);
   });
-  it('output appropriate CSV for queries with aggregate functions selected', () => {
+  it('should output appropriate CSV for queries with aggregate functions selected', () => {
     testQuery(aggFn);
   });
-  it('output appropriate CSV for queries with aliased aggregate functions selected', () => {
+  it('should output appropriate CSV for queries with aliased aggregate functions selected', () => {
     testQuery(alias);
   });
 });
