@@ -1,11 +1,35 @@
 [
     {
-        "command": "force:apex:log:get",
+        "command": "commandreference:generate",
+        "plugin": "@salesforce/plugin-command-reference",
         "flags": [
+            "erroronwarnings",
+            "hidden",
             "json",
             "loglevel",
+            "outputdir",
+            "plugins"
+        ]
+    },
+    {
+        "command": "force:apex:execute",
+        "plugin": "@salesforce/plugin-apex",
+        "flags": [
+            "apexcodefile",
             "apiversion",
+            "json",
+            "loglevel",
+            "targetusername"
+        ]
+    },
+    {
+        "command": "force:apex:log:get",
+        "plugin": "@salesforce/plugin-apex",
+        "flags": [
+            "apiversion",
+            "json",
             "logid",
+            "loglevel",
             "number",
             "outputdir",
             "targetusername"
@@ -13,48 +37,68 @@
     },
     {
         "command": "force:apex:log:list",
+        "plugin": "@salesforce/plugin-apex",
         "flags": [
+            "apiversion",
             "json",
             "loglevel",
-            "apiversion",
             "targetusername"
         ]
     },
     {
-        "command": "commandreference:generate",
+        "command": "force:apex:test:report",
+        "plugin": "@salesforce/plugin-apex",
         "flags": [
+            "apiversion",
+            "codecoverage",
             "json",
             "loglevel",
             "outputdir",
-            "plugins",
-            "hidden",
-            "erroronwarnings"
+            "resultformat",
+            "targetusername",
+            "testrunid",
+            "verbose",
+            "wait"
         ]
     },
     {
-        "command": "force:apex:execute",
+        "command": "force:apex:test:run",
+        "plugin": "@salesforce/plugin-apex",
         "flags": [
+            "apiversion",
+            "classnames",
+            "codecoverage",
+            "detailedcoverage",
             "json",
             "loglevel",
-            "apiversion",
-            "apexcodefile",
-            "targetusername"
+            "outputdir",
+            "resultformat",
+            "suitenames",
+            "synchronous",
+            "targetusername",
+            "testlevel",
+            "tests",
+            "verbose",
+            "wait"
         ]
     },
     {
         "command": "help",
+        "plugin": "@oclif/plugin-help",
         "flags": [
             "all"
         ]
     },
     {
         "command": "snapshot:compare",
+        "plugin": "@oclif/plugin-command-snapshot",
         "flags": [
             "filepath"
         ]
     },
     {
         "command": "snapshot:generate",
+        "plugin": "@oclif/plugin-command-snapshot",
         "flags": [
             "filepath"
         ]
