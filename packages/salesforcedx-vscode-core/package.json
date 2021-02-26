@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "50.19.0",
+  "version": "51.2.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,12 +27,13 @@
   "dependencies": {
     "@salesforce/apex-node": "0.1.15",
     "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "50.19.0",
-    "@salesforce/salesforcedx-utils-vscode": "50.19.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "51.2.0",
+    "@salesforce/salesforcedx-utils-vscode": "51.2.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "1.1.17",
-    "@salesforce/templates": "50.7.0",
+    "@salesforce/templates": "51.3.0",
     "adm-zip": "0.4.13",
+    "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
@@ -41,7 +42,7 @@
     "xmldom-sfdx-encoding": "0.1.29"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "50.19.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "51.2.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",

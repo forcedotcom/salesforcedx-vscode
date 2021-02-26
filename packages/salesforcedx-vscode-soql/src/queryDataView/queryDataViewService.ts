@@ -19,7 +19,6 @@ import {
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
   QUERY_DATA_VIEW_STYLE_FILENAME,
   QUERY_DATA_VIEW_TYPE,
-  QUERY_RESULTS_DIR_NAME,
   SAVE_ICON_FILENAME,
   TABULATOR_SCRIPT_FILENAME,
   TABULATOR_STYLE_FILENAME
@@ -30,6 +29,7 @@ import {
   FileFormat,
   QueryDataFileService as FileService
 } from './queryDataFileService';
+import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
 export interface DataViewEvent {
@@ -41,12 +41,15 @@ export class QueryDataViewService {
   public currentPanel: vscode.WebviewPanel | undefined = undefined;
   public readonly viewType = QUERY_DATA_VIEW_TYPE;
   public static extensionPath: string;
+  private queryText: string;
 
   constructor(
     private subscriptions: vscode.Disposable[],
     private queryData: QueryResult<JsonMap>,
     private document: vscode.TextDocument
-  ) {}
+  ) {
+    this.queryText = document.getText();
+  }
 
   public static register(context: vscode.ExtensionContext): void {
     QueryDataViewService.extensionPath = context.extensionPath;
@@ -56,7 +59,7 @@ export class QueryDataViewService {
     this.currentPanel?.webview
       .postMessage({
         type: 'update',
-        data: queryData,
+        data: extendQueryData(this.queryText, queryData),
         documentName: getDocumentName(this.document)
       })
       .then(undefined, async (err: string) => {
@@ -145,16 +148,14 @@ export class QueryDataViewService {
   protected handleSaveRecords(format: FileFormat): void {
     try {
       const fileService = new FileService(
+        this.queryText,
         this.queryData,
         format,
-        getDocumentName(this.document)
+        this.document
       );
       fileService.save();
     } catch (err) {
-      const message = nls.localize(
-        'error_data_view_save',
-        QUERY_RESULTS_DIR_NAME
-      );
+      const message = nls.localize('error_data_view_save');
       vscode.window.showErrorMessage(message);
       trackErrorWithTelemetry('data_view_save', message);
     }
