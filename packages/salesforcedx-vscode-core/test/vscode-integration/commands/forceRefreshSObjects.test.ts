@@ -30,11 +30,11 @@ import * as vscode from 'vscode';
 import { ProgressLocation } from 'vscode';
 import {
   checkSObjectsAndRefresh,
-  ForceGenerateFauxClassesExecutor,
+  ForceRefreshSObjectsExecutor,
   RefreshSelection,
   SObjectRefreshGatherer,
   verifyUsernameAndInitSObjectDefinitions
-} from '../../../src/commands/forceGenerateFauxClasses';
+} from '../../../src/commands/forceRefreshSObjects';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
@@ -192,7 +192,7 @@ describe('ForceGenerateFauxClasses', () => {
         .stub(FauxClassGenerator.prototype, 'generate')
         .returns({ data: expectedData });
       logStub = sandboxStub.stub(
-        ForceGenerateFauxClassesExecutor.prototype,
+        ForceRefreshSObjectsExecutor.prototype,
         'logMetric'
       );
       errorStub = sandboxStub.stub(telemetryService, 'sendException');
@@ -221,7 +221,7 @@ describe('ForceGenerateFauxClasses', () => {
             customObjects: 0
           }
         });
-      const executor = new ForceGenerateFauxClassesExecutor();
+      const executor = new ForceRefreshSObjectsExecutor();
       await executor.execute({
         type: 'CONTINUE',
         data: {
@@ -268,7 +268,7 @@ describe('ForceGenerateFauxClasses', () => {
       source: SObjectRefreshSource,
       category?: SObjectCategory
     ) {
-      const executor = new ForceGenerateFauxClassesExecutor();
+      const executor = new ForceRefreshSObjectsExecutor();
       await executor.execute({
         type: 'CONTINUE',
         data: { category: category || SObjectCategory.ALL, source }

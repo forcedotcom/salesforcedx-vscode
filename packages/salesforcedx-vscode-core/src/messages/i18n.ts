@@ -587,5 +587,9 @@ export const messages = {
   force_function_install_npm_dependencies_progress:
     'Installing NPM dependencies',
   force_function_install_npm_dependencies_error:
-    "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json"
+    "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json",
+  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
+  sobject_refresh_all: 'All SObjects',
+  sobject_refresh_custom: 'Custom SObjects',
+  sobject_refresh_standard: 'Standard SObjects'
 };
