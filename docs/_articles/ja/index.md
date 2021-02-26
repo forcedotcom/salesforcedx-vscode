@@ -12,7 +12,8 @@ This extension pack includes tools for developing on the Salesforce platform in 
 
 ## Additional Resources
 
-- Trailhead: [Get Started with Salesforce DX](https://trailhead.salesforce.com/trails/sfdx_get_started)
+- [Salesforce Developer Tooling Learning Map](https://developertoolinglearningmap.herokuapp.com/)
+- Trailhead: [Build Apps Together with Package Development](https://trailhead.salesforce.com/trails/sfdx_get_started)
 - [Salesforce DX Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
 - [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
 
