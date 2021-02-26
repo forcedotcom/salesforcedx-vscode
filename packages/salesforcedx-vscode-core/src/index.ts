@@ -7,6 +7,7 @@
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
+  checkSObjectsAndRefresh,
   forceAliasList,
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
@@ -41,6 +42,7 @@ import {
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
+  forceRefreshSObjects,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
@@ -58,6 +60,7 @@ import {
   forceTaskStop,
   forceVisualforceComponentCreate,
   forceVisualforcePageCreate,
+  initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
   turnOffLogging
 } from './commands';
@@ -75,6 +78,7 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_CONFIGURATION_NAME } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
@@ -343,6 +347,11 @@ function registerCommands(
     forceFunctionStop
   );
 
+  const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
+    'sfdx.force.internal.refreshsobjects',
+    forceRefreshSObjects
+  );
+
   return vscode.Disposable.from(
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
@@ -360,6 +369,7 @@ function registerCommands(
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
     forceOrgListCleanCmd,
+    forceRefreshSObjectsCmd,
     forceSourceDeleteCmd,
     forceSourceDeleteCurrentFileCmd,
     forceSourceDeployCurrentSourceFileCmd,
@@ -618,6 +628,22 @@ export async function activate(context: vscode.ExtensionContext) {
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');
+
+  // Refresh SObject definitions if there aren't any faux classes
+  const sobjectRefreshStartup: boolean = vscode.workspace
+  .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+  .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+
+  if (sobjectRefreshStartup) {
+    initSObjectDefinitions(
+      vscode.workspace.workspaceFolders![0].uri.fsPath
+    ).catch(e => telemetryService.sendException(e.name, e.message));
+  } else {
+    checkSObjectsAndRefresh(
+      vscode.workspace.workspaceFolders![0].uri.fsPath
+    ).catch(e => telemetryService.sendException(e.name, e.message));
+  }
+
   return api;
 }
 
