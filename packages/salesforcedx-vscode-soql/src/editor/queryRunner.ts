@@ -6,19 +6,19 @@
  */
 
 import { Connection } from '@salesforce/core';
+import { soqlComments } from '@salesforce/soql-common';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { parseHeaderComments } from '@salesforce/soql-language-server/lib/soqlComments';
 export class QueryRunner {
-  constructor(private connection: Connection) {}
+  constructor(private connection: Connection) { }
 
   public async runQuery(
     queryText: string,
     options = { showErrors: true }
   ): Promise<QueryResult<JsonMap>> {
-    const pureSOQLText = parseHeaderComments(queryText).soqlText;
+    const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
     try {
       const rawQueryData = (await this.connection.query(
