@@ -28,7 +28,6 @@
     "@salesforce/apex-node": "0.1.15",
     "@salesforce/apex-tmlanguage": "1.4.0",
     "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "50.19.0",
     "@salesforce/salesforcedx-utils-vscode": "50.19.0",
     "@salesforce/source-deploy-retrieve": "1.1.17",
     "expand-home-dir": "0.0.3",
