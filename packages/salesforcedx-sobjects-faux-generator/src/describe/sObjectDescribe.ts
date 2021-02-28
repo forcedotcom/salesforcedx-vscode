@@ -242,21 +242,13 @@ export class SObjectDescribe {
     return batchUrlElements.join('/');
   }
 
-  public buildBatchRequestBody(
-    types: string[],
-    nextToProcess: number
-  ): BatchRequest {
-    const batchSize = 25;
+  public buildBatchRequestBody(types: string[]): BatchRequest {
     const batchRequest: BatchRequest = { batchRequests: [] };
 
-    for (
-      let i = nextToProcess;
-      i < nextToProcess + batchSize && i < types.length;
-      i++
-    ) {
+    for (const objType of types) {
       batchRequest.batchRequests.push({
         method: 'GET',
-        url: this.buildSObjectDescribeURL(types[i])
+        url: this.buildSObjectDescribeURL(objType)
       });
     }
 
@@ -275,24 +267,20 @@ export class SObjectDescribe {
     }) as unknown) as BatchResponse;
   }
 
-  public async describeSObjectBatch(
-    types: string[],
-    nextToProcess: number
-  ): Promise<SObject[]> {
+  public async describeSObjectBatch(types: string[]): Promise<SObject[]> {
     try {
-      const batchRequest = this.buildBatchRequestBody(types, nextToProcess);
+      const batchRequest = this.buildBatchRequestBody(types);
       const batchResponse = await this.runRequest(batchRequest);
+
       const fetchedObjects: SObject[] = [];
-      let i = nextToProcess;
-      for (const sr of batchResponse.results) {
+      batchResponse.results.forEach((sr, i) => {
         if (sr.result instanceof Array) {
           if (sr.result[0].errorCode && sr.result[0].message) {
             console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
           }
         }
-        i++;
         fetchedObjects.push(sr.result);
-      }
+      });
       return Promise.resolve(fetchedObjects);
     } catch (error) {
       const errorMsg = error.hasOwnProperty('body')

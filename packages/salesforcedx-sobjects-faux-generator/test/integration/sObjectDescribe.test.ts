@@ -96,7 +96,7 @@ describe('Fetch sObjects', () => {
         { method: 'GET', url: 'v46.0/sobjects/object3/describe' }
       ]
     };
-    const requestBody = sobjectdescribe.buildBatchRequestBody(sobjectTypes, 0);
+    const requestBody = sobjectdescribe.buildBatchRequestBody(sobjectTypes);
     expect(requestBody).to.deep.equals(testBatchReq);
   });
 
@@ -126,8 +126,7 @@ describe('Fetch sObjects', () => {
     env.stub(connection, 'request').resolves(mockDescribeResponse);
 
     const batchResponse = await sobjectdescribe.describeSObjectBatch(
-      sobjectTypes,
-      0
+      sobjectTypes
     );
 
     expect(batchResponse.length).to.be.equal(1);
@@ -144,7 +143,7 @@ describe('Fetch sObjects', () => {
     });
 
     try {
-      await sobjectdescribe.describeSObjectBatch(sobjectTypes, 0);
+      await sobjectdescribe.describeSObjectBatch(sobjectTypes);
       fail('An error was expected');
     } catch (err) {
       expect(err).to.be.equal('Unexpected error');

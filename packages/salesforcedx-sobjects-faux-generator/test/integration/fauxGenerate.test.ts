@@ -13,7 +13,7 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox } from 'sinon';
-import { SObject, SObjectCategory, SObjectDescribe } from '../../src/describe';
+import { SObjectCategory, SObjectDescribe } from '../../src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshResult,
@@ -21,7 +21,7 @@ import {
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { CancellationTokenSource } from './integrationTestUtil';
-import { mockDescribeResponse } from './mockData';
+import { mockBatchResponse, mockDescribeResponse } from './mockData';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CONNECTION_DATA = {
@@ -269,7 +269,7 @@ describe('Generate faux classes for SObjects', () => {
   describe('Check generateMin results', () => {
     beforeEach(() => {
       env.stub(fs, 'existsSync').returns(true);
-      env.stub(Connection.prototype, 'request').resolves(mockDescribeResponse);
+      env.stub(Connection.prototype, 'request').resolves(mockBatchResponse);
       env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
     });
 
