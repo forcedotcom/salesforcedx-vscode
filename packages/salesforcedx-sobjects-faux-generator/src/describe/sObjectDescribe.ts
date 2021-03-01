@@ -166,6 +166,8 @@ export enum SObjectCategory {
   CUSTOM = 'CUSTOM'
 }
 
+export const MAX_BATCH_REQUEST_SIZE = 25;
+
 type SubRequest = { method: string; url: string };
 type BatchRequest = { batchRequests: SubRequest[] };
 type SubResponse = { statusCode: number; result: SObject };

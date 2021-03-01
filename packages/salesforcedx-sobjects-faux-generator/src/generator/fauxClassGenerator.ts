@@ -22,6 +22,7 @@ import {
 import {
   ChildRelationship,
   Field,
+  MAX_BATCH_REQUEST_SIZE,
   SObject,
   SObjectCategory,
   SObjectDescribe
@@ -311,7 +312,7 @@ export class FauxClassGenerator {
     describe: SObjectDescribe,
     types: string[]
   ): Promise<SObject[]> {
-    const batchSize = 25;
+    const batchSize = MAX_BATCH_REQUEST_SIZE;
     const requests = [];
     for (let i = 0; i < types.length; i += batchSize) {
       const batchTypes = types.slice(i, i + batchSize);
