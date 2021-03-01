@@ -7,7 +7,7 @@
   "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.46.0"
+    "vscode": "^1.49.3"
   },
   "categories": [
     "Debuggers"
