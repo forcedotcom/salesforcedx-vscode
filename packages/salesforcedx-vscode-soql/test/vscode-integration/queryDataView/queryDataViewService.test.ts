@@ -18,6 +18,7 @@ import {
 } from '../../../src/queryDataView/queryDataFileService';
 import { QueryDataViewService } from '../../../src/queryDataView/queryDataViewService';
 import {
+  mockColumnData,
   mockQueryData,
   MockTextDocumentProvider,
   TestQueryDataViewService
@@ -71,7 +72,7 @@ describe('Query Data View Service', () => {
     expect(postMessageSpy.callCount).equal(1);
 
     const postMessageArgs = postMessageSpy.args[0][0];
-    expect(postMessageArgs.data).to.eql(mockQueryData);
+    expect(postMessageArgs.data).to.eql({ columnData: mockColumnData, ...mockQueryData });
     expect(postMessageArgs.documentName).equal(
       getDocumentName(mockTextDocument)
     );

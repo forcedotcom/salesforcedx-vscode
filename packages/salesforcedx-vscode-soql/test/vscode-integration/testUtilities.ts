@@ -65,6 +65,14 @@ export const mockQueryData: QueryResult<JsonMap> = {
     }
   ]
 };
+export const mockColumnData = {
+  objectName: 'C',
+  columns: [
+    { title: 'A', fieldHelper: ['A'] },
+    { title: 'B', fieldHelper: ['B'] }
+  ],
+  subTables: []
+};
 
 export const mockDescribeGlobalResponse = {
   sobjects: [

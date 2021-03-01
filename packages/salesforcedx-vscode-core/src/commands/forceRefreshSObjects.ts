@@ -91,7 +91,7 @@ export class SObjectRefreshGatherer
   }
 }
 
-export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}> {
+export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
   private static isActive = false;
   public build(data: {}): Command {
     return new SfdxCommandBuilder()
@@ -104,14 +104,14 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
   public async execute(
     response: ContinueResponse<RefreshSelection>
   ): Promise<void> {
-    if (ForceGenerateFauxClassesExecutor.isActive) {
+    if (ForceRefreshSObjectsExecutor.isActive) {
       vscode.window.showErrorMessage(
         nls.localize('force_sobjects_no_refresh_if_already_active_error_text')
       );
       return;
     }
     const startTime = process.hrtime();
-    ForceGenerateFauxClassesExecutor.isActive = true;
+    ForceRefreshSObjectsExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new LocalCommandExecution(this.build(response.data));
@@ -177,21 +177,21 @@ export class ForceGenerateFauxClassesExecutor extends SfdxCommandletExecutor<{}>
       telemetryService.sendException(result.name, result.error);
     }
 
-    ForceGenerateFauxClassesExecutor.isActive = false;
+    ForceRefreshSObjectsExecutor.isActive = false;
     return;
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceGenerateFauxClassesCreate(
+export async function forceRefreshSObjects(
   source?: SObjectRefreshSource
 ) {
   const parameterGatherer = new SObjectRefreshGatherer(source);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    new ForceGenerateFauxClassesExecutor()
+    new ForceRefreshSObjectsExecutor()
   );
   await commandlet.run();
 }
@@ -212,7 +212,7 @@ export async function initSObjectDefinitions(projectPath: string) {
   if (projectPath) {
     const sobjectFolder = getSObjectsDirectory(projectPath);
     if (!fs.existsSync(sobjectFolder)) {
-      forceGenerateFauxClassesCreate(SObjectRefreshSource.Startup).catch(e => {
+      forceRefreshSObjects(SObjectRefreshSource.Startup).catch(e => {
         throw e;
       });
     }
@@ -256,7 +256,7 @@ export async function checkSObjectsAndRefresh(projectPath: string) {
           undefined
         );
         try {
-          await forceGenerateFauxClassesCreate(SObjectRefreshSource.StartupMin);
+          await forceRefreshSObjects(SObjectRefreshSource.StartupMin);
         } catch (e) {
           telemetryService.sendException(e.name, e.message);
           throw e;
