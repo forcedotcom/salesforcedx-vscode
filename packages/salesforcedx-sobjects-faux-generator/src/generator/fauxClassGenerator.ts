@@ -22,6 +22,7 @@ import {
 import {
   ChildRelationship,
   Field,
+  MAX_BATCH_REQUEST_SIZE,
   SObject,
   SObjectCategory,
   SObjectDescribe
@@ -174,11 +175,8 @@ export class FauxClassGenerator {
         username: await ConfigUtil.getUsername(projectPath)
       })
     });
-
     const describe = new SObjectDescribe(connection);
-    const standardSObjects: SObject[] = [];
-    const customSObjects: SObject[] = [];
-    let fetchedSObjects: SObject[] = [];
+
     let sobjects: string[] = [];
     try {
       sobjects = await describe.describeGlobal(projectPath, type);
@@ -192,26 +190,24 @@ export class FauxClassGenerator {
 
     const filteredSObjects = this.filterSObjects(sobjects, type, source);
 
-    let j = 0;
-    while (j < filteredSObjects.length) {
-      try {
-        if (
-          this.cancellationToken &&
-          this.cancellationToken.isCancellationRequested
-        ) {
-          return this.cancelExit();
-        }
-        fetchedSObjects = fetchedSObjects.concat(
-          await describe.describeSObjectBatch(filteredSObjects, j)
-        );
-        j = fetchedSObjects.length;
-      } catch (errorMessage) {
-        return this.errorExit(
-          nls.localize('failure_in_sobject_describe_text', errorMessage)
-        );
-      }
+    if (
+      this.cancellationToken &&
+      this.cancellationToken.isCancellationRequested
+    ) {
+      return this.cancelExit();
     }
 
+    let fetchedSObjects: SObject[] = [];
+    try {
+      fetchedSObjects = await this.fetchObjects(describe, filteredSObjects);
+    } catch (errorMessage) {
+      return this.errorExit(
+        nls.localize('failure_in_sobject_describe_text', errorMessage)
+      );
+    }
+
+    const standardSObjects: SObject[] = [];
+    const customSObjects: SObject[] = [];
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < fetchedSObjects.length; i++) {
       if (fetchedSObjects[i].custom) {
@@ -274,30 +270,25 @@ export class FauxClassGenerator {
         username: await ConfigUtil.getUsername(projectPath)
       })
     });
-
     const describe = new SObjectDescribe(connection);
-    const standardSObjects: SObject[] = [];
-    let fetchedSObjects: SObject[] = [];
-    let j = 0;
-    while (j < startupMinSObjects.length) {
-      try {
-        if (
-          this.cancellationToken &&
-          this.cancellationToken.isCancellationRequested
-        ) {
-          return this.cancelExit();
-        }
-        fetchedSObjects = fetchedSObjects.concat(
-          await describe.describeSObjectBatch(startupMinSObjects, j)
-        );
-        j = fetchedSObjects.length;
-      } catch (errorMessage) {
-        return this.errorExit(
-          nls.localize('failure_in_sobject_describe_text', errorMessage)
-        );
-      }
+
+    if (
+      this.cancellationToken &&
+      this.cancellationToken.isCancellationRequested
+    ) {
+      return this.cancelExit();
     }
 
+    let fetchedSObjects: SObject[] = [];
+    try {
+      fetchedSObjects = await this.fetchObjects(describe, startupMinSObjects);
+    } catch (errorMessage) {
+      return this.errorExit(
+        nls.localize('failure_in_sobject_describe_text', errorMessage)
+      );
+    }
+
+    const standardSObjects: SObject[] = [];
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < fetchedSObjects.length; i++) {
       standardSObjects.push(fetchedSObjects[i]);
@@ -315,6 +306,22 @@ export class FauxClassGenerator {
     }
 
     return this.successExit();
+  }
+
+  private async fetchObjects(
+    describe: SObjectDescribe,
+    types: string[]
+  ): Promise<SObject[]> {
+    const batchSize = MAX_BATCH_REQUEST_SIZE;
+    const requests = [];
+    for (let i = 0; i < types.length; i += batchSize) {
+      const batchTypes = types.slice(i, i + batchSize);
+      requests.push(describe.describeSObjectBatch(batchTypes));
+    }
+
+    const results = await Promise.all(requests);
+    const fetchedSObjects = ([] as SObject[]).concat(...results);
+    return fetchedSObjects;
   }
 
   // VisibleForTesting
