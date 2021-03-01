@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const { runTests } = require('vscode-test');
+const path = require('path');
 
 /**
  * A wrapper utlity for running VS Code integration tests. If a correspondent env variable is specified,
@@ -9,7 +10,7 @@ const { runTests } = require('vscode-test');
  * @param {string} extensionTestsPath Location of the tests to execute
  * @param {string} testWorkspace Location of a workspace to open for the test instance
  */
-function runIntegrationTests({
+async function runIntegrationTests({
   version,
   extensionDevelopmentPath,
   extensionTestsPath,
@@ -20,7 +21,8 @@ function runIntegrationTests({
       CODE_VERSION,
       CODE_TESTS_PATH,
       CODE_EXTENSIONS_PATH,
-      CODE_TESTS_WORKSPACE
+      CODE_TESTS_WORKSPACE,
+      CODE_LOGS
     } = process.env;
 
     const _version = CODE_VERSION || version;
@@ -28,8 +30,13 @@ function runIntegrationTests({
       CODE_EXTENSIONS_PATH || extensionDevelopmentPath;
     const _extensionTestsPath = CODE_TESTS_PATH || extensionTestsPath;
     const _testWorkspace = CODE_TESTS_WORKSPACE || testWorkspace;
-    const launchArgs = _testWorkspace && [_testWorkspace];
-    runTests({
+    const _vscodeLogDir = CODE_LOGS || path.join(process.cwd(), 'vscode-logs');
+    const launchArgs = _testWorkspace && [
+      _testWorkspace,
+      '--crash-reporter-directory',
+      _vscodeLogDir
+    ];
+    await runTests({
       version: _version,
       extensionDevelopmentPath: _extensionDevelopmentPath,
       extensionTestsPath: _extensionTestsPath,

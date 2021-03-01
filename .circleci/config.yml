@@ -241,6 +241,21 @@ commands:
       - store_artifacts:
           path: ./<< parameters.location >>
 
+  stage-and-store-crash-logs:
+    shell: bash.exe
+    parameters:
+      location:
+        type: string
+        default: 'vscode-logs'
+    steps:
+      - run:
+          name: 'Staging crash logs (if generated)'
+          command: |
+            mkdir << parameters.location >>
+            find packages/*/vscode-logs -name "*.dmp" -type f -exec cp {} ./<< parameters.location >> \;
+      - store_artifacts:
+          path: ./<< parameters.location >>
+
   updating-sha-for-publish:
     steps:
       - run:
@@ -357,6 +372,7 @@ jobs:
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/
+      - stage-and-store-crash-logs
       - run:
           name: 'Generate code coverage'
           shell: bash.exe
