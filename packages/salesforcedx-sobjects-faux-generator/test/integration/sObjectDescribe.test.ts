@@ -9,8 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
-import { SObjectCategory } from '../../src/describe';
-import { SObjectDescribe } from '../../src/describe/sObjectDescribe';
+import { SObjectCategory, SObjectDescribe } from '../../src/describe';
 import { mockDescribeResponse } from './mockData';
 
 const CONNECTION_DATA = {
