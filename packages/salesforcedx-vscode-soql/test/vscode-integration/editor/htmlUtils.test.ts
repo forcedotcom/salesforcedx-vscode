@@ -16,7 +16,7 @@ describe('html utilities', () => {
   const pathToLwcDist = SOQL_BUILDER_UI_PATH;
   const html = `
   <!-- CSP TAG -->'
-  <script src="./0.app.js"></script><script src="./app.js"></script>
+  <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
   `;
 
   beforeEach(() => {

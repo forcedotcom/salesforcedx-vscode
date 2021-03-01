@@ -17,10 +17,10 @@ import * as vscode from 'vscode';
 export class HtmlUtils {
   /**
    * This regex will match tags in a string like this
-   * <script src="./0.app.js"></script><script src="./app.js"></script>
+   * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
    * And store just the filename section of the script tag as group[1]
    */
-  protected static readonly scriptRegex = /script\ssrc=\"\.\/(?<app>[^\"]*app.js)\"/g;
+  protected static readonly scriptRegex = /script defer="defer"\ssrc=\"\.\/(?<app>[^\"]*app.js)\"/g;
 
   /**
    *
@@ -44,7 +44,7 @@ export class HtmlUtils {
    * vscode uses internally.
    *
    * Initial html script tags look like this
-   * <script src="./0.app.js"></script><script src="./app.js"></script>
+   * <script defer="defer" src="./0.app.js"></script><script defer="defer" src="./app.js"></script>
    *
    * Each matched script tag gets transformed into into a vscode specific url
    * <script src="vscode-webview-resource:0.app.js"><script src="vscode-webview-resource:app.js">
