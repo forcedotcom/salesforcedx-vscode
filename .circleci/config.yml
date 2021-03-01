@@ -242,7 +242,6 @@ commands:
           path: ./<< parameters.location >>
 
   stage-and-store-crash-logs:
-    shell: bash.exe
     parameters:
       location:
         type: string
@@ -250,6 +249,7 @@ commands:
     steps:
       - run:
           name: 'Staging crash logs (if generated)'
+          shell: bash.exe
           command: |
             mkdir << parameters.location >>
             find packages/*/vscode-logs -name "*.dmp" -type f -exec cp {} ./<< parameters.location >> \;
