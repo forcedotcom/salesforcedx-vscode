@@ -27,10 +27,11 @@
   "dependencies": {
     "@salesforce/apex-node": "0.1.15",
     "@salesforce/core": "2.13.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "51.2.0",
     "@salesforce/salesforcedx-utils-vscode": "51.2.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "1.1.17",
-    "@salesforce/templates": "50.7.0",
+    "@salesforce/templates": "51.3.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -542,6 +543,10 @@
         {
           "command": "sfdx.force.function.stop",
           "when": "sfdx:functions_enabled"
+        },
+        {
+          "command": "sfdx.force.internal.refreshsobjects",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -825,6 +830,10 @@
       {
         "command": "sfdx.force.function.stop",
         "title": "%force_function_stop%"
+      },
+      {
+        "command": "sfdx.force.internal.refreshsobjects",
+        "title": "%force_sobjects_refresh%"
       }
     ],
     "configuration": {
@@ -875,6 +884,11 @@
           "type": "boolean",
           "default": false,
           "description": "%experimental_support_functions%"
+        },
+        "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
+          "type": "boolean",
+          "default": false,
+          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },
