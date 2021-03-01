@@ -6,10 +6,11 @@
  */
 
 export {
-  SObjectCategory,
-  SObjectDescribe,
-  SObject,
   ChildRelationship,
   Field,
-  ForceListSObjectSchemaExecutor
+  ForceListSObjectSchemaExecutor,
+  MAX_BATCH_REQUEST_SIZE,
+  SObject,
+  SObjectCategory,
+  SObjectDescribe
 } from './sObjectDescribe';
