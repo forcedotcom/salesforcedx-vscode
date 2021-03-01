@@ -10,7 +10,7 @@ import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { parseHeaderComments } from '@salesforce/soql-language-server/lib/soqlComments';
+import { soqlComments } from '@salesforce/soql-common';
 export class QueryRunner {
   constructor(private connection: Connection) {}
 
@@ -18,7 +18,7 @@ export class QueryRunner {
     queryText: string,
     options = { showErrors: true }
   ): Promise<QueryResult<JsonMap>> {
-    const pureSOQLText = parseHeaderComments(queryText).soqlText;
+    const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
 
     try {
       const rawQueryData = (await this.connection.query(
