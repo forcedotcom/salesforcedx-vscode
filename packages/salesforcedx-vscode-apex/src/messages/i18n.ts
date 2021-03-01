@@ -53,7 +53,6 @@ export const messages = {
   force_apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
   force_apex_test_run_text: 'SFDX: Run Apex Tests',
-  force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   force_sobjects_no_refresh_if_already_active_error_text:
     'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_test_view_loading_message: 'Loading Apex tests ...',
@@ -63,9 +62,6 @@ export const messages = {
     "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
   java_runtime_missing_text:
     'Java runtime could not be located. Set one using the salesforcedx-vscode-apex.java.home VS Code setting. For more information, go to [Set Your Java Version](%s).',
-  sobject_refresh_all: 'All SObjects',
-  sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects',
   sobjects_refresh_needed:
     "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions',
