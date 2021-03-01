@@ -179,7 +179,7 @@ export class FauxClassGenerator {
 
     let sobjects: string[] = [];
     try {
-      sobjects = await describe.describeGlobal(projectPath, type);
+      sobjects = await describe.describeGlobal(type);
     } catch (e) {
       const err = JSON.parse(e);
       return this.errorExit(

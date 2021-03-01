@@ -6,15 +6,11 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { createSandbox, stub } from 'sinon';
-import {
-  ForceListSObjectSchemaExecutor,
-  SObjectCategory,
-  SObjectDescribe
-} from '../../src/describe/sObjectDescribe';
+import { createSandbox } from 'sinon';
+import { SObjectCategory } from '../../src/describe';
+import { SObjectDescribe } from '../../src/describe/sObjectDescribe';
 import { mockDescribeResponse } from './mockData';
 
 const CONNECTION_DATA = {
@@ -28,6 +24,7 @@ const env = createSandbox();
 describe('Fetch sObjects', () => {
   let connection: Connection;
   let sobjectdescribe: SObjectDescribe;
+  let describeGlobalStub: any;
 
   beforeEach(async () => {
     env.stub(AuthInfo, 'create').returns({
@@ -39,36 +36,78 @@ describe('Fetch sObjects', () => {
       })
     });
     sobjectdescribe = new SObjectDescribe(connection);
+    describeGlobalStub = env.stub(connection, 'describeGlobal');
   });
 
   afterEach(() => env.restore());
 
-  it('Should build the schema sobject list command', async () => {
-    const sobjectType = 'all';
-    const schemaSObjectList = new ForceListSObjectSchemaExecutor();
-    const schemaSObjectListCommand = schemaSObjectList.build(sobjectType);
-
-    expect(schemaSObjectListCommand.toCommand()).to.equal(
-      `sfdx force:schema:sobject:list --sobjecttypecategory ${sobjectType} --json --loglevel fatal`
+  it('Should throw exception when describeGlobal fails', async () => {
+    describeGlobalStub.throws(
+      new Error('Unexpected error when running describeGlobal')
     );
+    try {
+      await sobjectdescribe.describeGlobal(SObjectCategory.ALL);
+      fail('test should have failed with an api exception');
+    } catch (e) {
+      expect(e.message).contains(
+        'Unexpected error when running describeGlobal'
+      );
+    }
   });
 
-  it('Should return sobjects when running describeGlobal', async () => {
-    const responseData = {
-      status: 0,
-      result: ['MyCustomObject2__c', 'MyCustomObject3__c', 'MyCustomObject__c']
-    };
-    const cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult').returns(
-      JSON.stringify(responseData)
-    );
-    const execStub = stub(ForceListSObjectSchemaExecutor.prototype, 'execute');
-    const result = await sobjectdescribe.describeGlobal(
-      process.cwd(),
+  it('Should return all sobjects when running describeGlobal', async () => {
+    describeGlobalStub.resolves({
+      sobjects: [
+        { custom: true, name: 'MyCustomObj1' },
+        { custom: true, name: 'MyCustomObj2' },
+        { custom: false, name: 'Account' },
+        { custom: false, name: 'Contact' }
+      ]
+    });
+
+    const results = await sobjectdescribe.describeGlobal(SObjectCategory.ALL);
+    expect(results.length).to.eql(4);
+    expect(results).to.deep.equal([
+      'MyCustomObj1',
+      'MyCustomObj2',
+      'Account',
+      'Contact'
+    ]);
+  });
+
+  it('Should return only custom sobjects when running describeGlobal', async () => {
+    describeGlobalStub.resolves({
+      sobjects: [
+        { custom: true, name: 'MyCustomObj1' },
+        { custom: true, name: 'MyCustomObj2' },
+        { custom: false, name: 'Account' },
+        { custom: false, name: 'Contact' }
+      ]
+    });
+
+    const results = await sobjectdescribe.describeGlobal(
       SObjectCategory.CUSTOM
     );
-    expect(result).to.deep.equal(responseData.result);
-    cmdOutputStub.restore();
-    execStub.restore();
+    expect(results.length).to.eql(2);
+    expect(results).to.deep.equal(['MyCustomObj1', 'MyCustomObj2']);
+  });
+
+  it('Should return only standard sobjects when running describeGlobal', async () => {
+    describeGlobalStub.resolves({
+      sobjects: [
+        { custom: true, name: 'MyCustomObj1' },
+        { custom: true, name: 'MyCustomObj2' },
+        { custom: false, name: 'Account' },
+        { custom: false, name: 'Contact' },
+        { custom: false, name: 'Lead' }
+      ]
+    });
+
+    const results = await sobjectdescribe.describeGlobal(
+      SObjectCategory.STANDARD
+    );
+    expect(results.length).to.eql(3);
+    expect(results).to.deep.equal(['Account', 'Contact', 'Lead']);
   });
 
   it('Should build the sobject describe url', () => {
