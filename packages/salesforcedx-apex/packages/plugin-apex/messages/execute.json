@@ -4,6 +4,6 @@
     "apexCodeFileDescription": "path to a local file that contains Apex code",
     "logLevelDescription": "logging level for this command invocation",
     "logLevelLongDescription": "The logging level for this command invocation. Logs are stored in $HOME/.sfdx/sfdx.log.",
-    "execute_compile_success": "Compiled successfully.",
-    "execute_runtime_success": "Executed successfully."
+    "executeCompileSuccess": "Compiled successfully.",
+    "executeRuntimeSuccess": "Executed successfully."
 }

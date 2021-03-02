@@ -48,7 +48,7 @@ export default class List extends SfdxCommand {
       const logRecords = await logService.getLogRecords();
 
       if (logRecords.length === 0) {
-        this.ux.log(messages.getMessage('no_debug_logs_found'));
+        this.ux.log(messages.getMessage('noDebugLogsFound'));
         return [];
       }
 
@@ -85,43 +85,43 @@ export default class List extends SfdxCommand {
     const tableResult = tb.createTable(logRowArray, [
       {
         key: 'app',
-        label: messages.getMessage('app_col_header')
+        label: messages.getMessage('appColHeader')
       },
       {
         key: 'duration',
-        label: messages.getMessage('duration_col_header')
+        label: messages.getMessage('durationColHeader')
       },
       {
         key: 'id',
-        label: messages.getMessage('id_col_header')
+        label: messages.getMessage('idColHeader')
       },
       {
         key: 'location',
-        label: messages.getMessage('location_col_header')
+        label: messages.getMessage('locationColHeader')
       },
       {
         key: 'size',
-        label: messages.getMessage('size_col_header')
+        label: messages.getMessage('sizeColHeader')
       },
       {
         key: 'user',
-        label: messages.getMessage('user_col_header')
+        label: messages.getMessage('userColHeader')
       },
       {
         key: 'operation',
-        label: messages.getMessage('operation_col_header')
+        label: messages.getMessage('operationColHeader')
       },
       {
         key: 'request',
-        label: messages.getMessage('request_col_header')
+        label: messages.getMessage('requestColHeader')
       },
       {
         key: 'time',
-        label: messages.getMessage('time_col_header')
+        label: messages.getMessage('timeColHeader')
       },
       {
         key: 'status',
-        label: messages.getMessage('status_col_header')
+        label: messages.getMessage('statusColHeader')
       }
     ]);
     return tableResult;

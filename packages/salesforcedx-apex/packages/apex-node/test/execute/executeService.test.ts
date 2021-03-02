@@ -229,7 +229,7 @@ describe('Apex Execute Tests', async () => {
       await apexExecute.executeAnonymous({ apexFilePath: apexFile });
       assert.fail('Expected an error');
     } catch (e) {
-      assert.equal(nls.localize('file_not_found_error', apexFile), e.message);
+      assert.equal(nls.localize('fileNotFoundError', apexFile), e.message);
     }
   });
 
@@ -276,7 +276,7 @@ describe('Apex Execute Tests', async () => {
       await executeService.executeAnonymous({});
       assert.fail();
     } catch (e) {
-      assert.equal(nls.localize('option_exec_anon_error'), e.message);
+      assert.equal(nls.localize('optionExecAnonError'), e.message);
     }
   });
 
@@ -303,7 +303,7 @@ describe('Apex Execute Tests', async () => {
       await executeService.getUserInput();
     } catch (e) {
       assert.equal(
-        nls.localize('unexpected_exec_anon_input_error', errorText),
+        nls.localize('unexpectedExecAnonInputError', errorText),
         e.message
       );
     }
@@ -339,7 +339,7 @@ describe('Apex Execute Tests', async () => {
       const executeService = new ExecuteService(mockConnection);
       await executeService.getUserInput();
     } catch (e) {
-      assert.equal(nls.localize('exec_anon_input_timeout'), e.message);
+      assert.equal(nls.localize('execAnonInputTimeout'), e.message);
     }
   });
 });

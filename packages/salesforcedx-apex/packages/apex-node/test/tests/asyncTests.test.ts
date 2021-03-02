@@ -339,7 +339,7 @@ describe('Run Apex tests asynchronously', () => {
       fail('Test should have thrown an error');
     } catch (e) {
       expect(e.message).to.equal(
-        nls.localize('no_test_result_summary', testRunId)
+        nls.localize('noTestResultSummary', testRunId)
       );
     }
   });

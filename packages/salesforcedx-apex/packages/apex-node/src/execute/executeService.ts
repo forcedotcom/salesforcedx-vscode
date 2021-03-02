@@ -49,7 +49,7 @@ export class ExecuteService {
           count += 1;
         } else {
           throw new Error(
-            nls.localize('unexpected_execute_command_error', e.message)
+            nls.localize('unexpectedExecuteCommandError', e.message)
           );
         }
       }
@@ -64,26 +64,26 @@ export class ExecuteService {
     } else if (options.userInput) {
       return await this.getUserInput();
     } else {
-      throw new Error(nls.localize('option_exec_anon_error'));
+      throw new Error(nls.localize('optionExecAnonError'));
     }
   }
 
   public readApexFile(filepath: string): string {
     if (!existsSync(filepath)) {
-      throw new Error(nls.localize('file_not_found_error', filepath));
+      throw new Error(nls.localize('fileNotFoundError', filepath));
     }
     return readFileSync(filepath, 'utf8');
   }
 
   public async getUserInput(): Promise<string> {
-    process.stdout.write(nls.localize('exec_anon_input_prompt'));
+    process.stdout.write(nls.localize('execAnonInputPrompt'));
     return new Promise<string>((resolve, reject) => {
       const readInterface = readline.createInterface(
         process.stdin,
         process.stdout
       );
       const timeout = setTimeout(() => {
-        reject(new Error(nls.localize('exec_anon_input_timeout')));
+        reject(new Error(nls.localize('execAnonInputTimeout')));
         readInterface.close();
       }, 60000);
 
@@ -97,9 +97,7 @@ export class ExecuteService {
       });
       readInterface.on('error', (err: Error) => {
         reject(
-          new Error(
-            nls.localize('unexpected_exec_anon_input_error', err.message)
-          )
+          new Error(nls.localize('unexpectedExecAnonInputError', err.message))
         );
       });
     });

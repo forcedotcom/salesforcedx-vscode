@@ -75,10 +75,10 @@ export default class Execute extends SfdxCommand {
     let outputText = '';
     if (response.success) {
       outputText += `${colorSuccess(
-        messages.getMessage('execute_compile_success')
+        messages.getMessage('executeCompileSuccess')
       )}\n`;
       outputText += `${colorSuccess(
-        messages.getMessage('execute_runtime_success')
+        messages.getMessage('executeRuntimeSuccess')
       )}\n`;
       outputText += `\n${response.logs}`;
     } else {
@@ -91,7 +91,7 @@ export default class Execute extends SfdxCommand {
         outputText += colorError(`Error: ${diagnostic.compileProblem}\n`);
       } else {
         outputText += `${colorSuccess(
-          messages.getMessage('execute_compile_success')
+          messages.getMessage('executeCompileSuccess')
         )}\n`;
         outputText += colorError(`Error: ${diagnostic.exceptionMessage}\n`);
         outputText += colorError(`Error: ${diagnostic.exceptionStackTrace}\n`);

@@ -86,11 +86,11 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: nls.localize('name_col_header')
+          label: nls.localize('nameColHeader')
         },
-        { key: 'value', label: nls.localize('value_col_header') }
+        { key: 'value', label: nls.localize('valueColHeader') }
       ],
-      nls.localize('test_summary_header')
+      nls.localize('testSummaryHeader')
     );
     return summaryTable;
   }
@@ -126,13 +126,13 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: nls.localize('test_name_col_header')
+          label: nls.localize('testNameColHeader')
         },
-        { key: 'outcome', label: nls.localize('outcome_col_header') },
-        { key: 'msg', label: nls.localize('msg_col_header') },
-        { key: 'runtime', label: nls.localize('runtime_col_header') }
+        { key: 'outcome', label: nls.localize('outcomeColHeader') },
+        { key: 'msg', label: nls.localize('msgColHeader') },
+        { key: 'runtime', label: nls.localize('runtimeColHeader') }
       ],
-      nls.localize('test_results_header')
+      nls.localize('testResultsHeader')
     );
     return testResultTable;
   }
@@ -174,24 +174,24 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: nls.localize('test_name_col_header')
+          label: nls.localize('testNameColHeader')
         },
         {
           key: 'coveredClassName',
-          label: nls.localize('class_tested_header')
+          label: nls.localize('classTestedHeader')
         },
         {
           key: 'outcome',
-          label: nls.localize('outcome_col_header')
+          label: nls.localize('outcomeColHeader')
         },
         {
           key: 'coveredClassPercentage',
-          label: nls.localize('percent_col_header')
+          label: nls.localize('percentColHeader')
         },
-        { key: 'msg', label: nls.localize('msg_col_header') },
-        { key: 'runtime', label: nls.localize('runtime_col_header') }
+        { key: 'msg', label: nls.localize('msgColHeader') },
+        { key: 'runtime', label: nls.localize('runtimeColHeader') }
       ],
-      nls.localize('detailed_code_cov_header', [testResult.summary.testRunId])
+      nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
     );
     return detailedCovTable;
   }
@@ -219,18 +219,18 @@ export class HumanReporter {
       [
         {
           key: 'name',
-          label: nls.localize('classes_col_header')
+          label: nls.localize('classesColHeader')
         },
         {
           key: 'percent',
-          label: nls.localize('percent_col_header')
+          label: nls.localize('percentColHeader')
         },
         {
           key: 'uncoveredLines',
-          label: nls.localize('uncovered_lines_col_header')
+          label: nls.localize('uncoveredLinesColHeader')
         }
       ],
-      nls.localize('code_cov_header')
+      nls.localize('codeCovHeader')
     );
     return codeCovTable;
   }

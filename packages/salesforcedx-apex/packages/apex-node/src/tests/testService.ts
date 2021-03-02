@@ -407,7 +407,7 @@ export class TestService {
     )) as ApexTestRunResult;
 
     if (testRunSummaryResults.records.length === 0) {
-      throw new Error(nls.localize('no_test_result_summary', testRunId));
+      throw new Error(nls.localize('noTestResultSummary', testRunId));
     }
 
     const summaryRecord = testRunSummaryResults.records[0];

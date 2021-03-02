@@ -88,7 +88,7 @@ describe('Streaming API Client', () => {
       await streamClient.init();
       fail('Test should have thrown an error');
     } catch (e) {
-      expect(e.message).to.equal(nls.localize('no_access_token_found'));
+      expect(e.message).to.equal(nls.localize('noAccessTokenFound'));
     }
   });
 
@@ -169,7 +169,7 @@ describe('Streaming API Client', () => {
         `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testResultMsg.sobject.Id}'`
       );
       expect(e.message).to.equal(
-        nls.localize('no_test_queue_results', testResultMsg.sobject.Id)
+        nls.localize('noTestQueueResults', testResultMsg.sobject.Id)
       );
     }
   });

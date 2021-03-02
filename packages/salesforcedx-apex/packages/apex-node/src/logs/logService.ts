@@ -27,7 +27,7 @@ export class LogService {
         typeof options.numberOfLogs === 'number'
       )
     ) {
-      throw new Error(nls.localize('missing_info_log_error'));
+      throw new Error(nls.localize('missingInfoLogError'));
     }
 
     if (typeof options.numberOfLogs === 'number') {
@@ -66,7 +66,7 @@ export class LogService {
 
     if (typeof numberOfLogs === 'number') {
       if (numberOfLogs <= 0) {
-        throw new Error(nls.localize('num_logs_error'));
+        throw new Error(nls.localize('numLogsError'));
       }
       numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
       query += ` LIMIT ${numberOfLogs}`;

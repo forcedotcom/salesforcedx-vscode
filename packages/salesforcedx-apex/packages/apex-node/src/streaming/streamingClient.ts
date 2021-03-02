@@ -47,11 +47,11 @@ export class StreamingClient {
     });
 
     this.client.on('transport:up', () => {
-      console.log(nls.localize('streaming_transport_up'));
+      console.log(nls.localize('streamingTransportUp'));
     });
 
     this.client.on('transport:down', () => {
-      console.log(nls.localize('streaming_transport_down'));
+      console.log(nls.localize('streamingTransportDown'));
     });
 
     this.client.addExtension({
@@ -63,10 +63,10 @@ export class StreamingClient {
           if (message.channel === '/meta/handshake') {
             this.client.disconnect();
             throw new Error(
-              nls.localize('streaming_handshake_fail', message.error)
+              nls.localize('streamingHandshakeFail', message.error)
             );
           }
-          console.log(nls.localize('streaming_failure', message.error));
+          console.log(nls.localize('streamingFailure', message.error));
           this.client.disconnect();
         }
         callback(message);
@@ -83,7 +83,7 @@ export class StreamingClient {
     if (accessToken) {
       this.client.setHeader('Authorization', `OAuth ${accessToken}`);
     } else {
-      throw new Error(nls.localize('no_access_token_found'));
+      throw new Error(nls.localize('noAccessTokenFound'));
     }
   }
 
@@ -155,7 +155,7 @@ export class StreamingClient {
       return result;
     }
 
-    console.log(nls.localize('streaming_processing_test_run', testRunId));
+    console.log(nls.localize('streamingProcessingTestRun', testRunId));
     return null;
   }
 
@@ -168,7 +168,7 @@ export class StreamingClient {
     )) as ApexTestQueueItem;
 
     if (result.records.length === 0) {
-      throw new Error(nls.localize('no_test_queue_results', testRunId));
+      throw new Error(nls.localize('noTestQueueResults', testRunId));
     }
 
     for (let i = 0; i < result.records.length; i++) {
