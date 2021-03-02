@@ -8,8 +8,15 @@
 import { Connection } from '@salesforce/core';
 import { DescribeGlobalResult, DescribeGlobalSObjectResult } from 'jsforce';
 import { CLIENT_ID } from '../constants';
-import { BatchRequest, BatchResponse, SObject, SObjectCategory } from './types';
+import {
+  BatchRequest,
+  BatchResponse,
+  SObject,
+  SObjectCategory,
+  SObjectRefreshSource
+} from '../types';
 export const MAX_BATCH_REQUEST_SIZE = 25;
+
 export class SObjectDescribe {
   private connection: Connection;
   private readonly servicesPath: string = 'services/data';
@@ -29,22 +36,39 @@ export class SObjectDescribe {
    * @param type SObjectCategory
    * @returns string[] containing the sobject names
    */
-  public async describeGlobal(type: SObjectCategory): Promise<string[]> {
+  public async describeGlobal(
+    type: SObjectCategory,
+    source: SObjectRefreshSource
+  ): Promise<string[]> {
     const requestedDescriptions: string[] = [];
     const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
 
     allDescriptions.sobjects.forEach((sobject: DescribeGlobalSObjectResult) => {
       const isCustom = sobject.custom === true;
       if (
-        type === SObjectCategory.ALL ||
-        (type === SObjectCategory.CUSTOM && isCustom) ||
-        (type === SObjectCategory.STANDARD && !isCustom)
+        type === SObjectCategory.ALL &&
+        source === SObjectRefreshSource.Manual
+      ) {
+        requestedDescriptions.push(sobject.name);
+      } else if (
+        ((type === SObjectCategory.CUSTOM && isCustom) ||
+          (type === SObjectCategory.STANDARD && !isCustom)) &&
+        this.isRequiredSObject(sobject.name)
       ) {
         requestedDescriptions.push(sobject.name);
       }
     });
 
     return requestedDescriptions;
+  }
+
+  private isRequiredSObject(sobject: string): boolean {
+    // Ignore all sobjects that end with Share or History or Feed or Event
+    return !/Share$|History$|Feed$|.+Event$/.test(sobject);
+  }
+
+  public getVersion(): string {
+    return `${this.versionPrefix}${this.targetVersion}`;
   }
 
   public buildSObjectDescribeURL(sObjectName: string): string {
@@ -92,7 +116,9 @@ export class SObjectDescribe {
     }) as unknown) as BatchResponse;
   }
 
-  public async describeSObjectBatch(types: string[]): Promise<SObject[]> {
+  public async describeSObjectBatchRequest(
+    types: string[]
+  ): Promise<SObject[]> {
     try {
       const batchRequest = this.buildBatchRequestBody(types);
       const batchResponse = await this.runRequest(batchRequest);
@@ -115,7 +141,16 @@ export class SObjectDescribe {
     }
   }
 
-  public getVersion(): string {
-    return `${this.versionPrefix}${this.targetVersion}`;
+  public async fetchObjects(types: string[]): Promise<SObject[]> {
+    const batchSize = MAX_BATCH_REQUEST_SIZE;
+    const requests = [];
+    for (let i = 0; i < types.length; i += batchSize) {
+      const batchTypes = types.slice(i, i + batchSize);
+      requests.push(this.describeSObjectBatchRequest(batchTypes));
+    }
+
+    const results = await Promise.all(requests);
+    const fetchedSObjects = ([] as SObject[]).concat(...results);
+    return fetchedSObjects;
   }
 }

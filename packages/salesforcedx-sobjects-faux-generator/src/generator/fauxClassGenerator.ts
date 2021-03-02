@@ -24,16 +24,16 @@ import {
   SUCCESS_CODE,
   TOOLS_DIR
 } from '../constants';
+import { SObjectDescribe } from '../describe';
+import { nls } from '../messages';
 import {
   ChildRelationship,
   Field,
-  MAX_BATCH_REQUEST_SIZE,
   SObject,
   SObjectCategory,
-  SObjectDescribe
-} from '../describe';
-import { ConfigUtil } from '../describe/configUtil';
-import { nls } from '../messages';
+  SObjectRefreshSource
+} from '../types';
+import { ConfigUtil } from './configUtil';
 
 export const INDENT = '    ';
 const MODIFIER = 'global';
@@ -57,12 +57,6 @@ const startupMinSObjects = [
 ];
 export interface CancellationToken {
   isCancellationRequested: boolean;
-}
-
-export enum SObjectRefreshSource {
-  Manual = 'manual',
-  Startup = 'startup',
-  StartupMin = 'startupmin'
 }
 
 export interface FieldDeclaration {
@@ -184,7 +178,7 @@ export class FauxClassGenerator {
 
     let sobjects: string[] = [];
     try {
-      sobjects = await describe.describeGlobal(type);
+      sobjects = await describe.describeGlobal(type, source);
     } catch (e) {
       const err = JSON.parse(e);
       return this.errorExit(
@@ -192,8 +186,6 @@ export class FauxClassGenerator {
         err.stack
       );
     }
-
-    const filteredSObjects = this.filterSObjects(sobjects, type, source);
 
     if (
       this.cancellationToken &&
@@ -204,7 +196,7 @@ export class FauxClassGenerator {
 
     let fetchedSObjects: SObject[] = [];
     try {
-      fetchedSObjects = await this.fetchObjects(describe, filteredSObjects);
+      fetchedSObjects = await describe.fetchObjects(sobjects);
     } catch (errorMessage) {
       return this.errorExit(
         nls.localize('failure_in_sobject_describe_text', errorMessage)
@@ -286,7 +278,7 @@ export class FauxClassGenerator {
 
     let fetchedSObjects: SObject[] = [];
     try {
-      fetchedSObjects = await this.fetchObjects(describe, startupMinSObjects);
+      fetchedSObjects = await describe.fetchObjects(startupMinSObjects);
     } catch (errorMessage) {
       return this.errorExit(
         nls.localize('failure_in_sobject_describe_text', errorMessage)
@@ -311,44 +303,6 @@ export class FauxClassGenerator {
     }
 
     return this.successExit();
-  }
-
-  private async fetchObjects(
-    describe: SObjectDescribe,
-    types: string[]
-  ): Promise<SObject[]> {
-    const batchSize = MAX_BATCH_REQUEST_SIZE;
-    const requests = [];
-    for (let i = 0; i < types.length; i += batchSize) {
-      const batchTypes = types.slice(i, i + batchSize);
-      requests.push(describe.describeSObjectBatch(batchTypes));
-    }
-
-    const results = await Promise.all(requests);
-    const fetchedSObjects = ([] as SObject[]).concat(...results);
-    return fetchedSObjects;
-  }
-
-  // VisibleForTesting
-  public filterSObjects(
-    sobjects: string[],
-    category: SObjectCategory,
-    source: SObjectRefreshSource
-  ): string[] {
-    if (
-      category === SObjectCategory.ALL &&
-      source === SObjectRefreshSource.Manual
-    ) {
-      // manually run by the user, does not exclude any sObjects
-      return sobjects;
-    }
-    // in all other cases we clean up the list
-    return sobjects.filter(this.isRequiredSObject);
-  }
-
-  private isRequiredSObject(sobject: string): boolean {
-    // Ignore all sobjects that end with Share or History or Feed or Event
-    return !/Share$|History$|Feed$|.+Event$/.test(sobject);
   }
 
   // VisibleForTesting
