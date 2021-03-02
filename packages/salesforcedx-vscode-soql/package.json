@@ -39,7 +39,7 @@
     "@salesforce/soql-builder-ui": "0.1.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
-    "@salesforce/soql-language-server": "0.6.0",
+    "@salesforce/soql-language-server": "0.6.2",
     "@salesforce/soql-model": "0.2.1",
     "debounce": "^1.2.0",
     "jsforce": "^1.10.0",
