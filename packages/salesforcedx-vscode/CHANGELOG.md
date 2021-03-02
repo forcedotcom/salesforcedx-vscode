@@ -1,26 +1,22 @@
-# 51.3.0 - Month DD, YYYY
+# 51.3.0 - March 3, 2021
 
 ## Added
 
 #### salesforcedx-sobjects-faux-generator
 
-- Perform concurrent definition retrieval ([PR #2997](https://github.com/forcedotcom/salesforcedx-vscode/pull/2997))
+- Improved sObject refresh performance ([PR #2997](https://github.com/forcedotcom/salesforcedx-vscode/pull/2997))
+
+### docs
+
+- Add learning map to additional resources ([PR #2989](https://github.com/forcedotcom/salesforcedx-vscode/pull/2989))
+
+- Update SOQL docs for saving query results ([PR #2988](https://github.com/forcedotcom/salesforcedx-vscode/pull/2988))
 
 ## Fixed
 
-#### docs
-
-- [SOQL Builder doc] Save as doc updates ([PR #2988](https://github.com/forcedotcom/salesforcedx-vscode/pull/2988))
-
-- [DOCS] add learning map to addl resources ([PR #2989](https://github.com/forcedotcom/salesforcedx-vscode/pull/2989))
-
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Change debug test icon ([PR #2978](https://github.com/forcedotcom/salesforcedx-vscode/pull/2978))
-
-#### salesforcedx-vscode-core
-
-- Moving sobject-refresh command & automatic sobject refresh code to core ([PR #2991](https://github.com/forcedotcom/salesforcedx-vscode/pull/2991))
+- Fix debug test icon color to be friendly for light themes ([PR #2978](https://github.com/forcedotcom/salesforcedx-vscode/pull/2978))
 
 # 51.2.0 - February 24, 2021
 
