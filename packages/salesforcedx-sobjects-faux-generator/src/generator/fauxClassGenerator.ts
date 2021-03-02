@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { SFDX_PROJECT_FILE } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { EOL } from 'os';
@@ -14,9 +12,16 @@ import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
 import {
   CUSTOMOBJECTS_DIR,
+  ERROR_EVENT,
+  EXIT_EVENT,
+  FAILURE_CODE,
   SFDX_DIR,
+  SFDX_PROJECT_FILE,
   SOBJECTS_DIR,
   STANDARDOBJECTS_DIR,
+  STDERR_EVENT,
+  STDOUT_EVENT,
+  SUCCESS_CODE,
   TOOLS_DIR
 } from '../constants';
 import {
@@ -179,7 +184,7 @@ export class FauxClassGenerator {
 
     let sobjects: string[] = [];
     try {
-      sobjects = await describe.describeGlobal(projectPath, type);
+      sobjects = await describe.describeGlobal(type);
     } catch (e) {
       const err = JSON.parse(e);
       return this.errorExit(
@@ -391,29 +396,20 @@ export class FauxClassGenerator {
     message: string,
     stack?: string
   ): Promise<SObjectRefreshResult> {
-    this.emitter.emit(LocalCommandExecution.STDERR_EVENT, `${message}\n`);
-    this.emitter.emit(LocalCommandExecution.ERROR_EVENT, new Error(message));
-    this.emitter.emit(
-      LocalCommandExecution.EXIT_EVENT,
-      LocalCommandExecution.FAILURE_CODE
-    );
+    this.emitter.emit(STDERR_EVENT, `${message}\n`);
+    this.emitter.emit(ERROR_EVENT, new Error(message));
+    this.emitter.emit(EXIT_EVENT, FAILURE_CODE);
     this.result.error = { message, stack };
     return Promise.reject(this.result);
   }
 
   private successExit(): Promise<SObjectRefreshResult> {
-    this.emitter.emit(
-      LocalCommandExecution.EXIT_EVENT,
-      LocalCommandExecution.SUCCESS_CODE
-    );
+    this.emitter.emit(EXIT_EVENT, SUCCESS_CODE);
     return Promise.resolve(this.result);
   }
 
   private cancelExit(): Promise<SObjectRefreshResult> {
-    this.emitter.emit(
-      LocalCommandExecution.EXIT_EVENT,
-      LocalCommandExecution.FAILURE_CODE
-    );
+    this.emitter.emit(EXIT_EVENT, FAILURE_CODE);
     this.result.data.cancelled = true;
     return Promise.resolve(this.result);
   }
@@ -571,7 +567,7 @@ export class FauxClassGenerator {
   private logSObjects(sobjectKind: string, fetchedLength: number) {
     if (fetchedLength > 0) {
       this.emitter.emit(
-        LocalCommandExecution.STDOUT_EVENT,
+        STDOUT_EVENT,
         nls.localize('fetched_sobjects_length_text', fetchedLength, sobjectKind)
       );
     }

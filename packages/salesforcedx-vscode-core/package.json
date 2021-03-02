@@ -25,7 +25,6 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.1.15",
     "@salesforce/core": "2.13.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "51.2.0",
     "@salesforce/salesforcedx-utils-vscode": "51.2.0",
@@ -37,9 +36,7 @@
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.3",
-    "strip-ansi": "^5.2.0",
-    "xmldom-sfdx-encoding": "0.1.29"
+    "shelljs": "0.8.3"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "51.2.0",

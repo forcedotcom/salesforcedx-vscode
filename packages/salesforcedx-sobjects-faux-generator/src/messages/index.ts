@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as i18n from './i18n';
 import {
   BASE_FILE_EXTENSION,
   BASE_FILE_NAME,
@@ -12,8 +13,7 @@ import {
   DEFAULT_LOCALE,
   Localization,
   Message
-} from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
-import * as i18n from './i18n';
+} from './localization';
 
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
