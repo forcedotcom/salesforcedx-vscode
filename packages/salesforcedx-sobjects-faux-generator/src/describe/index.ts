@@ -5,11 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export {
-  SObjectCategory,
-  SObjectDescribe,
-  SObject,
-  ChildRelationship,
-  Field,
-  ForceListSObjectSchemaExecutor
-} from './sObjectDescribe';
+export { MAX_BATCH_REQUEST_SIZE, SObjectDescribe } from './sObjectDescribe';
+export { SObjectCategory, SObject, ChildRelationship, Field } from './types';

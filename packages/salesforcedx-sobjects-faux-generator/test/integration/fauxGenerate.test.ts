@@ -5,15 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org } from '@salesforce/core';
-import { LocalCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { AuthInfo, Connection } from '@salesforce/core';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox } from 'sinon';
-import { SObject, SObjectCategory, SObjectDescribe } from '../../src/describe';
+import {
+  ERROR_EVENT,
+  EXIT_EVENT,
+  FAILURE_CODE,
+  STDERR_EVENT,
+  STDOUT_EVENT,
+  SUCCESS_CODE
+} from '../../src/constants';
+import { SObjectCategory, SObjectDescribe } from '../../src/describe';
 import {
   FauxClassGenerator,
   SObjectRefreshResult,
@@ -21,7 +28,7 @@ import {
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
 import { CancellationTokenSource } from './integrationTestUtil';
-import { mockDescribeResponse } from './mockData';
+import { mockBatchResponse, mockDescribeResponse } from './mockData';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CONNECTION_DATA = {
@@ -57,13 +64,13 @@ describe('Generate faux classes for SObjects', () => {
 
   it('Should emit an error event on failure', async () => {
     let errorMessage = '';
-    let exitCode: number = LocalCommandExecution.SUCCESS_CODE;
+    let exitCode: number = SUCCESS_CODE;
     let rejectOutput: any;
     const generator = getGenerator();
-    emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: Error) => {
+    emitter.addListener(ERROR_EVENT, (data: Error) => {
       errorMessage = data.message;
     });
-    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+    emitter.addListener(EXIT_EVENT, (data: number) => {
       exitCode = data;
     });
 
@@ -82,22 +89,22 @@ describe('Generate faux classes for SObjects', () => {
     expect(errorMessage).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
     );
-    expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
+    expect(exitCode).to.equal(FAILURE_CODE);
   });
 
   it('Should emit an error event on failure, generateMin', async () => {
     let errorMessage = '';
     let stderrInfo = '';
-    let exitCode: number = LocalCommandExecution.SUCCESS_CODE;
+    let exitCode: number = SUCCESS_CODE;
     let rejectOutput: any;
     const generator = getGenerator();
-    emitter.addListener(LocalCommandExecution.ERROR_EVENT, (data: Error) => {
+    emitter.addListener(ERROR_EVENT, (data: Error) => {
       errorMessage = data.message;
     });
-    emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+    emitter.addListener(EXIT_EVENT, (data: number) => {
       exitCode = data;
     });
-    emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
+    emitter.addListener(STDERR_EVENT, (data: string) => {
       stderrInfo = data;
     });
 
@@ -112,7 +119,7 @@ describe('Generate faux classes for SObjects', () => {
     expect(errorMessage).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
     );
-    expect(exitCode).to.equal(LocalCommandExecution.FAILURE_CODE);
+    expect(exitCode).to.equal(FAILURE_CODE);
     expect(stderrInfo).to.contain(
       nls.localize('no_generate_if_not_in_project', '')
     );
@@ -193,7 +200,7 @@ describe('Generate faux classes for SObjects', () => {
     let stderrInfo = '';
     let rejectOutput: any;
     const generator = getGenerator();
-    emitter.addListener(LocalCommandExecution.STDERR_EVENT, (data: string) => {
+    emitter.addListener(STDERR_EVENT, (data: string) => {
       stderrInfo = data;
     });
 
@@ -225,10 +232,10 @@ describe('Generate faux classes for SObjects', () => {
     });
 
     it('Should emit an exit event with code success code 0 on success', async () => {
-      let exitCode = LocalCommandExecution.FAILURE_CODE;
+      let exitCode = FAILURE_CODE;
 
       const generator = getGenerator();
-      emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+      emitter.addListener(EXIT_EVENT, (data: number) => {
         exitCode = data;
       });
 
@@ -238,19 +245,16 @@ describe('Generate faux classes for SObjects', () => {
         SObjectRefreshSource.Manual
       );
       expect(result.error).to.be.undefined;
-      expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
+      expect(exitCode).to.equal(SUCCESS_CODE);
     });
 
     it('Should log the number of created faux classes on success', async () => {
       const generator = getGenerator();
       let stdoutInfo = '';
       let result: SObjectRefreshResult;
-      emitter.addListener(
-        LocalCommandExecution.STDOUT_EVENT,
-        (data: string) => {
-          stdoutInfo = data;
-        }
-      );
+      emitter.addListener(STDOUT_EVENT, (data: string) => {
+        stdoutInfo = data;
+      });
 
       result = await generator.generate(
         projectPath,
@@ -269,7 +273,7 @@ describe('Generate faux classes for SObjects', () => {
   describe('Check generateMin results', () => {
     beforeEach(() => {
       env.stub(fs, 'existsSync').returns(true);
-      env.stub(Connection.prototype, 'request').resolves(mockDescribeResponse);
+      env.stub(Connection.prototype, 'request').resolves(mockBatchResponse);
       env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
     });
 
@@ -277,14 +281,11 @@ describe('Generate faux classes for SObjects', () => {
       const generator = getGenerator();
       let stdoutInfo = '';
       let result: SObjectRefreshResult;
-      emitter.addListener(
-        LocalCommandExecution.STDOUT_EVENT,
-        (data: string) => {
-          stdoutInfo = data;
-        }
-      );
-      let exitCode = LocalCommandExecution.FAILURE_CODE;
-      emitter.addListener(LocalCommandExecution.EXIT_EVENT, (data: number) => {
+      emitter.addListener(STDOUT_EVENT, (data: string) => {
+        stdoutInfo = data;
+      });
+      let exitCode = FAILURE_CODE;
+      emitter.addListener(EXIT_EVENT, (data: number) => {
         exitCode = data;
       });
 
@@ -299,7 +300,7 @@ describe('Generate faux classes for SObjects', () => {
       expect(stdoutInfo).to.contain(
         nls.localize('fetched_sobjects_length_text', 16, 'Standard')
       );
-      expect(exitCode).to.equal(LocalCommandExecution.SUCCESS_CODE);
+      expect(exitCode).to.equal(SUCCESS_CODE);
     });
   });
 });
