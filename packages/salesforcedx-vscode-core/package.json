@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.2.0",
+  "version": "51.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,9 +25,9 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.1.15",
     "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.2.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "51.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "51.3.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "1.1.17",
     "@salesforce/templates": "51.3.0",
@@ -36,12 +36,10 @@
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.3",
-    "strip-ansi": "^5.2.0",
-    "xmldom-sfdx-encoding": "0.1.29"
+    "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.2.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "51.3.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -542,6 +540,10 @@
         {
           "command": "sfdx.force.function.stop",
           "when": "sfdx:functions_enabled"
+        },
+        {
+          "command": "sfdx.force.internal.refreshsobjects",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -825,6 +827,10 @@
       {
         "command": "sfdx.force.function.stop",
         "title": "%force_function_stop%"
+      },
+      {
+        "command": "sfdx.force.internal.refreshsobjects",
+        "title": "%force_sobjects_refresh%"
       }
     ],
     "configuration": {
@@ -875,6 +881,11 @@
           "type": "boolean",
           "default": false,
           "description": "%experimental_support_functions%"
+        },
+        "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
+          "type": "boolean",
+          "default": false,
+          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },

@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.2.0",
+  "version": "51.3.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,8 +28,7 @@
     "@salesforce/apex-node": "0.1.15",
     "@salesforce/apex-tmlanguage": "1.4.0",
     "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "51.2.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.2.0",
+    "@salesforce/salesforcedx-utils-vscode": "51.3.0",
     "@salesforce/source-deploy-retrieve": "1.1.17",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
@@ -39,7 +38,7 @@
     "vscode-languageclient": "5.1.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.2.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "51.3.0",
     "@types/chai": "^4.0.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
@@ -158,10 +157,6 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.internal.refreshsobjects",
-          "when": "sfdx:project_opened"
-        },
-        {
           "command": "sfdx.force.test.view.runClassTests",
           "when": "false"
         },
@@ -267,10 +262,6 @@
       {
         "command": "sfdx.force.apex.test.last.method.run",
         "title": "%force_apex_test_last_method_run_text%"
-      },
-      {
-        "command": "sfdx.force.internal.refreshsobjects",
-        "title": "%force_sobjects_refresh%"
       }
     ],
     "configuration": {
@@ -295,11 +286,6 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_semantic_errors_description%"
-        },
-        "salesforcedx-vscode-apex.enable-sobject-refresh-on-startup": {
-          "type": "boolean",
-          "default": false,
-          "description": "%enable_sobject_refresh_on_startup_description%"
         }
       }
     },
