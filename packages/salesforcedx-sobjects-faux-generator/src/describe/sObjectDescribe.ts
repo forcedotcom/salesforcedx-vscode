@@ -6,7 +6,7 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { DescribeGlobalResult, DescribeGlobalSObjectResult } from 'jsforce';
+import { DescribeGlobalResult } from 'jsforce';
 import { CLIENT_ID } from '../constants';
 import {
   BatchRequest,
@@ -43,21 +43,39 @@ export class SObjectDescribe {
     const requestedDescriptions: string[] = [];
     const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
 
-    allDescriptions.sobjects.forEach((sobject: DescribeGlobalSObjectResult) => {
-      const isCustom = sobject.custom === true;
+    for (const sobject of allDescriptions.sobjects) {
       if (
         type === SObjectCategory.ALL &&
         source === SObjectRefreshSource.Manual
       ) {
         requestedDescriptions.push(sobject.name);
-      } else if (
-        ((type === SObjectCategory.CUSTOM && isCustom) ||
-          (type === SObjectCategory.STANDARD && !isCustom)) &&
+        continue;
+      }
+
+      if (
+        type === SObjectCategory.ALL &&
+        (source === SObjectRefreshSource.StartupMin ||
+          source === SObjectRefreshSource.Startup) &&
         this.isRequiredSObject(sobject.name)
       ) {
         requestedDescriptions.push(sobject.name);
+        continue;
       }
-    });
+
+      const isCustomObject =
+        sobject.custom === true && type === SObjectCategory.CUSTOM;
+      const isStandardObject =
+        sobject.custom === false && type === SObjectCategory.STANDARD;
+
+      if (
+        (isCustomObject || isStandardObject) &&
+        source === SObjectRefreshSource.Manual &&
+        this.isRequiredSObject(sobject.name)
+      ) {
+        requestedDescriptions.push(sobject.name);
+        continue;
+      }
+    }
 
     return requestedDescriptions;
   }
