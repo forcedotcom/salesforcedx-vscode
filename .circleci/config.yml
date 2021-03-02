@@ -241,6 +241,15 @@ commands:
       - store_artifacts:
           path: ./<< parameters.location >>
 
+  store-crash-logs:
+    parameters:
+      location:
+        type: string
+        default: 'vscode-crash-logs'
+    steps:
+      - store_artifacts:
+          path: ./<< parameters.location >>
+
   updating-sha-for-publish:
     steps:
       - run:
@@ -357,6 +366,7 @@ jobs:
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/
+      - store-crash-logs
       - run:
           name: 'Generate code coverage'
           shell: bash.exe
