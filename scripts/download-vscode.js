@@ -17,9 +17,11 @@ const extensionDirectories = [
   'salesforcedx-vscode-visualforce'
 ];
 
+const vscodeVersion = process.env.CODE_VERSION || 'stable';
+
 // Executable path looks something like:
 // ~/salesforcedx-vscode/packages/salesforcedx-vscode-lwc/.vscode-test/vscode-1.41.1/Visual Studio Code.app/Contents/MacOS/Electron
-downloadAndUnzipVSCode()
+downloadAndUnzipVSCode(vscodeVersion)
   .then(executablePath => {
     logger.debug('Executable Path: ' + executablePath);
 
@@ -65,7 +67,7 @@ downloadAndUnzipVSCode()
             fs.mkdirSync(copyDestination, { recursive: true });
           }
           logger.debug(`Copying to: ${copyDestination}`);
-          ncp(vscodeFullPath, copyDestination, function (err) {
+          ncp(vscodeFullPath, copyDestination, function(err) {
             if (err) {
               return console.error(err);
             }
