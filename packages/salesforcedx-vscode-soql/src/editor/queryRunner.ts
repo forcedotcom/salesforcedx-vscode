@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { soqlComments } from '@salesforce/soql-common';
 export class QueryRunner {
-  constructor(private connection: Connection) { }
+  constructor(private connection: Connection) {}
 
   public async runQuery(
     queryText: string,
