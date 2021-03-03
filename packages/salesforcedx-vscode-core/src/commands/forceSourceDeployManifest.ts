@@ -10,7 +10,8 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
-import { ComponentSet, DeployStatus } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -35,6 +36,7 @@ import {
   useBetaDeployRetrieve
 } from './util';
 import { createDeployOutput } from './util';
+import { createDeployOutput2 } from './util/sourceResultOutput';
 
 export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   public build(manifestPath: string): Command {
@@ -69,27 +71,36 @@ export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecut
       const components = await ComponentSet.fromManifestFile(response.data, {
         resolve: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
       });
-      const deployPromise = components.deploy(
-        await workspaceContext.getConnection()
-      );
+      const operation = components
+        .deploy({
+          usernameOrConnection: await workspaceContext.getConnection()
+        })
+        .start();
+
       this.telemetry.addProperty(
         'metadataCount',
         JSON.stringify(createComponentCount(components))
       );
-      const result = await deployPromise;
 
-      const outputResult = createDeployOutput(result, packageDirs);
-      channelService.appendLine(outputResult);
-      BaseDeployExecutor.errorCollection.clear();
+      const result = await operation;
 
-      if (result.status === DeployStatus.Succeeded) {
-        return true;
+      if (result) {
+        BaseDeployExecutor.errorCollection.clear();
+
+        const outputResult = createDeployOutput2(result, packageDirs);
+        channelService.appendLine(outputResult);
+
+        const success = result.response.status === RequestStatus.Succeeded;
+
+        if (!success) {
+          // handleDeployRetrieveLibraryDiagnostics(
+          //   result,
+          //   BaseDeployExecutor.errorCollection
+          // );
+        }
+
+        return success;
       }
-
-      handleDeployRetrieveLibraryDiagnostics(
-        result,
-        BaseDeployExecutor.errorCollection
-      );
 
       return false;
     } finally {

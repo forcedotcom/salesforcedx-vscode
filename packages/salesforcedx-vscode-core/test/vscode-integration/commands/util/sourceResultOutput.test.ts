@@ -7,9 +7,7 @@
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import {
   ComponentStatus,
-  DeployStatus,
   registryData,
-  RetrieveStatus,
   SourceComponent,
   SourceDeployResult,
   SourceRetrieveResult,
@@ -182,262 +180,262 @@ describe('Source Deploy/Retrieve Output Utils', () => {
       expect(createDeployOutput(result, packageDirs)).to.equal(expectedOutput);
     });
 
-    it('should create a table with successful results for a bundle type component', async () => {
-      const { fullName, type } = lwcComponent;
-      const result: SourceDeployResult = {
-        success: true,
-        id: '',
-        status: DeployStatus.Succeeded,
-        components: [
-          {
-            component: lwcComponent,
-            status: ComponentStatus.Created,
-            diagnostics: []
-          }
-        ]
-      };
-      const expectedOutput = new Table().createTable(
-        [
-          {
-            state: 'Created',
-            fullName,
-            type: type.name,
-            filePath: lwcJsPath
-          },
-          {
-            state: 'Created',
-            fullName,
-            type: type.name,
-            filePath: lwcXmlPath
-          }
-        ],
-        deploySuccessColumns,
-        nls.localize(`table_title_deployed_source`)
-      );
-      expect(createDeployOutput(result, packageDirs)).to.equal(expectedOutput);
-    });
+    //   it('should create a table with successful results for a bundle type component', async () => {
+    //     const { fullName, type } = lwcComponent;
+    //     const result: SourceDeployResult = {
+    //       success: true,
+    //       id: '',
+    //       status: DeployStatus.Succeeded,
+    //       components: [
+    //         {
+    //           component: lwcComponent,
+    //           status: ComponentStatus.Created,
+    //           diagnostics: []
+    //         }
+    //       ]
+    //     };
+    //     const expectedOutput = new Table().createTable(
+    //       [
+    //         {
+    //           state: 'Created',
+    //           fullName,
+    //           type: type.name,
+    //           filePath: lwcJsPath
+    //         },
+    //         {
+    //           state: 'Created',
+    //           fullName,
+    //           type: type.name,
+    //           filePath: lwcXmlPath
+    //         }
+    //       ],
+    //       deploySuccessColumns,
+    //       nls.localize(`table_title_deployed_source`)
+    //     );
+    //     expect(createDeployOutput(result, packageDirs)).to.equal(expectedOutput);
+    //   });
 
-    it('should create a table with failed results', async () => {
-      const result: SourceDeployResult = {
-        success: false,
-        id: '',
-        status: DeployStatus.Failed,
-        components: [
-          {
-            component: apexComponentOne,
-            status: ComponentStatus.Failed,
-            diagnostics: [
-              {
-                lineNumber: 4,
-                columnNumber: 5,
-                filePath: apexClassPathOne,
-                message: "Missing ';' at '}'",
-                type: 'Error'
-              },
-              {
-                lineNumber: 7,
-                columnNumber: 9,
-                filePath: apexClassPathOne,
-                message: "Extra ':' at '}'",
-                type: 'Error'
-              }
-            ]
-          }
-        ]
-      };
-      const expectedOutput = new Table().createTable(
-        [
-          {
-            filePath: apexClassPathOne,
-            error: "Missing ';' at '}' (4:5)"
-          },
-          {
-            filePath: apexClassPathOne,
-            error: "Extra ':' at '}' (7:9)"
-          }
-        ],
-        deployFailureColumns,
-        nls.localize(`table_title_deploy_errors`)
-      );
-      expect(createDeployOutput(result, packageDirs)).to.equal(expectedOutput);
-    });
+    //   it('should create a table with failed results', async () => {
+    //     const result: SourceDeployResult = {
+    //       success: false,
+    //       id: '',
+    //       status: DeployStatus.Failed,
+    //       components: [
+    //         {
+    //           component: apexComponentOne,
+    //           status: ComponentStatus.Failed,
+    //           diagnostics: [
+    //             {
+    //               lineNumber: 4,
+    //               columnNumber: 5,
+    //               filePath: apexClassPathOne,
+    //               message: "Missing ';' at '}'",
+    //               type: 'Error'
+    //             },
+    //             {
+    //               lineNumber: 7,
+    //               columnNumber: 9,
+    //               filePath: apexClassPathOne,
+    //               message: "Extra ':' at '}'",
+    //               type: 'Error'
+    //             }
+    //           ]
+    //         }
+    //       ]
+    //     };
+    //     const expectedOutput = new Table().createTable(
+    //       [
+    //         {
+    //           filePath: apexClassPathOne,
+    //           error: "Missing ';' at '}' (4:5)"
+    //         },
+    //         {
+    //           filePath: apexClassPathOne,
+    //           error: "Extra ':' at '}' (7:9)"
+    //         }
+    //       ],
+    //       deployFailureColumns,
+    //       nls.localize(`table_title_deploy_errors`)
+    //     );
+    //     expect(createDeployOutput(result, packageDirs)).to.equal(expectedOutput);
+    //   });
 
-    it('should create a table with failures that do not have line and column info', async () => {
-      const result: SourceDeployResult = {
-        id: '',
-        success: false,
-        status: ToolingDeployStatus.Error,
-        components: [
-          {
-            component: apexComponentOne,
-            status: ComponentStatus.Failed,
-            diagnostics: [
-              {
-                type: 'Error',
-                filePath: apexClassPathOne,
-                message: 'Unexpected error happened during deploy'
-              }
-            ]
-          }
-        ]
-      };
-      const expectedOutput = new Table().createTable(
-        [
-          {
-            filePath: apexClassPathOne,
-            error: 'Unexpected error happened during deploy'
-          }
-        ],
-        deployFailureColumns,
-        nls.localize(`table_title_deploy_errors`)
-      );
-      expect(createDeployOutput(result, packageDirs)).to.equal(expectedOutput);
-    });
+    //   it('should create a table with failures that do not have line and column info', async () => {
+    //     const result: SourceDeployResult = {
+    //       id: '',
+    //       success: false,
+    //       status: ToolingDeployStatus.Error,
+    //       components: [
+    //         {
+    //           component: apexComponentOne,
+    //           status: ComponentStatus.Failed,
+    //           diagnostics: [
+    //             {
+    //               type: 'Error',
+    //               filePath: apexClassPathOne,
+    //               message: 'Unexpected error happened during deploy'
+    //             }
+    //           ]
+    //         }
+    //       ]
+    //     };
+    //     const expectedOutput = new Table().createTable(
+    //       [
+    //         {
+    //           filePath: apexClassPathOne,
+    //           error: 'Unexpected error happened during deploy'
+    //         }
+    //       ],
+    //       deployFailureColumns,
+    //       nls.localize(`table_title_deploy_errors`)
+    //     );
+    //     expect(createDeployOutput(result, packageDirs)).to.equal(expectedOutput);
+    //   });
 
-    it('should create a table with queued results', async () => {
-      const result: SourceDeployResult = {
-        id: '',
-        status: ToolingDeployStatus.Queued,
-        components: [],
-        success: false
-      };
-      expect(createDeployOutput(result, packageDirs)).to.equal(
-        nls.localize('beta_tapi_queue_status')
-      );
-    });
-  });
+    //   it('should create a table with queued results', async () => {
+    //     const result: SourceDeployResult = {
+    //       id: '',
+    //       status: ToolingDeployStatus.Queued,
+    //       components: [],
+    //       success: false
+    //     };
+    //     expect(createDeployOutput(result, packageDirs)).to.equal(
+    //       nls.localize('beta_tapi_queue_status')
+    //     );
+    //   });
+    // });
 
-  describe('createRetrieveOutput', () => {
-    const retrieveSuccessColumns = [
-      { key: 'fullName', label: nls.localize('table_header_full_name') },
-      { key: 'type', label: nls.localize('table_header_type') },
-      {
-        key: 'filePath',
-        label: nls.localize('table_header_project_path')
-      }
-    ];
-    const retrieveFailureColumns = [
-      { key: 'fullName', label: nls.localize('table_header_full_name') },
-      { key: 'type', label: nls.localize('table_header_error_type') },
-      { key: 'message', label: nls.localize('table_header_message') }
-    ];
+    // describe('createRetrieveOutput', () => {
+    //   const retrieveSuccessColumns = [
+    //     { key: 'fullName', label: nls.localize('table_header_full_name') },
+    //     { key: 'type', label: nls.localize('table_header_type') },
+    //     {
+    //       key: 'filePath',
+    //       label: nls.localize('table_header_project_path')
+    //     }
+    //   ];
+    //   const retrieveFailureColumns = [
+    //     { key: 'fullName', label: nls.localize('table_header_full_name') },
+    //     { key: 'type', label: nls.localize('table_header_error_type') },
+    //     { key: 'message', label: nls.localize('table_header_message') }
+    //   ];
 
-    it('Should handle a retrieve result with successes and no failures', () => {
-      const { fullName, type } = apexComponentOne;
-      const result: SourceRetrieveResult = {
-        status: RetrieveStatus.Succeeded,
-        success: true,
-        successes: [{ component: apexComponentOne }],
-        failures: []
-      };
-      const expectedOutput = new Table().createTable(
-        [
-          {
-            fullName,
-            type: type.name,
-            filePath: apexClassPathOne
-          },
-          {
-            fullName,
-            type: type.name,
-            filePath: apexClassXmlPathOne
-          }
-        ],
-        retrieveSuccessColumns,
-        nls.localize('lib_retrieve_result_title')
-      );
-      expect(createRetrieveOutput(result, packageDirs)).to.equal(
-        expectedOutput
-      );
-    });
+    //   it('Should handle a retrieve result with successes and no failures', () => {
+    //     const { fullName, type } = apexComponentOne;
+    //     const result: SourceRetrieveResult = {
+    //       status: RetrieveStatus.Succeeded,
+    //       success: true,
+    //       successes: [{ component: apexComponentOne }],
+    //       failures: []
+    //     };
+    //     const expectedOutput = new Table().createTable(
+    //       [
+    //         {
+    //           fullName,
+    //           type: type.name,
+    //           filePath: apexClassPathOne
+    //         },
+    //         {
+    //           fullName,
+    //           type: type.name,
+    //           filePath: apexClassXmlPathOne
+    //         }
+    //       ],
+    //       retrieveSuccessColumns,
+    //       nls.localize('lib_retrieve_result_title')
+    //     );
+    //     expect(createRetrieveOutput(result, packageDirs)).to.equal(
+    //       expectedOutput
+    //     );
+    //   });
 
-    it('Should handle a retrieve result with failures and no successes', () => {
-      const result: SourceRetrieveResult = {
-        status: RetrieveStatus.Failed,
-        success: false,
-        successes: [],
-        failures: [
-          {
-            component: apexComponentOne,
-            message: 'Missing metadata'
-          }
-        ]
-      };
-      const expectedOutput = new Table().createTable(
-        [
-          {
-            fullName: apexComponentOne.fullName,
-            type: 'Error',
-            message: 'Missing metadata'
-          }
-        ],
-        retrieveFailureColumns,
-        nls.localize('lib_retrieve_message_title')
-      );
-      expect(createRetrieveOutput(result, packageDirs)).to.equal(
-        expectedOutput
-      );
-    });
+    //   it('Should handle a retrieve result with failures and no successes', () => {
+    //     const result: SourceRetrieveResult = {
+    //       status: RetrieveStatus.Failed,
+    //       success: false,
+    //       successes: [],
+    //       failures: [
+    //         {
+    //           component: apexComponentOne,
+    //           message: 'Missing metadata'
+    //         }
+    //       ]
+    //     };
+    //     const expectedOutput = new Table().createTable(
+    //       [
+    //         {
+    //           fullName: apexComponentOne.fullName,
+    //           type: 'Error',
+    //           message: 'Missing metadata'
+    //         }
+    //       ],
+    //       retrieveFailureColumns,
+    //       nls.localize('lib_retrieve_message_title')
+    //     );
+    //     expect(createRetrieveOutput(result, packageDirs)).to.equal(
+    //       expectedOutput
+    //     );
+    //   });
 
-    it('Should handle a SourceRetrieveResult with successes and failures', () => {
-      const result: SourceRetrieveResult = {
-        status: RetrieveStatus.PartialSuccess,
-        success: true,
-        successes: [{ component: apexComponentOne }],
-        failures: [{ component: apexComponentTwo, message: 'Missing metadata' }]
-      };
-      const expectedSuccessOutput = new Table().createTable(
-        [
-          {
-            fullName: apexComponentOne.fullName,
-            type: apexComponentOne.type.name,
-            filePath: apexClassPathOne
-          },
-          {
-            fullName: apexComponentOne.fullName,
-            type: apexComponentOne.type.name,
-            filePath: apexClassXmlPathOne
-          }
-        ],
-        retrieveSuccessColumns,
-        nls.localize('lib_retrieve_result_title')
-      );
-      const expectedFailureOutput = new Table().createTable(
-        [
-          {
-            fullName: apexComponentTwo.fullName,
-            type: 'Error',
-            message: 'Missing metadata'
-          }
-        ],
-        retrieveFailureColumns,
-        nls.localize('lib_retrieve_message_title')
-      );
-      const combinedTableOutput = `${expectedSuccessOutput}\n${expectedFailureOutput}`;
-      expect(createRetrieveOutput(result, packageDirs)).to.equal(
-        combinedTableOutput
-      );
-    });
+    //   it('Should handle a SourceRetrieveResult with successes and failures', () => {
+    //     const result: SourceRetrieveResult = {
+    //       status: RetrieveStatus.PartialSuccess,
+    //       success: true,
+    //       successes: [{ component: apexComponentOne }],
+    //       failures: [{ component: apexComponentTwo, message: 'Missing metadata' }]
+    //     };
+    //     const expectedSuccessOutput = new Table().createTable(
+    //       [
+    //         {
+    //           fullName: apexComponentOne.fullName,
+    //           type: apexComponentOne.type.name,
+    //           filePath: apexClassPathOne
+    //         },
+    //         {
+    //           fullName: apexComponentOne.fullName,
+    //           type: apexComponentOne.type.name,
+    //           filePath: apexClassXmlPathOne
+    //         }
+    //       ],
+    //       retrieveSuccessColumns,
+    //       nls.localize('lib_retrieve_result_title')
+    //     );
+    //     const expectedFailureOutput = new Table().createTable(
+    //       [
+    //         {
+    //           fullName: apexComponentTwo.fullName,
+    //           type: 'Error',
+    //           message: 'Missing metadata'
+    //         }
+    //       ],
+    //       retrieveFailureColumns,
+    //       nls.localize('lib_retrieve_message_title')
+    //     );
+    //     const combinedTableOutput = `${expectedSuccessOutput}\n${expectedFailureOutput}`;
+    //     expect(createRetrieveOutput(result, packageDirs)).to.equal(
+    //       combinedTableOutput
+    //     );
+    //   });
 
-    it('Should handle a malformed SourceRetrieveResult', () => {
-      // @ts-ignore
-      const apiResultWithOutType = {
-        success: true,
-        status: RetrieveStatus.Succeeded,
-        components: [
-          {
-            name: 'MyTestClass',
-            xml: 'some/path/MyTestClass.cls-meta.xml'
-          }
-        ],
-        messages: 'Message from library'
-      } as SourceRetrieveResult;
-      expect(createRetrieveOutput(apiResultWithOutType, packageDirs)).to.equal(
-        nls.localize(
-          'lib_retrieve_result_parse_error',
-          JSON.stringify(apiResultWithOutType)
-        )
-      );
-    });
+    //   it('Should handle a malformed SourceRetrieveResult', () => {
+    //     // @ts-ignore
+    //     const apiResultWithOutType = {
+    //       success: true,
+    //       status: RetrieveStatus.Succeeded,
+    //       components: [
+    //         {
+    //           name: 'MyTestClass',
+    //           xml: 'some/path/MyTestClass.cls-meta.xml'
+    //         }
+    //       ],
+    //       messages: 'Message from library'
+    //     } as SourceRetrieveResult;
+    //     expect(createRetrieveOutput(apiResultWithOutType, packageDirs)).to.equal(
+    //       nls.localize(
+    //         'lib_retrieve_result_parse_error',
+    //         JSON.stringify(apiResultWithOutType)
+    //       )
+    //     );
+    //   });
   });
 });

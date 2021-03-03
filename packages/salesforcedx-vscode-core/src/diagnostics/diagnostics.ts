@@ -92,10 +92,10 @@ export function handleDeployRetrieveLibraryDiagnostics(
     for (const deployment of deployResult.components) {
       for (const diagnostic of deployment.diagnostics) {
         const {
-          message,
+          error,
           lineNumber,
           columnNumber,
-          type,
+          problemType,
           filePath
         } = diagnostic;
         const range = getRange(
@@ -103,11 +103,11 @@ export function handleDeployRetrieveLibraryDiagnostics(
           columnNumber ? columnNumber.toString() : '1'
         );
         const severity =
-          type === 'Error'
+          problemType === 'Error'
             ? vscode.DiagnosticSeverity.Error
             : vscode.DiagnosticSeverity.Warning;
         const vscDiagnostic: vscode.Diagnostic = {
-          message,
+          message: error,
           range,
           severity,
           source: filePath

@@ -18,7 +18,6 @@ import {
   ComponentSet,
   MetadataType,
   registryData,
-  SourceClient,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
@@ -131,45 +130,46 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
-    let retrieve;
-    const connection = await workspaceContext.getConnection();
-    const components = ComponentSet.fromSource(response.data);
-    const first: SourceComponent = components.getSourceComponents().next()
-      .value;
+    // let retrieve;
+    // const connection = await workspaceContext.getConnection();
+    // const components = ComponentSet.fromSource(response.data);
+    // const first: SourceComponent = components.getSourceComponents().next()
+    //   .value;
 
-    if (
-      components.size === 1 &&
-      this.isSupportedToolingRetrieveType(first.type)
-    ) {
-      const projectNamespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
-      const client = new SourceClient(connection);
-      retrieve = client.tooling.retrieve({
-        components,
-        namespace: projectNamespace
-      });
-    } else {
-      retrieve = components.retrieve(
-        connection,
-        (await SfdxPackageDirectories.getDefaultPackageDir()) ?? '',
-        { merge: true }
-      );
-    }
+    // if (
+    //   components.size === 1 &&
+    //   this.isSupportedToolingRetrieveType(first.type)
+    // ) {
+    //   const projectNamespace = (await SfdxProjectConfig.getValue(
+    //     'namespace'
+    //   )) as string;
+    //   const client = new SourceClient(connection);
+    //   retrieve = client.tooling.retrieve({
+    //     components,
+    //     namespace: projectNamespace
+    //   });
+    // } else {
+    //   retrieve = components.retrieve(
+    //     connection,
+    //     (await SfdxPackageDirectories.getDefaultPackageDir()) ?? '',
+    //     { merge: true }
+    //   );
+    // }
 
-    const metadataCount = JSON.stringify(createComponentCount(components));
-    this.telemetry.addProperty('metadataCount', metadataCount);
+    // const metadataCount = JSON.stringify(createComponentCount(components));
+    // this.telemetry.addProperty('metadataCount', metadataCount);
 
-    const result = await retrieve;
+    // const result = await retrieve;
 
-    channelService.appendLine(
-      createRetrieveOutput(
-        result,
-        await SfdxPackageDirectories.getPackageDirectoryPaths()
-      )
-    );
+    // channelService.appendLine(
+    //   createRetrieveOutput(
+    //     result,
+    //     await SfdxPackageDirectories.getPackageDirectoryPaths()
+    //   )
+    // );
 
-    return result.success;
+    // return result.success;
+    return false;
   }
 
   private isSupportedToolingRetrieveType(type: MetadataType): boolean {

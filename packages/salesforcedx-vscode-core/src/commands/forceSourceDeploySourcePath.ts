@@ -17,8 +17,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
-  DeployStatus,
-  SourceClient,
   SourceDeployResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
@@ -143,35 +141,35 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     response: ContinueResponse<string | string[]>
   ): Promise<boolean> {
     try {
-      const getConnection = workspaceContext.getConnection();
-      const components = this.getComponents(response.data);
-      const namespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
+      // const getConnection = workspaceContext.getConnection();
+      // const components = this.getComponents(response.data);
+      // const namespace = (await SfdxProjectConfig.getValue(
+      //   'namespace'
+      // )) as string;
 
-      const deploy = this.doDeploy(await getConnection, components, namespace);
-      const metadataCount = JSON.stringify(createComponentCount(components));
-      this.telemetry.addProperty('metadataCount', metadataCount);
+      // const deploy = this.doDeploy(await getConnection, components, namespace);
+      // const metadataCount = JSON.stringify(createComponentCount(components));
+      // this.telemetry.addProperty('metadataCount', metadataCount);
 
-      const result = await deploy;
+      // const result = await deploy;
 
-      const outputResult = createDeployOutput(
-        result,
-        await SfdxPackageDirectories.getPackageDirectoryPaths()
-      );
-      channelService.appendLine(outputResult);
-      BaseDeployExecutor.errorCollection.clear();
-      if (
-        result.status === DeployStatus.Succeeded ||
-        result.status === ToolingDeployStatus.Completed
-      ) {
-        return true;
-      }
+      // const outputResult = createDeployOutput(
+      //   result,
+      //   await SfdxPackageDirectories.getPackageDirectoryPaths()
+      // );
+      // channelService.appendLine(outputResult);
+      // BaseDeployExecutor.errorCollection.clear();
+      // if (
+      //   result.status === DeployStatus.Succeeded ||
+      //   result.status === ToolingDeployStatus.Completed
+      // ) {
+      //   return true;
+      // }
 
-      handleDeployRetrieveLibraryDiagnostics(
-        result,
-        BaseDeployExecutor.errorCollection
-      );
+      // handleDeployRetrieveLibraryDiagnostics(
+      //   result,
+      //   BaseDeployExecutor.errorCollection
+      // );
 
       return false;
     } finally {
@@ -191,30 +189,30 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     return components;
   }
 
-  private doDeploy(
-    connection: Connection,
-    components: ComponentSet,
-    namespace?: string
-  ): Promise<SourceDeployResult> {
-    let api: string;
-    let deploy: Promise<SourceDeployResult>;
+  // private doDeploy(
+  //   connection: Connection,
+  //   components: ComponentSet,
+  //   namespace?: string
+  // ): Promise<SourceDeployResult> {
+  //   let api: string;
+  //   let deploy: Promise<SourceDeployResult>;
 
-    if (namespace) {
-      const client = new SourceClient(connection);
-      deploy = client.tooling.deploy(
-        components.getSourceComponents().next().value,
-        {
-          namespace
-        }
-      );
-      api = 'tooling';
-    } else {
-      deploy = components.deploy(connection);
-      api = 'metadata';
-    }
+  //   if (namespace) {
+  //     const client = new SourceClient(connection);
+  //     deploy = client.tooling.deploy(
+  //       components.getSourceComponents().next().value,
+  //       {
+  //         namespace
+  //       }
+  //     );
+  //     api = 'tooling';
+  //   } else {
+  //     deploy = components.deploy(connection);
+  //     api = 'metadata';
+  //   }
 
-    this.telemetry.addProperty('api', api);
+  //   this.telemetry.addProperty('api', api);
 
-    return deploy;
-  }
+  //   return deploy;
+  // }
 }
