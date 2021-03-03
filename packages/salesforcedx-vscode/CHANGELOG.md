@@ -1,3 +1,23 @@
+# 51.3.0 - March 3, 2021
+
+## Added
+
+#### salesforcedx-sobjects-faux-generator
+
+- Improved sObject refresh performance ([PR #2997](https://github.com/forcedotcom/salesforcedx-vscode/pull/2997))
+
+### docs
+
+- Add learning map to additional resources ([PR #2989](https://github.com/forcedotcom/salesforcedx-vscode/pull/2989))
+
+- Update SOQL docs for saving query results ([PR #2988](https://github.com/forcedotcom/salesforcedx-vscode/pull/2988))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Fix debug test icon color to be friendly for light themes ([PR #2978](https://github.com/forcedotcom/salesforcedx-vscode/pull/2978))
+
 # 51.2.0 - February 24, 2021
 
 ## Added
