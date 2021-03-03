@@ -40,43 +40,40 @@ export class SObjectDescribe {
     category: SObjectCategory,
     source: SObjectRefreshSource
   ): Promise<string[]> {
-    const requestedDescriptions: string[] = [];
+    let requestedDescriptions: string[] = [];
     const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
 
-    for (const sobject of allDescriptions.sobjects) {
-      if (
-        category === SObjectCategory.ALL &&
-        source === SObjectRefreshSource.Manual
-      ) {
-        requestedDescriptions.push(sobject.name);
-        continue;
-      }
+    requestedDescriptions = allDescriptions.sobjects.reduce(
+      (acc: string[], sobject) => {
+        const isCustomObject =
+          sobject.custom === true && category === SObjectCategory.CUSTOM;
+        const isStandardObject =
+          sobject.custom === false && category === SObjectCategory.STANDARD;
 
-      if (
-        category === SObjectCategory.ALL &&
-        (source === SObjectRefreshSource.StartupMin ||
-          source === SObjectRefreshSource.Startup) &&
-        this.isRequiredSObject(sobject.name)
-      ) {
-        requestedDescriptions.push(sobject.name);
-        continue;
-      }
+        if (
+          category === SObjectCategory.ALL &&
+          source === SObjectRefreshSource.Manual
+        ) {
+          acc.push(sobject.name);
+        } else if (
+          category === SObjectCategory.ALL &&
+          (source === SObjectRefreshSource.StartupMin ||
+            source === SObjectRefreshSource.Startup) &&
+          this.isRequiredSObject(sobject.name)
+        ) {
+          acc.push(sobject.name);
+        } else if (
+          (isCustomObject || isStandardObject) &&
+          source === SObjectRefreshSource.Manual &&
+          this.isRequiredSObject(sobject.name)
+        ) {
+          acc.push(sobject.name);
+        }
 
-      const isCustomObject =
-        sobject.custom === true && category === SObjectCategory.CUSTOM;
-      const isStandardObject =
-        sobject.custom === false && category === SObjectCategory.STANDARD;
-
-      if (
-        (isCustomObject || isStandardObject) &&
-        source === SObjectRefreshSource.Manual &&
-        this.isRequiredSObject(sobject.name)
-      ) {
-        requestedDescriptions.push(sobject.name);
-        continue;
-      }
-    }
-
+        return acc;
+      },
+      []
+    );
     return requestedDescriptions;
   }
 
