@@ -41,6 +41,7 @@
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.6.2",
     "@salesforce/soql-model": "0.2.1",
+    "applicationinsights": "1.0.7",
     "debounce": "^1.2.0",
     "jsforce": "^1.10.0",
     "papaparse": "^5.3.0",
