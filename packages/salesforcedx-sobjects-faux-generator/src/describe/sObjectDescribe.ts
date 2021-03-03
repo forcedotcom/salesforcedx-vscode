@@ -37,7 +37,7 @@ export class SObjectDescribe {
    * @returns string[] containing the sobject names
    */
   public async describeGlobal(
-    type: SObjectCategory,
+    category: SObjectCategory,
     source: SObjectRefreshSource
   ): Promise<string[]> {
     const requestedDescriptions: string[] = [];
@@ -45,7 +45,7 @@ export class SObjectDescribe {
 
     for (const sobject of allDescriptions.sobjects) {
       if (
-        type === SObjectCategory.ALL &&
+        category === SObjectCategory.ALL &&
         source === SObjectRefreshSource.Manual
       ) {
         requestedDescriptions.push(sobject.name);
@@ -53,7 +53,7 @@ export class SObjectDescribe {
       }
 
       if (
-        type === SObjectCategory.ALL &&
+        category === SObjectCategory.ALL &&
         (source === SObjectRefreshSource.StartupMin ||
           source === SObjectRefreshSource.Startup) &&
         this.isRequiredSObject(sobject.name)
@@ -63,9 +63,9 @@ export class SObjectDescribe {
       }
 
       const isCustomObject =
-        sobject.custom === true && type === SObjectCategory.CUSTOM;
+        sobject.custom === true && category === SObjectCategory.CUSTOM;
       const isStandardObject =
-        sobject.custom === false && type === SObjectCategory.STANDARD;
+        sobject.custom === false && category === SObjectCategory.STANDARD;
 
       if (
         (isCustomObject || isStandardObject) &&

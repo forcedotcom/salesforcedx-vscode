@@ -140,10 +140,10 @@ export class FauxClassGenerator {
 
   public async generate(
     projectPath: string,
-    type: SObjectCategory,
+    category: SObjectCategory,
     source: SObjectRefreshSource
   ): Promise<SObjectRefreshResult> {
-    this.result = { data: { category: type, source, cancelled: false } };
+    this.result = { data: { category, source, cancelled: false } };
     const sobjectsFolderPath = path.join(
       projectPath,
       SFDX_DIR,
@@ -167,7 +167,7 @@ export class FauxClassGenerator {
         nls.localize('no_generate_if_not_in_project', sobjectsFolderPath)
       );
     }
-    this.cleanupSObjectFolders(sobjectsFolderPath, type);
+    this.cleanupSObjectFolders(sobjectsFolderPath, category);
 
     const connection = await Connection.create({
       authInfo: await AuthInfo.create({
@@ -178,7 +178,7 @@ export class FauxClassGenerator {
 
     let sobjects: string[] = [];
     try {
-      sobjects = await describe.describeGlobal(type, source);
+      sobjects = await describe.describeGlobal(category, source);
     } catch (e) {
       const err = JSON.parse(e);
       return this.errorExit(
@@ -328,10 +328,10 @@ export class FauxClassGenerator {
   // VisibleForTesting
   public cleanupSObjectFolders(
     baseSObjectsFolder: string,
-    type: SObjectCategory
+    category: SObjectCategory
   ) {
     let pathToClean;
-    switch (type) {
+    switch (category) {
       case SObjectCategory.STANDARD:
         pathToClean = path.join(baseSObjectsFolder, STANDARDOBJECTS_DIR);
         break;
