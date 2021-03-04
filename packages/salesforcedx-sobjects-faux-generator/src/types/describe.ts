@@ -149,12 +149,6 @@ export interface DescribeSObjectResult {
   result: SObject;
 }
 
-export enum SObjectCategory {
-  ALL = 'ALL',
-  STANDARD = 'STANDARD',
-  CUSTOM = 'CUSTOM'
-}
-
 export type SubRequest = { method: string; url: string };
 export type BatchRequest = { batchRequests: SubRequest[] };
 export type SubResponse = { statusCode: number; result: SObject };

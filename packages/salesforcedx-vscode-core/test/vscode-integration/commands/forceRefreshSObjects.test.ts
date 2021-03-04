@@ -11,11 +11,11 @@ import {
   STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
+import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
-  FauxClassGenerator,
+  SObjectCategory,
   SObjectRefreshSource
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
 import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   notificationService,
@@ -26,8 +26,7 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import * as vscode from 'vscode';
-import { ProgressLocation } from 'vscode';
+import { ProgressLocation, window } from 'vscode';
 import {
   checkSObjectsAndRefresh,
   ForceRefreshSObjectsExecutor,
@@ -284,7 +283,7 @@ describe('ForceGenerateFauxClasses', () => {
     beforeEach(() => {
       sandboxStub = createSandbox();
       gatherer = new SObjectRefreshGatherer();
-      quickPickStub = sandboxStub.stub(vscode.window, 'showQuickPick');
+      quickPickStub = sandboxStub.stub(window, 'showQuickPick');
       quickPickStub.returns(nls.localize('sobject_refresh_all'));
     });
 

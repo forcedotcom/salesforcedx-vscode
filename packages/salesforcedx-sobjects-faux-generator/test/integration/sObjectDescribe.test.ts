@@ -9,7 +9,8 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
-import { SObjectCategory, SObjectDescribe } from '../../src/describe';
+import { SObjectDescribe } from '../../src/describe';
+import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
 import { mockDescribeResponse } from './mockData';
 
 const CONNECTION_DATA = {
@@ -17,6 +18,21 @@ const CONNECTION_DATA = {
   instanceUrl: 'https://na1.salesforce.com'
 };
 
+const SOBJECTS_DESCRIBE_SAMPLE = {
+  sobjects: [
+    { custom: true, name: 'MyCustomObj1' },
+    { custom: true, name: 'MyCustomObj2' },
+    { custom: true, name: 'Custom_History_Obj' },
+    { custom: true, name: 'MyCustomObj1Share' },
+    { custom: true, name: 'MyCustomObj2History' },
+    { custom: true, name: 'MyCustomObj1Feed' },
+    { custom: true, name: 'MyCustomObj2Event' },
+    { custom: false, name: 'Account' },
+    { custom: false, name: 'Contact' },
+    { custom: false, name: 'Lead' },
+    { custom: false, name: 'Event' }
+  ]
+};
 const env = createSandbox();
 
 // tslint:disable:no-unused-expression
@@ -45,7 +61,10 @@ describe('Fetch sObjects', () => {
       new Error('Unexpected error when running describeGlobal')
     );
     try {
-      await sobjectdescribe.describeGlobal(SObjectCategory.ALL);
+      await sobjectdescribe.describeGlobal(
+        SObjectCategory.ALL,
+        SObjectRefreshSource.Manual
+      );
       fail('test should have failed with an api exception');
     } catch (e) {
       expect(e.message).contains(
@@ -64,7 +83,10 @@ describe('Fetch sObjects', () => {
       ]
     });
 
-    const results = await sobjectdescribe.describeGlobal(SObjectCategory.ALL);
+    const results = await sobjectdescribe.describeGlobal(
+      SObjectCategory.ALL,
+      SObjectRefreshSource.Manual
+    );
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal([
       'MyCustomObj1',
@@ -85,7 +107,8 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.CUSTOM
+      SObjectCategory.CUSTOM,
+      SObjectRefreshSource.Manual
     );
     expect(results.length).to.eql(2);
     expect(results).to.deep.equal(['MyCustomObj1', 'MyCustomObj2']);
@@ -103,10 +126,75 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.STANDARD
+      SObjectCategory.STANDARD,
+      SObjectRefreshSource.Manual
     );
     expect(results.length).to.eql(3);
     expect(results).to.deep.equal(['Account', 'Contact', 'Lead']);
+  });
+
+  it('Should filter out sobjects if category is CUSTOM when running describeGlobal', async () => {
+    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
+
+    const results = await sobjectdescribe.describeGlobal(
+      SObjectCategory.CUSTOM,
+      SObjectRefreshSource.Manual
+    );
+    expect(results.length).to.eql(3);
+    expect(results).to.deep.equal([
+      'MyCustomObj1',
+      'MyCustomObj2',
+      'Custom_History_Obj'
+    ]);
+  });
+
+  it('Should filter out sobjects if category is STANDARD when running describeGlobal', async () => {
+    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
+
+    const results = await sobjectdescribe.describeGlobal(
+      SObjectCategory.STANDARD,
+      SObjectRefreshSource.Manual
+    );
+    expect(results.length).to.eql(4);
+    expect(results).to.deep.equal(['Account', 'Contact', 'Lead', 'Event']);
+  });
+
+  it('Should filter out sobjects if category is ALL & source is Startup when running describeGlobal', async () => {
+    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
+
+    const results = await sobjectdescribe.describeGlobal(
+      SObjectCategory.ALL,
+      SObjectRefreshSource.Startup
+    );
+    expect(results.length).to.eql(7);
+    expect(results).to.deep.equal([
+      'MyCustomObj1',
+      'MyCustomObj2',
+      'Custom_History_Obj',
+      'Account',
+      'Contact',
+      'Lead',
+      'Event'
+    ]);
+  });
+
+  it('Should filter out sobjects if category is ALL & source is StartupMin when running describeGlobal', async () => {
+    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
+
+    const results = await sobjectdescribe.describeGlobal(
+      SObjectCategory.ALL,
+      SObjectRefreshSource.Startup
+    );
+    expect(results.length).to.eql(7);
+    expect(results).to.deep.equal([
+      'MyCustomObj1',
+      'MyCustomObj2',
+      'Custom_History_Obj',
+      'Account',
+      'Contact',
+      'Lead',
+      'Event'
+    ]);
   });
 
   it('Should build the sobject describe url', () => {
@@ -163,7 +251,7 @@ describe('Fetch sObjects', () => {
     const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves(mockDescribeResponse);
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatch(
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
       sobjectTypes
     );
 
@@ -181,7 +269,7 @@ describe('Fetch sObjects', () => {
     });
 
     try {
-      await sobjectdescribe.describeSObjectBatch(sobjectTypes);
+      await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
       fail('An error was expected');
     } catch (err) {
       expect(err).to.be.equal('Unexpected error');
