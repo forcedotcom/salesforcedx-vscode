@@ -10,15 +10,18 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import {
   DeployResult,
+  RetrieveResult,
   SourceDeployResult,
   SourceRetrieveResult,
   ToolingDeployStatus
 } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentDeployment,
+  ComponentStatus,
+  FileResponse,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { sep } from 'path';
+import { relative, sep } from 'path';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
 
@@ -132,6 +135,64 @@ export function createDeployOutput(
       formatResult = '';
   }
   return formatResult;
+}
+
+export function createRetrieveOutput2(
+  result: RetrieveResult,
+  relativePackageDirs: string[]
+): string {
+  const table = new Table();
+  const { status } = result.response;
+
+  const successes: Row[] = [];
+  const failures: Row[] = [];
+
+  for (const response of result.getFileResponses()) {
+    const asRow = (response as unknown) as Row;
+    response.filePath = getRelativeProjectPath(
+      response.filePath,
+      relativePackageDirs
+    );
+    if (response.state !== ComponentStatus.Failed) {
+      successes.push(asRow);
+    } else {
+      failures.push(asRow);
+    }
+  }
+
+  let output = '';
+
+  if (successes.length > 0) {
+    output += table.createTable(
+      successes,
+      [
+        { key: 'fullName', label: nls.localize('table_header_full_name') },
+        { key: 'type', label: nls.localize('table_header_type') },
+        {
+          key: 'filePath',
+          label: nls.localize('table_header_project_path')
+        }
+      ],
+      nls.localize(`table_title_deployed_source`)
+    );
+  }
+
+  if (failures.length > 0) {
+    if (successes.length > 0) {
+      output += '\n';
+    }
+    output += table.createTable(
+      failures,
+      [
+        { key: 'fullName', label: nls.localize('table_header_full_name') },
+        { key: 'type', label: nls.localize('table_header_type') },
+        { key: 'error', label: nls.localize('table_header_message') }
+      ],
+      nls.localize('lib_retrieve_message_title')
+    );
+  }
+
+  return output;
 }
 
 export function createRetrieveOutput(

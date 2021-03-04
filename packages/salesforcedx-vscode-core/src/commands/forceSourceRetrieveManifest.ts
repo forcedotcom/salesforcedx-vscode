@@ -11,6 +11,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -25,6 +26,7 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import {
+  createComponentCount,
   createRetrieveOutput,
   FilePathGatherer,
   SfdxCommandlet,
@@ -32,6 +34,7 @@ import {
   SfdxWorkspaceChecker,
   useBetaDeployRetrieve
 } from './util';
+import { createRetrieveOutput2 } from './util/sourceResultOutput';
 
 export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
   string
@@ -58,25 +61,42 @@ export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExec
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
-    // const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    // const defaultOutput = join(
-    //   getRootWorkspacePath(),
-    //   (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
-    // );
-    // const components = await ComponentSet.fromManifestFile(response.data, {
-    //   resolve: packageDirs.map(relativeDir =>
-    //     join(getRootWorkspacePath(), relativeDir)
-    //   ),
-    //   literalWildcard: true
-    // });
-    // const connection = await workspaceContext.getConnection();
-    // const result = await components.retrieve(connection, defaultOutput, {
-    //   merge: true
-    // });
+    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+    const defaultOutput = join(
+      getRootWorkspacePath(),
+      (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
+    );
+    const components = await ComponentSet.fromManifestFile(response.data, {
+      resolve: packageDirs.map(relativeDir =>
+        join(getRootWorkspacePath(), relativeDir)
+      ),
+      literalWildcard: true
+    });
 
-    // channelService.appendLine(createRetrieveOutput(result, packageDirs));
+    const operation = components
+      .retrieve({
+        usernameOrConnection: await workspaceContext.getConnection(),
+        output: defaultOutput,
+        merge: true
+      })
+      .start();
 
-    // return result.success;
+    this.telemetry.addProperty(
+      'metadataCount',
+      JSON.stringify(createComponentCount(components))
+    );
+
+    const result = await operation;
+
+    if (result) {
+      channelService.appendLine(createRetrieveOutput2(result, packageDirs));
+
+      return (
+        result.response.status === RequestStatus.Succeeded ||
+        result.response.status === RequestStatus.SucceededPartial
+      );
+    }
+
     return false;
   }
 }
