@@ -8,6 +8,7 @@
 import {
   AsyncTestConfiguration,
   HumanReporter,
+  ResultFormat,
   TestLevel,
   TestService
 } from '@salesforce/apex-node';
@@ -218,7 +219,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
     const result = await testService.runTestAsynchronous(payload, codeCoverage);
     await testService.writeResultFiles(
       result,
-      { resultFormat: 'json', dirPath: getTempFolder() },
+      { resultFormats: [ResultFormat.json], dirPath: getTempFolder() },
       codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, codeCoverage);

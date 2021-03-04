@@ -37,7 +37,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { useApexLibrary } from '../settings';
@@ -198,7 +198,6 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime);
     });
 
-    channelService.streamCommandOutput(execution);
 
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
@@ -241,12 +240,13 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 
-    await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
+    const {logs, logPaths} = await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
+    logs.forEach(log => OUTPUT_CHANNEL.appendLine(log));
 
-    const logPath = path.join(LOG_DIRECTORY, `${logId}.log`);
-    const document = await vscode.workspace.openTextDocument(logPath);
-    vscode.window.showTextDocument(document);
-
+    if (logPaths) {
+      const document = await vscode.workspace.openTextDocument(logPaths[0]);
+      vscode.window.showTextDocument(document);
+    }
     return true;
   }
 }

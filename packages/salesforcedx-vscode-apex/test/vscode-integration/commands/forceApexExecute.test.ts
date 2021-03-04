@@ -159,11 +159,9 @@ describe('Force Apex Execute', () => {
 
   describe('Format Execute Anonymous Response', () => {
     let outputStub: SinonStub;
-    let showOutputChannel: SinonStub;
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
-      showOutputChannel = sb.stub(channelService, 'showChannelOutput');
     });
 
     it('should format result correctly for a successful execution', async () => {
@@ -195,7 +193,6 @@ describe('Force Apex Execute', () => {
       await executor.run({ type: 'CONTINUE', data: {} });
 
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
-      expect(showOutputChannel.calledOnce).to.be.true;
     });
 
     it('should format result correctly for a compilation failure', async () => {
@@ -222,7 +219,6 @@ describe('Force Apex Execute', () => {
       await executor.run({ type: 'CONTINUE', data: {} });
 
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
-      expect(showOutputChannel.calledOnce).to.be.true;
     });
 
     it('should format result correctly for a runtime failure', async () => {
@@ -258,7 +254,6 @@ describe('Force Apex Execute', () => {
       await executor.run({ type: 'CONTINUE', data: {} });
 
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
-      expect(showOutputChannel.calledOnce).to.be.true;
     });
   });
 
