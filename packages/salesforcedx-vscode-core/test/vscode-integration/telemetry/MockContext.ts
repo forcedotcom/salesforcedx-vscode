@@ -9,6 +9,7 @@ import {
   EnvironmentVariableCollection,
   EnvironmentVariableMutator,
   ExtensionContext,
+  ExtensionMode,
   Memento,
   Uri
 } from 'vscode';
@@ -69,6 +70,10 @@ export class MockContext implements ExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
   }
+  public storageUri: Uri | undefined;
+  public globalStorageUri = Uri.parse('file://globalStorage');
+  public logUri = Uri.parse('file://logs');
+  public extensionMode = ExtensionMode.Test;
   public extensionUri = Uri.parse('file://test');
   public environmentVariableCollection = new MockEnvironmentVariableCollection();
   public subscriptions: Array<{ dispose(): any }> = [];
