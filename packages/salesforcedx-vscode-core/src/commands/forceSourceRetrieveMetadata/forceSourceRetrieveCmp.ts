@@ -17,6 +17,7 @@ import {
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -29,7 +30,6 @@ import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import {
   createComponentCount,
-  createRetrieveOutput,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -37,6 +37,7 @@ import {
 } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
+import { createRetrieveOutput2 } from '../util/sourceResultOutput';
 
 export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
   LocalComponent[]
@@ -151,66 +152,74 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   public async run(
     response: ContinueResponse<LocalComponent[]>
   ): Promise<boolean> {
-    // const dirPath = (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
-    // const output = path.join(getRootWorkspacePath(), dirPath);
-    // const comps: LocalComponent[] = response.data;
+    const dirPath = (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
+    const defaultOutput = path.join(getRootWorkspacePath(), dirPath);
+    const comps: LocalComponent[] = response.data;
 
-    // const components = new ComponentSet(
-    //   comps.map(lc => ({ fullName: lc.fileName, type: lc.type }))
-    // );
+    const components = new ComponentSet(
+      comps.map(lc => ({ fullName: lc.fileName, type: lc.type }))
+    );
 
-    // const metadataCount = JSON.stringify(createComponentCount(components));
-    // this.telemetry.addProperty('metadataCount', metadataCount);
+    const metadataCount = JSON.stringify(createComponentCount(components));
+    this.telemetry.addProperty('metadataCount', metadataCount);
 
-    // const connection = await workspaceContext.getConnection();
-    // const result = await components.retrieve(connection, output, {
-    //   merge: true
-    // });
+    const result = await components
+      .retrieve({
+        usernameOrConnection: await workspaceContext.getConnection(),
+        output: defaultOutput,
+        merge: true
+      })
+      .start();
 
-    // if (result.success && this.openAfterRetrieve) {
-    //   const compSet = ComponentSet.fromSource(output);
-    //   await this.openResources(
-    //     this.findResources(Array.from(components)[0], compSet)
-    //   );
-    // }
+    if (result) {
+      channelService.appendLine(createRetrieveOutput2(result, [dirPath]));
+      if (
+        result.response.status === RequestStatus.Succeeded &&
+        this.openAfterRetrieve
+      ) {
+        const compSet = ComponentSet.fromSource(defaultOutput);
+        await this.openResources(
+          this.findResources(Array.from(components)[0], compSet)
+        );
+      }
 
-    // channelService.appendLine(createRetrieveOutput(result, [dirPath]));
+      return result.response.status === RequestStatus.Succeeded;
+    }
 
-    // return result.success;
     return false;
   }
 
-  // private findResources(
-  //   filter: ComponentLike,
-  //   compSet?: ComponentSet
-  // ): string[] {
-  //   if (compSet && compSet?.size > 0) {
-  //     const oneComp = compSet.getSourceComponents(filter).next().value;
+  private findResources(
+    filter: ComponentLike,
+    compSet?: ComponentSet
+  ): string[] {
+    if (compSet && compSet?.size > 0) {
+      const oneComp = compSet.getSourceComponents(filter).first();
 
-  //     const filesToOpen = [];
-  //     if (oneComp) {
-  //       if (oneComp.xml) {
-  //         filesToOpen.push(oneComp.xml);
-  //       }
+      const filesToOpen = [];
+      if (oneComp) {
+        if (oneComp.xml) {
+          filesToOpen.push(oneComp.xml);
+        }
 
-  //       for (const filePath of oneComp.walkContent()) {
-  //         filesToOpen.push(filePath);
-  //       }
-  //     }
-  //     return filesToOpen;
-  //   }
-  //   return [];
-  // }
+        for (const filePath of oneComp.walkContent()) {
+          filesToOpen.push(filePath);
+        }
+      }
+      return filesToOpen;
+    }
+    return [];
+  }
 
-  // private async openResources(filesToOpen: string[]): Promise<void> {
-  //   for (const file of filesToOpen) {
-  //     const showOptions: vscode.TextDocumentShowOptions = {
-  //       preview: false
-  //     };
-  //     const document = await vscode.workspace.openTextDocument(file);
-  //     vscode.window.showTextDocument(document, showOptions);
-  //   }
-  // }
+  private async openResources(filesToOpen: string[]): Promise<void> {
+    for (const file of filesToOpen) {
+      const showOptions: vscode.TextDocumentShowOptions = {
+        preview: false
+      };
+      const document = await vscode.workspace.openTextDocument(file);
+      vscode.window.showTextDocument(document, showOptions);
+    }
+  }
 }
 
 export async function forceSourceRetrieveCmp(

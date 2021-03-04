@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  getRootWorkspacePath,
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -23,6 +26,7 @@ import {
   ToolingApi
 } from '@salesforce/source-deploy-retrieve';
 import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
@@ -155,7 +159,10 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
       retrieve = components
         .retrieve({
           usernameOrConnection: connection,
-          output: (await SfdxPackageDirectories.getDefaultPackageDir()) ?? '',
+          output: join(
+            getRootWorkspacePath(),
+            (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
+          ),
           merge: true
         })
         .start();
