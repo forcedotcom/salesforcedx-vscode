@@ -198,7 +198,6 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime);
     });
 
-
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0) {

@@ -170,7 +170,7 @@ export abstract class LibraryCommandletExecutor<T>
       if (this.showChannelOutput) {
         channelService.showChannelOutput();
       }
-      
+
       if (success) {
         notificationService
           .showSuccessfulExecution(this.executionName)
