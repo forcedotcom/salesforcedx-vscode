@@ -145,7 +145,11 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   private openAfterRetrieve: boolean;
 
   constructor(openAfterRetrieve = false) {
-    super('Retrieve (Beta)', 'force_source_retrieve_beta', OUTPUT_CHANNEL);
+    super(
+      nls.localize('force_source_retrieve_text'),
+      'force_source_retrieve_beta',
+      OUTPUT_CHANNEL
+    );
     this.openAfterRetrieve = openAfterRetrieve;
   }
 

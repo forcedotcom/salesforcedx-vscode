@@ -124,7 +124,7 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
 > {
   constructor() {
     super(
-      'Deploy (Beta)',
+      nls.localize('force_source_deploy_text'),
       'force_source_deploy_with_sourcepath_beta',
       OUTPUT_CHANNEL
     );

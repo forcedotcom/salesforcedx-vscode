@@ -59,8 +59,8 @@ export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecut
 > {
   constructor() {
     super(
-      'Deploy With Manifest (beta)',
-      'force_source_deploy_with_manifest',
+      nls.localize('force_source_deploy_text'),
+      'force_source_deploy_with_manifest_beta',
       OUTPUT_CHANNEL
     );
   }

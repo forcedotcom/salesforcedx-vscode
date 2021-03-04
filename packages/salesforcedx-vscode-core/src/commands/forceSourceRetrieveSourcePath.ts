@@ -130,7 +130,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
 > {
   constructor() {
     super(
-      'Retrieve (Beta)',
+      nls.localize('force_source_retrieve_text'),
       'force_source_retrieve_with_sourcepath_beta',
       OUTPUT_CHANNEL
     );

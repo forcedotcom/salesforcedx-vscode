@@ -54,7 +54,7 @@ export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExec
 > {
   constructor() {
     super(
-      'Retrieve With Manifest (beta)',
+      nls.localize('force_source_retrieve_text'),
       'force_source_retrieve_with_manifest_beta',
       OUTPUT_CHANNEL
     );
