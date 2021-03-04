@@ -10,7 +10,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.3.0",
+  "version": "51.3.1",
   "preview": true,
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
@@ -36,7 +36,7 @@
     "@salesforce/apex-tmlanguage": "1.6.0",
     "@salesforce/core": "^2.15.2",
     "@salesforce/salesforcedx-utils-vscode": "51.3.0",
-    "@salesforce/soql-builder-ui": "0.0.34",
+    "@salesforce/soql-builder-ui": "0.1.0",
     "@salesforce/soql-common": "0.2.0",
     "@salesforce/soql-data-view": "0.0.9",
     "@salesforce/soql-language-server": "0.6.0",
