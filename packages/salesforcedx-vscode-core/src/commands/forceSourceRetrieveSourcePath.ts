@@ -16,10 +16,13 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   ComponentSet,
+  MetadataResolver,
   MetadataType,
   registryData,
-  SourceComponent
+  RetrieveResult,
+  ToolingApi
 } from '@salesforce/source-deploy-retrieve';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
@@ -29,13 +32,13 @@ import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
   createComponentCount,
-  createRetrieveOutput,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
   useBetaDeployRetrieve
 } from './util';
+import { createRetrieveOutput2 } from './util/sourceResultOutput';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -130,45 +133,55 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
-    // let retrieve;
-    // const connection = await workspaceContext.getConnection();
-    // const components = ComponentSet.fromSource(response.data);
-    // const first: SourceComponent = components.getSourceComponents().next()
-    //   .value;
+    let retrieve;
+    const connection = await workspaceContext.getConnection();
+    const components = ComponentSet.fromSource(response.data);
+    const first = components.getSourceComponents().first();
 
-    // if (
-    //   components.size === 1 &&
-    //   this.isSupportedToolingRetrieveType(first.type)
-    // ) {
-    //   const projectNamespace = (await SfdxProjectConfig.getValue(
-    //     'namespace'
-    //   )) as string;
-    //   const client = new SourceClient(connection);
-    //   retrieve = client.tooling.retrieve({
-    //     components,
-    //     namespace: projectNamespace
-    //   });
-    // } else {
-    //   retrieve = components.retrieve(
-    //     connection,
-    //     (await SfdxPackageDirectories.getDefaultPackageDir()) ?? '',
-    //     { merge: true }
-    //   );
-    // }
+    if (
+      components.size === 1 &&
+      first &&
+      this.isSupportedToolingRetrieveType(first.type)
+    ) {
+      const projectNamespace = (await SfdxProjectConfig.getValue(
+        'namespace'
+      )) as string;
+      const tooling = new ToolingApi(connection, new MetadataResolver());
+      retrieve = tooling.retrieve({
+        components,
+        namespace: projectNamespace
+      });
+    } else {
+      retrieve = components
+        .retrieve({
+          usernameOrConnection: connection,
+          output: (await SfdxPackageDirectories.getDefaultPackageDir()) ?? '',
+          merge: true
+        })
+        .start();
+    }
 
-    // const metadataCount = JSON.stringify(createComponentCount(components));
-    // this.telemetry.addProperty('metadataCount', metadataCount);
+    const metadataCount = JSON.stringify(createComponentCount(components));
+    this.telemetry.addProperty('metadataCount', metadataCount);
 
-    // const result = await retrieve;
+    const result = await retrieve;
 
-    // channelService.appendLine(
-    //   createRetrieveOutput(
-    //     result,
-    //     await SfdxPackageDirectories.getPackageDirectoryPaths()
-    //   )
-    // );
+    if (result) {
+      channelService.appendLine(
+        createRetrieveOutput2(
+          result,
+          await SfdxPackageDirectories.getPackageDirectoryPaths()
+        )
+      );
 
-    // return result.success;
+      const status =
+        result instanceof RetrieveResult
+          ? result.response.status
+          : result.status;
+
+      return status === RequestStatus.Succeeded;
+    }
+
     return false;
   }
 

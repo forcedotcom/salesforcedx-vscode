@@ -138,11 +138,14 @@ export function createDeployOutput(
 }
 
 export function createRetrieveOutput2(
-  result: RetrieveResult,
+  result: RetrieveResult | SourceRetrieveResult,
   relativePackageDirs: string[]
 ): string {
+  if (!(result instanceof RetrieveResult)) {
+    return createRetrieveOutput(result, relativePackageDirs);
+  }
+
   const table = new Table();
-  const { status } = result.response;
 
   const successes: Row[] = [];
   const failures: Row[] = [];
@@ -173,7 +176,7 @@ export function createRetrieveOutput2(
           label: nls.localize('table_header_project_path')
         }
       ],
-      nls.localize(`table_title_deployed_source`)
+      nls.localize(`lib_retrieve_result_title`)
     );
   }
 
