@@ -20,7 +20,7 @@ import {
   ConflictDetectionMessages
 } from '../commands/util/postconditionCheckers';
 import { workspaceContext } from '../context';
-import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
+import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
@@ -93,10 +93,7 @@ export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecut
         const success = result.response.status === RequestStatus.Succeeded;
 
         if (!success) {
-          // handleDeployRetrieveLibraryDiagnostics(
-          //   result,
-          //   BaseDeployExecutor.errorCollection
-          // );
+          handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
         }
 
         return success;

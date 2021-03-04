@@ -68,7 +68,7 @@ export function createDeployOutput2(
   }
 
   return table.createTable(
-    rowsWithRelativePaths,
+    rowsWithRelativePaths.filter(row => row.error),
     [
       {
         key: 'filePath',

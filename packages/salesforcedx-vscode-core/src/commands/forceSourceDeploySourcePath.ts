@@ -19,7 +19,7 @@ import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
-import { handleDeployRetrieveLibraryDiagnostics } from '../diagnostics';
+import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { DeployQueue } from '../settings';
@@ -160,10 +160,7 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
         const success = result.response.status === RequestStatus.Succeeded;
 
         if (!success) {
-          // handleDeployRetrieveLibraryDiagnostics(
-          //   result,
-          //   BaseDeployExecutor.errorCollection
-          // );
+          handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
         }
 
         return success;

@@ -8,5 +8,5 @@
 export {
   getRange,
   handleDiagnosticErrors,
-  handleDeployRetrieveLibraryDiagnostics
+  handleDeployDiagnostics
 } from './diagnostics';
