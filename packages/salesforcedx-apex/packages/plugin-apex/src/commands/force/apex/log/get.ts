@@ -68,25 +68,25 @@ export default class Get extends SfdxCommand {
       if (!this.flags.logid && !this.flags.number) {
         this.flags.number = 1;
       }
-      const logs = await logService.getLogs({
+      const logResults = await logService.getLogs({
         logId: this.flags.logid,
         numberOfLogs: this.flags.number,
         outputDir: this.flags.outputdir
       });
 
-      if (logs.length === 0) {
+      if (logResults.length === 0) {
         this.ux.log(messages.getMessage('noResultsFound'));
         return [];
       }
 
       if (this.flags.outputdir) {
         this.ux.log(`Log files written to ${this.flags.outputdir}`);
-        return logs;
+        return logResults.map(logResult => logResult.log);
       }
-      const parsedLogs = logs.map(log => {
-        const colored = colorLogs(log);
+      const parsedLogs = logResults.map(logResult => {
+        const colored = colorLogs(logResult.log);
         this.ux.log(colored);
-        return { log };
+        return { log: logResult.log };
       });
 
       return parsedLogs;

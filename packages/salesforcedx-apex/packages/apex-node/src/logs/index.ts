@@ -6,4 +6,4 @@
  */
 
 export { LogService } from './logService';
-export { ApexLogGetOptions, LogRecord } from './types';
+export { ApexLogGetOptions, LogRecord, LogResult } from './types';

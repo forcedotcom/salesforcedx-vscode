@@ -13,7 +13,7 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { LogService } from '../../src/logs/logService';
 import * as path from 'path';
 import * as stream from 'stream';
-import { LogQueryResult, LogRecord } from '../../src/logs/types';
+import { LogQueryResult, LogRecord, LogResult } from '../../src/logs/types';
 
 const $$ = testSetup();
 
@@ -125,7 +125,9 @@ describe('Apex Log Service Tests', () => {
     const toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
     //@ts-ignore
     toolingQueryStub.onFirstCall().resolves(queryRecords);
-    const response = await apexLogGet.getLogs({ numberOfLogs: 2 });
+    const response = await apexLogGet.getLogs({
+      numberOfLogs: 2
+    });
     expect(response.length).to.eql(2);
   });
 
@@ -137,7 +139,9 @@ describe('Apex Log Service Tests', () => {
       'getLogRecords'
     );
     toolingRequestStub.onFirstCall().resolves(log);
-    const response = await apexLogGet.getLogs({ logId: '07L5w00005PGdTnEAL' });
+    const response = await apexLogGet.getLogs({
+      logId: '07L5w00005PGdTnEAL'
+    });
     expect(response.length).to.eql(1);
     expect(getLogIdStub.callCount).to.eql(0);
   });
@@ -175,7 +179,9 @@ describe('Apex Log Service Tests', () => {
     const toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
     //@ts-ignore
     toolingQueryStub.onFirstCall().resolves(queryRecords);
-    const response = await apexLogGet.getLogs({ numberOfLogs: 27 });
+    const response = await apexLogGet.getLogs({
+      numberOfLogs: 27
+    });
     expect(response.length).to.eql(25);
   });
 
@@ -220,14 +226,18 @@ describe('Apex Log Service Tests', () => {
     const logs = ['48jnskd', '57fskjf'];
     toolingRequestStub.onFirstCall().resolves(logs[0]);
     toolingRequestStub.onSecondCall().resolves(logs[1]);
+
+    const logResult: LogResult[] = [
+      { log: logs[0], logPath: path.join(filePath, `${logRecords[0].Id}.log`) },
+      { log: logs[1], logPath: path.join(filePath, `${logRecords[1].Id}.log`) }
+    ];
+
     const response = await apexLogGet.getLogs({
       numberOfLogs: 2,
       outputDir: filePath
     });
-    expect(response).to.deep.equal([
-      path.join(filePath, '07L5tgg0005PGdTnEAL.log'),
-      path.join(filePath, '07L5tgg0005PGdTnFPL.log')
-    ]);
+
+    expect(response).to.deep.equal(logResult);
     expect(createStreamStub.callCount).to.eql(2);
   });
 

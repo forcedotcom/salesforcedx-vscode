@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { ApexLogGetOptions, LogQueryResult, LogRecord } from './types';
+import {
+  ApexLogGetOptions,
+  LogQueryResult,
+  LogRecord,
+  LogResult
+} from './types';
 import { createFile } from '../utils';
 import { nls } from '../i18n';
 import * as path from 'path';
@@ -38,7 +43,7 @@ export class LogService {
   }
 
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
-  public async getLogs(options: ApexLogGetOptions): Promise<string[]> {
+  public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
     const logIdList = await this.getLogIds(options);
     const logPaths: string[] = [];
     const connectionRequests = logIdList.map(async id => {
@@ -54,9 +59,16 @@ export class LogService {
 
     const logs = await Promise.all(connectionRequests);
     if (logPaths.length > 0) {
-      return logPaths;
+      const logMap: LogResult[] = [];
+      for (let i = 0; i < logs.length; i++) {
+        logMap.push({ log: logs[i], logPath: logPaths[i] });
+      }
+      return logMap;
     }
-    return logs;
+
+    return logs.map(log => {
+      return { log };
+    });
   }
 
   public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {

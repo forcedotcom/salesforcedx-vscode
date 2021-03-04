@@ -10,7 +10,7 @@ export {
   ExecuteAnonymousResponse,
   ApexExecuteOptions
 } from './execute';
-export { LogService, ApexLogGetOptions, LogRecord } from './logs';
+export { LogService, ApexLogGetOptions, LogRecord, LogResult } from './logs';
 export { JUnitReporter, TapReporter, HumanReporter } from './reporters';
 export {
   ApexTestResultData,
