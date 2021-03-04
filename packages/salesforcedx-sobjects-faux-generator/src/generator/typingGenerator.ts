@@ -44,8 +44,8 @@ export class TypingGenerator {
   }
 
   public generateTypingContent(sobject: SObject): string {
-    const declarations = this.declGenerator.generateFieldDeclarations(sobject);
-    return this.convertDeclarations(sobject.name, declarations);
+    const definition = this.declGenerator.generateFieldDeclarations(sobject);
+    return this.convertDeclarations(definition.name, definition.fields);
   }
 
   private convertDeclarations(

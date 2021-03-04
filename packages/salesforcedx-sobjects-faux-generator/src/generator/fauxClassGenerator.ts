@@ -28,7 +28,11 @@ import { SObjectDescribe } from '../describe';
 import { nls } from '../messages';
 import { SObject, SObjectCategory, SObjectRefreshSource } from '../types';
 import { ConfigUtil } from './configUtil';
-import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
+import {
+  DeclarationGenerator,
+  FieldDeclaration,
+  MODIFIER
+} from './declarationGenerator';
 import { TypingGenerator } from './typingGenerator';
 
 const TYPING_PATH = ['typings', 'lwc', 'sobjects2'];
@@ -53,13 +57,6 @@ const startupMinSObjects = [
 ];
 export interface CancellationToken {
   isCancellationRequested: boolean;
-}
-
-export interface FieldDeclaration {
-  modifier: string;
-  type: string;
-  name: string;
-  comment?: string;
 }
 
 export interface SObjectRefreshResult {
@@ -288,8 +285,11 @@ export class FauxClassGenerator {
 
   // VisibleForTesting
   public generateFauxClassText(sobject: SObject): string {
-    const declarations = this.declGenerator.generateFieldDeclarations(sobject);
-    return this.generateFauxClassTextFromDecls(sobject.name, declarations);
+    const definition = this.declGenerator.generateFieldDeclarations(sobject);
+    return this.generateFauxClassTextFromDecls(
+      definition.name,
+      definition.fields
+    );
   }
 
   // VisibleForTesting

@@ -14,6 +14,11 @@ export interface FieldDeclaration {
   comment?: string;
 }
 
+export interface SObjectDefinition {
+  name: string;
+  fields: FieldDeclaration[];
+}
+
 export class DeclarationGenerator {
   private static typeMapping: Map<string, string> = new Map([
     ['string', 'String'],
@@ -46,7 +51,7 @@ export class DeclarationGenerator {
     ['complexvalue', 'Object']
   ]);
 
-  public generateFieldDeclarations(sobject: SObject): FieldDeclaration[] {
+  public generateFieldDeclarations(sobject: SObject): SObjectDefinition {
     const declarations: FieldDeclaration[] = [];
     if (sobject.fields) {
       for (const field of sobject.fields) {
@@ -78,7 +83,7 @@ export class DeclarationGenerator {
         }
       }
     }
-    return declarations;
+    return { name: sobject.name, fields: declarations };
   }
 
   private stripId(name: string): string {
