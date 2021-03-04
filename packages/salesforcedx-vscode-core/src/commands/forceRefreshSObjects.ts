@@ -11,11 +11,11 @@ import {
   STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { SObjectCategory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/describe';
+import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
-  FauxClassGenerator,
+  SObjectCategory,
   SObjectRefreshSource
-} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+} from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -184,9 +184,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 
-export async function forceRefreshSObjects(
-  source?: SObjectRefreshSource
-) {
+export async function forceRefreshSObjects(source?: SObjectRefreshSource) {
   const parameterGatherer = new SObjectRefreshGatherer(source);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,

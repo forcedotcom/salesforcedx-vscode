@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SObject } from '../../src/describe';
+import { SObject } from '../../src/types';
 export const customSObject: SObject = {
   actionOverrides: [],
   activateable: false,
