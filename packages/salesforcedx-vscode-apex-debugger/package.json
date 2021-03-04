@@ -18,7 +18,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.46.0"
+    "vscode": "^1.49.3"
   },
   "categories": [
     "Debuggers"
@@ -34,7 +34,7 @@
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
     "@types/sinon": "^2.3.2",
-    "@types/vscode": "1.46.0",
+    "@types/vscode": "1.49.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "mocha": "^5",
