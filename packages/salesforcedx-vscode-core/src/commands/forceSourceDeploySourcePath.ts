@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection } from '@salesforce/core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
@@ -15,11 +14,8 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  ComponentSet,
-  SourceDeployResult,
-  ToolingDeployStatus
-} from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
@@ -32,11 +28,8 @@ import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
-import {
-  createComponentCount,
-  createDeployOutput,
-  useBetaDeployRetrieve
-} from './util';
+import { createComponentCount, useBetaDeployRetrieve } from './util';
+import { createDeployOutput2 } from './util/sourceResultOutput';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -141,35 +134,40 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     response: ContinueResponse<string | string[]>
   ): Promise<boolean> {
     try {
-      // const getConnection = workspaceContext.getConnection();
-      // const components = this.getComponents(response.data);
-      // const namespace = (await SfdxProjectConfig.getValue(
-      //   'namespace'
-      // )) as string;
+      const components = this.getComponents(response.data);
 
-      // const deploy = this.doDeploy(await getConnection, components, namespace);
-      // const metadataCount = JSON.stringify(createComponentCount(components));
-      // this.telemetry.addProperty('metadataCount', metadataCount);
+      const operation = components
+        .deploy({
+          usernameOrConnection: await workspaceContext.getConnection()
+        })
+        .start();
 
-      // const result = await deploy;
+      const metadataCount = JSON.stringify(createComponentCount(components));
+      this.telemetry.addProperty('metadataCount', metadataCount);
 
-      // const outputResult = createDeployOutput(
-      //   result,
-      //   await SfdxPackageDirectories.getPackageDirectoryPaths()
-      // );
-      // channelService.appendLine(outputResult);
-      // BaseDeployExecutor.errorCollection.clear();
-      // if (
-      //   result.status === DeployStatus.Succeeded ||
-      //   result.status === ToolingDeployStatus.Completed
-      // ) {
-      //   return true;
-      // }
+      const result = await operation;
 
-      // handleDeployRetrieveLibraryDiagnostics(
-      //   result,
-      //   BaseDeployExecutor.errorCollection
-      // );
+      BaseDeployExecutor.errorCollection.clear();
+
+      if (result) {
+        channelService.appendLine(
+          createDeployOutput2(
+            result,
+            await SfdxPackageDirectories.getPackageDirectoryPaths()
+          )
+        );
+
+        const success = result.response.status === RequestStatus.Succeeded;
+
+        if (!success) {
+          // handleDeployRetrieveLibraryDiagnostics(
+          //   result,
+          //   BaseDeployExecutor.errorCollection
+          // );
+        }
+
+        return success;
+      }
 
       return false;
     } finally {
@@ -188,31 +186,4 @@ export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
     }
     return components;
   }
-
-  // private doDeploy(
-  //   connection: Connection,
-  //   components: ComponentSet,
-  //   namespace?: string
-  // ): Promise<SourceDeployResult> {
-  //   let api: string;
-  //   let deploy: Promise<SourceDeployResult>;
-
-  //   if (namespace) {
-  //     const client = new SourceClient(connection);
-  //     deploy = client.tooling.deploy(
-  //       components.getSourceComponents().next().value,
-  //       {
-  //         namespace
-  //       }
-  //     );
-  //     api = 'tooling';
-  //   } else {
-  //     deploy = components.deploy(connection);
-  //     api = 'metadata';
-  //   }
-
-  //   this.telemetry.addProperty('api', api);
-
-  //   return deploy;
-  // }
 }
