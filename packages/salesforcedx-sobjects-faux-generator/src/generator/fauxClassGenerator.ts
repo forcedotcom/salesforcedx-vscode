@@ -26,17 +26,13 @@ import {
 } from '../constants';
 import { SObjectDescribe } from '../describe';
 import { nls } from '../messages';
-import {
-  ChildRelationship,
-  Field,
-  SObject,
-  SObjectCategory,
-  SObjectRefreshSource
-} from '../types';
+import { SObject, SObjectCategory, SObjectRefreshSource } from '../types';
 import { ConfigUtil } from './configUtil';
+import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
+import { TypingGenerator } from './typingGenerator';
 
+const TYPING_PATH = ['typings', 'lwc', 'sobjects2'];
 export const INDENT = '    ';
-const MODIFIER = 'global';
 const startupMinSObjects = [
   'Account',
   'Attachment',
@@ -78,39 +74,6 @@ export interface SObjectRefreshResult {
 }
 
 export class FauxClassGenerator {
-  // the empty string is used to represent the need for a special case
-  // usually multiple fields with specialized names
-  private static typeMapping: Map<string, string> = new Map([
-    ['string', 'String'],
-    ['double', 'Double'],
-    ['reference', ''],
-    ['boolean', 'Boolean'],
-    ['currency', 'Decimal'],
-    ['date', 'Date'],
-    ['datetime', 'Datetime'],
-    ['email', 'String'],
-    ['location', 'Location'],
-    ['percent', 'Double'],
-    ['phone', 'String'],
-    ['picklist', 'String'],
-    ['multipicklist', 'String'],
-    ['textarea', 'String'],
-    ['encryptedstring', 'String'],
-    ['url', 'String'],
-    ['id', 'Id'],
-    // note that the mappings below "id" only occur in standard SObjects
-    ['base64', 'Blob'],
-    ['address', 'Address'],
-    ['int', 'Integer'],
-    ['anyType', 'Object'],
-    ['combobox', 'String'],
-    ['time', 'Time'],
-    // TBD what are these mapped to and how to create them
-    // ['calculated', 'xxx'],
-    // ['masterrecord', 'xxx'],
-    ['complexvalue', 'Object']
-  ]);
-
   private static fieldDeclToString(decl: FieldDeclaration): string {
     return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${
       decl.modifier
@@ -131,11 +94,15 @@ export class FauxClassGenerator {
   private emitter: EventEmitter;
   private cancellationToken: CancellationToken | undefined;
   private result: SObjectRefreshResult;
+  private typingGenerator: TypingGenerator;
+  private declGenerator: DeclarationGenerator;
 
   constructor(emitter: EventEmitter, cancellationToken?: CancellationToken) {
     this.emitter = emitter;
     this.cancellationToken = cancellationToken;
     this.result = { data: { cancelled: false } };
+    this.typingGenerator = new TypingGenerator();
+    this.declGenerator = new DeclarationGenerator();
   }
 
   public async generate(
@@ -158,6 +125,7 @@ export class FauxClassGenerator {
       sobjectsFolderPath,
       CUSTOMOBJECTS_DIR
     );
+    const typingsFolderPath = path.join(projectPath, SFDX_DIR, ...TYPING_PATH);
 
     if (
       !fs.existsSync(projectPath) ||
@@ -231,6 +199,12 @@ export class FauxClassGenerator {
       return this.errorExit(errorMessage);
     }
 
+    try {
+      this.typingGenerator.generate(fetchedSObjects, typingsFolderPath);
+    } catch (errorMessage) {
+      return this.errorExit(errorMessage);
+    }
+
     return this.successExit();
   }
 
@@ -251,6 +225,7 @@ export class FauxClassGenerator {
       sobjectsFolderPath,
       STANDARDOBJECTS_DIR
     );
+    const typingsFolderPath = path.join(projectPath, SFDX_DIR, ...TYPING_PATH);
 
     if (
       !fs.existsSync(projectPath) ||
@@ -302,14 +277,18 @@ export class FauxClassGenerator {
       return this.errorExit(errorMessage);
     }
 
+    try {
+      this.typingGenerator.generate(fetchedSObjects, typingsFolderPath);
+    } catch (errorMessage) {
+      return this.errorExit(errorMessage);
+    }
+
     return this.successExit();
   }
 
   // VisibleForTesting
   public generateFauxClassText(sobject: SObject): string {
-    const declarations: FieldDeclaration[] = this.generateFauxClassDecls(
-      sobject
-    );
+    const declarations = this.declGenerator.generateFieldDeclarations(sobject);
     return this.generateFauxClassTextFromDecls(sobject.name, declarations);
   }
 
@@ -368,75 +347,6 @@ export class FauxClassGenerator {
     return Promise.resolve(this.result);
   }
 
-  private stripId(name: string): string {
-    if (name.endsWith('Id')) {
-      return name.slice(0, name.length - 2);
-    } else {
-      return name;
-    }
-  }
-
-  private capitalize(input: string): string {
-    return input.charAt(0).toUpperCase() + input.slice(1);
-  }
-
-  private getTargetType(describeType: string): string {
-    const gentype = FauxClassGenerator.typeMapping.get(describeType) as string;
-    return gentype ? gentype : this.capitalize(describeType);
-  }
-
-  private getReferenceName(relationshipName: string, name: string): string {
-    return relationshipName ? relationshipName : this.stripId(name);
-  }
-
-  private generateChildRelationship(rel: ChildRelationship): FieldDeclaration {
-    const name = this.getReferenceName(rel.relationshipName, rel.field);
-    return {
-      modifier: MODIFIER,
-      type: `List<${rel.childSObject}>`,
-      name
-    };
-  }
-
-  private generateField(field: Field): FieldDeclaration[] {
-    const decls: FieldDeclaration[] = [];
-    const comment = field.inlineHelpText;
-    let genType = '';
-    if (field.referenceTo.length === 0) {
-      // should be a normal field EXCEPT for external lookup & metadata relationship
-      // which is a reference, but no referenceTo targets
-      if (field.extraTypeInfo === 'externallookup') {
-        genType = 'String';
-      } else {
-        genType = this.getTargetType(field.type);
-      }
-
-      decls.push({
-        modifier: MODIFIER,
-        type: genType,
-        name: field.name,
-        comment
-      });
-    } else {
-      const name = this.getReferenceName(field.relationshipName, field.name);
-
-      decls.push({
-        modifier: MODIFIER,
-        name,
-        type: field.referenceTo.length > 1 ? 'SObject' : `${field.referenceTo}`,
-        comment
-      });
-      // field.type will be "reference", but the actual type is an Id for Apex
-      decls.push({
-        modifier: MODIFIER,
-        name: field.name,
-        type: 'Id',
-        comment
-      });
-    }
-    return decls;
-  }
-
   private generateFauxClasses(sobjects: SObject[], targetFolder: string): void {
     if (!this.createIfNeededOutputFolder(targetFolder)) {
       throw nls.localize('no_sobject_output_folder_text', targetFolder);
@@ -446,41 +356,6 @@ export class FauxClassGenerator {
         this.generateFauxClass(targetFolder, sobject);
       }
     }
-  }
-
-  private generateFauxClassDecls(sobject: SObject): FieldDeclaration[] {
-    const declarations: FieldDeclaration[] = [];
-    if (sobject.fields) {
-      for (const field of sobject.fields) {
-        const decls: FieldDeclaration[] = this.generateField(field);
-        if (decls && decls.length > 0) {
-          for (const decl of decls) {
-            declarations.push(decl);
-          }
-        }
-      }
-    }
-
-    if (sobject.childRelationships) {
-      for (const rel of sobject.childRelationships) {
-        if (rel.relationshipName) {
-          const decl: FieldDeclaration = this.generateChildRelationship(rel);
-          if (decl) {
-            declarations.push(decl);
-          }
-        }
-      }
-      for (const rel of sobject.childRelationships) {
-        // handle the odd childRelationships last (without relationshipName)
-        if (!rel.relationshipName) {
-          const decl: FieldDeclaration = this.generateChildRelationship(rel);
-          if (decl) {
-            declarations.push(decl);
-          }
-        }
-      }
-    }
-    return declarations;
   }
 
   private generateFauxClassTextFromDecls(
