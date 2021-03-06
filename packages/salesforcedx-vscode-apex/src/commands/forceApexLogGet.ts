@@ -239,13 +239,15 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 
-    const {logs, logPaths} = await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
-    logs.forEach(log => OUTPUT_CHANNEL.appendLine(log));
+    const logResults = await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
+    logResults.forEach(logResult => OUTPUT_CHANNEL.appendLine(logResult.log));
 
-    if (logPaths) {
-      const document = await vscode.workspace.openTextDocument(logPaths[0]);
+    const logPath = logResults[0].logPath;
+    if (logPath) {
+      const document = await vscode.workspace.openTextDocument(logPath);
       vscode.window.showTextDocument(document);
     }
+
     return true;
   }
 }
