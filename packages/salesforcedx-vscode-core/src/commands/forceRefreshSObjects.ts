@@ -145,7 +145,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
     const commandName = execution.command.logName;
     try {
       let result;
-      if (response.data.source === SObjectRefreshSource.StartupMin) {
+      if (response.data.source === SObjectRefreshSource.Startup) {
         result = await gen.generateMin(
           vscode.workspace.workspaceFolders![0].uri.fsPath,
           response.data.source

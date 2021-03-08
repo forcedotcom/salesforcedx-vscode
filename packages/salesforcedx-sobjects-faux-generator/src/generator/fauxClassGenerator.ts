@@ -34,6 +34,7 @@ import {
   SObjectRefreshSource
 } from '../types';
 import { ConfigUtil } from './configUtil';
+import * as minSObjectsFromFile from '../../minSObjects.json';
 
 export const INDENT = '    ';
 const MODIFIER = 'global';
@@ -267,13 +268,6 @@ export class FauxClassGenerator {
     }
     this.cleanupSObjectFolders(sobjectsFolderPath, SObjectCategory.STANDARD);
 
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: await ConfigUtil.getUsername(projectPath)
-      })
-    });
-    const describe = new SObjectDescribe(connection);
-
     if (
       this.cancellationToken &&
       this.cancellationToken.isCancellationRequested
@@ -281,31 +275,19 @@ export class FauxClassGenerator {
       return this.cancelExit();
     }
 
-    let fetchedSObjects: SObject[] = [];
-    try {
-      fetchedSObjects = await describe.fetchObjects(startupMinSObjects);
-    } catch (errorMessage) {
-      return this.errorExit(
-        nls.localize('failure_in_sobject_describe_text', errorMessage)
-      );
+    let sobjectDecl: SObjectDefinition[] = minSObjectsFromFile as SObjectDefinition[];
+
+    if (!this.createIfNeededOutputFolder(standardSObjectsFolderPath)) {
+      throw nls.localize('no_sobject_output_folder_text', standardSObjectsFolderPath);
     }
 
-    const standardSObjects: SObject[] = [];
-    // tslint:disable-next-line:prefer-for-of
-    for (let i = 0; i < fetchedSObjects.length; i++) {
-      standardSObjects.push(fetchedSObjects[i]);
-    }
-
-    this.result.data.standardObjects = standardSObjects.length;
-    this.result.data.customObjects = 0;
-
-    this.logFetchedObjects(standardSObjects, []);
-
-    try {
-      this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
-    } catch (errorMessage) {
-      return this.errorExit(errorMessage);
-    }
+    sobjectDecl.forEach( sobject => {
+      const fauxClassPath = path.join(standardSObjectsFolderPath, sobject.name + '.cls');
+      sobject.fields.forEach(field => field.modifier = 'global');
+      fs.writeFileSync(fauxClassPath, this.generateFauxClassTextFromDecls(sobject.name, sobject.fields), {
+        mode: 0o444
+      });
+    });
 
     return this.successExit();
   }
