@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
+import * as minSObjectsFromFile from '../../minSObjects.json';
 import {
   CUSTOMOBJECTS_DIR,
   ERROR_EVENT,
@@ -34,7 +35,6 @@ import {
   SObjectRefreshSource
 } from '../types';
 import { ConfigUtil } from './configUtil';
-import * as minSObjectsFromFile from '../../minSObjects.json';
 
 export const INDENT = '    ';
 const MODIFIER = 'global';
@@ -275,7 +275,7 @@ export class FauxClassGenerator {
       return this.cancelExit();
     }
 
-    let sobjectDecl: SObjectDefinition[] = minSObjectsFromFile as SObjectDefinition[];
+    const sobjectDecl: SObjectDefinition[] = minSObjectsFromFile as SObjectDefinition[];
 
     if (!this.createIfNeededOutputFolder(standardSObjectsFolderPath)) {
       throw nls.localize('no_sobject_output_folder_text', standardSObjectsFolderPath);
