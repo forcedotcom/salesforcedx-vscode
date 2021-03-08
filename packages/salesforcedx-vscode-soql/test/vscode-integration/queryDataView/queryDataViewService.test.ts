@@ -10,13 +10,7 @@ import { expect } from 'chai';
 import { QueryResult } from 'jsforce';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { getDocumentName } from '../../../src/commonUtils';
-import * as commonUtils from '../../../src/commonUtils';
-import {
-  FileFormat,
-  QueryDataFileService
-} from '../../../src/queryDataView/queryDataFileService';
-import { QueryDataViewService } from '../../../src/queryDataView/queryDataViewService';
+import * as SOQLExports from '../../../src';
 import {
   mockColumnData,
   mockQueryData,
@@ -64,7 +58,7 @@ describe('Query Data View Service', () => {
     );
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
 
-    QueryDataViewService.extensionPath = '';
+    SOQLExports.QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
     dataViewService.mockReceiveEvent({ type: 'activate' });
@@ -74,7 +68,7 @@ describe('Query Data View Service', () => {
     const postMessageArgs = postMessageSpy.args[0][0];
     expect(postMessageArgs.data).to.eql({ columnData: mockColumnData, ...mockQueryData });
     expect(postMessageArgs.documentName).equal(
-      getDocumentName(mockTextDocument)
+      SOQLExports.getDocumentName(mockTextDocument)
     );
     expect(postMessageArgs.type).equal('update');
   });
@@ -87,25 +81,25 @@ describe('Query Data View Service', () => {
     );
     const saveRecordsSpy = sandbox.spy(dataViewService, 'handleSaveRecords');
     const fileServiceStub = sandbox.stub(
-      QueryDataFileService.prototype,
+      SOQLExports.QueryDataFileService.prototype,
       'save'
     );
-    QueryDataViewService.extensionPath = '';
+    SOQLExports.QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
     dataViewService.mockReceiveEvent({
       type: 'save_records',
-      format: FileFormat.CSV
+      format: SOQLExports.FileFormat.CSV
     });
 
     expect(saveRecordsSpy.callCount).equal(1);
     const postMessageArgs = saveRecordsSpy.args[0][0];
-    expect(postMessageArgs).to.eql(FileFormat.CSV);
+    expect(postMessageArgs).to.eql(SOQLExports.FileFormat.CSV);
     expect(fileServiceStub.callCount).equal(1);
   });
 
   it('should track error via telemetry if event type is not handled', () => {
-    const trackSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+    const trackSpy = sandbox.spy(SOQLExports, 'trackErrorWithTelemetry');
     const dataViewService = new TestQueryDataViewService(
       mockSubscription,
       queryRecords,
@@ -114,27 +108,27 @@ describe('Query Data View Service', () => {
     dataViewService.createOrShowWebView();
     dataViewService.mockReceiveEvent({
       type: 'unsupported',
-      format: FileFormat.CSV
+      format: SOQLExports.FileFormat.CSV
     });
     expect(trackSpy.callCount).to.equal(1);
   });
 
   it('should display error when save fails', () => {
-    const trackSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+    const trackSpy = sandbox.spy(SOQLExports, 'trackErrorWithTelemetry');
     const dataViewService = new TestQueryDataViewService(
       mockSubscription,
       queryRecords,
       mockTextDocument
     );
     const fileServiceStub = sandbox
-      .stub(QueryDataFileService.prototype, 'save')
+      .stub(SOQLExports.QueryDataFileService.prototype, 'save')
       .throws();
-    QueryDataViewService.extensionPath = '';
+    SOQLExports.QueryDataViewService.extensionPath = '';
     sandbox.stub(vscode.window, 'createWebviewPanel').returns(mockWebviewPanel);
     dataViewService.createOrShowWebView();
     dataViewService.mockReceiveEvent({
       type: 'save_records',
-      format: FileFormat.CSV
+      format: SOQLExports.FileFormat.CSV
     });
     expect(fileServiceStub.callCount).equal(1);
     expect(trackSpy.callCount).to.equal(1);

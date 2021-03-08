@@ -10,18 +10,18 @@ import { JsonMap } from '@salesforce/ts-types';
 import { debounce } from 'debounce';
 import { DescribeSObjectResult, QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
-import { trackErrorWithTelemetry } from '../commonUtils';
-import { nls } from '../messages';
-import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import {
   channelService,
   isDefaultOrgSet,
   onOrgChange,
+  QueryDataViewService as QueryDataView,
   retrieveSObject,
   retrieveSObjects,
+  TelemetryModelJson,
+  trackErrorWithTelemetry,
   workspaceContext
-} from '../sfdx';
-import { TelemetryModelJson } from '../telemetry';
+} from '../index';
+import { nls } from '../messages';
 import { QueryRunner } from './queryRunner';
 
 // TODO: This should be exported from soql-builder-ui

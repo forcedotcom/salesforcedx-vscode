@@ -8,9 +8,12 @@
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { soqlBuilderToggle } from '../../../src/commands';
-import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE } from '../../../src/constants';
-import { telemetryService } from '../../../src/telemetry';
+import {
+  BUILDER_VIEW_TYPE,
+  EDITOR_VIEW_TYPE,
+  soqlBuilderToggle,
+  telemetryService
+} from '../../../src';
 
 describe('soqlBuilderToggle should', () => {
   let sb: SinonSandbox;

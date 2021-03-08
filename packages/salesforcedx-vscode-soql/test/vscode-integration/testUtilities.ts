@@ -11,18 +11,14 @@ import { QueryResult } from 'jsforce';
 import { SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import {
+  DataProvider,
+  DataViewEvent,
+  FileFormat,
+  QueryDataFileService,
+  QueryDataViewService,
   SoqlEditorEvent,
   SOQLEditorInstance
-} from '../../src/editor/soqlEditorInstance';
-import { DataProvider } from '../../src/queryDataView/dataProviders';
-import {
-  FileFormat,
-  QueryDataFileService
-} from '../../src/queryDataView/queryDataFileService';
-import {
-  DataViewEvent,
-  QueryDataViewService
-} from '../../src/queryDataView/queryDataViewService';
+} from '../../src';
 
 const soqlExtension = vscode.extensions.getExtension(
   'salesforce.salesforcedx-vscode-soql'

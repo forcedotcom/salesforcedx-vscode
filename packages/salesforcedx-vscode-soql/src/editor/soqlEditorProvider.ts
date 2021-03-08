@@ -10,13 +10,14 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   BUILDER_VIEW_TYPE,
+  channelService,
   HTML_FILE,
+  HtmlUtils,
+  isDefaultOrgSet,
   SOQL_BUILDER_UI_PATH,
   SOQL_BUILDER_WEB_ASSETS_PATH
-} from '../constants';
+} from '../index';
 import { nls } from '../messages';
-import { channelService, isDefaultOrgSet } from '../sfdx';
-import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
@@ -31,7 +32,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private instances: SOQLEditorInstance[] = [];
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly context: vscode.ExtensionContext) { }
 
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { DataProvider } from './iDataProvider';
-export { CsvDataProvider } from './csvDataProvider';
-export { JsonDataProvider } from './jsonDataProvider';
+/**
+ * This file is intentionally left blank. Exports are exported
+ * in the root of salesforcedx-vscode-soql.
+ */

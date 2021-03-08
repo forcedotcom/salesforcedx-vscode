@@ -7,8 +7,8 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { telemetryService } from './index';
 import { channelService } from './sfdx';
-import { telemetryService } from './telemetry';
 
 export function getDocumentName(document: vscode.TextDocument): string {
   const documentPath = document.uri.fsPath;

@@ -6,11 +6,9 @@
  */
 
 import { expect } from 'chai';
-import { SinonSandbox, createSandbox, SinonSpy, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { soqlOpenNew } from '../../../src/commands/soqlFileCreate';
-import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE } from '../../../src/constants';
-import { telemetryService } from '../../../src/telemetry';
+import { BUILDER_VIEW_TYPE, soqlOpenNew, telemetryService } from '../../../src';
 
 describe('soqlOpenNew should', () => {
   let sb: SinonSandbox;

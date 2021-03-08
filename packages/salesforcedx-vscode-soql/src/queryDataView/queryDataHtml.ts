@@ -8,8 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { Uri, Webview } from 'vscode';
-import { DATA_VIEW_UI_PATH, HTML_FILE } from '../constants';
-import { HtmlUtils } from '../editor/htmlUtils';
+import { DATA_VIEW_UI_PATH, HTML_FILE, HtmlUtils } from '../index';
 
 export function getHtml(
   assets: { [index: string]: Uri },

@@ -10,9 +10,9 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   getDocumentName,
+  telemetryService,
   trackErrorWithTelemetry
-} from '../../src/commonUtils';
-import { telemetryService } from '../../src/telemetry';
+} from '../../src';
 import { MockTextDocumentProvider } from './testUtilities';
 
 describe('Common SOQL Builder Utilities', () => {

@@ -9,11 +9,12 @@ import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getDocumentName, trackErrorWithTelemetry } from '../commonUtils';
 import {
+  channelService,
   DATA_VIEW_ICONS_PATH,
   DATA_VIEW_RESOURCE_ROOTS_PATH,
   DATA_VIEW_UI_PATH,
+  getDocumentName,
   IMAGES_DIR_NAME,
   QUERY_DATA_VIEW_PANEL_TITLE,
   QUERY_DATA_VIEW_SCRIPT_FILENAME,
@@ -21,10 +22,10 @@ import {
   QUERY_DATA_VIEW_TYPE,
   SAVE_ICON_FILENAME,
   TABULATOR_SCRIPT_FILENAME,
-  TABULATOR_STYLE_FILENAME
-} from '../constants';
+  TABULATOR_STYLE_FILENAME,
+  trackErrorWithTelemetry
+} from '../index';
 import { nls } from '../messages';
-import { channelService } from '../sfdx';
 import {
   FileFormat,
   QueryDataFileService as FileService

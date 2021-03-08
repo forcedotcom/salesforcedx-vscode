@@ -10,13 +10,14 @@ import * as fs from 'fs';
 import { QueryResult } from 'jsforce';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getDocumentName, getRootWorkspacePath } from '../commonUtils';
-import { nls } from '../messages';
 import {
   CsvDataProvider,
   DataProvider,
+  getDocumentName,
+  getRootWorkspacePath,
   JsonDataProvider
-} from './dataProviders';
+} from '../index';
+import { nls } from '../messages';
 
 export enum FileFormat {
   JSON = 'json',

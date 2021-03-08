@@ -6,13 +6,13 @@
  */
 
 import { JsonMap } from '@salesforce/ts-types';
-import { DATA_JSON_EXT } from '../../constants';
+import { DATA_JSON_EXT } from '../../index';
 import { DataProvider } from './iDataProvider';
 
 export class JsonDataProvider implements DataProvider {
   public readonly fileExtension = DATA_JSON_EXT;
 
-  constructor(public readonly documentName: string) {}
+  constructor(public readonly documentName: string) { }
 
   public getFileContent(query: string, data: JsonMap[]): string {
     const queryRecordsJson = JSON.stringify(data, null, 2);

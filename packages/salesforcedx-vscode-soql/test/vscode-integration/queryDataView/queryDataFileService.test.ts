@@ -12,12 +12,12 @@ import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
   CsvDataProvider,
+  FileFormat,
   JsonDataProvider
-} from '../../../src/queryDataView/dataProviders';
-import { FileFormat } from '../../../src/queryDataView/queryDataFileService';
+} from '../../../src';
 import {
-  mockQueryText,
   mockQueryData,
+  mockQueryText,
   MockTextDocumentProvider,
   TestFileService
 } from '../testUtilities';

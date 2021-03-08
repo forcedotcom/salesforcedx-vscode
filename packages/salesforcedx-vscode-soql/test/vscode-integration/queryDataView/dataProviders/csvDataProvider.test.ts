@@ -7,7 +7,7 @@
 
 import { JsonMap } from '@salesforce/ts-types';
 import { expect } from 'chai';
-import { CsvDataProvider } from '../../../../src/queryDataView/dataProviders/csvDataProvider';
+import { CsvDataProvider } from '../../../../src';
 
 interface TestQuery {
   queryText: string;

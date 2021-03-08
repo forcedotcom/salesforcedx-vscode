@@ -8,8 +8,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import * as commonUtils from '../../../src/commonUtils';
-import { MessageType } from '../../../src/editor/soqlEditorInstance';
+import * as SOQLExports from '../../../src';
 import {
   mockSObject,
   MockTextDocumentProvider,
@@ -112,7 +111,7 @@ describe('SoqlEditorInstance should', () => {
     const aQuery = 'select a,b,c from somewhere';
     const updateDocumentSpy = sandbox.spy(instance, 'updateTextDocument');
     instance.mockReceiveEvent({
-      type: MessageType.UI_SOQL_CHANGED,
+      type: SOQLExports.MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
     expect(
@@ -126,7 +125,7 @@ describe('SoqlEditorInstance should', () => {
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
     const aQuery = 'select a,b,c from somewhere';
     instance.mockReceiveEvent({
-      type: MessageType.UI_SOQL_CHANGED,
+      type: SOQLExports.MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
     // attempt to update webview with unchanged soql statement
@@ -147,7 +146,7 @@ describe('SoqlEditorInstance should', () => {
     const postMessageSpy = sandbox.spy(mockWebviewPanel.webview, 'postMessage');
     const aQuery = 'select a,b,c from somewhere';
     instance.mockReceiveEvent({
-      type: MessageType.UI_SOQL_CHANGED,
+      type: SOQLExports.MessageType.UI_SOQL_CHANGED,
       payload: aQuery
     });
     instance.updateTextDocument(mockTextDocument, 'select d from somewhere');
@@ -161,7 +160,7 @@ describe('SoqlEditorInstance should', () => {
   it('handles activation event and updates the webview', async () => {
     const updateWebviewSpy = sandbox.spy(instance, 'updateWebview');
     instance.mockReceiveEvent({
-      type: MessageType.UI_ACTIVATED
+      type: SOQLExports.MessageType.UI_ACTIVATED
     });
     expect(
       updateWebviewSpy.callCount === 1,
@@ -177,7 +176,7 @@ describe('SoqlEditorInstance should', () => {
 
     const openQueryResultsSpy = sandbox.spy(instance, 'openQueryDataView');
     instance.mockReceiveEvent({
-      type: MessageType.RUN_SOQL_QUERY
+      type: SOQLExports.MessageType.RUN_SOQL_QUERY
     });
 
     expect(
@@ -189,7 +188,7 @@ describe('SoqlEditorInstance should', () => {
 
   it('display and track error wheb webview.postMessage throws', async () => {
     sandbox.stub(mockWebviewPanel.webview, 'postMessage').rejects();
-    const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+    const trackErrorSpy = sandbox.spy(SOQLExports, 'trackErrorWithTelemetry');
 
     instance.sendMessageToUi('message-type', 'message-body');
 
@@ -199,9 +198,9 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('handles telemetry events and tracks when there is unsupported syntax', async () => {
-    const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+    const trackErrorSpy = sandbox.spy(SOQLExports, 'trackErrorWithTelemetry');
     instance.mockReceiveEvent({
-      type: MessageType.UI_TELEMETRY,
+      type: SOQLExports.MessageType.UI_TELEMETRY,
       payload: { unsupported: 1 }
     });
     return Promise.resolve().then(() => {
@@ -211,9 +210,9 @@ describe('SoqlEditorInstance should', () => {
   });
 
   it('handles telemetry errors and unsupported properties as numbers AND arrays', async () => {
-    const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
+    const trackErrorSpy = sandbox.spy(SOQLExports, 'trackErrorWithTelemetry');
     const telemetryEvent = {
-      type: MessageType.UI_TELEMETRY,
+      type: SOQLExports.MessageType.UI_TELEMETRY,
       payload: { unsupported: ['WHERE 1 = 1'] }
     };
     instance.mockReceiveEvent(telemetryEvent);

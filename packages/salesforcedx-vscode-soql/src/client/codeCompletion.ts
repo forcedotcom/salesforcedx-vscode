@@ -7,13 +7,13 @@
 
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
-import { retrieveSObject, retrieveSObjects, channelService } from '../sfdx';
+import { channelService, retrieveSObject, retrieveSObjects } from '../sfdx';
 
-import { Middleware } from 'vscode-languageclient';
 import { SoqlItemContext } from '@salesforce/soql-language-server';
-import { telemetryService } from '../telemetry';
-import { nls } from '../messages';
 import { DescribeSObjectResult, Field } from 'jsforce';
+import { Middleware } from 'vscode-languageclient';
+import { telemetryService } from '../index';
+import { nls } from '../messages';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -155,11 +155,11 @@ const expandFunctions: {
             { detail: field.type } as CompletionItem,
             isPreferredItem
               ? {
-                  preselect: true,
-                  // extra space prefix to make it appear first
-                  sortText: ' ' + field.name,
-                  filterText: ' ' + field.name
-                }
+                preselect: true,
+                // extra space prefix to make it appear first
+                sortText: ' ' + field.name,
+                filterText: ' ' + field.name
+              }
               : {}
           )
         )

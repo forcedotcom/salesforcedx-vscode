@@ -73,7 +73,7 @@
   },
   "scripts": {
     "build": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && webpack",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",

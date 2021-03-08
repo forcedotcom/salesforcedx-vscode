@@ -10,23 +10,23 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import { stubInterface } from '@salesforce/ts-sinon';
 
+import { Connection } from '@salesforce/core';
 import {
+  commands,
   extensions,
   languages,
   TextEditor,
   Uri,
   window,
   workspace,
-  WorkspaceConfiguration,
-  commands
+  WorkspaceConfiguration
 } from 'vscode';
-import { clearDiagnostics } from '../../../src/client/client';
-import { stubMockConnection } from '../testUtilities';
 import {
+  clearDiagnostics,
   SOQL_CONFIGURATION_NAME,
   SOQL_VALIDATION_CONFIG
-} from '../../../src/constants';
-import { Connection } from '@salesforce/core';
+} from '../../../src';
+import { stubMockConnection } from '../testUtilities';
 
 async function sleep(ms: number = 0) {
   return new Promise(resolve => {

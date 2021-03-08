@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import { Connection } from '@salesforce/core';
 import * as sinon from 'sinon';
-import { QueryRunner } from '../../../src/editor/queryRunner';
+import { QueryRunner } from '../../../src';
 import { getMockConnection, mockQueryText } from '../testUtilities';
 
 describe('Query Runner Should', () => {

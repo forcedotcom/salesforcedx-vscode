@@ -8,8 +8,7 @@
 import { expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { SOQL_BUILDER_UI_PATH } from '../../../src/constants';
-import { HtmlUtils } from '../../../src/editor/htmlUtils';
+import { HtmlUtils, SOQL_BUILDER_UI_PATH } from '../../../src';
 
 describe('html utilities', () => {
   let mockWebviewPanel: vscode.WebviewPanel;
