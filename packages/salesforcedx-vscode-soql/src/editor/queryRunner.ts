@@ -12,7 +12,7 @@ import { QueryResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 export class QueryRunner {
-  constructor(private connection: Connection) { }
+  constructor(private connection: Connection) {}
 
   public async runQuery(
     queryText: string,

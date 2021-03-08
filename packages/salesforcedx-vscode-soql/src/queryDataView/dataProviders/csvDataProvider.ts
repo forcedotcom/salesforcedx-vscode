@@ -13,7 +13,7 @@ import { DataProvider } from './iDataProvider';
 
 export class CsvDataProvider implements DataProvider {
   public readonly fileExtension = DATA_CSV_EXT;
-  constructor(public readonly documentName: string) { }
+  constructor(public readonly documentName: string) {}
 
   public getFileContent(query: string, data: JsonMap[]): string {
     const queryRecordsCsv = Papa.unparse(this.toTable(query, data), {
