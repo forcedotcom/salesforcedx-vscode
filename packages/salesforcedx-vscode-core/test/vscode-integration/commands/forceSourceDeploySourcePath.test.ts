@@ -5,49 +5,48 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { ToolingApi } from '@salesforce/source-deploy-retrieve/lib/src/client/toolingApi';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import {
   ForceSourceDeploySourcePathExecutor,
   LibraryDeploySourcePathExecutor
 } from '../../../src/commands';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
-import { OrgAuthInfo } from '../../../src/util';
+
+const sb = createSandbox();
+const $$ = testSetup();
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
-  it('Should build the source deploy command for', () => {
-    const sourcePath = path.join('path', 'to', 'sourceFile');
-    const sourceDeploy = new ForceSourceDeploySourcePathExecutor();
-    const sourceDeployCommand = sourceDeploy.build(sourcePath);
+  describe('CLI Executor', () => {
+    it('Should build the source deploy command for', () => {
+      const sourcePath = path.join('path', 'to', 'sourceFile');
+      const sourceDeploy = new ForceSourceDeploySourcePathExecutor();
+      const sourceDeployCommand = sourceDeploy.build(sourcePath);
 
-    expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --sourcepath ${sourcePath} --json --loglevel fatal`
-    );
-    expect(sourceDeployCommand.description).to.equal(
-      nls.localize('force_source_deploy_text')
-    );
+      expect(sourceDeployCommand.toCommand()).to.equal(
+        `sfdx force:source:deploy --sourcepath ${sourcePath} --json --loglevel fatal`
+      );
+      expect(sourceDeployCommand.description).to.equal(
+        nls.localize('force_source_deploy_text')
+      );
+    });
   });
 
-  describe('Source Deploy Beta', () => {
-    // Setup the test environment.
-    const $$ = testSetup();
-    const testData = new MockTestOrgData();
-
+  describe('Library Executor', () => {
     let mockConnection: Connection;
-    let sb: SinonSandbox;
+
+    let resolveStub: SinonStub;
+    let getConnectionStub: SinonStub;
+    let startStub: SinonStub;
+    let deployStub: SinonStub;
 
     beforeEach(async () => {
-      sb = createSandbox();
+      const testData = new MockTestOrgData();
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
@@ -56,50 +55,53 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           username: testData.username
         })
       });
-      sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-        .withArgs('defaultusername')
-        .returns(testData.username);
+      resolveStub = sb.stub(ComponentSet.prototype, 'resolveSourceComponents');
+      getConnectionStub = sb
+        .stub(workspaceContext, 'getConnection')
+        .resolves(mockConnection);
+      startStub = sb.stub().resolves(undefined);
+      deployStub = sb
+        .stub(ComponentSet.prototype, 'deploy')
+        .withArgs({ usernameOrConnection: mockConnection })
+        .returns({
+          start: startStub
+        });
     });
 
     afterEach(() => {
-      $$.SANDBOX.restore();
       sb.restore();
     });
 
-    it('should get the namespace value from sfdx-project.json and deploy using tooling API', async () => {
-      sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
-        testData.username
-      );
-      sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').returns([
-        'p1'
-      ]);
-      const getNamespace = sb
-        .stub(SfdxProjectConfig, 'getValue')
-        .returns('diFf');
-      const getComponentsStub = sb.stub(
-        ComponentSet.prototype,
-        'resolveSourceComponents'
-      );
+    it('should deploy with a single path', async () => {
+      const filePath = path.join('classes', 'MyClass.cls');
       const executor = new LibraryDeploySourcePathExecutor();
-      const filePath = path.join(
-        'test',
-        'file',
-        'path',
-        'classes',
-        'apexTest.cls'
-      );
-      const mockToolingDeploy = sb
-        .stub(ToolingApi.prototype, `deploy`)
-        .resolves('');
-      await executor.execute({ type: 'CONTINUE', data: filePath });
-      expect(mockToolingDeploy.calledOnce).to.equal(true);
 
-      // tslint:disable-next-line:no-unused-expression
-      expect(getComponentsStub.calledWith(filePath)).to.be.true;
-      expect(getNamespace.calledOnce).to.equal(true);
-      // NOTE: There's currently a limitation on source deploy retrieve that prevents
-      // us from mocking SourceClient.tooling.deploy. We'll look into updating the library and this test.
+      await executor.run({ data: filePath, type: 'CONTINUE' });
+
+      expect(resolveStub.calledOnce).to.equal(true);
+      expect(resolveStub.firstCall.args[0]).to.equal(filePath);
+      expect(deployStub.calledOnce).to.equal(true);
+      expect(deployStub.firstCall.args[0]).to.deep.equal({
+        usernameOrConnection: mockConnection
+      });
+      expect(startStub.calledOnce).to.equal(true);
+    });
+
+    it('should deploy with multiple paths', async () => {
+      const executor = new LibraryDeploySourcePathExecutor();
+      const filePath1 = path.join('classes', 'MyClass.cls');
+      const filePath2 = path.join('lwc', 'myBundle', 'myBundle');
+
+      await executor.run({ data: [filePath1, filePath2], type: 'CONTINUE' });
+
+      expect(resolveStub.calledTwice).to.equal(true);
+      expect(resolveStub.firstCall.args[0]).to.equal(filePath1);
+      expect(resolveStub.secondCall.args[0]).to.equal(filePath2);
+      expect(deployStub.calledOnce).to.equal(true);
+      expect(deployStub.firstCall.args[0]).to.deep.equal({
+        usernameOrConnection: mockConnection
+      });
+      expect(startStub.calledOnce).to.equal(true);
     });
   });
 });
