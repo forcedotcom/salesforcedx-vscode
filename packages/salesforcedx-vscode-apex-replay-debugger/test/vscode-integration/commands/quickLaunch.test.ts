@@ -107,7 +107,11 @@ describe('Quick launch apex tests', () => {
     expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
     expect(launcherArgs[1]).to.equal(false);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, undefined, 'MyClass']);
+    expect(buildPayloadStub.args[0]).to.eql([
+      TestLevel.RunSpecifiedTests,
+      undefined,
+      'MyClass'
+    ]);
   });
 
   it('should debug a single test method', async () => {
@@ -131,7 +135,11 @@ describe('Quick launch apex tests', () => {
 
     expect(traceFlagsStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'testSomeCode', 'MyClass']);
+    expect(buildPayloadStub.args[0]).to.eql([
+      TestLevel.RunSpecifiedTests,
+      'MyClass.testSomeCode',
+      'MyClass'
+    ]);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -179,7 +187,11 @@ describe('Quick launch apex tests', () => {
 
     expect(traceFlagsStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'testSomeCode', 'MyClass']);
+    expect(buildPayloadStub.args[0]).to.eql([
+      TestLevel.RunSpecifiedTests,
+      'MyClass.testSomeCode',
+      'MyClass'
+    ]);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -221,7 +233,11 @@ describe('Quick launch apex tests', () => {
 
     expect(traceFlagsStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'testSomeCode', 'MyClass']);
+    expect(buildPayloadStub.args[0]).to.eql([
+      TestLevel.RunSpecifiedTests,
+      'MyClass.testSomeCode',
+      'MyClass'
+    ]);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -260,7 +276,11 @@ describe('Quick launch apex tests', () => {
 
     expect(traceFlagsStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
-    expect(buildPayloadStub.args[0]).to.eql([TestLevel.RunSpecifiedTests, 'testSomeCode', 'MyClass']);
+    expect(buildPayloadStub.args[0]).to.eql([
+      TestLevel.RunSpecifiedTests,
+      'MyClass.testSomeCode',
+      'MyClass'
+    ]);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
