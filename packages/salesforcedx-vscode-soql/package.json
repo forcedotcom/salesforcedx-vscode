@@ -35,7 +35,6 @@
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.6.0",
     "@salesforce/core": "^2.15.2",
-    "@salesforce/salesforcedx-utils-vscode": "51.3.0",
     "@salesforce/soql-builder-ui": "0.1.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.6.2",
@@ -43,6 +42,7 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "51.3.0",
+    "@salesforce/salesforcedx-utils-vscode": "51.3.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-model": "0.2.1",
     "@salesforce/ts-sinon": "1.2.2",
