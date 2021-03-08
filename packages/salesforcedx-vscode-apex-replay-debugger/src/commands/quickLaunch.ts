@@ -75,7 +75,7 @@ export class QuickLaunch {
     try {
       const payload = await testService.buildSyncPayload(
         TestLevel.RunSpecifiedTests,
-        testMethod,
+        testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
       const result: TestResult = await testService.runTestSynchronous(payload);
