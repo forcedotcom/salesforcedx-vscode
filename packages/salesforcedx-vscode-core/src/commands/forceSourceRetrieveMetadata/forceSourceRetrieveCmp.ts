@@ -183,7 +183,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
       ) {
         const compSet = ComponentSet.fromSource(defaultOutput);
         await this.openResources(
-          this.findResources(Array.from(components)[0], compSet)
+          this.findResources(components.toArray()[0], compSet)
         );
       }
 
@@ -197,7 +197,7 @@ export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor
     filter: ComponentLike,
     compSet?: ComponentSet
   ): string[] {
-    if (compSet && compSet?.size > 0) {
+    if (compSet && compSet.size > 0) {
       const oneComp = compSet.getSourceComponents(filter).first();
 
       const filesToOpen = [];
