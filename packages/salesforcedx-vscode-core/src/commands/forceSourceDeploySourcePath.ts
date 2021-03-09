@@ -14,9 +14,17 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import {
+  ComponentSet,
+  DeployResult,
+  RetrieveResult
+} from '@salesforce/source-deploy-retrieve';
+import {
+  RequestStatus,
+  SourceRetrieveResult
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
+import { DeployCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
@@ -119,60 +127,30 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   await commandlet.run();
 }
 
-export class LibraryDeploySourcePathExecutor extends LibraryCommandletExecutor<
+export class LibraryDeploySourcePathExecutor extends DeployCommand<
   string | string[]
 > {
   constructor() {
     super(
       nls.localize('force_source_deploy_text'),
-      'force_source_deploy_with_sourcepath_beta',
-      OUTPUT_CHANNEL
+      'force_source_deploy_with_sourcepath_beta'
     );
   }
 
-  public async run(
-    response: ContinueResponse<string | string[]>
-  ): Promise<boolean> {
-    try {
-      const components = this.getComponents(response.data);
-
-      const operation = components
-        .deploy({
-          usernameOrConnection: await workspaceContext.getConnection()
-        })
-        .start();
-
-      const metadataCount = JSON.stringify(createComponentCount(components));
-      this.telemetry.addProperty('metadataCount', metadataCount);
-
-      const result = await operation;
-
-      BaseDeployExecutor.errorCollection.clear();
-
-      if (result) {
-        channelService.appendLine(
-          createDeployOutput2(
-            result,
-            await SfdxPackageDirectories.getPackageDirectoryPaths()
-          )
-        );
-
-        const success = result.response.status === RequestStatus.Succeeded;
-
-        if (!success) {
-          handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
-        }
-
-        return success;
-      }
-
-      return false;
-    } finally {
-      await DeployQueue.get().unlock();
-    }
+  protected async getOperation(
+    components: ComponentSet
+  ): Promise<DeployResult | undefined> {
+    return components
+      .deploy({
+        usernameOrConnection: await workspaceContext.getConnection()
+      })
+      .start();
   }
 
-  private getComponents(paths: string | string[]): ComponentSet {
+  protected async getComponents(
+    response: ContinueResponse<string | string[]>
+  ): Promise<ComponentSet> {
+    const paths = response.data;
     const components = new ComponentSet();
     if (typeof paths === 'string') {
       components.resolveSourceComponents(paths);

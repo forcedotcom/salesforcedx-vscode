@@ -4,39 +4,33 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { DeployCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
+import { channelService } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
 } from '../commands/util/postconditionCheckers';
 import { workspaceContext } from '../context';
-import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
-  createComponentCount,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
   useBetaDeployRetrieve
 } from './util';
-import { createDeployOutput } from './util';
-import { createDeployOutput2 } from './util/sourceResultOutput';
 
 export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   public build(manifestPath: string): Command {
@@ -54,55 +48,31 @@ export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   }
 }
 
-export class LibrarySourceDeployManifestExecutor extends LibraryCommandletExecutor<
-  string
-> {
+export class LibrarySourceDeployManifestExecutor extends DeployCommand<string> {
   constructor() {
     super(
       nls.localize('force_source_deploy_text'),
-      'force_source_deploy_with_manifest_beta',
-      OUTPUT_CHANNEL
+      'force_source_deploy_with_manifest_beta'
     );
   }
 
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
+  protected async getComponents(
+    response: ContinueResponse<string>
+  ): Promise<ComponentSet> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    try {
-      const components = await ComponentSet.fromManifestFile(response.data, {
-        resolve: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
-      });
-      const operation = components
-        .deploy({
-          usernameOrConnection: await workspaceContext.getConnection()
-        })
-        .start();
+    return ComponentSet.fromManifestFile(response.data, {
+      resolve: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
+    });
+  }
 
-      this.telemetry.addProperty(
-        'metadataCount',
-        JSON.stringify(createComponentCount(components))
-      );
-
-      const result = await operation;
-
-      if (result) {
-        BaseDeployExecutor.errorCollection.clear();
-
-        const outputResult = createDeployOutput2(result, packageDirs);
-        channelService.appendLine(outputResult);
-
-        const success = result.response.status === RequestStatus.Succeeded;
-
-        if (!success) {
-          handleDeployDiagnostics(result, BaseDeployExecutor.errorCollection);
-        }
-
-        return success;
-      }
-
-      return false;
-    } finally {
-      await DeployQueue.get().unlock();
-    }
+  protected async getOperation(
+    components: ComponentSet
+  ): Promise<DeployResult | undefined> {
+    return components
+      .deploy({
+        usernameOrConnection: await workspaceContext.getConnection()
+      })
+      .start();
   }
 }
 
