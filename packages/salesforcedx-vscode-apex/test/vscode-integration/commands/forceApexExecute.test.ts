@@ -6,10 +6,11 @@
  */
 import { ExecuteService } from '@salesforce/apex-node';
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub, SinonSpy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
@@ -159,9 +160,11 @@ describe('Force Apex Execute', () => {
 
   describe('Format Execute Anonymous Response', () => {
     let outputStub: SinonStub;
+    let showChannelOutputStub: SinonSpy;
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
+      showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput')
     });
 
     it('should format result correctly for a successful execution', async () => {
@@ -191,7 +194,7 @@ describe('Force Apex Execute', () => {
       );
 
       await executor.run({ type: 'CONTINUE', data: {} });
-
+      expect(showChannelOutputStub.notCalled).to.be.true;
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
     });
 
@@ -217,7 +220,7 @@ describe('Force Apex Execute', () => {
       );
 
       await executor.run({ type: 'CONTINUE', data: {} });
-
+      expect(showChannelOutputStub.notCalled).to.be.true;
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
     });
 
@@ -252,7 +255,7 @@ describe('Force Apex Execute', () => {
       );
 
       await executor.run({ type: 'CONTINUE', data: {} });
-
+      expect(showChannelOutputStub.notCalled).to.be.true;
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
     });
   });
