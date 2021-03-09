@@ -9,7 +9,7 @@ The Apex, Deploy and Retrieve commands are in the process of moving to a new arc
 
 This architecture change is done through a phased approach.  For both the Apex library and Deploy/Retrieve library, we are rolling out the changes through these phases:
 
-1. Library created & completed
+1. Library created and completed.
 2. Available to try it in VS Code - We provide a VS Code setting so you can opt in and try it out. 
 3. On by default in VS Code - The VS code setting default is defaulted to True to enable the library.  If you previously opted in and then opted out, you will have to manually opt back in to use the feature.  We change the default after the commands have been available and used for months.
 4. CLI updated to use the library.  The VS Code setting is then retired.  Both the CLI and VS Code extensions are using the library.
