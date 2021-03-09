@@ -169,7 +169,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveCommand<
   protected async postOperation(
     result: RetrieveResult | SourceRetrieveResult | undefined
   ) {
-    super.postOperation(result);
+    await super.postOperation(result);
 
     // assumes opening only one component
     if (result && this.openAfterRetrieve) {

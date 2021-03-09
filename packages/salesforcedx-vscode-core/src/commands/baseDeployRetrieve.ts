@@ -135,7 +135,9 @@ export abstract class DeployCommand<T> extends DeployRetrieveCommand<T> {
       if (result) {
         BaseDeployExecutor.errorCollection.clear();
 
-        this.outputResults(result);
+        const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
+        const output = this.createOutput(result, relativePackageDirs);
+        channelService.appendLine(output);
 
         const success = result.response.status === RequestStatus.Succeeded;
 
@@ -148,10 +150,11 @@ export abstract class DeployCommand<T> extends DeployRetrieveCommand<T> {
     }
   }
 
-  private async outputResults(result: DeployResult): Promise<void> {
+  private createOutput(
+    result: DeployResult,
+    relativePackageDirs: string[]
+  ): string {
     const table = new Table();
-
-    const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
 
     const rowsWithRelativePaths = (result.getFileResponses().map(response => {
       response.filePath = this.getRelativeProjectPath(
@@ -191,7 +194,7 @@ export abstract class DeployCommand<T> extends DeployRetrieveCommand<T> {
       );
     }
 
-    channelService.appendLine(output);
+    return output;
   }
 }
 
