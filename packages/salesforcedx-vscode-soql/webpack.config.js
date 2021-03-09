@@ -45,6 +45,8 @@ module.exports = {
   // excluding dependencies from getting bundled
   externals: {
     '@salesforce/core': 'commonjs @salesforce/core',
+    '@salesforce/soql-common': 'commonjs @salesforce/soql-common',
+    jsforce: 'commonjs jsforce',
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls'
   },
