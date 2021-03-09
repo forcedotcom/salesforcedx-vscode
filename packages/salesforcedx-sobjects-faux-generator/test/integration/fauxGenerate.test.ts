@@ -20,13 +20,13 @@ import {
   STDOUT_EVENT,
   SUCCESS_CODE
 } from '../../src/constants';
-import { SObjectCategory, SObjectDescribe } from '../../src/describe';
+import { SObjectDescribe } from '../../src/describe';
 import {
   FauxClassGenerator,
-  SObjectRefreshResult,
-  SObjectRefreshSource
+  SObjectRefreshResult
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
+import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
 import { CancellationTokenSource } from './integrationTestUtil';
 import { mockBatchResponse, mockDescribeResponse } from './mockData';
 
