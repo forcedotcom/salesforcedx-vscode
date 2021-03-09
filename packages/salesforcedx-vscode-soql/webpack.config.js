@@ -3,25 +3,6 @@ const glob = require('glob');
 const DIST = path.resolve(__dirname);
 const shell = require('shelljs');
 
-const getEntryObject = () => {
-  shell.rm('-rf', 'out/src');
-  const entryArray = glob.sync('src/**/*.ts');
-  const srcObj = entryArray.reduce((acc, item) => {
-    const modulePath = item.replace(/\/[\.A-Za-z0-9_-]*\.ts/g, '');
-    const outputModulePath = path.join('out', modulePath, 'index');
-
-    if (!acc.hasOwnProperty(outputModulePath)) {
-      // webpack requires the object to be in this format
-      // { 'out/src/cli/index': './src/cli/index.ts' }
-      acc[outputModulePath] = '.' + path.join(path.sep, modulePath, 'index.ts');
-    }
-
-    return acc;
-  }, {});
-
-  return srcObj;
-};
-
 const getMode = () => {
   const webpackMode = process.env.NODE_ENV || 'development';
   console.log(`Running in ${webpackMode} mode`);
@@ -32,7 +13,7 @@ module.exports = {
   // extensions run in a node context
   target: 'node',
   mode: getMode(),
-  entry: getEntryObject(),
+  entry: { 'out/src/index': './src/index.ts' },
   // vsix packaging depends on commonjs2
   output: {
     path: DIST,
