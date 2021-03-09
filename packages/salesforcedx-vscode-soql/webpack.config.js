@@ -46,6 +46,7 @@ module.exports = {
   externals: {
     '@salesforce/core': 'commonjs @salesforce/core',
     '@salesforce/soql-common': 'commonjs @salesforce/soql-common',
+    '@salesforce/soql-model': 'commonjs @salesforce/soql-model',
     jsforce: 'commonjs jsforce',
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls'
