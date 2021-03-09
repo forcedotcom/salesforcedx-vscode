@@ -12,7 +12,6 @@ import {
   DeployResult,
   MetadataComponent,
   MetadataResolver,
-  MetadataType,
   registryData,
   RetrieveResult as MetadataApiRetrieveResult,
   SourceRetrieveResult,
@@ -35,25 +34,7 @@ import {
 } from '../../../src/sfdxProject';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
-type DeployRetrieveResult = DeployResult | RetrieveResult | undefined;
-
-function getRelativeProjectPath(fsPath: string = '', packageDirs: string[]) {
-  let packageDirIndex;
-  for (let packageDir of packageDirs) {
-    if (!packageDir.startsWith(sep)) {
-      packageDir = sep + packageDir;
-    }
-    if (!packageDir.endsWith(sep)) {
-      packageDir = packageDir + sep;
-    }
-    packageDirIndex = fsPath.indexOf(packageDir);
-    if (packageDirIndex !== -1) {
-      packageDirIndex += 1;
-      break;
-    }
-  }
-  return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
-}
+type DeployRetrieveResult = DeployResult | RetrieveResult;
 
 abstract class DeployRetrieveCommand<T> extends LibraryCommandletExecutor<T> {
   constructor(executionName: string, logName: string) {
@@ -61,7 +42,7 @@ abstract class DeployRetrieveCommand<T> extends LibraryCommandletExecutor<T> {
   }
 
   public async run(response: ContinueResponse<T>): Promise<boolean> {
-    let result: DeployRetrieveResult;
+    let result: DeployRetrieveResult | undefined;
 
     try {
       const components = await this.getComponents(response);
@@ -71,7 +52,7 @@ abstract class DeployRetrieveCommand<T> extends LibraryCommandletExecutor<T> {
         this.createComponentCount(components)
       );
 
-      result = await this.getOperation(components);
+      result = await this.doOperation(components);
 
       const status = this.getStatus(result);
 
@@ -82,6 +63,24 @@ abstract class DeployRetrieveCommand<T> extends LibraryCommandletExecutor<T> {
     } finally {
       await this.postOperation(result);
     }
+  }
+
+  protected getRelativeProjectPath(fsPath: string = '', packageDirs: string[]) {
+    let packageDirIndex;
+    for (let packageDir of packageDirs) {
+      if (!packageDir.startsWith(sep)) {
+        packageDir = sep + packageDir;
+      }
+      if (!packageDir.endsWith(sep)) {
+        packageDir = packageDir + sep;
+      }
+      packageDirIndex = fsPath.indexOf(packageDir);
+      if (packageDirIndex !== -1) {
+        packageDirIndex += 1;
+        break;
+      }
+    }
+    return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
   }
 
   private createComponentCount(
@@ -101,7 +100,9 @@ abstract class DeployRetrieveCommand<T> extends LibraryCommandletExecutor<T> {
     );
   }
 
-  protected getStatus(result: DeployRetrieveResult): RequestStatus | undefined {
+  private getStatus(
+    result: DeployRetrieveResult | undefined
+  ): RequestStatus | undefined {
     return result instanceof DeployResult ||
       result instanceof MetadataApiRetrieveResult
       ? result.response.status
@@ -111,13 +112,25 @@ abstract class DeployRetrieveCommand<T> extends LibraryCommandletExecutor<T> {
   protected abstract getComponents(
     response: ContinueResponse<T>
   ): Promise<ComponentSet>;
-  protected abstract getOperation(
+  protected abstract doOperation(
     components: ComponentSet
-  ): Promise<DeployRetrieveResult>;
-  protected abstract postOperation(result: DeployRetrieveResult): Promise<void>;
+  ): Promise<DeployRetrieveResult | undefined>;
+  protected abstract postOperation(
+    result: DeployRetrieveResult | undefined
+  ): Promise<void>;
 }
 
 export abstract class DeployCommand<T> extends DeployRetrieveCommand<T> {
+  protected async doOperation(
+    components: ComponentSet
+  ): Promise<DeployResult | undefined> {
+    return components
+      .deploy({
+        usernameOrConnection: await workspaceContext.getConnection()
+      })
+      .start();
+  }
+
   protected async postOperation(
     result: DeployResult | undefined
   ): Promise<void> {
@@ -144,7 +157,7 @@ export abstract class DeployCommand<T> extends DeployRetrieveCommand<T> {
     const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
 
     const rowsWithRelativePaths = (result.getFileResponses().map(response => {
-      response.filePath = getRelativeProjectPath(
+      response.filePath = this.getRelativeProjectPath(
         response.filePath,
         relativePackageDirs
       );
@@ -183,14 +196,10 @@ export abstract class DeployCommand<T> extends DeployRetrieveCommand<T> {
 
     channelService.appendLine(output);
   }
-
-  protected abstract getOperation(
-    components: ComponentSet
-  ): Promise<DeployResult | undefined>;
 }
 
 export abstract class RetrieveCommand<T> extends DeployRetrieveCommand<T> {
-  protected async getOperation(
+  protected async doOperation(
     components: ComponentSet
   ): Promise<RetrieveResult | undefined> {
     const connection = await workspaceContext.getConnection();
@@ -250,7 +259,7 @@ export abstract class RetrieveCommand<T> extends DeployRetrieveCommand<T> {
 
     for (const response of result.getFileResponses()) {
       const asRow = (response as unknown) as Row;
-      response.filePath = getRelativeProjectPath(
+      response.filePath = this.getRelativeProjectPath(
         response.filePath,
         relativePackageDirs
       );
@@ -264,6 +273,10 @@ export abstract class RetrieveCommand<T> extends DeployRetrieveCommand<T> {
     return this.createOutputTable(successes, failures);
   }
 
+  /**
+   * This exists because the Tooling API result currently doesn't conform to the
+   * same interface as the Metadata API deploy and retrieve result objects.
+   */
   private createToolingOutput(
     retrieveResult: SourceRetrieveResult,
     relativePackageDirs: string[]
@@ -279,14 +292,14 @@ export abstract class RetrieveCommand<T> extends DeployRetrieveCommand<T> {
           successes.push({
             fullName,
             type: type.name,
-            filePath: getRelativeProjectPath(fsPath, relativePackageDirs)
+            filePath: this.getRelativeProjectPath(fsPath, relativePackageDirs)
           });
         }
         if (xml) {
           successes.push({
             fullName,
             type: type.name,
-            filePath: getRelativeProjectPath(xml, relativePackageDirs)
+            filePath: this.getRelativeProjectPath(xml, relativePackageDirs)
           });
         }
       } else if (properties) {

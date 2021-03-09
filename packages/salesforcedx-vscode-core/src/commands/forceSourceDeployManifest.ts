@@ -64,16 +64,6 @@ export class LibrarySourceDeployManifestExecutor extends DeployCommand<string> {
       resolve: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
     });
   }
-
-  protected async getOperation(
-    components: ComponentSet
-  ): Promise<DeployResult | undefined> {
-    return components
-      .deploy({
-        usernameOrConnection: await workspaceContext.getConnection()
-      })
-      .start();
-  }
 }
 
 export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {

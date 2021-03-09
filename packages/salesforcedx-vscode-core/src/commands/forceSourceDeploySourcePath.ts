@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -14,30 +12,17 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  ComponentSet,
-  DeployResult,
-  RetrieveResult
-} from '@salesforce/source-deploy-retrieve';
-import {
-  RequestStatus,
-  SourceRetrieveResult
-} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { DeployCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
-import { handleDeployDiagnostics } from '../diagnostics';
+import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { DeployQueue } from '../settings';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
-import { createComponentCount, useBetaDeployRetrieve } from './util';
-import { createDeployOutput2 } from './util/sourceResultOutput';
+import { useBetaDeployRetrieve } from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -52,6 +37,32 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
 
   protected getDeployType() {
     return DeployType.Deploy;
+  }
+}
+
+export class LibraryDeploySourcePathExecutor extends DeployCommand<
+  string | string[]
+> {
+  constructor() {
+    super(
+      nls.localize('force_source_deploy_text'),
+      'force_source_deploy_with_sourcepath_beta'
+    );
+  }
+
+  protected async getComponents(
+    response: ContinueResponse<string | string[]>
+  ): Promise<ComponentSet> {
+    const paths = response.data;
+    const components = new ComponentSet();
+    if (typeof paths === 'string') {
+      components.resolveSourceComponents(paths);
+    } else {
+      for (const filepath of paths) {
+        components.resolveSourceComponents(filepath);
+      }
+    }
+    return components;
   }
 }
 
@@ -125,40 +136,4 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
       : new ForceSourceDeploySourcePathExecutor()
   );
   await commandlet.run();
-}
-
-export class LibraryDeploySourcePathExecutor extends DeployCommand<
-  string | string[]
-> {
-  constructor() {
-    super(
-      nls.localize('force_source_deploy_text'),
-      'force_source_deploy_with_sourcepath_beta'
-    );
-  }
-
-  protected async getOperation(
-    components: ComponentSet
-  ): Promise<DeployResult | undefined> {
-    return components
-      .deploy({
-        usernameOrConnection: await workspaceContext.getConnection()
-      })
-      .start();
-  }
-
-  protected async getComponents(
-    response: ContinueResponse<string | string[]>
-  ): Promise<ComponentSet> {
-    const paths = response.data;
-    const components = new ComponentSet();
-    if (typeof paths === 'string') {
-      components.resolveSourceComponents(paths);
-    } else {
-      for (const filepath of paths) {
-        components.resolveSourceComponents(filepath);
-      }
-    }
-    return components;
-  }
 }
