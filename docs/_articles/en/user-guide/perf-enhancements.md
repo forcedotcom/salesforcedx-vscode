@@ -3,7 +3,7 @@ title: Performance Enhancements
 lang: en
 ---
 
-The Apex, Deploy and Retrieve commands are in the process of moving to a new architecture.  These commands have been rearchitected into independent Typescript libraries and CLI plugins.  This is part of our larger effort to break up the salesforce-alm plug-in.  [You can read more about that in this blog post](https://developer.salesforce.com/blogs/2021/02/open-sourcing-salesforce-cli-update-feb-2021.html).  There’s many great benefits to this effort and one of the best is better performance.  Especially for single file deploys & retrieves, you should notice a significant performance gain when using the latest architecture.
+The Apex, Deploy and Retrieve commands are in the process of moving to a new architecture. These commands have been rearchitected into independent Typescript libraries and CLI plugins as part of our larger effort to break up the salesforce-alm plugin.  [You can read more about that in this blog post](https://developer.salesforce.com/blogs/2021/02/open-sourcing-salesforce-cli-update-feb-2021.html). There’s many great benefits to this effort and one of the best is better performance. For single file deploys and retrieves, you'll likely notice a significant performance gain when using the latest architecture.
 
 ## Execution Process & Status
 
