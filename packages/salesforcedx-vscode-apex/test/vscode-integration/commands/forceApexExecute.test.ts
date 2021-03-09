@@ -10,7 +10,7 @@ import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/co
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub, SinonSpy } from 'sinon';
+import { createSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
@@ -164,7 +164,7 @@ describe('Force Apex Execute', () => {
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
-      showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput')
+      showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput');
     });
 
     it('should format result correctly for a successful execution', async () => {
