@@ -5,10 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -17,32 +13,21 @@ import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import {
-  ComponentSet,
-  MetadataResolver,
-  MetadataType,
-  registryData,
-  RetrieveResult,
-  ToolingApi
-} from '@salesforce/source-deploy-retrieve';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { join } from 'path';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
+import { RetrieveCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
+import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import {
-  createComponentCount,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
   useBetaDeployRetrieve
 } from './util';
-import { createRetrieveOutput2 } from './util/sourceResultOutput';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -125,83 +110,17 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   await commandlet.run();
 }
 
-export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
-  string
-> {
+export class LibraryRetrieveSourcePathExecutor extends RetrieveCommand<string> {
   constructor() {
     super(
       nls.localize('force_source_retrieve_text'),
-      'force_source_retrieve_with_sourcepath_beta',
-      OUTPUT_CHANNEL
+      'force_source_retrieve_with_sourcepath_beta'
     );
   }
 
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
-    let retrieve;
-    const connection = await workspaceContext.getConnection();
-    const components = ComponentSet.fromSource(response.data);
-    const first = components.getSourceComponents().first();
-
-    if (
-      components.size === 1 &&
-      first &&
-      this.isSupportedToolingRetrieveType(first.type)
-    ) {
-      const projectNamespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
-      const tooling = new ToolingApi(connection, new MetadataResolver());
-      retrieve = tooling.retrieve({
-        components,
-        namespace: projectNamespace
-      });
-    } else {
-      retrieve = components
-        .retrieve({
-          usernameOrConnection: connection,
-          output: join(
-            getRootWorkspacePath(),
-            (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
-          ),
-          merge: true
-        })
-        .start();
-    }
-
-    const metadataCount = JSON.stringify(createComponentCount(components));
-    this.telemetry.addProperty('metadataCount', metadataCount);
-
-    const result = await retrieve;
-
-    if (result) {
-      channelService.appendLine(
-        createRetrieveOutput2(
-          result,
-          await SfdxPackageDirectories.getPackageDirectoryPaths()
-        )
-      );
-
-      const status =
-        result instanceof RetrieveResult
-          ? result.response.status
-          : result.status;
-
-      return status === RequestStatus.Succeeded;
-    }
-
-    return false;
-  }
-
-  private isSupportedToolingRetrieveType(type: MetadataType): boolean {
-    const { types } = registryData;
-    const permittedTypeNames = [
-      types.auradefinitionbundle.name,
-      types.lightningcomponentbundle.name,
-      types.apexclass.name,
-      types.apexcomponent.name,
-      types.apexpage.name,
-      types.apextrigger.name
-    ];
-    return permittedTypeNames.includes(type.name);
+  protected async getComponents(
+    response: ContinueResponse<string>
+  ): Promise<ComponentSet> {
+    return ComponentSet.fromSource(response.data);
   }
 }

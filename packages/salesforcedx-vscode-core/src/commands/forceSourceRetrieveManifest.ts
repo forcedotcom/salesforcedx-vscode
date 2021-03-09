@@ -4,37 +4,32 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { RetrieveCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
+import { channelService } from '../channels';
 import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
 } from '../commands/util/postconditionCheckers';
-import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import {
-  createComponentCount,
-  createRetrieveOutput,
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
   useBetaDeployRetrieve
 } from './util';
-import { createRetrieveOutput2 } from './util/sourceResultOutput';
 
 export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
   string
@@ -49,55 +44,26 @@ export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class LibrarySourceRetrieveManifestExecutor extends LibraryCommandletExecutor<
+export class LibrarySourceRetrieveManifestExecutor extends RetrieveCommand<
   string
 > {
   constructor() {
     super(
       nls.localize('force_source_retrieve_text'),
-      'force_source_retrieve_with_manifest_beta',
-      OUTPUT_CHANNEL
+      'force_source_retrieve_with_manifest_beta'
     );
   }
 
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
+  protected async getComponents(
+    response: ContinueResponse<string>
+  ): Promise<ComponentSet> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    const defaultOutput = join(
-      getRootWorkspacePath(),
-      (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
-    );
-    const components = await ComponentSet.fromManifestFile(response.data, {
+    return ComponentSet.fromManifestFile(response.data, {
       resolve: packageDirs.map(relativeDir =>
         join(getRootWorkspacePath(), relativeDir)
       ),
       literalWildcard: true
     });
-
-    const operation = components
-      .retrieve({
-        usernameOrConnection: await workspaceContext.getConnection(),
-        output: defaultOutput,
-        merge: true
-      })
-      .start();
-
-    this.telemetry.addProperty(
-      'metadataCount',
-      JSON.stringify(createComponentCount(components))
-    );
-
-    const result = await operation;
-
-    if (result) {
-      channelService.appendLine(createRetrieveOutput2(result, packageDirs));
-
-      return (
-        result.response.status === RequestStatus.Succeeded ||
-        result.response.status === RequestStatus.SucceededPartial
-      );
-    }
-
-    return false;
   }
 }
 
