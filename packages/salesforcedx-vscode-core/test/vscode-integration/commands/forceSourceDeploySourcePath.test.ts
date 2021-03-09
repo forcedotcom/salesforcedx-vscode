@@ -41,7 +41,6 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     let mockConnection: Connection;
 
     let resolveStub: SinonStub;
-    let getConnectionStub: SinonStub;
     let startStub: SinonStub;
     let deployStub: SinonStub;
 
@@ -56,9 +55,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         })
       });
       resolveStub = sb.stub(ComponentSet.prototype, 'resolveSourceComponents');
-      getConnectionStub = sb
-        .stub(workspaceContext, 'getConnection')
-        .resolves(mockConnection);
+      sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
       startStub = sb.stub().resolves(undefined);
       deployStub = sb
         .stub(ComponentSet.prototype, 'deploy')
