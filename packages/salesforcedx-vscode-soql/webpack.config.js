@@ -11,9 +11,6 @@ module.exports = {
   // extensions run in a node context
   target: 'node',
   mode: getMode(),
-  optimization: {
-    usedExports: true
-  },
   entry: { 'dist/src/index': './src/index.ts' },
   // vsix packaging depends on commonjs2
   output: {
