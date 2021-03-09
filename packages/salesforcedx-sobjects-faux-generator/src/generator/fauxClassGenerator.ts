@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
-import * as minSObjectsFromFile from '../../minSObjects.json';
+import * as minSObjectsFromFile from '../../data/minSObjects.json';
 import {
   CUSTOMOBJECTS_DIR,
   ERROR_EVENT,
@@ -288,7 +288,7 @@ export class FauxClassGenerator {
         mode: 0o444
       });
     });
-
+    this.logSObjects('Standard', sobjectDecl.length);
     return this.successExit();
   }
 
