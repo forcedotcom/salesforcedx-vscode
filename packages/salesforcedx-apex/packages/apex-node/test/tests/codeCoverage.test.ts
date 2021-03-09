@@ -308,11 +308,7 @@ describe('Get code coverage results', () => {
   });
 
   it('should return per class coverage for test that covers 0 classes', async () => {
-    toolingQueryStub.resolves({
-      done: true,
-      totalSize: 0,
-      records: []
-    } as ApexCodeCoverage);
+    toolingQueryStub.throws('Error at Row:1;Column:1');
     const testSrv = new TestService(mockConnection);
     const perClassCoverageMap = await testSrv.getPerClassCodeCoverage(
       new Set<string>([])

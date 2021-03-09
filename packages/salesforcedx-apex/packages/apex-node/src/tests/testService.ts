@@ -640,6 +640,10 @@ export class TestService {
   public async getPerClassCodeCoverage(
     apexTestClassSet: Set<string>
   ): Promise<Map<string, PerClassCoverage[]>> {
+    if (apexTestClassSet.size === 0) {
+      return new Map();
+    }
+
     let str = '';
     apexTestClassSet.forEach(elem => {
       str += `'${elem}',`;
