@@ -66,6 +66,11 @@ export interface FieldDeclaration {
   comment?: string;
 }
 
+export interface SObjectDefinition {
+  name: string;
+  fields: FieldDeclaration[];
+}
+
 export interface SObjectRefreshResult {
   data: {
     category?: SObjectCategory;
