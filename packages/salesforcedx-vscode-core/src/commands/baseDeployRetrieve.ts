@@ -22,16 +22,13 @@ import {
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join, sep } from 'path';
-import { channelService, OUTPUT_CHANNEL } from '../../../src/channels';
-import { BaseDeployExecutor } from '../../../src/commands';
-import { workspaceContext } from '../../../src/context';
-import { handleDeployDiagnostics } from '../../../src/diagnostics';
-import { nls } from '../../../src/messages';
-import { DeployQueue } from '../../../src/settings';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
+import { BaseDeployExecutor } from '.';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { workspaceContext } from '../context';
+import { handleDeployDiagnostics } from '../diagnostics';
+import { nls } from '../messages';
+import { DeployQueue } from '../settings';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;

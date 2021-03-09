@@ -12,7 +12,6 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { DeployCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
 import { channelService } from '../channels';
 import {
   ConflictDetectionChecker,
@@ -25,6 +24,7 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
+import { DeployCommand } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
   SfdxCommandlet,

@@ -15,12 +15,12 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { RetrieveCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
+import { RetrieveCommand } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -39,6 +39,21 @@ export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecuto
       .withFlag('--sourcepath', sourcePath)
       .withLogName('force_source_retrieve_with_sourcepath')
       .build();
+  }
+}
+
+export class LibraryRetrieveSourcePathExecutor extends RetrieveCommand<string> {
+  constructor() {
+    super(
+      nls.localize('force_source_retrieve_text'),
+      'force_source_retrieve_with_sourcepath_beta'
+    );
+  }
+
+  protected async getComponents(
+    response: ContinueResponse<string>
+  ): Promise<ComponentSet> {
+    return ComponentSet.fromSource(response.data);
   }
 }
 
@@ -108,19 +123,4 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     new SourcePathChecker()
   );
   await commandlet.run();
-}
-
-export class LibraryRetrieveSourcePathExecutor extends RetrieveCommand<string> {
-  constructor() {
-    super(
-      nls.localize('force_source_retrieve_text'),
-      'force_source_retrieve_with_sourcepath_beta'
-    );
-  }
-
-  protected async getComponents(
-    response: ContinueResponse<string>
-  ): Promise<ComponentSet> {
-    return ComponentSet.fromSource(response.data);
-  }
 }

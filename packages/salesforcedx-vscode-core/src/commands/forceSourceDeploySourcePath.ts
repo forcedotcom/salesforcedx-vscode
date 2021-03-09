@@ -14,12 +14,12 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { DeployCommand } from '../../test/vscode-integration/commands/baseDeployRetrieve';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
+import { DeployCommand } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 import { useBetaDeployRetrieve } from './util';

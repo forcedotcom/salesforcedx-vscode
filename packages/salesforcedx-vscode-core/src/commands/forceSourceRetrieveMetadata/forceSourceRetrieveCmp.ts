@@ -25,12 +25,12 @@ import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
-import { RetrieveCommand } from '../../../test/vscode-integration/commands/baseDeployRetrieve';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
+import { RetrieveCommand } from '../baseDeployRetrieve';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
