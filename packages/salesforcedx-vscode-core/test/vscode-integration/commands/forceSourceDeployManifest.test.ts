@@ -82,7 +82,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       $$.SANDBOX.restore();
     });
 
-    it('should deploy components in manifest', async () => {
+    it('should deploy components in a manifest', async () => {
       await executor.run({ data: manifestPath, type: 'CONTINUE' });
 
       expect(deployStub.calledOnce).to.equal(true);
