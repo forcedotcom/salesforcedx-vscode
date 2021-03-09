@@ -1,5 +1,13 @@
 {
   "extends": [
       "../../.eslintrc.json"
-]
+  ],
+  "overrides": [
+    {
+      "files": ["src/common/types.ts"],
+      "rules": {
+        "header/header": ["off"]
+      }
+    }
+  ]
 }

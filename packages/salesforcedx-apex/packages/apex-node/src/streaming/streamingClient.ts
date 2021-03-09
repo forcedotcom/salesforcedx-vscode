@@ -8,9 +8,14 @@
 import { Client as FayeClient } from 'faye';
 import { Connection } from '@salesforce/core';
 import { StreamMessage, TestResultMessage } from './types';
+import { Progress } from '../common';
 import { nls } from '../i18n';
 import { refreshAuth } from '../utils';
-import { ApexTestQueueItem, ApexTestQueueItemStatus } from '../tests/types';
+import {
+  ApexTestProgressValue,
+  ApexTestQueueItem,
+  ApexTestQueueItemStatus
+} from '../tests/types';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';
 const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
@@ -23,6 +28,7 @@ export interface AsyncTestRun {
 export class StreamingClient {
   private client: FayeClient;
   private conn: Connection;
+  private progress?: Progress<ApexTestProgressValue>;
   private apiVersion = '36.0';
   public subscribedTestRunId: string;
 
@@ -39,8 +45,14 @@ export class StreamingClient {
     return urlElements.join('/');
   }
 
-  public constructor(connection: Connection) {
+  public constructor(
+    connection: Connection,
+    progress?: Progress<ApexTestProgressValue>
+  ) {
     this.conn = connection;
+    if (progress) {
+      this.progress = progress;
+    }
     const streamUrl = this.getStreamURL(this.conn.instanceUrl);
     this.client = new FayeClient(streamUrl, {
       timeout: DEFAULT_STREAMING_TIMEOUT_MS
