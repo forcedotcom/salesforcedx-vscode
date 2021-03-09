@@ -271,6 +271,9 @@ describe('Run Apex tests asynchronously', () => {
   it('should return failed test results with missing error info', async () => {
     diagnosticFailure.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     diagnosticFailure.summary.username = mockConnection.getUsername();
+    diagnosticFailure.tests[0].diagnostic.className = undefined;
+    diagnosticFailure.tests[0].diagnostic.exceptionStackTrace = undefined;
+    diagnosticFailure.tests[0].stackTrace = undefined;
     const testSrv = new TestService(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
@@ -294,7 +297,7 @@ describe('Run Apex tests asynchronously', () => {
         {
           Id: '07Mxx00000F2Xx6UAF',
           QueueItemId: '7092M000000Vt94QAC',
-          StackTrace: 'Class.LIFXControllerTest.makeData',
+          StackTrace: undefined,
           Message: 'System.AssertException: Assertion Failed',
           AsyncApexJobId: testRunId,
           MethodName: 'testLoggerLog',

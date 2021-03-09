@@ -36,7 +36,7 @@ export const syncTestResultWithFailures: SyncTestResult = {
   apexLogId: '07Lxx00000cxy6YUAQ',
   successes: [],
   numFailures: 0,
-  numTestsRun: 1,
+  numTestsRun: 4,
   failures: [
     {
       id: '01pxx00000NWwb3AAD',
@@ -47,6 +47,40 @@ export const syncTestResultWithFailures: SyncTestResult = {
       namespace: 'tr',
       seeAllData: false,
       stackTrace: 'Class.TestSample.testOne: line 27, column 1',
+      time: 68,
+      type: 'Class'
+    },
+    {
+      id: '01pxx00000NWwb4AAD',
+      message:
+        'System.AssertException: Assertion Failed: Expected: false, Actual: true',
+      methodName: 'testOne',
+      name: 'TestSample2',
+      namespace: 'tr',
+      seeAllData: false,
+      stackTrace: undefined,
+      time: 68,
+      type: 'Class'
+    },
+    {
+      id: '01pxx00000NWwb5AAD',
+      message: undefined,
+      methodName: 'testOne',
+      name: 'TestSample3',
+      namespace: 'tr',
+      seeAllData: false,
+      stackTrace: 'Class.TestSample3.testOne: line 27, column 1',
+      time: 68,
+      type: 'Class'
+    },
+    {
+      id: '01pxx00000NWwb6AAD',
+      message: undefined,
+      methodName: 'testOne',
+      name: 'TestSample4',
+      namespace: 'tr',
+      seeAllData: false,
+      stackTrace: 'TestSample4: line 30',
       time: 68,
       type: 'Class'
     }

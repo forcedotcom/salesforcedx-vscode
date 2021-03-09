@@ -355,11 +355,15 @@ export class TestService {
     const diagnostic: ApexDiagnostic = {
       exceptionMessage: syncRecord.message,
       exceptionStackTrace: syncRecord.stackTrace,
-      className: syncRecord.stackTrace.split('.')[1],
+      className: syncRecord.stackTrace
+        ? syncRecord.stackTrace.split('.')[1]
+        : undefined,
       compileProblem: ''
     };
 
-    const matches = syncRecord.stackTrace.match(/(line (\d+), column (\d+))/);
+    const matches =
+      syncRecord.stackTrace &&
+      syncRecord.stackTrace.match(/(line (\d+), column (\d+))/);
     if (matches) {
       if (matches[2]) {
         diagnostic.lineNumber = Number(matches[2]);
@@ -648,11 +652,15 @@ export class TestService {
     const diagnostic: ApexDiagnostic = {
       exceptionMessage: asyncRecord.Message,
       exceptionStackTrace: asyncRecord.StackTrace,
-      className: asyncRecord.StackTrace.split('.')[1],
+      className: asyncRecord.StackTrace
+        ? asyncRecord.StackTrace.split('.')[1]
+        : undefined,
       compileProblem: ''
     };
 
-    const matches = asyncRecord.StackTrace.match(/(line (\d+), column (\d+))/);
+    const matches =
+      asyncRecord.StackTrace &&
+      asyncRecord.StackTrace.match(/(line (\d+), column (\d+))/);
     if (matches) {
       if (matches[2]) {
         diagnostic.lineNumber = Number(matches[2]);

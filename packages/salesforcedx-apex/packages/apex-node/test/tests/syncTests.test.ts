@@ -114,7 +114,7 @@ describe('Run Apex tests synchronously', () => {
     expect(toolingRequestStub.calledOnce).to.equal(true);
     expect(testResult.summary).to.be.a('object');
     expect(testResult.summary.failRate).to.equal('100%');
-    expect(testResult.summary.testsRan).to.equal(1);
+    expect(testResult.summary.testsRan).to.equal(4);
     expect(testResult.summary.orgId).to.equal(
       mockConnection.getAuthInfoFields().orgId
     );
@@ -125,7 +125,7 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.summary.username).to.equal(mockConnection.getUsername());
 
     expect(testResult.tests).to.be.a('array');
-    expect(testResult.tests.length).to.equal(1);
+    expect(testResult.tests.length).to.equal(4);
     expect(testResult.tests[0].queueItemId).to.equal('');
     expect(testResult.tests[0].stackTrace).to.equal(
       'Class.TestSample.testOne: line 27, column 1'
@@ -145,6 +145,13 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.tests[0].runTime).to.equal(68);
     expect(testResult.tests[0].testTimestamp).to.equal('');
     expect(testResult.tests[0].fullName).to.equal('tr__TestSample.testOne');
+    expect(testResult.tests[0].diagnostic.lineNumber).to.equal(27);
+    expect(testResult.tests[0].diagnostic.columnNumber).to.equal(1);
+
+    expect(testResult.tests[3].apexClass.fullName).to.equal('tr__TestSample4');
+    expect(testResult.tests[3].stackTrace).to.equal('TestSample4: line 30');
+    expect(testResult.tests[3].diagnostic.lineNumber).to.equal(undefined);
+    expect(testResult.tests[3].diagnostic.columnNumber).to.equal(undefined);
   });
 
   it('should run a test with code coverage', async () => {
