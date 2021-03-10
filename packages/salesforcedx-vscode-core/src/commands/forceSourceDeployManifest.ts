@@ -24,7 +24,7 @@ import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
-import { DeployCommand } from './baseDeployRetrieve';
+import { DeployExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -48,7 +48,9 @@ export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   }
 }
 
-export class LibrarySourceDeployManifestExecutor extends DeployCommand<string> {
+export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
+  string
+> {
   constructor() {
     super(
       nls.localize('force_source_deploy_text'),

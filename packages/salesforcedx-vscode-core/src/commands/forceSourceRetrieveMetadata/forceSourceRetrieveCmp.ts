@@ -30,7 +30,7 @@ import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
-import { RetrieveCommand } from '../baseDeployRetrieve';
+import { RetrieveExecutor } from '../baseDeployRetrieve';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -140,7 +140,7 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     }
   }
 }
-export class LibraryRetrieveSourcePathExecutor extends RetrieveCommand<
+export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   LocalComponent[]
 > {
   private openAfterRetrieve: boolean;

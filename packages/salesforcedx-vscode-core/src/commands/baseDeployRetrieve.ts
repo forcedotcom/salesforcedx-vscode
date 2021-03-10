@@ -124,7 +124,7 @@ export abstract class DeployRetrieveExecutor<
   ): Promise<void>;
 }
 
-export abstract class DeployCommand<T> extends DeployRetrieveExecutor<T> {
+export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
     components: ComponentSet
   ): Promise<DeployResult | undefined> {
@@ -205,7 +205,7 @@ export abstract class DeployCommand<T> extends DeployRetrieveExecutor<T> {
   }
 }
 
-export abstract class RetrieveCommand<T> extends DeployRetrieveExecutor<T> {
+export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
     components: ComponentSet
   ): Promise<RetrieveResult | undefined> {

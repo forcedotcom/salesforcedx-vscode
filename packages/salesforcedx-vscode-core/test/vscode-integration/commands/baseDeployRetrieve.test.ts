@@ -29,9 +29,9 @@ import { DiagnosticSeverity, Range, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
 import {
-  DeployCommand,
+  DeployExecutor,
   DeployRetrieveExecutor,
-  RetrieveCommand
+  RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
@@ -157,7 +157,7 @@ describe('Base Deploy Retrieve Commands', () => {
     });
   });
 
-  describe('DeployCommand', () => {
+  describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
 
     const packageDir = 'test-app';
@@ -170,7 +170,7 @@ describe('Base Deploy Retrieve Commands', () => {
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
     });
 
-    class TestDeploy extends DeployCommand<{}> {
+    class TestDeploy extends DeployExecutor<{}> {
       public components: ComponentSet;
       public getComponentsStub = sb.stub().returns(new ComponentSet());
       public startStub: SinonStub;
@@ -374,7 +374,7 @@ describe('Base Deploy Retrieve Commands', () => {
     });
   });
 
-  describe('RetrieveCommand', () => {
+  describe('RetrieveExecutor', () => {
     const packageDir = 'test-app';
     const props = {
       name: 'MyTrigger',
@@ -389,7 +389,7 @@ describe('Base Deploy Retrieve Commands', () => {
       }
     ]);
 
-    class TestRetrieve extends RetrieveCommand<{}> {
+    class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
       public startStub: SinonStub;
       public retrieveStub: SinonStub;

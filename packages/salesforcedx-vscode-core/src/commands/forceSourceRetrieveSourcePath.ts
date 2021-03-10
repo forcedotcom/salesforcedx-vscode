@@ -20,7 +20,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { RetrieveCommand } from './baseDeployRetrieve';
+import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -42,7 +42,9 @@ export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecuto
   }
 }
 
-export class LibraryRetrieveSourcePathExecutor extends RetrieveCommand<string> {
+export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
+  string
+> {
   constructor() {
     super(
       nls.localize('force_source_retrieve_text'),

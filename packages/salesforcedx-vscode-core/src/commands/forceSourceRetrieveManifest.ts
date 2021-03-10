@@ -22,7 +22,7 @@ import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
-import { RetrieveCommand } from './baseDeployRetrieve';
+import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
   SfdxCommandlet,
@@ -44,7 +44,7 @@ export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
   }
 }
 
-export class LibrarySourceRetrieveManifestExecutor extends RetrieveCommand<
+export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
   string
 > {
   constructor() {

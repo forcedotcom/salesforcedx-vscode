@@ -19,7 +19,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
-import { DeployCommand } from './baseDeployRetrieve';
+import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 import { useBetaDeployRetrieve } from './util';
@@ -40,7 +40,7 @@ export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   }
 }
 
-export class LibraryDeploySourcePathExecutor extends DeployCommand<
+export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   string | string[]
 > {
   constructor() {
