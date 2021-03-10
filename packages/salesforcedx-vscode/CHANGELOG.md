@@ -1,3 +1,15 @@
+# 51.4.0 - March 10, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Issue with debugging single test method ([PR #3033](https://github.com/forcedotcom/salesforcedx-vscode/pull/3033), [Issue #3026](https://github.com/forcedotcom/salesforcedx-vscode/issues/3026))
+
+#### salesforcedx-vscode-apex
+
+- Switch to Apex output channel automatically after running Apex tests ([PR #3027](https://github.com/forcedotcom/salesforcedx-vscode/pull/3027)), ([Issue #3009](https://github.com/forcedotcom/salesforcedx-vscode/issues/3009))
+
 # 51.3.0 - March 3, 2021
 
 ## Added
