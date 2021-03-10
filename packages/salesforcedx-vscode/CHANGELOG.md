@@ -1,3 +1,15 @@
+# 51.4.0 - Month DD, YYYY
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Issue with debugging single test method ([PR #3033](https://github.com/forcedotcom/salesforcedx-vscode/pull/3033))
+
+#### salesforcedx-vscode-core
+
+- Move messages to the core module ([PR #3005](https://github.com/forcedotcom/salesforcedx-vscode/pull/3005))
+
 # 51.3.0 - March 3, 2021
 
 ## Added
