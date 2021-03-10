@@ -23,6 +23,7 @@ import {
 import { SObjectDescribe } from '../../src/describe';
 import {
   FauxClassGenerator,
+  SObjectDefinition,
   SObjectRefreshResult
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
@@ -272,9 +273,12 @@ describe('Generate faux classes for SObjects', () => {
 
   describe('Check generateMin results', () => {
     beforeEach(() => {
+      const sObjectDefinition1: SObjectDefinition = '{"name":"Account","fields":[{"type":"Id","name":"Id"}]}' as unknown as SObjectDefinition;
+      const sObjectDefinition2: SObjectDefinition = '{"name":"Contact","fields":[{"type":"Id","name":"Id"}]}' as unknown as SObjectDefinition;
       env.stub(fs, 'existsSync').returns(true);
-      env.stub(Connection.prototype, 'request').resolves(mockBatchResponse);
-      env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
+      env.stub(FauxClassGenerator.prototype, 'generateFauxClassTextFromDecls');
+      env.stub(FauxClassGenerator.prototype, 'generateAndWriteFauxClasses');
+      env.stub(FauxClassGenerator.prototype, 'getSObjectSubsetDefinitions').returns([sObjectDefinition1, sObjectDefinition2]);
     });
 
     it('Should log the number of created faux classes on generateMin success', async () => {
@@ -295,10 +299,10 @@ describe('Generate faux classes for SObjects', () => {
       );
 
       expect(result.error).to.be.undefined;
-      expect(result.data.standardObjects).to.eql(16);
-      expect(result.data.customObjects).to.eql(0);
+      expect(result.data.customObjects).to.undefined;
+      expect(result.data.standardObjects).to.eql(2);
       expect(stdoutInfo).to.contain(
-        nls.localize('fetched_sobjects_length_text', 16, 'Standard')
+        nls.localize('fetched_sobjects_length_text', 2, 'Standard')
       );
       expect(exitCode).to.equal(SUCCESS_CODE);
     });

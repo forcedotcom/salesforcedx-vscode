@@ -275,21 +275,31 @@ export class FauxClassGenerator {
       return this.cancelExit();
     }
 
-    const sobjectDecl: SObjectDefinition[] = minSObjectsFromFile as SObjectDefinition[];
-
     if (!this.createIfNeededOutputFolder(standardSObjectsFolderPath)) {
       throw nls.localize('no_sobject_output_folder_text', standardSObjectsFolderPath);
     }
 
-    sobjectDecl.forEach( sobject => {
+    const sobjectDecl: SObjectDefinition[] = this.getSObjectSubsetDefinitions();
+    this.generateAndWriteFauxClasses(sobjectDecl, standardSObjectsFolderPath);
+    this.result.data.standardObjects = sobjectDecl.length;
+    this.logSObjects('Standard', sobjectDecl.length);
+    return this.successExit();
+  }
+
+  // VisibleForTesting
+  public generateAndWriteFauxClasses(sobjectDecl: SObjectDefinition[], standardSObjectsFolderPath: string) {
+    for (const sobject of sobjectDecl) {
       const fauxClassPath = path.join(standardSObjectsFolderPath, sobject.name + '.cls');
-      sobject.fields.forEach(field => field.modifier = 'global');
+      sobject.fields.forEach(field => { field.modifier = 'global'; });
       fs.writeFileSync(fauxClassPath, this.generateFauxClassTextFromDecls(sobject.name, sobject.fields), {
         mode: 0o444
       });
-    });
-    this.logSObjects('Standard', sobjectDecl.length);
-    return this.successExit();
+    }
+  }
+
+  // VisibleForTesting
+  public getSObjectSubsetDefinitions(): SObjectDefinition[] {
+    return minSObjectsFromFile as SObjectDefinition[];
   }
 
   // VisibleForTesting
@@ -470,7 +480,8 @@ export class FauxClassGenerator {
     return declarations;
   }
 
-  private generateFauxClassTextFromDecls(
+  // VisibleForTesting
+  public generateFauxClassTextFromDecls(
     className: string,
     declarations: FieldDeclaration[]
   ): string {

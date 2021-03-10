@@ -175,6 +175,7 @@ describe('ForceGenerateFauxClasses', () => {
     let sandboxStub: SinonSandbox;
     let progressStub: SinonStub;
     let generatorStub: SinonStub;
+    let generatorMinStub: SinonStub;
     let logStub: SinonStub;
     let errorStub: SinonStub;
 
@@ -190,6 +191,9 @@ describe('ForceGenerateFauxClasses', () => {
       generatorStub = sandboxStub
         .stub(FauxClassGenerator.prototype, 'generate')
         .returns({ data: expectedData });
+      generatorMinStub = sandboxStub
+        .stub(FauxClassGenerator.prototype, 'generateMin')
+        .returns({ data: expectedData });
       logStub = sandboxStub.stub(
         ForceRefreshSObjectsExecutor.prototype,
         'logMetric'
@@ -201,35 +205,11 @@ describe('ForceGenerateFauxClasses', () => {
       sandboxStub.restore();
     });
 
-    it('Should pass response data to generator', async () => {
+    it('Should pass response data to generatorMin', async () => {
       await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      expect(generatorStub.firstCall.args.slice(1)).to.eql([
+      expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Startup
-      ]);
-    });
-
-    it('Should pass response data to generatorMin', async () => {
-      // await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      const generatorMinStub = sandboxStub
-        .stub(FauxClassGenerator.prototype, 'generateMin')
-        .returns({
-          data: {
-            cancelled: false,
-            standardObjects: 16,
-            customObjects: 0
-          }
-        });
-      const executor = new ForceRefreshSObjectsExecutor();
-      await executor.execute({
-        type: 'CONTINUE',
-        data: {
-          category: SObjectCategory.STANDARD,
-          source: SObjectRefreshSource.StartupMin
-        }
-      });
-      expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
-        SObjectRefreshSource.StartupMin
       ]);
     });
 
