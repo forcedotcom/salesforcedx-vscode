@@ -36,4 +36,4 @@ Within settings, you will see the following:
 Known gaps:
 - If you're using [CLI Plug-In Hooks](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm), those are not available when using the library from VS Code.  Uncheck the settings above to use the CLI directly for those commands.
 
-If you spot other gaps or have feedback, please [open a GitHub issue](https://github.com/forcedotcom/salesforcedx-vscode/issues/new/choose) if you find any bugs or have feedback.
+If you spot other gaps or have feedback, please [open a GitHub issue](https://github.com/forcedotcom/salesforcedx-vscode/issues/new/choose).
