@@ -1,4 +1,4 @@
-# 51.4.0 - Month DD, YYYY
+# 51.4.0 - March 10, 2021
 
 ## Fixed
 
