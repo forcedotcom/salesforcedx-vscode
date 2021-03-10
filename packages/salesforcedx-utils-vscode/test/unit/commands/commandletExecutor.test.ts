@@ -35,7 +35,7 @@ const { NotificationService } = proxyquire.noCallThru()(
 
 class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
   constructor(outputChannel: MockChannel, private error?: Error) {
-    super('Test Command', 'test_command', new ChannelService(outputChannel));
+    super('Test Command', 'test_command', outputChannel);
   }
 
   public async run(response: ContinueResponse<{ success: boolean }>) {
