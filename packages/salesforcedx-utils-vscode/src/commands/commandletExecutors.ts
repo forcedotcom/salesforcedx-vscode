@@ -187,4 +187,8 @@ export abstract class LibraryCommandletExecutor<T>
       channelService.showChannelOutput();
     }
   }
+
+  get telemetryData(): TelemetryData {
+    return this.telemetry.build();
+  }
 }
