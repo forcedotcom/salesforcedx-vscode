@@ -266,6 +266,10 @@ describe('Force Source Retrieve Component(s)', () => {
         )
       );
 
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
+        'test-app'
+      ]);
+
       const response: ContinueResponse<LocalComponent[]> = {
         type: 'CONTINUE',
         data: testComponents.map(c => ({

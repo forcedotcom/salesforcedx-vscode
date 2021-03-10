@@ -17,7 +17,7 @@ vscode-crash-logs
 
 # Runtime data
 pids
-  *.pid
+*.pid
 *.seed
 *.pid.lock
 
