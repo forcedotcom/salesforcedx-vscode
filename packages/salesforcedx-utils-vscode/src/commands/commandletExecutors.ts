@@ -117,6 +117,7 @@ export abstract class SfdxCommandletExecutor<T>
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  protected cancellable: boolean = false;
   private readonly executionName: string;
   private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
@@ -144,9 +145,19 @@ export abstract class LibraryCommandletExecutor<T>
    * @param response Data from the parameter gathering step.
    * @returns Whether or not the execution was a success
    */
-  public abstract run(response: ContinueResponse<T>): Promise<boolean>;
+  public abstract run(
+    response: ContinueResponse<T>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
@@ -159,9 +170,10 @@ export abstract class LibraryCommandletExecutor<T>
       const success = await vscode.window.withProgress(
         {
           title: nls.localize('progress_notification_text', this.executionName),
-          location: vscode.ProgressLocation.Notification
+          location: vscode.ProgressLocation.Notification,
+          cancellable: true
         },
-        () => this.run(response)
+        (progress, token) => this.run(response, progress, token)
       );
       channelService.showCommandWithTimestamp(
         `${nls.localize('channel_end')} ${this.executionName}`
