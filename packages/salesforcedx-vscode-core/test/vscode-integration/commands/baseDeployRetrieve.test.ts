@@ -8,21 +8,30 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentSet,
+  DeployResult,
+  registryData,
+  RetrieveResult,
+  SourceComponent,
+  ToolingApi
+} from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
   MetadataApiDeployStatus,
+  MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
-import { join, sep } from 'path';
+import { basename, dirname, join, sep } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import { DiagnosticSeverity, Range, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
 import {
   DeployCommand,
-  DeployRetrieveExecutor
+  DeployRetrieveExecutor,
+  RetrieveCommand
 } from '../../../src/commands/baseDeployRetrieve';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
@@ -33,6 +42,21 @@ const sb = createSandbox();
 const $$ = testSetup();
 
 describe('Base Deploy Retrieve Commands', () => {
+  let mockConnection: Connection;
+
+  beforeEach(async () => {
+    const testData = new MockTestOrgData();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+  });
+
   afterEach(() => sb.restore());
 
   describe('DeployRetrieveCommand', () => {
@@ -134,23 +158,11 @@ describe('Base Deploy Retrieve Commands', () => {
   });
 
   describe('DeployCommand', () => {
-    let mockConnection: Connection;
     let deployQueueStub: SinonStub;
 
     const packageDir = 'test-app';
 
     beforeEach(async () => {
-      const testData = new MockTestOrgData();
-      $$.setConfigStubContents('AuthInfoConfig', {
-        contents: await testData.getConfig()
-      });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
-      sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         packageDir
       ]);
@@ -363,12 +375,286 @@ describe('Base Deploy Retrieve Commands', () => {
   });
 
   describe('RetrieveCommand', () => {
-    it('should utilize Tooling API if retrieving one source-backed component', () => {});
+    const packageDir = 'test-app';
+    const props = {
+      name: 'MyTrigger',
+      type: registryData.types.apextrigger,
+      content: join('project', 'classes', 'MyTrigger.cls'),
+      xml: join('project', 'classes', 'MyTrigger.cls-meta.xml')
+    };
+    const component = SourceComponent.createVirtualComponent(props, [
+      {
+        dirPath: dirname(props.content),
+        children: [basename(props.content), basename(props.xml)]
+      }
+    ]);
 
-    it('should output table of tooling retrieve result', () => {});
+    class TestRetrieve extends RetrieveCommand<{}> {
+      public components: ComponentSet;
+      public startStub: SinonStub;
+      public retrieveStub: SinonStub;
+      public toolingRetrieveStub: SinonStub;
 
-    it('should call retrieve on component set', () => {});
+      constructor(toRetrieve = new ComponentSet()) {
+        super('test', 'testlog');
+        this.components = toRetrieve;
+        this.startStub = sb.stub();
+        this.retrieveStub = sb
+          .stub(this.components, 'retrieve')
+          .returns({ start: this.startStub });
+        this.toolingRetrieveStub = sb.stub(ToolingApi.prototype, 'retrieve');
+      }
 
-    it('should output table of retrieve result', () => {});
+      protected async getComponents(
+        response: ContinueResponse<{}>
+      ): Promise<ComponentSet> {
+        return this.components;
+      }
+    }
+
+    beforeEach(() => {
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
+        packageDir
+      ]);
+    });
+
+    it('should utilize Tooling API if retrieving one source-backed component', async () => {
+      const components = new ComponentSet([
+        new SourceComponent({
+          name: 'MyClass',
+          type: registryData.types.apexclass,
+          content: join('project', 'classes', 'MyClass.cls'),
+          xml: join('project', 'classes', 'MyClass.cls-meta.xml')
+        })
+      ]);
+      const executor = new TestRetrieve(components);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(executor.toolingRetrieveStub.callCount).to.equal(1);
+      expect(executor.retrieveStub.callCount).to.equal(0);
+    });
+
+    it('should not utilize Tooling API if retrieving one source-backed component but type is unsupported', async () => {
+      const components = new ComponentSet([
+        new SourceComponent({
+          name: 'MyLayout',
+          type: registryData.types.layout,
+          xml: join('project', 'layouts', 'MyLayout.cls-meta.xml')
+        })
+      ]);
+      const executor = new TestRetrieve(components);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(executor.toolingRetrieveStub.callCount).to.equal(0);
+      expect(executor.retrieveStub.callCount).to.equal(1);
+    });
+
+    it('should call retrieve on component set', async () => {
+      const components = new ComponentSet([
+        { fullName: 'MyClass', type: 'ApexClass' },
+        { fullName: 'MyTrigger', type: 'ApexTrigger' }
+      ]);
+      const executor = new TestRetrieve(components);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(executor.toolingRetrieveStub.callCount).to.equal(0);
+      expect(executor.retrieveStub.callCount).to.equal(1);
+    });
+
+    describe('Result Output', () => {
+      let appendLineStub: SinonStub;
+
+      beforeEach(() => {
+        appendLineStub = sb.stub(channelService, 'appendLine');
+      });
+
+      it('should output table of components for successful tooling retrieve', async () => {
+        const componentSet = new ComponentSet([component]);
+        const executor = new TestRetrieve(componentSet);
+        executor.toolingRetrieveStub.resolves({
+          successes: [
+            {
+              component
+            }
+          ],
+          failures: []
+        });
+
+        const expectedOutput = new Table().createTable(
+          [
+            {
+              fullName: component.fullName,
+              type: component.type.name,
+              filePath: component.content!
+            },
+            {
+              fullName: component.fullName,
+              type: component.type.name,
+              filePath: component.xml!
+            }
+          ],
+          [
+            { key: 'fullName', label: nls.localize('table_header_full_name') },
+            { key: 'type', label: nls.localize('table_header_type') },
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            }
+          ],
+          nls.localize(`lib_retrieve_result_title`)
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(appendLineStub.callCount).to.equal(1);
+        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
+      });
+
+      it('should output table of components for failed tooling retrieve', async () => {
+        const componentSet = new ComponentSet([component]);
+        const executor = new TestRetrieve(componentSet);
+        executor.toolingRetrieveStub.resolves({
+          successes: [],
+          failures: [
+            {
+              component,
+              message: `${component.fullName} was not found in org`
+            }
+          ]
+        });
+
+        const expectedOutput = new Table().createTable(
+          [
+            {
+              fullName: component.fullName,
+              type: component.type.name,
+              error: `${component.fullName} was not found in org`
+            }
+          ],
+          [
+            { key: 'fullName', label: nls.localize('table_header_full_name') },
+            { key: 'type', label: nls.localize('table_header_type') },
+            {
+              key: 'error',
+              label: nls.localize('table_header_message')
+            }
+          ],
+          nls.localize('lib_retrieve_message_title')
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(appendLineStub.callCount).to.equal(1);
+        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
+      });
+
+      it('should output table of components for successful retrieve', async () => {
+        const executor = new TestRetrieve();
+        const mockRetrieveResult = new RetrieveResult(
+          {
+            status: RequestStatus.Succeeded
+          } as MetadataApiRetrieveStatus,
+          new ComponentSet()
+        );
+        executor.startStub.resolves(mockRetrieveResult);
+
+        const fileResponses = [
+          {
+            fullName: 'MyClass',
+            type: 'ApexClass',
+            filePath: join('project', packageDir, 'MyClass.cls')
+          },
+          {
+            fullName: 'MyClass',
+            type: 'ApexClass',
+            filePath: join('project', packageDir, 'MyClass.cls')
+          },
+          {
+            fullName: 'MyLayout',
+            type: 'Layout',
+            filePath: join('project', packageDir, 'MyLayout.layout-meta.xml')
+          }
+        ];
+        sb.stub(mockRetrieveResult, 'getFileResponses').returns(fileResponses);
+
+        const formattedRows = fileResponses.map(r => ({
+          fullName: r.fullName,
+          type: r.type,
+          filePath: r.filePath.replace(`project${sep}`, '')
+        }));
+        const expectedOutput = new Table().createTable(
+          formattedRows,
+          [
+            { key: 'fullName', label: nls.localize('table_header_full_name') },
+            { key: 'type', label: nls.localize('table_header_type') },
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            }
+          ],
+          nls.localize(`lib_retrieve_result_title`)
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(appendLineStub.calledOnce).to.equal(true);
+        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
+      });
+
+      it('should output table of components for failed retrieve', async () => {
+        const executor = new TestRetrieve();
+        const mockRetrieveResult = new RetrieveResult(
+          {
+            status: RequestStatus.Failed
+          } as MetadataApiRetrieveStatus,
+          new ComponentSet()
+        );
+        executor.startStub.resolves(mockRetrieveResult);
+
+        const fileResponses = [
+          {
+            fullName: 'MyClass',
+            type: 'ApexClass',
+            state: ComponentStatus.Failed,
+            error: 'There was problem with this component',
+            problemType: 'Error'
+          },
+          {
+            fullName: 'MyClass',
+            type: 'ApexClass',
+            state: ComponentStatus.Failed,
+            error: 'There was problem with this component',
+            problemType: 'Error'
+          }
+        ];
+        sb.stub(mockRetrieveResult, 'getFileResponses').returns(fileResponses);
+
+        const formattedRows = fileResponses.map(r => ({
+          fullName: r.fullName,
+          type: r.type,
+          error: r.error
+        }));
+        const expectedOutput = new Table().createTable(
+          formattedRows,
+          [
+            { key: 'fullName', label: nls.localize('table_header_full_name') },
+            { key: 'type', label: nls.localize('table_header_type') },
+            {
+              key: 'error',
+              label: nls.localize('table_header_message')
+            }
+          ],
+          nls.localize('lib_retrieve_message_title')
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(appendLineStub.calledOnce).to.equal(true);
+        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
+      });
+    });
   });
 });

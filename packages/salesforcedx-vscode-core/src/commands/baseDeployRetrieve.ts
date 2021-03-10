@@ -323,8 +323,8 @@ export abstract class RetrieveCommand<T> extends DeployRetrieveExecutor<T> {
       if (component) {
         failures.push({
           fullName: component.fullName,
-          type: 'Error',
-          message
+          type: component.type.name,
+          error: message
         });
       }
     }
@@ -383,7 +383,10 @@ export abstract class RetrieveCommand<T> extends DeployRetrieveExecutor<T> {
         types.apexpage.name,
         types.apextrigger.name
       ];
-      return permittedTypeNames.includes(component.type.name);
+      return (
+        component.fullName !== '*' &&
+        permittedTypeNames.includes(component.type.name)
+      );
     }
     return false;
   }
