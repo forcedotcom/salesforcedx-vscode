@@ -4,16 +4,37 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AuthInfo, Connection } from '@salesforce/core';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentStatus,
+  MetadataApiDeployStatus,
+  RequestStatus
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
-import { createSandbox } from 'sinon';
-import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
+import { join, sep } from 'path';
+import { createSandbox, SinonStub } from 'sinon';
+import { DiagnosticSeverity, Range, Uri } from 'vscode';
+import { channelService } from '../../../src/channels';
+import { BaseDeployExecutor } from '../../../src/commands';
+import {
+  DeployCommand,
+  DeployRetrieveExecutor
+} from '../../../src/commands/baseDeployRetrieve';
+import { workspaceContext } from '../../../src/context';
+import { nls } from '../../../src/messages';
+import { DeployQueue } from '../../../src/settings';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 
 const sb = createSandbox();
+const $$ = testSetup();
 
 describe('Base Deploy Retrieve Commands', () => {
+  afterEach(() => sb.restore());
+
   describe('DeployRetrieveCommand', () => {
     class TestDeployRetrieve extends DeployRetrieveExecutor<{}> {
       public lifecycle = {
@@ -113,13 +134,232 @@ describe('Base Deploy Retrieve Commands', () => {
   });
 
   describe('DeployCommand', () => {
-    it('should call deploy on component set', () => {});
+    let mockConnection: Connection;
+    let deployQueueStub: SinonStub;
 
-    it('should output table of deploy result', () => {});
+    const packageDir = 'test-app';
 
-    it('should report any diagnostics if deploy failed', () => {});
+    beforeEach(async () => {
+      const testData = new MockTestOrgData();
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: await testData.getConfig()
+      });
+      mockConnection = await Connection.create({
+        authInfo: await AuthInfo.create({
+          username: testData.username
+        })
+      });
+      sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
 
-    it('should unlock the deploy queue when finished', () => {});
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
+        packageDir
+      ]);
+
+      deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
+    });
+
+    class TestDeploy extends DeployCommand<{}> {
+      public components: ComponentSet;
+      public getComponentsStub = sb.stub().returns(new ComponentSet());
+      public startStub: SinonStub;
+      public deployStub: SinonStub;
+
+      constructor(toDeploy = new ComponentSet()) {
+        super('test', 'testlog');
+        this.components = toDeploy;
+        this.startStub = sb.stub();
+        this.deployStub = sb
+          .stub(this.components, 'deploy')
+          .returns({ start: this.startStub });
+      }
+
+      protected async getComponents(
+        response: ContinueResponse<{}>
+      ): Promise<ComponentSet> {
+        return this.components;
+      }
+    }
+
+    it('should call deploy on component set', async () => {
+      const executor = new TestDeploy();
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(executor.deployStub.calledOnce).to.equal(true);
+      expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
+        usernameOrConnection: mockConnection
+      });
+      expect(executor.startStub.calledOnce).to.equal(true);
+    });
+
+    describe('Result Output', () => {
+      let appendLineStub: SinonStub;
+
+      const fileResponses: any[] = [
+        {
+          fullName: 'MyClass',
+          type: 'ApexClass',
+          state: ComponentStatus.Changed,
+          filePath: join('project', packageDir, 'MyClass.cls')
+        },
+        {
+          fullName: 'MyClass',
+          type: 'ApexClass',
+          state: ComponentStatus.Changed,
+          filePath: join('project', packageDir, 'MyClass.cls-meta.xml')
+        },
+        {
+          fullName: 'MyLayout',
+          type: 'Layout',
+          state: ComponentStatus.Created,
+          filePath: join('project', packageDir, 'MyLayout.layout-meta.xml')
+        }
+      ];
+
+      beforeEach(() => {
+        appendLineStub = sb.stub(channelService, 'appendLine');
+      });
+
+      it('should output table of deployed components if successful', async () => {
+        const executor = new TestDeploy();
+
+        const mockDeployResult = new DeployResult(
+          {
+            status: RequestStatus.Succeeded
+          } as MetadataApiDeployStatus,
+          new ComponentSet()
+        );
+        sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
+        executor.startStub.resolves(mockDeployResult);
+
+        const formattedRows = fileResponses.map(r => ({
+          fullName: r.fullName,
+          type: r.type,
+          state: r.state,
+          filePath: r.filePath.replace(`project${sep}`, '')
+        }));
+        const expectedOutput = new Table().createTable(
+          formattedRows,
+          [
+            { key: 'state', label: nls.localize('table_header_state') },
+            { key: 'fullName', label: nls.localize('table_header_full_name') },
+            { key: 'type', label: nls.localize('table_header_type') },
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            }
+          ],
+          nls.localize(`table_title_deployed_source`)
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(appendLineStub.calledOnce).to.equal(true);
+        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
+      });
+
+      it('should output table of failed components if unsuccessful', async () => {
+        const executor = new TestDeploy();
+
+        const mockDeployResult = new DeployResult(
+          {
+            status: RequestStatus.Failed
+          } as MetadataApiDeployStatus,
+          new ComponentSet()
+        );
+        executor.startStub.resolves(mockDeployResult);
+
+        const failedRows = fileResponses.map(r => ({
+          fullName: r.fullName,
+          type: r.type,
+          error: 'There was an issue',
+          filePath: r.filePath
+        }));
+        sb.stub(mockDeployResult, 'getFileResponses').returns(failedRows);
+
+        const formattedRows = fileResponses.map(r => ({
+          fullName: r.fullName,
+          type: r.type,
+          error: 'There was an issue',
+          filePath: r.filePath.replace(`project${sep}`, '')
+        }));
+        const expectedOutput = new Table().createTable(
+          formattedRows,
+          [
+            {
+              key: 'filePath',
+              label: nls.localize('table_header_project_path')
+            },
+            { key: 'error', label: nls.localize('table_header_errors') }
+          ],
+          nls.localize(`table_title_deploy_errors`)
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(appendLineStub.calledOnce).to.equal(true);
+        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
+      });
+
+      it('should report any diagnostics if deploy failed', async () => {
+        const executor = new TestDeploy();
+
+        const mockDeployResult = new DeployResult(
+          {
+            status: RequestStatus.Failed
+          } as MetadataApiDeployStatus,
+          new ComponentSet()
+        );
+        executor.startStub.resolves(mockDeployResult);
+
+        const failedRows = fileResponses.map(r => ({
+          fullName: r.fullName,
+          type: r.type,
+          error: 'There was an issue',
+          state: ComponentStatus.Failed,
+          filePath: r.filePath,
+          problemType: 'Error',
+          lineNumber: 2,
+          columnNumber: 3
+        }));
+        sb.stub(mockDeployResult, 'getFileResponses').returns(failedRows);
+
+        const setDiagnosticsStub = sb.stub(
+          BaseDeployExecutor.errorCollection,
+          'set'
+        );
+
+        await executor.run({ data: {}, type: 'CONTINUE' });
+
+        expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
+        failedRows.forEach((row, index) => {
+          expect(setDiagnosticsStub.getCall(index).args).to.deep.equal([
+            Uri.file(row.filePath),
+            [
+              {
+                message: row.error,
+                range: new Range(
+                  row.lineNumber - 1,
+                  row.columnNumber - 1,
+                  row.lineNumber - 1,
+                  row.columnNumber - 1
+                ),
+                severity: DiagnosticSeverity.Error,
+                source: row.type
+              }
+            ]
+          ]);
+        });
+      });
+    });
+
+    it('should unlock the deploy queue when finished', async () => {
+      const executor = new TestDeploy();
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(deployQueueStub.calledOnce).to.equal(true);
+    });
   });
 
   describe('RetrieveCommand', () => {
