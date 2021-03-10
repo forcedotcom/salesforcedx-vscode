@@ -170,7 +170,13 @@ export abstract class LibraryCommandletExecutor<T>
           location: vscode.ProgressLocation.Notification,
           cancellable: this.cancellable
         },
-        (progress, token) => this.run(response, progress, token)
+        (progress, token) => { 
+          token.onCancellationRequested(() => {
+            notificationService.showCanceledExecution(this.executionName);
+            return false;
+          })
+          return this.run(response, progress, token)
+        }
       );
       channelService.showCommandWithTimestamp(
         `${nls.localize('channel_end')} ${this.executionName}`
