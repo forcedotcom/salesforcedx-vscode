@@ -155,9 +155,6 @@ export abstract class LibraryCommandletExecutor<T>
   ): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
@@ -171,7 +168,7 @@ export abstract class LibraryCommandletExecutor<T>
         {
           title: nls.localize('progress_notification_text', this.executionName),
           location: vscode.ProgressLocation.Notification,
-          cancellable: true
+          cancellable: this.cancellable
         },
         (progress, token) => this.run(response, progress, token)
       );
