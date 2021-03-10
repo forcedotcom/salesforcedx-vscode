@@ -6,6 +6,7 @@
  */
 import {
   HumanReporter,
+  ResultFormat,
   TestItem,
   TestLevel,
   TestResult,
@@ -89,7 +90,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     );
     await testService.writeResultFiles(
       result,
-      { resultFormat: 'json', dirPath: this.outputDir },
+      { resultFormats: [ResultFormat.json], dirPath: this.outputDir },
       this.codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, this.codeCoverage);
