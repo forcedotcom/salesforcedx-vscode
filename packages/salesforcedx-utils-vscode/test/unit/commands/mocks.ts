@@ -21,11 +21,11 @@ export class MockChannel {
     this.value += EOL;
   }
 
-  public clear(): void { }
+  public clear(): void {}
   public show(preserveFocus?: boolean | undefined): void;
-  public show(column?: any, preserveFocus?: any) { }
-  public hide(): void { }
-  public dispose(): void { }
+  public show(column?: any, preserveFocus?: any) {}
+  public hide(): void {}
+  public dispose(): void {}
 }
 
 export const vscodeStub = {
