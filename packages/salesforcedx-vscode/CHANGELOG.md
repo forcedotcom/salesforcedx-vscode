@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Issue with debugging single test method ([PR #3033](https://github.com/forcedotcom/salesforcedx-vscode/pull/3033))
+- Issue with debugging single test method ([PR #3033](https://github.com/forcedotcom/salesforcedx-vscode/pull/3033), [Issue #3026](https://github.com/forcedotcom/salesforcedx-vscode/issues/3026))
 
 #### salesforcedx-vscode-core
 
