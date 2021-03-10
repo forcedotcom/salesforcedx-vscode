@@ -36,7 +36,10 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import {
+  SfdxPackageDirectories,
+  SfdxProjectConfig
+} from '../../../src/sfdxProject';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -433,6 +436,29 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(executor.toolingRetrieveStub.callCount).to.equal(1);
       expect(executor.retrieveStub.callCount).to.equal(0);
+    });
+
+    it('should pass project namespace when using Tooling API', async () => {
+      const components = new ComponentSet([
+        new SourceComponent({
+          name: 'MyClass',
+          type: registryData.types.apexclass,
+          content: join('project', 'classes', 'MyClass.cls'),
+          xml: join('project', 'classes', 'MyClass.cls-meta.xml')
+        })
+      ]);
+      const executor = new TestRetrieve(components);
+      sb.stub(SfdxProjectConfig, 'getValue')
+        .withArgs('namespace')
+        .returns('testns');
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(executor.toolingRetrieveStub.callCount).to.equal(1);
+      expect(executor.toolingRetrieveStub.firstCall.args[0]).to.deep.equal({
+        components,
+        namespace: 'testns'
+      });
     });
 
     it('should not utilize Tooling API if retrieving one source-backed component but type is unsupported', async () => {
