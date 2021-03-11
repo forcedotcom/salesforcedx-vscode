@@ -34,5 +34,5 @@ export const messages = {
   error_data_view_save:
     'ERROR: We can’t save the file to the specified directory. Make sure you have write permissions for the directory.',
   error_connection:
-    'ERROR: We can’t query your org. Make sure that you’re connected to an authorized org and have permissions to view the object and fields.'
+    'ERROR: We can’t query your org. Make sure that you’re connected to this org and have permissions to view the object and fields.'
 };
