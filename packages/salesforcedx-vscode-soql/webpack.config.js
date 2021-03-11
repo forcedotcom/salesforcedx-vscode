@@ -32,7 +32,7 @@ module.exports = {
   },
   // Automatically resolve certain extensions.
   resolve: {
-    extensions: ['.ts', '.tsx', '.js']
+    extensions: ['.ts', '.js']
   },
   // pre-process certain file types using loaders
   module: {
