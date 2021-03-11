@@ -172,7 +172,7 @@ OPTIONS
       display detailed code coverage per test
 
   -w, --wait=wait
-      sets the streaming client socket timeout; specify a longer wait time if timeouts occur 
+      sets the streaming client socket timeout in minutes; specify a longer wait time if timeouts occur 
       frequently
 
   -y, --synchronous
@@ -242,7 +242,7 @@ OPTIONS
       username or alias for the target org; overrides default target org
 
   -w, --wait=wait
-      sets the streaming client socket timeout; specify a longer wait time if timeouts occur 
+      sets the streaming client socket timeout in minutes; specify a longer wait time if timeouts occur 
       frequently
 
   --apiversion=apiversion

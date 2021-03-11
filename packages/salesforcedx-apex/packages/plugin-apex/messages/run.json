@@ -15,7 +15,7 @@
   "outputDirectoryDescription": "directory to store test run files",
   "testLevelDescription": "specifies which tests to run, using one of these TestLevel enum values:\nRunSpecifiedTests—Only the tests that you specify are run.\nRunLocalTests—All tests in your org are run, except the ones that originate from installed managed packages.\nRunAllTestsInOrg—All tests are in your org and in installed managed packages are run",
   "testLevelLongDescription": "Permissible values are: RunLocalTests, RunAllTestsInOrg, RunSpecifiedTests",
-  "waitDescription": "sets the streaming client socket timeout; specify a longer wait time if timeouts occur frequently",
+  "waitDescription": "sets the streaming client socket timeout in minutes; specify a longer wait time if timeouts occur frequently",
   "waitLongDescription": "Sets the streaming client socket timeout, in minutes. If the streaming client socket has no contact from the server for a number of minutes, the client exits. Specify a longer wait time if timeouts occur frequently",
   "synchronousDescription": "runs test methods from a single Apex class synchronously; if not specified, tests are run ansynchronously",
   "verboseDescription": "display Apex test processing details; if JSON is specified, processing details aren't displayed",

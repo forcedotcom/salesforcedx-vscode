@@ -41,7 +41,6 @@ export default class Run extends SfdxCommand {
 
   public static longDescription = messages.getMessage('longDescription');
   public static examples = [
-    `$ sfdx force:apex:test:run`,
     `$ sfdx force:apex:test:run -n "MyClassTest,MyOtherClassTest" -r human`,
     `$ sfdx force:apex:test:run -s "MySuite,MyOtherSuite" -c -v --json`,
     `$ sfdx force:apex:test:run -t "MyClassTest.testCoolFeature,MyClassTest.testAwesomeFeature,AnotherClassTest,namespace.TheirClassTest.testThis" -r human`,
