@@ -4,11 +4,13 @@
 .vscode-test/**
 *.xml
 *.vsix
+out/**
+test/**
+src/**
 **/*.map
 **/*.ts
 **/tsconfig.json
 **/*[!README].md
-out/test/**
 test/**
 src/**
 tsconfig.json
