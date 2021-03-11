@@ -176,6 +176,48 @@ export const missingTimeTestData: TestResult = {
   ]
 };
 
+export const skippedTestData: TestResult = {
+  // @ts-ignore
+  summary: {
+    failRate: '0%',
+    failing: 0,
+    hostname: 'https://na139.salesforce.com',
+    testsRan: 1,
+    outcome: 'Skipped',
+    passRate: '0%',
+    passing: 0,
+    skipRate: '100%',
+    skipped: 1,
+    testStartTime: localStartTime,
+    testExecutionTimeInMs: 0,
+    testTotalTimeInMs: 0,
+    commandTimeInMs: 2000,
+    testRunId,
+    userId: '005xx000000abcDAAU'
+  },
+  tests: [
+    {
+      id: '07Mxx00000F2Xx6UAF',
+      queueItemId: '7092M000000Vt94QAC',
+      stackTrace: null,
+      message: null,
+      asyncApexJobId: testRunId,
+      methodName: 'testLoggerLog',
+      outcome: ApexTestResultOutcome.Skip,
+      apexLogId: null,
+      apexClass: {
+        id: '01pxx00000O6tXZQAZ',
+        name: 'TestLogger',
+        namespacePrefix: 't3st',
+        fullName: 't3st__TestLogger'
+      },
+      runTime: 0,
+      testTimestamp: '3',
+      fullName: 't3st__TestLogger.testLoggerLog'
+    }
+  ]
+};
+
 const failureSummary = {
   failRate: '100%',
   failing: 1,

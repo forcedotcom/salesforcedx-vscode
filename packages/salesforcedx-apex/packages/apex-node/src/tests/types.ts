@@ -232,7 +232,8 @@ export const enum ApexTestRunResultStatus {
   Aborted = 'Aborted',
   Passed = 'Passed',
   Failed = 'Failed',
-  Completed = 'Completed'
+  Completed = 'Completed',
+  Skipped = 'Skipped'
 }
 
 export type ApexTestRunResultRecord = {
