@@ -38,7 +38,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         exclude: [
           /node_modules|\.test.ts$|\.d\.ts$/,
           path.resolve(__dirname, './test')
