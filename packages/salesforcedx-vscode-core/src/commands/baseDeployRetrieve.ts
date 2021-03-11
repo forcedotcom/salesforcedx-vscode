@@ -30,11 +30,13 @@ import {
 import { join, sep } from 'path';
 import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { workspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
+import { createComponentCount } from './util';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -53,8 +55,8 @@ export abstract class DeployRetrieveExecutor<
       const components = await this.getComponents(response);
 
       this.telemetry.addProperty(
-        'metadataCount',
-        this.createComponentCount(components)
+        TELEMETRY_METADATA_COUNT,
+        JSON.stringify(createComponentCount(components))
       );
 
       result = await this.doOperation(components);
@@ -86,23 +88,6 @@ export abstract class DeployRetrieveExecutor<
       }
     }
     return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
-  }
-
-  private createComponentCount(
-    components: Iterable<MetadataComponent>
-  ): string {
-    const quantities: { [type: string]: number } = {};
-    for (const component of components) {
-      const { name: typeName } = component.type;
-      const typeCount = quantities[typeName];
-      quantities[typeName] = typeCount ? typeCount + 1 : 1;
-    }
-    return JSON.stringify(
-      Object.keys(quantities).map(type => ({
-        type,
-        quantity: quantities[type]
-      }))
-    );
   }
 
   private getStatus(
