@@ -422,6 +422,14 @@
           "when": "!sfdx:internal_dev"
         },
         {
+          "command": "sfdx.force.source.retrieve.component",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.source.retrieve.open.component",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.source.retrieve.source.path",
           "when": "false"
         },
