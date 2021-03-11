@@ -9,7 +9,6 @@
 **/tsconfig.json
 **/*[!README].md
 out/test/**
-test-resources/**
 test/**
 src/**
 tsconfig.json
