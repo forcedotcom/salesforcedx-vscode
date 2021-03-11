@@ -414,6 +414,54 @@ describe('Run Apex tests asynchronously', () => {
     }
   });
 
+  it('should return an error if invalid test run id was provided', async () => {
+    const invalidId = '000000xxxxx';
+    const testSrv = new TestService(mockConnection);
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    mockToolingQuery.onFirstCall().resolves({
+      done: true,
+      totalSize: 0,
+      records: []
+    } as ApexTestRunResult);
+
+    try {
+      await testSrv.formatAsyncResults(
+        pollResponse,
+        invalidId,
+        new Date().getTime()
+      );
+      fail('Test should have thrown an error');
+    } catch (e) {
+      expect(e.message).to.equal(
+        nls.localize('invalidTestRunIdErr', invalidId)
+      );
+    }
+  });
+
+  it('should return an error if invalid test run id prefix was provided', async () => {
+    const invalidId = '708000000xxxxxx';
+    const testSrv = new TestService(mockConnection);
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    mockToolingQuery.onFirstCall().resolves({
+      done: true,
+      totalSize: 0,
+      records: []
+    } as ApexTestRunResult);
+
+    try {
+      await testSrv.formatAsyncResults(
+        pollResponse,
+        invalidId,
+        new Date().getTime()
+      );
+      fail('Test should have thrown an error');
+    } catch (e) {
+      expect(e.message).to.equal(
+        nls.localize('invalidTestRunIdErr', invalidId)
+      );
+    }
+  });
+
   it('should return formatted test results with code coverage', async () => {
     const testSrv = new TestService(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
