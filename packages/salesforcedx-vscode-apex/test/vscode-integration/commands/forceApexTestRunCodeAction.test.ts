@@ -478,6 +478,7 @@ describe('Force Apex Test Run - Code Action', () => {
     let componentPathStub: SinonStub;
 
     beforeEach(() => {
+      sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(workspaceContext, 'getConnection');
       sb.stub(SfdxProject, 'resolve').returns({
         getDefaultPackage: () => {
