@@ -13,3 +13,4 @@ export {
   isAlphaNumSpaceString,
   isRecordIdFormat
 } from './validations';
+export { ensureDirectoryExists, getTestResultsFolder } from './paths';
