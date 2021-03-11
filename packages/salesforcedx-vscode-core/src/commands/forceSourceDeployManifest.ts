@@ -9,7 +9,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ComponentSet, DeployResult } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -17,7 +17,6 @@ import {
   ConflictDetectionChecker,
   ConflictDetectionMessages
 } from '../commands/util/postconditionCheckers';
-import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';

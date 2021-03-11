@@ -294,12 +294,6 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
             filePath: this.getRelativeProjectPath(xml, relativePackageDirs)
           });
         }
-      } else if (properties) {
-        successes.push({
-          fullName: properties.fullName.split('/')[0],
-          type: properties.type,
-          filePath: properties.fileName
-        });
       }
     }
 
