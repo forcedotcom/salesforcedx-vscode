@@ -171,10 +171,6 @@ export abstract class LibraryCommandletExecutor<T>
           cancellable: this.cancellable
         },
         (progress, token) => {
-          token.onCancellationRequested(() => {
-            notificationService.showCanceledExecution(this.executionName);
-            return false;
-          });
           return this.run(response, progress, token);
         }
       );
