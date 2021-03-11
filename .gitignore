@@ -101,7 +101,7 @@ packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/.eslintrc.js
 packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/jsconfig.json
 
 # SOQL UI Test
-test-resources/**
+packages/salesforcedx-vscode-soql/test-resources/**
 
 # Node lock files (actually causes issues with the symlinking that lerna does, so ignore)
 package-lock.json
