@@ -13,5 +13,5 @@
     "preserveConstEnums": true,
     "strict": true
   },
-  "exclude": ["node_modules", ".vscode-test", "out"]
+  "exclude": ["node_modules", ".vscode-test", "out", "test-resources"]
 }
