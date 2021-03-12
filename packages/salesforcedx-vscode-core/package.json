@@ -29,7 +29,7 @@
     "@salesforce/salesforcedx-sobjects-faux-generator": "51.4.0",
     "@salesforce/salesforcedx-utils-vscode": "51.4.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "1.1.17",
+    "@salesforce/source-deploy-retrieve": "1.1.19",
     "@salesforce/templates": "51.3.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
@@ -420,6 +420,14 @@
         {
           "command": "sfdx.debug.isv.bootstrap",
           "when": "!sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.force.source.retrieve.component",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.source.retrieve.open.component",
+          "when": "false"
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",

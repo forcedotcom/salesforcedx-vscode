@@ -7,21 +7,13 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import {
-  ComponentSet,
-  DeployStatus,
-  SourceDeployResult
-} from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
-import { OUTPUT_CHANNEL } from '../../../src/channels';
-
 import { ForceSourceDeployManifestExecutor } from '../../../src/commands';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
-import { createDeployOutput } from '../../../src/commands/util';
 import { workspaceContext } from '../../../src/context';
-
 import { nls } from '../../../src/messages';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
@@ -30,19 +22,21 @@ const env = createSandbox();
 const $$ = testSetup();
 
 describe('Force Source Deploy Using Manifest Option', () => {
-  it('Should build the source deploy command', () => {
-    const manifestPath = path.join('path', 'to', 'manifest', 'package.xml');
-    const sourceDeploy = new ForceSourceDeployManifestExecutor();
-    const sourceDeployCommand = sourceDeploy.build(manifestPath);
-    expect(sourceDeployCommand.toCommand()).to.equal(
-      `sfdx force:source:deploy --manifest ${manifestPath} --json --loglevel fatal`
-    );
-    expect(sourceDeployCommand.description).to.equal(
-      nls.localize('force_source_deploy_text')
-    );
+  describe('CLI Executor', () => {
+    it('Should build the source deploy command', () => {
+      const manifestPath = path.join('path', 'to', 'manifest', 'package.xml');
+      const sourceDeploy = new ForceSourceDeployManifestExecutor();
+      const sourceDeployCommand = sourceDeploy.build(manifestPath);
+      expect(sourceDeployCommand.toCommand()).to.equal(
+        `sfdx force:source:deploy --manifest ${manifestPath} --json --loglevel fatal`
+      );
+      expect(sourceDeployCommand.description).to.equal(
+        nls.localize('force_source_deploy_text')
+      );
+    });
   });
 
-  describe('Library Beta', () => {
+  describe('Library Executor', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
     const mockComponents = new ComponentSet([
@@ -52,7 +46,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
 
     let mockConnection: Connection;
     let deployStub: SinonStub;
-    let outputStub: SinonStub;
+    let startStub: SinonStub;
 
     const executor = new LibrarySourceDeployManifestExecutor();
 
@@ -66,19 +60,21 @@ describe('Force Source Deploy Using Manifest Option', () => {
           username: testData.username
         })
       });
+      env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
 
       env
         .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
         .resolves(packageDirs);
-      env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
       env
         .stub(ComponentSet, 'fromManifestFile')
         .withArgs(manifestPath, {
           resolve: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
         })
         .returns(mockComponents);
-      deployStub = env.stub(mockComponents, 'deploy').withArgs(mockConnection);
-      outputStub = env.stub(OUTPUT_CHANNEL, 'appendLine');
+      startStub = env.stub();
+      deployStub = env.stub(mockComponents, 'deploy').returns({
+        start: startStub
+      });
     });
 
     afterEach(() => {
@@ -86,44 +82,14 @@ describe('Force Source Deploy Using Manifest Option', () => {
       $$.SANDBOX.restore();
     });
 
-    it('Should correctly report success', async () => {
-      const deployResult: SourceDeployResult = {
-        id: 'abcd',
-        status: DeployStatus.Succeeded,
-        success: true,
-        components: []
-      };
-      deployStub.resolves(deployResult);
+    it('should deploy components in a manifest', async () => {
+      await executor.run({ data: manifestPath, type: 'CONTINUE' });
 
-      const success = await executor.run({
-        data: manifestPath,
-        type: 'CONTINUE'
+      expect(deployStub.calledOnce).to.equal(true);
+      expect(deployStub.firstCall.args[0]).to.deep.equal({
+        usernameOrConnection: mockConnection
       });
-
-      expect(success).to.equal(true);
-      expect(
-        outputStub.calledWith(createDeployOutput(deployResult, packageDirs))
-      );
-    });
-
-    it('Should correctly report failure', async () => {
-      const deployResult: SourceDeployResult = {
-        id: 'abcd',
-        status: DeployStatus.Failed,
-        success: true,
-        components: []
-      };
-      deployStub.resolves(deployResult);
-
-      const success = await executor.run({
-        data: manifestPath,
-        type: 'CONTINUE'
-      });
-
-      expect(success).to.equal(false);
-      expect(
-        outputStub.calledWith(createDeployOutput(deployResult, packageDirs))
-      );
+      expect(startStub.calledOnce).to.equal(true);
     });
   });
 });
