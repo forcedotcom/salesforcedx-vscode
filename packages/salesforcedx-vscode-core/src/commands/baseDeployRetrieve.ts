@@ -38,8 +38,6 @@ import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { createComponentCount } from './util';
-// import { Observable } from 'rxjs/Observable';
-// import { Subscription } from 'rxjs/Subscription';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -72,20 +70,11 @@ export abstract class DeployRetrieveExecutor<
         JSON.stringify(createComponentCount(components))
       );
 
-      // let timerSubscriber: Subscription | null;
-      // if (token) {
-      //   const timer = Observable.interval(1000);
-      //   timerSubscriber = timer.subscribe(async next => {
-      //     if (token.isCancellationRequested) {
-      //       try {
-      //         // await super.killExecution();
-      //         console.log('Almost there!')
-      //       } catch (e) {
-      //         console.log(e);
-      //       }
-      //     }
-      //   });
-      // }
+      if (token) {
+        token.onCancellationRequested(() => {
+          // TODO - how do we force SDR to cancel its operation?
+        });
+      }
 
       result = await this.doOperation(components);
 
@@ -99,10 +88,6 @@ export abstract class DeployRetrieveExecutor<
       await this.postOperation(result);
     }
   }
-
-  // public async killExecution(signal: string = 'SIGKILL') {
-  //   return killPromise(this.childProcessPid, signal);
-  // }
 
   protected getRelativeProjectPath(fsPath: string = '', packageDirs: string[]) {
     let packageDirIndex;
