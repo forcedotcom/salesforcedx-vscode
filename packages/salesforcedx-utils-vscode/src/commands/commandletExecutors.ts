@@ -118,7 +118,7 @@ export abstract class SfdxCommandletExecutor<T>
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
-  protected cancelled: boolean = false;
+  private cancelled: boolean = false;
   private readonly executionName: string;
   private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;

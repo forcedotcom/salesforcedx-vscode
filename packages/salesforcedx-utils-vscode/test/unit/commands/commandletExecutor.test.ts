@@ -110,6 +110,8 @@ describe('LibraryCommandletExecutor', () => {
       .stub(vscodeStub.window, 'showInformationMessage')
       .resolves(nls.localize('notification_show_in_status_bar_button_text'));
     const cancelledExecutor = new TestExecutor(new MockChannel());
+    // set private property for testing
+    // @ts-ignore
     cancelledExecutor.cancelled = true;
 
     await cancelledExecutor.execute({ data: { success: true }, type: 'CONTINUE' });
