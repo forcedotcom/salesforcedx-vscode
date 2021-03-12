@@ -155,12 +155,6 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
           response.data.label
         );
         break;
-      case TestType.AllLocal:
-        payload = { testLevel: TestLevel.RunLocalTests };
-        break;
-      case TestType.All:
-        payload = { testLevel: TestLevel.RunAllTestsInOrg };
-        break;
       default:
         payload = { testLevel: TestLevel.RunAllTestsInOrg };
     }

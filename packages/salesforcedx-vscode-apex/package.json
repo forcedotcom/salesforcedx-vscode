@@ -157,6 +157,18 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.apex.test.suite.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.add",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.test.view.runClassTests",
           "when": "false"
         },
@@ -198,6 +210,18 @@
       {
         "command": "sfdx.force.apex.test.run",
         "title": "%force_apex_test_run_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.run",
+        "title": "SFDX: Run Apex Test Suite"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.create",
+        "title": "SFDX: Create Apex Test Suite"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.add",
+        "title": "SFDX: Add Tests to Apex Test Suite"
       },
       {
         "command": "sfdx.force.test.view.run",
