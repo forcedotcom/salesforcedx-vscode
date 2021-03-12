@@ -53,8 +53,4 @@ module.exports = {
       }
     ]
   }
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> d628c7db9a5e9a64eb6a91ac16f67ec8de385c95
