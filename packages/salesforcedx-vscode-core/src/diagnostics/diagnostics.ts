@@ -4,8 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { SourceDeployResult } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentStatus,
+  DeployResult
+} from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -80,47 +84,42 @@ export function handleDiagnosticErrors(
   return errorCollection;
 }
 
-export function handleDeployRetrieveLibraryDiagnostics(
-  deployResult: SourceDeployResult,
+export function handleDeployDiagnostics(
+  deployResult: DeployResult,
   errorCollection: vscode.DiagnosticCollection
 ): vscode.DiagnosticCollection {
   errorCollection.clear();
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 
-  if (deployResult.components) {
-    for (const deployment of deployResult.components) {
-      for (const diagnostic of deployment.diagnostics) {
-        const {
-          message,
-          lineNumber,
-          columnNumber,
-          type,
-          filePath
-        } = diagnostic;
-        const range = getRange(
-          lineNumber ? lineNumber.toString() : '1',
-          columnNumber ? columnNumber.toString() : '1'
-        );
-        const severity =
-          type === 'Error'
-            ? vscode.DiagnosticSeverity.Error
-            : vscode.DiagnosticSeverity.Warning;
-        const vscDiagnostic: vscode.Diagnostic = {
-          message,
-          range,
-          severity,
-          source: filePath
-        };
-
-        if (filePath) {
-          if (!diagnosticMap.has(filePath)) {
-            diagnosticMap.set(filePath, []);
-          }
-          diagnosticMap.get(filePath)!.push(vscDiagnostic);
-        }
-      }
+  for (const fileResponse of deployResult.getFileResponses()) {
+    if (fileResponse.state !== ComponentStatus.Failed) {
+      continue;
     }
+
+    const { lineNumber, columnNumber, error, problemType, type } = fileResponse;
+    const range = getRange(
+      lineNumber ? lineNumber.toString() : '1',
+      columnNumber ? columnNumber.toString() : '1'
+    );
+    const severity =
+      problemType === 'Error'
+        ? vscode.DiagnosticSeverity.Error
+        : vscode.DiagnosticSeverity.Warning;
+
+    const vscDiagnostic: vscode.Diagnostic = {
+      message: error,
+      range,
+      severity,
+      source: type
+    };
+
+    const filePath = fileResponse.filePath ?? getRootWorkspacePath();
+
+    if (!diagnosticMap.has(filePath)) {
+      diagnosticMap.set(filePath, []);
+    }
+    diagnosticMap.get(filePath)!.push(vscDiagnostic);
   }
 
   diagnosticMap.forEach((diagnostics, file) =>

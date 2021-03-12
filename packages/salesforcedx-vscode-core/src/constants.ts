@@ -23,6 +23,7 @@ export const PKG_ID_PREFIX = '04t';
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK =
   'https://forcedotcom.github.io/salesforcedx-vscode/articles/faq/telemetry';
+export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 
 // sfdxCore setting config values
 export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';

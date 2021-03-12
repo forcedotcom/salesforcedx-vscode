@@ -44,4 +44,3 @@ export {
   createComponentCount,
   useBetaDeployRetrieve
 } from './betaDeployRetrieve';
-export { createDeployOutput, createRetrieveOutput } from './sourceResultOutput';
