@@ -30,11 +30,7 @@
   },
   "scripts": {
     "compile": "webpack",
-<<<<<<< HEAD
     "lint": "tslint --project . -e **/src/data/minSObjects.json",
-=======
-    "lint": "tslint --project . -e **/minSObjects.json",
->>>>>>> chore: ignore linting minSObject.json
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "test": "npm run test:unit && npm run test:integration",
