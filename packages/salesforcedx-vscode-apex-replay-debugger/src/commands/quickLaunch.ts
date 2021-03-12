@@ -114,7 +114,11 @@ export class QuickLaunch {
 
 export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
   constructor() {
-    super(nls.localize('debug_test_exec_name'), 'debug_test_replay_debugger', OUTPUT_CHANNEL);
+    super(
+      nls.localize('debug_test_exec_name'),
+      'debug_test_replay_debugger',
+      OUTPUT_CHANNEL
+    );
   }
 
   public async run(response: ContinueResponse<string[]>): Promise<boolean> {
