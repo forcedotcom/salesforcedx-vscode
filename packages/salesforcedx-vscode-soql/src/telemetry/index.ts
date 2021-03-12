@@ -15,7 +15,7 @@ export async function startTelemetry(
   hrtime: [number, number]
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  const extensionPackage = require('../../package.json');
   await telemetryService.initializeService(
     context,
     extensionPackage.name,

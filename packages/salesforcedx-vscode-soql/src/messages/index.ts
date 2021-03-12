@@ -6,7 +6,6 @@
  */
 
 import {
-  BASE_FILE_EXTENSION,
   BASE_FILE_NAME,
   Config,
   DEFAULT_LOCALE,
@@ -17,8 +16,8 @@ import {
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
     return locale === DEFAULT_LOCALE
-      ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
-      : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
+      ? `${BASE_FILE_NAME}`
+      : `${BASE_FILE_NAME}.${locale}`;
   }
 
   const base = new Message(
