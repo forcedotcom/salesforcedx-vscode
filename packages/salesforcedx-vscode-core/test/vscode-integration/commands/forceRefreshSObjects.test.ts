@@ -208,7 +208,6 @@ describe('ForceGenerateFauxClasses', () => {
     it('Should pass response data to generatorMin', async () => {
       await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
       expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
-        SObjectCategory.CUSTOM,
         SObjectRefreshSource.Startup
       ]);
     });
