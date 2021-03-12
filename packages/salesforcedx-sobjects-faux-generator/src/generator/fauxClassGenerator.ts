@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
-import * as minSObjectsFromFile from '../../data/minSObjects.json';
+import * as minSObjectsFromFile from '../../src/data/minSObjects.json';
 import {
   CUSTOMOBJECTS_DIR,
   ERROR_EVENT,
