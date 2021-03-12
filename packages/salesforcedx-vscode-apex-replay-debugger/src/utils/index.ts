@@ -10,3 +10,5 @@ import * as path from 'path';
 export function getLogDirPath(): string {
   return path.join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
 }
+
+export { retrieveTestCodeCoverage } from './settings';

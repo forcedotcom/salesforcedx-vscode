@@ -7,6 +7,7 @@
 import {
   ApexTestResultData,
   LogService,
+  ResultFormat,
   TestLevel,
   TestResult,
   TestService
@@ -14,12 +15,14 @@ import {
 import { Connection } from '@salesforce/core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
+import { workspace } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { getLogDirPath } from '../utils';
+import { getLogDirPath, retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 import { TraceFlags } from './traceFlags';
 interface TestRunResult {
@@ -79,6 +82,20 @@ export class QuickLaunch {
         testClass
       );
       const result: TestResult = await testService.runTestSynchronous(payload);
+
+      // create apex test result files
+      if (workspace && workspace.workspaceFolders) {
+        const apexTestResultsPath = getTestResultsFolder(
+          workspace.workspaceFolders[0].uri.fsPath,
+          'apex'
+        );
+        await testService.writeResultFiles(
+          result,
+          { dirPath: apexTestResultsPath, resultFormats: [ResultFormat.json] },
+          retrieveTestCodeCoverage()
+        );
+      }
+
       const tests: ApexTestResultData[] = result.tests;
       if (tests.length === 0) {
         return {
