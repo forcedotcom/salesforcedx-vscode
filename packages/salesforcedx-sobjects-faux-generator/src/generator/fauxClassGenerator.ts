@@ -38,24 +38,6 @@ import { ConfigUtil } from './configUtil';
 
 export const INDENT = '    ';
 const MODIFIER = 'global';
-const startupMinSObjects = [
-  'Account',
-  'Attachment',
-  'Case',
-  'Contact',
-  'Contract',
-  'Lead',
-  'Note',
-  'Opportunity',
-  'Order',
-  'Pricebook2',
-  'PricebookEntry',
-  'Product2',
-  'RecordType',
-  'Report',
-  'Task',
-  'User'
-];
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
