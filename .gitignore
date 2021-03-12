@@ -13,7 +13,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
-vscode-logs
+vscode-crash-logs
 
 # Runtime data
 pids
