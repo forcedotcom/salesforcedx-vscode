@@ -6,10 +6,14 @@
  */
 
 import { LogService, TestService } from '@salesforce/apex-node';
-import { TestLevel, TestResult } from '@salesforce/apex-node/lib/src/tests/types';
+import {
+  TestLevel,
+  TestResult
+} from '@salesforce/apex-node/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -19,7 +23,6 @@ import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { TraceFlags } from '../../../src/commands/traceFlags';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import * as utils from '../../../src/utils';
 
 const $$ = testSetup();
 
@@ -72,7 +75,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(pathUtils, 'getLogDirPath').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -122,7 +125,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(pathUtils, 'getLogDirPath').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -174,7 +177,7 @@ describe('Quick launch apex tests', () => {
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     testServiceStub.resolves({} as TestResult);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(pathUtils, 'getLogDirPath').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 

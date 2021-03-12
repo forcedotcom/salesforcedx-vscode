@@ -19,6 +19,7 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
@@ -236,12 +237,8 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     // If lastOpenedLogFolder isn't defined or doesn't exist then use the
     // same directory that the SFDX download logs command would download to
     // if it exists.
-    const sfdxCommandLogDir = path.join(
-      vscode.workspace.workspaceFolders![0].uri.fsPath,
-      '.sfdx',
-      'tools',
-      'debug',
-      'logs'
+    const sfdxCommandLogDir = getLogDirPath(
+      vscode.workspace.workspaceFolders![0].uri.fsPath
     );
     if (pathExists.sync(sfdxCommandLogDir)) {
       return vscode.Uri.file(sfdxCommandLogDir);

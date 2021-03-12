@@ -13,16 +13,22 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  getRootWorkspacePath,
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
+  getLogDirPath,
+  getTestResultsFolder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { workspace } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { getLogDirPath, retrieveTestCodeCoverage } from '../utils';
+import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 import { TraceFlags } from './traceFlags';
 interface TestRunResult {
@@ -86,7 +92,7 @@ export class QuickLaunch {
       // create apex test result files
       if (workspace && workspace.workspaceFolders) {
         const apexTestResultsPath = getTestResultsFolder(
-          workspace.workspaceFolders[0].uri.fsPath,
+          getRootWorkspacePath(),
           'apex'
         );
         await testService.writeResultFiles(
@@ -121,7 +127,7 @@ export class QuickLaunch {
     logId: string
   ): Promise<LogFileRetrieveResult> {
     const logService = new LogService(connection);
-    const outputDir = getLogDirPath();
+    const outputDir = getLogDirPath(getRootWorkspacePath());
 
     await logService.getLogs({ logId, outputDir });
     const logPath = path.join(outputDir, `${logId}.log`);
