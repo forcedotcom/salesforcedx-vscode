@@ -6,7 +6,7 @@
  */
 import {
   HumanReporter,
-  TestItem,
+  ResultFormat,
   TestLevel,
   TestResult,
   TestService
@@ -22,10 +22,10 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
-  SfdxCommandBuilder,
-  TestRunner
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   ComponentSet,
   SourceComponent
@@ -61,21 +61,6 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     this.codeCoverage = codeCoverage;
   }
 
-  private buildTestItem(testNames: string[]): TestItem[] {
-    const tItems = testNames.map(item => {
-      if (item.indexOf('.') > 0) {
-        const splitItemData = item.split('.');
-        return {
-          className: splitItemData[0],
-          testMethods: [splitItemData[1]]
-        } as TestItem;
-      }
-
-      return { className: item } as TestItem;
-    });
-    return tItems;
-  }
-
   public async run(): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
@@ -89,7 +74,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     );
     await testService.writeResultFiles(
       result,
-      { resultFormat: 'json', dirPath: this.outputDir },
+      { resultFormats: [ResultFormat.json], dirPath: this.outputDir },
       this.codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, this.codeCoverage);
@@ -196,7 +181,7 @@ async function forceApexTestRunCodeAction(tests: string[]) {
 
 function getTempFolder(): string {
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDir = new TestRunner().getTempFolder(
+    const apexDir = getTestResultsFolder(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
       'apex'
     );

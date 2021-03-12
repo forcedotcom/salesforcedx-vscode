@@ -8,6 +8,7 @@
 import {
   AsyncTestConfiguration,
   HumanReporter,
+  ResultFormat,
   TestLevel,
   TestService
 } from '@salesforce/apex-node';
@@ -21,9 +22,9 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
-  SfdxCommandBuilder,
-  TestRunner
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse,
@@ -150,10 +151,7 @@ export class ForceApexTestRunCommandFactory {
 
 function getTempFolder(): string {
   if (hasRootWorkspace()) {
-    const apexDir = new TestRunner().getTempFolder(
-      getRootWorkspacePath(),
-      'apex'
-    );
+    const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
@@ -206,10 +204,19 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
 
     switch (response.data.type) {
       case TestType.Class:
-        payload = await testService.buildAsyncPayload(testLevel, undefined, response.data.label);
+        payload = await testService.buildAsyncPayload(
+          testLevel,
+          undefined,
+          response.data.label
+        );
         break;
       case TestType.Suite:
-        payload = await testService.buildAsyncPayload(testLevel, undefined, undefined, response.data.label);
+        payload = await testService.buildAsyncPayload(
+          testLevel,
+          undefined,
+          undefined,
+          response.data.label
+        );
         break;
       default:
         payload = { testLevel: TestLevel.RunAllTestsInOrg };
@@ -218,7 +225,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
     const result = await testService.runTestAsynchronous(payload, codeCoverage);
     await testService.writeResultFiles(
       result,
-      { resultFormat: 'json', dirPath: getTempFolder() },
+      { resultFormats: [ResultFormat.json], dirPath: getTempFolder() },
       codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, codeCoverage);

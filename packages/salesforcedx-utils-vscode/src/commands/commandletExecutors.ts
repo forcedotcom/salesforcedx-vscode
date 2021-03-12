@@ -120,6 +120,7 @@ export abstract class LibraryCommandletExecutor<T>
   private readonly executionName: string;
   private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
+  protected showChannelOutput = true;
   protected readonly telemetry = new TelemetryBuilder();
 
   /**
@@ -165,6 +166,11 @@ export abstract class LibraryCommandletExecutor<T>
       channelService.showCommandWithTimestamp(
         `${nls.localize('channel_end')} ${this.executionName}`
       );
+
+      if (this.showChannelOutput) {
+        channelService.showChannelOutput();
+      }
+
       if (success) {
         notificationService
           .showSuccessfulExecution(this.executionName)
