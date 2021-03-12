@@ -1,24 +1,24 @@
 import { TestService } from '@salesforce/apex-node';
 import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
   LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  CancelResponse,
+  ContinueResponse,
+  ParametersGatherer
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { readFileSync } from 'fs';
+import { basename } from 'path';
+import * as vscode from 'vscode';
+import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import {
   ApexLibraryTestRunExecutor,
   ApexTestQuickPickItem,
   TestType
 } from './forceApexTestRun';
-import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
-import { readFileSync } from 'fs';
-import { basename } from 'path';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
