@@ -102,6 +102,21 @@ describe('LibraryCommandletExecutor', () => {
     expect(showErrStub.called).to.be.true;
   });
 
+  it('should not show successful or failed notifications if run was cancelled', async () => {
+    const showErrStub = sb
+      .stub(vscodeStub.window, 'showErrorMessage')
+      .resolves(nls.localize('notification_unsuccessful_execution_text'));
+    const showInfoStub = sb
+      .stub(vscodeStub.window, 'showInformationMessage')
+      .resolves(nls.localize('notification_show_in_status_bar_button_text'));
+    const cancelledExecutor = new TestExecutor(new MockChannel());
+    cancelledExecutor.cancelled = true;
+
+    await cancelledExecutor.execute({ data: { success: true }, type: 'CONTINUE' });
+    expect(showErrStub.notCalled).to.be.true;
+    expect(showInfoStub.notCalled).to.be.true;
+  });
+
   it('should log command event if there were no issues running', async () => {
     const processstub = sb.spy(process, 'hrtime');
     await executor.execute({ data: { success: false }, type: 'CONTINUE' });

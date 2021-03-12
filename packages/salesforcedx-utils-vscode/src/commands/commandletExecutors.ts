@@ -118,6 +118,7 @@ export abstract class SfdxCommandletExecutor<T>
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
+  protected cancelled: boolean = false;
   private readonly executionName: string;
   private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
@@ -171,6 +172,10 @@ export abstract class LibraryCommandletExecutor<T>
           cancellable: this.cancellable
         },
         (progress, token) => {
+          token.onCancellationRequested(() => {
+            this.cancelled = true;
+            notificationService.showCanceledExecution(this.executionName);
+          });
           return this.run(response, progress, token);
         }
       );
@@ -182,13 +187,16 @@ export abstract class LibraryCommandletExecutor<T>
         channelService.showChannelOutput();
       }
 
-      if (success) {
-        notificationService
-          .showSuccessfulExecution(this.executionName)
-          .catch(e => console.error(e));
-      } else {
-        notificationService.showFailedExecution(this.executionName);
+      if (!this.cancelled) {
+        if (success) {
+          notificationService
+            .showSuccessfulExecution(this.executionName)
+            .catch(e => console.error(e));
+        } else {
+          notificationService.showFailedExecution(this.executionName);
+        }
       }
+
       this.telemetry.addProperty('success', String(success));
       const { properties, measurements } = this.telemetry.build();
       telemetryService.sendCommandEvent(
