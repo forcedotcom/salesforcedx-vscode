@@ -10,7 +10,7 @@ import {
   EmptyParametersGatherer,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
@@ -39,7 +39,7 @@ describe('Force Apex Test Run', () => {
     retrieveCoverageStub = sb
       .stub(settings, 'retrieveTestCodeCoverage')
       .returns(false);
-    sb.stub(TestRunner.prototype, 'getTempFolder').returns(testResultsOutput);
+    sb.stub(pathUtils, 'getTestResultsFolder').returns(testResultsOutput);
   });
 
   afterEach(() => sb.restore());
