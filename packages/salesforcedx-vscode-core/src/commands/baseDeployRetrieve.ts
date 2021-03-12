@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as vscode from 'vscode';
 import {
   getRootWorkspacePath,
   LibraryCommandletExecutor
@@ -37,18 +38,30 @@ import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { createComponentCount } from './util';
+// import { Observable } from 'rxjs/Observable';
+// import { Subscription } from 'rxjs/Subscription';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 
 export abstract class DeployRetrieveExecutor<
   T
-> extends LibraryCommandletExecutor<T> {
+  > extends LibraryCommandletExecutor<T> {
+
+  protected cancellable: boolean = true;
+
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
   }
 
-  public async run(response: ContinueResponse<T>): Promise<boolean> {
+  public async run(
+    response: ContinueResponse<T>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
     let result: DeployRetrieveResult | undefined;
 
     try {
@@ -58,6 +71,21 @@ export abstract class DeployRetrieveExecutor<
         TELEMETRY_METADATA_COUNT,
         JSON.stringify(createComponentCount(components))
       );
+
+      // let timerSubscriber: Subscription | null;
+      // if (token) {
+      //   const timer = Observable.interval(1000);
+      //   timerSubscriber = timer.subscribe(async next => {
+      //     if (token.isCancellationRequested) {
+      //       try {
+      //         // await super.killExecution();
+      //         console.log('Almost there!')
+      //       } catch (e) {
+      //         console.log(e);
+      //       }
+      //     }
+      //   });
+      // }
 
       result = await this.doOperation(components);
 
@@ -71,6 +99,10 @@ export abstract class DeployRetrieveExecutor<
       await this.postOperation(result);
     }
   }
+
+  // public async killExecution(signal: string = 'SIGKILL') {
+  //   return killPromise(this.childProcessPid, signal);
+  // }
 
   protected getRelativeProjectPath(fsPath: string = '', packageDirs: string[]) {
     let packageDirIndex;
