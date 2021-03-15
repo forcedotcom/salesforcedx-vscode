@@ -117,6 +117,8 @@ export abstract class SfdxCommandletExecutor<T>
 
 export abstract class LibraryCommandletExecutor<T>
   implements CommandletExecutor<T> {
+  protected cancellable: boolean = false;
+  private cancelled: boolean = false;
   private readonly executionName: string;
   private readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
@@ -144,7 +146,14 @@ export abstract class LibraryCommandletExecutor<T>
    * @param response Data from the parameter gathering step.
    * @returns Whether or not the execution was a success
    */
-  public abstract run(response: ContinueResponse<T>): Promise<boolean>;
+  public abstract run(
+    response: ContinueResponse<T>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
@@ -159,9 +168,16 @@ export abstract class LibraryCommandletExecutor<T>
       const success = await vscode.window.withProgress(
         {
           title: nls.localize('progress_notification_text', this.executionName),
-          location: vscode.ProgressLocation.Notification
+          location: vscode.ProgressLocation.Notification,
+          cancellable: this.cancellable
         },
-        () => this.run(response)
+        (progress, token) => {
+          token.onCancellationRequested(() => {
+            this.cancelled = true;
+            notificationService.showCanceledExecution(this.executionName);
+          });
+          return this.run(response, progress, token);
+        }
       );
       channelService.showCommandWithTimestamp(
         `${nls.localize('channel_end')} ${this.executionName}`
@@ -171,13 +187,16 @@ export abstract class LibraryCommandletExecutor<T>
         channelService.showChannelOutput();
       }
 
-      if (success) {
-        notificationService
-          .showSuccessfulExecution(this.executionName)
-          .catch(e => console.error(e));
-      } else {
-        notificationService.showFailedExecution(this.executionName);
+      if (!this.cancelled) {
+        if (success) {
+          notificationService
+            .showSuccessfulExecution(this.executionName)
+            .catch(e => console.error(e));
+        } else {
+          notificationService.showFailedExecution(this.executionName);
+        }
       }
+
       this.telemetry.addProperty('success', String(success));
       const { properties, measurements } = this.telemetry.build();
       telemetryService.sendCommandEvent(
