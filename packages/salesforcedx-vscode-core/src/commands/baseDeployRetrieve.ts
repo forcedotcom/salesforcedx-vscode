@@ -73,15 +73,6 @@ export abstract class DeployRetrieveExecutor<
         JSON.stringify(createComponentCount(components))
       );
 
-      // const operation = this.getOperation(components);
-      // if (token) {
-      //   token.onCancellationRequested(() => {
-      //     if (operation instanceof MetadataApiRetrieve || operation instanceof MetadataApiDeploy) {
-      //       operation.cancel;
-      //     }
-      //   });
-      // }
-
       result = await this.doOperation(components, token);
 
       const status = this.getStatus(result);
@@ -132,9 +123,6 @@ export abstract class DeployRetrieveExecutor<
   protected abstract getComponents(
     response: ContinueResponse<T>
   ): Promise<ComponentSet>;
-  // protected abstract getOperation(
-  //   components: ComponentSet
-  // ): Promise<DeployRetrieveOperation | undefined>;
   protected abstract doOperation(
     components: ComponentSet, token?: vscode.CancellationToken
   ): Promise<DeployRetrieveResult | undefined>;
@@ -144,16 +132,6 @@ export abstract class DeployRetrieveExecutor<
 }
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
-
-  // protected async getOperation(
-  //   components: ComponentSet
-  // ): Promise<MetadataApiDeploy | undefined> {
-  //   return components
-  //     .deploy({
-  //       usernameOrConnection: await workspaceContext.getConnection()
-  //     });
-  // }
-
   protected async doOperation(
     components: ComponentSet, token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
@@ -238,7 +216,6 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 }
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
-
   protected async doOperation(
     components: ComponentSet, token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
