@@ -262,10 +262,21 @@ describe('Fetch sObjects', () => {
   });
 
   it('Should handle describe call returning no sobjects when calling describeSObjectBatch', async () => {
-    const sobjectTypes = ['ApexPageInfo4'];
+    const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves({
       results: undefined
     });
+
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
+      sobjectTypes
+    );
+
+    expect(batchResponse.length).to.be.equal(0);
+  });
+
+  it('Should handle empty describe calls responses when calling describeSObjectBatch', async () => {
+    const sobjectTypes = ['ApexPageInfo'];
+    env.stub(connection, 'request').resolves({});
 
     const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
       sobjectTypes
