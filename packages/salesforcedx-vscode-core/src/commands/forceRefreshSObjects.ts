@@ -145,7 +145,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
     const commandName = execution.command.logName;
     try {
       let result;
-      if (response.data.source === SObjectRefreshSource.Startup || response.data.source === SObjectRefreshSource.StartupMin) {
+      if (response.data.source === SObjectRefreshSource.StartupMin) {
         result = await gen.generateMin(
           vscode.workspace.workspaceFolders![0].uri.fsPath,
           response.data.source
@@ -232,46 +232,23 @@ function getStandardSObjectsDirectory(projectPath: string) {
 }
 
 export async function checkSObjectsAndRefresh(projectPath: string) {
-  const hasDefaultUsernameSet =
-    (await workspaceContext.getConnection()).getUsername() !== undefined;
-  if (projectPath && hasDefaultUsernameSet) {
-    if (!fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
-      telemetryService.sendEventData(
-        'sObjectRefreshNotification',
-        { type: 'No SObjects' },
-        undefined
-      );
-      const message = nls.localize('sobjects_refresh_needed');
-      const buttonTxt = nls.localize('sobjects_refresh_now');
-      const shouldRefreshNow = await notificationService.showInformationMessage(
-        message,
-        buttonTxt
-      );
-      if (shouldRefreshNow && shouldRefreshNow === buttonTxt) {
-        telemetryService.sendEventData(
-          'sObjectRefreshNotification',
-          { type: 'Requested Refresh' },
-          undefined
-        );
-        try {
-          await forceRefreshSObjects(SObjectRefreshSource.StartupMin);
-        } catch (e) {
-          telemetryService.sendException(e.name, e.message);
-          throw e;
-        }
-      } else {
-        telemetryService.sendEventData(
-          'sObjectRefreshNotification',
-          { type: 'Refresh Request Cancelled' },
-          undefined
-        );
-      }
-    } else {
-      telemetryService.sendEventData(
-        'sObjectRefreshNotification',
-        { type: 'SObjects exist' },
-        undefined
-      );
+  if (projectPath && !fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
+    telemetryService.sendEventData(
+      'sObjectRefreshNotification',
+      { type: 'No SObjects' },
+      undefined
+    );
+    try {
+      await forceRefreshSObjects(SObjectRefreshSource.StartupMin);
+    } catch (e) {
+      telemetryService.sendException(e.name, e.message);
+      throw e;
     }
+  } else {
+    telemetryService.sendEventData(
+      'sObjectRefreshNotification',
+      { type: 'SObjects exist' },
+      undefined
+    );
   }
 }

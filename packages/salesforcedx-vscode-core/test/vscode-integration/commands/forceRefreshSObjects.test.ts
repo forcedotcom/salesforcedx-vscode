@@ -205,10 +205,18 @@ describe('ForceGenerateFauxClasses', () => {
       sandboxStub.restore();
     });
 
-    it('Should pass response data to generatorMin', async () => {
+    it('Should pass response data to generator', async () => {
       await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
+      expect(generatorStub.firstCall.args.slice(1)).to.eql([
+        SObjectCategory.CUSTOM,
         SObjectRefreshSource.Startup
+      ]);
+    });
+
+    it('Should pass response data to generatorMin', async () => {
+      await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.CUSTOM);
+      expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
+        SObjectRefreshSource.StartupMin
       ]);
     });
 
