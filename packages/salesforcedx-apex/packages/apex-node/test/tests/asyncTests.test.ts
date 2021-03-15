@@ -1279,6 +1279,40 @@ describe('Run Apex tests asynchronously', () => {
       expect(namespaceStub.notCalled).to.be.true;
     });
 
+    it('should build async payload for class specified by id', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        '01p4x00000KWt3TAAT'
+      );
+      expect(payload).to.deep.equal({
+        tests: [{ classId: '01p4x00000KWt3TAAT' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
+    it('should build async payload for class specified by id with incorrect number of digits', async () => {
+      const namespaceStub = sandboxStub
+        .stub(TestService.prototype, 'queryNamespaces')
+        .resolves(new Set(['myNamespace']));
+      const testSrv = new TestService(mockConnection);
+      const payload = await testSrv.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        '01p4x00000KWt3TAATP'
+      );
+      expect(payload).to.deep.equal({
+        tests: [{ className: '01p4x00000KWt3TAATP' }],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      expect(namespaceStub.notCalled).to.be.true;
+    });
+
     it('should build async payload for class with namespace', async () => {
       const namespaceStub = sandboxStub
         .stub(TestService.prototype, 'queryNamespaces')
