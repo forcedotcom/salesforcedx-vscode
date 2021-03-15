@@ -139,6 +139,10 @@ export class SObjectDescribe {
       const batchResponse = await this.runRequest(batchRequest);
 
       const fetchedObjects: SObject[] = [];
+      if (batchResponse && batchResponse.results === undefined) {
+        return Promise.resolve(fetchedObjects);
+      }
+
       batchResponse.results.forEach((sr, i) => {
         if (sr.result instanceof Array) {
           if (sr.result[0].errorCode && sr.result[0].message) {
