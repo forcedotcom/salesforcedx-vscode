@@ -7,14 +7,19 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { assert, createSandbox, SinonSandbox } from 'sinon';
 import { StreamingClient } from '../../src/streaming';
 import { expect } from 'chai';
 import { Client as FayeClient, Subscription } from 'faye';
 import { fail } from 'assert';
+import { Progress } from '../../src';
 import { TestResultMessage } from '../../src/streaming/types';
-import { ApexTestQueueItemStatus } from '../../src/tests/types';
+import {
+  ApexTestQueueItemStatus,
+  ApexTestProgressValue
+} from '../../src/tests/types';
 import { nls } from '../../src/i18n';
+import { EventEmitter } from 'events';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -232,5 +237,114 @@ describe('Streaming API Client', () => {
     const results = await streamClient.handler(testResultMsg);
     expect(mockToolingQuery.calledOnce).to.equal(true);
     expect(results).to.equal(null);
+  });
+
+  it('should report streamingTransportUp progress', () => {
+    const reportStub = sandboxStub.stub();
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: reportStub
+    };
+    const mockFayeClient = new EventEmitter();
+    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
+    stubOn.callsFake(mockFayeClient.on.bind(mockFayeClient));
+
+    new StreamingClient(mockConnection, progressReporter);
+    mockFayeClient.emit('transport:up');
+
+    assert.calledOnce(reportStub);
+    assert.calledWith(reportStub, {
+      type: 'StreamingClientProgress',
+      value: 'streamingTransportUp',
+      message: nls.localize('streamingTransportUp')
+    });
+  });
+
+  it('should report streamingTransportDown progress', () => {
+    const reportStub = sandboxStub.stub();
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: reportStub
+    };
+    const mockFayeClient = new EventEmitter();
+    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
+    stubOn.callsFake(mockFayeClient.on.bind(mockFayeClient));
+
+    new StreamingClient(mockConnection, progressReporter);
+    mockFayeClient.emit('transport:down');
+
+    assert.calledOnce(reportStub);
+    assert.calledWith(reportStub, {
+      type: 'StreamingClientProgress',
+      value: 'streamingTransportDown',
+      message: nls.localize('streamingTransportDown')
+    });
+  });
+
+  it('should report streamingProcessingTestRun progress', async () => {
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    mockToolingQuery.resolves({
+      done: true,
+      totalSize: 0,
+      records: [
+        {
+          Id: '707xx0000AGQ3jbQQD',
+          Status: ApexTestQueueItemStatus.Processing,
+          ApexClassId: '01pxx00000O6tXZQAx',
+          TestRunResultId: '05mxx000000TgYuQAw'
+        }
+      ]
+    });
+    const reportStub = sandboxStub.stub();
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: reportStub
+    };
+
+    const streamClient = new StreamingClient(mockConnection, progressReporter);
+    await streamClient.handler(testResultMsg);
+
+    assert.calledWith(reportStub, {
+      type: 'StreamingClientProgress',
+      value: 'streamingProcessingTestRun',
+      message: nls.localize('streamingProcessingTestRun', '707xx0000AGQ3jbQQD'),
+      testRunId: '707xx0000AGQ3jbQQD'
+    });
+  });
+
+  it('should report test queue progress', async () => {
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    mockToolingQuery.resolves({
+      done: true,
+      totalSize: 0,
+      records: [
+        {
+          Id: '707xx0000AGQ3jbQQD',
+          Status: ApexTestQueueItemStatus.Processing,
+          ApexClassId: '01pxx00000O6tXZQAx',
+          TestRunResultId: '05mxx000000TgYuQAw'
+        }
+      ]
+    });
+    const reportStub = sandboxStub.stub();
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: reportStub
+    };
+
+    const streamClient = new StreamingClient(mockConnection, progressReporter);
+    await streamClient.handler(testResultMsg);
+
+    assert.calledWith(reportStub, {
+      type: 'TestQueueProgress',
+      value: {
+        done: true,
+        totalSize: 0,
+        records: [
+          {
+            Id: '707xx0000AGQ3jbQQD',
+            Status: ApexTestQueueItemStatus.Processing,
+            ApexClassId: '01pxx00000O6tXZQAx',
+            TestRunResultId: '05mxx000000TgYuQAw'
+          }
+        ]
+      }
+    });
   });
 });

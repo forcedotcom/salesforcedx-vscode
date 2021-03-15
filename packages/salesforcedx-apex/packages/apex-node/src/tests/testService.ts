@@ -405,7 +405,8 @@ export class TestService {
       asyncRunResult.queueItem,
       asyncRunResult.runId,
       getCurrentTime(),
-      codeCoverage
+      codeCoverage,
+      progress
     );
   }
 
@@ -439,7 +440,8 @@ export class TestService {
     testQueueResult: ApexTestQueueItem,
     testRunId: string,
     commandStartTime: number,
-    codeCoverage = false
+    codeCoverage = false,
+    progress?: Progress<ApexTestProgressValue>
   ): Promise<TestResult> {
     if (!this.isValidTestRunID(testRunId)) {
       throw new Error(nls.localize('invalidTestRunIdErr', testRunId));
@@ -450,6 +452,13 @@ export class TestService {
     testRunSummaryQuery +=
       'MethodsEnqueued, StartTime, EndTime, TestTime, UserId ';
     testRunSummaryQuery += `FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
+
+    progress?.report({
+      type: 'FormatTestResultProgress',
+      value: 'retrievingTestRunSummary',
+      message: nls.localize('retrievingTestRunSummary')
+    });
+
     const testRunSummaryResults = (await this.connection.tooling.query(
       testRunSummaryQuery
     )) as ApexTestRunResult;
@@ -526,6 +535,11 @@ export class TestService {
         }
       });
 
+      progress?.report({
+        type: 'FormatTestResultProgress',
+        value: 'queryingForAggregateCodeCoverage',
+        message: nls.localize('queryingForAggregateCodeCoverage')
+      });
       const {
         codeCoverageResults,
         totalLines,

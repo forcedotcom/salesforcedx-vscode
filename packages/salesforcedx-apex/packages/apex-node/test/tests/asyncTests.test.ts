@@ -7,7 +7,13 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { assert, expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import {
+  assert as sinonAssert,
+  createSandbox,
+  SinonSandbox,
+  SinonSpy,
+  SinonStub
+} from 'sinon';
 import { TestService, OutputDirConfig } from '../../src/tests';
 import {
   AsyncTestConfiguration,
@@ -42,7 +48,12 @@ import {
 import { join } from 'path';
 import * as stream from 'stream';
 import * as fs from 'fs';
-import { JUnitReporter, TapReporter } from '../../src';
+import {
+  JUnitReporter,
+  TapReporter,
+  Progress,
+  ApexTestProgressValue
+} from '../../src';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -214,6 +225,67 @@ describe('Run Apex tests asynchronously', () => {
     testResultQuery += `FROM ApexTestResult WHERE QueueItemId IN ('${pollResponse.records[0].Id}')`;
     expect(mockToolingQuery.getCall(1).args[0]).to.equal(testResultQuery);
     expect(getTestResultData).to.deep.equals(missingTimeTestData);
+  });
+
+  it('should report progress for formatting async results', async () => {
+    const testSrv = new TestService(mockConnection);
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    mockToolingQuery.onFirstCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: [
+        {
+          AsyncApexJobId: testRunId,
+          Status: ApexTestRunResultStatus.Completed,
+          StartTime: testStartTime,
+          TestTime: null,
+          UserId: '005xx000000abcDAAU'
+        }
+      ]
+    } as ApexTestRunResult);
+    mockToolingQuery.onSecondCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: [
+        {
+          Id: '07Mxx00000F2Xx6UAF',
+          QueueItemId: '7092M000000Vt94QAC',
+          StackTrace: null,
+          Message: null,
+          AsyncApexJobId: testRunId,
+          MethodName: 'testLoggerLog',
+          Outcome: ApexTestResultOutcome.Pass,
+          ApexLogId: null,
+          ApexClass: {
+            Id: '01pxx00000O6tXZQAZ',
+            Name: 'TestLogger',
+            NamespacePrefix: 't3st',
+            FullName: 't3st__TestLogger'
+          },
+          RunTime: null,
+          TestTimestamp: '3'
+        }
+      ]
+    } as ApexTestResult);
+    const reportStub = sandboxStub.stub();
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: reportStub
+    };
+
+    await testSrv.formatAsyncResults(
+      pollResponse,
+      testRunId,
+      new Date().getTime(),
+      false,
+      progressReporter
+    );
+
+    sinonAssert.calledOnce(reportStub);
+    sinonAssert.calledWith(reportStub, {
+      type: 'FormatTestResultProgress',
+      value: 'retrievingTestRunSummary',
+      message: nls.localize('retrievingTestRunSummary')
+    });
   });
 
   it('should return correct summary outcome for single skipped test', async () => {
@@ -530,6 +602,82 @@ describe('Run Apex tests asynchronously', () => {
     expect(getTestResultData.summary.testRunCoverage).to.equal('66%');
     expect(getTestResultData.tests.length).to.equal(6);
     expect(getTestResultData.codecoverage.length).to.equal(3);
+  });
+
+  it('should report progress for aggregating code coverage', () => {
+    it('should return formatted test results with code coverage', async () => {
+      const testSrv = new TestService(mockConnection);
+      const mockToolingQuery = sandboxStub.stub(
+        mockConnection.tooling,
+        'query'
+      );
+      mockToolingQuery.onCall(0).resolves({
+        done: true,
+        totalSize: 1,
+        records: [
+          {
+            AsyncApexJobId: testRunId,
+            Status: ApexTestRunResultStatus.Completed,
+            StartTime: '2020-07-12T02:54:47.000+0000',
+            TestTime: 1765,
+            UserId: '005xx000000abcDAAU'
+          }
+        ]
+      } as ApexTestRunResult);
+
+      mockToolingQuery.onCall(1).resolves({
+        done: true,
+        totalSize: 6,
+        records: mixedTestResults
+      } as ApexTestResult);
+
+      mockToolingQuery.onCall(2).resolves({
+        done: true,
+        totalSize: 3,
+        records: mixedPerClassCodeCoverage
+      } as ApexCodeCoverage);
+
+      mockToolingQuery.onCall(3).resolves({
+        done: true,
+        totalSize: 3,
+        records: codeCoverageQueryResult
+      } as ApexCodeCoverageAggregate);
+
+      mockToolingQuery.onCall(4).resolves({
+        done: true,
+        totalSize: 1,
+        records: [
+          {
+            PercentCovered: '57'
+          }
+        ]
+      } as ApexOrgWideCoverage);
+
+      const reportStub = sandboxStub.stub();
+      const progressReporter: Progress<ApexTestProgressValue> = {
+        report: reportStub
+      };
+
+      await testSrv.formatAsyncResults(
+        pollResponse,
+        testRunId,
+        new Date().getTime(),
+        true,
+        progressReporter
+      );
+
+      sinonAssert.calledTwice(reportStub);
+      sinonAssert.calledWith(reportStub, {
+        type: 'FormatTestResultProgress',
+        value: 'retrievingTestRunSummary',
+        message: nls.localize('retrievingTestRunSummary')
+      });
+      sinonAssert.calledWith(reportStub, {
+        type: 'FormatTestResultProgress',
+        value: 'queryingForAggregateCodeCoverage',
+        message: nls.localize('queryingForAggregateCodeCoverage')
+      });
+    });
   });
 
   describe('Check Query Limits', async () => {

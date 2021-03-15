@@ -7,6 +7,7 @@
 
 export { TestService } from './testService';
 export {
+  ApexTestProgressValue,
   AsyncTestConfiguration,
   AsyncTestArrayConfiguration,
   SyncTestConfiguration,
