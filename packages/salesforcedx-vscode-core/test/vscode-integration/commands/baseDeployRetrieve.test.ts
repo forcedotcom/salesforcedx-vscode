@@ -24,10 +24,11 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonStub } from 'sinon';
-import { DiagnosticSeverity, Range, Uri } from 'vscode';
+import { createSandbox, match, SinonStub } from 'sinon';
+import Sinon = require('sinon');
+import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { BaseDeployExecutor } from '../../../src/commands';
+import { BaseDeployExecutor, getExecutor } from '../../../src/commands';
 import {
   DeployExecutor,
   DeployRetrieveExecutor,
@@ -162,6 +163,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
+    let withProgressStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -171,6 +173,7 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
+      withProgressStub = sb.stub(vscode.window, 'withProgress');
     });
 
     class TestDeploy extends DeployExecutor<{}> {
@@ -194,6 +197,31 @@ describe('Base Deploy Retrieve Commands', () => {
         return this.components;
       }
     }
+
+    // TODO
+    it('should be cancellable', async () => {
+      const cancelledExeuctor = new TestDeploy();
+
+      await cancelledExeuctor.run({ data: {}, type: 'CONTINUE'});
+
+      Sinon.assert.calledOnce(withProgressStub);
+      Sinon.assert.calledWith(
+        withProgressStub,
+        {
+          location: vscode.ProgressLocation.Window,
+          title: nls.localize('todo'),
+          cancellable: true
+        },
+        match.any
+      );
+    });
+
+    // TODO
+    it('should call cancel operation', async () => {
+      const executor = new TestDeploy();
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+    });
 
     it('should call deploy on component set', async () => {
       const executor = new TestDeploy();
@@ -349,17 +377,17 @@ describe('Base Deploy Retrieve Commands', () => {
         expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
         failedRows.forEach((row, index) => {
           expect(setDiagnosticsStub.getCall(index).args).to.deep.equal([
-            Uri.file(row.filePath),
+            vscode.Uri.file(row.filePath),
             [
               {
                 message: row.error,
-                range: new Range(
+                range: new vscode.Range(
                   row.lineNumber - 1,
                   row.columnNumber - 1,
                   row.lineNumber - 1,
                   row.columnNumber - 1
                 ),
-                severity: DiagnosticSeverity.Error,
+                severity: vscode.DiagnosticSeverity.Error,
                 source: row.type
               }
             ]
