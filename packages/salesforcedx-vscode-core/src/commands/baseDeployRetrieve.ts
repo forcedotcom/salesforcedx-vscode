@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
 import {
   getRootWorkspacePath,
   LibraryCommandletExecutor
@@ -31,6 +30,7 @@ import {
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join, sep } from 'path';
+import * as vscode from 'vscode';
 import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
