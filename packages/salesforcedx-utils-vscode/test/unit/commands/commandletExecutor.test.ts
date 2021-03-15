@@ -102,6 +102,7 @@ describe('LibraryCommandletExecutor', () => {
     expect(showErrStub.called).to.be.true;
   });
 
+  // TODO: Add test for canceled execution notification. Remove canceled class property.
   it('should not show successful or failed notifications if run was cancelled', async () => {
     const showErrStub = sb
       .stub(vscodeStub.window, 'showErrorMessage')
