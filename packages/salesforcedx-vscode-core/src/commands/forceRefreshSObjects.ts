@@ -210,6 +210,11 @@ export async function initSObjectDefinitions(projectPath: string) {
   if (projectPath) {
     const sobjectFolder = getSObjectsDirectory(projectPath);
     if (!fs.existsSync(sobjectFolder)) {
+      telemetryService.sendEventData(
+        'Refresh SObjects',
+        { type: SObjectRefreshSource.Startup },
+        undefined
+      );
       forceRefreshSObjects(SObjectRefreshSource.Startup).catch(e => {
         throw e;
       });
@@ -234,8 +239,8 @@ function getStandardSObjectsDirectory(projectPath: string) {
 export async function checkSObjectsAndRefresh(projectPath: string) {
   if (projectPath && !fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
     telemetryService.sendEventData(
-      'sObjectRefreshNotification',
-      { type: 'No SObjects' },
+      'Refresh SObjects',
+      { type: SObjectRefreshSource.StartupMin },
       undefined
     );
     try {
@@ -244,11 +249,5 @@ export async function checkSObjectsAndRefresh(projectPath: string) {
       telemetryService.sendException(e.name, e.message);
       throw e;
     }
-  } else {
-    telemetryService.sendEventData(
-      'sObjectRefreshNotification',
-      { type: 'SObjects exist' },
-      undefined
-    );
   }
 }
