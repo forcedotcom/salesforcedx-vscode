@@ -139,12 +139,12 @@ describe('ForceGenerateFauxClasses', () => {
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
       expect(telemetryEventStub.calledWith(
         'Refresh SObjects',
-        { type: SObjectRefreshSource.Startup },
+        { type: SObjectRefreshSource.StartupMin },
         undefined
       )).to.be.true;
     });
 
-    it('Should not call forceRefreshSObjects service when sobjects do not exist', async () => {
+    it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {
       existsSyncStub.returns(true);
 
       await checkSObjectsAndRefresh(projectPath);
