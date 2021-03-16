@@ -26,7 +26,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { assert, createSandbox, match, SinonStub } from 'sinon';
+import { createSandbox, match, SinonStub } from 'sinon';
 import Sinon = require('sinon');
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
@@ -244,23 +244,24 @@ describe('Base Deploy Retrieve Commands', () => {
     }
 
     // TODO - Goal: I literally just want to make sure that the DeployExecutor is cancellable.
-    it('should be cancellable', async () => {
-      const executor = new TestDeploy2();
-      const filePath = path.join('classes', 'MyClass.cls');
+    // it('should be cancellable', async () => {
+    //   const executor = new TestDeploy2();
+    //   const filePath = path.join('classes', 'MyClass.cls');
 
-      await executor.run({ data: filePath, type: 'CONTINUE' });
 
-      Sinon.assert.calledOnce(executor.progressStub);
-      Sinon.assert.calledWith(
-        executor.progressStub,
-        {
-          location: vscode.ProgressLocation.Window,
-          title: nls.localize('progress_notification_text', 'test'),
-          cancellable: true
-        },
-        match.any
-      );
-    });
+    //   await executor.run({ data: filePath, type: 'CONTINUE' });
+
+    //   Sinon.assert.calledOnce(executor.progressStub);
+    //   Sinon.assert.calledWith(
+    //     executor.progressStub,
+    //     {
+    //       location: vscode.ProgressLocation.Window,
+    //       title: nls.localize('progress_notification_text', 'test'),
+    //       cancellable: true
+    //     },
+    //     match.any
+    //   );
+    // });
 
     it('should call setup cancellation logic', async () => {
       const executor = new TestDeploy();
@@ -272,16 +273,16 @@ describe('Base Deploy Retrieve Commands', () => {
     });
 
     // TODO - Goal: Operation should be called when user cancels the command.
-    it('should call cancel operation', async () => {
-      const executor = new TestDeploy();
+    // it('should call cancel operation', async () => {
+    //   const executor = new TestDeploy();
 
-      // Verify operation.cancel was called from within setupCancellation.
-      const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
+    //   // Verify operation.cancel was called from within setupCancellation.
+    //   const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
 
-      // How do I do this?
+    //   // How do I do this?
 
-      await executor.run({ data: {}, type: 'CONTINUE' });
-    });
+    //   await executor.run({ data: {}, type: 'CONTINUE' });
+    // });
 
     it('should call deploy on component set', async () => {
       const executor = new TestDeploy();
