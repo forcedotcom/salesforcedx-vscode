@@ -205,62 +205,6 @@ describe('Base Deploy Retrieve Commands', () => {
       }
     }
 
-    class TestDeploy2 extends DeployExecutor<{}> {
-      public components: ComponentSet;
-      public getComponentsStub = sb.stub().returns(new ComponentSet());
-      public progressStub: SinonStub;
-      public cancellationStub = sb.stub();
-
-      constructor(toDeploy = new ComponentSet()) {
-        super('test', 'testlog');
-        this.components = toDeploy;
-        this.progressStub = sb.stub(vscode.window, 'withProgress').returns(
-          Promise.resolve()
-        );
-
-        // Approach2 - used by forceFunctionCreate.test.ts
-        // withProgressStub = sb.stub(vscode.window, 'withProgress');
-        // withProgressStub.callsFake((options, task) => {
-        //   task();
-        // });
-      }
-
-      protected async getComponents(
-        response: ContinueResponse<{}>
-      ): Promise<ComponentSet> {
-        return new ComponentSet([
-          new SourceComponent({
-            name: 'MyClass',
-            type: registryData.types.apexclass,
-            content: join('project', 'classes', 'MyClass.cls'),
-            xml: join('project', 'classes', 'MyClass.cls-meta.xml')
-          })
-        ]);
-      }
-      protected async setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
-        return this.cancellationStub;
-      }
-    }
-
-    // TODO - Goal: I literally just want to make sure that the DeployExecutor is cancellable.
-    // it('should be cancellable', async () => {
-    //   const executor = new TestDeploy2();
-    //   const filePath = path.join('classes', 'MyClass.cls');
-
-    //   await executor.run({ data: filePath, type: 'CONTINUE' });
-
-    //   Sinon.assert.calledOnce(executor.progressStub);
-    //   Sinon.assert.calledWith(
-    //     executor.progressStub,
-    //     {
-    //       location: vscode.ProgressLocation.Window,
-    //       title: nls.localize('progress_notification_text', 'test'),
-    //       cancellable: true
-    //     },
-    //     match.any
-    //   );
-    // });
-
     it('should call setup cancellation logic', async () => {
       const executor = new TestDeploy();
       const operationSpy = Sinon.spy(executor, 'setupCancellation' as any);
@@ -269,18 +213,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(operationSpy.calledOnce).to.equal(true);
     });
-
-    // TODO - Goal: Operation should be called when user cancels the command.
-    // it('should call cancel operation', async () => {
-    //   const executor = new TestDeploy();
-
-    //   // Verify operation.cancel was called from within setupCancellation.
-    //   const operationSpy = Sinon.spy(executor, 'setupCancellation' as any);
-
-    //   // How do I do this?
-
-    //   await executor.run({ data: {}, type: 'CONTINUE' });
-    // });
 
     it('should call deploy on component set', async () => {
       const executor = new TestDeploy();
