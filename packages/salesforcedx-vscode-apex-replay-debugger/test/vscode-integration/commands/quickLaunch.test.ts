@@ -41,6 +41,7 @@ describe('Quick launch apex tests', () => {
   let logServiceStub: SinonStub;
   let launcherStub: SinonStub;
   let buildPayloadStub: SinonStub;
+  let resultFilesStub: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
@@ -61,6 +62,7 @@ describe('Quick launch apex tests', () => {
       .stub(TestService.prototype, 'runTestSynchronous')
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
+    resultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
   });
 
   afterEach(() => {
@@ -104,7 +106,7 @@ describe('Quick launch apex tests', () => {
       logId: APEX_LOG_ID,
       outputDir: LOG_DIR
     });
-
+    expect(resultFilesStub.called).to.equal(true);
     expect(launcherStub.called).to.equal(true);
     const launcherArgs = launcherStub.getCall(0).args;
     expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
@@ -161,7 +163,7 @@ describe('Quick launch apex tests', () => {
       logId: APEX_LOG_ID,
       outputDir: LOG_DIR
     });
-
+    expect(resultFilesStub.called).to.equal(true);
     expect(launcherStub.called).to.equal(true);
     const launcherArgs = launcherStub.getCall(0).args;
     expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
@@ -209,7 +211,7 @@ describe('Quick launch apex tests', () => {
 
     expect(logServiceStub.called).to.equal(false);
     expect(launcherStub.called).to.equal(false);
-
+    expect(resultFilesStub.called).to.equal(true);
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
     expect(notificationArgs[0]).to.equal(
@@ -253,6 +255,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
 
+    expect(resultFilesStub.called).to.equal(true);
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
     expect(notificationArgs[0]).to.equal(
@@ -296,6 +299,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
 
+    expect(resultFilesStub.called).to.equal(true);
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
     expect(notificationArgs[0]).to.equal(
