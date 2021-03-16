@@ -112,8 +112,8 @@ export abstract class DeployRetrieveExecutor<
       : result?.status;
   }
 
-  protected setupCancellation(operation: DeployRetrieveOperation, token?: vscode.CancellationToken) {
-    if (token) {
+  protected setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+    if (token && operation) {
       token.onCancellationRequested(() => {
         operation.cancel();
       });

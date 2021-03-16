@@ -11,6 +11,8 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import {
   ComponentSet,
   DeployResult,
+  MetadataApiDeploy,
+  MetadataApiRetrieve,
   registryData,
   RetrieveResult,
   SourceComponent,
@@ -24,18 +26,16 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, match, SinonStub } from 'sinon';
+import { assert, createSandbox, match, SinonStub } from 'sinon';
 import Sinon = require('sinon');
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import { BaseDeployExecutor, getExecutor } from '../../../src/commands';
+import { BaseDeployExecutor } from '../../../src/commands';
 import {
   DeployExecutor,
   DeployRetrieveExecutor,
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
-import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
-import { LibraryRetrieveSourcePathExecutor } from '../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
@@ -47,6 +47,8 @@ import * as path from 'path';
 
 const sb = createSandbox();
 const $$ = testSetup();
+
+type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 describe('Base Deploy Retrieve Commands', () => {
   let mockConnection: Connection;
@@ -166,7 +168,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
-    // let withProgressStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -176,27 +177,15 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
-
-      // withProgressStub = sb.stub(vscode.window, 'withProgress').returns(
-      //   Promise.resolve()
-      // );
-
-      // Approach used by forceFunctionCreate.test.ts
-      // withProgressStub = sb.stub(vscode.window, 'withProgress');   
-      // withProgressStub.callsFake((options, task) => {
-      //   task();
-      // });    
     });
 
-    // afterEach(async () => {
-    //   withProgressStub.restore();
-    // });
-
     class TestDeploy extends DeployExecutor<{}> {
+
       public components: ComponentSet;
       public getComponentsStub = sb.stub().returns(new ComponentSet());
       public startStub: SinonStub;
       public deployStub: SinonStub;
+      public cancellationStub = sb.stub();
 
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
@@ -212,56 +201,84 @@ describe('Base Deploy Retrieve Commands', () => {
       ): Promise<ComponentSet> {
         return this.components;
       }
+      protected async setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+        return this.cancellationStub;
+      }
     }
 
     class TestDeploy2 extends DeployExecutor<{}> {
       public components: ComponentSet;
       public getComponentsStub = sb.stub().returns(new ComponentSet());
-      // public startStub: SinonStub;
-      // public deployStub: SinonStub;
       public progressStub: SinonStub;
+      public cancellationStub = sb.stub();
 
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
         this.components = toDeploy;
-        // this.startStub = sb.stub();
-        // this.deployStub = sb
-        //   .stub(this.components, 'deploy')
-        //   .returns({ start: this.startStub });
         this.progressStub = sb.stub(vscode.window, 'withProgress').returns(
           Promise.resolve()
         );
+
+        // Approach2 - used by forceFunctionCreate.test.ts
+        // withProgressStub = sb.stub(vscode.window, 'withProgress');
+        // withProgressStub.callsFake((options, task) => {
+        //   task();
+        // });
       }
 
       protected async getComponents(
         response: ContinueResponse<{}>
       ): Promise<ComponentSet> {
-        return this.components;
+        return new ComponentSet([
+          new SourceComponent({
+            name: 'MyClass',
+            type: registryData.types.apexclass,
+            content: join('project', 'classes', 'MyClass.cls'),
+            xml: join('project', 'classes', 'MyClass.cls-meta.xml')
+          })
+        ]);
+      }
+      protected async setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+        return this.cancellationStub;
       }
     }
 
-    // TODO
+    // TODO - Goal: I literally just want to make sure that the DeployExecutor is cancellable.
     it('should be cancellable', async () => {
-      const cancelledExeuctor = new TestDeploy2();
+      const executor = new TestDeploy2();
       const filePath = path.join('classes', 'MyClass.cls');
 
-      await cancelledExeuctor.run({ data: filePath, type: 'CONTINUE' });
+      await executor.run({ data: filePath, type: 'CONTINUE' });
 
-      Sinon.assert.calledOnce(cancelledExeuctor.progressStub);
+      Sinon.assert.calledOnce(executor.progressStub);
       Sinon.assert.calledWith(
-        cancelledExeuctor.progressStub,
+        executor.progressStub,
         {
           location: vscode.ProgressLocation.Window,
-          title: nls.localize('progress_notification_text', 'todo'),
+          title: nls.localize('progress_notification_text', 'test'),
           cancellable: true
         },
         match.any
       );
     });
 
-    // TODO
+    it('should call setup cancellation logic', async () => {
+      const executor = new TestDeploy();
+      const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(operationSpy.calledOnce).to.equal(true);
+    });
+
+    // TODO - Goal: Operation should be called when user cancels the command.
     it('should call cancel operation', async () => {
       const executor = new TestDeploy();
+
+      // Verify operation.cancel was called from within setupCancellation.
+      const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
+
+      // How do I do this?
 
       await executor.run({ data: {}, type: 'CONTINUE' });
     });
@@ -559,6 +576,15 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(executor.toolingRetrieveStub.callCount).to.equal(0);
       expect(executor.retrieveStub.callCount).to.equal(1);
+    });
+
+    it('should call setup cancellation logic', async () => {
+      const executor = new TestRetrieve();
+      const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(operationSpy.calledOnce).to.equal(true);
     });
 
     describe('Result Output', () => {
