@@ -26,7 +26,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, match, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import Sinon = require('sinon');
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
@@ -43,7 +43,6 @@ import {
   SfdxPackageDirectories,
   SfdxProjectConfig
 } from '../../../src/sfdxProject';
-import * as path from 'path';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -248,7 +247,6 @@ describe('Base Deploy Retrieve Commands', () => {
     //   const executor = new TestDeploy2();
     //   const filePath = path.join('classes', 'MyClass.cls');
 
-
     //   await executor.run({ data: filePath, type: 'CONTINUE' });
 
     //   Sinon.assert.calledOnce(executor.progressStub);
@@ -265,7 +263,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should call setup cancellation logic', async () => {
       const executor = new TestDeploy();
-      const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
+      const operationSpy = Sinon.spy(executor, 'setupCancellation' as any);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
@@ -277,7 +275,7 @@ describe('Base Deploy Retrieve Commands', () => {
     //   const executor = new TestDeploy();
 
     //   // Verify operation.cancel was called from within setupCancellation.
-    //   const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
+    //   const operationSpy = Sinon.spy(executor, 'setupCancellation' as any);
 
     //   // How do I do this?
 
@@ -581,7 +579,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should call setup cancellation logic', async () => {
       const executor = new TestRetrieve();
-      const operationSpy = Sinon.spy(executor, "setupCancellation" as any);
+      const operationSpy = Sinon.spy(executor, 'setupCancellation' as any);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
