@@ -34,6 +34,8 @@ import {
   DeployRetrieveExecutor,
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
+import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
+import { LibraryRetrieveSourcePathExecutor } from '../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
@@ -41,6 +43,7 @@ import {
   SfdxPackageDirectories,
   SfdxProjectConfig
 } from '../../../src/sfdxProject';
+import * as path from 'path';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -163,7 +166,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('DeployExecutor', () => {
     let deployQueueStub: SinonStub;
-    let withProgressStub: SinonStub;
+    // let withProgressStub: SinonStub;
 
     const packageDir = 'test-app';
 
@@ -173,8 +176,21 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
-      withProgressStub = sb.stub(vscode.window, 'withProgress');
+
+      // withProgressStub = sb.stub(vscode.window, 'withProgress').returns(
+      //   Promise.resolve()
+      // );
+
+      // Approach used by forceFunctionCreate.test.ts
+      // withProgressStub = sb.stub(vscode.window, 'withProgress');   
+      // withProgressStub.callsFake((options, task) => {
+      //   task();
+      // });    
     });
+
+    // afterEach(async () => {
+    //   withProgressStub.restore();
+    // });
 
     class TestDeploy extends DeployExecutor<{}> {
       public components: ComponentSet;
@@ -198,18 +214,45 @@ describe('Base Deploy Retrieve Commands', () => {
       }
     }
 
+    class TestDeploy2 extends DeployExecutor<{}> {
+      public components: ComponentSet;
+      public getComponentsStub = sb.stub().returns(new ComponentSet());
+      // public startStub: SinonStub;
+      // public deployStub: SinonStub;
+      public progressStub: SinonStub;
+
+      constructor(toDeploy = new ComponentSet()) {
+        super('test', 'testlog');
+        this.components = toDeploy;
+        // this.startStub = sb.stub();
+        // this.deployStub = sb
+        //   .stub(this.components, 'deploy')
+        //   .returns({ start: this.startStub });
+        this.progressStub = sb.stub(vscode.window, 'withProgress').returns(
+          Promise.resolve()
+        );
+      }
+
+      protected async getComponents(
+        response: ContinueResponse<{}>
+      ): Promise<ComponentSet> {
+        return this.components;
+      }
+    }
+
     // TODO
     it('should be cancellable', async () => {
-      const cancelledExeuctor = new TestDeploy();
+      const cancelledExeuctor = new TestDeploy2();
+      const filePath = path.join('classes', 'MyClass.cls');
 
-      await cancelledExeuctor.run({ data: {}, type: 'CONTINUE'});
+      await cancelledExeuctor.run({ data: filePath, type: 'CONTINUE' });
 
-      Sinon.assert.calledOnce(withProgressStub);
+      Sinon.assert.calledOnce(cancelledExeuctor.progressStub);
       Sinon.assert.calledWith(
-        withProgressStub,
+        cancelledExeuctor.progressStub,
         {
           location: vscode.ProgressLocation.Window,
-          title: nls.localize('todo'),
+          title: nls.localize('progress_notification_text', 'todo'),
           cancellable: true
         },
         match.any
