@@ -10,7 +10,7 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.4.0",
+  "version": "51.5.0",
   "preview": true,
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
@@ -42,8 +42,8 @@
     "jsforce": "^1.10.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.4.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.4.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "51.5.0",
+    "@salesforce/salesforcedx-utils-vscode": "51.5.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/ts-sinon": "1.2.2",
     "@types/chai": "^4.0.0",
