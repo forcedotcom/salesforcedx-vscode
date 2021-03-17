@@ -1,4 +1,4 @@
-# 51.5.0 - Month DD, YYYY
+# 51.5.0 - March 18, 2021
 
 ## Added
 
