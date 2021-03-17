@@ -131,7 +131,8 @@ export class TestService {
           }
         }
       } else {
-        testItems.push({ className: test });
+        const prop = isValidApexClassID(test) ? 'classId' : 'className';
+        testItems.push({ [prop]: test });
       }
     }
 
