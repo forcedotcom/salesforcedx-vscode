@@ -4,7 +4,7 @@
 
 #### salesforcedx-sobjects-faux-generator
 
-- Define static representation of subset sobjects @W-8912349@ ([PR #3044](https://github.com/forcedotcom/salesforcedx-vscode/pull/3044))
+- Define static representation of subset sobjects ([PR #3044](https://github.com/forcedotcom/salesforcedx-vscode/pull/3044))
 
 #### salesforcedx-utils-vscode
 
@@ -20,7 +20,9 @@
 
 - Update deploy and retrieve beta to use 1.1.19 ([PR #3048](https://github.com/forcedotcom/salesforcedx-vscode/pull/3048))
 
-- Update wording description for deploy retrieve setting ([PR #3043](https://github.com/forcedotcom/salesforcedx-vscode/pull/3043))
+### docs
+
+- Update description for deploy retrieve beta setting ([PR #3043](https://github.com/forcedotcom/salesforcedx-vscode/pull/3043))
 
 # 51.4.0 - March 10, 2021
 
