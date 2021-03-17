@@ -4,7 +4,7 @@
 
 #### salesforcedx-sobjects-faux-generator
 
-- Handle undefined results from describe calls ([PR #3064](https://github.com/forcedotcom/salesforcedx-vscode/pull/3064))
+- Handle `undefined` results when running `SFDX: Refresh SObject Definitions` command ([PR #3064](https://github.com/forcedotcom/salesforcedx-vscode/pull/3064), [Issue #3056](https://github.com/forcedotcom/salesforcedx-vscode/issues/3056))
 
 #### salesforcedx-vscode-core
 
