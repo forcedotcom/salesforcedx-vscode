@@ -1,15 +1,5 @@
 # 51.5.0 - March 18, 2021
 
-## Added
-
-#### salesforcedx-sobjects-faux-generator
-
-- Define static representation of subset sobjects ([PR #3044](https://github.com/forcedotcom/salesforcedx-vscode/pull/3044))
-
-#### salesforcedx-utils-vscode
-
-- Changes to libraryCommandletExecutor interface to support cancellation ([PR #3054](https://github.com/forcedotcom/salesforcedx-vscode/pull/3054))
-
 ## Fixed
 
 #### salesforcedx-sobjects-faux-generator
