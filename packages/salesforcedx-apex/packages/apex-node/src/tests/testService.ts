@@ -240,7 +240,7 @@ export class TestService {
           apiTestResult.numTestsRun
         ),
         skipRate: this.calculatePercentage(0, apiTestResult.numTestsRun),
-        testStartTime: formatStartTime(String(startTime)),
+        testStartTime: formatStartTime(startTime),
         testExecutionTimeInMs: apiTestResult.totalTime ?? 0,
         testTotalTimeInMs: apiTestResult.totalTime ?? 0,
         commandTimeInMs: getCurrentTime() - startTime,
@@ -833,7 +833,9 @@ export class TestService {
             fileMap.push({
               path: join(
                 dirPath,
-                `test-result-${result.summary.testRunId}.json`
+                result.summary.testRunId
+                  ? `test-result-${result.summary.testRunId}.json`
+                  : `test-result.json`
               ),
               content: this.stringify(result)
             });
@@ -853,7 +855,9 @@ export class TestService {
             fileMap.push({
               path: join(
                 dirPath,
-                `test-result-${result.summary.testRunId}-junit.xml`
+                result.summary.testRunId
+                  ? `test-result-${result.summary.testRunId}-junit.xml`
+                  : `test-result-junit.xml`
               ),
               content: junitResult
             });

@@ -21,20 +21,27 @@ import { CliJsonFormat } from './jsonReporter';
  * @param outputDir Output directory for result files
  * @param resultFormat Result format for output files
  * @param detailedCoverage Boolean to control detailed coverage reporting
+ * @param synchronous Whether the test run was synchronous
  * @returns Output directory configuration
  */
 export function buildOutputDirConfig(
   result: TestResult,
   jsonOutput: CliJsonFormat,
   outputDir: string,
-  resultFormat: ResultFormat,
-  detailedCoverage: boolean
+  resultFormat: ResultFormat | undefined,
+  detailedCoverage: boolean,
+  synchronous = false
 ): OutputDirConfig {
   const outputDirConfig: OutputDirConfig = {
-    dirPath: outputDir,
-    fileInfos: [
+    dirPath: outputDir
+  };
+
+  if (typeof resultFormat !== 'undefined' || synchronous) {
+    outputDirConfig.fileInfos = [
       {
-        filename: `test-result-${result.summary.testRunId}.json`,
+        filename: result.summary.testRunId
+          ? `test-result-${result.summary.testRunId}.json`
+          : `test-result.json`,
         content: jsonOutput
       },
       ...(jsonOutput.coverage
@@ -45,9 +52,13 @@ export function buildOutputDirConfig(
             }
           ]
         : [])
-    ],
-    resultFormats: [ResultFormat.junit]
-  };
+    ];
+    outputDirConfig.resultFormats = [ResultFormat.junit];
+  }
+
+  if (typeof resultFormat === 'undefined' && synchronous) {
+    resultFormat = ResultFormat.human;
+  }
 
   switch (resultFormat) {
     case 'tap':

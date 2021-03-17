@@ -10,6 +10,7 @@ import {
   ApexCodeCoverageRecord,
   ApexTestResultOutcome,
   ApexTestResultRecord,
+  ApexTestRunResultStatus,
   SyncTestResult,
   TestResult
 } from '../../src/tests/types';
@@ -92,6 +93,48 @@ export const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);
 const localStartTime = `${date.toDateString()} ${date.toLocaleTimeString()}`;
 export const testRunId = '707xx0000AGQ3jbQQD';
+
+export const syncResult: TestResult = {
+  // @ts-ignore
+  summary: {
+    outcome: ApexTestRunResultStatus.Passed,
+    testsRan: 1,
+    passing: 1,
+    failing: 0,
+    skipped: 0,
+    passRate: '100%',
+    failRate: '0%',
+    skipRate: '0%',
+    testStartTime: localStartTime,
+    testExecutionTimeInMs: 1765,
+    testTotalTimeInMs: 1765,
+    commandTimeInMs: 2000,
+    testRunId: '',
+    userId: '005xx000000abcDAAU'
+  },
+  tests: [
+    {
+      id: '',
+      queueItemId: '',
+      stackTrace: '',
+      message: '',
+      asyncApexJobId: '',
+      methodName: 'testMethod',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: null,
+      apexClass: {
+        id: '01pxx00000O6tXZQAZ',
+        name: 'TestApexClass',
+        namespacePrefix: 't3st',
+        fullName: 't3st__TestApexClass'
+      },
+      runTime: 8,
+      testTimestamp: '',
+      fullName: `t3st__TestApexClass.testMethod`
+    }
+  ]
+};
+
 export const testResultData: TestResult = {
   // @ts-ignore
   summary: {

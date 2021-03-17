@@ -23,7 +23,9 @@ import {
   cliJsonResult,
   cliWithCoverage,
   jsonResult,
-  jsonWithCoverage
+  jsonWithCoverage,
+  jsonSyncResult,
+  rawSyncResult
 } from './testData';
 
 Messages.importMessagesDirectory(__dirname);
@@ -470,6 +472,41 @@ describe('force:apex:test:run', () => {
       root: __dirname
     })
     .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestSynchronous', () => rawSyncResult)
+    .stub(fs, 'existsSync', () => true)
+    .stub(fs, 'mkdirSync', () => true)
+    .stub(fs, 'createWriteStream', () => new stream.PassThrough())
+    .stub(fs, 'openSync', () => 10)
+    .stub(fs, 'closeSync', () => true)
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '-d',
+      'path/to/dir',
+      '-y'
+    ])
+    .it(
+      'should output human-readable result for synchronous test run with no result format specified',
+      ctx => {
+        expect(ctx.stdout).to.contain(
+          messages.getMessage('outputDirHint', ['path/to/dir'])
+        );
+        expect(ctx.stdout).to.contain(
+          // @ts-ignore
+          new HumanReporter().format(rawSyncResult, false)
+        );
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
     .stub(TestService.prototype, 'runTestAsynchronous', () => runWithCoverage)
     .do(ctx => {
       ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
@@ -508,6 +545,84 @@ describe('force:apex:test:run', () => {
             },
             true
           ]
+        ]);
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '-d',
+      'path/to/dir'
+    ])
+    .it(
+      'should create no extra files when result format is not specified with asynchronous run',
+      ctx => {
+        expect((ctx.myStub as SinonStub).args[0]).to.deep.equal([
+          testRunSimple,
+          {
+            dirPath: 'path/to/dir'
+          },
+          undefined
+        ]);
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestSynchronous', () => rawSyncResult)
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests.testMethodOne',
+      '-d',
+      'path/to/dir',
+      '-y'
+    ])
+    .it(
+      'should create default files when result format is not specified with synchronous run',
+      ctx => {
+        // @ts-ignore
+        const result = new HumanReporter().format(rawSyncResult);
+        expect((ctx.myStub as SinonStub).args[0]).to.deep.equal([
+          rawSyncResult,
+          {
+            dirPath: 'path/to/dir',
+            fileInfos: [
+              {
+                filename: 'test-result.json',
+                content: jsonSyncResult
+              },
+              {
+                filename: `test-result.txt`,
+                content: result
+              }
+            ],
+            resultFormats: [ResultFormat.junit]
+          },
+          undefined
         ]);
       }
     );

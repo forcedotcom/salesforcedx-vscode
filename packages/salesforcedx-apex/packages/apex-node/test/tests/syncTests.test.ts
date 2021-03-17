@@ -8,21 +8,34 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
-import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import {
+  assert,
+  createSandbox,
+  SinonSandbox,
+  SinonSpy,
+  SinonStub
+} from 'sinon';
+import * as fs from 'fs';
+import * as stream from 'stream';
+import { join } from 'path';
 import { SyncTestConfiguration, TestService } from '../../src/tests';
 import {
   TestLevel,
   ApexOrgWideCoverage,
   ApexCodeCoverageAggregate,
-  ApexCodeCoverage
+  ApexCodeCoverage,
+  ResultFormat,
+  OutputDirConfig
 } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import {
   codeCoverageQueryResult,
   perClassCodeCoverage,
+  syncResult,
   syncTestResultSimple,
   syncTestResultWithFailures
 } from './testData';
+import { JUnitReporter } from '../../src';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -39,6 +52,8 @@ describe('Run Apex tests synchronously', () => {
     testLevel: 'RunSpecifiedTests'
   };
 
+  let createStreamStub: SinonStub;
+  let junitSpy: SinonSpy;
   beforeEach(async () => {
     sandboxStub = createSandbox();
     $$.setConfigStubContents('AuthInfoConfig', {
@@ -61,6 +76,11 @@ describe('Run Apex tests synchronously', () => {
       body: JSON.stringify(requestOptions),
       headers: { 'content-type': 'application/json' }
     };
+
+    createStreamStub = sandboxStub.stub(fs, 'createWriteStream');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    createStreamStub.returns(new stream.PassThrough() as any);
+    junitSpy = sandboxStub.spy(JUnitReporter.prototype, 'format');
   });
 
   afterEach(() => {
@@ -278,6 +298,39 @@ describe('Run Apex tests synchronously', () => {
       } catch (e) {
         expect(e.message).to.equal(nls.localize('syncClassErr'));
       }
+    });
+  });
+
+  describe('Create Synchronous Result Files', async () => {
+    it('should create json result file without testRunId for sync runs', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        resultFormats: [ResultFormat.json]
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(syncResult, config);
+
+      expect(
+        createStreamStub.calledWith(join(config.dirPath, `test-result.json`))
+      ).to.be.true;
+      expect(createStreamStub.callCount).to.eql(2);
+    });
+
+    it('should create junit result file without testRunId for sync runs', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        resultFormats: [ResultFormat.junit]
+      } as OutputDirConfig;
+      const testSrv = new TestService(mockConnection);
+      await testSrv.writeResultFiles(syncResult, config);
+
+      expect(
+        createStreamStub.calledWith(
+          join(config.dirPath, `test-result-junit.xml`)
+        )
+      ).to.be.true;
+      expect(junitSpy.calledOnce).to.be.true;
+      expect(createStreamStub.callCount).to.eql(2);
     });
   });
 });

@@ -146,7 +146,8 @@ export default class Run extends SfdxCommand {
         jsonOutput,
         this.flags.outputdir,
         this.flags.resultformat,
-        this.flags.detailedcoverage
+        this.flags.detailedcoverage,
+        this.flags.synchronous
       );
 
       await testService.writeResultFiles(
@@ -175,11 +176,19 @@ export default class Run extends SfdxCommand {
           this.ux.logJson(this.logJson(result));
           break;
         default:
-          const id = result.summary.testRunId;
-          const username = result.summary.username;
-          this.ux.log(
-            messages.getMessage('runTestReportCommand', [id, username])
-          );
+          if (this.flags.synchronous) {
+            this.logHuman(
+              result,
+              this.flags.detailedcoverage,
+              this.flags.outputdir
+            );
+          } else {
+            const id = result.summary.testRunId;
+            const username = result.summary.username;
+            this.ux.log(
+              messages.getMessage('runTestReportCommand', [id, username])
+            );
+          }
       }
     } catch (e) {
       this.ux.logJson(result);

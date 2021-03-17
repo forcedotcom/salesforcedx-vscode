@@ -4,6 +4,89 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+export const rawSyncResult = {
+  summary: {
+    failRate: '0%',
+    testsRan: 1,
+    orgId: '00D4xx00000FH4IEAW',
+    outcome: 'Passed',
+    passing: 10,
+    failing: 0,
+    skipped: 0,
+    passRate: '100%',
+    skipRate: '0%',
+    testStartTime: '2020-08-25T00:48:02.000+0000',
+    testExecutionTimeInMs: 53,
+    commandTimeInMs: 60,
+    testTotalTimeInMs: 53,
+    hostname: 'https://na139.salesforce.com',
+    testRunId: '',
+    userId: '005xx000000uEgSAAU',
+    username: 'test@example.com'
+  },
+  tests: [
+    {
+      id: '07Mxx00000ErgiHUAR',
+      queueItemId: '709xx000001IlUMQA0',
+      stackTrace: null,
+      message: null,
+      asyncApexJobId: '707xx0000AUS2gHQQT',
+      methodName: 'testConfig',
+      outcome: 'Pass',
+      apexLogId: null,
+      apexClass: {
+        id: '01pxx00000NWwb3AAD',
+        name: 'MyApexTests',
+        namespacePrefix: null,
+        fullName: 'MyApexTests'
+      },
+      runTime: 53,
+      testTimestamp: '2020-08-25T00:48:02.000+0000',
+      fullName: 'MyApexTests.testConfig'
+    }
+  ]
+};
+
+export const jsonSyncResult = {
+  summary: {
+    failRate: '0%',
+    testsRan: 1,
+    orgId: '00D4xx00000FH4IEAW',
+    outcome: 'Passed',
+    passing: 10,
+    failing: 0,
+    skipped: 0,
+    passRate: '100%',
+    testStartTime: '2020-08-25T00:48:02.000+0000',
+    testExecutionTime: '53 ms',
+    commandTime: '60 ms',
+    testTotalTime: '53 ms',
+    hostname: 'https://na139.salesforce.com',
+    testRunId: '',
+    userId: '005xx000000uEgSAAU',
+    username: 'test@example.com'
+  },
+  tests: [
+    {
+      Id: '07Mxx00000ErgiHUAR',
+      QueueItemId: '709xx000001IlUMQA0',
+      StackTrace: null,
+      Message: null,
+      AsyncApexJobId: '707xx0000AUS2gHQQT',
+      MethodName: 'testConfig',
+      Outcome: 'Pass',
+      ApexClass: {
+        Id: '01pxx00000NWwb3AAD',
+        Name: 'MyApexTests',
+        NamespacePrefix: null
+      },
+      RunTime: 53,
+      FullName: 'MyApexTests.testConfig'
+    }
+  ]
+};
+
 export const testRunSimple = {
   summary: {
     failRate: '0%',

@@ -1019,7 +1019,6 @@ describe('Run Apex tests asynchronously', () => {
     });
 
     afterEach(() => {
-      timeStub.restore();
       sandboxStub1.restore();
     });
 
