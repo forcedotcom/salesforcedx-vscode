@@ -26,8 +26,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonStub } from 'sinon';
-import Sinon = require('sinon');
+import { createSandbox, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
@@ -207,7 +206,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should call setup cancellation logic', async () => {
       const executor = new TestDeploy();
-      const operationSpy = Sinon.spy(executor, 'setupCancellation' as any);
+      const operationSpy = spy(executor, 'setupCancellation' as any);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
@@ -511,7 +510,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should call setup cancellation logic', async () => {
       const executor = new TestRetrieve();
-      const operationSpy = Sinon.spy(executor, 'setupCancellation' as any);
+      const operationSpy = spy(executor, 'setupCancellation' as any);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 

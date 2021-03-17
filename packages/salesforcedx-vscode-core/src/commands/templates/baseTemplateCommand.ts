@@ -30,7 +30,7 @@ import {
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
-> {
+  > {
   private metadataType: MetadataInfo;
 
   constructor(type: string) {
@@ -70,7 +70,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
       (execution.stderrSubject as any) as Observable<Error | undefined>
     );
     channelService.streamCommandOutput(execution);
-    ProgressNotification.show(execution, cancellationTokenSource);    // ADD a breakpoint!
+    ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
