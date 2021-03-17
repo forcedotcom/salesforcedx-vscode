@@ -1,3 +1,27 @@
+# 51.5.0 - Month DD, YYYY
+
+## Added
+
+#### salesforcedx-sobjects-faux-generator
+
+- Define static representation of subset sobjects @W-8912349@ ([PR #3044](https://github.com/forcedotcom/salesforcedx-vscode/pull/3044))
+
+#### salesforcedx-utils-vscode
+
+- Changes to libraryCommandletExecutor interface to support cancellation ([PR #3054](https://github.com/forcedotcom/salesforcedx-vscode/pull/3054))
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Handle undefined results from describe calls ([PR #3064](https://github.com/forcedotcom/salesforcedx-vscode/pull/3064))
+
+#### salesforcedx-vscode-core
+
+- Update deploy and retrieve beta to use 1.1.19 ([PR #3048](https://github.com/forcedotcom/salesforcedx-vscode/pull/3048))
+
+- Update wording description for deploy retrieve setting ([PR #3043](https://github.com/forcedotcom/salesforcedx-vscode/pull/3043))
+
 # 51.4.0 - March 10, 2021
 
 ## Fixed
