@@ -79,7 +79,7 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
-    "test:ui": "extest setup-and-run -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json out/test/ui-test/*.test.js",
+    "test:ui": "extest setup-and-run -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json -e test/ui-test/resources/extensions out/test/ui-test/*.test.js",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions && npm run test:ui",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
     "prevscode:package": "npm prune --production; npx node-prune",
