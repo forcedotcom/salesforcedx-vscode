@@ -1,3 +1,19 @@
+# 51.5.0 - March 18, 2021
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Handle `undefined` results when running `SFDX: Refresh SObject Definitions` command ([PR #3064](https://github.com/forcedotcom/salesforcedx-vscode/pull/3064), [Issue #3056](https://github.com/forcedotcom/salesforcedx-vscode/issues/3056))
+
+#### salesforcedx-vscode-core
+
+- Fixed issues with deploy retrieve beta: timeout for long running operations, output for multi-file components, and retrieving static resources ([PR #3048](https://github.com/forcedotcom/salesforcedx-vscode/pull/3048))
+
+### docs
+
+- Update description for deploy retrieve beta setting ([PR #3043](https://github.com/forcedotcom/salesforcedx-vscode/pull/3043))
+
 # 51.4.0 - March 10, 2021
 
 ## Fixed
