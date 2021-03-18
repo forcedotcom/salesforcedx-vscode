@@ -138,7 +138,7 @@ describe('ForceGenerateFauxClasses', () => {
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
       expect(telemetryEventStub.calledWith(
-        'Refresh SObjects',
+        'sObjectRefreshNotification',
         { type: SObjectRefreshSource.StartupMin },
         undefined
       )).to.be.true;
