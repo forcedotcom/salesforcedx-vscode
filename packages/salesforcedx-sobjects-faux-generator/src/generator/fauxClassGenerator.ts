@@ -270,6 +270,9 @@ export class FauxClassGenerator {
 
   // VisibleForTesting
   public generateAndWriteFauxClasses(sobjectDecl: SObjectDefinition[], standardSObjectsFolderPath: string) {
+    // This method is different from generateFauxClasses -  generateFauxClasses takes SObject array as input
+    // and to generate that we would need a large definition file. If we go one level more specific, as what
+    // generateAndWriteFauxClasses here requires, simpler declarations we have in the minSObjects.json is good.
     for (const sobject of sobjectDecl) {
       const fauxClassPath = path.join(standardSObjectsFolderPath, sobject.name + '.cls');
       sobject.fields.forEach(field => { field.modifier = 'global'; });
