@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
 import { mkdir, rm } from 'shelljs';
+import * as minSObjectsFromFile from '../../src/data/minSObjects.json';
 import {
   CUSTOMOBJECTS_DIR,
   ERROR_EVENT,
@@ -37,24 +38,6 @@ import { ConfigUtil } from './configUtil';
 
 export const INDENT = '    ';
 const MODIFIER = 'global';
-const startupMinSObjects = [
-  'Account',
-  'Attachment',
-  'Case',
-  'Contact',
-  'Contract',
-  'Lead',
-  'Note',
-  'Opportunity',
-  'Order',
-  'Pricebook2',
-  'PricebookEntry',
-  'Product2',
-  'RecordType',
-  'Report',
-  'Task',
-  'User'
-];
 export interface CancellationToken {
   isCancellationRequested: boolean;
 }
@@ -267,13 +250,6 @@ export class FauxClassGenerator {
     }
     this.cleanupSObjectFolders(sobjectsFolderPath, SObjectCategory.STANDARD);
 
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: await ConfigUtil.getUsername(projectPath)
-      })
-    });
-    const describe = new SObjectDescribe(connection);
-
     if (
       this.cancellationToken &&
       this.cancellationToken.isCancellationRequested
@@ -281,33 +257,34 @@ export class FauxClassGenerator {
       return this.cancelExit();
     }
 
-    let fetchedSObjects: SObject[] = [];
-    try {
-      fetchedSObjects = await describe.fetchObjects(startupMinSObjects);
-    } catch (errorMessage) {
-      return this.errorExit(
-        nls.localize('failure_in_sobject_describe_text', errorMessage)
-      );
+    if (!this.createIfNeededOutputFolder(standardSObjectsFolderPath)) {
+      throw nls.localize('no_sobject_output_folder_text', standardSObjectsFolderPath);
     }
 
-    const standardSObjects: SObject[] = [];
-    // tslint:disable-next-line:prefer-for-of
-    for (let i = 0; i < fetchedSObjects.length; i++) {
-      standardSObjects.push(fetchedSObjects[i]);
-    }
-
-    this.result.data.standardObjects = standardSObjects.length;
-    this.result.data.customObjects = 0;
-
-    this.logFetchedObjects(standardSObjects, []);
-
-    try {
-      this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
-    } catch (errorMessage) {
-      return this.errorExit(errorMessage);
-    }
-
+    const sobjectDecl: SObjectDefinition[] = this.getSObjectSubsetDefinitions();
+    this.generateAndWriteFauxClasses(sobjectDecl, standardSObjectsFolderPath);
+    this.result.data.standardObjects = sobjectDecl.length;
+    this.logSObjects('Standard', sobjectDecl.length);
     return this.successExit();
+  }
+
+  // VisibleForTesting
+  public generateAndWriteFauxClasses(sobjectDecl: SObjectDefinition[], standardSObjectsFolderPath: string) {
+    // This method is different from generateFauxClasses -  generateFauxClasses takes SObject array as input
+    // and to generate that we would need a large definition file. If we go one level more specific, as what
+    // generateAndWriteFauxClasses here requires, simpler declarations we have in the minSObjects.json is good.
+    for (const sobject of sobjectDecl) {
+      const fauxClassPath = path.join(standardSObjectsFolderPath, sobject.name + '.cls');
+      sobject.fields.forEach(field => { field.modifier = 'global'; });
+      fs.writeFileSync(fauxClassPath, this.generateFauxClassTextFromDecls(sobject.name, sobject.fields), {
+        mode: 0o444
+      });
+    }
+  }
+
+  // VisibleForTesting
+  public getSObjectSubsetDefinitions(): SObjectDefinition[] {
+    return minSObjectsFromFile as SObjectDefinition[];
   }
 
   // VisibleForTesting
@@ -488,7 +465,8 @@ export class FauxClassGenerator {
     return declarations;
   }
 
-  private generateFauxClassTextFromDecls(
+  // VisibleForTesting
+  public generateFauxClassTextFromDecls(
     className: string,
     declarations: FieldDeclaration[]
   ): string {
