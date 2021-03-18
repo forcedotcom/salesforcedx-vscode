@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Update deploy and retrieve beta to use 1.1.19 ([PR #3048](https://github.com/forcedotcom/salesforcedx-vscode/pull/3048))
+- Fixed issues with deploy retrieve beta: timeout for long running operations, output for multi-file components, and retrieving static resources ([PR #3048](https://github.com/forcedotcom/salesforcedx-vscode/pull/3048))
 
 ### docs
 
