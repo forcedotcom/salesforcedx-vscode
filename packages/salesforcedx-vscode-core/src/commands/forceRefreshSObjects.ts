@@ -211,7 +211,7 @@ export async function initSObjectDefinitions(projectPath: string) {
     const sobjectFolder = getSObjectsDirectory(projectPath);
     if (!fs.existsSync(sobjectFolder)) {
       telemetryService.sendEventData(
-        'Refresh SObjects',
+        'sObjectRefreshNotification',
         { type: SObjectRefreshSource.Startup },
         undefined
       );
@@ -239,7 +239,7 @@ function getStandardSObjectsDirectory(projectPath: string) {
 export async function checkSObjectsAndRefresh(projectPath: string) {
   if (projectPath && !fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
     telemetryService.sendEventData(
-      'Refresh SObjects',
+      'sObjectRefreshNotification',
       { type: SObjectRefreshSource.StartupMin },
       undefined
     );
