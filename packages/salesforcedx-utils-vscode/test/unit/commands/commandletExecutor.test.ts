@@ -8,6 +8,7 @@
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { assert, createSandbox, SinonSandbox, stub } from 'sinon';
+import { Progress } from 'vscode';
 import { nls } from '../../../src/messages';
 import { ContinueResponse } from '../../../src/types';
 import { MockChannel, vscodeStub } from './mocks';
@@ -102,7 +103,6 @@ describe('LibraryCommandletExecutor', () => {
     expect(showErrStub.called).to.be.true;
   });
 
-  // TODO: Add test for canceled execution notification. Remove canceled class property.
   it('should not show successful or failed notifications if run was cancelled', async () => {
     const showErrStub = sb
       .stub(vscodeStub.window, 'showErrorMessage')
@@ -118,6 +118,38 @@ describe('LibraryCommandletExecutor', () => {
     await cancelledExecutor.execute({ data: { success: true }, type: 'CONTINUE' });
     expect(showErrStub.notCalled).to.be.true;
     expect(showInfoStub.notCalled).to.be.true;
+  });
+
+  it('should show cancelled warning message if run was cancelled', async () => {
+    const cancelStub = sb.stub(vscodeStub.window, 'showWarningMessage' as any);
+    const tokenSource = new vscodeStub.CancellationTokenSource();
+    const reportStub = stub();
+    const progress: Progress<{
+      message?: string;
+      increment?: number;
+    }> = {
+      report: reportStub
+    };
+    const withProgressStub = sb.stub(vscodeStub.window, 'withProgress');
+    withProgressStub.callsFake((options, task) => {
+      task(progress, tokenSource.token);
+    });
+
+    const cancelledExecutor = new TestExecutor(new MockChannel());
+    cancelledExecutor.cancellable = true;
+
+    await cancelledExecutor.execute({ data: { success: true }, type: 'CONTINUE' });
+    tokenSource.cancel();
+
+    expect(withProgressStub.called).to.be.true;
+    expect(withProgressStub.getCall(0).args[0]).to.eql({
+      title: nls.localize('progress_notification_text', 'Test Command'),
+      location: vscodeStub.ProgressLocation.Notification,
+      cancellable: true
+    });
+
+    assert.calledOnce(cancelStub);
+    assert.calledWith(cancelStub, nls.localize('notification_canceled_execution_text', 'Test Command'));
   });
 
   it('should log command event if there were no issues running', async () => {
