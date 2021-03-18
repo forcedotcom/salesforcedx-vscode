@@ -10,7 +10,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -110,7 +110,7 @@ export class ApexTestRunner {
 
   public getTempFolder(): string {
     if (vscode.workspace && vscode.workspace.workspaceFolders) {
-      const apexDir = new TestRunner().getTempFolder(
+      const apexDir = getTestResultsFolder(
         vscode.workspace.workspaceFolders[0].uri.fsPath,
         'apex'
       );
