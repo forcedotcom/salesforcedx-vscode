@@ -110,8 +110,7 @@ describe('ForceGenerateFauxClasses', () => {
   describe('checkSObjectsAndRefresh', () => {
     let sandboxStub: SinonSandbox;
     let existsSyncStub: SinonStub;
-    let notificationStub: SinonStub;
-    let getUsernameStub: SinonStub;
+    let telemetryEventStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
@@ -125,49 +124,33 @@ describe('ForceGenerateFauxClasses', () => {
     beforeEach(() => {
       sandboxStub = createSandbox();
       existsSyncStub = sandboxStub.stub(fs, 'existsSync');
-      notificationStub = sandboxStub.stub(
-        notificationService,
-        'showInformationMessage'
-      );
-      getUsernameStub = sandboxStub.stub();
-      sandboxStub
-        .stub(workspaceContext, 'getConnection')
-        .resolves({ getUsername: getUsernameStub });
+      telemetryEventStub = sandboxStub.stub(telemetryService, 'sendEventData');
     });
 
     afterEach(() => {
       sandboxStub.restore();
     });
 
-    it('Should call notification service when sobjects already exist', async () => {
+    it('Should call forceRefreshSObjects service when sobjects do not exist', async () => {
       existsSyncStub.returns(false);
-      notificationStub.returns('Run SFDX: Refresh SObject Definitions now');
-      getUsernameStub.returns(new Map([['defaultusername', 'Sample']]));
 
       await checkSObjectsAndRefresh(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-      expect(notificationStub.calledOnce).to.be.true;
+      expect(telemetryEventStub.calledWith(
+        'sObjectRefreshNotification',
+        { type: SObjectRefreshSource.StartupMin },
+        undefined
+      )).to.be.true;
     });
 
-    it('Should not call notification service when sobjects already exist', async () => {
+    it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {
       existsSyncStub.returns(true);
-      notificationStub.returns('Run SFDX: Refresh SObject Definitions now');
-      getUsernameStub.returns(new Map([['defaultusername', 'Sample']]));
 
       await checkSObjectsAndRefresh(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-      expect(notificationStub.notCalled).to.be.true;
-    });
-
-    it('Should not call notification service when username not set', async () => {
-      notificationStub.returns('Run SFDX: Refresh SObject Definitions now');
-      getUsernameStub.returns(undefined);
-
-      await checkSObjectsAndRefresh(projectPath);
-
-      expect(notificationStub.notCalled).to.be.true;
+      expect(telemetryEventStub.notCalled).to.be.true;
     });
   });
 
@@ -175,6 +158,7 @@ describe('ForceGenerateFauxClasses', () => {
     let sandboxStub: SinonSandbox;
     let progressStub: SinonStub;
     let generatorStub: SinonStub;
+    let generatorMinStub: SinonStub;
     let logStub: SinonStub;
     let errorStub: SinonStub;
 
@@ -189,6 +173,9 @@ describe('ForceGenerateFauxClasses', () => {
       progressStub = sandboxStub.stub(ProgressNotification, 'show');
       generatorStub = sandboxStub
         .stub(FauxClassGenerator.prototype, 'generate')
+        .returns({ data: expectedData });
+      generatorMinStub = sandboxStub
+        .stub(FauxClassGenerator.prototype, 'generateMin')
         .returns({ data: expectedData });
       logStub = sandboxStub.stub(
         ForceRefreshSObjectsExecutor.prototype,
@@ -210,24 +197,7 @@ describe('ForceGenerateFauxClasses', () => {
     });
 
     it('Should pass response data to generatorMin', async () => {
-      // await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      const generatorMinStub = sandboxStub
-        .stub(FauxClassGenerator.prototype, 'generateMin')
-        .returns({
-          data: {
-            cancelled: false,
-            standardObjects: 16,
-            customObjects: 0
-          }
-        });
-      const executor = new ForceRefreshSObjectsExecutor();
-      await executor.execute({
-        type: 'CONTINUE',
-        data: {
-          category: SObjectCategory.STANDARD,
-          source: SObjectRefreshSource.StartupMin
-        }
-      });
+      await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.CUSTOM);
       expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
         SObjectRefreshSource.StartupMin
       ]);
