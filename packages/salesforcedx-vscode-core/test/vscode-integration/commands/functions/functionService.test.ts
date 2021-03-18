@@ -51,7 +51,8 @@ describe('Function Service', () => {
       },
       customRequest: () => {
         return Promise.resolve();
-      }
+      },
+      getDebugProtocolBreakpoint: () => Promise.resolve(undefined)
     };
 
     it('Should start a debug session and attach to debug port', async () => {

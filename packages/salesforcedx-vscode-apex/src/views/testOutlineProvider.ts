@@ -27,7 +27,7 @@ import {
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { ApexTestMethod } from './lspConverter';
-import { ApexClass, FullTestResult } from './testDataAccessObjects';
+import { FullTestResult } from './testDataAccessObjects';
 
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');

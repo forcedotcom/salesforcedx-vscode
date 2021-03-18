@@ -149,13 +149,14 @@ describe('Force LWC Test Debug - Code Action', () => {
       await forceLwcTestCaseDebug({
         testExecutionInfo
       });
-      const mockDebugSession = {
+      const mockDebugSession: vscode.DebugSession = {
         id: 'mockId',
         type: 'node',
         name: debugConfiguration.name,
         workspaceFolder: debugConfiguration.cwd,
         configuration: debugConfiguration,
-        customRequest: (cmd: string) => Promise.resolve()
+        customRequest: (cmd: string) => Promise.resolve(),
+        getDebugProtocolBreakpoint: breakpoint => Promise.resolve(undefined)
       };
       handleDidStartDebugSession(mockDebugSession);
       handleDidTerminateDebugSession(mockDebugSession);

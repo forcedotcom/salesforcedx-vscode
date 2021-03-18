@@ -52,6 +52,7 @@ To run the change log generator:
 1. Search for `Tasks: Run Task`.
 1. Select `Create Change Log`.
 1. When prompted for the `Release Version` leave the value blank to let the script grab the latest release version for you. If you'd like to use a different value from the latest, this can be provided in this prompt manually.
+1. Verify the changelog entries' workitems in GUS have the correct scheduled builds (Example: offcore.tooling.51.4.0 if the current release is 51.4.0).
 
 ## Merging the Release Branch into Main
 

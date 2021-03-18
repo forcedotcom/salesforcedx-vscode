@@ -35,7 +35,7 @@ const { NotificationService } = proxyquire.noCallThru()(
 
 class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
   constructor(outputChannel: MockChannel, private error?: Error) {
-    super('Test Command', 'test_command', new ChannelService(outputChannel));
+    super('Test Command', 'test_command', outputChannel);
   }
 
   public async run(response: ContinueResponse<{ success: boolean }>) {
@@ -100,6 +100,24 @@ describe('LibraryCommandletExecutor', () => {
     sb.stub(vscodeStub.window, 'withProgress').resolves(false);
     await executor.execute({ data: { success: true }, type: 'CONTINUE' });
     expect(showErrStub.called).to.be.true;
+  });
+
+  // TODO: Add test for canceled execution notification. Remove canceled class property.
+  it('should not show successful or failed notifications if run was cancelled', async () => {
+    const showErrStub = sb
+      .stub(vscodeStub.window, 'showErrorMessage')
+      .resolves(nls.localize('notification_unsuccessful_execution_text'));
+    const showInfoStub = sb
+      .stub(vscodeStub.window, 'showInformationMessage')
+      .resolves(nls.localize('notification_show_in_status_bar_button_text'));
+    const cancelledExecutor = new TestExecutor(new MockChannel());
+    // set private property for testing
+    // @ts-ignore
+    cancelledExecutor.cancelled = true;
+
+    await cancelledExecutor.execute({ data: { success: true }, type: 'CONTINUE' });
+    expect(showErrStub.notCalled).to.be.true;
+    expect(showInfoStub.notCalled).to.be.true;
   });
 
   it('should log command event if there were no issues running', async () => {

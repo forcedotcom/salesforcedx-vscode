@@ -1,3 +1,31 @@
+# 51.5.0 - March 18, 2021
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Handle `undefined` results when running `SFDX: Refresh SObject Definitions` command ([PR #3064](https://github.com/forcedotcom/salesforcedx-vscode/pull/3064), [Issue #3056](https://github.com/forcedotcom/salesforcedx-vscode/issues/3056))
+
+#### salesforcedx-vscode-core
+
+- Fixed issues with deploy retrieve beta: timeout for long running operations, output for multi-file components, and retrieving static resources ([PR #3048](https://github.com/forcedotcom/salesforcedx-vscode/pull/3048))
+
+### docs
+
+- Update description for deploy retrieve beta setting ([PR #3043](https://github.com/forcedotcom/salesforcedx-vscode/pull/3043))
+
+# 51.4.0 - March 10, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Issue with debugging single test method ([PR #3033](https://github.com/forcedotcom/salesforcedx-vscode/pull/3033), [Issue #3026](https://github.com/forcedotcom/salesforcedx-vscode/issues/3026))
+
+#### salesforcedx-vscode-apex
+
+- Switch to Apex output channel automatically after running Apex tests ([PR #3027](https://github.com/forcedotcom/salesforcedx-vscode/pull/3027)), ([Issue #3009](https://github.com/forcedotcom/salesforcedx-vscode/issues/3009))
+
 # 51.3.0 - March 3, 2021
 
 ## Added

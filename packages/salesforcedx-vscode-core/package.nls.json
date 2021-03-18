@@ -63,7 +63,7 @@
   "force_source_retrieve_and_open_display_text": "Retrieve and Open Source",
   "force_diff_against_org": "SFDX: Diff File Against Org",
   "force_analytics_template_create_text": "SFDX: Create Sample Analytics Template",
-  "experimental_deploy_retrieve_description": "Enable performance enhancements to the deploy/retrieve experience.",
+  "experimental_deploy_retrieve_description": "Use library for deploy and retrieve commands instead of the CLI",
   "experimental_apex_library_description": "Use Apex Library for Apex CLI commands",
   "force_function_create": "SFDX: Create Function",
   "experimental_functions_install_dependencies": "Install dependencies from package.json after creating a function",
