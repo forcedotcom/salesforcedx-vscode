@@ -32,27 +32,17 @@ import { ConfigUtil } from './configUtil';
 import {
   DeclarationGenerator,
   FieldDeclaration,
-  MODIFIER
+  MODIFIER,
+  SObjectDefinition
 } from './declarationGenerator';
 import { TypingGenerator } from './typingGenerator';
 
 const TYPING_PATH = ['typings', 'lwc', 'sobjects2'];
 export const INDENT = '    ';
-// const MODIFIER = 'global';
+export const APEX_CLASS_EXTENSION = '.cls';
+
 export interface CancellationToken {
   isCancellationRequested: boolean;
-}
-
-// export interface FieldDeclaration {
-//   modifier: string;
-//   type: string;
-//   name: string;
-//   comment?: string;
-// }
-
-export interface SObjectDefinition {
-  name: string;
-  fields: FieldDeclaration[];
 }
 
 export interface SObjectRefreshResult {
@@ -164,14 +154,18 @@ export class FauxClassGenerator {
       );
     }
 
-    const standardSObjects: SObject[] = [];
-    const customSObjects: SObject[] = [];
+    const standardSObjects: SObjectDefinition[] = [];
+    const customSObjects: SObjectDefinition[] = [];
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < fetchedSObjects.length; i++) {
       if (fetchedSObjects[i].custom) {
-        customSObjects.push(fetchedSObjects[i]);
+        customSObjects.push(
+          this.declGenerator.generateSObjectDefinition(fetchedSObjects[i])
+        );
       } else {
-        standardSObjects.push(fetchedSObjects[i]);
+        standardSObjects.push(
+          this.declGenerator.generateSObjectDefinition(fetchedSObjects[i])
+        );
       }
     }
 
@@ -193,7 +187,10 @@ export class FauxClassGenerator {
     }
 
     try {
-      this.typingGenerator.generate(fetchedSObjects, typingsFolderPath);
+      this.typingGenerator.generate(
+        [...standardSObjects, ...customSObjects],
+        typingsFolderPath
+      );
     } catch (errorMessage) {
       return this.errorExit(errorMessage);
     }
@@ -249,11 +246,11 @@ export class FauxClassGenerator {
     this.result.data.standardObjects = sobjectDecl.length;
     this.logSObjects('Standard', sobjectDecl.length);
 
-    // try {
-    //   this.typingGenerator.generate(fetchedSObjects, typingsFolderPath);
-    // } catch (errorMessage) {
-    //   return this.errorExit(errorMessage);
-    // }
+    try {
+      this.typingGenerator.generate(sobjectDecl, typingsFolderPath);
+    } catch (errorMessage) {
+      return this.errorExit(errorMessage);
+    }
 
     return this.successExit();
   }
@@ -269,18 +266,14 @@ export class FauxClassGenerator {
     for (const sobject of sobjectDecl) {
       const fauxClassPath = path.join(
         standardSObjectsFolderPath,
-        sobject.name + '.cls'
+        sobject.name + APEX_CLASS_EXTENSION
       );
       sobject.fields.forEach(field => {
-        field.modifier = 'global';
+        field.modifier = MODIFIER;
       });
-      fs.writeFileSync(
-        fauxClassPath,
-        this.generateFauxClassTextFromDecls(sobject.name, sobject.fields),
-        {
-          mode: 0o444
-        }
-      );
+      fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
+        mode: 0o444
+      });
     }
   }
 
@@ -290,21 +283,18 @@ export class FauxClassGenerator {
   }
 
   // VisibleForTesting
-  public generateFauxClassText(sobject: SObject): string {
-    const definition = this.declGenerator.generateFieldDeclarations(sobject);
-    return this.generateFauxClassTextFromDecls(
-      definition.name,
-      definition.fields
-    );
-  }
-
-  // VisibleForTesting
-  public generateFauxClass(folderPath: string, sobject: SObject): string {
+  public generateFauxClass(
+    folderPath: string,
+    definition: SObjectDefinition
+  ): string {
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath);
     }
-    const fauxClassPath = path.join(folderPath, sobject.name + '.cls');
-    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(sobject), {
+    const fauxClassPath = path.join(
+      folderPath,
+      definition.name + APEX_CLASS_EXTENSION
+    );
+    fs.writeFileSync(fauxClassPath, this.generateFauxClassText(definition), {
       mode: 0o444
     });
     return fauxClassPath;
@@ -353,22 +343,25 @@ export class FauxClassGenerator {
     return Promise.resolve(this.result);
   }
 
-  private generateFauxClasses(sobjects: SObject[], targetFolder: string): void {
+  private generateFauxClasses(
+    definitions: SObjectDefinition[],
+    targetFolder: string
+  ): void {
     if (!this.createIfNeededOutputFolder(targetFolder)) {
       throw nls.localize('no_sobject_output_folder_text', targetFolder);
     }
-    for (const sobject of sobjects) {
-      if (sobject.name) {
-        this.generateFauxClass(targetFolder, sobject);
+
+    for (const objDef of definitions) {
+      if (objDef.name) {
+        this.generateFauxClass(targetFolder, objDef);
       }
     }
   }
 
   // VisibleForTesting
-  public generateFauxClassTextFromDecls(
-    className: string,
-    declarations: FieldDeclaration[]
-  ): string {
+  public generateFauxClassText(definition: SObjectDefinition): string {
+    let declarations = Array.from(definition.fields);
+    const className = definition.name;
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
     declarations.sort((first, second): number => {
@@ -410,8 +403,8 @@ export class FauxClassGenerator {
   }
 
   private logFetchedObjects(
-    standardSObjects: SObject[],
-    customSObjects: SObject[]
+    standardSObjects: SObjectDefinition[],
+    customSObjects: SObjectDefinition[]
   ) {
     this.logSObjects('Standard', standardSObjects.length);
     this.logSObjects('Custom', customSObjects.length);

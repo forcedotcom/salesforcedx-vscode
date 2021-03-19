@@ -51,8 +51,18 @@ export class DeclarationGenerator {
     ['complexvalue', 'Object']
   ]);
 
-  public generateFieldDeclarations(sobject: SObject): SObjectDefinition {
+  public generateSObjectDefinitions(sobjects: SObject[]): SObjectDefinition[] {
+    const definitions: SObjectDefinition[] = [];
+    for (const sobject of sobjects) {
+      const declarations = this.generateSObjectDefinition(sobject);
+      definitions.push({ name: sobject.name, fields: declarations.fields });
+    }
+    return definitions;
+  }
+
+  public generateSObjectDefinition(sobject: SObject): SObjectDefinition {
     const declarations: FieldDeclaration[] = [];
+
     if (sobject.fields) {
       for (const field of sobject.fields) {
         const decls: FieldDeclaration[] = this.generateField(field);
@@ -73,6 +83,7 @@ export class DeclarationGenerator {
           }
         }
       }
+
       for (const rel of sobject.childRelationships) {
         // handle the odd childRelationships last (without relationshipName)
         if (!rel.relationshipName) {
@@ -83,6 +94,7 @@ export class DeclarationGenerator {
         }
       }
     }
+
     return { name: sobject.name, fields: declarations };
   }
 

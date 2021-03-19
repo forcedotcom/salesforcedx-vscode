@@ -7,51 +7,49 @@
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import { rm } from 'shelljs';
-import { SObject } from '../types';
-import { DeclarationGenerator, FieldDeclaration } from './declarationGenerator';
+import { FieldDeclaration, SObjectDefinition } from './declarationGenerator';
+
+export const TYPESCRIPT_TYPE_EXT = '.d.ts';
 
 export class TypingGenerator {
-  private declGenerator: DeclarationGenerator;
-
-  public constructor() {
-    this.declGenerator = new DeclarationGenerator();
-  }
-
-  public generate(sobjects: SObject[], targetFolder: string): void {
+  public generate(
+    definitions: SObjectDefinition[],
+    targetFolder: string
+  ): void {
     if (!fs.existsSync(targetFolder)) {
       fs.mkdirSync(targetFolder);
     }
 
-    for (const sobject of sobjects) {
-      if (sobject.name) {
-        this.generateTypingForObject(targetFolder, sobject);
+    for (const def of definitions) {
+      if (def.name) {
+        this.generateTypingForDefinition(targetFolder, def);
       }
     }
   }
 
-  public generateTypingForObject(folderPath: string, sobject: SObject): string {
-    const typingPath = path.join(folderPath, sobject.name + '.d.ts');
+  public generateTypingForDefinition(
+    folderPath: string,
+    definition: SObjectDefinition
+  ): string {
+    const typingPath = path.join(
+      folderPath,
+      definition.name + TYPESCRIPT_TYPE_EXT
+    );
     if (fs.existsSync(typingPath)) {
-      rm('-rf', typingPath);
+      fs.unlinkSync(typingPath);
     }
 
-    fs.writeFileSync(typingPath, this.generateTypingContent(sobject), {
+    fs.writeFileSync(typingPath, this.convertDeclarations(definition), {
       mode: 0o444
     });
 
     return typingPath;
   }
 
-  public generateTypingContent(sobject: SObject): string {
-    const definition = this.declGenerator.generateFieldDeclarations(sobject);
-    return this.convertDeclarations(definition.name, definition.fields);
-  }
+  private convertDeclarations(definition: SObjectDefinition): string {
+    const className = definition.name;
+    let declarations = Array.from(definition.fields);
 
-  private convertDeclarations(
-    className: string,
-    declarations: FieldDeclaration[]
-  ): string {
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
     declarations.sort((first, second): number => {
