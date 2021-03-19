@@ -16,6 +16,8 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import {
   ComponentSet,
   DeployResult,
+  MetadataApiDeploy,
+  MetadataApiRetrieve,
   MetadataComponent,
   MetadataResolver,
   registryData,
@@ -28,6 +30,7 @@ import {
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join, sep } from 'path';
+import * as vscode from 'vscode';
 import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
@@ -40,15 +43,26 @@ import { createComponentCount } from './util';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
+type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 export abstract class DeployRetrieveExecutor<
   T
-> extends LibraryCommandletExecutor<T> {
+  > extends LibraryCommandletExecutor<T> {
+
+  protected cancellable: boolean = true;
+
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
   }
 
-  public async run(response: ContinueResponse<T>): Promise<boolean> {
+  public async run(
+    response: ContinueResponse<T>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
     let result: DeployRetrieveResult | undefined;
 
     try {
@@ -59,7 +73,7 @@ export abstract class DeployRetrieveExecutor<
         JSON.stringify(createComponentCount(components))
       );
 
-      result = await this.doOperation(components);
+      result = await this.doOperation(components, token);
 
       const status = this.getStatus(result);
 
@@ -98,11 +112,19 @@ export abstract class DeployRetrieveExecutor<
       : result?.status;
   }
 
+  protected setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+    if (token && operation) {
+      token.onCancellationRequested(() => {
+        operation.cancel();
+      });
+    }
+  }
+
   protected abstract getComponents(
     response: ContinueResponse<T>
   ): Promise<ComponentSet>;
   protected abstract doOperation(
-    components: ComponentSet
+    components: ComponentSet, token?: vscode.CancellationToken
   ): Promise<DeployRetrieveResult | undefined>;
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
@@ -111,13 +133,16 @@ export abstract class DeployRetrieveExecutor<
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
-    components: ComponentSet
+    components: ComponentSet, token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    return components
+    const operation = components
       .deploy({
         usernameOrConnection: await workspaceContext.getConnection()
-      })
-      .start();
+      });
+
+    this.setupCancellation(operation, token);
+
+    return operation.start();
   }
 
   protected async postOperation(
@@ -192,7 +217,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
-    components: ComponentSet
+    components: ComponentSet, token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
     const connection = await workspaceContext.getConnection();
 
@@ -215,13 +240,16 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    return components
+    const operation = components
       .retrieve({
         usernameOrConnection: connection,
         output: defaultOutput,
         merge: true
-      })
-      .start();
+      });
+
+    this.setupCancellation(operation, token);
+
+    return operation.start();
   }
 
   protected async postOperation(
