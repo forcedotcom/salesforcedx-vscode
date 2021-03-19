@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { TelemetryData } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
@@ -16,20 +15,23 @@ import {
   ContinueResponse,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentSet,
+  RetrieveResult,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
+import { SourceRetrieveResult } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
-import { channelService, OUTPUT_CHANNEL } from '../../channels';
-import { workspaceContext } from '../../context';
+import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
+import { RetrieveExecutor } from '../baseDeployRetrieve';
 import {
-  createComponentCount,
-  createRetrieveOutput,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker,
@@ -138,53 +140,63 @@ export class ForceSourceRetrieveExecutor extends SfdxCommandletExecutor<
     }
   }
 }
-export class LibraryRetrieveSourcePathExecutor extends LibraryCommandletExecutor<
+export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   LocalComponent[]
 > {
   private openAfterRetrieve: boolean;
 
   constructor(openAfterRetrieve = false) {
-    super('Retrieve (Beta)', 'force_source_retrieve_beta', OUTPUT_CHANNEL);
+    super(
+      nls.localize('force_source_retrieve_text'),
+      'force_source_retrieve_beta'
+    );
     this.openAfterRetrieve = openAfterRetrieve;
   }
 
-  public async run(
+  protected async getComponents(
     response: ContinueResponse<LocalComponent[]>
-  ): Promise<boolean> {
-    const dirPath = (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
-    const output = path.join(getRootWorkspacePath(), dirPath);
-    const comps: LocalComponent[] = response.data;
-
-    const components = new ComponentSet(
-      comps.map(lc => ({ fullName: lc.fileName, type: lc.type }))
+  ): Promise<ComponentSet> {
+    const filter = new ComponentSet(
+      response.data.map(lc => ({ fullName: lc.fileName, type: lc.type }))
     );
-
-    const metadataCount = JSON.stringify(createComponentCount(components));
-    this.telemetry.addProperty('metadataCount', metadataCount);
-
-    const connection = await workspaceContext.getConnection();
-    const result = await components.retrieve(connection, output, {
-      merge: true
-    });
-
-    if (result.success && this.openAfterRetrieve) {
-      const compSet = ComponentSet.fromSource(output);
-      await this.openResources(
-        this.findResources(Array.from(components)[0], compSet)
-      );
+    const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+    for (const dir of packageDirs) {
+      filter.resolveSourceComponents(dir, { filter });
     }
+    return filter;
+  }
 
-    channelService.appendLine(createRetrieveOutput(result, [dirPath]));
+  protected async postOperation(
+    result: RetrieveResult | SourceRetrieveResult | undefined
+  ) {
+    await super.postOperation(result);
 
-    return result.success;
+    // assumes opening only one component
+    if (result && this.openAfterRetrieve) {
+      let componentToOpen: SourceComponent | undefined;
+
+      if (result instanceof RetrieveResult) {
+        componentToOpen = result.components.getSourceComponents().first();
+      } else {
+        componentToOpen = result.successes[0]?.component;
+      }
+
+      if (componentToOpen) {
+        const dirPath =
+          (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
+        const defaultOutput = path.join(getRootWorkspacePath(), dirPath);
+        const compSet = ComponentSet.fromSource(defaultOutput);
+        await this.openResources(this.findResources(componentToOpen, compSet));
+      }
+    }
   }
 
   private findResources(
     filter: ComponentLike,
     compSet?: ComponentSet
   ): string[] {
-    if (compSet && compSet?.size > 0) {
-      const oneComp = compSet.getSourceComponents(filter).next().value;
+    if (compSet && compSet.size > 0) {
+      const oneComp = compSet.getSourceComponents(filter).first();
 
       const filesToOpen = [];
       if (oneComp) {

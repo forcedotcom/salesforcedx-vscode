@@ -18,6 +18,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { handleDiagnosticErrors } from '../diagnostics';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
@@ -67,7 +68,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
           components.resolveSourceComponents(fsPath);
         }
         const metadataCount = JSON.stringify(createComponentCount(components));
-        telemetry.addProperty('metadataCount', metadataCount);
+        telemetry.addProperty(TELEMETRY_METADATA_COUNT, metadataCount);
       } catch (e) {
         telemetryService.sendException(
           e.name,

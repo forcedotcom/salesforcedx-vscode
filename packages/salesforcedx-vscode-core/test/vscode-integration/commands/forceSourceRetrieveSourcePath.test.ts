@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentSet,
+  registryData,
+  SourceComponent
+} from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -24,23 +28,83 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { getRootWorkspacePath } from '../../../src/util';
+
+const sb = createSandbox();
+const $$ = testSetup();
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
-  it('Should build the source retrieve command', () => {
-    const sourcePath = path.join('path', 'to', 'sourceFile');
-    const sourceRetrieve = new ForceSourceRetrieveSourcePathExecutor();
-    const sourceRetrieveCommand = sourceRetrieve.build(sourcePath);
-    expect(sourceRetrieveCommand.toCommand()).to.equal(
-      `sfdx force:source:retrieve --sourcepath ${sourcePath}`
-    );
-    expect(sourceRetrieveCommand.description).to.equal(
-      nls.localize('force_source_retrieve_text')
-    );
+  describe('CLI Executor', () => {
+    it('Should build the source retrieve command', () => {
+      const sourcePath = path.join('path', 'to', 'sourceFile');
+      const sourceRetrieve = new ForceSourceRetrieveSourcePathExecutor();
+      const sourceRetrieveCommand = sourceRetrieve.build(sourcePath);
+      expect(sourceRetrieveCommand.toCommand()).to.equal(
+        `sfdx force:source:retrieve --sourcepath ${sourcePath}`
+      );
+      expect(sourceRetrieveCommand.description).to.equal(
+        nls.localize('force_source_retrieve_text')
+      );
+    });
+  });
+
+  describe('Library Executor', () => {
+    let mockConnection: Connection;
+    let retrieveStub: SinonStub;
+    let startStub: SinonStub;
+
+    const defaultPackage = 'test-app';
+
+    beforeEach(async () => {
+      const testData = new MockTestOrgData();
+      $$.setConfigStubContents('AuthInfoConfig', {
+        contents: await testData.getConfig()
+      });
+      mockConnection = await Connection.create({
+        authInfo: await AuthInfo.create({
+          username: testData.username
+        })
+      });
+      sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
+        defaultPackage
+      );
+      startStub = sb.stub();
+    });
+
+    afterEach(() => {
+      sb.restore();
+    });
+
+    it('should retrieve with a file path', async () => {
+      const executor = new LibraryRetrieveSourcePathExecutor();
+      const fsPath = path.join('layouts', 'MyLayout.layout-meta.xml');
+
+      const toRetrieve = new ComponentSet([
+        new SourceComponent({
+          name: 'MyLayout',
+          type: registryData.types.layout,
+          xml: fsPath
+        })
+      ]);
+      sb.stub(ComponentSet, 'fromSource')
+        .withArgs(fsPath)
+        .returns(toRetrieve);
+      retrieveStub = sb
+        .stub(toRetrieve, 'retrieve')
+        .returns({ start: startStub });
+
+      await executor.run({ data: fsPath, type: 'CONTINUE' });
+
+      expect(retrieveStub.calledOnce).to.equal(true);
+      expect(retrieveStub.firstCall.args[0]).to.deep.equal({
+        usernameOrConnection: mockConnection,
+        output: path.join(getRootWorkspacePath(), defaultPackage),
+        merge: true
+      });
+      expect(startStub.calledOnce).to.equal(true);
+    });
   });
 });
 
@@ -117,60 +181,5 @@ describe('SourcePathChecker', () => {
     expect(showErrorMessageSpy.getCall(0).args[0]).to.equal(errorMessage);
     expect(cancelResponse.type).to.equal('CANCEL');
     isInPackageDirectoryStub.restore();
-  });
-});
-
-describe('Source Retrieve Beta', () => {
-  // Setup the test environment.
-  const $$ = testSetup();
-  const testData = new MockTestOrgData();
-
-  let mockConnection: Connection;
-  let sb: SinonSandbox;
-
-  beforeEach(async () => {
-    sb = createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
-    });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
-    sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
-      .withArgs('defaultusername')
-      .returns(testData.username);
-  });
-
-  afterEach(() => {
-    $$.SANDBOX.restore();
-    sb.restore();
-  });
-
-  it('should get the namespace value from sfdx-project.json', async () => {
-    sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias').returns(
-      testData.username
-    );
-    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
-    const getNamespace = sb.stub(SfdxProjectConfig, 'getValue').returns('diFf');
-    const getComponentsStub = sb.stub(
-      ComponentSet.prototype,
-      'resolveSourceComponents'
-    );
-    const executor = new LibraryRetrieveSourcePathExecutor();
-    const filePath = path.join(
-      'test',
-      'file',
-      'path',
-      'classes',
-      'apexTest.cls'
-    );
-    await executor.execute({ type: 'CONTINUE', data: filePath });
-    // tslint:disable-next-line:no-unused-expression
-    expect(getComponentsStub.calledWith(filePath)).to.be.true;
-    expect(getNamespace.calledOnce).to.equal(true);
-    // NOTE: There's currently a limitation on source deploy retrieve that prevents
-    // us mocking SourceClinet.tooling.deploy. We'll look into updating the library and this test.
   });
 });
