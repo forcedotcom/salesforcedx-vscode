@@ -39,17 +39,22 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
+    let channel = undefined;
     if (this.outputChannel) {
-      const channel = new ChannelService(this.outputChannel);
+      channel = new ChannelService(this.outputChannel);
       channel.streamCommandOutput(execution);
       if (this.showChannelOutput) {
         channel.showChannelOutput();
       }
     }
-    notificationService.reportCommandExecutionStatus(
+    let res = notificationService.reportCommandExecutionStatus(
       execution,
+      // channel,
       cancellationToken
     );
+    if (res && channel && this.showChannelOutput) {
+      channel.showChannelOutput();
+    }
     ProgressNotification.show(execution, cancellationTokenSource);
   }
 
@@ -189,9 +194,12 @@ export abstract class LibraryCommandletExecutor<T>
 
       if (!this.cancelled) {
         if (success) {
-          notificationService
+          let res = notificationService
             .showSuccessfulExecution(this.executionName)
             .catch(e => console.error(e));
+          if (res && this.showChannelOutput) {
+            channelService.showChannelOutput();
+          }
         } else {
           notificationService.showFailedExecution(this.executionName);
         }
