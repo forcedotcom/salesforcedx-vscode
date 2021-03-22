@@ -76,7 +76,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', channelService, observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
       assert.calledWith(
@@ -104,7 +108,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus('mock command', channelService, observable);
+    await notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     assert.calledWith(
       mShowInformation,
@@ -132,7 +140,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', channelService, observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
       assert.notCalled(mShow);
@@ -163,7 +175,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', channelService, observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
       assert.calledWith(
@@ -190,7 +206,7 @@ describe('Notifications', () => {
       'mock command',
       channelService,
       observable,
-      cancellationTokenSource.token,
+      cancellationTokenSource.token
     );
 
     cancellationTokenSource.cancel();
@@ -210,7 +226,11 @@ describe('Notifications', () => {
     observable.next(ABNORMAL_EXIT);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', channelService, observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
       assert.notCalled(mShow);

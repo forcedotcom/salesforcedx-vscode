@@ -39,7 +39,7 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
-    let channel = undefined;
+    let channel;
     if (this.outputChannel) {
       channel = new ChannelService(this.outputChannel);
       channel.streamCommandOutput(execution);
