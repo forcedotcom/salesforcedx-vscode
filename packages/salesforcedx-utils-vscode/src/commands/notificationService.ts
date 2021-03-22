@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import Channel = require('applicationinsights/out/Library/Channel');
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CommandExecution } from '../cli';
@@ -58,15 +56,15 @@ export class NotificationService {
     return vscode.window.showWarningMessage(message, { modal: true }, ...items);
   }
 
-  public async reportCommandExecutionStatus(
+  public reportCommandExecutionStatus(
     execution: CommandExecution,
-    // channelService: ChannelService | undefined,
+    channelService: ChannelService | undefined,
     cancellationToken?: vscode.CancellationToken
-  ): Promise<boolean> {
+  ) {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
-    let showOutputView = this.reportExecutionStatus(
+    this.reportExecutionStatus(
       execution.command.toString(),
-      // channelService,
+      channelService,
       (execution.processExitSubject as any) as Observable<number | undefined>,
       cancellationToken
     );
@@ -74,19 +72,17 @@ export class NotificationService {
       execution.command.toString(),
       (execution.processErrorSubject as any) as Observable<Error | undefined>
     );
-    return showOutputView;
   }
 
-  public async reportExecutionStatus(
+  public reportExecutionStatus(
     executionName: string,
-    // channelService: ChannelService | undefined,
+    channelService: ChannelService | undefined,
     observable: Observable<number | undefined>,
     cancellationToken?: vscode.CancellationToken
-  ): Promise<boolean> {
-    let showOutputView = false;
+  ) {
     observable.subscribe(async data => {
       if (data !== undefined && String(data) === '0') {
-        showOutputView = await this.showSuccessfulExecution(executionName);
+        await this.showSuccessfulExecution(executionName, channelService);
       } else if (data !== null) {
         this.showFailedExecution(executionName);
       }
@@ -96,7 +92,6 @@ export class NotificationService {
         this.showCanceledExecution(executionName);
       });
     }
-    return showOutputView;
   }
 
   public showFailedExecution(executionName: string) {
@@ -111,7 +106,7 @@ export class NotificationService {
     );
   }
 
-  public async showSuccessfulExecution(executionName: string): Promise<boolean> {
+  public async showSuccessfulExecution(executionName: string, channelService: ChannelService | undefined) {
     const message = nls.localize(
       'notification_successful_execution_text',
       executionName
@@ -130,8 +125,8 @@ export class NotificationService {
         showOnlyStatusBarButtonText
       );
       if (selection) {
-        if (selection === showButtonText) {
-          return true;
+        if (selection === showButtonText && channelService) {
+          channelService.showChannelOutput();
         } else if (selection === showOnlyStatusBarButtonText) {
           await vscode.workspace
             .getConfiguration('salesforcedx-vscode-core')
@@ -141,7 +136,6 @@ export class NotificationService {
     } else {
       vscode.window.setStatusBarMessage(message, STATUS_BAR_MSG_TIMEOUT_MS);
     }
-    return false;
   }
 
   public reportExecutionError(

@@ -47,14 +47,11 @@ export abstract class SfdxCommandletExecutor<T>
         channel.showChannelOutput();
       }
     }
-    let res = notificationService.reportCommandExecutionStatus(
+    notificationService.reportCommandExecutionStatus(
       execution,
-      // channel,
+      channel,
       cancellationToken
     );
-    if (res && channel && this.showChannelOutput) {
-      channel.showChannelOutput();
-    }
     ProgressNotification.show(execution, cancellationTokenSource);
   }
 
@@ -194,12 +191,9 @@ export abstract class LibraryCommandletExecutor<T>
 
       if (!this.cancelled) {
         if (success) {
-          let res = notificationService
-            .showSuccessfulExecution(this.executionName)
+          notificationService
+            .showSuccessfulExecution(this.executionName, channelService)
             .catch(e => console.error(e));
-          if (res && this.showChannelOutput) {
-            channelService.showChannelOutput();
-          }
         } else {
           notificationService.showFailedExecution(this.executionName);
         }
