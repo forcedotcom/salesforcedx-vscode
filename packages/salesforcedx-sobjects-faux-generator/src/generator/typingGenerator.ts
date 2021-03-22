@@ -33,7 +33,7 @@ export class TypingGenerator {
   ): string {
     const typingPath = path.join(
       folderPath,
-      definition.name + TYPESCRIPT_TYPE_EXT
+      `${definition.name}${TYPESCRIPT_TYPE_EXT}`
     );
     if (fs.existsSync(typingPath)) {
       fs.unlinkSync(typingPath);

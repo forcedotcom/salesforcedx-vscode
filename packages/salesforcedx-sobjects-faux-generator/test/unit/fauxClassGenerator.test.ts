@@ -13,10 +13,7 @@ import { join } from 'path';
 import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
-import {
-  DeclarationGenerator,
-  SObjectDefinition
-} from '../../src/generator/declarationGenerator';
+import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import {
   FauxClassGenerator,
   INDENT

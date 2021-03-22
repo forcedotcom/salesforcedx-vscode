@@ -37,7 +37,7 @@ import {
 } from './declarationGenerator';
 import { TypingGenerator } from './typingGenerator';
 
-const TYPING_PATH = ['typings', 'lwc', 'sobjects2'];
+const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 export const INDENT = '    ';
 export const APEX_CLASS_EXTENSION = '.cls';
 
@@ -57,6 +57,8 @@ export interface SObjectRefreshResult {
 }
 
 export class FauxClassGenerator {
+  private shouldGenerateTypes = false;
+
   private static fieldDeclToString(decl: FieldDeclaration): string {
     return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${
       decl.modifier
@@ -186,13 +188,15 @@ export class FauxClassGenerator {
       return this.errorExit(errorMessage);
     }
 
-    try {
-      this.typingGenerator.generate(
-        [...standardSObjects, ...customSObjects],
-        typingsFolderPath
-      );
-    } catch (errorMessage) {
-      return this.errorExit(errorMessage);
+    if (this.shouldGenerateTypes) {
+      try {
+        this.typingGenerator.generate(
+          [...standardSObjects, ...customSObjects],
+          typingsFolderPath
+        );
+      } catch (errorMessage) {
+        return this.errorExit(errorMessage);
+      }
     }
 
     return this.successExit();
@@ -246,10 +250,12 @@ export class FauxClassGenerator {
     this.result.data.standardObjects = sobjectDecl.length;
     this.logSObjects('Standard', sobjectDecl.length);
 
-    try {
-      this.typingGenerator.generate(sobjectDecl, typingsFolderPath);
-    } catch (errorMessage) {
-      return this.errorExit(errorMessage);
+    if (this.shouldGenerateTypes) {
+      try {
+        this.typingGenerator.generate(sobjectDecl, typingsFolderPath);
+      } catch (errorMessage) {
+        return this.errorExit(errorMessage);
+      }
     }
 
     return this.successExit();
@@ -266,7 +272,7 @@ export class FauxClassGenerator {
     for (const sobject of sobjectDecl) {
       const fauxClassPath = path.join(
         standardSObjectsFolderPath,
-        sobject.name + APEX_CLASS_EXTENSION
+        `${sobject.name}${APEX_CLASS_EXTENSION}`
       );
       sobject.fields.forEach(field => {
         field.modifier = MODIFIER;
@@ -292,7 +298,7 @@ export class FauxClassGenerator {
     }
     const fauxClassPath = path.join(
       folderPath,
-      definition.name + APEX_CLASS_EXTENSION
+      `${definition.name}${APEX_CLASS_EXTENSION}`
     );
     fs.writeFileSync(fauxClassPath, this.generateFauxClassText(definition), {
       mode: 0o444
