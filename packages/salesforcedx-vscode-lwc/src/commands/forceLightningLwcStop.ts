@@ -25,7 +25,7 @@ export async function forceLightningLwcStop() {
       );
       await DevServerService.instance.stopServer();
       notificationService
-        .showSuccessfulExecution(nls.localize('force_lightning_lwc_stop_text'))
+        .showSuccessfulExecution(nls.localize('force_lightning_lwc_stop_text'), channelService)
         .catch();
       telemetryService.sendCommandEvent(logName, startTime);
     } else {

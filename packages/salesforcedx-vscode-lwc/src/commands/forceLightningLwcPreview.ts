@@ -559,7 +559,7 @@ async function executeMobilePreview(
       showError(new Error(message), logName, commandName);
     } else if (!isAndroid) {
       notificationService
-        .showSuccessfulExecution(previewExecution.command.toString())
+        .showSuccessfulExecution(previewExecution.command.toString(), channelService)
         .catch();
       vscode.window.showInformationMessage(
         nls.localize('force_lightning_lwc_ios_start', targetDevice)
@@ -573,7 +573,7 @@ async function executeMobilePreview(
     previewExecution.stdoutSubject.subscribe(async data => {
       if (data && data.toString().includes(androidSuccessString)) {
         notificationService
-          .showSuccessfulExecution(previewExecution.command.toString())
+          .showSuccessfulExecution(previewExecution.command.toString(), channelService)
           .catch();
         vscode.window.showInformationMessage(
           nls.localize('force_lightning_lwc_android_start', targetDevice)

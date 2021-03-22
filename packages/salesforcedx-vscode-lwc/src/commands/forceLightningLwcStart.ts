@@ -106,7 +106,7 @@ export class ForceLightningLwcStartExecutor extends SfdxCommandletExecutor<{}> {
       if (!serverStarted && data && data.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
-        notificationService.showSuccessfulExecution(executionName).catch();
+        notificationService.showSuccessfulExecution(executionName, channelService).catch();
 
         DevServerService.instance.setBaseUrlFromDevServerUpMessage(
           data.toString()

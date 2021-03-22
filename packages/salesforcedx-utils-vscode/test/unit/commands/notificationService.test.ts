@@ -9,7 +9,7 @@ import * as proxyquire from 'proxyquire';
 import { ReplaySubject } from 'rxjs/ReplaySubject';
 import { assert, SinonStub, stub } from 'sinon';
 import { nls } from '../../../src/messages';
-import { vscodeStub } from './mocks';
+import { MockChannel, vscodeStub } from './mocks';
 
 const { NotificationService } = proxyquire.noCallThru()(
   '../../../src/commands',
@@ -17,6 +17,10 @@ const { NotificationService } = proxyquire.noCallThru()(
     vscode: vscodeStub
   }
 );
+
+const { ChannelService } = proxyquire.noCallThru()('../../../src/commands', {
+  vscode: vscodeStub
+});
 
 const SHOW_BUTTON_TEXT = nls.localize('notification_show_button_text');
 const SHOW_ONLY_STATUS_BAR_BUTTON_TEXT = nls.localize(
@@ -28,10 +32,14 @@ describe('Notifications', () => {
   let mShowInformation: SinonStub;
   let mShowWarningMessage: SinonStub;
   let mShowErrorMessage: SinonStub;
+  let mShow: SinonStub;
   let mStatusBar: SinonStub;
   let settings: SinonStub;
+  let mChannel;
+  let channelService: SinonStub;
 
   beforeEach(() => {
+    mShow = stub(ChannelService.prototype, 'showChannelOutput');
     mShowInformation = stub(
       vscodeStub.window,
       'showInformationMessage'
@@ -50,9 +58,12 @@ describe('Notifications', () => {
       get: () => true,
       update: () => {}
     });
+    mChannel = new MockChannel();
+    channelService = new ChannelService(mChannel);
   });
 
   afterEach(() => {
+    mShow.restore();
     mShowInformation.restore();
     mShowWarningMessage.restore();
     mShowErrorMessage.restore();
@@ -65,7 +76,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
       assert.calledWith(
@@ -74,6 +89,7 @@ describe('Notifications', () => {
         SHOW_BUTTON_TEXT,
         SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
       );
+      assert.notCalled(mShow);
       assert.notCalled(mShowWarningMessage);
       assert.notCalled(mShowErrorMessage);
       assert.notCalled(mStatusBar);
@@ -92,7 +108,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    await notificationService.reportExecutionStatus('mock command', observable);
+    await notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     assert.calledWith(
       mShowInformation,
@@ -100,6 +120,7 @@ describe('Notifications', () => {
       SHOW_BUTTON_TEXT,
       SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
     );
+    assert.calledOnce(mShow);
     assert.notCalled(mShowWarningMessage);
     assert.notCalled(mShowErrorMessage);
     assert.notCalled(mStatusBar);
@@ -119,9 +140,14 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
+      assert.notCalled(mShow);
       assert.notCalled(mShowInformation);
       assert.notCalled(mShowWarningMessage);
       assert.notCalled(mShowErrorMessage);
@@ -149,7 +175,11 @@ describe('Notifications', () => {
     observable.next(0);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
       assert.calledWith(
@@ -158,6 +188,7 @@ describe('Notifications', () => {
         SHOW_BUTTON_TEXT,
         SHOW_ONLY_STATUS_BAR_BUTTON_TEXT
       );
+      assert.notCalled(mShow);
       assert.notCalled(mShowWarningMessage);
       assert.notCalled(mShowErrorMessage);
       assert.notCalled(mStatusBar);
@@ -173,6 +204,7 @@ describe('Notifications', () => {
     const notificationService = NotificationService.getInstance();
     notificationService.reportExecutionStatus(
       'mock command',
+      channelService,
       observable,
       cancellationTokenSource.token
     );
@@ -180,6 +212,7 @@ describe('Notifications', () => {
     cancellationTokenSource.cancel();
 
     setTimeout(() => {
+      assert.notCalled(mShow);
       assert.notCalled(mShowInformation);
       assert.calledWith(mShowWarningMessage, 'mock command was canceled');
       assert.notCalled(mShowErrorMessage);
@@ -193,9 +226,14 @@ describe('Notifications', () => {
     observable.next(ABNORMAL_EXIT);
 
     const notificationService = NotificationService.getInstance();
-    notificationService.reportExecutionStatus('mock command', observable);
+    notificationService.reportExecutionStatus(
+      'mock command',
+      channelService,
+      observable
+    );
 
     setTimeout(() => {
+      assert.notCalled(mShow);
       assert.notCalled(mShowInformation);
       assert.notCalled(mShowWarningMessage);
       assert.calledWith(mShowErrorMessage, 'mock command failed to run');
@@ -212,6 +250,7 @@ describe('Notifications', () => {
     notificationService.reportExecutionError('mock command', observable);
 
     setTimeout(() => {
+      assert.notCalled(mShow);
       assert.notCalled(mShowInformation);
       assert.notCalled(mShowWarningMessage);
       assert.calledWith(mShowErrorMessage, 'mock command failed to run');

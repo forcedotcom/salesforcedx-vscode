@@ -124,6 +124,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
 
     notificationService.reportCommandExecutionStatus(
       execution,
+      channelService,
       cancellationToken
     );
 
