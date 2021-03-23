@@ -20,15 +20,25 @@ import {
 } from 'vscode-extension-tester';
 
 // tslint:disable-next-line:only-arrow-functions
-describe('In project folder, SOQL files should', function () {
+describe('In project folder, SOQL files should', function() {
   this.timeout(55000);
   let browser: VSBrowser;
   let driver: WebDriver;
-  let webviewEditor: Editor;
-  let webview: WebView;
-  let editorView: EditorView;
-  let editor: TextEditor;
-  const folderPath = path.resolve(__dirname, '..', '..', '..', 'test', 'ui-test', 'resources', 'sfdx-test-project') + path.sep;
+  // let webviewEditor: Editor;
+  // let webview: WebView;
+  // let editorView: EditorView;
+  // let editor: TextEditor;
+  const folderPath =
+    path.resolve(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'test',
+      'ui-test',
+      'resources',
+      'sfdx-test-project'
+    ) + path.sep;
   const filename = 'example.soql';
 
   const openFolder = async (folder: string) => {
@@ -43,7 +53,7 @@ describe('In project folder, SOQL files should', function () {
     await input.setText(folder);
     await input.confirm();
     await pause(3000);
-  }
+  };
 
   const openSoqlFile = async (folder: string, fn: string) => {
     const workbench = new Workbench();
@@ -54,7 +64,7 @@ describe('In project folder, SOQL files should', function () {
       const input = await InputBox.create();
       await input.setText(path.resolve(folder, fn));
       await input.confirm();
-      await pause(1000);
+      await pause(5000);
     }
   };
 
@@ -63,12 +73,17 @@ describe('In project folder, SOQL files should', function () {
     await editorView.openEditor(editorTitle);
 
     // find toggle action and click
-    const actionToolbar = await editorView.findElement(By.className('editor-actions'));
+    const actionToolbar = await editorView.findElement(
+      By.className('editor-actions')
+    );
     const actions = await actionToolbar.findElements(By.className('codicon'));
     let toggle = undefined;
     for (let i = 0; i < actions.length; i++) {
       const action = actions[i];
-      if (await action.getAttribute('title') === 'Switch Between SOQL Builder and Text Editor') {
+      if (
+        (await action.getAttribute('title')) ===
+        'Switch Between SOQL Builder and Text Editor'
+      ) {
         toggle = action;
         break;
       }
@@ -90,9 +105,7 @@ describe('In project folder, SOQL files should', function () {
     await openFolder(folderPath);
   });
 
-  after(async () => {
-
-  });
+  after(async () => {});
 
   beforeEach(async () => {
     const editorView = new EditorView();
@@ -118,7 +131,7 @@ describe('In project folder, SOQL files should', function () {
     await webview.switchToFrame();
     const qbApp = await webview.findWebElement(By.css('querybuilder-app'));
     expect(qbApp).is.not.undefined;
-    // TODO: do we need to check for individual form elements? 
+    // TODO: do we need to check for individual form elements?
     //       they are in the shadow DOM and harder to find with webdriver
     await webview.switchBack();
 
@@ -126,5 +139,4 @@ describe('In project folder, SOQL files should', function () {
 
     return Promise.resolve();
   });
-
 });
