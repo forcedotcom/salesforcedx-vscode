@@ -23,13 +23,13 @@ import {
 import { SObjectDescribe } from '../../src/describe';
 import {
   FauxClassGenerator,
-  SObjectDefinition,
   SObjectRefreshResult
 } from '../../src/generator/fauxClassGenerator';
+import { SObjectDefinition } from '../../src/generator/types';
 import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
 import { CancellationTokenSource } from './integrationTestUtil';
-import { mockBatchResponse, mockDescribeResponse } from './mockData';
+import { mockDescribeResponse } from './mockData';
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CONNECTION_DATA = {
@@ -225,6 +225,8 @@ describe('Generate faux classes for SObjects', () => {
   describe('Check results', () => {
     beforeEach(() => {
       env.stub(fs, 'existsSync').returns(true);
+      env.stub(fs, 'unlinkSync');
+      env.stub(fs, 'writeFileSync');
       env.stub(Connection.prototype, 'request').resolves(mockDescribeResponse);
       env.stub(FauxClassGenerator.prototype, 'generateFauxClass');
       env
@@ -273,12 +275,14 @@ describe('Generate faux classes for SObjects', () => {
 
   describe('Check generateMin results', () => {
     beforeEach(() => {
-      const sObjectDefinition1: SObjectDefinition = '{"name":"Account","fields":[{"type":"Id","name":"Id"}]}' as unknown as SObjectDefinition;
-      const sObjectDefinition2: SObjectDefinition = '{"name":"Contact","fields":[{"type":"Id","name":"Id"}]}' as unknown as SObjectDefinition;
+      const sObjectDefinition1: SObjectDefinition = ('{"name":"Account","fields":[{"type":"Id","name":"Id"}]}' as unknown) as SObjectDefinition;
+      const sObjectDefinition2: SObjectDefinition = ('{"name":"Contact","fields":[{"type":"Id","name":"Id"}]}' as unknown) as SObjectDefinition;
       env.stub(fs, 'existsSync').returns(true);
-      env.stub(FauxClassGenerator.prototype, 'generateFauxClassTextFromDecls');
+      env.stub(FauxClassGenerator.prototype, 'generateFauxClassText');
       env.stub(FauxClassGenerator.prototype, 'generateAndWriteFauxClasses');
-      env.stub(FauxClassGenerator.prototype, 'getSObjectSubsetDefinitions').returns([sObjectDefinition1, sObjectDefinition2]);
+      env
+        .stub(FauxClassGenerator.prototype, 'getSObjectSubsetDefinitions')
+        .returns([sObjectDefinition1, sObjectDefinition2]);
     });
 
     it('Should log the number of created faux classes on generateMin success', async () => {
