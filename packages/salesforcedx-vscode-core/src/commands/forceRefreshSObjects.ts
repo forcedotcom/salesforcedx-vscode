@@ -122,10 +122,12 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
       channelService.showChannelOutput();
     }
 
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
+    if (response.data.source !== SObjectRefreshSource.StartupMin) {
+      notificationService.reportCommandExecutionStatus(
+        execution,
+        cancellationToken
+      );
+    }
 
     let progressLocation = vscode.ProgressLocation.Notification;
     if (response.data.source !== SObjectRefreshSource.Manual) {
