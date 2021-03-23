@@ -21,11 +21,11 @@ import {
   SUCCESS_CODE
 } from '../../src/constants';
 import { SObjectDescribe } from '../../src/describe';
-import { SObjectDefinition } from '../../src/generator/declarationGenerator';
 import {
   FauxClassGenerator,
   SObjectRefreshResult
 } from '../../src/generator/fauxClassGenerator';
+import { SObjectDefinition } from '../../src/generator/types';
 import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
 import { CancellationTokenSource } from './integrationTestUtil';

@@ -29,12 +29,8 @@ import { SObjectDescribe } from '../describe';
 import { nls } from '../messages';
 import { SObject, SObjectCategory, SObjectRefreshSource } from '../types';
 import { ConfigUtil } from './configUtil';
-import {
-  DeclarationGenerator,
-  FieldDeclaration,
-  MODIFIER,
-  SObjectDefinition
-} from './declarationGenerator';
+import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
+import { FieldDeclaration, SObjectDefinition } from './types';
 import { TypingGenerator } from './typingGenerator';
 
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];

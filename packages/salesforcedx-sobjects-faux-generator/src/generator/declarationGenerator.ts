@@ -5,19 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ChildRelationship, Field, SObject } from '../types';
+import { FieldDeclaration, SObjectDefinition } from './types';
 
 export const MODIFIER = 'global';
-export interface FieldDeclaration {
-  modifier: string;
-  type: string;
-  name: string;
-  comment?: string;
-}
-
-export interface SObjectDefinition {
-  name: string;
-  fields: FieldDeclaration[];
-}
 
 export class DeclarationGenerator {
   private static typeMapping: Map<string, string> = new Map([

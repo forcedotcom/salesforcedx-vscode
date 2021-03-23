@@ -7,7 +7,7 @@
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import { FieldDeclaration, SObjectDefinition } from './declarationGenerator';
+import { FieldDeclaration, SObjectDefinition } from './types';
 
 export const TYPESCRIPT_TYPE_EXT = '.d.ts';
 
