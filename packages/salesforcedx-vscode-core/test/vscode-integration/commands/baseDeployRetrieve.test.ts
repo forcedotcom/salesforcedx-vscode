@@ -11,6 +11,8 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import {
   ComponentSet,
   DeployResult,
+  MetadataApiDeploy,
+  MetadataApiRetrieve,
   registryData,
   RetrieveResult,
   SourceComponent,
@@ -24,8 +26,8 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonStub } from 'sinon';
-import { DiagnosticSeverity, Range, Uri } from 'vscode';
+import { createSandbox, SinonStub, spy } from 'sinon';
+import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
 import {
@@ -43,6 +45,8 @@ import {
 
 const sb = createSandbox();
 const $$ = testSetup();
+
+type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 describe('Base Deploy Retrieve Commands', () => {
   let mockConnection: Connection;
@@ -174,10 +178,12 @@ describe('Base Deploy Retrieve Commands', () => {
     });
 
     class TestDeploy extends DeployExecutor<{}> {
+
       public components: ComponentSet;
       public getComponentsStub = sb.stub().returns(new ComponentSet());
       public startStub: SinonStub;
       public deployStub: SinonStub;
+      public cancellationStub = sb.stub();
 
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
@@ -193,7 +199,19 @@ describe('Base Deploy Retrieve Commands', () => {
       ): Promise<ComponentSet> {
         return this.components;
       }
+      protected async setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+        return this.cancellationStub;
+      }
     }
+
+    it('should call setup cancellation logic', async () => {
+      const executor = new TestDeploy();
+      const operationSpy = spy(executor, 'setupCancellation' as any);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(operationSpy.calledOnce).to.equal(true);
+    });
 
     it('should call deploy on component set', async () => {
       const executor = new TestDeploy();
@@ -349,17 +367,17 @@ describe('Base Deploy Retrieve Commands', () => {
         expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
         failedRows.forEach((row, index) => {
           expect(setDiagnosticsStub.getCall(index).args).to.deep.equal([
-            Uri.file(row.filePath),
+            vscode.Uri.file(row.filePath),
             [
               {
                 message: row.error,
-                range: new Range(
+                range: new vscode.Range(
                   row.lineNumber - 1,
                   row.columnNumber - 1,
                   row.lineNumber - 1,
                   row.columnNumber - 1
                 ),
-                severity: DiagnosticSeverity.Error,
+                severity: vscode.DiagnosticSeverity.Error,
                 source: row.type
               }
             ]
@@ -488,6 +506,15 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(executor.toolingRetrieveStub.callCount).to.equal(0);
       expect(executor.retrieveStub.callCount).to.equal(1);
+    });
+
+    it('should call setup cancellation logic', async () => {
+      const executor = new TestRetrieve();
+      const operationSpy = spy(executor, 'setupCancellation' as any);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(operationSpy.calledOnce).to.equal(true);
     });
 
     describe('Result Output', () => {
