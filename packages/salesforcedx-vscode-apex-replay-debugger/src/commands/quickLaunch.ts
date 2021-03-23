@@ -7,19 +7,28 @@
 import {
   ApexTestResultData,
   LogService,
+  ResultFormat,
   TestLevel,
   TestResult,
   TestService
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  getRootWorkspacePath,
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  getLogDirPath,
+  getTestResultsFolder
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
+import { workspace } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { getLogDirPath } from '../utils';
+import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 import { TraceFlags } from './traceFlags';
 interface TestRunResult {
@@ -79,6 +88,20 @@ export class QuickLaunch {
         testClass
       );
       const result: TestResult = await testService.runTestSynchronous(payload);
+
+      // create apex test result files
+      if (workspace && workspace.workspaceFolders) {
+        const apexTestResultsPath = getTestResultsFolder(
+          getRootWorkspacePath(),
+          'apex'
+        );
+        await testService.writeResultFiles(
+          result,
+          { dirPath: apexTestResultsPath, resultFormats: [ResultFormat.json] },
+          retrieveTestCodeCoverage()
+        );
+      }
+
       const tests: ApexTestResultData[] = result.tests;
       if (tests.length === 0) {
         return {
@@ -104,7 +127,7 @@ export class QuickLaunch {
     logId: string
   ): Promise<LogFileRetrieveResult> {
     const logService = new LogService(connection);
-    const outputDir = getLogDirPath();
+    const outputDir = getLogDirPath(getRootWorkspacePath());
 
     await logService.getLogs({ logId, outputDir });
     const logPath = path.join(outputDir, `${logId}.log`);

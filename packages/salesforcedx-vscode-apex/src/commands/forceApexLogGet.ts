@@ -28,6 +28,7 @@ import {
   getYYYYMMddHHmmssDateFormat,
   optionYYYYMMddHHmmss
 } from '@salesforce/salesforcedx-utils-vscode/out/src/date';
+import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse,
@@ -35,19 +36,13 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
-import { mkdir } from 'shelljs';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { useApexLibrary } from '../settings';
 
-const LOG_DIRECTORY = path.join(
-  getRootWorkspaceSfdxPath(),
-  'tools',
-  'debug',
-  'logs'
-);
+const LOG_DIRECTORY = getLogDirPath(getRootWorkspacePath());
 
 interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;
@@ -201,10 +196,6 @@ export class ForceApexLogGetExecutor extends SfdxCommandletExecutor<
     const result = await new CommandOutput().getCmdResult(execution);
     const resultJson = JSON.parse(result);
     if (resultJson.status === 0) {
-      if (!fs.existsSync(LOG_DIRECTORY)) {
-        mkdir('-p', LOG_DIRECTORY);
-      }
-
       const localUTCDate = new Date(response.data.startTime);
       const date = getYYYYMMddHHmmssDateFormat(localUTCDate);
       const logPath = path.join(
@@ -239,7 +230,10 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 
-    const logResults = await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
+    const logResults = await logService.getLogs({
+      logId,
+      outputDir: LOG_DIRECTORY
+    });
     logResults.forEach(logResult => OUTPUT_CHANNEL.appendLine(logResult.log));
 
     const logPath = logResults[0].logPath;

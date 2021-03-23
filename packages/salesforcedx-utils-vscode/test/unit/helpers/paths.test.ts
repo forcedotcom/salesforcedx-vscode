@@ -11,6 +11,7 @@ import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import {
   ensureDirectoryExists,
+  getLogDirPath,
   getTestResultsFolder
 } from '../../../src/helpers';
 
@@ -60,6 +61,20 @@ describe('paths utils', () => {
       expect(existsStub.called).to.equal(true);
       expect(result).to.equal(
         path.join(dirPath, '.sfdx', 'tools', 'testresults', 'apex')
+      );
+    });
+  });
+
+  describe('getLogDirPath', () => {
+    it('should return a path to debug log folder', () => {
+      const dirPath = path.join('path', 'to', 'project');
+      existsStub.returns(true);
+
+      const result = getLogDirPath(dirPath);
+
+      expect(existsStub.called).to.equal(true);
+      expect(result).to.equal(
+        path.join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
       );
     });
   });

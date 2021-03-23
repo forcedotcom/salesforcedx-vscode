@@ -16,15 +16,21 @@ export function ensureDirectoryExists(filePath: string): void {
   fs.mkdirSync(filePath);
 }
 
-export function getTestResultsFolder(vscodePath: string, testType: string) {
+export function getTestResultsFolder(rootDirPath: string, testType: string) {
   const dirPath = path.join(
-    vscodePath,
+    rootDirPath,
     '.sfdx',
     'tools',
     'testresults',
     testType
   );
 
+  ensureDirectoryExists(dirPath);
+  return dirPath;
+}
+
+export function getLogDirPath(rootDirPath: string): string {
+  const dirPath = path.join(rootDirPath, '.sfdx', 'tools', 'debug', 'logs');
   ensureDirectoryExists(dirPath);
   return dirPath;
 }
