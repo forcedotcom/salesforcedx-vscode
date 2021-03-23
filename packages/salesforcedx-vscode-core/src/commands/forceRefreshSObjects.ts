@@ -125,6 +125,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
     if (response.data.source !== SObjectRefreshSource.StartupMin) {
       notificationService.reportCommandExecutionStatus(
         execution,
+        channelService,
         cancellationToken
       );
     }
