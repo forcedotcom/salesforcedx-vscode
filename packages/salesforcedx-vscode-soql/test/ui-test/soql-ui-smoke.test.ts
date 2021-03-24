@@ -9,7 +9,6 @@ import { expect } from 'chai';
 import * as path from 'path';
 import {
   By,
-  Editor,
   EditorView,
   InputBox,
   TextEditor,
@@ -24,10 +23,6 @@ describe('In project folder, SOQL files should', function() {
   this.timeout(55000);
   let browser: VSBrowser;
   let driver: WebDriver;
-  // let webviewEditor: Editor;
-  // let webview: WebView;
-  // let editorView: EditorView;
-  // let editor: TextEditor;
   const folderPath =
     path.resolve(
       __dirname,
@@ -43,28 +38,24 @@ describe('In project folder, SOQL files should', function() {
 
   const openFolder = async (folder: string) => {
     const workbench = new Workbench();
-    const cmdTitle = 'File: Open...';
-    const commandInput = await workbench.openCommandPrompt();
-    await commandInput.setText('>' + cmdTitle);
-    const qp = await commandInput.findQuickPick(cmdTitle);
-    qp?.click();
-    await pause(500);
+    const cmdTitle = 'Extest: Open Folder';
+    await workbench.executeCommand(cmdTitle);
     const input = await InputBox.create();
     await input.setText(folder);
     await input.confirm();
     await pause(3000);
   };
 
-  const openSoqlFile = async (folder: string, fn: string) => {
+  const openSoqlFile = async (folder: string, fileName: string) => {
     const workbench = new Workbench();
     const openEditors = await new EditorView().getOpenEditorTitles();
-    if (!openEditors.find(title => title === fn)) {
+    if (!openEditors.find(title => title === fileName)) {
       // not open yet
       await workbench.executeCommand('File > Open File...');
       const input = await InputBox.create();
-      await input.setText(path.resolve(folder, fn));
+      await input.setText(path.resolve(folder, fileName));
       await input.confirm();
-      await pause(5000);
+      await pause(2000);
     }
   };
 
@@ -77,9 +68,9 @@ describe('In project folder, SOQL files should', function() {
       By.className('editor-actions')
     );
     const actions = await actionToolbar.findElements(By.className('codicon'));
-    let toggle = undefined;
-    for (let i = 0; i < actions.length; i++) {
-      const action = actions[i];
+    let toggle;
+
+    for (const action of actions) {
       if (
         (await action.getAttribute('title')) ===
         'Switch Between SOQL Builder and Text Editor'
