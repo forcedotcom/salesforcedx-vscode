@@ -13,7 +13,14 @@ import {
 import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { expect } from 'chai';
 import { join } from 'path';
-import { createSandbox, SinonSpy, SinonStub } from 'sinon';
+import {
+  assert,
+  createSandbox,
+  match,
+  sandbox,
+  SinonSpy,
+  SinonStub
+} from 'sinon';
 import * as vscode from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
@@ -98,6 +105,10 @@ describe('Force Apex Test Run', () => {
   describe('Apex Library Test Run Executor', async () => {
     let runTestStub: SinonStub;
     let buildPayloadStub: SinonStub;
+    let reportStub: (value: unknown) => void = () => {};
+    const progress: vscode.Progress<unknown> = { report: reportStub };
+    let cancellationTokenEventEmitter;
+    let cancellationToken: vscode.CancellationToken;
 
     beforeEach(async () => {
       retrieveCoverageStub.returns(true);
@@ -106,6 +117,13 @@ describe('Force Apex Test Run', () => {
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
       sb.stub(TestService.prototype, 'writeResultFiles');
+
+      reportStub = sb.stub();
+      cancellationTokenEventEmitter = new vscode.EventEmitter();
+      cancellationToken = {
+        isCancellationRequested: false,
+        onCancellationRequested: cancellationTokenEventEmitter.event
+      };
     });
 
     it('should run test with correct parameters for specified class', async () => {
@@ -115,10 +133,14 @@ describe('Force Apex Test Run', () => {
       });
 
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.run({
-        data: { type: TestType.Class, label: 'testClass' },
-        type: 'CONTINUE'
-      });
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.Class, label: 'testClass' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
@@ -126,10 +148,17 @@ describe('Force Apex Test Run', () => {
         undefined,
         'testClass'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
-        { classNames: 'testClass', testLevel: TestLevel.RunSpecifiedTests },
-        true
-      ]);
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
+        {
+          classNames: 'testClass',
+          testLevel: TestLevel.RunSpecifiedTests
+        },
+        true,
+        match.any,
+        cancellationToken
+      );
     });
 
     it('should run test with correct parameters for specified suite', async () => {
@@ -139,10 +168,14 @@ describe('Force Apex Test Run', () => {
       });
 
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.run({
-        data: { type: TestType.Suite, label: 'testSuite' },
-        type: 'CONTINUE'
-      });
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.Suite, label: 'testSuite' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
@@ -151,23 +184,35 @@ describe('Force Apex Test Run', () => {
         undefined,
         'testSuite'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
         { suiteNames: 'testSuite', testLevel: TestLevel.RunSpecifiedTests },
-        true
-      ]);
+        true,
+        match.any,
+        cancellationToken
+      );
     });
 
     it('should run test with correct parameters for all tests', async () => {
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.run({
-        data: { type: TestType.All, label: '' },
-        type: 'CONTINUE'
-      });
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.All, label: '' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
 
-      expect(runTestStub.args[0]).to.deep.equal([
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
         { testLevel: TestLevel.RunAllTestsInOrg },
-        true
-      ]);
+        true,
+        match.any,
+        cancellationToken
+      );
     });
   });
 
