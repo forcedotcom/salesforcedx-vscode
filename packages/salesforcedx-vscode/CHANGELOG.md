@@ -1,3 +1,23 @@
+# 51.6.0 - Month DD, YYYY
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add cancellation to Deploy Retrieve Library commands ([PR #3068](https://github.com/forcedotcom/salesforcedx-vscode/pull/3068))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Do not show refresh success message for min sobjects @W-9042465@  (#3084) ([PR #3082](https://github.com/forcedotcom/salesforcedx-vscode/pull/3082))
+
+- Update deploy and retrieve beta to use 1.1.20 ([PR #3083](https://github.com/forcedotcom/salesforcedx-vscode/pull/3083))
+
+- Add ability to jump to channel output via the 'Show' button ([PR #3081](https://github.com/forcedotcom/salesforcedx-vscode/pull/3081))
+
+- Generate a subset of SObject definitions at the start @W-8912349@ ([PR #3037](https://github.com/forcedotcom/salesforcedx-vscode/pull/3037))
+
 # 51.5.0 - March 18, 2021
 
 ## Fixed
