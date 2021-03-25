@@ -20,8 +20,10 @@ describe('sfdx utils should', () => {
       vscode.window,
       'showErrorMessage'
     );
+    const channelServiceSpy = sandbox.spy(sfdx.channelService, 'appendLine');
     await sfdx.withSFConnection(async () => {});
     sfdx.debouncedShowChannelAndErrorMessage.flush();
     expect(vscodeErrorMessageSpy.callCount).to.equal(1);
+    expect(channelServiceSpy.callCount).to.equal(1);
   });
 });
