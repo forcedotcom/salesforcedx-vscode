@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
@@ -13,6 +13,7 @@ import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
+  forceApexExecute,
   forceApexLogGet,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
@@ -20,11 +21,7 @@ import {
   forceApexTestMethodRunCodeActionDelegate,
   forceApexTestRun
 } from './commands';
-import { forceApexExecute } from './commands/forceApexExecute';
-import {
-  APEX_EXTENSION_NAME,
-  LSP_ERR
-} from './constants';
+import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
 import { workspaceContext } from './context';
 import {
   ClientStatus,
@@ -46,7 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const testOutlineProvider = new ApexTestOutlineProvider(null);
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
-    const apexDirPath = new TestRunner().getTempFolder(
+    const apexDirPath = getTestResultsFolder(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
       'apex'
     );

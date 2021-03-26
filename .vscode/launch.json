@@ -31,6 +31,8 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
+        "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
@@ -48,6 +50,8 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
       "sourceMapPathOverrides": {
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
+        "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       }
@@ -188,6 +192,8 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/**/*.js"],
       "sourceMapPathOverrides": {
         "../../../../test/vscode-integration": "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/vscode-integration/*",
+        "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
+        "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
       },

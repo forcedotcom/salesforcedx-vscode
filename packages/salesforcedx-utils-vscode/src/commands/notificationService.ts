@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CommandExecution } from '../cli';
 import { nls } from '../messages';
+import { ChannelService } from './index';
 
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
@@ -58,11 +58,13 @@ export class NotificationService {
 
   public reportCommandExecutionStatus(
     execution: CommandExecution,
+    channelService: ChannelService | undefined,
     cancellationToken?: vscode.CancellationToken
   ) {
     // https://stackoverflow.com/questions/38168581/observablet-is-not-a-class-derived-from-observablet
     this.reportExecutionStatus(
       execution.command.toString(),
+      channelService,
       (execution.processExitSubject as any) as Observable<number | undefined>,
       cancellationToken
     );
@@ -74,12 +76,13 @@ export class NotificationService {
 
   public reportExecutionStatus(
     executionName: string,
+    channelService: ChannelService | undefined,
     observable: Observable<number | undefined>,
     cancellationToken?: vscode.CancellationToken
   ) {
     observable.subscribe(async data => {
       if (data !== undefined && String(data) === '0') {
-        await this.showSuccessfulExecution(executionName);
+        await this.showSuccessfulExecution(executionName, channelService);
       } else if (data !== null) {
         this.showFailedExecution(executionName);
       }
@@ -97,13 +100,13 @@ export class NotificationService {
     );
   }
 
-  private showCanceledExecution(executionName: string) {
+  public showCanceledExecution(executionName: string) {
     this.showWarningMessage(
       nls.localize('notification_canceled_execution_text', executionName)
     );
   }
 
-  public async showSuccessfulExecution(executionName: string) {
+  public async showSuccessfulExecution(executionName: string, channelService: ChannelService | undefined) {
     const message = nls.localize(
       'notification_successful_execution_text',
       executionName
@@ -121,11 +124,14 @@ export class NotificationService {
         showButtonText,
         showOnlyStatusBarButtonText
       );
-
-      if (selection && selection === showOnlyStatusBarButtonText) {
-        await vscode.workspace
-          .getConfiguration('salesforcedx-vscode-core')
-          .update('show-cli-success-msg', false);
+      if (selection) {
+        if (selection === showButtonText && channelService) {
+          channelService.showChannelOutput();
+        } else if (selection === showOnlyStatusBarButtonText) {
+          await vscode.workspace
+            .getConfiguration('salesforcedx-vscode-core')
+            .update('show-cli-success-msg', false);
+        }
       }
     } else {
       vscode.window.setStatusBarMessage(message, STATUS_BAR_MSG_TIMEOUT_MS);

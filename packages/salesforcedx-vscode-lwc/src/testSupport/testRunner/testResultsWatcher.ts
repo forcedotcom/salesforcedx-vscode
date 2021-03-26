@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -39,7 +39,7 @@ class TestResultsWatcher implements vscode.Disposable {
   ) {
     const { testType } = testExecutionInfo;
     const workspaceFsPath = workspaceFolder.uri.fsPath;
-    return new TestRunner().getTempFolder(workspaceFsPath, testType);
+    return getTestResultsFolder(workspaceFsPath, testType);
   }
 
   /**

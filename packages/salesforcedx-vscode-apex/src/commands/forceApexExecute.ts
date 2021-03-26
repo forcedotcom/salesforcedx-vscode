@@ -170,7 +170,6 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
       }
     }
     channelService.appendLine(outputText);
-    channelService.showChannelOutput();
   }
 
   private handleDiagnostics(

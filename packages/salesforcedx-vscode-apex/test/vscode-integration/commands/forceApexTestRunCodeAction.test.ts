@@ -13,7 +13,7 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { SfdxProject } from '@salesforce/core';
-import { TestRunner } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { join } from 'path';
@@ -478,6 +478,7 @@ describe('Force Apex Test Run - Code Action', () => {
     let componentPathStub: SinonStub;
 
     beforeEach(() => {
+      sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(workspaceContext, 'getConnection');
       sb.stub(SfdxProject, 'resolve').returns({
         getDefaultPackage: () => {
@@ -500,7 +501,7 @@ describe('Force Apex Test Run - Code Action', () => {
       runTestStub = sb
         .stub(TestService.prototype, 'runTestAsynchronous')
         .resolves(testResult);
-      sb.stub(TestRunner.prototype, 'getTempFolder');
+      sb.stub(pathUtils, 'getTestResultsFolder');
     });
 
     afterEach(() => {
@@ -569,10 +570,7 @@ describe('Force Apex Test Run - Code Action', () => {
 
     beforeEach(async () => {
       settingStub = sb.stub(settings, 'useApexLibrary');
-      apexExecutorStub = sb.stub(
-        ApexLibraryTestRunExecutor.prototype,
-        'run'
-      );
+      apexExecutorStub = sb.stub(ApexLibraryTestRunExecutor.prototype, 'run');
       cliExecutorStub = sb.stub(
         ForceApexTestRunCodeActionExecutor.prototype,
         'execute'

@@ -13,6 +13,7 @@ import { join } from 'path';
 import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
+import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import {
   FauxClassGenerator,
   INDENT
@@ -25,6 +26,7 @@ const expect = chai.expect;
 
 describe('SObject faux class generator', () => {
   let classPath = '';
+  const declGenerator = new DeclarationGenerator();
 
   function getGenerator(): FauxClassGenerator {
     const emitter: EventEmitter = new EventEmitter();
@@ -50,10 +52,7 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
-      JSON.parse(sobject1)
-    );
+    classPath = gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include(
@@ -89,7 +88,8 @@ describe('SObject faux class generator', () => {
 
   it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
-    const classContent = gen.generateFauxClassText(customSObject);
+    const customDef = declGenerator.generateSObjectDefinition(customSObject);
+    const classContent = gen.generateFauxClassText(customDef);
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;
     standardFieldComment += `    */${EOL}`;
@@ -110,10 +110,7 @@ describe('SObject faux class generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
-      JSON.parse(sobject1)
-    );
+    classPath = gen.generateFauxClass(sobjectFolder, JSON.parse(sobject1));
     expect(fs.existsSync(classPath));
     const stat = fs.lstatSync(classPath);
     const expectedMode = parseInt('100444', 8);
@@ -144,13 +141,13 @@ describe('SObject faux class generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
+    const objDef = declGenerator.generateSObjectDefinition(
+      JSON.parse(sobject1)
+    );
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
-      JSON.parse(sobject1)
-    );
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String StringField;');
@@ -184,13 +181,13 @@ describe('SObject faux class generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
+    const objDef = declGenerator.generateSObjectDefinition(
+      JSON.parse(sobject1)
+    );
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
-      JSON.parse(sobject1)
-    );
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('Blob BaseField;');
@@ -211,12 +208,13 @@ describe('SObject faux class generator', () => {
       ',' +
       relation1 +
       ' ], "childRelationships": [] }';
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String StringField;');
@@ -235,12 +233,12 @@ describe('SObject faux class generator', () => {
       ' ], "childRelationships": [' +
       childRelation1 +
       '] }';
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('List<Case> Case__r');
@@ -253,12 +251,12 @@ describe('SObject faux class generator', () => {
       '{ "name": "Custom__c",  "childRelationships": [' +
       childRelation1 +
       '] }';
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('List<Case> RelatedCase;');
@@ -278,12 +276,12 @@ describe('SObject faux class generator', () => {
       ',' +
       childRelation1 +
       '] }';
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('List<Case> Reference;');
@@ -298,12 +296,12 @@ describe('SObject faux class generator', () => {
     const header = '{ "name": "Custom__c",  "childRelationships": [';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header}${childRelation1}],${fieldHeader}${field1}]}`;
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.not.include('null');
@@ -317,12 +315,12 @@ describe('SObject faux class generator', () => {
     const header = '{ "name": "Custom__c",  "childRelationships": []';
     const fieldHeader = '"fields": [';
     const sobject1 = `${header},${fieldHeader}${field1}]}`;
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String ExtRef__c');
@@ -343,12 +341,12 @@ describe('SObject faux class generator', () => {
     const field2 =
       '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String MDRef__c');
@@ -362,12 +360,12 @@ describe('SObject faux class generator', () => {
     const field2 =
       '{"name": "StringField", "type": "string", "referenceTo": []}';
     const sobject1 = `${header}${field1},${field2}]}`;
-    const sobjectFolder = process.cwd();
-    const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
+    const objDef = declGenerator.generateSObjectDefinition(
       JSON.parse(sobject1)
     );
+    const sobjectFolder = process.cwd();
+    const gen = getGenerator();
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('XX_mdt MDRef__r');
@@ -384,13 +382,13 @@ describe('SObject faux class generator', () => {
 
     const fieldsString = fields.join(',');
     const sobject1 = `${fieldsHeader}${fieldsString}${closeHeader}`;
+    const objDef = declGenerator.generateSObjectDefinition(
+      JSON.parse(sobject1)
+    );
 
     const sobjectFolder = process.cwd();
     const gen = getGenerator();
-    classPath = await gen.generateFauxClass(
-      sobjectFolder,
-      JSON.parse(sobject1)
-    );
+    classPath = gen.generateFauxClass(sobjectFolder, objDef);
     expect(fs.existsSync(classPath));
     const classText = fs.readFileSync(classPath, 'utf8');
     expect(classText).to.include('String StringField;');

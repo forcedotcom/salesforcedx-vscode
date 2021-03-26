@@ -1,3 +1,49 @@
+# 51.6.0 - March 24, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add cancellation to Deploy & Retrieve Library commands ([PR #3068](https://github.com/forcedotcom/salesforcedx-vscode/pull/3068))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix deployment issues with Document metadata types ([PR #3083](https://github.com/forcedotcom/salesforcedx-vscode/pull/3083))
+
+- Fix library executions not focusing on channel output via the 'Show' button ([PR #3081](https://github.com/forcedotcom/salesforcedx-vscode/pull/3081), [Issue #2987](https://github.com/forcedotcom/salesforcedx-vscode/issues/2987))
+
+- Generate SObject definitions from cached data ([PR #3037](https://github.com/forcedotcom/salesforcedx-vscode/pull/3037))
+
+# 51.5.0 - March 18, 2021
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Handle `undefined` results when running `SFDX: Refresh SObject Definitions` command ([PR #3064](https://github.com/forcedotcom/salesforcedx-vscode/pull/3064), [Issue #3056](https://github.com/forcedotcom/salesforcedx-vscode/issues/3056))
+
+#### salesforcedx-vscode-core
+
+- Fixed issues with deploy retrieve beta: timeout for long running operations, output for multi-file components, and retrieving static resources ([PR #3048](https://github.com/forcedotcom/salesforcedx-vscode/pull/3048))
+
+### docs
+
+- Update description for deploy retrieve beta setting ([PR #3043](https://github.com/forcedotcom/salesforcedx-vscode/pull/3043))
+
+# 51.4.0 - March 10, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Issue with debugging single test method ([PR #3033](https://github.com/forcedotcom/salesforcedx-vscode/pull/3033), [Issue #3026](https://github.com/forcedotcom/salesforcedx-vscode/issues/3026))
+
+#### salesforcedx-vscode-apex
+
+- Switch to Apex output channel automatically after running Apex tests ([PR #3027](https://github.com/forcedotcom/salesforcedx-vscode/pull/3027)), ([Issue #3009](https://github.com/forcedotcom/salesforcedx-vscode/issues/3009))
+
 # 51.3.0 - March 3, 2021
 
 ## Added
@@ -64,7 +110,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Activate Redhat XML extension only if it is version 0.14.0 ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934)). This is an interim fix for the issue ([Issue #2923] (https://github.com/forcedotcom/salesforcedx-vscode/issues/2923)).
+- Activate Redhat XML extension only if it is version 0.14.0 ([PR #2934](https://github.com/forcedotcom/salesforcedx-vscode/pull/2934)). This is an interim fix for the issue ([Issue #2923](https://github.com/forcedotcom/salesforcedx-vscode/issues/2923)).
 
 - Adds VS Code support for Email Templates as a target for custom components. ([PR #2918](https://github.com/forcedotcom/salesforcedx-vscode/pull/2918))
 
