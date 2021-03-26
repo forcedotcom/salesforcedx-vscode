@@ -56,9 +56,8 @@ export class FauxClassGenerator {
   private shouldGenerateTypes = false;
 
   private static fieldDeclToString(decl: FieldDeclaration): string {
-    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${
-      decl.modifier
-    } ${decl.type} ${decl.name};`;
+    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${decl.modifier
+      } ${decl.type} ${decl.name};`;
   }
 
   // VisibleForTesting
@@ -66,9 +65,9 @@ export class FauxClassGenerator {
     // for some reasons if the comment is on a single line the help context shows the last '*/'
     return comment
       ? `${INDENT}/* ${comment.replace(
-          /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
-          ''
-        )}${EOL}${INDENT}*/${EOL}`
+        /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
+        ''
+      )}${EOL}${INDENT}*/${EOL}`
       : '';
   }
 
@@ -123,6 +122,14 @@ export class FauxClassGenerator {
         username: await ConfigUtil.getUsername(projectPath)
       })
     });
+
+    if (
+      this.cancellationToken &&
+      this.cancellationToken.isCancellationRequested
+    ) {
+      return this.cancelExit();
+    }
+
     const describe = new SObjectDescribe(connection);
 
     let sobjects: string[] = [];
@@ -145,11 +152,15 @@ export class FauxClassGenerator {
 
     let fetchedSObjects: SObject[] = [];
     try {
-      fetchedSObjects = await describe.fetchObjects(sobjects);
+      fetchedSObjects = await describe.fetchObjects(sobjects, this.cancellationToken);
     } catch (errorMessage) {
       return this.errorExit(
         nls.localize('failure_in_sobject_describe_text', errorMessage)
       );
+    }
+
+    if (fetchedSObjects === null || fetchedSObjects === []) {
+      return this.cancelExit();
     }
 
     const standardSObjects: SObjectDefinition[] = [];
