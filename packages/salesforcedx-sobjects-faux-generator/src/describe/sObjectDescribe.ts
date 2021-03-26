@@ -8,6 +8,7 @@
 import { Connection } from '@salesforce/core';
 import { DescribeGlobalResult } from 'jsforce';
 import { CLIENT_ID } from '../constants';
+import { CancellationToken } from '../generator/fauxClassGenerator';
 import {
   BatchRequest,
   BatchResponse,
@@ -132,44 +133,56 @@ export class SObjectDescribe {
   }
 
   public async describeSObjectBatchRequest(
-    types: string[]
+    types: string[], cancellationToken: CancellationToken | undefined
   ): Promise<SObject[]> {
+    let batchResponse: BatchResponse;
     try {
       const batchRequest = this.buildBatchRequestBody(types);
-      const batchResponse = await this.runRequest(batchRequest);
-
-      const fetchedObjects: SObject[] = [];
-      if (batchResponse && batchResponse.results === undefined) {
-        return Promise.resolve(fetchedObjects);
-      }
-
-      batchResponse.results.forEach((sr, i) => {
-        if (sr.result instanceof Array) {
-          if (sr.result[0].errorCode && sr.result[0].message) {
-            console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
-          }
-        }
-        fetchedObjects.push(sr.result);
-      });
-      return Promise.resolve(fetchedObjects);
+      batchResponse = await this.runRequest(batchRequest);
     } catch (error) {
       const errorMsg = error.hasOwnProperty('body')
         ? error.body
         : error.message;
       return Promise.reject(errorMsg);
     }
-  }
 
-  public async fetchObjects(types: string[]): Promise<SObject[]> {
-    const batchSize = MAX_BATCH_REQUEST_SIZE;
-    const requests = [];
-    for (let i = 0; i < types.length; i += batchSize) {
-      const batchTypes = types.slice(i, i + batchSize);
-      requests.push(this.describeSObjectBatchRequest(batchTypes));
+    const fetchedObjects: SObject[] = [];
+    if (
+      cancellationToken &&
+      cancellationToken.isCancellationRequested
+    ) {
+      throw new Error("SObject Refresh Cancelled");
     }
 
-    const results = await Promise.all(requests);
-    const fetchedSObjects = ([] as SObject[]).concat(...results);
-    return fetchedSObjects;
+    if (batchResponse && batchResponse.results === undefined) {
+      return Promise.resolve(fetchedObjects);
+    }
+
+    batchResponse.results.forEach((sr, i) => {
+      if (sr.result instanceof Array) {
+        if (sr.result[0].errorCode && sr.result[0].message) {
+          console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
+        }
+      }
+      fetchedObjects.push(sr.result);
+    });
+    return Promise.resolve(fetchedObjects);
+  }
+
+  public async fetchObjects(types: string[], cancellationToken: CancellationToken | undefined): Promise<SObject[]> {
+    try {
+      const batchSize = MAX_BATCH_REQUEST_SIZE;
+      const requests = [];
+      for (let i = 0; i < types.length; i += batchSize) {
+        const batchTypes = types.slice(i, i + batchSize);
+        requests.push(this.describeSObjectBatchRequest(batchTypes, cancellationToken));
+      }
+
+      const results = await Promise.all(requests);
+      const fetchedSObjects = ([] as SObject[]).concat(...results);
+      return fetchedSObjects;
+    } catch (error) {
+      return [] as SObject[];
+    }
   }
 }

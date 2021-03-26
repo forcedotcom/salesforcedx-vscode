@@ -252,7 +252,7 @@ describe('Fetch sObjects', () => {
     env.stub(connection, 'request').resolves(mockDescribeResponse);
 
     const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
+      sobjectTypes, undefined
     );
 
     expect(batchResponse.length).to.be.equal(1);
@@ -268,7 +268,7 @@ describe('Fetch sObjects', () => {
     });
 
     const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
+      sobjectTypes, undefined
     );
 
     expect(batchResponse.length).to.be.equal(0);
@@ -279,7 +279,7 @@ describe('Fetch sObjects', () => {
     env.stub(connection, 'request').resolves({});
 
     const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
+      sobjectTypes, undefined
     );
 
     expect(batchResponse.length).to.be.equal(0);
@@ -293,7 +293,7 @@ describe('Fetch sObjects', () => {
     });
 
     try {
-      await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
+      await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes, undefined);
       fail('An error was expected');
     } catch (err) {
       expect(err).to.be.equal('Unexpected error');
