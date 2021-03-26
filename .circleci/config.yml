@@ -41,7 +41,7 @@ parameters:
     default: 'packages/salesforcedx-vscode-soql'
   git-diff-names:
     type: string
-    default: git diff develop..$(git rev-parse --abbrev-ref HEAD) --name-only
+    default: git diff develop --name-only
   # Workflow Triggers
   create-release:
     type: boolean
@@ -362,10 +362,6 @@ jobs:
             sfdx force:auth:jwt:grant --clientid ${SFDX_CI_DEVHUB_CLIENTID} --username ${SFDX_CI_DEVHUB_USERNAME} --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
             rm devhub.key
       - run:
-          name: 'Running integration tests'
-          shell: cmd.exe
-          command: npm run test:integration-tests-without-system-tests
-      - run:
           name: 'Run SOQL UI Tests if Needed'
           shell: bash.exe
           command: |
@@ -376,6 +372,10 @@ jobs:
             else
               echo "No changes to SOQL, do not run UI tests"
             fi
+      - run:
+          name: 'Running integration tests'
+          shell: cmd.exe
+          command: npm run test:integration-tests-without-system-tests
       - run:
           name: 'Aggregate test results'
           shell: bash.exe
