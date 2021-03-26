@@ -12,6 +12,7 @@ import * as debounce from 'debounce';
 import { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from './messages';
+import { telemetryService } from './telemetry';
 
 export const channelService = ChannelService.getInstance(
   nls.localize('soql_channel_name')
@@ -23,6 +24,7 @@ function showChannelAndErrorMessage(e: any) {
   channelService.appendLine(e);
   const message = nls.localize('error_connection');
   vscode.window.showErrorMessage(message);
+  telemetryService.sendException('soql_sf_connection_error', e.message);
 }
 
 export const debouncedShowChannelAndErrorMessage = debounce(
