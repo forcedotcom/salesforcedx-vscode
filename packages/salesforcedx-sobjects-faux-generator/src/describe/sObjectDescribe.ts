@@ -151,7 +151,7 @@ export class SObjectDescribe {
       cancellationToken &&
       cancellationToken.isCancellationRequested
     ) {
-      throw new Error("SObject Refresh Cancelled");
+      throw new Error('SObject Refresh Cancelled');
     }
 
     if (batchResponse && batchResponse.results === undefined) {
