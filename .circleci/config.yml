@@ -36,12 +36,6 @@ parameters:
   fingerprint:
     type: string
     default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
-  soql-package-path:
-    type: string
-    default: 'packages/salesforcedx-vscode-soql'
-  git-diff-names:
-    type: string
-    default: git diff develop --name-only
   # Workflow Triggers
   create-release:
     type: boolean
@@ -339,6 +333,20 @@ jobs:
               $host.SetShouldExit(1)
             }
 
+  soql-ui-tests:
+    description: 'Run E2E SOQL UI Tests'
+    executor: win/default
+    environment:
+      - SFDX_AUTOUPDATE_DISABLE: true
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
+      - NODE_VERSION: << pipeline.parameters.node-version >>
+    steps:
+      - build-win
+      - run:
+          name: 'Run SOQL UI Tests if Needed'
+          shell: bash.exe
+          command: npm run test:ui
+
   integration-tests:
     description: 'Run tests on Windows'
     executor: win/default
@@ -346,8 +354,6 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
-      - SOQL_PACKAGE_PATH: << pipeline.parameters.soql-package-path >>
-      - GIT_DIFF_NAMES: << pipeline.parameters.git-diff-names >>
     parameters:
       run-unit-tests:
         type: boolean
@@ -361,17 +367,6 @@ jobs:
             echo $SFDX_CI_DEVHUB_JWTKEY | base64 --decode > devhub.key
             sfdx force:auth:jwt:grant --clientid ${SFDX_CI_DEVHUB_CLIENTID} --username ${SFDX_CI_DEVHUB_USERNAME} --jwtkeyfile devhub.key --setdefaultdevhubusername --setalias devhub
             rm devhub.key
-      - run:
-          name: 'Run SOQL UI Tests if Needed'
-          shell: bash.exe
-          command: |
-            if [[ ((`$GIT_DIFF_NAMES | grep -c $SOQL_PACKAGE_PATH` > 0))]]
-            then
-              echo "There have been changes to the SQOL Package, run UI Tests"
-              npm run test:ui
-            else
-              echo "No changes to SOQL, do not run UI tests"
-            fi
       - run:
           name: 'Running integration tests'
           shell: cmd.exe
@@ -633,6 +628,7 @@ workflows:
       - build-all
       - unit-tests
       - integration-tests
+      - soql-ui-tests
 
   cut-release:
     triggers:
