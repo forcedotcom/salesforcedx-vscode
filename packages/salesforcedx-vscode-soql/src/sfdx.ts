@@ -6,16 +6,31 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import * as debounce from 'debounce';
 import { DescribeSObjectResult } from 'jsforce';
+import * as vscode from 'vscode';
 import { nls } from './messages';
+import { telemetryService } from './telemetry';
 
 export const channelService = ChannelService.getInstance(
   nls.localize('soql_channel_name')
 );
 
 export const workspaceContext = WorkspaceContextUtil.getInstance();
+
+function showChannelAndErrorMessage(e: any) {
+  channelService.appendLine(e);
+  const message = nls.localize('error_connection');
+  vscode.window.showErrorMessage(message);
+  telemetryService.sendException('soql_sf_connection_error', e.message);
+}
+
+export const debouncedShowChannelAndErrorMessage = debounce(
+  showChannelAndErrorMessage,
+  1000
+);
 
 export async function withSFConnection(
   f: (conn: Connection) => void
@@ -24,7 +39,7 @@ export async function withSFConnection(
     const conn = await workspaceContext.getConnection();
     return f((conn as unknown) as Connection);
   } catch (e) {
-    channelService.appendLine(e);
+    debouncedShowChannelAndErrorMessage(e);
   }
 }
 export async function retrieveSObjects(): Promise<string[]> {
