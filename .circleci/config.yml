@@ -333,6 +333,20 @@ jobs:
               $host.SetShouldExit(1)
             }
 
+  soql-ui-tests:
+    description: 'Run E2E SOQL UI Tests'
+    executor: win/default
+    environment:
+      - SFDX_AUTOUPDATE_DISABLE: true
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
+      - NODE_VERSION: << pipeline.parameters.node-version >>
+    steps:
+      - build-win
+      - run:
+          name: 'Run SOQL UI Tests if Needed'
+          shell: bash.exe
+          command: npm run test:ui
+
   integration-tests:
     description: 'Run tests on Windows'
     executor: win/default
@@ -614,6 +628,7 @@ workflows:
       - build-all
       - unit-tests
       - integration-tests
+      - soql-ui-tests
 
   cut-release:
     triggers:
