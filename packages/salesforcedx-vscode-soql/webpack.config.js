@@ -8,6 +8,8 @@ const getMode = () => {
 };
 
 module.exports = {
+  // silence the output except for errors
+  stats: 'minimal',
   // extensions run in a node context
   target: 'node',
   mode: getMode(),
