@@ -32,13 +32,14 @@ export const messages = {
   noAccessTokenFound:
     'No access token could be found for the provided username',
   streamingHandshakeFail: 'Test run handshake failed: %s',
-  streamingFailure: 'Error encountered during test update: %s',
   streamingTransportUp: 'Listening for streaming state changes...',
   streamingTransportDown: 'Faye client generated a transport:down event.',
   streamingProcessingTestRun: 'Processing test run %s',
   retrievingTestRunSummary: 'Retrieving test run summary record',
   queryingForAggregateCodeCoverage:
     'Querying for aggregate code coverage results',
+  abortingTestRun: 'Aborting test run %s',
+  abortingTestRunRequested: 'Test run %s is aborted',
   failRate: 'Fail Rate',
   testsRan: 'Tests Ran',
   orgId: 'Org Id',
@@ -69,6 +70,8 @@ export const messages = {
     'Synchronous test runs can include test methods from only one Apex class. Omit the --synchronous flag or include tests from only one class',
   resultFormatErr:
     'Specified result formats must be of type json, junit, or tap',
-  invalidTestRunIdErr:
-    'The test run id %s is not in the correct format for "id." Must be a 15- or 18-char string in the format "707xxxxxxxxxxxx"'
+  invalidTestRunIdErr: `The test run id %s isn't in the correct format for "id." The ID is a 15- or 18-character string in the format "707xxxxxxxxxxxx"`,
+  invalidsObjectErr: `You don't have permissions to access sObject of type %s. Ask your Salesforce admin to give you permissions to access Apex code and the Streaming API. \nError: %s`,
+  payloadErr:
+    'Specify a test class or test methods when running tests synchronously'
 };

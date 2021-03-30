@@ -9,7 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { TestService } from '../../src/tests';
+import { CodeCoverage } from '../../src/tests/codeCoverage';
 import {
   ApexCodeCoverageAggregate,
   ApexOrgWideCoverage,
@@ -54,9 +54,9 @@ describe('Get code coverage results', () => {
         }
       ]
     } as ApexOrgWideCoverage);
-    const testSrv = new TestService(mockConnection);
+    const codeCov = new CodeCoverage(mockConnection);
 
-    const orgWideCoverageResult = await testSrv.getOrgWideCoverage();
+    const orgWideCoverageResult = await codeCov.getOrgWideCoverage();
     expect(orgWideCoverageResult).to.equal('33%');
   });
 
@@ -66,9 +66,9 @@ describe('Get code coverage results', () => {
       totalSize: 0,
       records: []
     } as ApexOrgWideCoverage);
-    const testSrv = new TestService(mockConnection);
+    const codeCov = new CodeCoverage(mockConnection);
 
-    const orgWideCoverageResult = await testSrv.getOrgWideCoverage();
+    const orgWideCoverageResult = await codeCov.getOrgWideCoverage();
     expect(orgWideCoverageResult).to.equal('0%');
     expect(toolingQueryStub.getCall(0).args[0]).to.equal(
       'SELECT PercentCovered FROM ApexOrgWideCoverage'
@@ -137,12 +137,12 @@ describe('Get code coverage results', () => {
       totalSize: 3,
       records: codeCoverageQueryResult
     } as ApexCodeCoverageAggregate);
-    const testSrv = new TestService(mockConnection);
+    const codeCov = new CodeCoverage(mockConnection);
     const {
       codeCoverageResults,
       totalLines,
       coveredLines
-    } = await testSrv.getAggregateCodeCoverage(
+    } = await codeCov.getAggregateCodeCoverage(
       new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
     );
 
@@ -154,12 +154,12 @@ describe('Get code coverage results', () => {
   it('should return aggregate code coverage result with 0 records', async () => {
     toolingQueryStub.throws('Error at Row:1;Column:1');
 
-    const testSrv = new TestService(mockConnection);
+    const codeCov = new CodeCoverage(mockConnection);
     const {
       codeCoverageResults,
       totalLines,
       coveredLines
-    } = await testSrv.getAggregateCodeCoverage(new Set([]));
+    } = await codeCov.getAggregateCodeCoverage(new Set([]));
     expect(codeCoverageResults.length).to.equal(0);
     expect(totalLines).to.equal(0);
     expect(coveredLines).to.equal(0);
@@ -201,8 +201,8 @@ describe('Get code coverage results', () => {
       records: perClassCodeCovResult
     } as ApexCodeCoverage);
 
-    const testSrv = new TestService(mockConnection);
-    const perClassCoverageMap = await testSrv.getPerClassCodeCoverage(
+    const codeCov = new CodeCoverage(mockConnection);
+    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
       new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
     );
     expect(perClassCoverageMap.size).to.eql(3);
@@ -275,8 +275,8 @@ describe('Get code coverage results', () => {
       records: perClassCodeCovResult
     } as ApexCodeCoverage);
 
-    const testSrv = new TestService(mockConnection);
-    const perClassCoverageMap = await testSrv.getPerClassCodeCoverage(
+    const codeCov = new CodeCoverage(mockConnection);
+    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
       new Set<string>(['0001x05958'])
     );
     expect(perClassCoverageMap.size).to.eql(1);
@@ -309,8 +309,8 @@ describe('Get code coverage results', () => {
 
   it('should return per class coverage for test that covers 0 classes', async () => {
     toolingQueryStub.throws('Error at Row:1;Column:1');
-    const testSrv = new TestService(mockConnection);
-    const perClassCoverageMap = await testSrv.getPerClassCodeCoverage(
+    const codeCov = new CodeCoverage(mockConnection);
+    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
       new Set<string>([])
     );
 

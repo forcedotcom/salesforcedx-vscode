@@ -555,4 +555,33 @@ describe('force:apex:test:report', () => {
         ]);
       }
     );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'reportAsyncResults', () => runWithCoverage)
+    .do(ctx => {
+      ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:report',
+      '-i',
+      '707xx0000AUS2gH',
+      '--outputdir',
+      'path/to/dir',
+      '--resultformat',
+      'human',
+      '-c'
+    ])
+    .it(
+      'should display warning message when output directory flag is specifed',
+      ctx => {
+        expect(ctx.stderr).to.include(messages.getMessage('warningMessage'));
+      }
+    );
 });

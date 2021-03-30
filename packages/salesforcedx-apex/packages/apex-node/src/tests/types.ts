@@ -462,6 +462,11 @@ export type NamespaceQueryResult = {
   records: NamespaceRecord[];
 };
 
+export type NamespaceInfo = {
+  installedNs: boolean;
+  namespace: string;
+};
+
 export type ApexTestProgressValue =
   | {
       type: 'StreamingClientProgress';
@@ -482,4 +487,10 @@ export type ApexTestProgressValue =
       type: 'FormatTestResultProgress';
       value: 'retrievingTestRunSummary' | 'queryingForAggregateCodeCoverage';
       message: string;
+    }
+  | {
+      type: 'AbortTestRunProgress';
+      value: 'abortingTestRun' | 'abortingTestRunRequested';
+      message: string;
+      testRunId: string;
     };

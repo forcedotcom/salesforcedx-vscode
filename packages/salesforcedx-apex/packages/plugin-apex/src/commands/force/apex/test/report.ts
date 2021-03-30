@@ -81,6 +81,9 @@ export default class Report extends SfdxCommand {
   };
 
   public async run(): Promise<AnyJson> {
+    if (this.flags.outputdir) {
+      this.ux.warn(messages.getMessage('warningMessage'));
+    }
     const conn = this.org.getConnection();
     const testService = new TestService(conn);
     const result = await testService.reportAsyncResults(

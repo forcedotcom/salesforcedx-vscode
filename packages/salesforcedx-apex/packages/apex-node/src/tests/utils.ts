@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Connection } from '@salesforce/core';
 import { CLASS_ID_PREFIX, TEST_RUN_ID_PREFIX } from './constants';
+import { NamespaceInfo, NamespaceQueryResult } from './types';
 
 export function isValidTestRunID(testRunId: string): boolean {
   return (
@@ -19,4 +21,44 @@ export function isValidApexClassID(apexClassId: string): boolean {
     (apexClassId.length === 15 || apexClassId.length === 18) &&
     apexClassId.startsWith(CLASS_ID_PREFIX)
   );
+}
+
+export function calculatePercentage(dividend: number, divisor: number): string {
+  let percentage = '0%';
+  if (dividend > 0) {
+    const calcPct = ((dividend / divisor) * 100).toFixed();
+    percentage = `${calcPct}%`;
+  }
+  return percentage;
+}
+
+export function stringify(jsonObj: object): string {
+  return JSON.stringify(jsonObj, null, 2);
+}
+
+export function addIdToQuery(formattedIds: string, id: string): string {
+  return formattedIds.length === 0 ? id : `${formattedIds}','${id}`;
+}
+
+export async function queryNamespaces(
+  connection: Connection
+): Promise<NamespaceInfo[]> {
+  const installedNsQuery = 'SELECT NamespacePrefix FROM PackageLicense';
+  const installedNsPromise = connection.query(installedNsQuery) as Promise<
+    NamespaceQueryResult
+  >;
+  const orgNsQuery = 'SELECT NamespacePrefix FROM Organization';
+  const orgNsPromise = connection.query(orgNsQuery) as Promise<
+    NamespaceQueryResult
+  >;
+
+  const allNamespaces = await Promise.all([installedNsPromise, orgNsPromise]);
+  const installedNamespaces = allNamespaces[0].records.map(record => {
+    return { installedNs: true, namespace: record.NamespacePrefix };
+  });
+  const orgNamespaces = allNamespaces[1].records.map(record => {
+    return { installedNs: false, namespace: record.NamespacePrefix };
+  });
+
+  return [...orgNamespaces, ...installedNamespaces];
 }

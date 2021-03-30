@@ -14,40 +14,49 @@ import {
   ApexTestRunResult,
   ApexTestResult,
   ApexTestQueueItem,
-  ApexCodeCoverageAggregate,
+  ApexTestQueueItemRecord,
+  ApexTestQueueItemStatus,
   ApexTestResultData,
-  CodeCoverageResult,
-  ApexOrgWideCoverage,
   ApexTestResultOutcome,
   ApexTestRunResultStatus,
   TestResult,
-  ApexCodeCoverage,
-  PerClassCoverage,
   OutputDirConfig,
-  ApexTestResultRecord,
-  SyncTestFailure,
   TestItem,
   TestLevel,
-  NamespaceQueryResult,
-  ResultFormat
+  ResultFormat,
+  NamespaceInfo
 } from './types';
 import * as util from 'util';
+import { join } from 'path';
 import { CancellationToken, Progress } from '../common';
 import { nls } from '../i18n';
 import { StreamingClient } from '../streaming';
-import { formatStartTime, getCurrentTime } from '../utils';
-import { join } from 'path';
 import { JUnitReporter, TapReporter } from '../reporters';
+import {
+  formatTestErrors,
+  getAsyncDiagnostic,
+  getSyncDiagnostic
+} from './diagnosticUtil';
+import {
+  addIdToQuery,
+  calculatePercentage,
+  isValidApexClassID,
+  isValidTestRunID,
+  queryNamespaces,
+  stringify
+} from './utils';
+import { formatStartTime, getCurrentTime } from '../utils';
 import { createFiles } from '../utils/fileSystemHandler';
-import { ApexDiagnostic } from '../utils/types';
-import { isValidApexClassID, isValidTestRunID } from './utils';
+import { CodeCoverage } from './codeCoverage';
 import { QUERY_CHAR_LIMIT } from './constants';
 
 export class TestService {
   public readonly connection: Connection;
+  private readonly codecoverage: CodeCoverage;
 
   constructor(connection: Connection) {
     this.connection = connection;
+    this.codecoverage = new CodeCoverage(this.connection);
   }
 
   // utils to build test run payloads that may contain namespaces
@@ -56,25 +65,29 @@ export class TestService {
     tests?: string,
     classnames?: string
   ): Promise<SyncTestConfiguration> {
-    let payload: SyncTestConfiguration;
-    if (tests) {
-      payload = await this.buildTestPayload(tests);
-      const classes = payload.tests?.map(testItem => {
-        if (testItem.className) {
-          return testItem.className;
+    try {
+      if (tests) {
+        const payload = await this.buildTestPayload(tests);
+        const classes = payload.tests?.map(testItem => {
+          if (testItem.className) {
+            return testItem.className;
+          }
+        });
+        if (new Set(classes).size !== 1) {
+          throw new Error(nls.localize('syncClassErr'));
         }
-      });
-      if (new Set(classes).size !== 1) {
-        return Promise.reject(new Error(nls.localize('syncClassErr')));
+        return payload;
+      } else if (classnames) {
+        const prop = isValidApexClassID(classnames) ? 'classId' : 'className';
+        return {
+          tests: [{ [prop]: classnames }],
+          testLevel
+        };
       }
-    } else {
-      const prop = isValidApexClassID(classnames) ? 'classId' : 'className';
-      payload = {
-        tests: [{ [prop]: classnames }],
-        testLevel
-      };
+      throw new Error(nls.localize('payloadErr'));
+    } catch (e) {
+      throw formatTestErrors(e);
     }
-    return payload;
   }
 
   public async buildAsyncPayload(
@@ -83,17 +96,21 @@ export class TestService {
     classNames?: string,
     suiteNames?: string
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
-    if (tests) {
-      return (await this.buildTestPayload(
-        tests
-      )) as AsyncTestArrayConfiguration;
-    } else if (classNames) {
-      return await this.buildAsyncClassPayload(classNames);
-    } else {
-      return {
-        suiteNames,
-        testLevel
-      };
+    try {
+      if (tests) {
+        return (await this.buildTestPayload(
+          tests
+        )) as AsyncTestArrayConfiguration;
+      } else if (classNames) {
+        return await this.buildAsyncClassPayload(classNames);
+      } else {
+        return {
+          suiteNames,
+          testLevel
+        };
+      }
+    } catch (e) {
+      throw formatTestErrors(e);
     }
   }
 
@@ -102,7 +119,7 @@ export class TestService {
   ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
     const testNameArray = testNames.split(',');
     const testItems: TestItem[] = [];
-    let namespaces: Set<string>;
+    let namespaceInfos: NamespaceInfo[];
 
     for (const test of testNameArray) {
       if (test.indexOf('.') > 0) {
@@ -114,15 +131,26 @@ export class TestService {
             testMethods: [testParts[2]]
           });
         } else {
-          if (typeof namespaces === 'undefined') {
-            namespaces = await this.queryNamespaces();
+          if (typeof namespaceInfos === 'undefined') {
+            namespaceInfos = await queryNamespaces(this.connection);
           }
+          const currentNamespace = namespaceInfos.find(
+            namespaceInfo => namespaceInfo.namespace === testParts[0]
+          );
 
-          if (namespaces.has(testParts[0])) {
-            testItems.push({
-              namespace: `${testParts[0]}`,
-              className: `${testParts[1]}`
-            });
+          // NOTE: Installed packages require the namespace to be specified as part of the className field
+          // The namespace field should not be used with subscriber orgs
+          if (currentNamespace) {
+            if (currentNamespace.installedNs) {
+              testItems.push({
+                className: `${testParts[0]}.${testParts[1]}`
+              });
+            } else {
+              testItems.push({
+                namespace: `${testParts[0]}`,
+                className: `${testParts[1]}`
+              });
+            }
           } else {
             testItems.push({
               className: testParts[0],
@@ -150,34 +178,13 @@ export class TestService {
       const classParts = item.split('.');
       if (classParts.length > 1) {
         return {
-          namespace: `${classParts[0]}`,
-          className: `${classParts[1]}`
+          className: `${classParts[0]}.${classParts[1]}`
         };
       }
       const prop = isValidApexClassID(item) ? 'classId' : 'className';
       return { [prop]: item } as TestItem;
     });
     return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
-  }
-
-  public async queryNamespaces(): Promise<Set<string>> {
-    const installedNsQuery = 'SELECT NamespacePrefix FROM PackageLicense';
-    const installedNsResult = (await this.connection.query(
-      installedNsQuery
-    )) as NamespaceQueryResult;
-    const installedNamespaces = installedNsResult.records.map(record => {
-      return record.NamespacePrefix;
-    });
-
-    const orgNsQuery = 'SELECT NamespacePrefix FROM Organization';
-    const orgNsResult = (await this.connection.query(
-      orgNsQuery
-    )) as NamespaceQueryResult;
-    const orgNamespaces = orgNsResult.records.map(record => {
-      return record.NamespacePrefix;
-    });
-
-    return new Set([...orgNamespaces, ...installedNamespaces]);
   }
 
   /**
@@ -191,26 +198,34 @@ export class TestService {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
-    const url = `${this.connection.tooling._baseUrl()}/runTestsSynchronous`;
-    const request = {
-      method: 'POST',
-      url,
-      body: JSON.stringify(options),
-      headers: { 'content-type': 'application/json' }
-    };
+    try {
+      const url = `${this.connection.tooling._baseUrl()}/runTestsSynchronous`;
+      const request = {
+        method: 'POST',
+        url,
+        body: JSON.stringify(options),
+        headers: { 'content-type': 'application/json' }
+      };
 
-    const testRun = (await this.connection.tooling.request(
-      request
-    )) as SyncTestResult;
+      const testRun = (await this.connection.tooling.request(
+        request
+      )) as SyncTestResult;
 
-    if (token && token.isCancellationRequested) {
-      return null;
+      if (token && token.isCancellationRequested) {
+        return null;
+      }
+
+      return await this.formatSyncResults(
+        testRun,
+        getCurrentTime(),
+        codeCoverage
+      );
+    } catch (e) {
+      throw formatTestErrors(e);
     }
-
-    return this.formatSyncResults(testRun, getCurrentTime(), codeCoverage);
   }
 
-  private async formatSyncResults(
+  public async formatSyncResults(
     apiTestResult: SyncTestResult,
     startTime: number,
     codeCoverage = false
@@ -232,15 +247,15 @@ export class TestService {
         passing: globalTestPassed,
         failing: globalTestFailed,
         skipped: 0,
-        passRate: this.calculatePercentage(
+        passRate: calculatePercentage(
           globalTestPassed,
           apiTestResult.numTestsRun
         ),
-        failRate: this.calculatePercentage(
+        failRate: calculatePercentage(
           globalTestFailed,
           apiTestResult.numTestsRun
         ),
-        skipRate: this.calculatePercentage(0, apiTestResult.numTestsRun),
+        skipRate: calculatePercentage(0, apiTestResult.numTestsRun),
         testStartTime: formatStartTime(startTime),
         testExecutionTimeInMs: apiTestResult.totalTime ?? 0,
         testTotalTimeInMs: apiTestResult.totalTime ?? 0,
@@ -255,7 +270,7 @@ export class TestService {
     };
 
     if (codeCoverage) {
-      const perClassCovMap = await this.getPerClassCodeCoverage(
+      const perClassCovMap = await this.codecoverage.getPerClassCodeCoverage(
         apexTestClassIdSet
       );
 
@@ -272,15 +287,17 @@ export class TestService {
         codeCoverageResults,
         totalLines,
         coveredLines
-      } = await this.getAggregateCodeCoverage(coveredApexClassIdSet);
+      } = await this.codecoverage.getAggregateCodeCoverage(
+        coveredApexClassIdSet
+      );
       result.codecoverage = codeCoverageResults;
       result.summary.totalLines = totalLines;
       result.summary.coveredLines = coveredLines;
-      result.summary.testRunCoverage = this.calculatePercentage(
+      result.summary.testRunCoverage = calculatePercentage(
         coveredLines,
         totalLines
       );
-      result.summary.orgWideCoverage = await this.getOrgWideCoverage();
+      result.summary.orgWideCoverage = await this.codecoverage.getOrgWideCoverage();
     }
     return result;
   }
@@ -322,7 +339,7 @@ export class TestService {
       const nms = item.namespace ? `${item.namespace}__` : '';
       apexTestClassIdSet.add(item.id);
       const diagnostic =
-        item.message || item.stackTrace ? this.getSyncDiagnostic(item) : null;
+        item.message || item.stackTrace ? getSyncDiagnostic(item) : null;
 
       testResults.push({
         id: '',
@@ -349,30 +366,6 @@ export class TestService {
     return { apexTestClassIdSet, testResults };
   }
 
-  private getSyncDiagnostic(syncRecord: SyncTestFailure): ApexDiagnostic {
-    const diagnostic: ApexDiagnostic = {
-      exceptionMessage: syncRecord.message,
-      exceptionStackTrace: syncRecord.stackTrace,
-      className: syncRecord.stackTrace
-        ? syncRecord.stackTrace.split('.')[1]
-        : undefined,
-      compileProblem: ''
-    };
-
-    const matches =
-      syncRecord.stackTrace &&
-      syncRecord.stackTrace.match(/(line (\d+), column (\d+))/);
-    if (matches) {
-      if (matches[2]) {
-        diagnostic.lineNumber = Number(matches[2]);
-      }
-      if (matches[3]) {
-        diagnostic.columnNumber = Number(matches[3]);
-      }
-    }
-    return diagnostic;
-  }
-
   /**
    * Asynchronous Test Runs
    * @param options test options
@@ -386,25 +379,36 @@ export class TestService {
     progress?: Progress<ApexTestProgressValue>,
     token?: CancellationToken
   ): Promise<TestResult> {
-    const sClient = new StreamingClient(this.connection, progress);
-    await sClient.init();
-    await sClient.handshake();
+    try {
+      const sClient = new StreamingClient(this.connection, progress);
+      await sClient.init();
+      await sClient.handshake();
 
-    const asyncRunResult = await sClient.subscribe(
-      this.getTestRunRequestAction(options)
-    );
+      token &&
+        token.onCancellationRequested(async () => {
+          const testRunId = await sClient.subscribedTestRunIdPromise;
+          await this.abortTestRun(testRunId, progress);
+          sClient.disconnect();
+        });
 
-    if (token && token.isCancellationRequested) {
-      return null;
+      const asyncRunResult = await sClient.subscribe(
+        this.getTestRunRequestAction(options)
+      );
+
+      if (token && token.isCancellationRequested) {
+        return null;
+      }
+
+      return await this.formatAsyncResults(
+        asyncRunResult.queueItem,
+        asyncRunResult.runId,
+        getCurrentTime(),
+        codeCoverage,
+        progress
+      );
+    } catch (e) {
+      throw formatTestErrors(e);
     }
-
-    return await this.formatAsyncResults(
-      asyncRunResult.queueItem,
-      asyncRunResult.runId,
-      getCurrentTime(),
-      codeCoverage,
-      progress
-    );
   }
 
   /**
@@ -420,6 +424,11 @@ export class TestService {
   ): Promise<TestResult> {
     const sClient = new StreamingClient(this.connection);
     const queueResult = await sClient.handler(undefined, testRunId);
+
+    token &&
+      token.onCancellationRequested(async () => {
+        sClient.disconnect();
+      });
 
     if (token && token.isCancellationRequested) {
       return null;
@@ -490,18 +499,9 @@ export class TestService {
         passing: globalTests.passed,
         failing: globalTests.failed,
         skipped: globalTests.skipped,
-        passRate: this.calculatePercentage(
-          globalTests.passed,
-          testResults.length
-        ),
-        failRate: this.calculatePercentage(
-          globalTests.failed,
-          testResults.length
-        ),
-        skipRate: this.calculatePercentage(
-          globalTests.skipped,
-          testResults.length
-        ),
+        passRate: calculatePercentage(globalTests.passed, testResults.length),
+        failRate: calculatePercentage(globalTests.failed, testResults.length),
+        skipRate: calculatePercentage(globalTests.skipped, testResults.length),
         testStartTime: formatStartTime(summaryRecord.StartTime),
         testExecutionTimeInMs: summaryRecord.TestTime ?? 0,
         testTotalTimeInMs: summaryRecord.TestTime ?? 0,
@@ -516,7 +516,7 @@ export class TestService {
     };
 
     if (codeCoverage) {
-      const perClassCovMap = await this.getPerClassCodeCoverage(
+      const perClassCovMap = await this.codecoverage.getPerClassCodeCoverage(
         apexTestClassIdSet
       );
 
@@ -541,15 +541,17 @@ export class TestService {
         codeCoverageResults,
         totalLines,
         coveredLines
-      } = await this.getAggregateCodeCoverage(coveredApexClassIdSet);
+      } = await this.codecoverage.getAggregateCodeCoverage(
+        coveredApexClassIdSet
+      );
       result.codecoverage = codeCoverageResults;
       result.summary.totalLines = totalLines;
       result.summary.coveredLines = coveredLines;
-      result.summary.testRunCoverage = this.calculatePercentage(
+      result.summary.testRunCoverage = calculatePercentage(
         coveredLines,
         totalLines
       );
-      result.summary.orgWideCoverage = await this.getOrgWideCoverage();
+      result.summary.orgWideCoverage = await this.codecoverage.getOrgWideCoverage();
     }
 
     return result;
@@ -571,14 +573,14 @@ export class TestService {
 
     // iterate thru ids, create query with id, & compare query length to char limit
     for (const id of apexResultIds) {
-      const newIds = this.addIdToQuery(formattedIds, id);
+      const newIds = addIdToQuery(formattedIds, id);
       const query = util.format(apexTestResultQuery, `'${newIds}'`);
 
       if (query.length > QUERY_CHAR_LIMIT) {
         queries.push(util.format(apexTestResultQuery, `'${formattedIds}'`));
         formattedIds = '';
       }
-      formattedIds = this.addIdToQuery(formattedIds, id);
+      formattedIds = addIdToQuery(formattedIds, id);
     }
 
     if (formattedIds.length > 0) {
@@ -632,9 +634,7 @@ export class TestService {
           : item.ApexClass.Name;
 
         const diagnostic =
-          item.Message || item.StackTrace
-            ? this.getAsyncDiagnostic(item)
-            : null;
+          item.Message || item.StackTrace ? getAsyncDiagnostic(item) : null;
 
         testResults.push({
           id: item.Id,
@@ -666,150 +666,6 @@ export class TestService {
     };
   }
 
-  public getAsyncDiagnostic(asyncRecord: ApexTestResultRecord): ApexDiagnostic {
-    const diagnostic: ApexDiagnostic = {
-      exceptionMessage: asyncRecord.Message,
-      exceptionStackTrace: asyncRecord.StackTrace,
-      className: asyncRecord.StackTrace
-        ? asyncRecord.StackTrace.split('.')[1]
-        : undefined,
-      compileProblem: ''
-    };
-
-    const matches =
-      asyncRecord.StackTrace &&
-      asyncRecord.StackTrace.match(/(line (\d+), column (\d+))/);
-    if (matches) {
-      if (matches[2]) {
-        diagnostic.lineNumber = Number(matches[2]);
-      }
-      if (matches[3]) {
-        diagnostic.columnNumber = Number(matches[3]);
-      }
-    }
-    return diagnostic;
-  }
-
-  public async getOrgWideCoverage(): Promise<string> {
-    const orgWideCoverageResult = (await this.connection.tooling.query(
-      'SELECT PercentCovered FROM ApexOrgWideCoverage'
-    )) as ApexOrgWideCoverage;
-
-    if (orgWideCoverageResult.records.length === 0) {
-      return '0%';
-    }
-    return `${orgWideCoverageResult.records[0].PercentCovered}%`;
-  }
-
-  //NOTE: a test could cover more than one class, map should contain a record for each covered class
-  public async getPerClassCodeCoverage(
-    apexTestClassSet: Set<string>
-  ): Promise<Map<string, PerClassCoverage[]>> {
-    if (apexTestClassSet.size === 0) {
-      return new Map();
-    }
-
-    let str = '';
-    apexTestClassSet.forEach(elem => {
-      str += `'${elem}',`;
-    });
-    str = str.slice(0, -1);
-
-    const perClassCodeCovQuery =
-      'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
-    const perClassCodeCovResuls = (await this.connection.tooling.query(
-      util.format(perClassCodeCovQuery, `${str}`)
-    )) as ApexCodeCoverage;
-
-    const perClassCoverageMap = new Map<string, PerClassCoverage[]>();
-    perClassCodeCovResuls.records.forEach(item => {
-      const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
-      const percentage = this.calculatePercentage(
-        item.NumLinesCovered,
-        totalLines
-      );
-
-      const value = {
-        apexClassOrTriggerName: item.ApexClassOrTrigger.Name,
-        apexClassOrTriggerId: item.ApexClassOrTrigger.Id,
-        apexTestClassId: item.ApexTestClassId,
-        apexTestMethodName: item.TestMethodName,
-        numLinesCovered: item.NumLinesCovered,
-        numLinesUncovered: item.NumLinesUncovered,
-        percentage,
-        ...(item.Coverage ? { coverage: item.Coverage } : {})
-      };
-      const key = `${item.ApexTestClassId}-${item.TestMethodName}`;
-      if (perClassCoverageMap.get(key)) {
-        perClassCoverageMap.get(key).push(value);
-      } else {
-        perClassCoverageMap.set(
-          `${item.ApexTestClassId}-${item.TestMethodName}`,
-          [value]
-        );
-      }
-    });
-
-    return perClassCoverageMap;
-  }
-
-  public async getAggregateCodeCoverage(
-    apexClassIdSet: Set<string>
-  ): Promise<{
-    codeCoverageResults: CodeCoverageResult[];
-    totalLines: number;
-    coveredLines: number;
-  }> {
-    if (apexClassIdSet.size === 0) {
-      return { codeCoverageResults: [], totalLines: 0, coveredLines: 0 };
-    }
-
-    let str = '';
-    apexClassIdSet.forEach(elem => {
-      str += `'${elem}',`;
-    });
-    str = str.slice(0, -1);
-
-    const codeCoverageQuery =
-      'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate WHERE ApexClassorTriggerId IN (%s)';
-    const codeCoverageResuls = (await this.connection.tooling.query(
-      util.format(codeCoverageQuery, `${str}`)
-    )) as ApexCodeCoverageAggregate;
-
-    let totalLinesCovered = 0;
-    let totalLinesUncovered = 0;
-    const codeCoverageResults: CodeCoverageResult[] = codeCoverageResuls.records.map(
-      item => {
-        totalLinesCovered += item.NumLinesCovered;
-        totalLinesUncovered += item.NumLinesUncovered;
-        const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
-        const percentage = this.calculatePercentage(
-          item.NumLinesCovered,
-          totalLines
-        );
-
-        return {
-          apexId: item.ApexClassOrTrigger.Id,
-          name: item.ApexClassOrTrigger.Name,
-          type: item.ApexClassOrTrigger.Id.startsWith('01p')
-            ? 'ApexClass'
-            : 'ApexTrigger',
-          numLinesCovered: item.NumLinesCovered,
-          numLinesUncovered: item.NumLinesUncovered,
-          percentage,
-          coveredLines: item.Coverage.coveredLines,
-          uncoveredLines: item.Coverage.uncoveredLines
-        };
-      }
-    );
-
-    return {
-      codeCoverageResults,
-      totalLines: totalLinesCovered + totalLinesUncovered,
-      coveredLines: totalLinesCovered
-    };
-  }
-
   public async writeResultFiles(
     result: TestResult,
     outputDirConfig: OutputDirConfig,
@@ -838,7 +694,7 @@ export class TestService {
                   ? `test-result-${result.summary.testRunId}.json`
                   : `test-result.json`
               ),
-              content: this.stringify(result)
+              content: stringify(result)
             });
             break;
           case ResultFormat.tap:
@@ -876,7 +732,7 @@ export class TestService {
           dirPath,
           `test-result-${result.summary.testRunId}-codecoverage.json`
         ),
-        content: this.stringify(coverageRecords)
+        content: stringify(coverageRecords)
       });
     }
 
@@ -885,7 +741,7 @@ export class TestService {
         path: join(dirPath, fileInfo.filename),
         content:
           typeof fileInfo.content !== 'string'
-            ? this.stringify(fileInfo.content)
+            ? stringify(fileInfo.content)
             : fileInfo.content
       });
     });
@@ -896,21 +752,38 @@ export class TestService {
     });
   }
 
-  private calculatePercentage(dividend: number, divisor: number): string {
-    let percentage = '0%';
-    if (dividend > 0) {
-      const calcPct = ((dividend / divisor) * 100).toFixed();
-      percentage = `${calcPct}%`;
+  /**
+   * Abort test run with test run id
+   * @param testRunId
+   */
+  public async abortTestRun(
+    testRunId: string,
+    progress?: Progress<ApexTestProgressValue>
+  ): Promise<void> {
+    progress?.report({
+      type: 'AbortTestRunProgress',
+      value: 'abortingTestRun',
+      message: nls.localize('abortingTestRun', testRunId),
+      testRunId
+    });
+
+    const testQueueItems = await this.connection.tooling.query<
+      ApexTestQueueItemRecord
+    >(
+      `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`
+    );
+
+    for (const record of testQueueItems.records) {
+      record.Status = ApexTestQueueItemStatus.Aborted;
     }
-    return percentage;
-  }
+    await this.connection.tooling.update(testQueueItems.records);
 
-  private addIdToQuery(formattedIds: string, id: string): string {
-    return formattedIds.length === 0 ? id : `${formattedIds}','${id}`;
-  }
-
-  public stringify(jsonObj: object): string {
-    return JSON.stringify(jsonObj, null, 2);
+    progress?.report({
+      type: 'AbortTestRunProgress',
+      value: 'abortingTestRunRequested',
+      message: nls.localize('abortingTestRunRequested', testRunId),
+      testRunId
+    });
   }
 
   private getTestRunRequestAction(

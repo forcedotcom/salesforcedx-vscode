@@ -4,7 +4,7 @@
   ],
   "overrides": [
     {
-      "files": ["src/common/types.ts"],
+      "files": ["src/common/cancellation.ts", "src/common/types.ts"],
       "rules": {
         "header/header": ["off"]
       }

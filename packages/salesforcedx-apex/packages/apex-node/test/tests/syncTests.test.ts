@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, StreamingClient } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import {
@@ -17,6 +17,7 @@ import {
 } from 'sinon';
 import * as fs from 'fs';
 import * as stream from 'stream';
+import * as utils from '../../src/tests/utils';
 import { join } from 'path';
 import { SyncTestConfiguration, TestService } from '../../src/tests';
 import {
@@ -36,6 +37,8 @@ import {
   syncTestResultWithFailures
 } from './testData';
 import { JUnitReporter } from '../../src';
+import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
+import { fail } from 'assert';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -54,6 +57,7 @@ describe('Run Apex tests synchronously', () => {
 
   let createStreamStub: SinonStub;
   let junitSpy: SinonSpy;
+  let formatSpy: SinonSpy;
   beforeEach(async () => {
     sandboxStub = createSandbox();
     $$.setConfigStubContents('AuthInfoConfig', {
@@ -81,6 +85,7 @@ describe('Run Apex tests synchronously', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     createStreamStub.returns(new stream.PassThrough() as any);
     junitSpy = sandboxStub.spy(JUnitReporter.prototype, 'format');
+    formatSpy = sandboxStub.spy(diagnosticUtil, 'formatTestErrors');
   });
 
   afterEach(() => {
@@ -212,8 +217,8 @@ describe('Run Apex tests synchronously', () => {
   describe('Build sync payload', async () => {
     it('should build synchronous payload for tests without namespace', async () => {
       const namespaceStub = sandboxStub
-        .stub(TestService.prototype, 'queryNamespaces')
-        .resolves(new Set(['myNamespace']));
+        .stub(utils, 'queryNamespaces')
+        .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
       const testSrv = new TestService(mockConnection);
       const payload = await testSrv.buildSyncPayload(
         TestLevel.RunSpecifiedTests,
@@ -229,8 +234,8 @@ describe('Run Apex tests synchronously', () => {
 
     it('should build synchronous payload for tests with namespace', async () => {
       const namespaceStub = sandboxStub
-        .stub(TestService.prototype, 'queryNamespaces')
-        .resolves(new Set(['myNamespace']));
+        .stub(utils, 'queryNamespaces')
+        .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
       const testSrv = new TestService(mockConnection);
       const payload = await testSrv.buildSyncPayload(
         TestLevel.RunSpecifiedTests,
@@ -251,9 +256,7 @@ describe('Run Apex tests synchronously', () => {
     });
 
     it('should build synchronous payload for class without namespace', async () => {
-      const namespaceStub = sandboxStub
-        .stub(TestService.prototype, 'queryNamespaces')
-        .resolves(new Set(['myNamespace']));
+      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
       const testSrv = new TestService(mockConnection);
       const payload = await testSrv.buildSyncPayload(
         TestLevel.RunSpecifiedTests,
@@ -270,8 +273,8 @@ describe('Run Apex tests synchronously', () => {
 
     it('should build synchronous payload for class with namespace', async () => {
       const namespaceStub = sandboxStub
-        .stub(TestService.prototype, 'queryNamespaces')
-        .resolves(new Set(['myNamespace']));
+        .stub(utils, 'queryNamespaces')
+        .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
       const testSrv = new TestService(mockConnection);
       const payload = await testSrv.buildSyncPayload(
         TestLevel.RunSpecifiedTests,
@@ -297,6 +300,16 @@ describe('Run Apex tests synchronously', () => {
         assert.fail();
       } catch (e) {
         expect(e.message).to.equal(nls.localize('syncClassErr'));
+      }
+    });
+
+    it('should throw an error if no tests or classes are specified', async () => {
+      const testSrv = new TestService(mockConnection);
+      try {
+        await testSrv.buildSyncPayload(TestLevel.RunLocalTests);
+        assert.fail();
+      } catch (e) {
+        expect(e.message).to.equal(nls.localize('payloadErr'));
       }
     });
   });
@@ -331,6 +344,27 @@ describe('Run Apex tests synchronously', () => {
       ).to.be.true;
       expect(junitSpy.calledOnce).to.be.true;
       expect(createStreamStub.callCount).to.eql(2);
+    });
+  });
+
+  describe('Format Test Errors', async () => {
+    it('should format test error when running synchronous tests', async () => {
+      const testSrv = new TestService(mockConnection);
+      const errMsg = `sObject type 'ApexClass' is not supported.`;
+      sandboxStub
+        .stub(TestService.prototype, 'formatSyncResults')
+        .throws(new Error(errMsg));
+      try {
+        await testSrv.runTestSynchronous({
+          testLevel: TestLevel.RunLocalTests
+        });
+        fail('Should have failed');
+      } catch (e) {
+        expect(formatSpy.calledOnce).to.be.true;
+        expect(e.message).to.contain(
+          nls.localize('invalidsObjectErr', ['ApexClass', errMsg])
+        );
+      }
     });
   });
 });

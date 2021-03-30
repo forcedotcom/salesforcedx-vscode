@@ -17,5 +17,6 @@
     "apexTestReportFormatHint":
     "Run \"sfdx force:apex:test:report %s --resultformat <format>\" to retrieve test results in a different format.",
     "outputDirHint": "Test result files written to %s",
-    "testResultProcessErr": "Encountered an error when processing test results\n%s"
+    "testResultProcessErr": "Encountered an error when processing test results\n%s",
+    "warningMessage": "WARNING: In the Summer ’21 release, we'll rename or remove some of the output files that are created when you run force:apex:test:run or force:apex:test:report with the --outputdir (-d) parameter.  This breaking change could impact your CI/CD scripts if they reference specific filenames. See https://sfdc.co/apex-test-updates for details\n"
 }
