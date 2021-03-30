@@ -1,3 +1,17 @@
+# 51.7.0 - Month DD, YYYY
+
+## Added
+
+#### salesforcedx-sobjects-faux-generator
+
+- Generate typings for sobjects ([PR #3018](https://github.com/forcedotcom/salesforcedx-vscode/pull/3018))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Do not show refresh success message for min sobjects @W-9042465@ ([PR #3082](https://github.com/forcedotcom/salesforcedx-vscode/pull/3082))
+
 # 51.6.0 - March 24, 2021
 
 ## Added
