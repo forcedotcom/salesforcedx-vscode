@@ -105,8 +105,9 @@ describe('Force Apex Test Run', () => {
   describe('Apex Library Test Run Executor', async () => {
     let runTestStub: SinonStub;
     let buildPayloadStub: SinonStub;
-    let reportStub: (value: unknown) => void = () => {};
-    const progress: vscode.Progress<unknown> = { report: reportStub };
+    let writeResultFilesStub: SinonStub;
+    let reportStub: SinonStub;
+    let progress: vscode.Progress<unknown>;
     let cancellationTokenEventEmitter;
     let cancellationToken: vscode.CancellationToken;
 
@@ -116,9 +117,10 @@ describe('Force Apex Test Run', () => {
       sb.stub(workspaceContext, 'getConnection');
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
-      sb.stub(TestService.prototype, 'writeResultFiles');
+      writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
 
       reportStub = sb.stub();
+      progress = { report: reportStub };
       cancellationTokenEventEmitter = new vscode.EventEmitter();
       cancellationToken = {
         isCancellationRequested: false,
@@ -213,6 +215,77 @@ describe('Force Apex Test Run', () => {
         match.any,
         cancellationToken
       );
+    });
+
+    it('should report progress', async () => {
+      const apexLibExecutor = new ApexLibraryTestRunExecutor();
+      runTestStub.callsFake(
+        (payload, codecoverage, progressReporter, token) => {
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingTransportUp',
+            message: 'Listening for streaming state changes...'
+          });
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingProcessingTestRun',
+            message: 'Processing test run 707500000000000001',
+            testRunId: '707500000000000001'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'retrievingTestRunSummary',
+            message: 'Retrieving test run summary record'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'queryingForAggregateCodeCoverage',
+            message: 'Querying for aggregate code coverage results'
+          });
+        }
+      );
+
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.All, label: '' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
+
+      assert.calledWith(reportStub, {
+        message: 'Listening for streaming state changes...'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Processing test run 707500000000000001'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Retrieving test run summary record'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Querying for aggregate code coverage results'
+      });
+    });
+
+    it('should return if cancellation is requested', async () => {
+      const apexLibExecutor = new ApexLibraryTestRunExecutor();
+      runTestStub.callsFake(() => {
+        cancellationToken.isCancellationRequested = true;
+      });
+
+      const result = await apexLibExecutor.run(
+        {
+          data: { type: TestType.All, label: '' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
+
+      assert.calledOnce(runTestStub);
+      assert.notCalled(writeResultFilesStub);
+      expect(result).to.eql(false);
     });
   });
 

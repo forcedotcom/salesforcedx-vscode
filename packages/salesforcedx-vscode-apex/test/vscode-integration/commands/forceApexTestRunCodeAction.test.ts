@@ -308,6 +308,7 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Apex Library Test Run Executor', async () => {
     let runTestStub: SinonStub;
     let buildPayloadStub: SinonStub;
+    let writeResultFilesStub: SinonStub;
     const defaultPackageDir = 'default/package/dir';
     const componentPath = join(
       defaultPackageDir,
@@ -315,8 +316,8 @@ describe('Force Apex Test Run - Code Action', () => {
       'default',
       'TestClass.cls'
     );
-    let reportStub: (value: unknown) => void = () => {};
-    const progress: Progress<unknown> = { report: reportStub };
+    let reportStub: SinonStub;
+    let progress: Progress<unknown>;
     let cancellationTokenEventEmitter;
     let cancellationToken: CancellationToken;
     beforeEach(async () => {
@@ -326,7 +327,7 @@ describe('Force Apex Test Run - Code Action', () => {
       sb.stub(workspaceContext, 'getConnection');
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
-      sb.stub(TestService.prototype, 'writeResultFiles');
+      writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(SfdxProject, 'resolve').returns({
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };
@@ -344,6 +345,7 @@ describe('Force Apex Test Run - Code Action', () => {
       sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
 
       reportStub = sb.stub();
+      progress = { report: reportStub };
       cancellationTokenEventEmitter = new EventEmitter();
       cancellationToken = {
         isCancellationRequested: false,
@@ -478,6 +480,85 @@ describe('Force Apex Test Run - Code Action', () => {
         match.any,
         cancellationToken
       );
+    });
+
+    it('should report progress', async () => {
+      buildPayloadStub.resolves({
+        tests: [
+          { className: 'testClass' },
+          {
+            className: 'secondTestClass'
+          }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(
+        ['testClass', 'secondTestClass'],
+        'path/to/dir',
+        false
+      );
+      runTestStub.callsFake(
+        (payload, codecoverage, progressReporter, token) => {
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingTransportUp',
+            message: 'Listening for streaming state changes...'
+          });
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingProcessingTestRun',
+            message: 'Processing test run 707500000000000001',
+            testRunId: '707500000000000001'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'retrievingTestRunSummary',
+            message: 'Retrieving test run summary record'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'queryingForAggregateCodeCoverage',
+            message: 'Querying for aggregate code coverage results'
+          });
+          return passingResult;
+        }
+      );
+
+      await apexLibExecutor.run(undefined, progress, cancellationToken);
+
+      assert.calledWith(reportStub, {
+        message: 'Listening for streaming state changes...'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Processing test run 707500000000000001'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Retrieving test run summary record'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Querying for aggregate code coverage results'
+      });
+    });
+
+    it('should return if cancellation is requested', async () => {
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(
+        ['testClass', 'secondTestClass'],
+        'path/to/dir',
+        false
+      );
+      runTestStub.callsFake(() => {
+        cancellationToken.isCancellationRequested = true;
+      });
+
+      const result = await apexLibExecutor.run(
+        undefined,
+        progress,
+        cancellationToken
+      );
+
+      assert.calledOnce(runTestStub);
+      assert.notCalled(writeResultFilesStub);
+      expect(result).to.eql(false);
     });
   });
 
