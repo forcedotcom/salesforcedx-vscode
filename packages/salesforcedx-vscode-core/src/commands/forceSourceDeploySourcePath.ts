@@ -54,15 +54,14 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
     response: ContinueResponse<string | string[]>
   ): Promise<ComponentSet> {
     const paths = response.data;
-    const components = new ComponentSet();
+
+    // return ComponentSet.fromSource(paths);   // TODO - why does this fail?
+
     if (typeof paths === 'string') {
-      components.resolveSourceComponents(paths);
+      return ComponentSet.fromSource(paths);
     } else {
-      for (const filepath of paths) {
-        components.resolveSourceComponents(filepath);
-      }
+      return ComponentSet.fromSource(paths);
     }
-    return components;
   }
 }
 

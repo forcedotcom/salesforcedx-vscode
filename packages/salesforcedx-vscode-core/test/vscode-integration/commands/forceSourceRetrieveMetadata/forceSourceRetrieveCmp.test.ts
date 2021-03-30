@@ -178,7 +178,7 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
         path.join(getRootWorkspacePath(), defaultPackageDir)
       ]);
-      sb.stub(ComponentSet.prototype, 'resolveSourceComponents');
+      sb.stub(ComponentSet, 'fromSource');
 
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');

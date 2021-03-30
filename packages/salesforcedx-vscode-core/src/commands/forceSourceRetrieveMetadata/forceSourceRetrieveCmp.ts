@@ -160,10 +160,10 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
       response.data.map(lc => ({ fullName: lc.fileName, type: lc.type }))
     );
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
-    for (const dir of packageDirs) {
-      filter.resolveSourceComponents(dir, { filter });
-    }
-    return filter;
+    return ComponentSet.fromSource({
+      fsPaths: packageDirs,
+      inclusiveFilter: filter
+    });
   }
 
   protected async postOperation(

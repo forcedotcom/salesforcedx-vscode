@@ -66,10 +66,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       const telemetry = new TelemetryBuilder();
 
       try {
-        const components = new ComponentSet();
-        for (const fsPath of execFilePathOrPaths.split(',')) {
-          components.resolveSourceComponents(fsPath);
-        }
+        const components = ComponentSet.fromSource(execFilePathOrPaths);
         const metadataCount = JSON.stringify(createComponentCount(components));
         telemetry.addProperty(TELEMETRY_METADATA_COUNT, metadataCount);
       } catch (e) {
