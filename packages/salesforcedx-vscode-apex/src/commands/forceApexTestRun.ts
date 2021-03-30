@@ -182,6 +182,7 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   ApexTestQuickPickItem
 > {
+  protected cancellable: boolean = true;
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
@@ -230,7 +231,14 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
     }
 
     const progressReporter: Progress<ApexTestProgressValue> = {
-      report: value => {}
+      report: value => {
+        if (
+          value.type === 'StreamingClientProgress' ||
+          value.type === 'FormatTestResultProgress'
+        ) {
+          progress?.report({ message: value.message });
+        }
+      }
     };
     const result = await testService.runTestAsynchronous(
       payload,
