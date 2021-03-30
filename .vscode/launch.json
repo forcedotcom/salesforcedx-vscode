@@ -201,6 +201,24 @@
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
+      "name": "Launch Tests - SOQL - UI Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/packages/salesforcedx-vscode-soql/node_modules/.bin/extest",
+      "args": [
+        "setup-and-run",
+        "-s",
+        "~/.vscode-test-resources",
+        "-o", 
+        "${workspaceFolder}/packages/salesforcedx-vscode-soql/test/ui-test/resources/settings.json",
+        "${workspaceFolder}/packages/salesforcedx-vscode-soql/out/test/ui-test/*.js"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/packages/salesforcedx-vscode-soql",
+      "preLaunchTask": "Compile",
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
       "name": "Launch Tests - Apex - VSCode Integration Tests",
       "type": "extensionHost",
       "request": "launch",
