@@ -118,7 +118,7 @@ You can delete source from your project and from your non-source-tracked org.
 To develop in non-scratch orgs and use Org Browser to retrieve source:
 
 1. Open the VS Code editor and from the Command Palette, run **SFDX: Create Project**.
-1. In the code editor's status bar, click Org Picker. This opens the Command Palette and you can select a command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
+1. In the code editor's status bar, click Org Picker to open the Command Palette. Select a command to authorize an org, Dev Hub, or create a scratch org, or select from the list of authorized orgs.
 1. Run **SFDX: Authorize an Org** and select a login URL, for example Sandbox. Log in to your org in the browser window and then return to the VS Code window.
 
 Org Browser displays the available metadata types and their corresponding components in your default org. It saves the metadata of the default org in your local project under the .sfdx directory. See [Org Browser](./en/user-guide/org-browser).
