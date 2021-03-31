@@ -21,7 +21,7 @@ This architecture change is done through a phased approach.  For both the Apex l
 |                         | Library complete	| Available to try in VS Code	| On by default in VS Code	| CLI Updated  |
 |-------------------------|:-----------------:|:---------------------------:|:-------------------------:|:------------:|
 | Apex Library	          |        ✔️          |               ✔️             |             ✔️             |              |
-| Deploy Retrieve Library |        ✔️          |               ✔️             |                           |              |
+| Deploy Retrieve Library |        ✔️          |               ✔️             |             ✔️              |              |
 	
 
 ## Setup
