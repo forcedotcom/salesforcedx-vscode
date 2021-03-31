@@ -1,3 +1,21 @@
+# 51.7.0 - Mar 31, 2021
+
+## Added
+
+#### salesforcedx-sobjects-vscode-core
+
+- Switched setting `salesforcedx-vscode-core.experimental.deployRetrieve` to on by default. ([PR #3101](https://github.com/forcedotcom/salesforcedx-vscode/pull/3101))
+
+#### salesforcedx-sobjects-faux-generator
+
+- Generate typings for sobjects ([PR #3018](https://github.com/forcedotcom/salesforcedx-vscode/pull/3018))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Do not show refresh success message for min sobjects ([PR #3082](https://github.com/forcedotcom/salesforcedx-vscode/pull/3082))
+
 # 51.6.0 - March 24, 2021
 
 ## Added
