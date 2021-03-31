@@ -4,7 +4,7 @@
 
 #### salesforcedx-sobjects-vscode-core
 
-Switched setting `salesforcedx-vscode-core.experimental.deployRetrieve` to on by default. ([PR #3101](https://github.com/forcedotcom/salesforcedx-vscode/pull/3101))
+- Switched setting `salesforcedx-vscode-core.experimental.deployRetrieve` to on by default. ([PR #3101](https://github.com/forcedotcom/salesforcedx-vscode/pull/3101))
 
 #### salesforcedx-sobjects-faux-generator
 
