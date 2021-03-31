@@ -17,16 +17,16 @@ export async function soqlOpenNew(): Promise<void> {
   telemetryService.sendCommandEvent('soql_builder_open_new', process.hrtime());
 
   if (vscode.workspace) {
-    // create untitled file
-    const doc = await vscode.workspace.openTextDocument({
-      language: 'soql',
-      content: ''
+    const fileName = 'untitled.soql';
+    const newUri = vscode.Uri.file(fileName).with({
+      scheme: 'untitled',
+      path: fileName
     });
 
     // open with SOQL builder
     vscode.commands.executeCommand(
       OPEN_WITH_COMMAND,
-      doc.uri,
+      newUri,
       BUILDER_VIEW_TYPE
     );
   }

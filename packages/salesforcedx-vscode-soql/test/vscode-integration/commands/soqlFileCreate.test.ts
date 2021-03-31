@@ -15,14 +15,11 @@ import { telemetryService } from '../../../src/telemetry';
 describe('soqlOpenNew should', () => {
   let sb: SinonSandbox;
   let telemetryStub: SinonStub;
-  let editorOpened: SinonStub;
   let executeCommandSpy: SinonSpy;
 
   beforeEach(() => {
     sb = createSandbox();
     telemetryStub = sb.stub(telemetryService, 'sendCommandEvent') as SinonStub;
-    editorOpened = sb.stub();
-    vscode.workspace.onDidOpenTextDocument(editorOpened);
     executeCommandSpy = (sb.spy(
       vscode.commands,
       'executeCommand'
@@ -37,7 +34,7 @@ describe('soqlOpenNew should', () => {
     await soqlOpenNew();
 
     expect(telemetryStub.called).is.true;
-    expect(editorOpened.called).is.true;
     expect(executeCommandSpy.getCall(0).args[2]).contains(BUILDER_VIEW_TYPE);
+    expect(executeCommandSpy.getCall(0).args[1].scheme).contains('untitled');
   });
 });
