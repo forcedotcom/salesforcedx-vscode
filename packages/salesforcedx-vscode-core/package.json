@@ -872,7 +872,7 @@
         },
         "salesforcedx-vscode-core.experimental.deployRetrieve": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%experimental_deploy_retrieve_description%"
         },
         "salesforcedx-vscode-core.experimental.useApexLibrary": {
