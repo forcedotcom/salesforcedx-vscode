@@ -85,6 +85,14 @@ export const mockDescribeGlobalResponse = {
 export const mockSObjects = [
   {
     name: 'Account',
+    childRelationships: [
+      {
+        cascadeDelete: false,
+        childSObject: 'User',
+        field: 'AccountId',
+        relationshipName: 'Users'
+      }
+    ],
     fields: [
       {
         aggregatable: false,
