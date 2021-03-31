@@ -34,7 +34,7 @@ describe('soqlBuilderToggle should', () => {
     sb.stub(vscode.window, 'activeTextEditor').get(() => {
       return {} as vscode.TextEditor;
     });
-    await soqlBuilderToggle({ fsPath: '/fake.soql' } as vscode.Uri);
+    await soqlBuilderToggle({} as vscode.Uri);
 
     // tslint:disable-next-line:no-unused-expression
     expect(telemetryStub.called).is.true;
@@ -45,7 +45,7 @@ describe('soqlBuilderToggle should', () => {
     sb.stub(vscode.window, 'activeTextEditor').get(() => {
       return undefined;
     });
-    await soqlBuilderToggle({ fsPath: '/fake.soql' } as vscode.Uri);
+    await soqlBuilderToggle({} as vscode.Uri);
 
     // tslint:disable-next-line:no-unused-expression
     expect(telemetryStub.called).is.true;
