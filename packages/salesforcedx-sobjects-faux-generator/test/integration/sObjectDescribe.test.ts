@@ -10,6 +10,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
 import { SObjectDescribe } from '../../src/describe';
+import { GeneralSObjectSelector } from '../../src/transformer/transformerFactory';
 import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
 import { mockDescribeResponse } from './mockData';
 
@@ -61,10 +62,7 @@ describe('Fetch sObjects', () => {
       new Error('Unexpected error when running describeGlobal')
     );
     try {
-      // await sobjectdescribe.describeGlobal(
-      //   SObjectCategory.ALL,
-      //   SObjectRefreshSource.Manual
-      // );
+      await sobjectdescribe.describeGlobal({ select: () => true });
       fail('test should have failed with an api exception');
     } catch (e) {
       expect(e.message).contains(
@@ -84,9 +82,10 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      { select: s => true }
-      // SObjectCategory.ALL,
-      // SObjectRefreshSource.Manual
+      new GeneralSObjectSelector(
+        SObjectCategory.ALL,
+        SObjectRefreshSource.Manual
+      )
     );
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal([
@@ -108,9 +107,10 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      { select: s => true }
-      // SObjectCategory.CUSTOM,
-      // SObjectRefreshSource.Manual
+      new GeneralSObjectSelector(
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      )
     );
     expect(results.length).to.eql(2);
     expect(results).to.deep.equal(['MyCustomObj1', 'MyCustomObj2']);
@@ -128,9 +128,10 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      { select: s => true }
-      // SObjectCategory.STANDARD,
-      // SObjectRefreshSource.Manual
+      new GeneralSObjectSelector(
+        SObjectCategory.STANDARD,
+        SObjectRefreshSource.Manual
+      )
     );
     expect(results.length).to.eql(3);
     expect(results).to.deep.equal(['Account', 'Contact', 'Lead']);
@@ -140,9 +141,10 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      { select: s => true }
-      // SObjectCategory.CUSTOM,
-      // SObjectRefreshSource.Manual
+      new GeneralSObjectSelector(
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Manual
+      )
     );
     expect(results.length).to.eql(3);
     expect(results).to.deep.equal([
@@ -156,9 +158,10 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      { select: s => true }
-      // SObjectCategory.STANDARD,
-      // SObjectRefreshSource.Manual
+      new GeneralSObjectSelector(
+        SObjectCategory.STANDARD,
+        SObjectRefreshSource.Manual
+      )
     );
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal(['Account', 'Contact', 'Lead', 'Event']);
@@ -168,9 +171,10 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      { select: s => true }
-      // SObjectCategory.ALL,
-      // SObjectRefreshSource.Startup
+      new GeneralSObjectSelector(
+        SObjectCategory.ALL,
+        SObjectRefreshSource.Startup
+      )
     );
     expect(results.length).to.eql(7);
     expect(results).to.deep.equal([
@@ -188,9 +192,10 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      { select: s => true }
-      // SObjectCategory.ALL,
-      // SObjectRefreshSource.Startup
+      new GeneralSObjectSelector(
+        SObjectCategory.ALL,
+        SObjectRefreshSource.Startup
+      )
     );
     expect(results.length).to.eql(7);
     expect(results).to.deep.equal([
