@@ -11,7 +11,7 @@ version: 2.1
 
 orbs:
   win: circleci/windows@2.2.0
-  sfchangecase: salesforce/change-case-management@3
+  # sfchangecase: salesforce/change-case-management@3
   slack: circleci/slack@3.4.2
 
 parameters:
@@ -446,12 +446,12 @@ jobs:
           name: 'Setup gus case management'
           command: |
             sudo npm install -g @salesforce/change-case-management
-      - sfchangecase/create:
-          location: REPO_LOCATION
-          release: GUS_RELEASE
-      - sfchangecase/check:
-          location: REPO_LOCATION
-          release: GUS_RELEASE
+      # - sfchangecase/create:
+      #     location: REPO_LOCATION
+      #     release: GUS_RELEASE
+      # - sfchangecase/check:
+      #     location: REPO_LOCATION
+      #     release: GUS_RELEASE
       - gh-config
       - install
       - compile
@@ -467,9 +467,9 @@ jobs:
             git tag v${RELEASE_VERSION}
             git push origin v${RELEASE_VERSION}
             git push origin main
-      - sfchangecase/update:
-          location: REPO_LOCATION
-          release: GUS_RELEASE
+      # - sfchangecase/update:
+      #     location: REPO_LOCATION
+      #     release: GUS_RELEASE
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
