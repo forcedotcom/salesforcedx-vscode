@@ -7,12 +7,22 @@
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
+import { SObjectGenerator, SObjectRefreshOutput } from '../types';
 import { FieldDeclaration, SObjectDefinition } from './types';
 
 export const TYPESCRIPT_TYPE_EXT = '.d.ts';
+const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
-export class TypingGenerator {
-  public generate(
+export class TypingGenerator implements SObjectGenerator {
+  public generate(output: SObjectRefreshOutput): void {
+    const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
+    this.generateTypes(
+      [...output.getStandard(), ...output.getCustom()],
+      typingsFolderPath
+    );
+  }
+
+  public generateTypes(
     definitions: SObjectDefinition[],
     targetFolder: string
   ): void {
@@ -22,12 +32,12 @@ export class TypingGenerator {
 
     for (const def of definitions) {
       if (def.name) {
-        this.generateTypingForDefinition(targetFolder, def);
+        this.generateType(targetFolder, def);
       }
     }
   }
 
-  public generateTypingForDefinition(
+  public generateType(
     folderPath: string,
     definition: SObjectDefinition
   ): string {

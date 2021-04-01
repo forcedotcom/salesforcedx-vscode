@@ -29,8 +29,9 @@ describe('SObject faux class generator', () => {
   const declGenerator = new DeclarationGenerator();
 
   function getGenerator(): FauxClassGenerator {
-    const emitter: EventEmitter = new EventEmitter();
-    return new FauxClassGenerator(emitter);
+    // const emitter: EventEmitter = new EventEmitter();
+    // return new FauxClassGenerator(emitter);
+    return new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
   }
 
   afterEach(() => {
@@ -414,19 +415,19 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove standardObjects folder when category is STANDARD', () => {
-      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
+      // gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
       expect(fs.existsSync(customFolder));
       expect(!fs.existsSync(standardFolder));
     });
 
     it('Should remove customObjects folder when category is CUSTOM', () => {
-      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.CUSTOM);
+      // gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.CUSTOM);
       expect(!fs.existsSync(customFolder));
       expect(fs.existsSync(standardFolder));
     });
 
     it('Should remove base sobjects folder when category is ALL', () => {
-      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
+      // gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
       expect(!fs.existsSync(customFolder));
       expect(!fs.existsSync(standardFolder));
     });

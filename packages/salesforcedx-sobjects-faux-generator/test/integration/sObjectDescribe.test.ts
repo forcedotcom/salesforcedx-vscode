@@ -61,10 +61,10 @@ describe('Fetch sObjects', () => {
       new Error('Unexpected error when running describeGlobal')
     );
     try {
-      await sobjectdescribe.describeGlobal(
-        SObjectCategory.ALL,
-        SObjectRefreshSource.Manual
-      );
+      // await sobjectdescribe.describeGlobal(
+      //   SObjectCategory.ALL,
+      //   SObjectRefreshSource.Manual
+      // );
       fail('test should have failed with an api exception');
     } catch (e) {
       expect(e.message).contains(
@@ -84,8 +84,9 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Manual
+      { select: s => true }
+      // SObjectCategory.ALL,
+      // SObjectRefreshSource.Manual
     );
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal([
@@ -107,8 +108,9 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.CUSTOM,
-      SObjectRefreshSource.Manual
+      { select: s => true }
+      // SObjectCategory.CUSTOM,
+      // SObjectRefreshSource.Manual
     );
     expect(results.length).to.eql(2);
     expect(results).to.deep.equal(['MyCustomObj1', 'MyCustomObj2']);
@@ -126,8 +128,9 @@ describe('Fetch sObjects', () => {
     });
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.STANDARD,
-      SObjectRefreshSource.Manual
+      { select: s => true }
+      // SObjectCategory.STANDARD,
+      // SObjectRefreshSource.Manual
     );
     expect(results.length).to.eql(3);
     expect(results).to.deep.equal(['Account', 'Contact', 'Lead']);
@@ -137,8 +140,9 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.CUSTOM,
-      SObjectRefreshSource.Manual
+      { select: s => true }
+      // SObjectCategory.CUSTOM,
+      // SObjectRefreshSource.Manual
     );
     expect(results.length).to.eql(3);
     expect(results).to.deep.equal([
@@ -152,8 +156,9 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.STANDARD,
-      SObjectRefreshSource.Manual
+      { select: s => true }
+      // SObjectCategory.STANDARD,
+      // SObjectRefreshSource.Manual
     );
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal(['Account', 'Contact', 'Lead', 'Event']);
@@ -163,8 +168,9 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Startup
+      { select: s => true }
+      // SObjectCategory.ALL,
+      // SObjectRefreshSource.Startup
     );
     expect(results.length).to.eql(7);
     expect(results).to.deep.equal([
@@ -182,8 +188,9 @@ describe('Fetch sObjects', () => {
     describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
 
     const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Startup
+      { select: s => true }
+      // SObjectCategory.ALL,
+      // SObjectRefreshSource.Startup
     );
     expect(results.length).to.eql(7);
     expect(results).to.deep.equal([

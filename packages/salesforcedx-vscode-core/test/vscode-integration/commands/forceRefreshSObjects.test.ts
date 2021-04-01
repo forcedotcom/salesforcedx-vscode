@@ -137,11 +137,13 @@ describe('ForceGenerateFauxClasses', () => {
       await checkSObjectsAndRefresh(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-      expect(telemetryEventStub.calledWith(
-        'sObjectRefreshNotification',
-        { type: SObjectRefreshSource.StartupMin },
-        undefined
-      )).to.be.true;
+      expect(
+        telemetryEventStub.calledWith(
+          'sObjectRefreshNotification',
+          { type: SObjectRefreshSource.StartupMin },
+          undefined
+        )
+      ).to.be.true;
     });
 
     it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {
@@ -175,7 +177,7 @@ describe('ForceGenerateFauxClasses', () => {
         .stub(FauxClassGenerator.prototype, 'generate')
         .returns({ data: expectedData });
       generatorMinStub = sandboxStub
-        .stub(FauxClassGenerator.prototype, 'generateMin')
+        .stub(FauxClassGenerator.prototype, 'generate')
         .returns({ data: expectedData });
       logStub = sandboxStub.stub(
         ForceRefreshSObjectsExecutor.prototype,
