@@ -6,8 +6,10 @@
  */
 
 import {
+  ApexTestProgressValue,
   AsyncTestConfiguration,
   HumanReporter,
+  Progress,
   ResultFormat,
   TestLevel,
   TestService
@@ -180,6 +182,7 @@ export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   ApexTestQuickPickItem
 > {
+  protected cancellable: boolean = true;
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
@@ -193,7 +196,12 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   }
 
   public async run(
-    response: ContinueResponse<ApexTestQuickPickItem>
+    response: ContinueResponse<ApexTestQuickPickItem>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
@@ -222,10 +230,33 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
         payload = { testLevel: TestLevel.RunAllTestsInOrg };
     }
 
-    const result = await testService.runTestAsynchronous(payload, codeCoverage);
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: value => {
+        if (
+          value.type === 'StreamingClientProgress' ||
+          value.type === 'FormatTestResultProgress'
+        ) {
+          progress?.report({ message: value.message });
+        }
+      }
+    };
+    const result = await testService.runTestAsynchronous(
+      payload,
+      codeCoverage,
+      progressReporter,
+      token
+    );
+
+    if (token?.isCancellationRequested) {
+      return false;
+    }
+
     await testService.writeResultFiles(
       result,
-      { resultFormats: [ResultFormat.json], dirPath: getTempFolder() },
+      {
+        resultFormats: [ResultFormat.json],
+        dirPath: getTempFolder()
+      },
       codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, codeCoverage);
