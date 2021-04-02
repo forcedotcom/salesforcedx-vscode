@@ -153,6 +153,10 @@ export class FauxClassGenerator {
       );
     }
 
+    if (fetchedSObjects === null || fetchedSObjects === []) {
+      return this.cancelExit();
+    }
+
     const standardSObjects: SObjectDefinition[] = [];
     const customSObjects: SObjectDefinition[] = [];
     // tslint:disable-next-line:prefer-for-of

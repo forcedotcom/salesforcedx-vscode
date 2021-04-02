@@ -251,9 +251,7 @@ describe('Fetch sObjects', () => {
     const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves(mockDescribeResponse);
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(1);
     expect(batchResponse[0]).to.deep.equal(
@@ -267,9 +265,7 @@ describe('Fetch sObjects', () => {
       results: undefined
     });
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(0);
   });
@@ -278,9 +274,7 @@ describe('Fetch sObjects', () => {
     const sobjectTypes = ['ApexPageInfo'];
     env.stub(connection, 'request').resolves({});
 
-    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
-      sobjectTypes
-    );
+    const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(sobjectTypes);
 
     expect(batchResponse.length).to.be.equal(0);
   });
