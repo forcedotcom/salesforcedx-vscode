@@ -13,7 +13,14 @@ import {
 import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { expect } from 'chai';
 import { join } from 'path';
-import { createSandbox, SinonSpy, SinonStub } from 'sinon';
+import {
+  assert,
+  createSandbox,
+  match,
+  sandbox,
+  SinonSpy,
+  SinonStub
+} from 'sinon';
 import * as vscode from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
@@ -98,6 +105,11 @@ describe('Force Apex Test Run', () => {
   describe('Apex Library Test Run Executor', async () => {
     let runTestStub: SinonStub;
     let buildPayloadStub: SinonStub;
+    let writeResultFilesStub: SinonStub;
+    let reportStub: SinonStub;
+    let progress: vscode.Progress<unknown>;
+    let cancellationTokenEventEmitter;
+    let cancellationToken: vscode.CancellationToken;
 
     beforeEach(async () => {
       retrieveCoverageStub.returns(true);
@@ -105,7 +117,15 @@ describe('Force Apex Test Run', () => {
       sb.stub(workspaceContext, 'getConnection');
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
-      sb.stub(TestService.prototype, 'writeResultFiles');
+      writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
+
+      reportStub = sb.stub();
+      progress = { report: reportStub };
+      cancellationTokenEventEmitter = new vscode.EventEmitter();
+      cancellationToken = {
+        isCancellationRequested: false,
+        onCancellationRequested: cancellationTokenEventEmitter.event
+      };
     });
 
     it('should run test with correct parameters for specified class', async () => {
@@ -115,10 +135,14 @@ describe('Force Apex Test Run', () => {
       });
 
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.run({
-        data: { type: TestType.Class, label: 'testClass' },
-        type: 'CONTINUE'
-      });
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.Class, label: 'testClass' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
@@ -126,10 +150,17 @@ describe('Force Apex Test Run', () => {
         undefined,
         'testClass'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
-        { classNames: 'testClass', testLevel: TestLevel.RunSpecifiedTests },
-        true
-      ]);
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
+        {
+          classNames: 'testClass',
+          testLevel: TestLevel.RunSpecifiedTests
+        },
+        true,
+        match.any,
+        cancellationToken
+      );
     });
 
     it('should run test with correct parameters for specified suite', async () => {
@@ -139,10 +170,14 @@ describe('Force Apex Test Run', () => {
       });
 
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.run({
-        data: { type: TestType.Suite, label: 'testSuite' },
-        type: 'CONTINUE'
-      });
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.Suite, label: 'testSuite' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
@@ -151,23 +186,106 @@ describe('Force Apex Test Run', () => {
         undefined,
         'testSuite'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
         { suiteNames: 'testSuite', testLevel: TestLevel.RunSpecifiedTests },
-        true
-      ]);
+        true,
+        match.any,
+        cancellationToken
+      );
     });
 
     it('should run test with correct parameters for all tests', async () => {
       const apexLibExecutor = new ApexLibraryTestRunExecutor();
-      await apexLibExecutor.run({
-        data: { type: TestType.All, label: '' },
-        type: 'CONTINUE'
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.All, label: '' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
+
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
+        { testLevel: TestLevel.RunAllTestsInOrg },
+        true,
+        match.any,
+        cancellationToken
+      );
+    });
+
+    it('should report progress', async () => {
+      const apexLibExecutor = new ApexLibraryTestRunExecutor();
+      runTestStub.callsFake(
+        (payload, codecoverage, progressReporter, token) => {
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingTransportUp',
+            message: 'Listening for streaming state changes...'
+          });
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingProcessingTestRun',
+            message: 'Processing test run 707500000000000001',
+            testRunId: '707500000000000001'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'retrievingTestRunSummary',
+            message: 'Retrieving test run summary record'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'queryingForAggregateCodeCoverage',
+            message: 'Querying for aggregate code coverage results'
+          });
+        }
+      );
+
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.All, label: '' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
+
+      assert.calledWith(reportStub, {
+        message: 'Listening for streaming state changes...'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Processing test run 707500000000000001'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Retrieving test run summary record'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Querying for aggregate code coverage results'
+      });
+    });
+
+    it('should return if cancellation is requested', async () => {
+      const apexLibExecutor = new ApexLibraryTestRunExecutor();
+      runTestStub.callsFake(() => {
+        cancellationToken.isCancellationRequested = true;
       });
 
-      expect(runTestStub.args[0]).to.deep.equal([
-        { testLevel: TestLevel.RunAllTestsInOrg },
-        true
-      ]);
+      const result = await apexLibExecutor.run(
+        {
+          data: { type: TestType.All, label: '' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
+
+      assert.calledOnce(runTestStub);
+      assert.notCalled(writeResultFilesStub);
+      expect(result).to.eql(false);
     });
   });
 
