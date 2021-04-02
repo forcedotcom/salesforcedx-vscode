@@ -11,7 +11,7 @@ import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
-import { createSandbox } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import {
   ERROR_EVENT,
   EXIT_EVENT,
@@ -30,6 +30,7 @@ import { nls } from '../../src/messages';
 import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
 import { CancellationTokenSource } from './integrationTestUtil';
 import { mockDescribeResponse } from './mockData';
+import Sinon = require('sinon');
 
 const PROJECT_NAME = `project_${new Date().getTime()}`;
 const CONNECTION_DATA = {
@@ -309,6 +310,144 @@ describe('Generate faux classes for SObjects', () => {
         nls.localize('fetched_sobjects_length_text', 2, 'Standard')
       );
       expect(exitCode).to.equal(SUCCESS_CODE);
+    });
+  });
+
+  describe('Cancellable usecases in generateMin', () => {
+    let generateAndWriteFauxClassesSpy: SinonStub;
+    let refreshCancelledSpy: SinonStub;
+
+    beforeEach(() => {
+      generateAndWriteFauxClassesSpy = env.stub(FauxClassGenerator.prototype, 'generateAndWriteFauxClasses');
+      refreshCancelledSpy = env.stub(FauxClassGenerator.prototype, 'isRefreshCancelled');
+    });
+
+    afterEach(() => {
+      env.restore();
+      generateAndWriteFauxClassesSpy.restore();
+      refreshCancelledSpy.restore();
+    });
+
+    it('generateMin should be cancellable before generating classes', async () => {
+      env.stub(fs, 'existsSync').returns(true);
+      refreshCancelledSpy.onCall(0).returns(true);
+
+      const generator = getGenerator();
+
+      const result = await generator.generateMin(
+        projectPath,
+        SObjectRefreshSource.StartupMin
+      );
+      expect(result.data.cancelled).to.be.true;
+      expect(generateAndWriteFauxClassesSpy.notCalled).to.be.true;
+    });
+
+    it('generateMin should be cancellable after generating typescripts', async () => {
+      env.stub(fs, 'existsSync').returns(true);
+      refreshCancelledSpy.onCall(0).returns(false);
+      refreshCancelledSpy.onCall(1).returns(true);
+
+      const generator = getGenerator();
+
+      const result = await generator.generateMin(
+        projectPath,
+        SObjectRefreshSource.StartupMin
+      );
+      expect(result.data.cancelled).to.be.true;
+      expect(generateAndWriteFauxClassesSpy.calledOnce).to.be.true;
+    });
+  });
+
+  describe('Cancellable usecases in generate', () => {
+    let describeGlobalSpy: SinonStub;
+    let fetchSObjectsSpy: SinonStub;
+    let refreshCancelledSpy: SinonStub;
+    let generateFauxClassSpy: SinonStub;
+
+    beforeEach(() => {
+      describeGlobalSpy = env.stub(SObjectDescribe.prototype, 'describeGlobal');
+      fetchSObjectsSpy = env.stub(SObjectDescribe.prototype, 'fetchObjects');
+      refreshCancelledSpy = env.stub(FauxClassGenerator.prototype, 'isRefreshCancelled');
+      generateFauxClassSpy = env.stub(FauxClassGenerator.prototype, 'generateFauxClasses');
+    });
+
+    afterEach(() => {
+      env.restore();
+      describeGlobalSpy.restore();
+      fetchSObjectsSpy.restore();
+      refreshCancelledSpy.restore();
+      generateFauxClassSpy.restore();
+    });
+
+    it('generate should be cancellable before the describe call', async () => {
+      env.stub(fs, 'existsSync').returns(true);
+      refreshCancelledSpy.onCall(0).returns(true);
+
+      const generator = getGenerator();
+
+      const result = await generator.generate(
+        projectPath,
+        SObjectCategory.ALL,
+        SObjectRefreshSource.Startup
+      );
+      expect(result.data.cancelled).to.be.true;
+      expect(describeGlobalSpy.notCalled).to.be.true;
+    });
+
+    it('generate should be cancellable after the describe call', async () => {
+      env.stub(fs, 'existsSync').returns(true);
+      refreshCancelledSpy.onCall(0).returns(false);
+      refreshCancelledSpy.onCall(1).returns(true);
+
+      const generator = getGenerator();
+
+      const result = await generator.generate(
+        projectPath,
+        SObjectCategory.ALL,
+        SObjectRefreshSource.Startup
+      );
+      expect(result.data.cancelled).to.be.true;
+      expect(describeGlobalSpy.calledOnce).to.be.true;
+      expect(fetchSObjectsSpy.notCalled).to.be.true;
+    });
+
+    it('generate should be cancellable after fetching SObjects', async () => {
+      env.stub(fs, 'existsSync').returns(true);
+      fetchSObjectsSpy.returns([]);
+      refreshCancelledSpy.onCall(0).returns(false);
+      refreshCancelledSpy.onCall(1).returns(false);
+      refreshCancelledSpy.onCall(2).returns(true);
+
+      const generator = getGenerator();
+
+      const result = await generator.generate(
+        projectPath,
+        SObjectCategory.ALL,
+        SObjectRefreshSource.Startup
+      );
+      expect(result.data.cancelled).to.be.true;
+      expect(describeGlobalSpy.calledOnce).to.be.true;
+      expect(fetchSObjectsSpy.calledOnce).to.be.true;
+      expect(generateFauxClassSpy.notCalled).to.be.true;
+    });
+
+    it('generate should be cancellable after generating faux classes', async () => {
+      env.stub(fs, 'existsSync').returns(true);
+      fetchSObjectsSpy.returns([]);
+      refreshCancelledSpy.onCall(0).returns(false);
+      refreshCancelledSpy.onCall(1).returns(false);
+      refreshCancelledSpy.onCall(2).returns(false);
+      refreshCancelledSpy.onCall(3).returns(true);
+
+      const generator = getGenerator();
+
+      const result = await generator.generate(
+        projectPath,
+        SObjectCategory.CUSTOM,
+        SObjectRefreshSource.Startup
+      );
+      expect(result.data.cancelled).to.be.true;
+      expect(generateFauxClassSpy.calledTwice).to.be.true;
     });
   });
 });

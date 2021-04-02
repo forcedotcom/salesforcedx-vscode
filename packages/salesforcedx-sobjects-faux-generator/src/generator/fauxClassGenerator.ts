@@ -123,10 +123,7 @@ export class FauxClassGenerator {
       })
     });
 
-    if (
-      this.cancellationToken &&
-      this.cancellationToken.isCancellationRequested
-    ) {
+    if (this.isRefreshCancelled()) {
       return this.cancelExit();
     }
 
@@ -143,24 +140,17 @@ export class FauxClassGenerator {
       );
     }
 
-    if (
-      this.cancellationToken &&
-      this.cancellationToken.isCancellationRequested
-    ) {
+    if (this.isRefreshCancelled()) {
       return this.cancelExit();
     }
 
     let fetchedSObjects: SObject[] = [];
     try {
-      fetchedSObjects = await describe.fetchObjects(sobjects, this.cancellationToken);
+      fetchedSObjects = await describe.fetchObjects(sobjects);
     } catch (errorMessage) {
       return this.errorExit(
         nls.localize('failure_in_sobject_describe_text', errorMessage)
       );
-    }
-
-    if (fetchedSObjects === null || fetchedSObjects === []) {
-      return this.cancelExit();
     }
 
     const standardSObjects: SObjectDefinition[] = [];
@@ -183,6 +173,10 @@ export class FauxClassGenerator {
 
     this.logFetchedObjects(standardSObjects, customSObjects);
 
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
+    }
+
     try {
       this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
     } catch (errorMessage) {
@@ -193,6 +187,10 @@ export class FauxClassGenerator {
       this.generateFauxClasses(customSObjects, customSObjectsFolderPath);
     } catch (errorMessage) {
       return this.errorExit(errorMessage);
+    }
+
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
     }
 
     if (this.shouldGenerateTypes) {
@@ -207,6 +205,11 @@ export class FauxClassGenerator {
     }
 
     return this.successExit();
+  }
+
+  public isRefreshCancelled(): boolean | undefined {
+    return this.cancellationToken &&
+      this.cancellationToken.isCancellationRequested;
   }
 
   public async generateMin(
@@ -238,13 +241,6 @@ export class FauxClassGenerator {
     }
     this.cleanupSObjectFolders(sobjectsFolderPath, SObjectCategory.STANDARD);
 
-    if (
-      this.cancellationToken &&
-      this.cancellationToken.isCancellationRequested
-    ) {
-      return this.cancelExit();
-    }
-
     if (!this.createIfNeededOutputFolder(standardSObjectsFolderPath)) {
       throw nls.localize(
         'no_sobject_output_folder_text',
@@ -252,10 +248,18 @@ export class FauxClassGenerator {
       );
     }
 
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
+    }
+
     const sobjectDecl: SObjectDefinition[] = this.getSObjectSubsetDefinitions();
     this.generateAndWriteFauxClasses(sobjectDecl, standardSObjectsFolderPath);
     this.result.data.standardObjects = sobjectDecl.length;
     this.logSObjects('Standard', sobjectDecl.length);
+
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
+    }
 
     if (this.shouldGenerateTypes) {
       try {
@@ -277,6 +281,7 @@ export class FauxClassGenerator {
     // and to generate that we would need a large definition file. If we go one level more specific, as what
     // generateAndWriteFauxClasses here requires, simpler declarations we have in the minSObjects.json is good.
     for (const sobject of sobjectDecl) {
+
       const fauxClassPath = path.join(
         standardSObjectsFolderPath,
         `${sobject.name}${APEX_CLASS_EXTENSION}`
@@ -356,7 +361,8 @@ export class FauxClassGenerator {
     return Promise.resolve(this.result);
   }
 
-  private generateFauxClasses(
+  // VisibleForTesting
+  public generateFauxClasses(
     definitions: SObjectDefinition[],
     targetFolder: string
   ): void {

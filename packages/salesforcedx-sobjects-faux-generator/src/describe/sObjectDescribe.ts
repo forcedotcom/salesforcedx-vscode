@@ -133,7 +133,7 @@ export class SObjectDescribe {
   }
 
   public async describeSObjectBatchRequest(
-    types: string[], cancellationToken: CancellationToken | undefined
+    types: string[]
   ): Promise<SObject[]> {
     let batchResponse: BatchResponse;
     try {
@@ -147,12 +147,6 @@ export class SObjectDescribe {
     }
 
     const fetchedObjects: SObject[] = [];
-    if (
-      cancellationToken &&
-      cancellationToken.isCancellationRequested
-    ) {
-      throw new Error('SObject Refresh Cancelled');
-    }
 
     if (batchResponse && batchResponse.results === undefined) {
       return Promise.resolve(fetchedObjects);
@@ -169,13 +163,13 @@ export class SObjectDescribe {
     return Promise.resolve(fetchedObjects);
   }
 
-  public async fetchObjects(types: string[], cancellationToken: CancellationToken | undefined): Promise<SObject[]> {
+  public async fetchObjects(types: string[]): Promise<SObject[]> {
     try {
       const batchSize = MAX_BATCH_REQUEST_SIZE;
       const requests = [];
       for (let i = 0; i < types.length; i += batchSize) {
         const batchTypes = types.slice(i, i + batchSize);
-        requests.push(this.describeSObjectBatchRequest(batchTypes, cancellationToken));
+        requests.push(this.describeSObjectBatchRequest(batchTypes));
       }
 
       const results = await Promise.all(requests);
