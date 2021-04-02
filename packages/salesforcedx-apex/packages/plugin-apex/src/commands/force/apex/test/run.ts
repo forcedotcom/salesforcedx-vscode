@@ -172,7 +172,7 @@ export default class Run extends SfdxCommand {
     }
 
     if (this.flags.outputdir) {
-      const jsonOutput = this.logJson(result);
+      const jsonOutput = this.formatResultInJson(result);
       const outputDirConfig = buildOutputDirConfig(
         result,
         jsonOutput,
@@ -205,7 +205,10 @@ export default class Run extends SfdxCommand {
           this.logJUnit(result);
           break;
         case 'json':
-          this.ux.logJson(this.logJson(result));
+          // when --json flag is specified, we should log CLI json format
+          if (!this.flags.json) {
+            this.ux.logJson(this.formatResultInJson(result));
+          }
           break;
         default:
           if (this.flags.synchronous) {
@@ -228,7 +231,7 @@ export default class Run extends SfdxCommand {
       this.ux.error(msg);
     }
 
-    return this.logJson(result) as AnyJson;
+    return this.formatResultInJson(result) as AnyJson;
   }
 
   public async validateFlags(): Promise<void> {
@@ -305,7 +308,7 @@ export default class Run extends SfdxCommand {
     this.ux.log(reporter.format(result));
   }
 
-  private logJson(result: TestResult): CliJsonFormat {
+  private formatResultInJson(result: TestResult): CliJsonFormat {
     try {
       const reporter = new JsonReporter();
       return reporter.format(result);
