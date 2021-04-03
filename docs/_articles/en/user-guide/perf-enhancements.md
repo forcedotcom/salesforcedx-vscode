@@ -26,7 +26,7 @@ This architecture change is done through a phased approach.  For both the Apex l
 
 ## Setup
 
-There is a VS Code setting for each library.  Access them by selecting Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).  Setting to false means that VS Code will call the CLI to execute those commands. 
+There is a VS Code setting for each library.  Access them by selecting Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).  Setting to false means VS Code will call the CLI to execute those commands. 
 
 Within settings, you will see the following:
 
