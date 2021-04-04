@@ -1,5 +1,5 @@
 ---
-title: Local Development (Generally Available)
+title: Local Development (Beta)
 lang: ja
 ---
 
