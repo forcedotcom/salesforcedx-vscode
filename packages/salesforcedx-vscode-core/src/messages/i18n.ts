@@ -33,11 +33,6 @@ export const messages = {
   notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
   notification_make_default_dev: 'Authorize a Dev Hub',
 
-  predicates_no_folder_opened_text:
-    'No folder opened. Open a Salesforce DX project in VS Code.',
-  predicates_no_sfdx_project_found_text:
-    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
-
   task_view_running_message: '[Running] %s',
 
   status_bar_text: `$(x) %s`,
