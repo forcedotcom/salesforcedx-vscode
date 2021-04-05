@@ -56,9 +56,8 @@ export class FauxClassGenerator {
   private shouldGenerateTypes = false;
 
   private static fieldDeclToString(decl: FieldDeclaration): string {
-    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${
-      decl.modifier
-    } ${decl.type} ${decl.name};`;
+    return `${FauxClassGenerator.commentToString(decl.comment)}${INDENT}${decl.modifier
+      } ${decl.type} ${decl.name};`;
   }
 
   // VisibleForTesting
@@ -66,9 +65,9 @@ export class FauxClassGenerator {
     // for some reasons if the comment is on a single line the help context shows the last '*/'
     return comment
       ? `${INDENT}/* ${comment.replace(
-          /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
-          ''
-        )}${EOL}${INDENT}*/${EOL}`
+        /(\/\*+\/)|(\/\*+)|(\*+\/)/g,
+        ''
+      )}${EOL}${INDENT}*/${EOL}`
       : '';
   }
 
@@ -123,6 +122,11 @@ export class FauxClassGenerator {
         username: await ConfigUtil.getUsername(projectPath)
       })
     });
+
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
+    }
+
     const describe = new SObjectDescribe(connection);
 
     let sobjects: string[] = [];
@@ -136,10 +140,7 @@ export class FauxClassGenerator {
       );
     }
 
-    if (
-      this.cancellationToken &&
-      this.cancellationToken.isCancellationRequested
-    ) {
+    if (this.isRefreshCancelled()) {
       return this.cancelExit();
     }
 
@@ -172,6 +173,10 @@ export class FauxClassGenerator {
 
     this.logFetchedObjects(standardSObjects, customSObjects);
 
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
+    }
+
     try {
       this.generateFauxClasses(standardSObjects, standardSObjectsFolderPath);
     } catch (errorMessage) {
@@ -182,6 +187,10 @@ export class FauxClassGenerator {
       this.generateFauxClasses(customSObjects, customSObjectsFolderPath);
     } catch (errorMessage) {
       return this.errorExit(errorMessage);
+    }
+
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
     }
 
     if (this.shouldGenerateTypes) {
@@ -196,6 +205,12 @@ export class FauxClassGenerator {
     }
 
     return this.successExit();
+  }
+
+  // VisibleForTesting
+  public isRefreshCancelled(): boolean | undefined {
+    return this.cancellationToken &&
+      this.cancellationToken.isCancellationRequested;
   }
 
   public async generateMin(
@@ -227,13 +242,6 @@ export class FauxClassGenerator {
     }
     this.cleanupSObjectFolders(sobjectsFolderPath, SObjectCategory.STANDARD);
 
-    if (
-      this.cancellationToken &&
-      this.cancellationToken.isCancellationRequested
-    ) {
-      return this.cancelExit();
-    }
-
     if (!this.createIfNeededOutputFolder(standardSObjectsFolderPath)) {
       throw nls.localize(
         'no_sobject_output_folder_text',
@@ -241,10 +249,18 @@ export class FauxClassGenerator {
       );
     }
 
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
+    }
+
     const sobjectDecl: SObjectDefinition[] = this.getSObjectSubsetDefinitions();
     this.generateAndWriteFauxClasses(sobjectDecl, standardSObjectsFolderPath);
     this.result.data.standardObjects = sobjectDecl.length;
     this.logSObjects('Standard', sobjectDecl.length);
+
+    if (this.isRefreshCancelled()) {
+      return this.cancelExit();
+    }
 
     if (this.shouldGenerateTypes) {
       try {
@@ -345,7 +361,8 @@ export class FauxClassGenerator {
     return Promise.resolve(this.result);
   }
 
-  private generateFauxClasses(
+  // VisibleForTesting
+  public generateFauxClasses(
     definitions: SObjectDefinition[],
     targetFolder: string
   ): void {
