@@ -38,5 +38,9 @@ export const messages = {
   channel_end_with_sfdx_not_found:
     'Salesforce CLI is not installed. Install it from https://developer.salesforce.com/tools/sfdxcli',
   channel_end_with_error: 'ended with error %s',
-  channel_end: 'ended'
+  channel_end: 'ended',
+  predicates_no_folder_opened_text:
+    'No folder opened. Open a Salesforce DX project in VS Code.',
+  predicates_no_sfdx_project_found_text:
+    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.'
 };

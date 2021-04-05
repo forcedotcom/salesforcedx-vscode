@@ -33,11 +33,6 @@ export const messages = {
   notification_show_in_status_bar_button_text: 'ステータスバーだけに表示',
   notification_make_default_dev: 'Dev Hub 組織を認証',
 
-  predicates_no_folder_opened_text:
-    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
-  predicates_no_sfdx_project_found_text:
-    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
-
   task_view_running_message: '[実行しています] %s',
 
   status_bar_text: `$(x) %s`,
