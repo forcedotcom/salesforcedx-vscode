@@ -38,5 +38,9 @@ export const messages = {
   channel_end_with_sfdx_not_found:
     'Salesforce CLI がインストールされていません。https://developer.salesforce.com/tools/sfdxcli からインストールしてください。',
   channel_end_with_error: 'がエラーで終了しました。%s',
-  channel_end: 'が終了しました。'
+  channel_end: 'が終了しました。',
+  predicates_no_folder_opened_text:
+    'フォルダが開かれていません。VS Code で Salesforce DX 形式のプロジェクトを開いてください。',
+  predicates_no_sfdx_project_found_text:
+    '開かれたプロジェクトのルートディレクトリに sfdx-project.json ファイルが見つかりませんでした。VS Code で Salesforce DX 形式のプロジェクトを開いてください。'
 };
