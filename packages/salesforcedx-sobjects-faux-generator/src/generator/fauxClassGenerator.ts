@@ -60,7 +60,6 @@ export class FauxClassGenerator implements SObjectGenerator {
   }
 
   public generate(output: SObjectRefreshOutput): void {
-    // const baseFolderPath = path.join(output.sfdxPath, ...REL_BASE_FOLDER);
     const outputFolderPath = path.join(
       output.sfdxPath,
       ...REL_BASE_FOLDER,
