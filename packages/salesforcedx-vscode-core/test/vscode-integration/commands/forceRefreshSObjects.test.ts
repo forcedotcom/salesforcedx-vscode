@@ -166,6 +166,7 @@ describe('ForceGenerateFauxClasses', () => {
     let logStub: SinonStub;
     let errorStub: SinonStub;
     let transformer: SObjectTransformer;
+    let notificationStub: SinonStub;
 
     const expectedData = {
       cancelled: false,
@@ -192,10 +193,15 @@ describe('ForceGenerateFauxClasses', () => {
         'logMetric'
       );
       errorStub = sandboxStub.stub(telemetryService, 'sendException');
+      notificationStub = sandboxStub.stub(
+        notificationService,
+        'reportCommandExecutionStatus'
+      );
     });
 
     afterEach(() => {
       sandboxStub.restore();
+      notificationStub.restore();
     });
 
     it('Should pass response data to transformer', async () => {
@@ -224,6 +230,24 @@ describe('ForceGenerateFauxClasses', () => {
       expect(progressStub.getCall(0).args[2]).to.eq(
         ProgressLocation.Notification
       );
+    });
+
+    it('Should report command execution status for Startup Refresh', async () => {
+      await doExecute(SObjectRefreshSource.Startup, SObjectCategory.STANDARD);
+      expect(notificationStub.calledOnce).to.be.true;
+    });
+
+    it('Should report command execution status for Manual Refresh', async () => {
+      await doExecute(SObjectRefreshSource.Manual, SObjectCategory.STANDARD);
+      expect(notificationStub.calledOnce).to.be.true;
+    });
+
+    it('Should not report command execution status for Startup Min Refresh', async () => {
+      await doExecute(
+        SObjectRefreshSource.StartupMin,
+        SObjectCategory.STANDARD
+      );
+      expect(notificationStub.notCalled).to.be.true;
     });
 
     it('Should log correct information to telemetry', async () => {

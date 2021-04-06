@@ -1,17 +1,19 @@
+.gitignore
+.eslint.json
 .vscode/**
 .vscode-test/**
+*.xml
+*.vsix
 out/**
 test/**
 src/**
 **/*.map
-.gitignore
-tsconfig.json
-.eslint.json
 **/*.ts
 **/tsconfig.json
-*.xml
 **/*[!README].md
-*.vsix
+test/**
+src/**
+tsconfig.json
 images/SOQL_Builder_50.16.0.gif
 
 # local rxjs node modules
