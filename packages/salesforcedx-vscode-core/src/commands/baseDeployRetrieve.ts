@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
@@ -40,6 +41,7 @@ import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { createComponentCount } from './util';
+import { formatException } from './util/betaDeployRetrieve';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -81,38 +83,10 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.SucceededPartial
       );
     } catch (e) {
-      const name = e.name;
-      let message = `Unknown exception in ${this.constructor.name}`;
-      if (name === 'TypeInferenceError') {
-        const projectPath = this.getRelativeProjectPath(
-          e.message.slice(0, e.message.lastIndexOf(':')),
-          await SfdxPackageDirectories.getPackageDirectoryPaths()
-        );
-        message = `${projectPath}: Could not infer metadata type`;
-      }
-      e.message = message;
-      throw e;
+      throw await formatException(e);
     } finally {
       await this.postOperation(result);
     }
-  }
-
-  protected getRelativeProjectPath(fsPath: string = '', packageDirs: string[]) {
-    let packageDirIndex;
-    for (let packageDir of packageDirs) {
-      if (!packageDir.startsWith(sep)) {
-        packageDir = sep + packageDir;
-      }
-      if (!packageDir.endsWith(sep)) {
-        packageDir = packageDir + sep;
-      }
-      packageDirIndex = fsPath.indexOf(packageDir);
-      if (packageDirIndex !== -1) {
-        packageDirIndex += 1;
-        break;
-      }
-    }
-    return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
   }
 
   private getStatus(
@@ -189,7 +163,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const table = new Table();
 
     const rowsWithRelativePaths = (result.getFileResponses().map(response => {
-      response.filePath = this.getRelativeProjectPath(
+      response.filePath = getRelativeProjectPath(
         response.filePath,
         relativePackageDirs
       );
@@ -294,7 +268,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     for (const response of result.getFileResponses()) {
       const asRow = (response as unknown) as Row;
-      response.filePath = this.getRelativeProjectPath(
+      response.filePath = getRelativeProjectPath(
         response.filePath,
         relativePackageDirs
       );
@@ -327,14 +301,14 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
           successes.push({
             fullName,
             type: type.name,
-            filePath: this.getRelativeProjectPath(fsPath, relativePackageDirs)
+            filePath: getRelativeProjectPath(fsPath, relativePackageDirs)
           });
         }
         if (xml) {
           successes.push({
             fullName,
             type: type.name,
-            filePath: this.getRelativeProjectPath(xml, relativePackageDirs)
+            filePath: getRelativeProjectPath(xml, relativePackageDirs)
           });
         }
       }

@@ -205,9 +205,7 @@ describe('Base Deploy Retrieve Commands', () => {
         fail('should have thrown an error');
       } catch (e) {
         expect(e.name).to.equal(testException.name);
-        expect(e.message).to.equal(
-          `Unknown exception in ${executor.constructor.name}`
-        );
+        expect(e.message).to.equal('Unknown Exception');
       }
     });
   });
