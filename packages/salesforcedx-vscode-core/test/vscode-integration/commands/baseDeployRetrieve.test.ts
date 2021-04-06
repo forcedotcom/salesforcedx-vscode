@@ -24,6 +24,7 @@ import {
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
 import { createSandbox, SinonStub, spy } from 'sinon';
@@ -162,6 +163,53 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(success).to.equal(false);
     });
+
+    it('should format type inference error with project path', async () => {
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
+        'force-app'
+      ]);
+      const executor = new TestDeployRetrieve();
+      const projectPath = join(
+        'force-app',
+        'main',
+        'default',
+        'classes',
+        'someclass.xyz'
+      );
+      const fullPath = join(sep, 'path', 'to', projectPath);
+      const typeInferenceError = new Error(
+        `${fullPath}: Could not infer metadata type`
+      );
+      typeInferenceError.name = 'TypeInferenceError';
+      executor.lifecycle.getComponentsStub.throws(typeInferenceError);
+
+      try {
+        await executor.run({ data: {}, type: 'CONTINUE' });
+        fail('should have thrown an error');
+      } catch (e) {
+        expect(e.name).to.equal(typeInferenceError.name);
+        expect(e.message).to.equal(
+          `${projectPath}: Could not infer metadata type`
+        );
+      }
+    });
+
+    it('should throw unknown exception if error is unknown', async () => {
+      const executor = new TestDeployRetrieve();
+      const testException = new Error('some error message');
+      testException.name = 'SomeUnknownException';
+      executor.lifecycle.getComponentsStub.throws(testException);
+
+      try {
+        await executor.run({ data: {}, type: 'CONTINUE' });
+        fail('should have thrown an error');
+      } catch (e) {
+        expect(e.name).to.equal(testException.name);
+        expect(e.message).to.equal(
+          `Unknown exception in ${executor.constructor.name}`
+        );
+      }
+    });
   });
 
   describe('DeployExecutor', () => {
@@ -178,7 +226,6 @@ describe('Base Deploy Retrieve Commands', () => {
     });
 
     class TestDeploy extends DeployExecutor<{}> {
-
       public components: ComponentSet;
       public getComponentsStub = sb.stub().returns(new ComponentSet());
       public startStub: SinonStub;
@@ -199,7 +246,10 @@ describe('Base Deploy Retrieve Commands', () => {
       ): Promise<ComponentSet> {
         return this.components;
       }
-      protected async setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+      protected async setupCancellation(
+        operation: DeployRetrieveOperation | undefined,
+        token?: vscode.CancellationToken
+      ) {
         return this.cancellationStub;
       }
     }
