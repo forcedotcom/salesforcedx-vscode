@@ -412,7 +412,7 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove standardObjects folder when category is STANDARD', () => {
-      let gen = new FauxClassGenerator(
+      const gen = new FauxClassGenerator(
         SObjectCategory.STANDARD,
         STANDARDOBJECTS_DIR
       );
@@ -431,7 +431,7 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove customObjects folder when category is CUSTOM', () => {
-      let gen = new FauxClassGenerator(
+      const gen = new FauxClassGenerator(
         SObjectCategory.CUSTOM,
         CUSTOMOBJECTS_DIR
       );
