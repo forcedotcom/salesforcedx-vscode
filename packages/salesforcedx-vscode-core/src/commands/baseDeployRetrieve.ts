@@ -47,8 +47,7 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 export abstract class DeployRetrieveExecutor<
   T
-  > extends LibraryCommandletExecutor<T> {
-
+> extends LibraryCommandletExecutor<T> {
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -81,6 +80,18 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.Succeeded ||
         status === RequestStatus.SucceededPartial
       );
+    } catch (e) {
+      const name = e.name;
+      let message = `Unknown exception in ${this.constructor.name}`;
+      if (name === 'TypeInferenceError') {
+        const projectPath = this.getRelativeProjectPath(
+          e.message.slice(0, e.message.lastIndexOf(':')),
+          await SfdxPackageDirectories.getPackageDirectoryPaths()
+        );
+        message = `${projectPath}: Could not infer metadata type`;
+      }
+      e.message = message;
+      throw e;
     } finally {
       await this.postOperation(result);
     }
@@ -112,7 +123,10 @@ export abstract class DeployRetrieveExecutor<
       : result?.status;
   }
 
-  protected setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(
+    operation: DeployRetrieveOperation | undefined,
+    token?: vscode.CancellationToken
+  ) {
     if (token && operation) {
       token.onCancellationRequested(() => {
         operation.cancel();
@@ -124,7 +138,8 @@ export abstract class DeployRetrieveExecutor<
     response: ContinueResponse<T>
   ): Promise<ComponentSet>;
   protected abstract doOperation(
-    components: ComponentSet, token?: vscode.CancellationToken
+    components: ComponentSet,
+    token?: vscode.CancellationToken
   ): Promise<DeployRetrieveResult | undefined>;
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
@@ -133,12 +148,12 @@ export abstract class DeployRetrieveExecutor<
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
-    components: ComponentSet, token: vscode.CancellationToken
+    components: ComponentSet,
+    token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const operation = components
-      .deploy({
-        usernameOrConnection: await workspaceContext.getConnection()
-      });
+    const operation = components.deploy({
+      usernameOrConnection: await workspaceContext.getConnection()
+    });
 
     this.setupCancellation(operation, token);
 
@@ -217,7 +232,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
-    components: ComponentSet, token: vscode.CancellationToken
+    components: ComponentSet,
+    token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
     const connection = await workspaceContext.getConnection();
 
@@ -240,12 +256,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const operation = components
-      .retrieve({
-        usernameOrConnection: connection,
-        output: defaultOutput,
-        merge: true
-      });
+    const operation = components.retrieve({
+      usernameOrConnection: connection,
+      output: defaultOutput,
+      merge: true
+    });
 
     this.setupCancellation(operation, token);
 

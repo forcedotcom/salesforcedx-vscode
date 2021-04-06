@@ -40,7 +40,4 @@ export {
   DevUsernameChecker,
   EmptyPreChecker
 } from './preconditionCheckers';
-export {
-  createComponentCount,
-  useBetaDeployRetrieve
-} from './betaDeployRetrieve';
+export { createComponentCount } from './betaDeployRetrieve';

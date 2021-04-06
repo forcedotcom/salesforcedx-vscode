@@ -4,38 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { ComponentSet, MetadataType } from '@salesforce/source-deploy-retrieve';
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
-import * as vscode from 'vscode';
-import { sfdxCoreSettings } from '../../settings';
-
-export function useBetaDeployRetrieve(
-  uris: vscode.Uri[],
-  supportedTypes?: MetadataType[]
-): boolean {
-  const betaSettingOn = sfdxCoreSettings.getBetaDeployRetrieve();
-  if (!betaSettingOn) {
-    return false;
-  }
-
-  const ws = new ComponentSet();
-  const permittedTypeNames = new Set();
-  supportedTypes?.forEach(type => permittedTypeNames.add(type.name));
-
-  for (const { fsPath } of uris) {
-    const componentsForPath = ws.resolveSourceComponents(fsPath);
-    if (supportedTypes && componentsForPath) {
-      for (const component of componentsForPath) {
-        if (!permittedTypeNames.has(component.type.name)) {
-          return false;
-        }
-      }
-    }
-  }
-
-  return true;
-}
 
 export function createComponentCount(components: Iterable<MetadataComponent>) {
   const quantities: { [type: string]: number } = {};
