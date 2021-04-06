@@ -44,8 +44,11 @@ export const messages = {
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',
   force_apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   force_apex_log_list_text: 'Getting Apex debug logs',
-  force_apex_test_run_all_test_label: 'All tests',
+  force_apex_test_run_all_test_label: 'All Tests',
+  force_apex_test_run_all_local_test_label: 'All Local Tests',
   force_apex_test_run_all_tests_description_text:
+    'Runs all tests in the current org',
+  force_apex_test_run_all_local_tests_description_text:
     'Runs all tests in the current project',
   force_apex_test_run_description_text: 'Run Apex test(s)',
   force_apex_test_run_codeAction_no_class_test_param_text:

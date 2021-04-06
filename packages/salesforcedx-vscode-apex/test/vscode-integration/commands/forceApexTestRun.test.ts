@@ -84,6 +84,23 @@ describe('Force Apex Test Run', () => {
       );
     });
 
+    it('Should build command for all local tests', () => {
+      const command = builder.build({
+        label: nls.localize('force_apex_test_run_all_local_test_label'),
+        description: nls.localize(
+          'force_apex_test_run_all_local_tests_description_text'
+        ),
+        type: TestType.AllLocal
+      });
+
+      expect(command.toCommand()).to.equal(
+        `sfdx force:apex:test:run --testlevel RunLocalTests --resultformat human --outputdir ${testResultsOutput} --loglevel error`
+      );
+      expect(command.description).to.equal(
+        nls.localize('force_apex_test_run_text')
+      );
+    });
+
     it('Should build command for all tests', () => {
       const command = builder.build({
         label: nls.localize('force_apex_test_run_all_test_label'),
@@ -94,7 +111,7 @@ describe('Force Apex Test Run', () => {
       });
 
       expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --resultformat human --outputdir ${testResultsOutput} --loglevel error`
+        `sfdx force:apex:test:run --testlevel RunAllTestsInOrg --resultformat human --outputdir ${testResultsOutput} --loglevel error`
       );
       expect(command.description).to.equal(
         nls.localize('force_apex_test_run_text')
@@ -190,6 +207,27 @@ describe('Force Apex Test Run', () => {
       assert.calledWith(
         runTestStub,
         { suiteNames: 'testSuite', testLevel: TestLevel.RunSpecifiedTests },
+        true,
+        match.any,
+        cancellationToken
+      );
+    });
+
+    it('should run test with correct parameters for all tests', async () => {
+      const apexLibExecutor = new ApexLibraryTestRunExecutor();
+      await apexLibExecutor.run(
+        {
+          data: { type: TestType.AllLocal, label: '' },
+          type: 'CONTINUE'
+        },
+        progress,
+        cancellationToken
+      );
+
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
+        { testLevel: TestLevel.RunLocalTests },
         true,
         match.any,
         cancellationToken
@@ -337,18 +375,25 @@ describe('Force Apex Test Run', () => {
       expect(quickPickStub.getCall(0).args.length).to.equal(1);
       const fileItems: ApexTestQuickPickItem[] = quickPickStub.getCall(0)
         .args[0];
-      expect(fileItems.length).to.equal(3);
+      expect(fileItems.length).to.equal(4);
       expect(fileItems[0].label).to.equal('DemoSuite');
       expect(fileItems[0].type).to.equal(TestType.Suite);
-      expect(fileItems[2].label).to.equal('DemoControllerTests');
-      expect(fileItems[2].type).to.equal(TestType.Class);
+      expect(fileItems[3].label).to.equal('DemoControllerTests');
+      expect(fileItems[3].type).to.equal(TestType.Class);
       expect(fileItems[1].label).to.equal(
-        nls.localize('force_apex_test_run_all_test_label')
+        nls.localize('force_apex_test_run_all_local_test_label')
       );
       expect(fileItems[1].description).to.equal(
+        nls.localize('force_apex_test_run_all_local_tests_description_text')
+      );
+      expect(fileItems[1].type).to.equal(TestType.AllLocal);
+      expect(fileItems[2].label).to.equal(
+        nls.localize('force_apex_test_run_all_test_label')
+      );
+      expect(fileItems[2].description).to.equal(
         nls.localize('force_apex_test_run_all_tests_description_text')
       );
-      expect(fileItems[1].type).to.equal(TestType.All);
+      expect(fileItems[12.type).to.equal(TestType.All);
     });
   });
 });

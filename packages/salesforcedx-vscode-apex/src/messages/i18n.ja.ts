@@ -41,6 +41,9 @@ export const messages = {
   force_apex_log_list_text: 'Apex デバッグログを取得しています',
   force_apex_test_run_all_test_label: 'すべてのテスト',
   force_apex_test_run_all_tests_description_text:
+    'Runs all tests in the current org',
+  force_apex_test_run_all_local_test_label: 'All Local Tests',
+  force_apex_test_run_all_local_tests_description_text:
     '現在のプロジェクトのすべてのテストを実行',
   force_apex_test_run_codeAction_description_text: 'Apex テストを実行',
   force_apex_test_run_codeAction_no_class_test_param_text:
