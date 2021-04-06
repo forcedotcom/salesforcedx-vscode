@@ -393,7 +393,7 @@ describe('Force Apex Test Run', () => {
       expect(fileItems[2].description).to.equal(
         nls.localize('force_apex_test_run_all_tests_description_text')
       );
-      expect(fileItems[12.type).to.equal(TestType.All);
+      expect(fileItems[2].type).to.equal(TestType.All);
     });
   });
 });
