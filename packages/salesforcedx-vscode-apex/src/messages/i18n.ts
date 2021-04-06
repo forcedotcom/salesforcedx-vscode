@@ -49,7 +49,7 @@ export const messages = {
   force_apex_test_run_all_tests_description_text:
     'Runs all tests in the current org',
   force_apex_test_run_all_local_tests_description_text:
-    'Runs all tests in the current project',
+    'Runs all tests in the current org except the ones that originate from installed managed packages',
   force_apex_test_run_description_text: 'Run Apex test(s)',
   force_apex_test_run_codeAction_no_class_test_param_text:
     'Test class not provided. Run the code action on a class annotated with @isTest.',

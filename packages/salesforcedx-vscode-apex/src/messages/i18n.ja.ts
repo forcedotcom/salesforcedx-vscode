@@ -44,7 +44,7 @@ export const messages = {
     'Runs all tests in the current org',
   force_apex_test_run_all_local_test_label: 'All Local Tests',
   force_apex_test_run_all_local_tests_description_text:
-    '現在のプロジェクトのすべてのテストを実行',
+    'Runs all tests in the current org except the ones that originate from installed managed packages',
   force_apex_test_run_codeAction_description_text: 'Apex テストを実行',
   force_apex_test_run_codeAction_no_class_test_param_text:
     'テストクラスがありません。@isTest アノテーションのあるクラスでコードアクションを実行してください。',
