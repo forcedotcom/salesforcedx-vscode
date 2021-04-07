@@ -8,6 +8,12 @@ import { getRelativeProjectPath } from '@salesforce/salesforcedx-utils-vscode/ou
 import { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 
+/**
+ * Reformats errors thrown by beta deploy/retrieve logic.
+ *
+ * @param e Error to reformat
+ * @returns A newly formatted error
+ */
 export async function formatException(e: Error): Promise<Error> {
   const formattedException = new Error('Unknown Exception');
   formattedException.name = e.name;

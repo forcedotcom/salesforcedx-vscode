@@ -40,8 +40,7 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
-import { createComponentCount } from './util';
-import { formatException } from './util/betaDeployRetrieve';
+import { createComponentCount, formatException } from './util';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
