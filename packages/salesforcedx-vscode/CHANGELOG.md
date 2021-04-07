@@ -1,32 +1,28 @@
-# 51.8.0 - Month DD, YYYY
+# 51.8.0 - April 07, YYYY
 
 ## Added
 
+#### salesforcedx-vscode-apex
+
+- Add progress reporting and cancellation to Apex test runs ([PR #3103](https://github.com/forcedotcom/salesforcedx-vscode/pull/3103))
+
 #### salesforcedx-sobjects-faux-generator
 
-- Cancel sobject refresh at different points @W-9067574 ([PR #3116](https://github.com/forcedotcom/salesforcedx-vscode/pull/3116))
+- Add cancellation to SObject Refresh command ([PR #3116](https://github.com/forcedotcom/salesforcedx-vscode/pull/3116))
 
 ## Fixed
 
 #### docs
 
-- [GitHub feedback] Update Org Picker location ([PR #3099](https://github.com/forcedotcom/salesforcedx-vscode/pull/3099))
+- Update Org Picker location in documentation ([PR #3099](https://github.com/forcedotcom/salesforcedx-vscode/pull/3099)) ([Issue #3095](https://github.com/forcedotcom/salesforcedx-vscode/issues/3095))
 
-- Denote that deploy and retrieve perf enhancements are on by default ([PR #3105](https://github.com/forcedotcom/salesforcedx-vscode/pull/3105))
-
-#### salesforcedx-vscode-apex
-
-- Report Apex tests progress and allow cancellation ([PR #3103](https://github.com/forcedotcom/salesforcedx-vscode/pull/3103))
-
-#### salesforcedx-vscode-apex-replay-debugger
-
-- Report Apex tests progress and allow cancellation ([PR #3103](https://github.com/forcedotcom/salesforcedx-vscode/pull/3103))
+- Update Apex status to reflect default usage in CLI ([PR #3119](https://github.com/forcedotcom/salesforcedx-vscode/pull/3119))
 
 #### salesforcedx-vscode-core
 
 - Better exception handling for type inference errors ([PR #3127](https://github.com/forcedotcom/salesforcedx-vscode/pull/3127))
 
-- Move labels to utils @W-9088000@ ([PR #3123](https://github.com/forcedotcom/salesforcedx-vscode/pull/3123))
+- Fix missing label issue ([PR #3123](https://github.com/forcedotcom/salesforcedx-vscode/pull/3123)) ([Issue #3111](https://github.com/forcedotcom/salesforcedx-vscode/issues/3111))
 
 # 51.7.0 - Mar 31, 2021
 
