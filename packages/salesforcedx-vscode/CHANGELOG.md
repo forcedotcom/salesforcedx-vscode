@@ -1,4 +1,4 @@
-# 51.8.0 - April 07, YYYY
+# 51.8.0 - April 07, 2021
 
 ## Added
 
@@ -16,7 +16,7 @@
 
 - Update Org Picker location in documentation ([PR #3099](https://github.com/forcedotcom/salesforcedx-vscode/pull/3099)) ([Issue #3095](https://github.com/forcedotcom/salesforcedx-vscode/issues/3095))
 
-- Update Apex status to reflect default usage in CLI ([PR #3119](https://github.com/forcedotcom/salesforcedx-vscode/pull/3119))
+- Update Apex status to reflect default usage in Salesforce CLI ([PR #3119](https://github.com/forcedotcom/salesforcedx-vscode/pull/3119))
 
 #### salesforcedx-vscode-core
 
