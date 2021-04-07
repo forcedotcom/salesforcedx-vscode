@@ -11,6 +11,7 @@ import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import {
   ensureDirectoryExists,
+  getRelativeProjectPath,
   getTestResultsFolder
 } from '../../../src/helpers';
 
@@ -61,6 +62,32 @@ describe('paths utils', () => {
       expect(result).to.equal(
         path.join(dirPath, '.sfdx', 'tools', 'testresults', 'apex')
       );
+    });
+  });
+
+  describe('getRelativeProjectPath', () => {
+    it('should return a relative project path version of an absolute path', () => {
+      const relative = path.join('force-app', 'something', 'test');
+      const absolute = path.join(path.sep, 'path', 'to', relative);
+
+      const result = getRelativeProjectPath(absolute, [
+        'force-app',
+        'force-app-2'
+      ]);
+
+      expect(result).to.equal(relative);
+    });
+
+    it('should return the absolute path if path is not in a given package directory', () => {
+      const relative = path.join('force-app', 'something', 'test');
+      const absolute = path.join(path.sep, 'path', 'to', relative);
+
+      const result = getRelativeProjectPath(absolute, [
+        'test-app',
+        'test-app-2'
+      ]);
+
+      expect(result).to.equal(absolute);
     });
   });
 });

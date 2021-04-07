@@ -36,3 +36,4 @@ export {
   getRootWorkspacePath,
   getRootWorkspaceSfdxPath
 } from './workspaces';
+export { getRelativeProjectPath } from './helpers';

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
@@ -39,7 +40,7 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
-import { createComponentCount } from './util';
+import { createComponentCount, formatException } from './util';
 
 type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -47,8 +48,7 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 export abstract class DeployRetrieveExecutor<
   T
-  > extends LibraryCommandletExecutor<T> {
-
+> extends LibraryCommandletExecutor<T> {
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -81,27 +81,11 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.Succeeded ||
         status === RequestStatus.SucceededPartial
       );
+    } catch (e) {
+      throw await formatException(e);
     } finally {
       await this.postOperation(result);
     }
-  }
-
-  protected getRelativeProjectPath(fsPath: string = '', packageDirs: string[]) {
-    let packageDirIndex;
-    for (let packageDir of packageDirs) {
-      if (!packageDir.startsWith(sep)) {
-        packageDir = sep + packageDir;
-      }
-      if (!packageDir.endsWith(sep)) {
-        packageDir = packageDir + sep;
-      }
-      packageDirIndex = fsPath.indexOf(packageDir);
-      if (packageDirIndex !== -1) {
-        packageDirIndex += 1;
-        break;
-      }
-    }
-    return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
   }
 
   private getStatus(
@@ -112,7 +96,10 @@ export abstract class DeployRetrieveExecutor<
       : result?.status;
   }
 
-  protected setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(
+    operation: DeployRetrieveOperation | undefined,
+    token?: vscode.CancellationToken
+  ) {
     if (token && operation) {
       token.onCancellationRequested(() => {
         operation.cancel();
@@ -124,7 +111,8 @@ export abstract class DeployRetrieveExecutor<
     response: ContinueResponse<T>
   ): Promise<ComponentSet>;
   protected abstract doOperation(
-    components: ComponentSet, token?: vscode.CancellationToken
+    components: ComponentSet,
+    token?: vscode.CancellationToken
   ): Promise<DeployRetrieveResult | undefined>;
   protected abstract postOperation(
     result: DeployRetrieveResult | undefined
@@ -133,12 +121,12 @@ export abstract class DeployRetrieveExecutor<
 
 export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
-    components: ComponentSet, token: vscode.CancellationToken
+    components: ComponentSet,
+    token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const operation = components
-      .deploy({
-        usernameOrConnection: await workspaceContext.getConnection()
-      });
+    const operation = components.deploy({
+      usernameOrConnection: await workspaceContext.getConnection()
+    });
 
     this.setupCancellation(operation, token);
 
@@ -174,7 +162,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     const table = new Table();
 
     const rowsWithRelativePaths = (result.getFileResponses().map(response => {
-      response.filePath = this.getRelativeProjectPath(
+      response.filePath = getRelativeProjectPath(
         response.filePath,
         relativePackageDirs
       );
@@ -217,7 +205,8 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
 
 export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   protected async doOperation(
-    components: ComponentSet, token: vscode.CancellationToken
+    components: ComponentSet,
+    token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
     const connection = await workspaceContext.getConnection();
 
@@ -240,12 +229,11 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const operation = components
-      .retrieve({
-        usernameOrConnection: connection,
-        output: defaultOutput,
-        merge: true
-      });
+    const operation = components.retrieve({
+      usernameOrConnection: connection,
+      output: defaultOutput,
+      merge: true
+    });
 
     this.setupCancellation(operation, token);
 
@@ -279,7 +267,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     for (const response of result.getFileResponses()) {
       const asRow = (response as unknown) as Row;
-      response.filePath = this.getRelativeProjectPath(
+      response.filePath = getRelativeProjectPath(
         response.filePath,
         relativePackageDirs
       );
@@ -312,14 +300,14 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
           successes.push({
             fullName,
             type: type.name,
-            filePath: this.getRelativeProjectPath(fsPath, relativePackageDirs)
+            filePath: getRelativeProjectPath(fsPath, relativePackageDirs)
           });
         }
         if (xml) {
           successes.push({
             fullName,
             type: type.name,
-            filePath: this.getRelativeProjectPath(xml, relativePackageDirs)
+            filePath: getRelativeProjectPath(xml, relativePackageDirs)
           });
         }
       }
