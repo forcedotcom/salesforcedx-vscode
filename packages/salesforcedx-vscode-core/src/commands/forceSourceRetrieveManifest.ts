@@ -19,6 +19,7 @@ import {
 } from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
@@ -27,8 +28,7 @@ import {
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
-  useBetaDeployRetrieve
+  SfdxWorkspaceChecker
 } from './util';
 
 export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
@@ -101,7 +101,7 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    useBetaDeployRetrieve([])
+    sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibrarySourceRetrieveManifestExecutor()
       : new ForceSourceRetrieveManifestExecutor(),
     new ConflictDetectionChecker(messages)
