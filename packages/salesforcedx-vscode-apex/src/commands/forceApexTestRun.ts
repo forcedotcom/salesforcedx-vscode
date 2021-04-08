@@ -42,6 +42,7 @@ import * as settings from '../settings';
 
 export enum TestType {
   All,
+  AllLocal,
   Suite,
   Class
 }
@@ -66,6 +67,14 @@ export class TestsSelector
         description: testSuite.fsPath,
         type: TestType.Suite
       };
+    });
+
+    fileItems.push({
+      label: nls.localize('force_apex_test_run_all_local_test_label'),
+      description: nls.localize(
+        'force_apex_test_run_all_local_tests_description_text'
+      ),
+      type: TestType.AllLocal
     });
 
     fileItems.push({
@@ -132,6 +141,12 @@ export class ForceApexTestRunCommandFactory {
           '--classnames',
           `${this.data.label}`
         );
+        break;
+      case TestType.AllLocal:
+        this.builder = this.builder.withFlag('--testlevel', 'RunLocalTests');
+        break;
+      case TestType.All:
+        this.builder = this.builder.withFlag('--testlevel', 'RunAllTestsInOrg');
         break;
       default:
         break;
@@ -225,6 +240,12 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
           undefined,
           response.data.label
         );
+        break;
+      case TestType.AllLocal:
+        payload = { testLevel: TestLevel.RunLocalTests };
+        break;
+      case TestType.All:
+        payload = { testLevel: TestLevel.RunAllTestsInOrg };
         break;
       default:
         payload = { testLevel: TestLevel.RunAllTestsInOrg };
