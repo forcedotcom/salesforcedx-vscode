@@ -19,17 +19,13 @@ import {
 } from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
-import {
-  FilePathGatherer,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  useBetaDeployRetrieve
-} from './util';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
   public build(manifestPath: string): Command {
@@ -99,7 +95,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(manifestUri),
-    useBetaDeployRetrieve([])
+    sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibrarySourceDeployManifestExecutor()
       : new ForceSourceDeployManifestExecutor(),
     new ConflictDetectionChecker(messages)
