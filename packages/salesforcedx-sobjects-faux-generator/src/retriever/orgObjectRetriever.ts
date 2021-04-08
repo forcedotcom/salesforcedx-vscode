@@ -6,8 +6,11 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { SObjectDescribe } from '../describe';
-import { SObjectSelector } from '../describe/sObjectDescribe';
+import {
+  SObjectDescribe,
+  SObjectSelector,
+  SObjectShortDescription
+} from '../describe';
 import { DeclarationGenerator } from '../generator/declarationGenerator';
 import { nls } from '../messages';
 import {
@@ -19,19 +22,15 @@ import {
 
 export class OrgObjectRetriever implements SObjectDefinitionRetriever {
   private describer: SObjectDescribe;
-  private declGenerator: DeclarationGenerator;
-  private selector: SObjectSelector;
 
-  public constructor(connection: Connection, selector: SObjectSelector) {
+  public constructor(connection: Connection) {
     this.describer = new SObjectDescribe(connection);
-    this.declGenerator = new DeclarationGenerator();
-    this.selector = selector;
   }
 
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
-    let sobjects: string[] = [];
+    let sobjects: SObjectShortDescription[] = [];
     try {
-      sobjects = await this.describer.describeGlobal(this.selector);
+      sobjects = await this.describer.describeGlobal();
     } catch (e) {
       const err = JSON.parse(e);
       output.setError(
@@ -40,10 +39,27 @@ export class OrgObjectRetriever implements SObjectDefinitionRetriever {
       );
       return;
     }
+    output.addTypeNames(sobjects);
+  }
+}
 
+export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
+  private describer: SObjectDescribe;
+  private selector: SObjectSelector;
+  private declGenerator: DeclarationGenerator;
+
+  public constructor(connection: Connection, selector: SObjectSelector) {
+    this.describer = new SObjectDescribe(connection);
+    this.selector = selector;
+    this.declGenerator = new DeclarationGenerator();
+  }
+
+  public async retrieve(output: SObjectRefreshOutput): Promise<void> {
     let fetchedSObjects: SObject[] = [];
+    const retrieveTypes: string[] = this.selectedTypes(output.getTypeNames());
+
     try {
-      fetchedSObjects = await this.describer.fetchObjects(sobjects);
+      fetchedSObjects = await this.describer.fetchObjects(retrieveTypes);
     } catch (errorMessage) {
       output.setError(
         nls.localize('failure_in_sobject_describe_text', errorMessage)
@@ -68,5 +84,14 @@ export class OrgObjectRetriever implements SObjectDefinitionRetriever {
 
     output.addStandard(standardSObjects);
     output.addCustom(customSObjects);
+  }
+
+  private selectedTypes(types: SObjectShortDescription[]): string[] {
+    return types.reduce((acc: string[], sobject) => {
+      if (this.selector.select(sobject)) {
+        acc.push(sobject.name);
+      }
+      return acc;
+    }, []);
   }
 }

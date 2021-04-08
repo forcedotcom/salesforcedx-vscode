@@ -13,10 +13,21 @@ export {
   SObject
 } from './describe';
 export { SObjectCategory, SObjectRefreshSource } from './general';
-export { SObjectDefinition };
 
-import { SObjectDefinition } from '../generator/types';
+import { SObjectShortDescription } from '../describe';
+import { SObject } from './describe';
 import { SObjectCategory, SObjectRefreshSource } from './general';
+
+export interface FieldDeclaration {
+  modifier: string;
+  type: string;
+  name: string;
+  comment?: string;
+}
+
+export type SObjectDefinition = Pick<SObject, 'name'> & {
+  fields: FieldDeclaration[];
+};
 
 export interface SObjectDefinitionRetriever {
   retrieve: (output: SObjectRefreshOutput) => Promise<void>;
@@ -35,6 +46,8 @@ export interface SObjectRefreshResult {
 
 export interface SObjectRefreshOutput {
   sfdxPath: string;
+  addTypeNames: (names: SObjectShortDescription[]) => void;
+  getTypeNames: () => SObjectShortDescription[];
   addStandard: (standard: SObjectDefinition[]) => void;
   getStandard: () => SObjectDefinition[];
   addCustom: (standard: SObjectDefinition[]) => void;

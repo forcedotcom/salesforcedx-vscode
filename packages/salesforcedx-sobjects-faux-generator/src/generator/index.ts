@@ -7,4 +7,3 @@
 
 export { FauxClassGenerator } from './fauxClassGenerator';
 export { TypingGenerator } from './typingGenerator';
-export { FieldDeclaration, SObjectDefinition } from './types';

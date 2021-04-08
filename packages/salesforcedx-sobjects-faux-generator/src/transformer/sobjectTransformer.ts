@@ -17,9 +17,10 @@ import {
   STDOUT_EVENT,
   SUCCESS_CODE
 } from '../constants';
-import { SObjectDefinition } from '../generator';
+import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
 import {
+  SObjectDefinition,
   SObjectDefinitionRetriever,
   SObjectGenerator,
   SObjectRefreshOutput as SObjectRefreshData,
@@ -31,6 +32,7 @@ export interface CancellationToken {
 }
 
 export type SObjectRefreshTransformData = SObjectRefreshData & {
+  typeNames: SObjectShortDescription[];
   standard: SObjectDefinition[];
   custom: SObjectDefinition[];
   error?: { message: string; stack?: string };
@@ -101,6 +103,11 @@ export class SObjectTransformer {
 
   private initializeData(projectPath: string): SObjectRefreshTransformData {
     const output: SObjectRefreshTransformData = {
+      addTypeNames: names => {
+        output.typeNames = output.typeNames.concat(names);
+      },
+      getTypeNames: () => output.typeNames,
+
       addStandard: defs => {
         output.standard = output.standard.concat(defs);
         this.result.data.standardObjects = output.standard.length;
@@ -120,6 +127,7 @@ export class SObjectTransformer {
       },
 
       sfdxPath: path.join(projectPath, SFDX_DIR),
+      typeNames: [],
       custom: [],
       standard: []
     };

@@ -7,8 +7,12 @@
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
-import { SObjectGenerator, SObjectRefreshOutput } from '../types';
-import { FieldDeclaration, SObjectDefinition } from './types';
+import {
+  FieldDeclaration,
+  SObjectDefinition,
+  SObjectGenerator,
+  SObjectRefreshOutput
+} from '../types';
 
 export const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];

@@ -6,6 +6,7 @@
  */
 
 import * as minSObjectsFromFile from '../../src/data/minSObjects.json';
+import { SObjectShortDescription } from '../describe';
 import { MODIFIER } from '../generator/declarationGenerator';
 import {
   SObjectDefinition,
@@ -15,14 +16,17 @@ import {
 
 export class MinObjectRetriever implements SObjectDefinitionRetriever {
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
-    const defs = minSObjectsFromFile as SObjectDefinition[];
+    const defs = (minSObjectsFromFile as SObjectDefinition[]) || [];
 
+    const typeNames: SObjectShortDescription[] = [];
     defs.forEach(sobject => {
+      typeNames.push({ name: sobject.name, custom: false });
       sobject.fields.forEach(field => {
         field.modifier = MODIFIER;
       });
     });
 
     output.addStandard(defs);
+    output.addTypeNames(typeNames);
   }
 }

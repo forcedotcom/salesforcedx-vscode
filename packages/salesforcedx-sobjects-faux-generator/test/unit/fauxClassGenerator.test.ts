@@ -418,6 +418,8 @@ describe('SObject faux class generator', () => {
       );
       const output: SObjectRefreshOutput = {
         sfdxPath,
+        addTypeNames: () => {},
+        getTypeNames: () => [],
         addStandard: () => {},
         addCustom: () => {},
         getStandard: () => [],
@@ -437,6 +439,8 @@ describe('SObject faux class generator', () => {
       );
       const output: SObjectRefreshOutput = {
         sfdxPath,
+        addTypeNames: () => {},
+        getTypeNames: () => [],
         addStandard: () => {},
         addCustom: () => {},
         getStandard: () => [],

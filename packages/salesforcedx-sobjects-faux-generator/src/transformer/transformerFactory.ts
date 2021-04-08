@@ -9,7 +9,11 @@ import { EventEmitter } from 'events';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
 import { ConfigUtil } from '../generator/configUtil';
-import { MinObjectRetriever, OrgObjectRetriever } from '../retriever';
+import {
+  MinObjectRetriever,
+  OrgObjectDetailRetriever,
+  OrgObjectRetriever
+} from '../retriever';
 import {
   SObjectCategory,
   SObjectDefinitionRetriever,
@@ -31,7 +35,7 @@ export class SObjectTransformerFactory {
     source: SObjectRefreshSource
   ): Promise<SObjectTransformer> {
     const retrievers: SObjectDefinitionRetriever[] = [];
-    const generators: SObjectGenerator[] = [new TypingGenerator()];
+    const generators: SObjectGenerator[] = [];
     const standardGenerator = new FauxClassGenerator(
       SObjectCategory.STANDARD,
       'standardObjects'
@@ -50,7 +54,8 @@ export class SObjectTransformerFactory {
       );
 
       retrievers.push(
-        new OrgObjectRetriever(
+        new OrgObjectRetriever(connection),
+        new OrgObjectDetailRetriever(
           connection,
           new GeneralSObjectSelector(category, source)
         )
@@ -70,6 +75,7 @@ export class SObjectTransformerFactory {
         generators.push(customGenerator);
       }
     }
+    generators.push(new TypingGenerator());
 
     return new SObjectTransformer(
       emitter,

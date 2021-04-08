@@ -7,18 +7,10 @@
 
 import { Connection } from '@salesforce/core';
 import { DescribeGlobalResult } from 'jsforce';
+import { SObjectShortDescription } from '.';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
 export const MAX_BATCH_REQUEST_SIZE = 25;
-
-export interface SObjectShortDescription {
-  name: string;
-  custom: boolean;
-}
-
-export interface SObjectSelector {
-  select(sobject: SObjectShortDescription): boolean;
-}
 
 export class SObjectDescribe {
   private connection: Connection;
@@ -39,17 +31,11 @@ export class SObjectDescribe {
    * @param selector SObjectSelector
    * @returns string[] containing the sobject names
    */
-  public async describeGlobal(selector?: SObjectSelector): Promise<string[]> {
+  public async describeGlobal(): Promise<SObjectShortDescription[]> {
     const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
-    const requestedDescriptions = allDescriptions.sobjects.reduce(
-      (acc: string[], sobject) => {
-        if (!selector || selector.select(sobject)) {
-          acc.push(sobject.name);
-        }
-        return acc;
-      },
-      []
-    );
+    const requestedDescriptions = allDescriptions.sobjects.map(sobject => {
+      return { name: sobject.name, custom: sobject.custom };
+    });
     return requestedDescriptions;
   }
 

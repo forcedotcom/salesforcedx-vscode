@@ -23,6 +23,8 @@ export const messages = {
   no_sobject_output_folder_text:
     'No output folder available %s.  Please create this folder and refresh again',
   processed_sobjects_length_text: 'Processed %s %s sObjects\n',
+  unsupported_sobject_category:
+    'SObject category cannot be used to generate metadata %s',
   no_generate_if_not_in_project:
     'Unable to process sObjects when not in an SFDX project %s',
   class_header_generated_comment: `\/\/ This file is generated as an Apex representation of the

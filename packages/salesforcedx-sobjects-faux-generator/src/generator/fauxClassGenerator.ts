@@ -11,12 +11,13 @@ import { mkdir, rm } from 'shelljs';
 import { SOBJECTS_DIR, TOOLS_DIR } from '../constants';
 import { nls } from '../messages';
 import {
+  FieldDeclaration,
   SObjectCategory,
+  SObjectDefinition,
   SObjectGenerator,
   SObjectRefreshOutput
 } from '../types';
 import { MODIFIER } from './declarationGenerator';
-import { FieldDeclaration, SObjectDefinition } from './types';
 
 export const INDENT = '    ';
 export const APEX_CLASS_EXTENSION = '.cls';
@@ -37,8 +38,10 @@ export class FauxClassGenerator implements SObjectGenerator {
       definitionSelector !== SObjectCategory.STANDARD &&
       definitionSelector !== SObjectCategory.CUSTOM
     ) {
-      // TODO need I18N
-      throw new Error('Unsupported sobject category');
+      throw nls.localize(
+        'unsupported_sobject_category',
+        String(definitionSelector)
+      );
     }
   }
 
