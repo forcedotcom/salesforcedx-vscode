@@ -66,9 +66,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
         .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
         .resolves(packageDirs);
       env
-        .stub(ComponentSet, 'fromManifestFile')
+        .stub(ComponentSet, 'fromManifest')
         .withArgs(manifestPath, {
-          resolve: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
+          resolveSourcePaths: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
         })
         .returns(mockComponents);
       startStub = env.stub();

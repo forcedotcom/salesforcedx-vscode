@@ -14,7 +14,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
-  registryData,
+  registry,
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
@@ -238,7 +238,7 @@ describe('Force Source Retrieve Component(s)', () => {
         SourceComponent.createVirtualComponent(
           {
             name: className,
-            type: registryData.types.apexclass,
+            type: registry.types.apexclass,
             xml: apexClassXmlPathOne,
             content: apexClassPathOne
           },

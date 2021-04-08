@@ -21,7 +21,7 @@ import {
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { SourceRetrieveResult } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
+import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
@@ -162,7 +162,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
     return ComponentSet.fromSource({
       fsPaths: packageDirs,
-      inclusiveFilter: filter
+      include: filter
     });
   }
 
