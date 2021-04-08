@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
@@ -25,8 +26,7 @@ import {
   FilePathGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
-  useBetaDeployRetrieve
+  SfdxWorkspaceChecker
 } from './util';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
@@ -114,12 +114,10 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     }
   }
 
-  const useBeta = useBetaDeployRetrieve([explorerPath]);
-
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    useBeta
+    sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryRetrieveSourcePathExecutor()
       : new ForceSourceRetrieveSourcePathExecutor(),
     new SourcePathChecker()
