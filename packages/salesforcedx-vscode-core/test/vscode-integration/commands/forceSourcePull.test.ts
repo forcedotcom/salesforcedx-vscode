@@ -8,6 +8,8 @@
 import { expect } from 'chai';
 import { ForceSourcePullExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { match, SinonStub, stub } from 'sinon';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Pull', () => {
@@ -28,5 +30,18 @@ describe('Force Source Pull', () => {
     expect(pullCommand.description).to.equal(
       nls.localize('force_source_pull_force_default_scratch_org_text')
     );
+  });
+  it('Should build the source pull command with force push setting', async () => {
+    const settings = stub(SfdxCoreSettings.prototype, 'getForcePushEnabled');
+    settings.returns(true);
+    const sourcePullOverwrite = new ForceSourcePullExecutor();
+    const pullCommand = sourcePullOverwrite.build({});
+    expect(pullCommand.toCommand()).to.equal(
+      'sfdx force:source:pull --forceoverwrite'
+    );
+    expect(pullCommand.description).to.equal(
+      nls.localize('force_source_pull_force_default_scratch_org_text')
+    );
+    settings.restore();
   });
 });

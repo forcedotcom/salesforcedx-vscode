@@ -17,6 +17,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import { sfdxCoreSettings } from '../settings';
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
@@ -33,9 +34,13 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('force:source:pull')
       .withLogName('force_source_pull_default_scratch_org');
-    if (this.flag === '--forceoverwrite') {
+
+    if (
+      sfdxCoreSettings.getForcePushAndPullEnabled() ||
+      this.flag === '--forceoverwrite'
+    ) {
       builder
-        .withArg(this.flag)
+        .withArg('--forceoverwrite')
         .withDescription(
           nls.localize('force_source_pull_force_default_scratch_org_text')
         );

@@ -36,7 +36,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
       .withJson()
       .withLogName('force_source_push_default_scratch_org');
     if (
-      sfdxCoreSettings.getForcePushEnabled() ||
+      sfdxCoreSettings.getForcePushAndPullEnabled() ||
       this.flag === '--forceoverwrite'
     ) {
       builder.withArg('--forceoverwrite');
