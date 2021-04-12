@@ -20,13 +20,13 @@ This architecture change is done through a phased approach.  For both the Apex l
 
 |                         | Library complete	| Available to try in VS Code	| On by default in VS Code	| CLI Updated  |
 |-------------------------|:-----------------:|:---------------------------:|:-------------------------:|:------------:|
-| Apex Library	          |        ✔️          |               ✔️             |             ✔️             |              |
+| Apex Library	          |        ✔️          |               ✔️             |             ✔️             |       ✔️        |
 | Deploy Retrieve Library |        ✔️          |               ✔️             |             ✔️              |              |
 	
 
 ## Setup
 
-There is a VS Code setting for each library.  Access them by selecting Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
+Each library has a corresponding VS Code setting. Access them by selecting Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS). Setting to false means that VS Code uses the CLI to execute those commands. 
 
 Within settings, you will see the following:
 

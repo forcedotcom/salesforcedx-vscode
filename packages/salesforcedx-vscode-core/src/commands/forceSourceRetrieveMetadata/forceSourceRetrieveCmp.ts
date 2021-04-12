@@ -27,6 +27,7 @@ import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
+import { sfdxCoreSettings } from '../../settings';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
@@ -34,8 +35,7 @@ import { RetrieveExecutor } from '../baseDeployRetrieve';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
-  useBetaDeployRetrieve
+  SfdxWorkspaceChecker
 } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
@@ -228,12 +228,11 @@ export async function forceSourceRetrieveCmp(
   trigger: RetrieveMetadataTrigger,
   openAfterRetrieve: boolean = false
 ) {
-  const useBeta = useBetaDeployRetrieve([]);
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
-    useBeta
+    sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryRetrieveSourcePathExecutor(openAfterRetrieve)
       : new ForceSourceRetrieveExecutor(retrieveDescriber, openAfterRetrieve),
     new OverwriteComponentPrompt()
