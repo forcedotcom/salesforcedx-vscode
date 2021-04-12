@@ -28,8 +28,7 @@ export class SObjectDescribe {
   /**
    * Method that returns a list of SObjects based on running a describe global request
    * More info at https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_describeGlobal.htm
-   * @param selector SObjectSelector
-   * @returns string[] containing the sobject names
+   * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
    */
   public async describeGlobal(): Promise<SObjectShortDescription[]> {
     const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();

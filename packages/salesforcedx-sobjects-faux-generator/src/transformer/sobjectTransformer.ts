@@ -76,6 +76,10 @@ export class SObjectTransformer {
         return this.cancelExit();
       }
 
+      if (this.result.error) {
+        return this.errorExit(this.result.error.message);
+      }
+
       try {
         await retriever.retrieve(output);
       } catch (err) {
@@ -86,6 +90,10 @@ export class SObjectTransformer {
     for (const gen of this.generators) {
       if (this.didCancel()) {
         return this.cancelExit();
+      }
+
+      if (this.result.error) {
+        return this.errorExit(this.result.error.message);
       }
 
       try {
