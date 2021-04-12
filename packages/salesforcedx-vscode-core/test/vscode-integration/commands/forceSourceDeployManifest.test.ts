@@ -67,7 +67,8 @@ describe('Force Source Deploy Using Manifest Option', () => {
         .resolves(packageDirs);
       env
         .stub(ComponentSet, 'fromManifest')
-        .withArgs(manifestPath, {
+        .withArgs({
+          manifestPath: manifestPath,
           resolveSourcePaths: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
         })
         .returns(mockComponents);

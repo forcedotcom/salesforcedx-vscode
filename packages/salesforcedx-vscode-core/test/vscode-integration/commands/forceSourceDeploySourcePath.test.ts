@@ -54,7 +54,8 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           username: testData.username
         })
       });
-      resolveStub = sb.stub(ComponentSet, 'fromSource');
+
+      resolveStub = sb.stub(ComponentSet, 'fromSource').resolves(undefined);
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
       startStub = sb.stub().resolves(undefined);
       deployStub = sb

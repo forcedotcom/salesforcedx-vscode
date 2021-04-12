@@ -14,6 +14,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
+  MetadataResolver,
   registry,
   RetrieveResult,
   SourceComponent
@@ -178,7 +179,9 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
         path.join(getRootWorkspacePath(), defaultPackageDir)
       ]);
-      sb.stub(ComponentSet, 'fromSource');
+      // sb.stub(ComponentSet, 'fromSource');
+      // sb.stub(MetadataResolver.prototype, 'getComponentsFromPath');
+      // sb.stub(ComponentSet, 'fromSource').withArgs('test').returns(null);
 
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
@@ -207,6 +210,18 @@ describe('Force Source Retrieve Component(s)', () => {
           outputdir: 'out'
         }))
       };
+
+      sb
+      .stub(ComponentSet, 'fromSource')
+      // .withArgs({
+      //   manifestPath: defaultPackagePath,
+      //   resolveSourcePaths: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
+      // })
+      .returns(testComponents);
+
+      // sb.stub(ComponentSet, 'fromSource')
+      //   .withArgs(defaultPackagePath)
+      //   .returns(componentSet);
 
       await executor.run(response);
 
