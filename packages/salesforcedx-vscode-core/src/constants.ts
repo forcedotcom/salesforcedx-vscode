@@ -28,6 +28,7 @@ export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 // sfdxCore setting config values
 export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
+export const FORCE_PUSH_AND_PULL_ENABLED = 'force-push-and-pull.enabled';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';

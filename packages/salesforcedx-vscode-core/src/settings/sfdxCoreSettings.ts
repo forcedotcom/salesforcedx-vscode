@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
+  FORCE_PUSH_AND_PULL_ENABLED,
   FUNCTIONS_ENABLED,
   FUNCTIONS_INSTALL_DEPENDENCIES,
   INTERNAL_DEVELOPMENT_FLAG,
@@ -37,6 +38,10 @@ export class SfdxCoreSettings {
    */
   public getConfiguration(): vscode.WorkspaceConfiguration {
     return vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME);
+  }
+
+  public getForcePushAndPullEnabled(): boolean {
+    return this.getConfigValue<boolean>(FORCE_PUSH_AND_PULL_ENABLED, false);
   }
 
   public getShowCLISuccessMsg(): boolean {

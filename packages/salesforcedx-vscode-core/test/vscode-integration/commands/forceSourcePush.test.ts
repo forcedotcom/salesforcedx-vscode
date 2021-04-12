@@ -8,6 +8,8 @@
 import { expect } from 'chai';
 import { ForceSourcePushExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
+import { match, SinonStub, stub } from 'sinon';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Push', () => {
@@ -30,5 +32,18 @@ describe('Force Source Push', () => {
     expect(pushCommand.description).to.equal(
       nls.localize('force_source_push_force_default_scratch_org_text')
     );
+  });
+  it('Should build the source push command with force push setting', async () => {
+    const settings = stub(SfdxCoreSettings.prototype, 'getForcePushEnabled');
+    settings.returns(true);
+    const sourcePushOverwrite = new ForceSourcePushExecutor();
+    const pushCommand = sourcePushOverwrite.build({});
+    expect(pushCommand.toCommand()).to.equal(
+      'sfdx force:source:push --json --loglevel fatal --forceoverwrite'
+    );
+    expect(pushCommand.description).to.equal(
+      nls.localize('force_source_push_force_default_scratch_org_text')
+    );
+    settings.restore();
   });
 });

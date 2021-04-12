@@ -845,6 +845,11 @@
       "type": "object",
       "title": "%feature_previews_title%",
       "properties": {
+        "salesforcedx-vscode-core.force-push-and-pull.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%force_push_and_pull_enabled_description%"
+        },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",
           "default": true,
