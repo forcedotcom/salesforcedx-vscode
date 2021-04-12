@@ -10,6 +10,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../messages';
+import { sfdxCoreSettings } from '../settings';
 import {
   EmptyParametersGatherer,
   FlagParameter,
@@ -17,8 +18,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-import { sfdxCoreSettings } from '../settings';
-
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
 

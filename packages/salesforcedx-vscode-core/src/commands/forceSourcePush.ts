@@ -11,14 +11,13 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { from } from 'rxjs/observable/from';
 import { nls } from '../messages';
+import { sfdxCoreSettings } from '../settings';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-import { sfdxCoreSettings } from '../settings';
-
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
 

@@ -6,10 +6,10 @@
  */
 
 import { expect } from 'chai';
+import { stub } from 'sinon';
 import { ForceSourcePushExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
-import { match, SinonStub, stub } from 'sinon';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Push', () => {
@@ -34,7 +34,10 @@ describe('Force Source Push', () => {
     );
   });
   it('Should build the source push command with force push setting', async () => {
-    const settings = stub(SfdxCoreSettings.prototype, 'getForcePushEnabled');
+    const settings = stub(
+      SfdxCoreSettings.prototype,
+      'getForcePushAndPullEnabled'
+    );
     settings.returns(true);
     const sourcePushOverwrite = new ForceSourcePushExecutor();
     const pushCommand = sourcePushOverwrite.build({});
