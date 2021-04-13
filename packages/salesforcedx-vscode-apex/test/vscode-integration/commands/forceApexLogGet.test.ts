@@ -108,4 +108,3 @@ describe('Force Apex Log Get Logging', () => {
     expect(apexLogListStub.called).to.be.true;
   });
 });
-

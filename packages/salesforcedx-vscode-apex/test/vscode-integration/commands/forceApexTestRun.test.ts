@@ -21,6 +21,7 @@ import * as settings from '../../../src/settings';
 
 const sb = createSandbox();
 
+/* tslint:disable:no-unused-expression */
 describe('Apex Library Test Run Executor', async () => {
   let runTestStub: SinonStub;
   let buildPayloadStub: SinonStub;

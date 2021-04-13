@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
   AnonApexGatherer,
-  ApexLibraryExecuteExecutor,
+  ApexLibraryExecuteExecutor
 } from '../../../src/commands/forceApexExecute';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';

@@ -31,7 +31,7 @@ import { generateApexTestMethod } from './testDataUtil';
 import {
   apexLibMultipleResult,
   apexLibOneFileResult,
-  apexLibTestInfo,
+  apexLibTestInfo
 } from './testJSONOutputs';
 
 const NO_TESTS_DESCRIPTION = nls.localize(
@@ -41,7 +41,7 @@ const NO_TESTS_DESCRIPTION = nls.localize(
 describe('TestView', () => {
   let testOutline: ApexTestOutlineProvider;
   const apexTestInfo: ApexTestMethod[] = generateApexTestMethod();
-  let sb: SinonSandbox = createSandbox();
+  const sb: SinonSandbox = createSandbox();
 
   afterEach(() => {
     sb.restore();

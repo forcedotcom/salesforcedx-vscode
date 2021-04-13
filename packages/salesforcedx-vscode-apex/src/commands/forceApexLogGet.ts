@@ -49,7 +49,7 @@ export class LogFileSelector
     CancelResponse | ContinueResponse<ApexDebugLogIdStartTime>
   > {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const logInfos = await this.getLogRecords()
+    const logInfos = await this.getLogRecords();
 
     if (logInfos && logInfos.length > 0) {
       const logItems = logInfos.map(logInfo => {
