@@ -57,6 +57,7 @@ import {
   ApexTestProgressValue
 } from '../../src';
 import * as utils from '../../src/tests/utils';
+import { AsyncTests } from '../../src/tests/asyncTests';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -135,7 +136,7 @@ describe('Run Apex tests asynchronously', () => {
       .resolves(asyncResult);
     const testSrv = new TestService(mockConnection);
     const mockTestResultData = sandboxStub
-      .stub(testSrv, 'formatAsyncResults')
+      .stub(AsyncTests.prototype, 'formatAsyncResults')
       .resolves(testResultData);
     sandboxStub.stub(StreamingClient.prototype, 'handshake').resolves();
     const testResult = await testSrv.runTestAsynchronous(requestOptions);
@@ -169,7 +170,7 @@ describe('Run Apex tests asynchronously', () => {
   it('should return formatted test results', async () => {
     missingTimeTestData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     missingTimeTestData.summary.username = mockConnection.getUsername();
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -210,7 +211,7 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as ApexTestResult);
 
-    const getTestResultData = await testSrv.formatAsyncResults(
+    const getTestResultData = await asyncTestSrv.formatAsyncResults(
       pollResponse,
       testRunId,
       new Date().getTime()
@@ -233,7 +234,7 @@ describe('Run Apex tests asynchronously', () => {
   });
 
   it('should report progress for formatting async results', async () => {
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -277,7 +278,7 @@ describe('Run Apex tests asynchronously', () => {
       report: reportStub
     };
 
-    await testSrv.formatAsyncResults(
+    await asyncTestSrv.formatAsyncResults(
       pollResponse,
       testRunId,
       new Date().getTime(),
@@ -296,7 +297,7 @@ describe('Run Apex tests asynchronously', () => {
   it('should return correct summary outcome for single skipped test', async () => {
     skippedTestData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     skippedTestData.summary.username = mockConnection.getUsername();
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -337,7 +338,7 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as ApexTestResult);
 
-    const getTestResultData = await testSrv.formatAsyncResults(
+    const getTestResultData = await asyncTestSrv.formatAsyncResults(
       pollResponse,
       testRunId,
       new Date().getTime()
@@ -362,7 +363,7 @@ describe('Run Apex tests asynchronously', () => {
   it('should return formatted test results with diagnostics', async () => {
     diagnosticResult.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     diagnosticResult.summary.username = mockConnection.getUsername();
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -403,7 +404,7 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as ApexTestResult);
 
-    const getTestResultData = await testSrv.formatAsyncResults(
+    const getTestResultData = await asyncTestSrv.formatAsyncResults(
       pollResponse,
       testRunId,
       new Date().getTime()
@@ -418,7 +419,7 @@ describe('Run Apex tests asynchronously', () => {
     diagnosticFailure.tests[0].diagnostic.className = undefined;
     diagnosticFailure.tests[0].diagnostic.exceptionStackTrace = undefined;
     diagnosticFailure.tests[0].stackTrace = undefined;
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -459,7 +460,7 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as ApexTestResult);
 
-    const getTestResultData = await testSrv.formatAsyncResults(
+    const getTestResultData = await asyncTestSrv.formatAsyncResults(
       pollResponse,
       testRunId,
       new Date().getTime()
@@ -469,7 +470,7 @@ describe('Run Apex tests asynchronously', () => {
   });
 
   it('should return an error if no test results are found', async () => {
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -478,7 +479,7 @@ describe('Run Apex tests asynchronously', () => {
     } as ApexTestRunResult);
 
     try {
-      await testSrv.formatAsyncResults(
+      await asyncTestSrv.formatAsyncResults(
         pollResponse,
         testRunId,
         new Date().getTime()
@@ -493,7 +494,7 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should return an error if invalid test run id was provided', async () => {
     const invalidId = '000000xxxxx';
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -502,7 +503,7 @@ describe('Run Apex tests asynchronously', () => {
     } as ApexTestRunResult);
 
     try {
-      await testSrv.formatAsyncResults(
+      await asyncTestSrv.formatAsyncResults(
         pollResponse,
         invalidId,
         new Date().getTime()
@@ -517,7 +518,7 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should return an error if invalid test run id prefix was provided', async () => {
     const invalidId = '708000000xxxxxx';
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
       done: true,
@@ -526,7 +527,7 @@ describe('Run Apex tests asynchronously', () => {
     } as ApexTestRunResult);
 
     try {
-      await testSrv.formatAsyncResults(
+      await asyncTestSrv.formatAsyncResults(
         pollResponse,
         invalidId,
         new Date().getTime()
@@ -540,7 +541,7 @@ describe('Run Apex tests asynchronously', () => {
   });
 
   it('should return formatted test results with code coverage', async () => {
-    const testSrv = new TestService(mockConnection);
+    const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onCall(0).resolves({
       done: true,
@@ -584,7 +585,7 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as ApexOrgWideCoverage);
 
-    const getTestResultData = await testSrv.formatAsyncResults(
+    const getTestResultData = await asyncTestSrv.formatAsyncResults(
       pollResponse,
       testRunId,
       new Date().getTime(),
@@ -611,7 +612,7 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should report progress for aggregating code coverage', () => {
     it('should return formatted test results with code coverage', async () => {
-      const testSrv = new TestService(mockConnection);
+      const asyncTestSrv = new AsyncTests(mockConnection);
       const mockToolingQuery = sandboxStub.stub(
         mockConnection.tooling,
         'query'
@@ -663,7 +664,7 @@ describe('Run Apex tests asynchronously', () => {
         report: reportStub
       };
 
-      await testSrv.formatAsyncResults(
+      await asyncTestSrv.formatAsyncResults(
         pollResponse,
         testRunId,
         new Date().getTime(),
@@ -764,8 +765,8 @@ describe('Run Apex tests asynchronously', () => {
         ]
       } as ApexTestResult);
 
-      const testSrv = new TestService(mockConnection);
-      const result = await testSrv.getAsyncTestResults(testQueueItems);
+      const asyncTestSrv = new AsyncTests(mockConnection);
+      const result = await asyncTestSrv.getAsyncTestResults(testQueueItems);
 
       expect(mockToolingQuery.calledTwice).to.be.true;
       expect(result.length).to.eql(2);
@@ -801,8 +802,8 @@ describe('Run Apex tests asynchronously', () => {
         ]
       } as ApexTestResult);
 
-      const testSrv = new TestService(mockConnection);
-      const result = await testSrv.getAsyncTestResults(pollResponse);
+      const asyncTestSrv = new AsyncTests(mockConnection);
+      const result = await asyncTestSrv.getAsyncTestResults(pollResponse);
 
       expect(mockToolingQuery.calledOnce).to.be.true;
       expect(result.length).to.eql(1);
@@ -873,8 +874,8 @@ describe('Run Apex tests asynchronously', () => {
         ]
       } as ApexTestResult);
 
-      const testSrv = new TestService(mockConnection);
-      const result = await testSrv.getAsyncTestResults(testQueueItems);
+      const asyncTestSrv = new AsyncTests(mockConnection);
+      const result = await asyncTestSrv.getAsyncTestResults(testQueueItems);
 
       expect(mockToolingQuery.calledTwice).to.be.true;
       expect(result.length).to.eql(2);
@@ -952,8 +953,8 @@ describe('Run Apex tests asynchronously', () => {
         ]
       } as ApexTestResult);
 
-      const testSrv = new TestService(mockConnection);
-      const result = await testSrv.getAsyncTestResults(testQueueItems);
+      const asyncTestSrv = new AsyncTests(mockConnection);
+      const result = await asyncTestSrv.getAsyncTestResults(testQueueItems);
 
       expect(mockToolingQuery.calledTwice).to.be.true;
       expect(result.length).to.eql(2);
@@ -993,8 +994,8 @@ describe('Run Apex tests asynchronously', () => {
       } as ApexTestResult);
       const singleQuery = `${queryStart}('${id}')`;
 
-      const testSrv = new TestService(mockConnection);
-      const result = await testSrv.getAsyncTestResults(pollResponse);
+      const asyncTestSrv = new AsyncTests(mockConnection);
+      const result = await asyncTestSrv.getAsyncTestResults(pollResponse);
 
       expect(mockToolingQuery.calledOnce).to.be.true;
       expect(mockToolingQuery.calledWith(singleQuery)).to.be.true;
@@ -1144,238 +1145,6 @@ describe('Run Apex tests asynchronously', () => {
     });
   });
 
-  describe('Build async payload', async () => {
-    it('should build async payload for tests without namespace', async () => {
-      const namespaceStub = sandboxStub
-        .stub(utils, 'queryNamespaces')
-        .resolves([]);
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myClass.myTest'
-      );
-
-      expect(payload).to.deep.equal({
-        tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.calledOnce).to.be.true;
-    });
-
-    it('should build async payload for test with namespace when org returns 0 namespaces', async () => {
-      const namespaceStub = sandboxStub
-        .stub(utils, 'queryNamespaces')
-        .resolves([]);
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myNamespace.myClass'
-      );
-
-      expect(payload).to.deep.equal({
-        tests: [{ className: 'myNamespace', testMethods: ['myClass'] }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.calledOnce).to.be.true;
-    });
-
-    it('should build async payload for tests with namespace', async () => {
-      const namespaceStub = sandboxStub
-        .stub(utils, 'queryNamespaces')
-        .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myNamespace.myClass'
-      );
-
-      expect(payload).to.deep.equal({
-        tests: [
-          {
-            namespace: 'myNamespace',
-            className: 'myClass'
-          }
-        ],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.calledOnce).to.be.true;
-    });
-
-    it('should build async payload for tests with namespace from installed package', async () => {
-      const namespaceStub = sandboxStub
-        .stub(utils, 'queryNamespaces')
-        .resolves([{ installedNs: true, namespace: 'myNamespace' }]);
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myNamespace.myClass'
-      );
-
-      expect(payload).to.deep.equal({
-        tests: [
-          {
-            className: 'myNamespace.myClass'
-          }
-        ],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.calledOnce).to.be.true;
-    });
-
-    it('should only query for namespaces once when multiple tests are specified', async () => {
-      const namespaceStub = sandboxStub
-        .stub(utils, 'queryNamespaces')
-        .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myNamespace.myClass,myNamespace.mySecondClass'
-      );
-
-      expect(payload).to.deep.equal({
-        tests: [
-          {
-            namespace: 'myNamespace',
-            className: 'myClass'
-          },
-          {
-            namespace: 'myNamespace',
-            className: 'mySecondClass'
-          }
-        ],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.calledOnce).to.be.true;
-    });
-
-    it('should build async payload for tests with 3 parts', async () => {
-      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myNamespace.myClass.myTest'
-      );
-
-      expect(payload).to.deep.equal({
-        tests: [
-          {
-            namespace: 'myNamespace',
-            className: 'myClass',
-            testMethods: ['myTest']
-          }
-        ],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-
-    it('should build async payload for tests with only classname', async () => {
-      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        'myClass'
-      );
-      expect(payload).to.deep.equal({
-        tests: [{ className: 'myClass' }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-
-    it('should build async payload for tests with only classid', async () => {
-      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        '01p4x00000KWt3T'
-      );
-      expect(payload).to.deep.equal({
-        tests: [{ classId: '01p4x00000KWt3T' }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-
-    it('should build async payload for class with only classname', async () => {
-      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        'myClass'
-      );
-      expect(payload).to.deep.equal({
-        tests: [{ className: 'myClass' }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-
-    it('should build async payload for class specified by id', async () => {
-      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        '01p4x00000KWt3TAAT'
-      );
-      expect(payload).to.deep.equal({
-        tests: [{ classId: '01p4x00000KWt3TAAT' }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-
-    it('should build async payload for class specified by id with incorrect number of digits', async () => {
-      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        '01p4x00000KWt3TAATP'
-      );
-      expect(payload).to.deep.equal({
-        tests: [{ className: '01p4x00000KWt3TAATP' }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-
-    it('should build async payload for class with namespace', async () => {
-      const namespaceStub = sandboxStub
-        .stub(utils, 'queryNamespaces')
-        .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        'myNamespace.myClass'
-      );
-      expect(payload).to.deep.equal({
-        tests: [{ className: 'myNamespace.myClass' }],
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-
-    it('should build async payload for suite', async () => {
-      const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
-      const testSrv = new TestService(mockConnection);
-      const payload = await testSrv.buildAsyncPayload(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        undefined,
-        'mySuite'
-      );
-      expect(payload).to.deep.equal({
-        suiteNames: 'mySuite',
-        testLevel: TestLevel.RunSpecifiedTests
-      });
-      expect(namespaceStub.notCalled).to.be.true;
-    });
-  });
-
   describe('Abort Test Runs', () => {
     it('should send requests to abort test run', async () => {
       const mockTestQueueItemRecord: ApexTestQueueItem = ({
@@ -1414,8 +1183,8 @@ describe('Run Apex tests asynchronously', () => {
         'update'
       );
 
-      const testSrv = new TestService(mockConnection);
-      await testSrv.abortTestRun(testRunId);
+      const asyncTestSrv = new AsyncTests(mockConnection);
+      await asyncTestSrv.abortTestRun(testRunId);
 
       sinonAssert.calledOnce(toolingUpdateStub);
       sinonAssert.calledWith(toolingUpdateStub, ([
@@ -1472,7 +1241,7 @@ describe('Run Apex tests asynchronously', () => {
       );
       sandboxStub.stub(StreamingClient.prototype, 'handshake').resolves();
       const abortTestRunStub = sandboxStub
-        .stub(TestService.prototype, 'abortTestRun')
+        .stub(AsyncTests.prototype, 'abortTestRun')
         .resolves();
 
       const cancellationTokenSource = new CancellationTokenSource();
@@ -1517,9 +1286,9 @@ describe('Run Apex tests asynchronously', () => {
     });
 
     it('should format test error when building asynchronous payload', async () => {
-      const testSrv = new TestService(mockConnection);
       const errMsg = `sObject type 'PackageLicense' is not supported.`;
       sandboxStub.stub(utils, 'queryNamespaces').throws(new Error(errMsg));
+      const testSrv = new TestService(mockConnection);
       try {
         await testSrv.buildAsyncPayload(
           TestLevel.RunSpecifiedTests,
