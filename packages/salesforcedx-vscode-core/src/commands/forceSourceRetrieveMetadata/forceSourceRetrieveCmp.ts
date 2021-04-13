@@ -165,7 +165,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
       include: filter
     });
     // If no results from local source components, return the filter.
-    return sourceResult.getSourceComponents().toArray().length == 0 ? filter : sourceResult;
+    return sourceResult.getSourceComponents().toArray().length === 0 ? filter : sourceResult;
   }
 
   protected async postOperation(

@@ -74,7 +74,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
       env
         .stub(ComponentSet, 'fromManifest')
         .withArgs({
-          manifestPath: manifestPath,
+          manifestPath,
           resolveSourcePaths: packageDirFullPaths,
           forceAddWildcards: true
         })
