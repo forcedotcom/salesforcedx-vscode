@@ -39,12 +39,9 @@ describe('Transform sobject definitions', () => {
   let projectPath: string;
   let emitter: EventEmitter;
 
-  before(async () => {
+  beforeEach(() => {
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     emitter = new EventEmitter();
-  });
-
-  beforeEach(() => {
     cancellationTokenSource = new CancellationTokenSource();
     env.stub(AuthInfo, 'create').returns({
       getConnectionOptions: () => CONNECTION_DATA

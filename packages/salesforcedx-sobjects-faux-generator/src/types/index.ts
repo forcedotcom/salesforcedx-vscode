@@ -12,49 +12,13 @@ export {
   Field,
   SObject
 } from './describe';
-export { SObjectCategory, SObjectRefreshSource } from './general';
-
-import { SObjectShortDescription } from '../describe';
-import { SObject } from './describe';
-import { SObjectCategory, SObjectRefreshSource } from './general';
-
-export interface FieldDeclaration {
-  modifier: string;
-  type: string;
-  name: string;
-  comment?: string;
-}
-
-export type SObjectDefinition = Pick<SObject, 'name'> & {
-  fields: FieldDeclaration[];
-};
-
-export interface SObjectDefinitionRetriever {
-  retrieve: (output: SObjectRefreshOutput) => Promise<void>;
-}
-
-export interface SObjectRefreshResult {
-  data: {
-    category?: SObjectCategory;
-    source?: SObjectRefreshSource;
-    cancelled: boolean;
-    standardObjects?: number;
-    customObjects?: number;
-  };
-  error?: { message: string; stack?: string };
-}
-
-export interface SObjectRefreshOutput {
-  sfdxPath: string;
-  addTypeNames: (names: SObjectShortDescription[]) => void;
-  getTypeNames: () => SObjectShortDescription[];
-  addStandard: (standard: SObjectDefinition[]) => void;
-  getStandard: () => SObjectDefinition[];
-  addCustom: (standard: SObjectDefinition[]) => void;
-  getCustom: () => SObjectDefinition[];
-  setError: (message: string, stack?: string) => void;
-}
-
-export interface SObjectGenerator {
-  generate: (output: SObjectRefreshOutput) => void;
-}
+export {
+  FieldDeclaration,
+  SObjectCategory,
+  SObjectDefinition,
+  SObjectDefinitionRetriever,
+  SObjectGenerator,
+  SObjectRefreshOutput,
+  SObjectRefreshResult,
+  SObjectRefreshSource
+} from './general';

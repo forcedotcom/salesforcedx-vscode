@@ -169,8 +169,8 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         commandName,
         startTime,
         {
-          category: result.data.category ?? '',
-          source: result.data.source ?? '',
+          category: response.data.category,
+          source: response.data.source,
           cancelled: String(result.data.cancelled)
         },
         {

@@ -11,7 +11,7 @@ import {
   SObjectSelector,
   SObjectShortDescription
 } from '../describe';
-import { DeclarationGenerator } from '../generator/declarationGenerator';
+import { DeclarationGenerator } from '../generator';
 import { nls } from '../messages';
 import {
   SObject,
