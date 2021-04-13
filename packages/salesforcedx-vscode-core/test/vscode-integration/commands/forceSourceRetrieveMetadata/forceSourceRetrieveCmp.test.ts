@@ -23,9 +23,10 @@ import {
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { LazyCollection } from '@salesforce/source-deploy-retrieve/lib/src/collections';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import {
@@ -179,10 +180,8 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
         path.join(getRootWorkspacePath(), defaultPackageDir)
       ]);
-      // sb.stub(ComponentSet, 'fromSource');
-      // sb.stub(MetadataResolver.prototype, 'getComponentsFromPath');
-      // sb.stub(ComponentSet, 'fromSource').withArgs('test').returns(null);
 
+      sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
       startStub = sb.stub();
@@ -202,6 +201,7 @@ describe('Force Source Retrieve Component(s)', () => {
         { fullName: 'MyClassA', type: 'ApexClass' },
         { fullName: 'MyClassB', type: 'ApexClass' }
       ];
+      const componentSet = new ComponentSet(testComponents);
       const response: ContinueResponse<LocalComponent[]> = {
         type: 'CONTINUE',
         data: testComponents.map(c => ({
@@ -211,17 +211,8 @@ describe('Force Source Retrieve Component(s)', () => {
         }))
       };
 
-      sb
-      .stub(ComponentSet, 'fromSource')
-      // .withArgs({
-      //   manifestPath: defaultPackagePath,
-      //   resolveSourcePaths: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
-      // })
-      .returns(testComponents);
-
-      // sb.stub(ComponentSet, 'fromSource')
-      //   .withArgs(defaultPackagePath)
-      //   .returns(componentSet);
+      sb.stub(ComponentSet.prototype, 'getSourceComponents').returns(new LazyCollection<SourceComponent>());
+      sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       await executor.run(response);
 
@@ -265,11 +256,13 @@ describe('Force Source Retrieve Component(s)', () => {
           ]
         )
       ];
-
       const componentSet = new ComponentSet(testComponents);
-      sb.stub(ComponentSet, 'fromSource')
-        .withArgs(defaultPackagePath)
-        .returns(componentSet);
+
+      const fromSourceStub = sb.stub(ComponentSet, 'fromSource');
+      fromSourceStub.returns(componentSet);
+      fromSourceStub.withArgs(defaultPackagePath).returns(componentSet);
+      sb.stub(ComponentSet.prototype, 'getSourceComponents').returns(new LazyCollection(testComponents));
+      sb.stub(LibraryRetrieveSourcePathExecutor.prototype, <any>'getComponents').returns(componentSet);
 
       const retrieveResponse: Partial<MetadataApiRetrieveStatus> = {
         status: RequestStatus.Succeeded

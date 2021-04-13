@@ -160,10 +160,12 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
       response.data.map(lc => ({ fullName: lc.fileName, type: lc.type }))
     );
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
-    return ComponentSet.fromSource({
+    const sourceResult = ComponentSet.fromSource({
       fsPaths: packageDirs,
       include: filter
     });
+    // If no results from local source components, return the filter.
+    return sourceResult.getSourceComponents().toArray().length == 0 ? filter : sourceResult;
   }
 
   protected async postOperation(
@@ -226,7 +228,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
 
 export async function forceSourceRetrieveCmp(
   trigger: RetrieveMetadataTrigger,
-  openAfterRetrieve: boolean = false
+  openAfterRetrieve: boolean = true
 ) {
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(
