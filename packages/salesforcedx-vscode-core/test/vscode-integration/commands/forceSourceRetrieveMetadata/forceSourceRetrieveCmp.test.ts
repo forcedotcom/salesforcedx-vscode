@@ -262,7 +262,6 @@ describe('Force Source Retrieve Component(s)', () => {
       fromSourceStub.returns(componentSet);
       fromSourceStub.withArgs(defaultPackagePath).returns(componentSet);
       sb.stub(ComponentSet.prototype, 'getSourceComponents').returns(new LazyCollection(testComponents));
-      sb.stub(LibraryRetrieveSourcePathExecutor.prototype, <any>'getComponents').returns(componentSet);
 
       const retrieveResponse: Partial<MetadataApiRetrieveStatus> = {
         status: RequestStatus.Succeeded
