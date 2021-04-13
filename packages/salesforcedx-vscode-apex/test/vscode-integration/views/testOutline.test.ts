@@ -10,7 +10,7 @@ import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
-import { SinonSpy, SinonStub, spy, stub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub, spy, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import {
@@ -32,8 +32,6 @@ import {
   apexLibMultipleResult,
   apexLibOneFileResult,
   apexLibTestInfo,
-  jsonSummaryMultipleFiles,
-  jsonSummaryOneFilePass
 } from './testJSONOutputs';
 
 const NO_TESTS_DESCRIPTION = nls.localize(
@@ -43,43 +41,25 @@ const NO_TESTS_DESCRIPTION = nls.localize(
 describe('TestView', () => {
   let testOutline: ApexTestOutlineProvider;
   const apexTestInfo: ApexTestMethod[] = generateApexTestMethod();
+  let sb: SinonSandbox = createSandbox();
+
+  afterEach(() => {
+    sb.restore();
+  });
 
   describe('Code Coverage', () => {
     let commandletSpy: SinonSpy;
     let getCoverageStub: SinonStub;
     let languageClientUtils: LanguageClientUtils;
-    let settingStub: SinonStub;
 
     beforeEach(() => {
-      commandletSpy = spy(SfdxCommandlet.prototype, 'run');
-      getCoverageStub = stub(settings, 'retrieveTestCodeCoverage');
+      commandletSpy = sb.spy(SfdxCommandlet.prototype, 'run');
+      getCoverageStub = sb.stub(settings, 'retrieveTestCodeCoverage');
       languageClientUtils = LanguageClientUtils.getInstance();
       languageClientUtils.setStatus(ClientStatus.Ready, 'Apex client is ready');
-      settingStub = stub(settings, 'useApexLibrary').returns(false);
-    });
-
-    afterEach(() => {
-      settingStub.restore();
-      commandletSpy.restore();
-      getCoverageStub.restore();
-    });
-
-    it('Should honor code coverage setting', async () => {
-      const testRunner = new ApexTestRunner(testOutline);
-      getCoverageStub.onFirstCall().returns(true);
-      getCoverageStub.onSecondCall().returns(false);
-
-      await testRunner.runApexTests(['MyTestTrue'], TestRunType.Method);
-      let { executor } = commandletSpy.getCall(0).thisValue;
-      expect(executor.shouldGetCodeCoverage).to.be.true;
-
-      await testRunner.runApexTests(['MyTestFalse'], TestRunType.Method);
-      executor = commandletSpy.getCall(1).thisValue.executor;
-      expect(executor.shouldGetCodeCoverage).to.be.false;
     });
 
     it('Should honor code coverage setting with Apex Library', async () => {
-      settingStub.returns(true);
       const testRunner = new ApexTestRunner(testOutline);
       getCoverageStub.onFirstCall().returns(true);
       getCoverageStub.onSecondCall().returns(false);
@@ -207,45 +187,20 @@ describe('TestView', () => {
     let readFolderStub: SinonStub;
     let readFileStub: SinonStub;
     let parseJSONStub: SinonStub;
-    let settingStub: SinonStub;
 
     beforeEach(() => {
-      readFolderStub = stub(fs, 'readdirSync');
+      readFolderStub = sb.stub(fs, 'readdirSync');
       readFolderStub.callsFake(folderName => {
         return ['test-result.json'];
       });
-      readFileStub = stub(fs, 'readFileSync');
+      readFileStub = sb.stub(fs, 'readFileSync');
       readFileStub.callsFake(fileName => {
         return 'nonsense';
       });
-      parseJSONStub = stub(JSON, 'parse');
-      settingStub = stub(settings, 'useApexLibrary');
-    });
-
-    afterEach(() => {
-      settingStub.restore();
-      readFolderStub.restore();
-      readFileStub.restore();
-      parseJSONStub.restore();
-    });
-
-    it('Should update single test with Pass result using CLI', () => {
-      settingStub.returns(false);
-      parseJSONStub.callsFake(() => {
-        return jsonSummaryOneFilePass;
-      });
-
-      testOutline = new ApexTestOutlineProvider(apexTestInfo.slice(0, 1));
-      testOutline.updateTestResults('oneFilePass');
-      const testGroupNode = testOutline.getHead()
-        .children[0] as ApexTestGroupNode;
-      expect(testGroupNode.passing).to.equal(1);
-      const testNode = testGroupNode.children[0] as ApexTestNode;
-      expect(testNode.outcome).to.equal('Pass');
+      parseJSONStub = sb.stub(JSON, 'parse');
     });
 
     it('Should update single test with Pass result using Apex library', () => {
-      settingStub.returns(true);
       parseJSONStub.callsFake(() => {
         return apexLibOneFileResult;
       });
@@ -259,47 +214,7 @@ describe('TestView', () => {
       expect(testNode.outcome).to.equal('Pass');
     });
 
-    it('Should update tests and test groups with 8 results, 6 passing and 2 failing using CLI', () => {
-      settingStub.returns(false);
-      parseJSONStub.callsFake(() => {
-        return jsonSummaryMultipleFiles;
-      });
-      testOutline = new ApexTestOutlineProvider(apexTestInfo);
-      testOutline.updateTestResults('multipleFilesMixed');
-      let classNum = 0;
-      expect(testOutline.getHead().children.length).to.equal(4);
-      for (const testGroupNode of testOutline.getHead().children) {
-        let outcome = 'Pass';
-        if (classNum === 0 || classNum === 3) {
-          // Failing Class
-          expect((testGroupNode as ApexTestGroupNode).passing).to.equal(1);
-          let testNode = testGroupNode.children[0] as ApexTestNode;
-          if (classNum === 3) {
-            // Tests 1 and 6 fail
-            outcome = 'Fail';
-          }
-          expect(testNode.outcome).to.equal(outcome);
-          outcome = 'Pass';
-          testNode = testGroupNode.children[1] as ApexTestNode;
-          if (classNum === 0) {
-            // Tests 1 and 6 fail
-            outcome = 'Fail';
-          }
-          expect(testNode.outcome).to.equal(outcome);
-        } else {
-          // Passing class
-          expect((testGroupNode as ApexTestGroupNode).passing).to.equal(2);
-          let testNode = testGroupNode.children[0] as ApexTestNode;
-          expect(testNode.outcome).to.equal(outcome);
-          testNode = testGroupNode.children[1] as ApexTestNode;
-          expect(testNode.outcome).to.equal(outcome);
-        }
-        classNum++;
-      }
-    });
-
     it('Should update tests and test groups with passing/failing tests using Apex library', () => {
-      settingStub.returns(true);
       parseJSONStub.callsFake(() => {
         return apexLibMultipleResult;
       });
@@ -326,35 +241,24 @@ describe('TestView', () => {
     let parseJSONStub: SinonStub;
     let showTextDocumentStub: SinonStub;
     let eventEmitterStub: SinonStub;
-    let settingStub: SinonStub;
 
     let testRunner: ApexTestRunner;
     const eventEmitter = new events.EventEmitter();
 
     beforeEach(() => {
-      readFolderStub = stub(fs, 'readdirSync');
+      readFolderStub = sb.stub(fs, 'readdirSync');
       readFolderStub.callsFake(folderName => ['test-result.json']);
-      readFileStub = stub(fs, 'readFileSync');
+      readFileStub = sb.stub(fs, 'readFileSync');
       readFileStub.callsFake(fileName => 'nonsense');
-      parseJSONStub = stub(JSON, 'parse');
-      parseJSONStub.callsFake(() => jsonSummaryMultipleFiles);
-      eventEmitterStub = stub(eventEmitter, 'emit');
-      showTextDocumentStub = stub(vscode.window, 'showTextDocument');
+      parseJSONStub = sb.stub(JSON, 'parse');
+      parseJSONStub.callsFake(() => apexLibMultipleResult);
+      eventEmitterStub = sb.stub(eventEmitter, 'emit');
+      showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
       showTextDocumentStub.returns(Promise.resolve());
-      settingStub = stub(settings, 'useApexLibrary').returns(false);
 
       testOutline = new ApexTestOutlineProvider(apexTestInfo);
       testOutline.updateTestResults('multipleFilesMixed');
       testRunner = new ApexTestRunner(testOutline, eventEmitter);
-    });
-
-    afterEach(() => {
-      settingStub.restore();
-      readFolderStub.restore();
-      readFileStub.restore();
-      parseJSONStub.restore();
-      eventEmitterStub.restore();
-      showTextDocumentStub.restore();
     });
 
     it('Should go to definition if a test does not have an error message', async () => {
@@ -386,7 +290,7 @@ describe('TestView', () => {
 
     it('Should go to error of first failing test in a failed test class', async () => {
       const testClass = testOutline.getHead().children[0] as ApexTestGroupNode;
-      const lineFailure = 40; // first failure in testJSONOutputs.testResultsMultipleFiles
+      const lineFailure = 40; // first failure in apexLibMultipleResult.apexLibMultipleTests
 
       await testRunner.showErrorMessage(testClass);
 

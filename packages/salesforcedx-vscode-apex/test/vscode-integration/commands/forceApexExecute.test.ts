@@ -16,9 +16,6 @@ import { channelService } from '../../../src/channels';
 import {
   AnonApexGatherer,
   ApexLibraryExecuteExecutor,
-  CreateApexTempFile,
-  forceApexExecute,
-  ForceApexExecuteExecutor
 } from '../../../src/commands/forceApexExecute';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
@@ -109,52 +106,6 @@ describe('Force Apex Execute', () => {
         apexCode: string;
       }>;
       expect(result.data.apexCode).to.equal('System.assert(true);');
-    });
-  });
-
-  describe('use CLI Command setting', async () => {
-    let settingStub: SinonStub;
-    let libraryExecuteStub: SinonStub;
-    let cliExecuteStub: SinonStub;
-    let anonGather: SinonStub;
-    let apexTempFile: SinonStub;
-
-    beforeEach(() => {
-      settingStub = sb.stub().withArgs('experimental.useApexLibrary');
-      sb.stub(vscode.workspace, 'getConfiguration')
-        .withArgs('salesforcedx-vscode-core')
-        .returns({
-          get: settingStub
-        });
-      libraryExecuteStub = sb.stub(
-        ApexLibraryExecuteExecutor.prototype,
-        'execute'
-      );
-      cliExecuteStub = sb.stub(ForceApexExecuteExecutor.prototype, 'execute');
-      anonGather = sb
-        .stub(AnonApexGatherer.prototype, 'gather')
-        .returns({ type: 'CONTINUE' } as ContinueResponse<{}>);
-      apexTempFile = sb
-        .stub(CreateApexTempFile.prototype, 'gather')
-        .returns({ type: 'CONTINUE' } as ContinueResponse<{}>);
-    });
-
-    it('should use the ApexLibraryExecuteExecutor if setting is true', async () => {
-      settingStub.returns(true);
-      await forceApexExecute();
-      expect(libraryExecuteStub.calledOnce).to.be.true;
-      expect(anonGather.calledOnce).to.be.true;
-      expect(cliExecuteStub.called).to.be.false;
-      expect(apexTempFile.called).to.be.false;
-    });
-
-    it('should use the ForceApexExecuteExecutor if setting is false', async () => {
-      settingStub.returns(false);
-      await forceApexExecute();
-      expect(cliExecuteStub.calledOnce).to.be.true;
-      expect(apexTempFile.calledOnce).to.be.true;
-      expect(libraryExecuteStub.called).to.be.false;
-      expect(anonGather.called).to.be.false;
     });
   });
 
