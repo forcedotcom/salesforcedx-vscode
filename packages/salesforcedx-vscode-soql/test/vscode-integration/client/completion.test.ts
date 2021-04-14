@@ -32,6 +32,27 @@ const aggregateFunctionItems = [
   { label: 'COUNT_DISTINCT(...)', kind: CompletionItemKind.Function }
 ];
 
+const userFieldItems = [
+  { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
+  {
+    label: 'Name',
+    kind: CompletionItemKind.Field,
+    detail: 'string'
+  },
+  {
+    label: 'AccountId',
+    kind: CompletionItemKind.Field,
+    detail: 'reference'
+  },
+  {
+    label: 'Account',
+    kind: CompletionItemKind.Class,
+    insertText: 'Account.',
+    detail: 'Ref. to Account'
+  },
+  { label: 'IsDeleted', kind: 4, detail: 'boolean' }
+];
+
 describe('Should do completion', async () => {
   beforeEach(async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
@@ -84,28 +105,10 @@ describe('Should do completion', async () => {
       insertText: '(SELECT $2 FROM $1)'
     },
     { label: 'COUNT()', kind: CompletionItemKind.Keyword },
-    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword },
     { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
   ]);
   testCompletion('SELECT | FROM User', [
-    { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
-    {
-      label: 'Name',
-      kind: CompletionItemKind.Field,
-      detail: 'string'
-    },
-    {
-      label: 'AccountId',
-      kind: CompletionItemKind.Field,
-      detail: 'reference'
-    },
-    {
-      label: 'Account',
-      kind: CompletionItemKind.Class,
-      insertText: 'Account.',
-      detail: 'Ref. to Account'
-    },
-    { label: 'IsDeleted', kind: 4, detail: 'boolean' },
+    ...userFieldItems,
     ...aggregateFunctionItems,
     {
       label: '(SELECT ... FROM ...)',
@@ -113,7 +116,6 @@ describe('Should do completion', async () => {
       insertText: '(SELECT $2 FROM $1)'
     },
     { label: 'COUNT()', kind: CompletionItemKind.Keyword },
-    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword },
     { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
   ]);
 
@@ -129,8 +131,7 @@ describe('Should do completion', async () => {
     { label: 'BillingCity', kind: 4, detail: 'string' },
     { label: 'IsDeleted', kind: 4, detail: 'boolean' },
     { label: 'LastActivityDate', kind: 4, detail: 'date' },
-    { label: 'NOT', kind: CompletionItemKind.Keyword },
-    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword }
+    { label: 'NOT', kind: CompletionItemKind.Keyword }
   ]);
 
   const basicOperators = ['IN (', 'NOT IN (', '=', '!=', '<>'];
@@ -252,8 +253,6 @@ describe('Should do completion', async () => {
     { allowExtraCompletionItems: true }
   );
 
-
-
   testCompletion('SELECT Id, COUNT(Name) FROM Account GROUP BY |', [
     // NOTE: CreatedDate  and Description are NOT groupable, so we DON'T them:
     { label: '★ Id', kind: CompletionItemKind.Field, detail: 'id' },
@@ -292,8 +291,39 @@ describe('Should do completion', async () => {
       label: 'LastActivityDate',
       kind: CompletionItemKind.Field,
       detail: 'date'
-    },
-    { label: 'DISTANCE(', kind: CompletionItemKind.Keyword }
+    }
+  ]);
+
+  testCompletion('SELECT Id, (SELECT FROM |) FROM Account', [
+    { label: 'Users', kind: CompletionItemKind.Class, detail: 'User' }
+  ]);
+  testCompletion('SELECT Id, (SELECT | FROM Users) FROM Account', [
+    ...userFieldItems,
+    { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
+  ]);
+
+  testCompletion(
+    'SELECT Id, (SELECT Name FROM Users ORDER BY |) FROM Account',
+    [
+      // only sortable fields of User:
+      { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
+      {
+        label: 'Name',
+        kind: CompletionItemKind.Field,
+        detail: 'string'
+      },
+      { label: 'IsDeleted', kind: 4, detail: 'boolean' }
+    ]
+  );
+
+  // Semi-join
+  testCompletion('SELECT Id FROM Account WHERE Id IN (SELECT | FROM User)', [
+    { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
+    {
+      label: 'AccountId',
+      kind: CompletionItemKind.Field,
+      detail: 'reference'
+    }
   ]);
 });
 
@@ -330,7 +360,6 @@ describe('Should not do completion on connection errors', async () => {
         insertText: '(SELECT $2 FROM $1)'
       },
       { label: 'COUNT()', kind: CompletionItemKind.Keyword },
-      { label: 'DISTANCE(', kind: CompletionItemKind.Keyword },
       { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
     ],
     {
@@ -389,14 +418,16 @@ function testCompletion(
           pickMainItemKeys
         );
 
-        simplifiedExpectedCompletionItems.forEach(item => {
-          expect(simplifiedActualCompletionItems).to.deep.include(item);
-        });
-        if (!options.allowExtraCompletionItems) {
-          simplifiedActualCompletionItems.forEach(item => {
-            expect(simplifiedExpectedCompletionItems).to.deep.include(item);
-          });
+        if (options.allowExtraCompletionItems) {
+          expect(simplifiedActualCompletionItems).to.include.deep.members(
+            simplifiedExpectedCompletionItems
+          );
+        } else {
+          expect(simplifiedActualCompletionItems).to.have.deep.members(
+            simplifiedExpectedCompletionItems
+          );
         }
+
         if (expectChannelMsg) {
           expect(channelServiceSpy.called).to.be.true;
           console.log(channelServiceSpy.getCalls());
