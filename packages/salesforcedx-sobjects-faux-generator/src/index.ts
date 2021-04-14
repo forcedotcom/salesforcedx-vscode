@@ -8,6 +8,8 @@ export {
   CLIENT_ID,
   SFDX_DIR,
   SOBJECTS_DIR,
-  TOOLS_DIR,
-  STANDARDOBJECTS_DIR
+  STANDARDOBJECTS_DIR,
+  TOOLS_DIR
 } from './constants';
+export { SObjectTransformer, SObjectTransformerFactory } from './transformer';
+export { SObjectRefreshResult } from './types';
