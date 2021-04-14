@@ -1,10 +1,10 @@
-# 51.9.0 - Month DD, YYYY
+# 51.9.0 - April 14, 2021
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- Xyc/all local tests ([PR #3126](https://github.com/forcedotcom/salesforcedx-vscode/pull/3126))
+- Fix local test run generation to match the CLI ([PR #3126](https://github.com/forcedotcom/salesforcedx-vscode/pull/3126))
 
 # 51.8.0 - April 07, 2021
 
