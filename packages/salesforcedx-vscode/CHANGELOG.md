@@ -1,3 +1,11 @@
+# 51.9.0 - Month DD, YYYY
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Xyc/all local tests ([PR #3126](https://github.com/forcedotcom/salesforcedx-vscode/pull/3126))
+
 # 51.8.0 - April 07, 2021
 
 ## Added
