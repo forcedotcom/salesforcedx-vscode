@@ -164,7 +164,6 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
       fsPaths: packageDirs,
       include: filter
     });
-    // If no results from local source components, return the filter.
     return sourceResult.getSourceComponents().toArray().length === 0 ? filter : sourceResult;
   }
 
@@ -228,7 +227,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
 
 export async function forceSourceRetrieveCmp(
   trigger: RetrieveMetadataTrigger,
-  openAfterRetrieve: boolean = true
+  openAfterRetrieve: boolean = false
 ) {
   const retrieveDescriber = trigger.describer();
   const commandlet = new SfdxCommandlet(

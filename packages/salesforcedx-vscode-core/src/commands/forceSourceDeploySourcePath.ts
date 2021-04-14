@@ -55,8 +55,6 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   ): Promise<ComponentSet> {
     const paths = response.data;
 
-    // return ComponentSet.fromSource(paths);   // TODO - why does this fail?
-
     if (typeof paths === 'string') {
       return ComponentSet.fromSource(paths);
     } else {
