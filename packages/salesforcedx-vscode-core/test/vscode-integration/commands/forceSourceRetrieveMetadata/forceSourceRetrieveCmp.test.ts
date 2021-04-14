@@ -126,7 +126,7 @@ describe('Force Source Retrieve Component(s)', () => {
         expect(showTextDocumentStub.called).to.equal(true);
       });
 
-      it('Should retrieve resource witout defined file extensions', async () => {
+      it('Should retrieve resource without defined file extensions', async () => {
         const response = [
           {
             type: 'CONTINUE',
@@ -180,6 +180,9 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
         path.join(getRootWorkspacePath(), defaultPackageDir)
       ]);
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
+        defaultPackageDir
+      ]);
 
       sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
@@ -211,7 +214,6 @@ describe('Force Source Retrieve Component(s)', () => {
         }))
       };
 
-      sb.stub(ComponentSet.prototype, 'getSourceComponents').returns(new LazyCollection<SourceComponent>());
       sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       await executor.run(response);
@@ -235,11 +237,37 @@ describe('Force Source Retrieve Component(s)', () => {
 
     it('should retrieve with given components and open them', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor(true);
-
-      const defaultPackagePath = path.join(getRootWorkspacePath(), 'test-app');
+      const type = registry.types.apexclass;
       const className = 'MyClass';
-      const apexClassPathOne = path.join('classes', `${className}.cls`);
-      const apexClassXmlPathOne = `${apexClassPathOne}-meta.xml`;
+      const className2 = 'MyClass';
+      const apexClassPathOne = path.join(
+        type.directoryName,
+        `${className}.cls`
+      );
+      const apexClassPathTwo = path.join(
+        type.directoryName,
+        `${className2}.cls`
+      );
+      const apexClassXmlPathOne = path.join(
+        type.directoryName,
+        `${apexClassPathOne}-meta.xml`
+      );
+      const apexClassXmlPathTwo = path.join(
+        type.directoryName,
+        `${className2}.cls-meta.xml`
+      );
+      const virtualTree = [
+        {
+          dirPath: 'classes',
+          children: [
+            `${className}.cls`,
+            `${className}.cls-meta.xml`,
+            `${className2}.cls`,
+            `${className2}.cls-meta.xml`
+          ]
+        }
+      ];
+
       const testComponents = [
         SourceComponent.createVirtualComponent(
           {
@@ -248,20 +276,20 @@ describe('Force Source Retrieve Component(s)', () => {
             xml: apexClassXmlPathOne,
             content: apexClassPathOne
           },
-          [
-            {
-              dirPath: 'classes',
-              children: [`${className}.cls`, `${className}.cls-meta.xml`]
-            }
-          ]
+          virtualTree
+        ),
+        SourceComponent.createVirtualComponent(
+          {
+            name: className,
+            type: registry.types.apexclass,
+            xml: apexClassXmlPathTwo,
+            content: apexClassPathTwo
+          },
+          virtualTree
         )
       ];
       const componentSet = new ComponentSet(testComponents);
-
-      const fromSourceStub = sb.stub(ComponentSet, 'fromSource');
-      fromSourceStub.returns(componentSet);
-      fromSourceStub.withArgs(defaultPackagePath).returns(componentSet);
-      sb.stub(ComponentSet.prototype, 'getSourceComponents').returns(new LazyCollection(testComponents));
+      sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       const retrieveResponse: Partial<MetadataApiRetrieveStatus> = {
         status: RequestStatus.Succeeded
@@ -272,10 +300,6 @@ describe('Force Source Retrieve Component(s)', () => {
           componentSet
         )
       );
-
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        'test-app'
-      ]);
 
       const response: ContinueResponse<LocalComponent[]> = {
         type: 'CONTINUE',
