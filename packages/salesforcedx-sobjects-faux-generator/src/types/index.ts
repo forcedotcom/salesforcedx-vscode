@@ -8,9 +8,17 @@
 export {
   BatchRequest,
   BatchResponse,
-  SObject,
+  ChildRelationship,
   Field,
-  ChildRelationship
+  SObject
 } from './describe';
-
-export { SObjectCategory, SObjectRefreshSource } from './general';
+export {
+  FieldDeclaration,
+  SObjectCategory,
+  SObjectDefinition,
+  SObjectDefinitionRetriever,
+  SObjectGenerator,
+  SObjectRefreshOutput,
+  SObjectRefreshResult,
+  SObjectRefreshSource
+} from './general';

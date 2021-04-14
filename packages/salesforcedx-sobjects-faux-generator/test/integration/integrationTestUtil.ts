@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CancellationToken } from '../../src/generator/fauxClassGenerator';
+import { CancellationToken } from '../../src/transformer';
 
 // Added to be able to test cancellation of FauxClassGenerator.generate
 // mimic of vscode but shouldn't depend on vscode in this package

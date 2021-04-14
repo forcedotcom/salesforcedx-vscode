@@ -5,14 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface FieldDeclaration {
-  modifier: string;
-  type: string;
-  name: string;
-  comment?: string;
-}
-
-export interface SObjectDefinition {
-  name: string;
-  fields: FieldDeclaration[];
-}
+export { MinObjectRetriever } from './minObjectRetriever';
+export {
+  OrgObjectRetriever,
+  OrgObjectDetailRetriever
+} from './orgObjectRetriever';

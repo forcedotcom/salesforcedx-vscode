@@ -38,7 +38,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const stat = fs.lstatSync(typePath);
     const expectedMode = parseInt('100444', 8);
@@ -75,7 +75,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__c.StringField');
@@ -161,7 +161,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
     expect(typeText).to.include('const BaseField:any;');
@@ -188,7 +188,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__c.StringField');
@@ -216,7 +216,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__c.ExtRef__c"');
@@ -237,7 +237,7 @@ describe('SObject Javacript type declaration generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__mdt.MDRef__c"');
@@ -258,7 +258,7 @@ describe('SObject Javacript type declaration generator', () => {
     );
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
     expect(typeText).to.include('@salesforce/schema/Custom__mdt.MDRef__r');
@@ -283,7 +283,7 @@ describe('SObject Javacript type declaration generator', () => {
 
     const sobjectFolder = process.cwd();
     const gen = new TypingGenerator();
-    typePath = gen.generateTypingForDefinition(sobjectFolder, objDef);
+    typePath = gen.generateType(sobjectFolder, objDef);
     expect(fs.existsSync(typePath));
     const typeText = fs.readFileSync(typePath, 'utf8');
     expect(typeText).to.include(
