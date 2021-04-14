@@ -5,4 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { FauxClassGenerator, SObjectRefreshResult } from './fauxClassGenerator';
+export { DeclarationGenerator } from './declarationGenerator';
+export { FauxClassGenerator } from './fauxClassGenerator';
+export { TypingGenerator } from './typingGenerator';

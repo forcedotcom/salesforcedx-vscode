@@ -8,10 +8,11 @@
 import {
   SFDX_DIR,
   SOBJECTS_DIR,
+  SObjectTransformer,
+  SObjectTransformerFactory,
   STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
 import {
   SObjectCategory,
   SObjectRefreshSource
@@ -23,6 +24,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -137,11 +139,13 @@ describe('ForceGenerateFauxClasses', () => {
       await checkSObjectsAndRefresh(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-      expect(telemetryEventStub.calledWith(
-        'sObjectRefreshNotification',
-        { type: SObjectRefreshSource.StartupMin },
-        undefined
-      )).to.be.true;
+      expect(
+        telemetryEventStub.calledWith(
+          'sObjectRefreshNotification',
+          { type: SObjectRefreshSource.StartupMin },
+          undefined
+        )
+      ).to.be.true;
     });
 
     it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {
@@ -157,10 +161,11 @@ describe('ForceGenerateFauxClasses', () => {
   describe('ForceGenerateFauxClassesExecutor', () => {
     let sandboxStub: SinonSandbox;
     let progressStub: SinonStub;
-    let generatorStub: SinonStub;
-    let generatorMinStub: SinonStub;
+    let factoryStub: SinonStub;
+    let transformerStub: SinonStub;
     let logStub: SinonStub;
     let errorStub: SinonStub;
+    let transformer: SObjectTransformer;
     let notificationStub: SinonStub;
 
     const expectedData = {
@@ -172,12 +177,17 @@ describe('ForceGenerateFauxClasses', () => {
     beforeEach(() => {
       sandboxStub = createSandbox();
       progressStub = sandboxStub.stub(ProgressNotification, 'show');
-      generatorStub = sandboxStub
-        .stub(FauxClassGenerator.prototype, 'generate')
-        .returns({ data: expectedData });
-      generatorMinStub = sandboxStub
-        .stub(FauxClassGenerator.prototype, 'generateMin')
-        .returns({ data: expectedData });
+      transformer = new SObjectTransformer(new EventEmitter(), [], []);
+      transformerStub = sandboxStub
+        .stub(transformer, 'transform')
+        .callsFake(() => {
+          return Promise.resolve({ data: expectedData });
+        });
+      factoryStub = sandboxStub
+        .stub(SObjectTransformerFactory, 'create')
+        .callsFake(() => {
+          return Promise.resolve(transformer);
+        });
       logStub = sandboxStub.stub(
         ForceRefreshSObjectsExecutor.prototype,
         'logMetric'
@@ -194,17 +204,18 @@ describe('ForceGenerateFauxClasses', () => {
       notificationStub.restore();
     });
 
-    it('Should pass response data to generator', async () => {
+    it('Should pass response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      expect(generatorStub.firstCall.args.slice(1)).to.eql([
+      expect(factoryStub.firstCall.args.slice(3)).to.eql([
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Startup
       ]);
     });
 
-    it('Should pass response data to generatorMin', async () => {
+    it('Should pass minimal response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.CUSTOM);
-      expect(generatorMinStub.firstCall.args.slice(1)).to.eql([
+      expect(factoryStub.firstCall.args.slice(3)).to.eql([
+        SObjectCategory.STANDARD,
         SObjectRefreshSource.StartupMin
       ]);
     });
@@ -232,12 +243,16 @@ describe('ForceGenerateFauxClasses', () => {
     });
 
     it('Should not report command execution status for Startup Min Refresh', async () => {
-      await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.STANDARD);
+      await doExecute(
+        SObjectRefreshSource.StartupMin,
+        SObjectCategory.STANDARD
+      );
       expect(notificationStub.notCalled).to.be.true;
     });
 
     it('Should log correct information to telemetry', async () => {
       // Success
+      transformerStub.returns({ data: expectedData });
       await doExecute(SObjectRefreshSource.Startup);
       expect(logStub.getCall(0).args[2]).to.deep.contain({
         cancelled: 'false'
@@ -249,7 +264,7 @@ describe('ForceGenerateFauxClasses', () => {
 
       // Error
       const error = { message: 'sample error', stack: 'sample stack' };
-      generatorStub.throws({ data: expectedData, error });
+      transformerStub.throws({ data: expectedData, error });
       await doExecute(SObjectRefreshSource.Startup);
       expect(errorStub.calledWith(error, expectedData));
     });
