@@ -26,20 +26,6 @@ describe('Settings', () => {
 
   afterEach(() => sandbox.restore());
 
-  describe('useApexLibrary', () => {
-    it('should return true if configuration value is true', () => {
-      // settingStub.withArgs('experimental.useApexLibrary').returns(true);
-
-      // expect(useApexLibrary()).to.equal(true);
-    });
-
-    it('should return false if configuration value is false', () => {
-      // settingStub.withArgs('experimental.useApexLibrary').returns(false);
-
-      // expect(useApexLibrary()).to.equal(false);
-    });
-  });
-
   describe('retrieveTestCodeCoverage', () => {
     it('should return true if configuration value is true', () => {
       settingStub.withArgs('retrieve-test-code-coverage').returns(true);
