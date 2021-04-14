@@ -68,7 +68,6 @@
   },
   "license": "BSD-3-Clause",
   "dependencies": {
-    "@types/unzipper": "^0.10.3",
     "node": "12.4.0",
     "npm": "^6.9.0"
   },
