@@ -3,7 +3,7 @@ title: Performance Enhancements
 lang: en
 ---
 
-The Apex, Deploy and Retrieve commands are in the process of moving to a new architecture. These commands have been rearchitected into independent Typescript libraries and CLI plugins as part of our larger effort to break up the salesforce-alm plugin. [You can read more about that in this blog post](https://developer.salesforce.com/blogs/2021/02/open-sourcing-salesforce-cli-update-feb-2021.html). There’s many great benefits to this effort and one of the best is better performance. For single file deploys and retrieves, you'll likely notice a significant performance gain when using the latest architecture.
+The Apex and Deploy/Retrieve commands are in the process of moving to a new architecture. We moved these commands to independent Typescript libraries and CLI plugins as part of our larger effort to break up the salesforce-alm plugin. [You can read more about that in this blog post](https://developer.salesforce.com/blogs/2021/02/open-sourcing-salesforce-cli-update-feb-2021.html). There’s many great benefits to this effort and one of the best is better performance. For single file deploys and retrieves, you'll likely notice a significant performance gain when using the latest architecture.
 
 ## Execution Process and Status
 
@@ -21,7 +21,7 @@ This architecture change is done through a phased approach. For both the Apex li
 
 ## Setup
 
-The Apex library has been fully implemented, but the Deploy/Retrieve library has a corresponding VS Code setting. Access the Deploy/Retrieve setting by selecting Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS). Setting to false means that VS Code uses the CLI to execute those commands.
+The Apex library has been fully implemented, but the Deploy/Retrieve library has a corresponding VS Code setting. Access the Deploy/Retrieve setting by selecting Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS). Setting to false means that VS Code uses the CLI to execute these commands.
 
 Within settings, you will see the following:
 
@@ -29,6 +29,6 @@ Within settings, you will see the following:
 
 Known gaps:
 
-- If you're using [CLI Plug-In Hooks](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm), those are not available when using the library from VS Code. Uncheck the settings above to use the CLI directly for those commands.
+- If you're using [CLI Plug-In Hooks](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm), they are not available when using the library from VS Code. Uncheck the settings above to use the CLI directly for those commands.
 
 If you spot other gaps or have feedback, please [open a GitHub issue](https://github.com/forcedotcom/salesforcedx-vscode/issues/new/choose).
