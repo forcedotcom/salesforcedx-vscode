@@ -12,8 +12,7 @@ export {
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
   forceApexTestMethodRunCodeAction,
-  forceApexTestMethodRunCodeActionDelegate,
-  ForceApexTestRunCodeActionExecutor
+  forceApexTestMethodRunCodeActionDelegate
 } from './forceApexTestRunCodeAction';
 export { forceApexLogGet } from './forceApexLogGet';
 export { forceApexTestRun } from './forceApexTestRun';

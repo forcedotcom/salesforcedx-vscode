@@ -11,9 +11,7 @@ import {
 import * as vscode from 'vscode';
 import {
   apexLibMultipleSummary,
-  apexLibOneFileSummary,
-  summaryMultipleFiles,
-  summaryOneFile
+  apexLibOneFileSummary
 } from './testJSONOutputs';
 
 const apexLibClass = {
@@ -60,8 +58,8 @@ const apexLibMultipleTests: ApexTestResultData[] = [
     methodName: 'test1',
     outcome: ApexTestResultOutcome.Fail,
     runTime: 1,
-    message: '',
-    stackTrace: 'Failure',
+    message: 'System.AssertException: Assertion Failed',
+    stackTrace: 'Class.fakeClass.test1: line 40, column 1',
     fullName: 'tester.file0.test1',
     id: '0000x1432',
     queueItemId: '0000QUEUE',
@@ -117,100 +115,3 @@ for (let i = 0; i < 4; i++) {
     NamespacePrefix: 'tester'
   });
 }
-
-export const testResultsOneFile = [
-  {
-    ApexClass: fakeApexClasses[0],
-    MethodName: 'test0',
-    Outcome: 'Pass',
-    RunTime: 1,
-    Message: '',
-    StackTrace: '',
-    FullName: 'file0.test0'
-  }
-];
-
-export const testResultsMultipleFiles = [
-  {
-    ApexClass: fakeApexClasses[0],
-    MethodName: 'test0',
-    Outcome: 'Pass',
-    RunTime: 1,
-    Message: '',
-    StackTrace: '',
-    FullName: 'file0.test0'
-  },
-  {
-    ApexClass: fakeApexClasses[0],
-    MethodName: 'test1',
-    Outcome: 'Fail',
-    RunTime: 1,
-    Message: 'System.AssertException: Assertion Failed',
-    StackTrace: 'Class.fakeClass.test1: line 40, column 1',
-    FullName: 'file0.test1'
-  },
-  {
-    ApexClass: fakeApexClasses[1],
-    MethodName: 'test2',
-    Outcome: 'Pass',
-    RunTime: 1,
-    Message: '',
-    StackTrace: '',
-    FullName: 'file1.test2'
-  },
-  {
-    ApexClass: fakeApexClasses[1],
-    MethodName: 'test3',
-    Outcome: 'Pass',
-    RunTime: 1,
-    Message: '',
-    StackTrace: '',
-    FullName: 'file1.test3'
-  },
-  {
-    ApexClass: fakeApexClasses[2],
-    MethodName: 'test4',
-    Outcome: 'Pass',
-    RunTime: 1,
-    Message: '',
-    StackTrace: '',
-    FullName: 'file2.test4'
-  },
-  {
-    ApexClass: fakeApexClasses[2],
-    MethodName: 'test5',
-    Outcome: 'Pass',
-    RunTime: 1,
-    Message: '',
-    StackTrace: '',
-    FullName: 'file2.test5'
-  },
-  {
-    ApexClass: fakeApexClasses[3],
-    MethodName: 'test6',
-    Outcome: 'Fail',
-    RunTime: 1,
-    Message: 'System.AssertException: Assertion Failed',
-    StackTrace: 'Class.fakeClass.test6: line 22, column 1',
-    FullName: 'file3.test6'
-  },
-  {
-    ApexClass: fakeApexClasses[3],
-    MethodName: 'test7',
-    Outcome: 'Pass',
-    RunTime: 1,
-    Message: '',
-    StackTrace: '',
-    FullName: 'file3.test7'
-  }
-];
-
-export const jsonOneNSFilePass = {
-  summary: summaryOneFile,
-  tests: testResultsOneFile
-};
-
-export const jsonMultipleNSFiles = {
-  summary: summaryMultipleFiles,
-  tests: testResultsMultipleFiles
-};

@@ -9,80 +9,24 @@ import {
   ExecuteService
 } from '@salesforce/apex-node';
 import {
-  getRootWorkspacePath,
   hasRootWorkspace,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
   CancelResponse,
-  CommandletExecutor,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { useApexLibrary } from '../settings';
-
-type TempFile = { fileName: string };
-
-export class CreateApexTempFile implements ParametersGatherer<TempFile> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<TempFile>> {
-    if (hasRootWorkspace()) {
-      const fileName = path.join(
-        getRootWorkspacePath(),
-        '.sfdx',
-        'tools',
-        'tempApex.input'
-      );
-      const editor = vscode.window.activeTextEditor;
-
-      if (!editor) {
-        return { type: 'CANCEL' };
-      }
-
-      const { document, selection } = editor;
-      const contents = document.getText(
-        selection.isEmpty ? undefined : selection
-      );
-      fs.writeFileSync(fileName, contents);
-
-      return { type: 'CONTINUE', data: { fileName } };
-    }
-    return { type: 'CANCEL' };
-  }
-}
-
-export class ForceApexExecuteExecutor extends SfdxCommandletExecutor<{}> {
-  constructor() {
-    super(OUTPUT_CHANNEL);
-  }
-
-  public build(data: TempFile): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_apex_execute_document_text'))
-      .withArg('force:apex:execute')
-      .withFlag('--apexcodefile', data.fileName)
-      .withLogName('force_apex_execute')
-      .build();
-  }
-}
-
 interface ApexExecuteParameters {
   apexCode?: string;
   fileName?: string;
 }
-
 export class AnonApexGatherer
   implements ParametersGatherer<ApexExecuteParameters> {
   public async gather(): Promise<
@@ -219,21 +163,10 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 }
 
 export async function forceApexExecute() {
-  let parametersGatherer: ParametersGatherer<any>;
-  let executor: CommandletExecutor<any>;
-
-  if (useApexLibrary()) {
-    parametersGatherer = new AnonApexGatherer();
-    executor = new ApexLibraryExecuteExecutor();
-  } else {
-    parametersGatherer = new CreateApexTempFile();
-    executor = new ForceApexExecuteExecutor();
-  }
-
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    parametersGatherer,
-    executor
+    new AnonApexGatherer(),
+    new ApexLibraryExecuteExecutor()
   );
 
   await commandlet.run();

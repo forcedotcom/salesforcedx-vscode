@@ -15,8 +15,7 @@ import * as events from 'events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
-  ApexLibraryTestRunExecutor,
-  ForceApexTestRunCodeActionExecutor
+  ApexLibraryTestRunExecutor
 } from '../commands';
 import {
   LanguageClientStatus,
@@ -141,17 +140,10 @@ export class ApexTestRunner {
     } else if (testRunType === TestRunType.Method) {
       await forceApexTestRunCacheService.setCachedMethodTestParam(tests[0]);
     }
-    const executor = settings.useApexLibrary()
-      ? new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
-      : new ForceApexTestRunCodeActionExecutor(
-          tests,
-          getCodeCoverage,
-          tmpFolder
-        );
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       new EmptyParametersGatherer(),
-      executor
+      new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
     );
     await commandlet.run();
   }

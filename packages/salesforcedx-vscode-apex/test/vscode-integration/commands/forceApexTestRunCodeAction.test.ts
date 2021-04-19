@@ -28,14 +28,10 @@ import {
 } from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
-  forceApexTestClassRunCodeAction,
-  forceApexTestMethodRunCodeAction,
-  ForceApexTestRunCodeActionExecutor,
   resolveTestClassParam,
   resolveTestMethodParam
 } from '../../../src/commands/forceApexTestRunCodeAction';
 import { workspaceContext } from '../../../src/context';
-import * as settings from '../../../src/settings';
 
 // return undefined: used to get around strict checks
 function getUndefined(): any {
@@ -43,78 +39,6 @@ function getUndefined(): any {
 }
 
 describe('Force Apex Test Run - Code Action', () => {
-  describe('Command builder - Test Class', () => {
-    const testClass = 'MyTests';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testClass],
-      false,
-      outputToJson
-    );
-
-    it('Should build command for single test class', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testClass} --resultformat human --outputdir outputToJson --loglevel error`
-      );
-    });
-  });
-
-  describe('Command builder - Test Class with Coverage', () => {
-    const testClass = 'MyTests';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testClass],
-      true,
-      outputToJson
-    );
-
-    it('Should build command for single test class with code coverage', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testClass} --resultformat human --outputdir outputToJson --loglevel error --codecoverage`
-      );
-    });
-  });
-
-  describe('Command builder - Test Method', () => {
-    const testMethod = 'MyTests.testMe';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testMethod],
-      false,
-      outputToJson
-    );
-
-    it('Should build command for single test method', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --outputdir outputToJson --loglevel error`
-      );
-    });
-  });
-
-  describe('Command builder - Test Method with Coverage', () => {
-    const testMethod = 'MyTests.testMe';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testMethod],
-      true,
-      outputToJson
-    );
-
-    it('Should build command for single test method with code coverage', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --outputdir outputToJson --loglevel error --codecoverage`
-      );
-    });
-  });
-
   describe('Cached Test Class', () => {
     const testClass = 'MyTests';
     const testClass2 = 'MyTests2';
@@ -675,40 +599,6 @@ describe('Force Apex Test Run - Code Action', () => {
       runTestStub.resolves(passingResult);
       await executor.run();
       expect(setDiagnosticStub.notCalled).to.be.true;
-    });
-  });
-
-  describe('Use Apex Library Setting', async () => {
-    let settingStub: SinonStub;
-    let apexExecutorStub: SinonStub;
-    let cliExecutorStub: SinonStub;
-
-    beforeEach(async () => {
-      settingStub = sb.stub(settings, 'useApexLibrary');
-      apexExecutorStub = sb.stub(ApexLibraryTestRunExecutor.prototype, 'run');
-      cliExecutorStub = sb.stub(
-        ForceApexTestRunCodeActionExecutor.prototype,
-        'execute'
-      );
-    });
-    afterEach(async () => {
-      sb.restore();
-    });
-
-    it('should use the ApexLibraryTestRunExecutor if setting is true', async () => {
-      settingStub.returns(true);
-      await forceApexTestClassRunCodeAction('testClass');
-      await forceApexTestMethodRunCodeAction('testClass.testMethod');
-      expect(apexExecutorStub.calledTwice).to.be.true;
-      expect(cliExecutorStub.called).to.be.false;
-    });
-
-    it('should use the ForceApexTestClassRunCodeActionExecutor if setting is false', async () => {
-      settingStub.returns(false);
-      await forceApexTestClassRunCodeAction('testClass');
-      await forceApexTestMethodRunCodeAction('testClass.testMethod');
-      expect(cliExecutorStub.calledTwice).to.be.true;
-      expect(apexExecutorStub.called).to.be.false;
     });
   });
 });

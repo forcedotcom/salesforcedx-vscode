@@ -19,13 +19,8 @@ import {
   hasRootWorkspace,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
@@ -46,11 +41,9 @@ export enum TestType {
   Suite,
   Class
 }
-
 export interface ApexTestQuickPickItem extends vscode.QuickPickItem {
   type: TestType;
 }
-
 export class TestsSelector
   implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<
@@ -106,91 +99,12 @@ export class TestsSelector
   }
 }
 
-export class ForceApexTestRunCommandFactory {
-  private data: ApexTestQuickPickItem;
-  private getCodeCoverage: boolean;
-  private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
-  private testRunExecutorCommand!: Command;
-  private outputToJson: string;
-
-  constructor(
-    data: ApexTestQuickPickItem,
-    getCodeCoverage: boolean,
-    outputToJson: string
-  ) {
-    this.data = data;
-    this.getCodeCoverage = getCodeCoverage;
-    this.outputToJson = outputToJson;
-  }
-
-  public constructExecutorCommand(): Command {
-    this.builder = this.builder
-      .withDescription(nls.localize('force_apex_test_run_text'))
-      .withArg('force:apex:test:run')
-      .withLogName('force_apex_test_run');
-
-    switch (this.data.type) {
-      case TestType.Suite:
-        this.builder = this.builder.withFlag(
-          '--suitenames',
-          `${this.data.label}`
-        );
-        break;
-      case TestType.Class:
-        this.builder = this.builder.withFlag(
-          '--classnames',
-          `${this.data.label}`
-        );
-        break;
-      case TestType.AllLocal:
-        this.builder = this.builder.withFlag('--testlevel', 'RunLocalTests');
-        break;
-      case TestType.All:
-        this.builder = this.builder.withFlag('--testlevel', 'RunAllTestsInOrg');
-        break;
-      default:
-        break;
-    }
-
-    if (this.getCodeCoverage) {
-      this.builder = this.builder.withArg('--codecoverage');
-    }
-
-    this.builder = this.builder
-      .withFlag('--resultformat', 'human')
-      .withFlag('--outputdir', this.outputToJson)
-      .withFlag('--loglevel', 'error');
-
-    this.testRunExecutorCommand = this.builder.build();
-    return this.testRunExecutorCommand;
-  }
-}
-
 function getTempFolder(): string {
   if (hasRootWorkspace()) {
     const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
-  }
-}
-
-export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
-  ApexTestQuickPickItem
-> {
-  constructor() {
-    super(OUTPUT_CHANNEL);
-  }
-
-  public build(data: ApexTestQuickPickItem): Command {
-    const getCodeCoverage = settings.retrieveTestCodeCoverage();
-    const outputToJson = getTempFolder();
-    const factory: ForceApexTestRunCommandFactory = new ForceApexTestRunCommandFactory(
-      data,
-      getCodeCoverage,
-      outputToJson
-    );
-    return factory.constructExecutorCommand();
   }
 }
 
@@ -293,9 +207,7 @@ export async function forceApexTestRun() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    settings.useApexLibrary()
-      ? new ApexLibraryTestRunExecutor()
-      : new ForceApexTestRunExecutor()
+    new ApexLibraryTestRunExecutor()
   );
   await commandlet.run();
 }

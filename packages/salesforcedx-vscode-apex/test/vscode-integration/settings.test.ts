@@ -7,7 +7,7 @@
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { retrieveTestCodeCoverage, useApexLibrary } from '../../src/settings';
+import { retrieveTestCodeCoverage } from '../../src/settings';
 
 const sandbox = createSandbox();
 
@@ -25,20 +25,6 @@ describe('Settings', () => {
   });
 
   afterEach(() => sandbox.restore());
-
-  describe('useApexLibrary', () => {
-    it('should return true if configuration value is true', () => {
-      settingStub.withArgs('experimental.useApexLibrary').returns(true);
-
-      expect(useApexLibrary()).to.equal(true);
-    });
-
-    it('should return false if configuration value is false', () => {
-      settingStub.withArgs('experimental.useApexLibrary').returns(false);
-
-      expect(useApexLibrary()).to.equal(false);
-    });
-  });
 
   describe('retrieveTestCodeCoverage', () => {
     it('should return true if configuration value is true', () => {
