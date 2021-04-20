@@ -53,13 +53,8 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   protected async getComponents(
     response: ContinueResponse<string | string[]>
   ): Promise<ComponentSet> {
-    const paths = response.data;
-
-    if (typeof paths === 'string') {
-      return ComponentSet.fromSource(paths);
-    } else {
-      return ComponentSet.fromSource(paths);
-    }
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
+    return ComponentSet.fromSource(paths);
   }
 }
 
