@@ -468,11 +468,10 @@ describe('force:apex:test:run', () => {
     })
     .stub(process, 'cwd', () => projectPath)
     .do(ctx => {
-      ctx.myStub = sandboxStub.stub(
-        TestService.prototype,
-        'runTestSynchronous'
-      );
-      ctx.mySpy = sandboxStub.spy(TestService.prototype, 'buildSyncPayload');
+      ctx.myStub = sandboxStub
+        .stub(TestService.prototype, 'runTestAsynchronous')
+        .resolves(testRunSimple);
+      ctx.mySpy = sandboxStub.spy(TestService.prototype, 'buildAsyncPayload');
     })
     .stdout()
     .stderr()
@@ -482,8 +481,9 @@ describe('force:apex:test:run', () => {
       ctx => {
         expect((ctx.mySpy as SinonSpy).calledWith(TestLevel.RunLocalTests)).to
           .be.true;
-        expect(ctx.stderr).to.contain(
-          'Specify a test class or test methods when running tests synchronously'
+        expect(ctx.stdout).to.not.be.empty;
+        expect(ctx.stdout).to.contain(
+          new HumanReporter().format(testRunSimple, false)
         );
       }
     );
@@ -497,7 +497,38 @@ describe('force:apex:test:run', () => {
     .do(ctx => {
       ctx.myStub = sandboxStub
         .stub(TestService.prototype, 'runTestAsynchronous')
-        // @ts-ignore
+        .resolves(testRunSimple);
+      ctx.mySpy = sandboxStub.spy(TestService.prototype, 'buildAsyncPayload');
+    })
+    .stdout()
+    .stderr()
+    .command([
+      'force:apex:test:run',
+      '--synchronous',
+      '--testlevel',
+      'RunAllTestsInOrg'
+    ])
+    .it(
+      'should format request with correct properties for sync run with RunAllTestsInOrg test level specified',
+      ctx => {
+        expect((ctx.mySpy as SinonSpy).calledWith(TestLevel.RunAllTestsInOrg))
+          .to.be.true;
+        expect(ctx.stdout).to.not.be.empty;
+        expect(ctx.stdout).to.contain(
+          new HumanReporter().format(testRunSimple, false)
+        );
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .do(ctx => {
+      ctx.myStub = sandboxStub
+        .stub(TestService.prototype, 'runTestAsynchronous')
         .resolves(testRunSimple);
       ctx.mySpy = sandboxStub.spy(TestService.prototype, 'buildAsyncPayload');
     })

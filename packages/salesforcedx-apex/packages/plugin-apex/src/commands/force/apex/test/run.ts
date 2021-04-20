@@ -140,7 +140,10 @@ export default class Run extends SfdxCommand {
     const testService = new TestService(conn);
     let result: TestResult;
 
-    if (this.flags.synchronous) {
+    // NOTE: This is a *bug*. Synchronous test runs should throw an error when multiple test classes are specified
+    // This was re-introduced due to https://github.com/forcedotcom/salesforcedx-vscode/issues/3154
+    // Address with W-9163533
+    if (this.flags.synchronous && testLevel === TestLevel.RunSpecifiedTests) {
       const payload = await testService.buildSyncPayload(
         testLevel,
         this.flags.tests,

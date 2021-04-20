@@ -15,6 +15,7 @@ export { LogService, ApexLogGetOptions, LogRecord, LogResult } from './logs';
 export { JUnitReporter, TapReporter, HumanReporter } from './reporters';
 export {
   ApexTestProgressValue,
+  ApexTestRunResultStatus,
   ApexTestResultData,
   ApexTestResultOutcome,
   AsyncTestArrayConfiguration,
