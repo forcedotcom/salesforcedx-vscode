@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet, registryData } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
@@ -20,14 +20,14 @@ describe('Deploy/Retrieve Performance Beta Utils', () => {
     SourceComponent.createVirtualComponent(
       {
         name: 'foo',
-        type: registryData.types.apexclass
+        type: registry.types.apexclass
       },
       []
     ),
     SourceComponent.createVirtualComponent(
       {
         name: 'bar',
-        type: registryData.types.channellayout
+        type: registry.types.channellayout
       },
       []
     )
@@ -35,8 +35,8 @@ describe('Deploy/Retrieve Performance Beta Utils', () => {
 
   describe('createComponentCount', () => {
     it('should correctly generate rows for telemetry', () => {
-      const { name: apexClassName } = registryData.types.apexclass;
-      const { name: channelLayoutName } = registryData.types.channellayout;
+      const { name: apexClassName } = registry.types.apexclass;
+      const { name: channelLayoutName } = registry.types.channellayout;
       const rows = createComponentCount(testComponents);
       expect(rows).to.deep.equal([
         { type: apexClassName, quantity: 1 },
