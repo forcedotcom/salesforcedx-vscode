@@ -57,8 +57,9 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
     response: ContinueResponse<string>
   ): Promise<ComponentSet> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    return ComponentSet.fromManifestFile(response.data, {
-      resolve: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
+    return ComponentSet.fromManifest({
+      manifestPath: response.data,
+      resolveSourcePaths: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
     });
   }
 }

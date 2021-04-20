@@ -13,7 +13,7 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  registryData,
+  registry,
   RetrieveResult,
   SourceComponent,
   ToolingApi
@@ -447,7 +447,7 @@ describe('Base Deploy Retrieve Commands', () => {
     const packageDir = 'test-app';
     const props = {
       name: 'MyTrigger',
-      type: registryData.types.apextrigger,
+      type: registry.types.apextrigger,
       content: join('project', 'classes', 'MyTrigger.cls'),
       xml: join('project', 'classes', 'MyTrigger.cls-meta.xml')
     };
@@ -491,7 +491,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const components = new ComponentSet([
         new SourceComponent({
           name: 'MyClass',
-          type: registryData.types.apexclass,
+          type: registry.types.apexclass,
           content: join('project', 'classes', 'MyClass.cls'),
           xml: join('project', 'classes', 'MyClass.cls-meta.xml')
         })
@@ -508,7 +508,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const components = new ComponentSet([
         new SourceComponent({
           name: 'MyClass',
-          type: registryData.types.apexclass,
+          type: registry.types.apexclass,
           content: join('project', 'classes', 'MyClass.cls'),
           xml: join('project', 'classes', 'MyClass.cls-meta.xml')
         })
@@ -531,7 +531,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const components = new ComponentSet([
         new SourceComponent({
           name: 'MyLayout',
-          type: registryData.types.layout,
+          type: registry.types.layout,
           xml: join('project', 'layouts', 'MyLayout.cls-meta.xml')
         })
       ]);

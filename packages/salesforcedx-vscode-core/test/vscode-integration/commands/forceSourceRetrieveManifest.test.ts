@@ -72,10 +72,11 @@ describe('Force Source Retrieve with Manifest Option', () => {
         .resolves(packageDirs[0]);
       env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
       env
-        .stub(ComponentSet, 'fromManifestFile')
-        .withArgs(manifestPath, {
-          resolve: packageDirFullPaths,
-          literalWildcard: true
+        .stub(ComponentSet, 'fromManifest')
+        .withArgs({
+          manifestPath,
+          resolveSourcePaths: packageDirFullPaths,
+          forceAddWildcards: true
         })
         .returns(mockComponents);
       startStub = env.stub();

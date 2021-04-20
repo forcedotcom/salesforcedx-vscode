@@ -14,7 +14,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
-  registryData,
+  MetadataResolver,
+  registry,
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
@@ -22,9 +23,10 @@ import {
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { LazyCollection } from '@salesforce/source-deploy-retrieve/lib/src/collections';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import {
@@ -124,7 +126,7 @@ describe('Force Source Retrieve Component(s)', () => {
         expect(showTextDocumentStub.called).to.equal(true);
       });
 
-      it('Should retrieve resource witout defined file extensions', async () => {
+      it('Should retrieve resource without defined file extensions', async () => {
         const response = [
           {
             type: 'CONTINUE',
@@ -178,8 +180,11 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
         path.join(getRootWorkspacePath(), defaultPackageDir)
       ]);
-      sb.stub(ComponentSet.prototype, 'resolveSourceComponents');
+      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
+        defaultPackageDir
+      ]);
 
+      sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
       startStub = sb.stub();
@@ -199,6 +204,7 @@ describe('Force Source Retrieve Component(s)', () => {
         { fullName: 'MyClassA', type: 'ApexClass' },
         { fullName: 'MyClassB', type: 'ApexClass' }
       ];
+      const componentSet = new ComponentSet(testComponents);
       const response: ContinueResponse<LocalComponent[]> = {
         type: 'CONTINUE',
         data: testComponents.map(c => ({
@@ -207,6 +213,8 @@ describe('Force Source Retrieve Component(s)', () => {
           outputdir: 'out'
         }))
       };
+
+      sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       await executor.run(response);
 
@@ -229,32 +237,59 @@ describe('Force Source Retrieve Component(s)', () => {
 
     it('should retrieve with given components and open them', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor(true);
-
-      const defaultPackagePath = path.join(getRootWorkspacePath(), 'test-app');
+      const type = registry.types.apexclass;
       const className = 'MyClass';
-      const apexClassPathOne = path.join('classes', `${className}.cls`);
-      const apexClassXmlPathOne = `${apexClassPathOne}-meta.xml`;
+      const className2 = 'MyClass';
+      const apexClassPathOne = path.join(
+        type.directoryName,
+        `${className}.cls`
+      );
+      const apexClassPathTwo = path.join(
+        type.directoryName,
+        `${className2}.cls`
+      );
+      const apexClassXmlPathOne = path.join(
+        type.directoryName,
+        `${apexClassPathOne}-meta.xml`
+      );
+      const apexClassXmlPathTwo = path.join(
+        type.directoryName,
+        `${className2}.cls-meta.xml`
+      );
+      const virtualTree = [
+        {
+          dirPath: 'classes',
+          children: [
+            `${className}.cls`,
+            `${className}.cls-meta.xml`,
+            `${className2}.cls`,
+            `${className2}.cls-meta.xml`
+          ]
+        }
+      ];
+
       const testComponents = [
         SourceComponent.createVirtualComponent(
           {
             name: className,
-            type: registryData.types.apexclass,
+            type: registry.types.apexclass,
             xml: apexClassXmlPathOne,
             content: apexClassPathOne
           },
-          [
-            {
-              dirPath: 'classes',
-              children: [`${className}.cls`, `${className}.cls-meta.xml`]
-            }
-          ]
+          virtualTree
+        ),
+        SourceComponent.createVirtualComponent(
+          {
+            name: className,
+            type: registry.types.apexclass,
+            xml: apexClassXmlPathTwo,
+            content: apexClassPathTwo
+          },
+          virtualTree
         )
       ];
-
       const componentSet = new ComponentSet(testComponents);
-      sb.stub(ComponentSet, 'fromSource')
-        .withArgs(defaultPackagePath)
-        .returns(componentSet);
+      sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       const retrieveResponse: Partial<MetadataApiRetrieveStatus> = {
         status: RequestStatus.Succeeded
@@ -265,10 +300,6 @@ describe('Force Source Retrieve Component(s)', () => {
           componentSet
         )
       );
-
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        'test-app'
-      ]);
 
       const response: ContinueResponse<LocalComponent[]> = {
         type: 'CONTINUE',

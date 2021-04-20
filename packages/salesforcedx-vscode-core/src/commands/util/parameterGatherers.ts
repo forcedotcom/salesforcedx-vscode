@@ -10,7 +10,7 @@ import {
   LocalComponent,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ComponentSet, registryData } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
 import glob = require('glob');
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -192,7 +192,7 @@ export class SelectLwcComponentDir
       const lwcNames = [];
       for (const component of components.getSourceComponents() || []) {
         const { fullName, type } = component;
-        if (type.name === registryData.types.lightningcomponentbundle.name) {
+        if (type.name === registry.types.lightningcomponentbundle.name) {
           namePathMap.set(fullName, component.xml);
           lwcNames.push(fullName);
         }

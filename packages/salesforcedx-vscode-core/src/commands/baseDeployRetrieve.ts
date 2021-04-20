@@ -21,7 +21,7 @@ import {
   MetadataApiRetrieve,
   MetadataComponent,
   MetadataResolver,
-  registryData,
+  registry,
   RetrieveResult as MetadataApiRetrieveResult,
   SourceRetrieveResult,
   ToolingApi
@@ -369,7 +369,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     component: MetadataComponent | undefined
   ): boolean {
     if (component) {
-      const { types } = registryData;
+      const { types } = registry;
       const permittedTypeNames = [
         types.auradefinitionbundle.name,
         types.lightningcomponentbundle.name,
