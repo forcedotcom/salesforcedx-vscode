@@ -1,3 +1,29 @@
+# 51.10.0 - Month DD, YYYY
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Restructure sobject pipeline ([PR #3113](https://github.com/forcedotcom/salesforcedx-vscode/pull/3113))
+
+## Fixed
+
+#### docs
+
+- Remove Apex feature flag & delete CLI code path ([PR #3148](https://github.com/forcedotcom/salesforcedx-vscode/pull/3148))
+
+#### salesforcedx-vscode-apex
+
+- Xyc/all local tests ([PR #3126](https://github.com/forcedotcom/salesforcedx-vscode/pull/3126))
+
+#### salesforcedx-vscode-core
+
+- Retrieving all components of org browser type ([PR #3158](https://github.com/forcedotcom/salesforcedx-vscode/pull/3158))
+
+- Upgrade source deploy retrieve library to 2.1.1 ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147))
+
+- Remove Apex feature flag & delete CLI code path ([PR #3148](https://github.com/forcedotcom/salesforcedx-vscode/pull/3148))
+
 # 51.8.0 - April 07, 2021
 
 ## Added
