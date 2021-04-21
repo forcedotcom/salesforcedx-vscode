@@ -14,6 +14,7 @@ import {
   LanguageClientOptions
 } from 'vscode-languageclient';
 import { LSP_ERR } from './constants';
+import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -145,7 +146,8 @@ export async function createLanguageServer(
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
-    }
+    },
+    middleware: soqlMiddleware
   };
 
   const server = await createServer(context);
