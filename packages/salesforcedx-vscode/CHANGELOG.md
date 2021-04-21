@@ -1,3 +1,28 @@
+# 51.10.0 - April 21, 2021
+
+## Fixed
+
+#### docs
+
+- Update docs to reflect Apex library setting has been removed ([PR #3148](https://github.com/forcedotcom/salesforcedx-vscode/pull/3148))
+
+#### salesforcedx-vscode-apex
+
+- Update "All tests" option for `SFDX: Run Apex Tests` command to match CLI behavior ([PR #3126](https://github.com/forcedotcom/salesforcedx-vscode/pull/3126))
+
+#### salesforcedx-vscode-core
+
+- Fix issues with the following types for deploy/retrieve library ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147), [Issue #3114](https://github.com/forcedotcom/salesforcedx-vscode/issues/3114), [Issue #3157](https://github.com/forcedotcom/salesforcedx-vscode/issues/3157)):
+  - AccountRelationshipShareRule
+  - TimeSheetTemplate
+  - WaveDashboard
+  - WaveRecipe
+  - WaveLens
+  - WaveDataflow
+  - WorkSkillRouting
+
+- Remove Apex feature flag & delete CLI code path ([PR #3148](https://github.com/forcedotcom/salesforcedx-vscode/pull/3148))
+
 # 51.8.0 - April 07, 2021
 
 ## Added
