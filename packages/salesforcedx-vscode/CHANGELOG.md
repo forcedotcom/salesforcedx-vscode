@@ -1,26 +1,25 @@
-# 51.10.0 - Month DD, YYYY
-
-## Added
-
-#### salesforcedx-vscode-core
-
-- Restructure sobject pipeline ([PR #3113](https://github.com/forcedotcom/salesforcedx-vscode/pull/3113))
+# 51.10.0 - April 21, 2021
 
 ## Fixed
 
 #### docs
 
-- Remove Apex feature flag & delete CLI code path ([PR #3148](https://github.com/forcedotcom/salesforcedx-vscode/pull/3148))
+- Update docs to reflect Apex library setting has been removed ([PR #3148](https://github.com/forcedotcom/salesforcedx-vscode/pull/3148))
 
 #### salesforcedx-vscode-apex
 
-- Xyc/all local tests ([PR #3126](https://github.com/forcedotcom/salesforcedx-vscode/pull/3126))
+- Update "All tests" option for `SFDX: Run Apex Tests` command to match CLI behavior ([PR #3126](https://github.com/forcedotcom/salesforcedx-vscode/pull/3126))
 
 #### salesforcedx-vscode-core
 
-- Retrieving all components of org browser type ([PR #3158](https://github.com/forcedotcom/salesforcedx-vscode/pull/3158))
+- Fix issues with the following types for deploy/retrieve library ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147)):
 
-- Upgrade source deploy retrieve library to 2.1.1 ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147))
+  - TimeSheetTemplate
+  - WaveDashboard
+  - WaveRecipe
+  - WaveLens
+  - WaveDataflow
+  - WorkSkillRouting
 
 - Remove Apex feature flag & delete CLI code path ([PR #3148](https://github.com/forcedotcom/salesforcedx-vscode/pull/3148))
 
