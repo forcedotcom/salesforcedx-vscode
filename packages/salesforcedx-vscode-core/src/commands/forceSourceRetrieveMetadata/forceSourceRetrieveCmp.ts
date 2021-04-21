@@ -156,15 +156,18 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   protected async getComponents(
     response: ContinueResponse<LocalComponent[]>
   ): Promise<ComponentSet> {
-    const filter = new ComponentSet(
+    const toRetrieve = new ComponentSet(
       response.data.map(lc => ({ fullName: lc.fileName, type: lc.type }))
     );
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
-    const sourceResult = ComponentSet.fromSource({
+    const localSourceComponents = ComponentSet.fromSource({
       fsPaths: packageDirs,
-      include: filter
+      include: toRetrieve
     });
-    return sourceResult.getSourceComponents().toArray().length === 0 ? filter : sourceResult;
+    for (const component of localSourceComponents) {
+      toRetrieve.add(component);
+    }
+    return toRetrieve;
   }
 
   protected async postOperation(

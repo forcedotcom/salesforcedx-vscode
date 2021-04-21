@@ -235,6 +235,42 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(showTextDocumentStub.called).to.equal(false);
     });
 
+    it('should retrieve components and merge with local versions if present', async () => {
+      const type = registry.types.apexclass;
+      const executor = new LibraryRetrieveSourcePathExecutor();
+      const testComponents = [
+        { fullName: 'MyClassA', type: 'ApexClass' },
+        { fullName: 'MyClassB', type: 'ApexClass' }
+      ];
+      const response: ContinueResponse<LocalComponent[]> = {
+        type: 'CONTINUE',
+        data: testComponents.map(c => ({
+          fileName: c.fullName,
+          type: c.type,
+          outputdir: 'out'
+        }))
+      };
+
+      sb.stub(ComponentSet, 'fromSource').returns(
+        new ComponentSet([
+          new SourceComponent({
+            name: 'MyClassB',
+            type,
+            content: path.join(type.directoryName, 'MyClassB.cls'),
+            xml: path.join(type.directoryName, 'MyClassB.cls-meta.xml')
+          })
+        ])
+      );
+
+      await executor.run(response);
+
+      const retrievedSet = retrieveStub.firstCall.thisValue as ComponentSet;
+
+      // verify there are two components retrieved, but only one is source backed
+      expect(retrievedSet.size).to.equal(2);
+      expect(retrievedSet.getSourceComponents().toArray().length).to.equal(1);
+    });
+
     it('should retrieve with given components and open them', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor(true);
       const type = registry.types.apexclass;
