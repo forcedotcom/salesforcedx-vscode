@@ -13,7 +13,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   ComponentSet,
-  registryData,
+  registry,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
@@ -84,7 +84,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const toRetrieve = new ComponentSet([
         new SourceComponent({
           name: 'MyLayout',
-          type: registryData.types.layout,
+          type: registry.types.layout,
           xml: fsPath
         })
       ]);

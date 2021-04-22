@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
-  registryData,
+  registry,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
@@ -327,7 +327,7 @@ describe('Parameter Gatherers', () => {
       const component = SourceComponent.createVirtualComponent(
         {
           name: 'test',
-          type: registryData.types.lightningcomponentbundle,
+          type: registry.types.lightningcomponentbundle,
           xml: path.join(filePath, 'test.js-meta.xml')
         },
         []

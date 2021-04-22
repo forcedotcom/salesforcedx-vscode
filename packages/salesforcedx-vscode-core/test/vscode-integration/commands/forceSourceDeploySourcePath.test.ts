@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, MetadataResolver } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
@@ -54,7 +54,8 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           username: testData.username
         })
       });
-      resolveStub = sb.stub(ComponentSet.prototype, 'resolveSourceComponents');
+
+      resolveStub = sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
       startStub = sb.stub().resolves(undefined);
       deployStub = sb

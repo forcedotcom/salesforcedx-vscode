@@ -29,7 +29,7 @@
     "@salesforce/salesforcedx-sobjects-faux-generator": "51.10.0",
     "@salesforce/salesforcedx-utils-vscode": "51.10.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "1.1.20",
+    "@salesforce/source-deploy-retrieve": "2.1.2",
     "@salesforce/templates": "51.3.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
