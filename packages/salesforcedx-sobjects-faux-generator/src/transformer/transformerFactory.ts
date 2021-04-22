@@ -75,7 +75,8 @@ export class SObjectTransformerFactory {
         generators.push(customGenerator);
       }
     }
-    generators.push(new TypingGenerator());
+    // TODO Enable as part of W-8912293
+    // generators.push(new TypingGenerator());
 
     return new SObjectTransformer(
       emitter,
