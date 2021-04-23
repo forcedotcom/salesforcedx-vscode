@@ -19,7 +19,7 @@ function getReleaseType() {
     }
     return process.argv[releaseIndex + 1];
   }
-  return 'patch';
+  return 'minor';
 }
 
 function getReleaseVersion() {
