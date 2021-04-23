@@ -51,7 +51,7 @@ const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
 checkBaseBranch('develop');
 
-const releaseBranchName = `test-release/v${nextVersion}`;
+const releaseBranchName = `release/v${nextVersion}`;
 
 // Check if release branch has already been created
 const isRemoteReleaseBranchExist = shell
