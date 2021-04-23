@@ -8,16 +8,16 @@ shell.set('-e');
 shell.set('+v');
 
 function getReleaseType() {
-  const releaseIndex = process.argv.indexOf('-r');
-  if (releaseIndex > -1) {
-    if (!/patch|minor|major/.exec(`${process.argv[releaseIndex + 1]}`)) {
+  const releaseTypeIndex = process.argv.indexOf('-r');
+  if (releaseTypeIndex > -1) {
+    if (!/patch|minor|major/.exec(`${process.argv[releaseTypeIndex + 1]}`)) {
       console.error(
-        `Publish version type was specified (-r), but received invalid value ${process.argv[releaseIndex + 1]}.
+        `Release Type was specified (-r), but received invalid value ${process.argv[releaseTypeIndex + 1]}.
         Accepted Values: 'patch', 'minor', or 'major'`
       );
       process.exit(-1);
     }
-    return process.argv[releaseIndex + 1];
+    return process.argv[releaseTypeIndex + 1];
   }
   return 'minor';
 }
