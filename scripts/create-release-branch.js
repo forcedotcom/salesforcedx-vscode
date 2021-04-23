@@ -7,14 +7,44 @@ const logger = require('./logger-util');
 shell.set('-e');
 shell.set('+v');
 
-const currentVersion = require('../packages/salesforcedx-vscode/package.json')
-  .version;
-const [version, major, minor, patch] = currentVersion.match(
-  /^(\d+)\.?(\d+)\.?(\*|\d+)$/
-);
-const bumpMinor = parseInt(minor) + 1;
-shell.env['SALESFORCEDX_VSCODE_VERSION'] = `${major}.${bumpMinor}.${patch}`;
+function getReleaseType() {
+  const releaseIndex = process.argv.indexOf('-r');
+  if (releaseIndex > -1) {
+    if (!/patch|minor|major/.exec(`${process.argv[releaseIndex + 1]}`)) {
+      console.error(
+        `Publish version type was specified (-r), but received invalid value ${process.argv[releaseIndex + 1]}.
+        Accepted Values: 'patch', 'minor', or 'major'`
+      );
+      process.exit(-1);
+    }
+    return process.argv[releaseIndex + 1];
+  }
+  return 'patch';
+}
 
+function getReleaseVersion() {
+  const currentVersion = require('../packages/salesforcedx-vscode/package.json')
+    .version;
+  let [version, major, minor, patch] = currentVersion.match(/^(\d+)\.?(\d+)\.?(\*|\d+)$/);
+
+  switch(getReleaseType()) {
+    case 'major':
+      major = parseInt(major) + 1;
+      minor = 0;
+      patch = 0;
+      break;
+    case 'minor':
+      minor = parseInt(minor) + 1;
+      patch = 0;
+      break;
+    case 'patch':
+      patch = parseInt(patch) + 1;
+      break;
+  }
+  return `${major}.${minor}.${patch}`;
+}
+
+shell.env['SALESFORCEDX_VSCODE_VERSION'] = getReleaseVersion();
 checkVSCodeVersion();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];

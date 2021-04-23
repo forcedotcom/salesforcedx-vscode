@@ -87,7 +87,7 @@
         "${input:verboseOutput}",
         "-i",
         "${input:packagesToIgnore}",
-        "-r",
+        "-o",
         "${input:releaseOverride}"
       ]
     },
@@ -138,6 +138,13 @@
       "type": "promptString",
       "description": "Packages To Ignore: These are packages that are not to be included in the change log (Ex package1,package2)",
       "default": "salesforcedx-vscode-soql"
+    },
+    {
+      "id": "publishType",
+      "type": "pickString",
+      "description": "Type of version to publish",
+      "options": ["patch", "minor", "major"],
+      "default": "patch"
     },
     {
       "id": "verboseOutput",
