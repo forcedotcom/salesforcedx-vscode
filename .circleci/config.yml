@@ -43,6 +43,9 @@ parameters:
   publish:
     type: boolean
     default: false
+  publish-type:
+    type: string
+    default: patch
   pre-publish:
     type: boolean
     default: false
@@ -515,7 +518,7 @@ jobs:
           name: Create release branch
           command: |
             git branch
-            scripts/create-release-branch.js
+            scripts/create-release-branch.js -r << pipeline.parameters.publish-type >>
       - slack/notify:
           channel: 'pdt_releases'
           color: '#d8bfd8'

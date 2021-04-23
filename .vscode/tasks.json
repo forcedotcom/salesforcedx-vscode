@@ -77,7 +77,7 @@
       "label": "Create Release Branch",
       "command": "./scripts/create-release-branch-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}"]
+      "args": ["${input:circleCiId}", "${input:publishType}"]
     },
     {
       "label": "Create Change Log",
