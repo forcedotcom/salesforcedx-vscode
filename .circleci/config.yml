@@ -45,7 +45,7 @@ parameters:
     default: false
   publish-type:
     type: string
-    default: patch
+    default: minor
   pre-publish:
     type: boolean
     default: false
