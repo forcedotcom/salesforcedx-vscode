@@ -48,7 +48,7 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 export abstract class DeployRetrieveExecutor<
   T
-> extends LibraryCommandletExecutor<T> {
+  > extends LibraryCommandletExecutor<T> {
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -82,7 +82,7 @@ export abstract class DeployRetrieveExecutor<
         status === RequestStatus.SucceededPartial
       );
     } catch (e) {
-      throw await formatException(e);
+      throw formatException(e);
     } finally {
       await this.postOperation(result);
     }

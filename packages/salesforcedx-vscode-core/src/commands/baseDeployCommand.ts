@@ -27,9 +27,8 @@ import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
 import {
-  createComponentCount,
-  formatException
-} from './util/betaDeployRetrieve';
+  createComponentCount, formatException
+} from './util';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export enum DeployType {
