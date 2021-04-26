@@ -43,6 +43,7 @@ import {
   SfdxPackageDirectories,
   SfdxProjectConfig
 } from '../../../src/sfdxProject';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -164,10 +165,7 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(success).to.equal(false);
     });
 
-    it('should format type inference error with project path', async () => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        'force-app'
-      ]);
+    it('should format error with project path', async () => {
       const executor = new TestDeployRetrieve();
       const projectPath = join(
         'force-app',
@@ -176,36 +174,15 @@ describe('Base Deploy Retrieve Commands', () => {
         'classes',
         'someclass.xyz'
       );
-      const fullPath = join(sep, 'path', 'to', projectPath);
-      const typeInferenceError = new Error(
-        `${fullPath}: Could not infer metadata type`
-      );
-      typeInferenceError.name = 'TypeInferenceError';
-      executor.lifecycle.getComponentsStub.throws(typeInferenceError);
+      const fullPath = join(getRootWorkspacePath(), projectPath);
+      const error = new Error(`Problem with ${fullPath}`);
+      executor.lifecycle.getComponentsStub.throws(error);
 
       try {
         await executor.run({ data: {}, type: 'CONTINUE' });
         fail('should have thrown an error');
       } catch (e) {
-        expect(e.name).to.equal(typeInferenceError.name);
-        expect(e.message).to.equal(
-          `${projectPath}: Could not infer metadata type`
-        );
-      }
-    });
-
-    it('should throw unknown exception if error is unknown', async () => {
-      const executor = new TestDeployRetrieve();
-      const testException = new Error('some error message');
-      testException.name = 'SomeUnknownException';
-      executor.lifecycle.getComponentsStub.throws(testException);
-
-      try {
-        await executor.run({ data: {}, type: 'CONTINUE' });
-        fail('should have thrown an error');
-      } catch (e) {
-        expect(e.name).to.equal(testException.name);
-        expect(e.message).to.equal('Unknown Exception');
+        expect(e.message).to.equal(`Problem with ${sep}${projectPath}`);
       }
     });
   });
