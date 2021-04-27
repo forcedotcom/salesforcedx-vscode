@@ -12,14 +12,19 @@ import { join } from 'path';
 import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
+import { SObjectShortDescription } from '../../src/describe';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import {
   FauxClassGenerator,
   INDENT
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
-import { SObjectCategory, SObjectRefreshOutput } from '../../src/types';
-import { customSObject } from './sObjectMockData';
+import {
+  SObject,
+  SObjectCategory,
+  SObjectRefreshOutput
+} from '../../src/types';
+import { apiCustomSObject, minimalCustomSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 
@@ -86,7 +91,9 @@ describe('SObject faux class generator', () => {
 
   it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
-    const customDef = declGenerator.generateSObjectDefinition(customSObject);
+    const customDef = declGenerator.generateSObjectDefinition(
+      minimalCustomSObject
+    );
     const classContent = gen.generateFauxClassText(customDef);
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;
