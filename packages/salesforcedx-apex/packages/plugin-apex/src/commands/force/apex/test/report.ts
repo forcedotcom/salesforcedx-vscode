@@ -9,7 +9,8 @@ import {
   HumanReporter,
   TapReporter,
   TestService,
-  TestResult
+  TestResult,
+  ApexTestRunResultStatus
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Org } from '@salesforce/core';
@@ -19,7 +20,12 @@ import {
   CliJsonFormat,
   buildOutputDirConfig
 } from '../../../../reporters';
-import { buildDescription, logLevels, resultFormat } from '../../../../utils';
+import {
+  buildDescription,
+  logLevels,
+  resultFormat,
+  FAILURE_EXIT_CODE
+} from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/plugin-apex', 'report');
@@ -109,6 +115,9 @@ export default class Report extends SfdxCommand {
     }
 
     try {
+      if (result.summary.outcome === ApexTestRunResultStatus.Failed) {
+        process.exitCode = FAILURE_EXIT_CODE;
+      }
       switch (this.flags.resultformat) {
         case 'tap':
           this.logTap(result);
@@ -119,7 +128,7 @@ export default class Report extends SfdxCommand {
         case 'json':
           // when --json flag is specified, we should log CLI json format
           if (!this.flags.json) {
-            this.ux.logJson(jsonOutput);
+            this.ux.logJson({ status: process.exitCode, result: jsonOutput });
           }
           break;
         default:
@@ -130,7 +139,6 @@ export default class Report extends SfdxCommand {
       const msg = messages.getMessage('testResultProcessErr', [e]);
       this.ux.error(msg);
     }
-
     return jsonOutput as AnyJson;
   }
 

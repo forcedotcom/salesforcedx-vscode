@@ -11,7 +11,8 @@ import {
   JUnitReporter,
   HumanReporter,
   TestResult,
-  TestLevel
+  TestLevel,
+  ApexTestRunResultStatus
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, Org, SfdxError } from '@salesforce/core';
@@ -21,7 +22,12 @@ import {
   CliJsonFormat,
   JsonReporter
 } from '../../../../reporters';
-import { buildDescription, logLevels, resultFormat } from '../../../../utils';
+import {
+  buildDescription,
+  logLevels,
+  resultFormat,
+  FAILURE_EXIT_CODE
+} from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
 const messages = Messages.loadMessages('@salesforce/plugin-apex', 'run');
@@ -193,6 +199,9 @@ export default class Run extends SfdxCommand {
     }
 
     try {
+      if (result.summary.outcome === ApexTestRunResultStatus.Failed) {
+        process.exitCode = FAILURE_EXIT_CODE;
+      }
       switch (this.flags.resultformat) {
         case 'human':
           this.logHuman(
@@ -210,7 +219,10 @@ export default class Run extends SfdxCommand {
         case 'json':
           // when --json flag is specified, we should log CLI json format
           if (!this.flags.json) {
-            this.ux.logJson(this.formatResultInJson(result));
+            this.ux.logJson({
+              status: process.exitCode,
+              result: this.formatResultInJson(result)
+            });
           }
           break;
         default:

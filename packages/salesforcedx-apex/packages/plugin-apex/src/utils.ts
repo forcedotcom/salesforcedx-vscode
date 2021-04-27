@@ -7,6 +7,8 @@
 
 import * as chalk from 'chalk';
 
+export const FAILURE_EXIT_CODE = 100;
+
 export const colorSuccess = chalk.bold.green;
 export const colorError = chalk.bold.red;
 

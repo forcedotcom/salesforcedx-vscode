@@ -23,10 +23,10 @@ import {
   runWithCoverage,
   cliJsonResult,
   cliWithCoverage,
-  jsonResult,
   jsonWithCoverage,
   jsonSyncResult,
-  rawSyncResult
+  rawSyncResult,
+  runWithFailures
 } from './testData';
 
 Messages.importMessagesDirectory(__dirname);
@@ -126,7 +126,7 @@ describe('force:apex:test:run', () => {
       expect(ctx.stdout).to.contain('{\n  "tests": []\n}\n');
       expect(ctx.stderr).to.contain(
         messages.getMessage('testResultProcessErr', [
-          "TypeError: Cannot read property 'testRunId' of undefined"
+          "TypeError: Cannot read property 'outcome' of undefined"
         ])
       );
     });
@@ -177,7 +177,7 @@ describe('force:apex:test:run', () => {
       expect(ctx.stdout).to.contain('{\n  "tests": []\n}\n');
       expect(ctx.stderr).to.contain(
         messages.getMessage('testResultProcessErr', [
-          "TypeError: Cannot read property 'testStartTime' of undefined"
+          "TypeError: Cannot read property 'outcome' of undefined"
         ])
       );
     });
@@ -279,7 +279,7 @@ describe('force:apex:test:run', () => {
         const result = ctx.stdout;
         expect(result).to.not.be.empty;
         const resultJSON = JSON.parse(result);
-        expect(resultJSON).to.deep.equal(jsonResult);
+        expect(resultJSON).to.deep.equal(cliJsonResult);
       }
     );
 
@@ -1166,4 +1166,46 @@ describe('force:apex:test:run', () => {
         expect(ctx.stderr).to.include(messages.getMessage('warningMessage'));
       }
     );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => runWithFailures)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexClass.testInsertTrigger',
+      '--outputdir',
+      'my/path/to/dir',
+      '-r',
+      'human'
+    ])
+    .it('should set exit code as 100 for run with failures', () => {
+      expect(process.exitCode).to.eql(100);
+    });
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexClass.testInsertTrigger',
+      '--outputdir',
+      'my/path/to/dir',
+      '-r',
+      'human'
+    ])
+    .it('should set exit code as 0 for passing run', () => {
+      expect(process.exitCode).to.eql(0);
+    });
 });
