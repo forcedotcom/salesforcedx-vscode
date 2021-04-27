@@ -68,7 +68,7 @@ commands:
       - run: git config --global core.autocrlf false
       - checkout
       - restore_dependency_cache:
-          base-cache-path: << pipeline.parameters.cache-version >>-win
+          base-cache-path: << pipeline.parameters.cache-version >>-tmp
       - run:
           name: 'Install node'
           shell: bash.exe
