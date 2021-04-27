@@ -43,6 +43,9 @@ parameters:
   publish:
     type: boolean
     default: false
+  publish-type:
+    type: string
+    default: minor
   pre-publish:
     type: boolean
     default: false
@@ -515,7 +518,7 @@ jobs:
           name: Create release branch
           command: |
             git branch
-            scripts/create-release-branch.js
+            scripts/create-release-branch.js -r << pipeline.parameters.publish-type >>
       - slack/notify:
           channel: 'pdt_releases'
           color: '#d8bfd8'
@@ -596,18 +599,12 @@ workflows:
           message: Pending Approval for Creation of Release Branch
           channel: 'pdt_releases'
           color: '#0E1111'
-      - build-all
-      - unit-tests
-      - integration-tests
       - hold: # Requires manual approval in Circle Ci
           type: approval
       - create-release-branch:
           e: default-executor
           context: pdt-publish-restricted-context
           requires:
-            - build-all
-            - unit-tests
-            - integration-tests
             - hold
           filters:
             branches:

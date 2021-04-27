@@ -12,7 +12,7 @@
  * 3. Non-salesforce package contributions aside from doc updates
  *
  * Overriding Default Values:
- * 1. Override the release. Example: npm run build-change-log -- -r 46.7.0
+ * 1. Override the release. Example: npm run build-change-log -- -o 46.7.0
  * 2. Add verbose logging. Example: npm run build-change-log -- -v
  * 3. Package list to ignore (comma separated list) npm run build-change-log --i package1,package2,package3
  */
@@ -62,7 +62,7 @@ function getReleaseBranch() {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 1: Determine release branch.');
   }
-  const releaseIndex = process.argv.indexOf('-r');
+  const releaseIndex = process.argv.indexOf('-o');
   const releaseBranch =
     releaseIndex > -1 && process.argv[releaseIndex + 1]
       ? constants.RELEASE_BRANCH_PREFIX + process.argv[releaseIndex + 1]
