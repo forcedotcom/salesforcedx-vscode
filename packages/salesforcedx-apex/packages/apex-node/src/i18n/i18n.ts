@@ -73,5 +73,11 @@ export const messages = {
   invalidTestRunIdErr: `The test run id %s isn't in the correct format for "id." The ID is a 15- or 18-character string in the format "707xxxxxxxxxxxx"`,
   invalidsObjectErr: `You don't have permissions to access sObject of type %s. Ask your Salesforce admin to give you permissions to access Apex code and the Streaming API. \nError: %s`,
   payloadErr:
-    'Specify a test class or test methods when running tests synchronously'
+    'Specify a test class or test methods when running tests synchronously',
+  suitenameErr:
+    'Must provide a suite name or suite id to retrieve test classes in suite',
+  missingSuiteErr: 'Suite does not exist',
+  missingTestClassErr: 'Apex class %s does not exist in the org',
+  testSuiteMsg: 'Apex test class %s already exists in Apex test suite %s',
+  classSuiteMsg: `Added Apex class %s to your Apex test suite %s`
 };

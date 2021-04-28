@@ -494,3 +494,5 @@ export type ApexTestProgressValue =
       message: string;
       testRunId: string;
     };
+
+export type TestSuiteMembershipRecord = { ApexClassId: string };

@@ -27,3 +27,6 @@ export type ApexDiagnostic = {
   exceptionStackTrace: string;
   className?: string;
 };
+
+export type QueryResult<T = QueryRecord> = { records: T[] };
+export type QueryRecord = { Id: string };
