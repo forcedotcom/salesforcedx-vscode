@@ -1,4 +1,4 @@
-# 51.11.0 - Month DD, YYYY
+# 51.11.0 - April 29, 2021
 
 ## Fixed
 
