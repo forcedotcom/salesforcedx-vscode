@@ -170,20 +170,12 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
     return toRetrieve;
   }
 
-  protected async postOperation(
-    result: RetrieveResult | SourceRetrieveResult | undefined
-  ) {
+  protected async postOperation(result: RetrieveResult | undefined) {
     await super.postOperation(result);
 
     // assumes opening only one component
     if (result && this.openAfterRetrieve) {
-      let componentToOpen: SourceComponent | undefined;
-
-      if (result instanceof RetrieveResult) {
-        componentToOpen = result.components.getSourceComponents().first();
-      } else {
-        componentToOpen = result.successes[0]?.component;
-      }
+      const componentToOpen = result.components.getSourceComponents().first();
 
       if (componentToOpen) {
         const dirPath =
