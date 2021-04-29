@@ -4,7 +4,7 @@
 
 #### salesforcedx-sobjects-faux-generator
 
-- Disable lwc type generation ([PR #3165](https://github.com/forcedotcom/salesforcedx-vscode/pull/3165))
+- Disable LWC type generation ([PR #3165](https://github.com/forcedotcom/salesforcedx-vscode/pull/3165))
 
 #### salesforcedx-vscode-core
 
