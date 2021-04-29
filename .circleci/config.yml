@@ -365,7 +365,7 @@ jobs:
     steps:
       - run:
           command: |
-            scripts/purgeVSCode.sh
+            scripts/purgeVSCode.js
       - build-win
       - run:
           command: |
