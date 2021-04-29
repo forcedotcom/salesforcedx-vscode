@@ -19,18 +19,13 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  MetadataComponent,
-  MetadataResolver,
-  registry,
-  RetrieveResult as MetadataApiRetrieveResult,
-  SourceRetrieveResult,
-  ToolingApi
+  RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { join, sep } from 'path';
+import { join } from 'path';
 import * as vscode from 'vscode';
 import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -39,16 +34,15 @@ import { workspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { createComponentCount, formatException } from './util';
 
-type RetrieveResult = MetadataApiRetrieveResult | SourceRetrieveResult;
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 export abstract class DeployRetrieveExecutor<
   T
-  > extends LibraryCommandletExecutor<T> {
+> extends LibraryCommandletExecutor<T> {
   protected cancellable: boolean = true;
 
   constructor(executionName: string, logName: string) {
@@ -75,7 +69,7 @@ export abstract class DeployRetrieveExecutor<
 
       result = await this.doOperation(components, token);
 
-      const status = this.getStatus(result);
+      const status = result?.response.status;
 
       return (
         status === RequestStatus.Succeeded ||
@@ -86,14 +80,6 @@ export abstract class DeployRetrieveExecutor<
     } finally {
       await this.postOperation(result);
     }
-  }
-
-  private getStatus(
-    result: DeployRetrieveResult | undefined
-  ): RequestStatus | undefined {
-    return result && 'response' in result
-      ? result.response.status
-      : result?.status;
   }
 
   protected setupCancellation(
@@ -210,20 +196,6 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   ): Promise<RetrieveResult | undefined> {
     const connection = await workspaceContext.getConnection();
 
-    // utilize the tooling API for single component retrieves for improved performance
-    const oneComponent = components.getSourceComponents().first();
-
-    if (components.size === 1 && this.isToolingSupported(oneComponent)) {
-      const projectNamespace = (await SfdxProjectConfig.getValue(
-        'namespace'
-      )) as string;
-      const tooling = new ToolingApi(connection, new MetadataResolver());
-      return tooling.retrieve({
-        components,
-        namespace: projectNamespace
-      });
-    }
-
     const defaultOutput = join(
       getRootWorkspacePath(),
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
@@ -241,25 +213,17 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
   }
 
   protected async postOperation(
-    result: RetrieveResult | SourceRetrieveResult | undefined
+    result: RetrieveResult | undefined
   ): Promise<void> {
     if (result) {
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-
-      let output: string;
-
-      if (result instanceof MetadataApiRetrieveResult) {
-        output = this.createOutput(result, relativePackageDirs);
-      } else {
-        output = this.createToolingOutput(result, relativePackageDirs);
-      }
-
+      const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
     }
   }
 
   private createOutput(
-    result: MetadataApiRetrieveResult,
+    result: RetrieveResult,
     relativePackageDirs: string[]
   ): string {
     const successes: Row[] = [];
@@ -275,52 +239,6 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
         successes.push(asRow);
       } else {
         failures.push(asRow);
-      }
-    }
-
-    return this.createOutputTable(successes, failures);
-  }
-
-  /**
-   * This exists because the Tooling API result currently doesn't conform to the
-   * same interface as the Metadata API deploy and retrieve result objects.
-   */
-  private createToolingOutput(
-    retrieveResult: SourceRetrieveResult,
-    relativePackageDirs: string[]
-  ): string {
-    const successes: Row[] = [];
-    const failures: Row[] = [];
-
-    for (const success of retrieveResult.successes) {
-      const { component, properties } = success;
-      if (component) {
-        const { fullName, type, xml } = component;
-        for (const fsPath of component.walkContent()) {
-          successes.push({
-            fullName,
-            type: type.name,
-            filePath: getRelativeProjectPath(fsPath, relativePackageDirs)
-          });
-        }
-        if (xml) {
-          successes.push({
-            fullName,
-            type: type.name,
-            filePath: getRelativeProjectPath(xml, relativePackageDirs)
-          });
-        }
-      }
-    }
-
-    for (const failure of retrieveResult.failures) {
-      const { component, message } = failure;
-      if (component) {
-        failures.push({
-          fullName: component.fullName,
-          type: component.type.name,
-          error: message
-        });
       }
     }
 
@@ -363,26 +281,5 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     }
 
     return output;
-  }
-
-  private isToolingSupported(
-    component: MetadataComponent | undefined
-  ): boolean {
-    if (component) {
-      const { types } = registry;
-      const permittedTypeNames = [
-        types.auradefinitionbundle.name,
-        types.lightningcomponentbundle.name,
-        types.apexclass.name,
-        types.apexcomponent.name,
-        types.apexpage.name,
-        types.apextrigger.name
-      ];
-      return (
-        component.fullName !== '*' &&
-        permittedTypeNames.includes(component.type.name)
-      );
-    }
-    return false;
   }
 }
