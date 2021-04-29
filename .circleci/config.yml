@@ -363,6 +363,9 @@ jobs:
         type: boolean
         default: true
     steps:
+      - run:
+          command: |
+            scripts/purgeVSCode.sh
       - build-win
       - run:
           command: |
