@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Preserve leading zeros in xml tags ([PR #3189](https://github.com/forcedotcom/salesforcedx-vscode/pull/3189))
+- Preserve leading zeros in xml tags for the new Deploy/Retrieve route ([PR #3189](https://github.com/forcedotcom/salesforcedx-vscode/pull/3189))
 
 - Fix metadata xml issues by removing the tooling api route for the new Deploy/Retrieve ([PR #3181](https://github.com/forcedotcom/salesforcedx-vscode/pull/3181))
 
