@@ -353,6 +353,7 @@ jobs:
   integration-tests:
     description: 'Run tests on Windows'
     executor: win/default
+    parallelism: 2
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
