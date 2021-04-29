@@ -1,3 +1,19 @@
+# 51.11.0 - Month DD, YYYY
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Disable lwc type generation ([PR #3165](https://github.com/forcedotcom/salesforcedx-vscode/pull/3165))
+
+#### salesforcedx-vscode-core
+
+- Preserve leading zeros in xml tags ([PR #3189](https://github.com/forcedotcom/salesforcedx-vscode/pull/3189))
+
+- Metadata xml issues by removing tooling retrieve ([PR #3181](https://github.com/forcedotcom/salesforcedx-vscode/pull/3181))
+
+- Surface original error with deploy/retrieve ([PR #3178](https://github.com/forcedotcom/salesforcedx-vscode/pull/3178))
+
 # 51.10.0 - April 21, 2021
 
 ## Fixed
