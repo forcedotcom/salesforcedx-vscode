@@ -10,7 +10,10 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": ["run", "bootstrap"],
+      "args": [
+        "run",
+        "bootstrap"
+      ],
       "isBackground": false
     },
     {
@@ -21,7 +24,10 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": ["run", "clean"],
+      "args": [
+        "run",
+        "clean"
+      ],
       "isBackground": false
     },
     {
@@ -32,7 +38,10 @@
         "focus": true,
         "panel": "shared"
       },
-      "args": ["run", "commit"],
+      "args": [
+        "run",
+        "commit"
+      ],
       "isBackground": false
     },
     {
@@ -43,7 +52,10 @@
         "focus": false,
         "panel": "shared"
       },
-      "args": ["run", "commit-init"],
+      "args": [
+        "run",
+        "commit-init"
+      ],
       "isBackground": false
     },
     {
@@ -58,7 +70,10 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "compile"],
+      "args": [
+        "run",
+        "compile"
+      ],
       "isBackground": false,
       "problemMatcher": {
         "owner": "typescript",
@@ -77,7 +92,10 @@
       "label": "Create Release Branch",
       "command": "./scripts/create-release-branch-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}", "${input:publishType}"]
+      "args": [
+        "${input:circleCiId}",
+        "${input:publishType}"
+      ]
     },
     {
       "label": "Create Change Log",
@@ -88,7 +106,9 @@
         "-i",
         "${input:packagesToIgnore}",
         "-o",
-        "${input:releaseOverride}"
+        "${input:releaseOverride}",
+        "-t",
+        "${input:date}"
       ]
     },
     {
@@ -99,20 +119,28 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "lint"],
+      "args": [
+        "run",
+        "lint"
+      ],
       "isBackground": false
     },
     {
       "label": "Launch Pre-Publish Steps",
       "command": "./scripts/pre-publish-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}", "${input:releaseBranch}"]
+      "args": [
+        "${input:circleCiId}",
+        "${input:releaseBranch}"
+      ]
     },
     {
       "label": "Publish Extensions",
       "command": "./scripts/publish-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}"]
+      "args": [
+        "${input:circleCiId}"
+      ]
     },
     {
       "label": "Watch",
@@ -122,7 +150,10 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "watch"],
+      "args": [
+        "run",
+        "watch"
+      ],
       "isBackground": false,
       "problemMatcher": "$tsc-watch"
     }
@@ -134,6 +165,11 @@
       "description": "CircleCi Token"
     },
     {
+      "id": "date",
+      "type": "promptString",
+      "description": "Date of release (ex April 3, 2021). Leave blank to use today's date."
+    },
+    {
       "id": "packagesToIgnore",
       "type": "promptString",
       "description": "Packages To Ignore: These are packages that are not to be included in the change log (Ex package1,package2)",
@@ -143,14 +179,21 @@
       "id": "publishType",
       "type": "pickString",
       "description": "Type of version to publish",
-      "options": ["patch", "minor", "major"],
+      "options": [
+        "patch",
+        "minor",
+        "major"
+      ],
       "default": "minor"
     },
     {
       "id": "verboseOutput",
       "type": "pickString",
       "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
-      "options": ["", "-v"],
+      "options": [
+        "",
+        "-v"
+      ],
       "default": "-v"
     },
     {

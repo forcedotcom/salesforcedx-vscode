@@ -28,7 +28,7 @@ shell.set('+v');
 
 // Text Values
 const RELEASE_MESSAGE = 'Using Release Branch: %s\nPrevious Release Branch: %s';
-const LOG_HEADER = '# %s - Month DD, YYYY\n';
+const LOG_HEADER = '# %s - %s\n';
 const TYPE_HEADER = '\n## %s\n';
 const SECTION_HEADER = '\n#### %s\n';
 const MESSAGE_FORMAT =
@@ -106,6 +106,19 @@ function validateReleaseBranch(releaseBranch) {
   }
 }
 
+function getReleaseDate() {
+  const dateIndex = process.argv.indexOf('-t');
+  if (dateIndex > -1 && process.argv[dateIndex + 1]) {
+    return process.argv[dateIndex + 1];
+  } else {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(new Date());
+  }
+}
+
 function getNewChangeLogBranch(releaseBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 2: Create new change log branch.');
@@ -131,7 +144,7 @@ function getCommits(releaseBranch, previousBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log(
       '\nStep 3: Determine differences between current release branch and previous release branch.' +
-        '\nCommits:'
+      '\nCommits:'
     );
   }
   const commits = shell
@@ -204,7 +217,7 @@ function getFilesChanged(commitNumber) {
 
 function getPackageHeaders(filesChanged) {
   let packageHeaders = new Set();
-  filesChanged.split(',').forEach(function(filePath) {
+  filesChanged.split(',').forEach(function (filePath) {
     const packageName = getPackageName(filePath);
     if (packageName) {
       packageHeaders.add(packageName);
@@ -231,7 +244,7 @@ function getPackageName(filePath) {
 function filterPackageNames(packageHeaders) {
   let filteredHeaders = new Set(packageHeaders);
   if (packageHeaders.has('salesforcedx-vscode-core')) {
-    packageHeaders.forEach(function(packageName) {
+    packageHeaders.forEach(function (packageName) {
       if (packageName != 'salesforcedx-vscode-core' && packageName != 'docs') {
         filteredHeaders.delete(packageName);
       }
@@ -243,7 +256,7 @@ function filterPackageNames(packageHeaders) {
 function filterExistingPREntries(parsedCommits) {
   let currentChangeLog = fs.readFileSync(constants.CHANGE_LOG_PATH);
   let filteredResults = [];
-  parsedCommits.forEach(function(map) {
+  parsedCommits.forEach(function (map) {
     if (!currentChangeLog.includes('PR #' + map[PR_NUM])) {
       filteredResults.push(map);
     } else if (ADD_VERBOSE_LOGGING) {
@@ -260,8 +273,8 @@ function filterExistingPREntries(parsedCommits) {
 function getMessagesGroupedByPackage(parsedCommits) {
   let groupedMessages = {};
   let sortedMessages = {};
-  parsedCommits.forEach(function(map) {
-    map[PACKAGES].forEach(function(packageName) {
+  parsedCommits.forEach(function (map) {
+    map[PACKAGES].forEach(function (packageName) {
       const key = generateKey(packageName, map[TYPE]);
       if (key) {
         groupedMessages[key] = groupedMessages[key] || [];
@@ -273,7 +286,7 @@ function getMessagesGroupedByPackage(parsedCommits) {
   });
   Object.keys(groupedMessages)
     .sort()
-    .forEach(function(key) {
+    .forEach(function (key) {
       sortedMessages[key] = groupedMessages[key];
     });
   if (ADD_VERBOSE_LOGGING) {
@@ -305,17 +318,18 @@ function generateKey(packageName, type) {
 function getChangeLogText(releaseBranch, groupedMessages) {
   let changeLogText = util.format(
     LOG_HEADER,
-    releaseBranch.toString().replace(constants.RELEASE_BRANCH_PREFIX, '')
+    releaseBranch.toString().replace(constants.RELEASE_BRANCH_PREFIX, ''),
+    getReleaseDate()
   );
   let lastType = '';
-  Object.keys(groupedMessages).forEach(function(typeAndPackageName) {
+  Object.keys(groupedMessages).forEach(function (typeAndPackageName) {
     let [type, packageName] = typeAndPackageName.split('|');
     if (!lastType || lastType != type) {
       changeLogText += util.format(TYPE_HEADER, type);
       lastType = type;
     }
     changeLogText += util.format(SECTION_HEADER, packageName);
-    groupedMessages[typeAndPackageName].forEach(function(message) {
+    groupedMessages[typeAndPackageName].forEach(function (message) {
       changeLogText += message;
     });
   });
