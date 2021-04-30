@@ -364,8 +364,8 @@ jobs:
         default: true
     steps:
       - build-win
-      - run:
-          command: bash ./scripts/purgeVSCode.sh
+      # - run:
+      #     command: bash ./scripts/purgeVSCode.sh
       # - run:
           # command: |
             # echo $(circleci tests glob "./packages/")
