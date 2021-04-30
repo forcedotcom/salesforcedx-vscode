@@ -17,6 +17,8 @@ export {
   SANDBOX_URL
 } from './forceAuthWebLogin';
 export {
+  AuthDevHubParams,
+  AuthDevHubParamsGatherer,
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
