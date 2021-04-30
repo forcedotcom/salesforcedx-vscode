@@ -366,9 +366,9 @@ jobs:
       - build-win
       - run:
           command: bash ./scripts/purgeVSCode.sh
-      - run:
-          command: |
-            echo $(circleci tests glob "./packages/**/*")
+      # - run:
+          # command: |
+            # echo $(circleci tests glob "./packages/")
 #            circleci tests glob "packages/**/"
       - run:
           name: 'Authenticate to the default DevHub'
