@@ -12,7 +12,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 
 import {
-  EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -22,7 +21,9 @@ import { getRootWorkspacePath } from '../util';
 
 import { ConfigFile } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { CancelResponse,
+  ContinueResponse,
+  ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
 import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_CONFIG_FILE } from '../constants';
@@ -32,10 +33,12 @@ import { isSFDXContainerMode } from '../util';
 import { ConfigSource, OrgAuthInfo } from '../util/index';
 import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
+export const DEFAULT_ALIAS = 'vscodeOrg';
+
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = isSFDXContainerMode();
 
-  public build(data: {}): Command {
+  public build(data: AuthDevHubParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
     );
@@ -44,9 +47,13 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
         .withArg('force:auth:device:login')
         .withLogName('force_auth_device_dev_hub');
     } else {
-      command.withArg('force:auth:web:login').withLogName('force_auth_dev_hub');
+      command
+        .withArg('force:auth:web:login')
+        .withLogName('force_auth_dev_hub');
     }
-    command.withArg('--setdefaultdevhubusername');
+    command
+    .withFlag('--setalias', data.alias)
+    .withArg('--setdefaultdevhubusername');
     return command.build();
   }
 
@@ -98,12 +105,13 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
 }
 
 export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{}> {
-  public build(data: {}): Command {
+  public build(data: AuthDevHubParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(
         nls.localize('force_auth_web_login_authorize_dev_hub_text')
       )
       .withArg('force:auth:web:login')
+      .withFlag('--setalias', data.alias)
       .withArg('--setdefaultdevhubusername')
       .withArg('--noprompt')
       .withJson()
@@ -112,8 +120,35 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
   }
 }
 
+export class AuthDevHubParamsGatherer implements ParametersGatherer<AuthDevHubParams> {
+
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<AuthDevHubParams>
+  > {
+    const aliasInputOptions = {
+      prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+      placeHolder: DEFAULT_ALIAS
+    } as vscode.InputBoxOptions;
+    const alias = await vscode.window.showInputBox(aliasInputOptions);
+    // Hitting enter with no alias will default the alias to 'vscodeOrg'
+    if (alias === undefined) {
+      return { type: 'CANCEL' };
+    }
+    return {
+      type: 'CONTINUE',
+      data: {
+        alias: alias || DEFAULT_ALIAS
+      }
+    };
+  }
+}
+
+export interface AuthDevHubParams {
+  alias: string;
+}
+
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
+const parameterGatherer = new AuthDevHubParamsGatherer();
 
 export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
   return isDemoMode()
