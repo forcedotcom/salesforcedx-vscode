@@ -19,10 +19,9 @@ const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
 export const middleware: Middleware = {
   // The SOQL LSP server may include special completion items as "placeholders" for
-  // the client to expand with information from the users' default Salesforce Org.
+  // the client to expand with information from the users' current Salesforce Org.
   // We do that here as middleware, transforming the server response before passing
   // it up to VSCode.
-
   provideCompletionItem: async (document, position, context, token, next) => {
     const items = (await next(
       document,
@@ -46,7 +45,7 @@ async function filterByContext(
       item?.data?.soqlContext?.sobjectName &&
       item?.data?.soqlContext?.fieldName
     ) {
-      const objMetadata = await safeRetrieveSObjectMetadata(
+      const objMetadata = await safeRetrieveSObject(
         item.data.soqlContext.sobjectName
       );
       if (objMetadata) {
@@ -83,7 +82,7 @@ async function expandPlaceholders(
         expandedItems.splice(
           index,
           1,
-          ...(await handler(item?.data?.soqlContext))
+          ...(await handler(item?.data?.soqlContext || {}))
         );
       } else {
         telemetryService.sendException(
@@ -99,11 +98,11 @@ async function expandPlaceholders(
 
 const expandFunctions: {
   [key: string]: (
-    soqlContext?: SoqlItemContext
+    soqlContext: SoqlItemContext
   ) => Promise<ProtocolCompletionItem[]>;
 } = {
   SOBJECTS_PLACEHOLDER: async (
-    soqlContext?: SoqlItemContext
+    soqlContext: SoqlItemContext
   ): Promise<ProtocolCompletionItem[]> => {
     try {
       const sobjectItems = (await safeRetrieveSObjectsList()).map(objName => {
@@ -119,19 +118,9 @@ const expandFunctions: {
   },
 
   SOBJECT_FIELDS_PLACEHOLDER: async (
-    soqlContext?: SoqlItemContext
+    soqlContext: SoqlItemContext
   ): Promise<ProtocolCompletionItem[]> => {
-    if (!soqlContext?.sobjectName) {
-      telemetryService.sendException(
-        'SOQLLanguageServerException',
-        'SOBJECT_FIELDS_PLACEHOLDER missing `sobjectName`!'
-      );
-      return [];
-    }
-
-    const objMetadata = await safeRetrieveSObjectMetadata(
-      soqlContext.sobjectName
-    );
+    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
     if (!objMetadata) {
       return [];
     }
@@ -140,59 +129,76 @@ const expandFunctions: {
       if (!objectFieldMatchesSOQLContext(field, soqlContext)) {
         return fieldItems;
       }
-
-      const fieldNameLowercase = field.name.toLowerCase();
-      const isPreferredItem = soqlContext.mostLikelyItems?.some(
-        f => f.toLowerCase() === fieldNameLowercase
-      );
-
-      fieldItems.push(
-        newCompletionItem(
-          (isPreferredItem ? '★ ' : '') + field.name,
-          field.name,
-          CompletionItemKind.Field,
-          Object.assign(
-            { detail: field.type } as CompletionItem,
-            isPreferredItem
-              ? {
-                  preselect: true,
-                  // extra space prefix to make it appear first
-                  sortText: ' ' + field.name,
-                  filterText: ' ' + field.name
-                }
-              : {}
-          )
-        )
-      );
-      if (field.relationshipName) {
-        fieldItems.push(
-          newCompletionItem(
-            `${field.relationshipName}`,
-            field.relationshipName + '.',
-            CompletionItemKind.Class,
-            { detail: 'Ref. to ' + field.referenceTo }
-          )
-        );
-      }
-      return fieldItems;
+      return [...fieldItems, ...newFieldCompletionItems(field, soqlContext)];
     }, [] as ProtocolCompletionItem[]);
     return sobjectFields;
   },
-  LITERAL_VALUES_FOR_FIELD: async (
-    soqlContext?: SoqlItemContext
+
+  RELATIONSHIPS_PLACEHOLDER: async (
+    soqlContext: SoqlItemContext
   ): Promise<ProtocolCompletionItem[]> => {
-    if (!soqlContext?.sobjectName || !soqlContext?.fieldName) {
-      telemetryService.sendException(
-        'SOQLLanguageServerException',
-        'LITERAL_VALUES_FOR_FIELD missing `sobjectName/fieldName`!'
-      );
+    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
+    if (!objMetadata) {
       return [];
     }
 
-    const objMetadata = await safeRetrieveSObjectMetadata(
-      soqlContext.sobjectName
+    const sobjectFields = objMetadata.childRelationships.reduce(
+      (fieldItems, childRelationship) => {
+        if (!childRelationship.relationshipName) {
+          return fieldItems;
+        }
+
+        fieldItems.push(
+          newCompletionItem(
+            `${childRelationship.relationshipName}`,
+            childRelationship.relationshipName,
+            CompletionItemKind.Class,
+            { detail: childRelationship.childSObject }
+          )
+        );
+
+        return fieldItems;
+      },
+      [] as ProtocolCompletionItem[]
     );
+    return sobjectFields;
+  },
+
+  RELATIONSHIP_FIELDS_PLACEHOLDER: async (
+    soqlContext: SoqlItemContext
+  ): Promise<ProtocolCompletionItem[]> => {
+    const parentObject = await safeRetrieveSObject(soqlContext.sobjectName);
+    if (!parentObject) {
+      return [];
+    }
+
+    const relationship = parentObject.childRelationships.find(
+      rel => rel.relationshipName === soqlContext.relationshipName
+    );
+
+    if (!relationship) {
+      return [];
+    }
+
+    const objMetadata = await safeRetrieveSObject(relationship?.childSObject);
     if (!objMetadata) {
+      return [];
+    }
+
+    const sobjectFields = objMetadata.fields.reduce((fieldItems, field) => {
+      if (!objectFieldMatchesSOQLContext(field, soqlContext)) {
+        return fieldItems;
+      }
+      return [...fieldItems, ...newFieldCompletionItems(field, soqlContext)];
+    }, [] as ProtocolCompletionItem[]);
+    return sobjectFields;
+  },
+
+  LITERAL_VALUES_FOR_FIELD: async (
+    soqlContext: SoqlItemContext
+  ): Promise<ProtocolCompletionItem[]> => {
+    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
+    if (!objMetadata || !soqlContext.fieldName) {
       return [];
     }
 
@@ -223,10 +229,17 @@ const expandFunctions: {
   }
 };
 
-async function safeRetrieveSObjectMetadata(
-  sobjectName: string
+async function safeRetrieveSObject(
+  sobjectName?: string
 ): Promise<DescribeSObjectResult | undefined> {
   try {
+    if (!sobjectName) {
+      telemetryService.sendException(
+        'SOQLanguageServerException',
+        'Missing `sobjectName` from SOQL completion context!'
+      );
+      return Promise.resolve(undefined);
+    }
     return await retrieveSObject(sobjectName);
   } catch (metadataError) {
     const message = nls.localize('error_sobject_metadata_request', sobjectName);
@@ -277,4 +290,46 @@ function newCompletionItem(
   }
 
   return item;
+}
+
+function newFieldCompletionItems(
+  field: Field,
+  soqlContext: SoqlItemContext
+): ProtocolCompletionItem[] {
+  const fieldItems = [];
+
+  const fieldNameLowercase = field.name.toLowerCase();
+  const isPreferredItem = soqlContext.mostLikelyItems?.some(
+    f => f.toLowerCase() === fieldNameLowercase
+  );
+
+  fieldItems.push(
+    newCompletionItem(
+      (isPreferredItem ? '★ ' : '') + field.name,
+      field.name,
+      CompletionItemKind.Field,
+      Object.assign(
+        { detail: field.type } as CompletionItem,
+        isPreferredItem
+          ? {
+              preselect: true,
+              // extra space prefix to make it appear first
+              sortText: ' ' + field.name,
+              filterText: ' ' + field.name
+            }
+          : {}
+      )
+    )
+  );
+  if (field.relationshipName && !soqlContext.dontShowRelationshipField) {
+    fieldItems.push(
+      newCompletionItem(
+        `${field.relationshipName}`,
+        field.relationshipName + '.',
+        CompletionItemKind.Class,
+        { detail: 'Ref. to ' + field.referenceTo }
+      )
+    );
+  }
+  return fieldItems;
 }

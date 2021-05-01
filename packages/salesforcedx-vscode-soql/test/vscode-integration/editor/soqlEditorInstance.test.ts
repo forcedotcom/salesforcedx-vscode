@@ -187,7 +187,7 @@ describe('SoqlEditorInstance should', () => {
     expect(postMessageSpy.calledWith(expectedMessage));
   });
 
-  it('display and track error wheb webview.postMessage throws', async () => {
+  it('display and track error when webview.postMessage throws', async () => {
     sandbox.stub(mockWebviewPanel.webview, 'postMessage').rejects();
     const trackErrorSpy = sandbox.spy(commonUtils, 'trackErrorWithTelemetry');
 

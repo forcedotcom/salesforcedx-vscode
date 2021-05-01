@@ -26,7 +26,9 @@ import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
-import { createComponentCount } from './util/betaDeployRetrieve';
+import {
+  createComponentCount, formatException
+} from './util';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export enum DeployType {
@@ -63,17 +65,12 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
       const telemetry = new TelemetryBuilder();
 
       try {
-        const components = new ComponentSet();
-        for (const fsPath of execFilePathOrPaths.split(',')) {
-          components.resolveSourceComponents(fsPath);
-        }
+        const components = ComponentSet.fromSource(execFilePathOrPaths.split(','));
         const metadataCount = JSON.stringify(createComponentCount(components));
         telemetry.addProperty(TELEMETRY_METADATA_COUNT, metadataCount);
       } catch (e) {
-        telemetryService.sendException(
-          e.name,
-          'error detecting deploy components'
-        );
+        const error = await formatException(e);
+        telemetryService.sendException(error.name, error.message);
       }
 
       let success = false;

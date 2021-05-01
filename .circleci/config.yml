@@ -11,7 +11,7 @@ version: 2.1
 
 orbs:
   win: circleci/windows@2.2.0
-  sfchangecase: salesforce/change-case-management@3
+  # sfchangecase: salesforce/change-case-management@3
   slack: circleci/slack@3.4.2
 
 parameters:
@@ -43,6 +43,9 @@ parameters:
   publish:
     type: boolean
     default: false
+  publish-type:
+    type: string
+    default: minor
   pre-publish:
     type: boolean
     default: false
@@ -333,6 +336,20 @@ jobs:
               $host.SetShouldExit(1)
             }
 
+  soql-ui-tests:
+    description: 'Run E2E SOQL UI Tests'
+    executor: win/default
+    environment:
+      - SFDX_AUTOUPDATE_DISABLE: true
+      - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
+      - NODE_VERSION: << pipeline.parameters.node-version >>
+    steps:
+      - build-win
+      - run:
+          name: 'Run SOQL UI Tests if Needed'
+          shell: bash.exe
+          command: npm run test:ui
+
   integration-tests:
     description: 'Run tests on Windows'
     executor: win/default
@@ -432,12 +449,12 @@ jobs:
           name: 'Setup gus case management'
           command: |
             sudo npm install -g @salesforce/change-case-management
-      - sfchangecase/create:
-          location: REPO_LOCATION
-          release: GUS_RELEASE
-      - sfchangecase/check:
-          location: REPO_LOCATION
-          release: GUS_RELEASE
+      # - sfchangecase/create:
+      #     location: REPO_LOCATION
+      #     release: GUS_RELEASE
+      # - sfchangecase/check:
+      #     location: REPO_LOCATION
+      #     release: GUS_RELEASE
       - gh-config
       - install
       - compile
@@ -453,9 +470,9 @@ jobs:
             git tag v${RELEASE_VERSION}
             git push origin v${RELEASE_VERSION}
             git push origin main
-      - sfchangecase/update:
-          location: REPO_LOCATION
-          release: GUS_RELEASE
+      # - sfchangecase/update:
+      #     location: REPO_LOCATION
+      #     release: GUS_RELEASE
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
@@ -501,7 +518,7 @@ jobs:
           name: Create release branch
           command: |
             git branch
-            scripts/create-release-branch.js
+            scripts/create-release-branch.js -r << pipeline.parameters.publish-type >>
       - slack/notify:
           channel: 'pdt_releases'
           color: '#d8bfd8'
@@ -532,18 +549,12 @@ workflows:
           message: Pending Approval for merge of release branch into main
           channel: 'pdt_releases'
           color: '#0E1111'
-      - build-all
-      - unit-tests
-      - integration-tests
       - hold: # Requires manual approval in Circle Ci
           type: approval
       - merge-release-branch:
           e: default-executor
           context: pdt-publish-restricted-context
           requires:
-            - build-all
-            - unit-tests
-            - integration-tests
             - hold
           filters:
             branches:
@@ -582,18 +593,12 @@ workflows:
           message: Pending Approval for Creation of Release Branch
           channel: 'pdt_releases'
           color: '#0E1111'
-      - build-all
-      - unit-tests
-      - integration-tests
       - hold: # Requires manual approval in Circle Ci
           type: approval
       - create-release-branch:
           e: default-executor
           context: pdt-publish-restricted-context
           requires:
-            - build-all
-            - unit-tests
-            - integration-tests
             - hold
           filters:
             branches:
@@ -614,6 +619,7 @@ workflows:
       - build-all
       - unit-tests
       - integration-tests
+      - soql-ui-tests
 
   cut-release:
     triggers:

@@ -17,12 +17,12 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
-import { useBetaDeployRetrieve } from './util';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -53,16 +53,8 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   protected async getComponents(
     response: ContinueResponse<string | string[]>
   ): Promise<ComponentSet> {
-    const paths = response.data;
-    const components = new ComponentSet();
-    if (typeof paths === 'string') {
-      components.resolveSourceComponents(paths);
-    } else {
-      for (const filepath of paths) {
-        components.resolveSourceComponents(filepath);
-      }
-    }
-    return components;
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
+    return ComponentSet.fromSource(paths);
   }
 }
 
@@ -116,7 +108,7 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    useBetaDeployRetrieve([sourceUri])
+    sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor(),
     new SourcePathChecker()
@@ -125,7 +117,7 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
 }
 
 export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
-  const useBeta = useBetaDeployRetrieve(uris);
+  const useBeta = sfdxCoreSettings.getBetaDeployRetrieve();
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     useBeta

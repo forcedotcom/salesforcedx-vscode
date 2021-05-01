@@ -4,8 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ChildRelationship, Field, SObject } from '../types';
-import { FieldDeclaration, SObjectDefinition } from './types';
+import {
+  ChildRelationship,
+  Field,
+  FieldDeclaration,
+  SObject,
+  SObjectDefinition
+} from '../types';
 
 export const MODIFIER = 'global';
 
@@ -45,7 +50,10 @@ export class DeclarationGenerator {
     const definitions: SObjectDefinition[] = [];
     for (const sobject of sobjects) {
       const declarations = this.generateSObjectDefinition(sobject);
-      definitions.push({ name: sobject.name, fields: declarations.fields });
+      definitions.push({
+        name: sobject.name,
+        fields: declarations.fields
+      });
     }
     return definitions;
   }

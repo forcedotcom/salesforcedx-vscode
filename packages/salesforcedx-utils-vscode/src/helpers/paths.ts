@@ -28,3 +28,31 @@ export function getTestResultsFolder(vscodePath: string, testType: string) {
   ensureDirectoryExists(dirPath);
   return dirPath;
 }
+
+/**
+ * Creates a project relative path version of an absolute path.
+ *
+ * @param fsPath Absolute file path
+ * @param packageDirs Package directory paths
+ * @returns Relative path for the project
+ */
+export function getRelativeProjectPath(
+  fsPath: string = '',
+  packageDirs: string[]
+) {
+  let packageDirIndex;
+  for (let packageDir of packageDirs) {
+    if (!packageDir.startsWith(path.sep)) {
+      packageDir = path.sep + packageDir;
+    }
+    if (!packageDir.endsWith(path.sep)) {
+      packageDir = packageDir + path.sep;
+    }
+    packageDirIndex = fsPath.indexOf(packageDir);
+    if (packageDirIndex !== -1) {
+      packageDirIndex += 1;
+      break;
+    }
+  }
+  return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
+}

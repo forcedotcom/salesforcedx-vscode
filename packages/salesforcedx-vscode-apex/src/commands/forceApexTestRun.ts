@@ -6,8 +6,10 @@
  */
 
 import {
+  ApexTestProgressValue,
   AsyncTestConfiguration,
   HumanReporter,
+  Progress,
   ResultFormat,
   TestLevel,
   TestService
@@ -17,13 +19,8 @@ import {
   hasRootWorkspace,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
@@ -40,14 +37,13 @@ import * as settings from '../settings';
 
 export enum TestType {
   All,
+  AllLocal,
   Suite,
   Class
 }
-
 export interface ApexTestQuickPickItem extends vscode.QuickPickItem {
   type: TestType;
 }
-
 export class TestsSelector
   implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<
@@ -64,6 +60,14 @@ export class TestsSelector
         description: testSuite.fsPath,
         type: TestType.Suite
       };
+    });
+
+    fileItems.push({
+      label: nls.localize('force_apex_test_run_all_local_test_label'),
+      description: nls.localize(
+        'force_apex_test_run_all_local_tests_description_text'
+      ),
+      type: TestType.AllLocal
     });
 
     fileItems.push({
@@ -95,60 +99,6 @@ export class TestsSelector
   }
 }
 
-export class ForceApexTestRunCommandFactory {
-  private data: ApexTestQuickPickItem;
-  private getCodeCoverage: boolean;
-  private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
-  private testRunExecutorCommand!: Command;
-  private outputToJson: string;
-
-  constructor(
-    data: ApexTestQuickPickItem,
-    getCodeCoverage: boolean,
-    outputToJson: string
-  ) {
-    this.data = data;
-    this.getCodeCoverage = getCodeCoverage;
-    this.outputToJson = outputToJson;
-  }
-
-  public constructExecutorCommand(): Command {
-    this.builder = this.builder
-      .withDescription(nls.localize('force_apex_test_run_text'))
-      .withArg('force:apex:test:run')
-      .withLogName('force_apex_test_run');
-
-    switch (this.data.type) {
-      case TestType.Suite:
-        this.builder = this.builder.withFlag(
-          '--suitenames',
-          `${this.data.label}`
-        );
-        break;
-      case TestType.Class:
-        this.builder = this.builder.withFlag(
-          '--classnames',
-          `${this.data.label}`
-        );
-        break;
-      default:
-        break;
-    }
-
-    if (this.getCodeCoverage) {
-      this.builder = this.builder.withArg('--codecoverage');
-    }
-
-    this.builder = this.builder
-      .withFlag('--resultformat', 'human')
-      .withFlag('--outputdir', this.outputToJson)
-      .withFlag('--loglevel', 'error');
-
-    this.testRunExecutorCommand = this.builder.build();
-    return this.testRunExecutorCommand;
-  }
-}
-
 function getTempFolder(): string {
   if (hasRootWorkspace()) {
     const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
@@ -158,28 +108,10 @@ function getTempFolder(): string {
   }
 }
 
-export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
-  ApexTestQuickPickItem
-> {
-  constructor() {
-    super(OUTPUT_CHANNEL);
-  }
-
-  public build(data: ApexTestQuickPickItem): Command {
-    const getCodeCoverage = settings.retrieveTestCodeCoverage();
-    const outputToJson = getTempFolder();
-    const factory: ForceApexTestRunCommandFactory = new ForceApexTestRunCommandFactory(
-      data,
-      getCodeCoverage,
-      outputToJson
-    );
-    return factory.constructExecutorCommand();
-  }
-}
-
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   ApexTestQuickPickItem
 > {
+  protected cancellable: boolean = true;
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
@@ -193,7 +125,12 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
   }
 
   public async run(
-    response: ContinueResponse<ApexTestQuickPickItem>
+    response: ContinueResponse<ApexTestQuickPickItem>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
@@ -218,14 +155,43 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
           response.data.label
         );
         break;
+      case TestType.AllLocal:
+        payload = { testLevel: TestLevel.RunLocalTests };
+        break;
+      case TestType.All:
+        payload = { testLevel: TestLevel.RunAllTestsInOrg };
+        break;
       default:
         payload = { testLevel: TestLevel.RunAllTestsInOrg };
     }
 
-    const result = await testService.runTestAsynchronous(payload, codeCoverage);
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: value => {
+        if (
+          value.type === 'StreamingClientProgress' ||
+          value.type === 'FormatTestResultProgress'
+        ) {
+          progress?.report({ message: value.message });
+        }
+      }
+    };
+    const result = await testService.runTestAsynchronous(
+      payload,
+      codeCoverage,
+      progressReporter,
+      token
+    );
+
+    if (token?.isCancellationRequested) {
+      return false;
+    }
+
     await testService.writeResultFiles(
       result,
-      { resultFormats: [ResultFormat.json], dirPath: getTempFolder() },
+      {
+        resultFormats: [ResultFormat.json],
+        dirPath: getTempFolder()
+      },
       codeCoverage
     );
     const humanOutput = new HumanReporter().format(result, codeCoverage);
@@ -241,9 +207,7 @@ export async function forceApexTestRun() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    settings.useApexLibrary()
-      ? new ApexLibraryTestRunExecutor()
-      : new ForceApexTestRunExecutor()
+    new ApexLibraryTestRunExecutor()
   );
   await commandlet.run();
 }

@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ApexTestProgressValue,
   HumanReporter,
+  Progress,
   ResultFormat,
   TestLevel,
   TestResult,
@@ -17,15 +19,11 @@ import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
   SourceComponent
@@ -38,6 +36,7 @@ import * as settings from '../settings';
 import { forceApexTestRunCacheService, isEmpty } from '../testRunCache';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
+  protected cancellable: boolean = true;
   private tests: string[];
   private codeCoverage: boolean = false;
   private outputDir: string;
@@ -61,17 +60,42 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     this.codeCoverage = codeCoverage;
   }
 
-  public async run(): Promise<boolean> {
+  public async run(
+    response?: ContinueResponse<{}>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
     const payload = await testService.buildAsyncPayload(
       TestLevel.RunSpecifiedTests,
       this.tests.join()
     );
+
+    const progressReporter: Progress<ApexTestProgressValue> = {
+      report: value => {
+        if (
+          value.type === 'StreamingClientProgress' ||
+          value.type === 'FormatTestResultProgress'
+        ) {
+          progress?.report({ message: value.message });
+        }
+      }
+    };
     const result = await testService.runTestAsynchronous(
       payload,
-      this.codeCoverage
+      this.codeCoverage,
+      progressReporter,
+      token
     );
+
+    if (token?.isCancellationRequested) {
+      return false;
+    }
+
     await testService.writeResultFiles(
       result,
       { resultFormats: [ResultFormat.json], dirPath: this.outputDir },
@@ -131,46 +155,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   }
 }
 
-// build force:apex:test:run w/ given test class or test method
-export class ForceApexTestRunCodeActionExecutor extends SfdxCommandletExecutor<{}> {
-  protected tests: string;
-  protected shouldGetCodeCoverage: boolean = false;
-  protected builder: SfdxCommandBuilder = new SfdxCommandBuilder();
-  private outputToJson: string;
-
-  public constructor(
-    tests: string[],
-    shouldGetCodeCoverage = settings.retrieveTestCodeCoverage(),
-    outputToJson = getTempFolder()
-  ) {
-    super(OUTPUT_CHANNEL);
-    this.tests = tests.join(',') || '';
-    this.shouldGetCodeCoverage = shouldGetCodeCoverage;
-    this.outputToJson = outputToJson;
-  }
-
-  public build(data: {}): Command {
-    this.builder = this.builder
-      .withDescription(nls.localize('force_apex_test_run_text'))
-      .withArg('force:apex:test:run')
-      .withFlag('--tests', this.tests)
-      .withFlag('--resultformat', 'human')
-      .withFlag('--outputdir', this.outputToJson)
-      .withFlag('--loglevel', 'error')
-      .withLogName('force_apex_test_run_code_action');
-
-    if (this.shouldGetCodeCoverage) {
-      this.builder = this.builder.withArg('--codecoverage');
-    }
-
-    return this.builder.build();
-  }
-}
-
 async function forceApexTestRunCodeAction(tests: string[]) {
-  const testRunExecutor = settings.useApexLibrary()
-    ? new ApexLibraryTestRunExecutor(tests)
-    : new ForceApexTestRunCodeActionExecutor(tests);
+  const testRunExecutor = new ApexLibraryTestRunExecutor(tests);
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new EmptyParametersGatherer(),

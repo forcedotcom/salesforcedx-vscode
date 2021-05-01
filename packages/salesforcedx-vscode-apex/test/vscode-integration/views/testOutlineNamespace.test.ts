@@ -11,7 +11,6 @@ import * as fs from 'fs';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
-import * as settings from '../../../src/settings';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 import {
   ApexTestGroupNode,
@@ -23,9 +22,7 @@ import { generateApexTestMethod } from './testDataUtil';
 import {
   apexLibMultipleNsResult,
   apexLibNsResult,
-  apexLibNsTestInfo,
-  jsonMultipleNSFiles,
-  jsonOneNSFilePass
+  apexLibNsTestInfo
 } from './testNamespacedOutputs';
 
 describe('Test View with namespace', () => {
@@ -100,7 +97,6 @@ describe('Test View with namespace', () => {
     let readFolderStub: SinonStub;
     let readFileStub: SinonStub;
     let parseJSONStub: SinonStub;
-    let settingStub: SinonStub;
     let sb: SinonSandbox;
 
     beforeEach(() => {
@@ -114,30 +110,13 @@ describe('Test View with namespace', () => {
         return 'nonsense';
       });
       parseJSONStub = sb.stub(JSON, 'parse');
-      settingStub = sb.stub(settings, 'useApexLibrary').returns(false);
     });
 
     afterEach(() => {
       sb.restore();
     });
 
-    it('Should update single test with Pass result using CLI', () => {
-      parseJSONStub.callsFake(() => {
-        return jsonOneNSFilePass;
-      });
-      testOutline = new ApexTestOutlineProvider(
-        apexNamespacedTestInfo.slice(0, 1)
-      );
-      testOutline.updateTestResults('oneFilePass');
-      const testGroupNode = testOutline.getHead()
-        .children[0] as ApexTestGroupNode;
-      expect(testGroupNode.passing).to.equal(1);
-      const testNode = testGroupNode.children[0] as ApexTestNode;
-      expect(testNode.outcome).to.equal('Pass');
-    });
-
     it('Should update single test with Pass result using Apex library', () => {
-      settingStub.returns(true);
       parseJSONStub.callsFake(() => {
         return apexLibNsResult;
       });
@@ -152,46 +131,7 @@ describe('Test View with namespace', () => {
       expect(testNode.outcome).to.equal('Pass');
     });
 
-    it('Should update tests and test groups with 8 results, 6 passing and 2 failing using CLI', () => {
-      parseJSONStub.callsFake(() => {
-        return jsonMultipleNSFiles;
-      });
-      testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo);
-      testOutline.updateTestResults('multipleFilesMixed');
-      let classNum = 0;
-      expect(testOutline.getHead().children.length).to.equal(4);
-      for (const testGroupNode of testOutline.getHead().children) {
-        let outcome = 'Pass';
-        if (classNum === 0 || classNum === 3) {
-          // Failing Class
-          expect((testGroupNode as ApexTestGroupNode).passing).to.equal(1);
-          let testNode = testGroupNode.children[0] as ApexTestNode;
-          if (classNum === 3) {
-            // Tests 1 and 6 fail
-            outcome = 'Fail';
-          }
-          expect(testNode.outcome).to.equal(outcome);
-          outcome = 'Pass';
-          testNode = testGroupNode.children[1] as ApexTestNode;
-          if (classNum === 0) {
-            // Tests 1 and 6 fail
-            outcome = 'Fail';
-          }
-          expect(testNode.outcome).to.equal(outcome);
-        } else {
-          // Passing class
-          expect((testGroupNode as ApexTestGroupNode).passing).to.equal(2);
-          let testNode = testGroupNode.children[0] as ApexTestNode;
-          expect(testNode.outcome).to.equal(outcome);
-          testNode = testGroupNode.children[1] as ApexTestNode;
-          expect(testNode.outcome).to.equal(outcome);
-        }
-        classNum++;
-      }
-    });
-
     it('Should update tests and test groups with passing/failing results using Apex library', async () => {
-      settingStub.returns(true);
       parseJSONStub.callsFake(() => {
         return apexLibMultipleNsResult;
       });
@@ -229,11 +169,10 @@ describe('Test View with namespace', () => {
       readFileStub = sb.stub(fs, 'readFileSync');
       readFileStub.callsFake(fileName => 'nonsense');
       parseJSONStub = sb.stub(JSON, 'parse');
-      parseJSONStub.callsFake(() => jsonMultipleNSFiles);
+      parseJSONStub.callsFake(() => apexLibMultipleNsResult);
       eventEmitterStub = sb.stub(eventEmitter, 'emit');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
       showTextDocumentStub.returns(Promise.resolve());
-      sb.stub(settings, 'useApexLibrary').returns(false);
 
       testOutline = new ApexTestOutlineProvider(apexNamespacedTestInfo);
       testOutline.updateTestResults('multipleFilesMixed');
@@ -279,7 +218,7 @@ describe('Test View with namespace', () => {
 
     it('Should go to error of first failing test in a failed test class', async () => {
       const testClass = testOutline.getHead().children[0] as ApexTestGroupNode;
-      const lineFailure = 40; // first failure in testJSONOutputs.testResultsMultipleFiles
+      const lineFailure = 40; // first failure in apexLibMultipleNsResult.apexLibMultipleTests
 
       await testRunner.showErrorMessage(testClass);
 

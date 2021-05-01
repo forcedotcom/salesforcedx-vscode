@@ -17,18 +17,21 @@ import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helper
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { join } from 'path';
-import { createSandbox, SinonStub } from 'sinon';
-import { DiagnosticSeverity, Range, Uri } from 'vscode';
+import { assert, createSandbox, match, SinonStub } from 'sinon';
+import {
+  CancellationToken,
+  DiagnosticSeverity,
+  EventEmitter,
+  Progress,
+  Range,
+  Uri
+} from 'vscode';
 import {
   ApexLibraryTestRunExecutor,
-  forceApexTestClassRunCodeAction,
-  forceApexTestMethodRunCodeAction,
-  ForceApexTestRunCodeActionExecutor,
   resolveTestClassParam,
   resolveTestMethodParam
 } from '../../../src/commands/forceApexTestRunCodeAction';
 import { workspaceContext } from '../../../src/context';
-import * as settings from '../../../src/settings';
 
 // return undefined: used to get around strict checks
 function getUndefined(): any {
@@ -36,78 +39,6 @@ function getUndefined(): any {
 }
 
 describe('Force Apex Test Run - Code Action', () => {
-  describe('Command builder - Test Class', () => {
-    const testClass = 'MyTests';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testClass],
-      false,
-      outputToJson
-    );
-
-    it('Should build command for single test class', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testClass} --resultformat human --outputdir outputToJson --loglevel error`
-      );
-    });
-  });
-
-  describe('Command builder - Test Class with Coverage', () => {
-    const testClass = 'MyTests';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testClass],
-      true,
-      outputToJson
-    );
-
-    it('Should build command for single test class with code coverage', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testClass} --resultformat human --outputdir outputToJson --loglevel error --codecoverage`
-      );
-    });
-  });
-
-  describe('Command builder - Test Method', () => {
-    const testMethod = 'MyTests.testMe';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testMethod],
-      false,
-      outputToJson
-    );
-
-    it('Should build command for single test method', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --outputdir outputToJson --loglevel error`
-      );
-    });
-  });
-
-  describe('Command builder - Test Method with Coverage', () => {
-    const testMethod = 'MyTests.testMe';
-    const outputToJson = 'outputToJson';
-    const builder = new ForceApexTestRunCodeActionExecutor(
-      [testMethod],
-      true,
-      outputToJson
-    );
-
-    it('Should build command for single test method with code coverage', () => {
-      const command = builder.build({});
-
-      expect(command.toCommand()).to.equal(
-        `sfdx force:apex:test:run --tests ${testMethod} --resultformat human --outputdir outputToJson --loglevel error --codecoverage`
-      );
-    });
-  });
-
   describe('Cached Test Class', () => {
     const testClass = 'MyTests';
     const testClass2 = 'MyTests2';
@@ -301,6 +232,7 @@ describe('Force Apex Test Run - Code Action', () => {
   describe('Apex Library Test Run Executor', async () => {
     let runTestStub: SinonStub;
     let buildPayloadStub: SinonStub;
+    let writeResultFilesStub: SinonStub;
     const defaultPackageDir = 'default/package/dir';
     const componentPath = join(
       defaultPackageDir,
@@ -308,6 +240,10 @@ describe('Force Apex Test Run - Code Action', () => {
       'default',
       'TestClass.cls'
     );
+    let reportStub: SinonStub;
+    let progress: Progress<unknown>;
+    let cancellationTokenEventEmitter;
+    let cancellationToken: CancellationToken;
     beforeEach(async () => {
       runTestStub = sb
         .stub(TestService.prototype, 'runTestAsynchronous')
@@ -315,7 +251,7 @@ describe('Force Apex Test Run - Code Action', () => {
       sb.stub(workspaceContext, 'getConnection');
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
-      sb.stub(TestService.prototype, 'writeResultFiles');
+      writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(SfdxProject, 'resolve').returns({
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };
@@ -331,6 +267,14 @@ describe('Force Apex Test Run - Code Action', () => {
         }
       });
       sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
+
+      reportStub = sb.stub();
+      progress = { report: reportStub };
+      cancellationTokenEventEmitter = new EventEmitter();
+      cancellationToken = {
+        isCancellationRequested: false,
+        onCancellationRequested: cancellationTokenEventEmitter.event
+      };
     });
     afterEach(async () => {
       sb.restore();
@@ -346,20 +290,24 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         true
       );
-      await apexLibExecutor.run();
+      await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
         'RunSpecifiedTests',
         'testClass.oneTest'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
         {
           tests: [{ className: 'testClass', testMethods: ['oneTest'] }],
           testLevel: TestLevel.RunSpecifiedTests
         },
-        true
-      ]);
+        true,
+        match.any,
+        cancellationToken
+      );
     });
 
     it('should run test with correct parameters for multiple test methods without code coverage', async () => {
@@ -375,14 +323,16 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         false
       );
-      await apexLibExecutor.run();
+      await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
         'RunSpecifiedTests',
         'testClass.oneTest,testClass.twoTest'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
         {
           tests: [
             { className: 'testClass', testMethods: ['oneTest'] },
@@ -390,8 +340,10 @@ describe('Force Apex Test Run - Code Action', () => {
           ],
           testLevel: TestLevel.RunSpecifiedTests
         },
-        false
-      ]);
+        false,
+        match.any,
+        cancellationToken
+      );
     });
 
     it('should run test with correct parameters for single test class with code coverage', async () => {
@@ -404,20 +356,24 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         true
       );
-      await apexLibExecutor.run();
+      await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
         'RunSpecifiedTests',
         'testClass'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
         {
           tests: [{ className: 'testClass' }],
           testLevel: TestLevel.RunSpecifiedTests
         },
-        true
-      ]);
+        true,
+        match.any,
+        cancellationToken
+      );
     });
 
     it('should run test with correct parameters for multiple test classes without code coverage', async () => {
@@ -430,20 +386,103 @@ describe('Force Apex Test Run - Code Action', () => {
         'path/to/dir',
         false
       );
-      await apexLibExecutor.run();
+      await apexLibExecutor.run(undefined, progress, cancellationToken);
 
       expect(buildPayloadStub.called).to.be.true;
       expect(buildPayloadStub.args[0]).to.eql([
         'RunSpecifiedTests',
         'testClass,secondTestClass'
       ]);
-      expect(runTestStub.args[0]).to.deep.equal([
+      assert.calledOnce(runTestStub);
+      assert.calledWith(
+        runTestStub,
         {
           tests: [{ className: 'testClass' }, { className: 'secondTestClass' }],
           testLevel: TestLevel.RunSpecifiedTests
         },
+        false,
+        match.any,
+        cancellationToken
+      );
+    });
+
+    it('should report progress', async () => {
+      buildPayloadStub.resolves({
+        tests: [
+          { className: 'testClass' },
+          {
+            className: 'secondTestClass'
+          }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests
+      });
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(
+        ['testClass', 'secondTestClass'],
+        'path/to/dir',
         false
-      ]);
+      );
+      runTestStub.callsFake(
+        (payload, codecoverage, progressReporter, token) => {
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingTransportUp',
+            message: 'Listening for streaming state changes...'
+          });
+          progressReporter.report({
+            type: 'StreamingClientProgress',
+            value: 'streamingProcessingTestRun',
+            message: 'Processing test run 707500000000000001',
+            testRunId: '707500000000000001'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'retrievingTestRunSummary',
+            message: 'Retrieving test run summary record'
+          });
+          progressReporter.report({
+            type: 'FormatTestResultProgress',
+            value: 'queryingForAggregateCodeCoverage',
+            message: 'Querying for aggregate code coverage results'
+          });
+          return passingResult;
+        }
+      );
+
+      await apexLibExecutor.run(undefined, progress, cancellationToken);
+
+      assert.calledWith(reportStub, {
+        message: 'Listening for streaming state changes...'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Processing test run 707500000000000001'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Retrieving test run summary record'
+      });
+      assert.calledWith(reportStub, {
+        message: 'Querying for aggregate code coverage results'
+      });
+    });
+
+    it('should return if cancellation is requested', async () => {
+      const apexLibExecutor = new ApexLibraryTestRunExecutor(
+        ['testClass', 'secondTestClass'],
+        'path/to/dir',
+        false
+      );
+      runTestStub.callsFake(() => {
+        cancellationToken.isCancellationRequested = true;
+      });
+
+      const result = await apexLibExecutor.run(
+        undefined,
+        progress,
+        cancellationToken
+      );
+
+      assert.calledOnce(runTestStub);
+      assert.notCalled(writeResultFilesStub);
+      expect(result).to.eql(false);
     });
   });
 
@@ -560,40 +599,6 @@ describe('Force Apex Test Run - Code Action', () => {
       runTestStub.resolves(passingResult);
       await executor.run();
       expect(setDiagnosticStub.notCalled).to.be.true;
-    });
-  });
-
-  describe('Use Apex Library Setting', async () => {
-    let settingStub: SinonStub;
-    let apexExecutorStub: SinonStub;
-    let cliExecutorStub: SinonStub;
-
-    beforeEach(async () => {
-      settingStub = sb.stub(settings, 'useApexLibrary');
-      apexExecutorStub = sb.stub(ApexLibraryTestRunExecutor.prototype, 'run');
-      cliExecutorStub = sb.stub(
-        ForceApexTestRunCodeActionExecutor.prototype,
-        'execute'
-      );
-    });
-    afterEach(async () => {
-      sb.restore();
-    });
-
-    it('should use the ApexLibraryTestRunExecutor if setting is true', async () => {
-      settingStub.returns(true);
-      await forceApexTestClassRunCodeAction('testClass');
-      await forceApexTestMethodRunCodeAction('testClass.testMethod');
-      expect(apexExecutorStub.calledTwice).to.be.true;
-      expect(cliExecutorStub.called).to.be.false;
-    });
-
-    it('should use the ForceApexTestClassRunCodeActionExecutor if setting is false', async () => {
-      settingStub.returns(false);
-      await forceApexTestClassRunCodeAction('testClass');
-      await forceApexTestMethodRunCodeAction('testClass.testMethod');
-      expect(cliExecutorStub.calledTwice).to.be.true;
-      expect(apexExecutorStub.called).to.be.false;
     });
   });
 });

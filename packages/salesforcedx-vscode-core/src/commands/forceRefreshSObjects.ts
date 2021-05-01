@@ -11,7 +11,7 @@ import {
   STANDARDOBJECTS_DIR,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
-import { FauxClassGenerator } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/generator';
+import { SObjectTransformerFactory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   SObjectCategory,
   SObjectRefreshSource
@@ -140,34 +140,37 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
       progressLocation
     );
 
-    const gen: FauxClassGenerator = new FauxClassGenerator(
-      execution.cmdEmitter,
-      cancellationToken
-    );
-
+    const projectPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
     const commandName = execution.command.logName;
     try {
       let result;
+      let transformer;
       if (response.data.source === SObjectRefreshSource.StartupMin) {
-        result = await gen.generateMin(
-          vscode.workspace.workspaceFolders![0].uri.fsPath,
-          response.data.source
+        transformer = await SObjectTransformerFactory.create(
+          execution.cmdEmitter,
+          cancellationToken,
+          projectPath,
+          SObjectCategory.STANDARD,
+          SObjectRefreshSource.StartupMin
         );
       } else {
-        result = await gen.generate(
-          vscode.workspace.workspaceFolders![0].uri.fsPath,
+        transformer = await SObjectTransformerFactory.create(
+          execution.cmdEmitter,
+          cancellationToken,
+          projectPath,
           response.data.category,
           response.data.source
         );
       }
+      result = await transformer.transform(projectPath);
 
       console.log('Generate success ' + result.data);
       this.logMetric(
         commandName,
         startTime,
         {
-          category: result.data.category ?? '',
-          source: result.data.source ?? '',
+          category: response.data.category,
+          source: response.data.source,
           cancelled: String(result.data.cancelled)
         },
         {
@@ -240,7 +243,10 @@ function getStandardSObjectsDirectory(projectPath: string) {
 }
 
 export async function checkSObjectsAndRefresh(projectPath: string) {
-  if (projectPath && !fs.existsSync(getStandardSObjectsDirectory(projectPath))) {
+  if (
+    projectPath &&
+    !fs.existsSync(getStandardSObjectsDirectory(projectPath))
+  ) {
     telemetryService.sendEventData(
       'sObjectRefreshNotification',
       { type: SObjectRefreshSource.StartupMin },
