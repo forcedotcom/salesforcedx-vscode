@@ -72,5 +72,13 @@
   "force_function_stop": "SFDX: Stop Function",
   "experimental_support_functions": "Enable building and managing Salesforce functions from VS Code",
   "force_sobjects_refresh": "SFDX: Refresh SObject Definitions",
-  "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false)."
+  "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
+  "salesforce_landing_page_description": "Configures the page which will be open when SFDX: Open Default Org command is used. This option requires restart to take effect.",
+  "select_salesforce_landing_page.default": "Default behavior of command",
+  "select_salesforce_landing_page.home_lightning": "Open Home Page (Lightning)",
+  "select_salesforce_landing_page.home_classic": "Open Home Page (Classic)",
+  "select_salesforce_landing_page.setup_lightning": "Open Setup (Lightning)",
+  "select_salesforce_landing_page.setup_classic": "Open Setup (Classic)",
+  "select_salesforce_landing_page.other": "Specify custom URL for landing page in setting Salesforce Landing Page Custom Value",
+  "custom_landing_page_description":"Specifies the Salesforce landing page. Only applies when `#salesforcedx-vscode-core.salesforceLandingPage#` is set to `Other`. This option requires restart to take effect. Example: lightning/setup/ObjectManager/home"
 }

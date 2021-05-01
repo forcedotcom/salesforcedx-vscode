@@ -31,6 +31,17 @@ export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
+export const SALESFORCE_LANDING_PAGE = 'salesforceLandingPage';
+export const SALESFORCE_LANDING_PAGE_CUSTOM_VALUE = 'salesforceLandingPageCustomValue';
+export const SALESFORCE_LANDING_PAGE_DEFAULT = 'Default';
+export const SALESFORCE_LANDING_PAGE_MAPPING: { [key: string]: string } = {
+  [SALESFORCE_LANDING_PAGE_DEFAULT]: '',
+  'Home (Lightning)': 'lightning/page/home',
+  'Home (Classic)': 'home/home.jsp?source=lex',
+  'Setup (Lightning)': 'lightning/setup/SetupOneHome/home',
+  'Setup (Classic)': 'setup/forcecomHomepage.apexp'
+};
+export const SALESFORCE_LANDING_PAGE_OTHER = 'Other';
 export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';

@@ -14,6 +14,10 @@ import {
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   RETRIEVE_TEST_CODE_COVERAGE,
+  SALESFORCE_LANDING_PAGE,
+  SALESFORCE_LANDING_PAGE_CUSTOM_VALUE,
+  SALESFORCE_LANDING_PAGE_MAPPING,
+  SALESFORCE_LANDING_PAGE_OTHER,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
@@ -40,6 +44,23 @@ export class SfdxCoreSettings {
 
   public getShowCLISuccessMsg(): boolean {
     return this.getConfigValue<boolean>(SHOW_CLI_SUCCESS_INFO_MSG, true);
+  }
+
+  public getLandingPageUrl(): string {
+    const landingPageConfigValue = this.getLandingPageSetting();
+
+    if (landingPageConfigValue === SALESFORCE_LANDING_PAGE_OTHER) {
+      return this.getLandingPageCustomValue();
+    }
+    return SALESFORCE_LANDING_PAGE_MAPPING[landingPageConfigValue] || '';
+  }
+
+  public getLandingPageSetting(): string {
+    return this.getConfigValue<string>(SALESFORCE_LANDING_PAGE, '');
+  }
+
+  public getLandingPageCustomValue(): string {
+    return this.getConfigValue<string>(SALESFORCE_LANDING_PAGE_CUSTOM_VALUE, '');
   }
 
   // checks for Microsoft's telemetry setting as well as Salesforce's telemetry setting.

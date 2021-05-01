@@ -889,6 +889,34 @@
           "type": "boolean",
           "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
+        },
+        "salesforcedx-vscode-core.salesforceLandingPage": {
+          "type": "string",
+          "scope": "resource",
+          "description": "%salesforce_landing_page_description%",
+          "enum": [
+            "Default",
+            "Home (Lightning)",
+            "Home (Classic)",
+            "Setup (Lightning)",
+            "Setup (Classic)",
+            "Other"
+          ],
+          "enumDescriptions": [
+            "%select_salesforce_landing_page.default%",
+            "%select_salesforce_landing_page.home_lightning%",
+            "%select_salesforce_landing_page.home_classic%",
+            "%select_salesforce_landing_page.setup_lightning%",
+            "%select_salesforce_landing_page.setup_classic%",
+            "%select_salesforce_landing_page.other%"
+          ],
+          "default": "Default"
+        },
+        "salesforcedx-vscode-core.salesforceLandingPageCustomValue": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "%custom_landing_page_description%",
+          "scope": "window"
         }
       }
     },
