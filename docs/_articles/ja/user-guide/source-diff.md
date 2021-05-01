@@ -27,6 +27,9 @@ lang: ja
 - Aura イベント
 - Aura インタフェース
 - Aura トークン
+- カスタム表示ラベル
+- ページレイアウト
 - Lightning Web コンポーネント
-- Visualforce ページ
+- 権限セット
 - Visualforce コンポーネント
+- Visualforce ページ

@@ -3,22 +3,33 @@ title: パフォーマンスの改善
 lang: ja
 ---
 
-パフォーマンスを改善させるために行った変更により、単一ファイルのメタデータのデプロイがより効率的なコードパスを介して実行されるようになりました。現在のところ、これらの変更は Apex と Visualforce のメタデータ型のみをサポートしています。将来のリリースで、より多くのメタデータタイプのサポートを追加される予定です。
+Apex や、デプロイまたは取得コマンドは、新しいアーキテクチャに移行しています。これらのコマンドは、salesforce-alm プラグインを細分化するための大きな取り組みの一環として、独立した Typescript ライブラリと CLI プラグインに再構築しています。詳しくはこちらのブログ記事を参照してください](https://developer.salesforce.com/blogs/2021/02/open-sourcing-salesforce-cli-update-feb-2021.html)。この取り組みには多くの利点がありますが、その中でも特に優れているのがパフォーマンスの向上です。単一ファイルのデプロイや取得では、最新のアーキテクチャを使用することで、パフォーマンスが大幅に向上していることに気づくでしょう。
 
-> 注意: コードパフォーマンスを改善させる変更は現在ベータ版です。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。
+## 実行プロセスとステータス
+
+このアーキテクチャ変更は、段階的なアプローチで行われます。 Apex ライブラリ、デプロイ/取得ライブラリともに、以下のフェーズで変更を実施しています。
+
+1. 新しいライブラリを作成し、完了する。
+2. VS Code での試用が可能 - VS Code の設定を提供しているため、オプトインして試用することができます。
+3. VS Code でデフォルトでオン - VS Code の設定で、新しいライブラリの有効化をデフォルトで True にします。以前オプトインした後にオプトアウトした場合、この機能を使用するには手動でオプトインし直す必要があります。コマンドが利用可能になり、数ヶ月間使用された後、デフォルトを変更する予定です。
+4. CLI が新しいライブラリを使用するように更新します。 VS Code の設定は廃止されます。CLI と VS Code の拡張機能の両方が新しいライブラリを使用しています。
+
+|                          | ライブラリの完成 | VS Code で試用可能 | VS Code でデフォルトで On | CLI の更新 |
+| ------------------------ | :--------------: | :----------------: | :-----------------------: | :--------: |
+| Apex ライブラリ          |        ✔️        |         ✔️         |            ✔️             |            |
+| デプロイ/取得 ライブラリ |        ✔️        |         ✔️         |                           |            |
 
 ## 設定
 
-このベータ機能を有効化するには、以下の手順に従います。
+各ライブラリに対して VS Code の設定があります。それらにアクセスするには、**[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (Windows or Linux) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (macOS) を選択します。
 
-1. **[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (Windows or Linux) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** を選択します。
-2. Salesforce Feature Previews にある、Experimental: Deploy Retrieve を選択します。
+設定の中に、以下があります。
 
-このベータ版リリースでは、以下のメタデータ型に対して **SFDX: Deploy This Source to Org (SFDX: このソースを組織にデプロイ)** または **SFDX: Retrieve This Source From Org (SFDX: このソースを組織から取得)** を実行した際に、パフォーマンス改善が有効になります。
+1. _Experimental: Deploy Retrieve_
+2. _Experimental: Use Apex Library_
 
-- Apex クラス
-- Apex トリガ
-- Visualforce コンポーネント
-- Visualforce ページ
-- Lightning コンポーネント
-- Aura Components
+既知のギャップは以下の通りです。
+
+- [CLI プラグインのフック](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm)を使用している場合、VS Code からライブラリを使用するとそれらは利用できません。上記の設定のチェックを外して、それらのコマンドについては直接 CLI を使用してください。
+
+他にもギャップを発見したり、フィードバックがある場合は、[GitHub で Issue を登録](https://github.com/forcedotcom/salesforcedx-vscode/issues/new/choose)してください。
