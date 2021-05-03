@@ -373,9 +373,13 @@ function writeChangeLog(textToInsert) {
   fs.writeSync(fd, buffer, 0, buffer.length, 0);
   fs.writeSync(fd, data, 0, data.length, buffer.length);
   fs.closeSync(fd);
+  console.log(`\nChange log written to: ${constants.CHANGE_LOG_PATH}`);
 }
 
 function openPRForChanges(releaseBranch, changeLogBranch) {
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nOpening Pull Request for team review.');
+  }
   const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranch}"`;
   const pushCommand = `git push origin ${changeLogBranch}`;
   shell.exec(commitCommand);
@@ -386,17 +390,11 @@ function openPRForChanges(releaseBranch, changeLogBranch) {
 }
 
 function writeAdditionalInfo() {
-  if (ADD_VERBOSE_LOGGING) {
-    console.log('\nStep 6: Write results to the change log.');
-  }
-  console.log(`Change log written to: ${constants.CHANGE_LOG_PATH}`);
   console.log('\nNext Steps:');
-  console.log("  1) Remove entries that shouldn't be included in the release.");
-  console.log('  2) Add documentation links as needed.');
-  console.log(
-    '     Format: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)'
-  );
-  console.log('  3) Open your PR for team review.');
+  console.log("  1) Remove entries that are not customer facing.");
+  console.log('  2) Add documentation links: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)');
+  console.log('  3) Add external contributors: Contribution by [@contributor](https://github.com/contributor)');
+  console.log('  4) Add issue links: [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490))');
 }
 
 console.log("Starting script 'change-log-generator'\n");
