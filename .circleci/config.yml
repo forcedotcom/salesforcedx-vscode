@@ -357,10 +357,6 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
-    parameters:
-      run-unit-tests:
-        type: boolean
-        default: true
     steps:
       - build-win
       - run:
