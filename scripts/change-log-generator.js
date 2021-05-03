@@ -64,6 +64,24 @@ function getArgumentValue(arg) {
   }
 }
 
+function checkErrorCode(code, errorMessage) {
+  if (code !== 0) {
+    console.log(errorMessage);
+    process.exit(-1);
+  }
+}
+
+function updateBranches(baseBranch) {
+  checkErrorCode(
+    shell.exec(`git checkout ${baseBranch}`).code,
+    `\n\nAn error occurred switching your current branch to ${baseBranch}. Exitting.`
+  );
+  checkErrorCode(
+    shell.exec(`git pull`).code,
+    `\n\nAn error occurred updating your base branch ${baseBranch}. Exitting.`
+  );
+}
+
 /**
  * Checks if the user has provided a release branch override. If they
  * have not, returns the latest release branch.
@@ -381,6 +399,7 @@ console.log("Starting script 'change-log-generator'\n");
 let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
 let PACKAGES_TO_IGNORE = getArgumentValue('-i');
 
+updateBranches('develop');
 const releaseBranch = getReleaseBranch();
 const previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
