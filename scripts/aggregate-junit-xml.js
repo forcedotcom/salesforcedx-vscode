@@ -45,15 +45,24 @@ const categoryToFile = {
   system: 'junit-custom.xml'
 };
 
+const missingResults = {
+  'vscode-integration': [],
+  integration: [],
+  unit: [],
+  system: []
+};
+
 function getTestCategories() {
   let flags;
   if (process.argv.indexOf(TEST_TYPE_ARG) > -1) {
-    flags = new Set(process.argv.slice(process.argv.indexOf(TEST_TYPE_ARG)));
+    flags = new Set(process.argv.slice(process.argv.indexOf(TEST_TYPE_ARG) + 1));
   }
   if (!flags || flags.size === 0) {
     console.log('Checking all test categories.');
-    flags = new Set(Object.keys(categoryToFile).map(c => `--${c}`));
+    flags = new Set(Object.keys(categoryToFile).map(c => `${c}`));
   }
+  console.log(`\nComparing categories:`);
+  console.log(flags);
   return flags;
 }
 
@@ -64,47 +73,69 @@ function createAggregateDirectory() {
   }
 }
 
+function getTestDirectory(packagePath) {
+  if (fs.statSync(packagePath).isDirectory()) {
+    // scan test directory for each package that has one
+    const testDir = path.join(packagePath, 'test');
+    if (fs.existsSync(testDir) && fs.statSync(testDir).isDirectory()) {
+      return testDir;
+    }
+  }
+  return '';
+}
+
 function getMissingResults(flags) {
-  const cwd = process.cwd();
-  const packagesDir = path.join(cwd, 'packages');
-  const missingResults = {
-    'vscode-integration': [],
-    integration: [],
-    unit: [],
-    system: []
-  };
-  for (const entry of fs.readdirSync(packagesDir)) {
-    const packagePath = path.join(packagesDir, entry);
-    if (fs.statSync(packagePath).isDirectory()) {
-      // scan test directory for each package that has one
-      const testDir = path.join(packagePath, 'test');
-      if (fs.existsSync(testDir) && fs.statSync(testDir).isDirectory()) {
-        for (const testEntry of fs.readdirSync(testDir)) {
+  const packagesDir = path.join(process.cwd(), 'packages');
+  for (const packageName of fs.readdirSync(packagesDir)) {
+
+    const packagePath = path.join(packagesDir, packageName);
+    const testDir = getTestDirectory(packagePath);
+    if (testDir) {
+
+      for (const testEntry of fs.readdirSync(testDir)) {
+        if (flags.has(`${testEntry}`)) {
+
           // if package test directory has a test category that matches the
           // category input, copy the junit results to the aggregate folder
-          if (flags.has(`--${testEntry}`)) {
-            const junitFilePath = path.join(
-              packagePath,
-              categoryToFile[testEntry]
+          const junitFilePath = path.join(
+            packagePath,
+            categoryToFile[testEntry]
+          );
+          if (fs.existsSync(junitFilePath)) {
+            shell.cp(
+              junitFilePath,
+              path.join(
+                process.cwd(),
+                'junit-aggregate',
+                `${packageName}-${categoryToFile[testEntry]}`
+              )
             );
-            if (fs.existsSync(junitFilePath)) {
-              shell.cp(
-                junitFilePath,
-                path.join(
-                  cwd,
-                  'junit-aggregate',
-                  `${entry}-${categoryToFile[testEntry]}`
-                )
-              );
+          } else {
+            // Rerun the test in case the test suite crashed.
+            if (testEntry === 'vscode-integration') {
+              console.log(`\nRerunning vscode integration test ${packagePath} due to crash.`);
+              // shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
+
+              if (fs.existsSync(junitFilePath)) {
+                shell.cp(
+                  junitFilePath,
+                  path.join(
+                    process.cwd(),
+                    'junit-aggregate',
+                    `${packageName}-${categoryToFile[testEntry]}`
+                  )
+                );
+              } else {
+                missingResults[testEntry].push(packageName);
+              }
             } else {
-              missingResults[testEntry].push(entry);
+              missingResults[testEntry].push(packageName);
             }
           }
         }
       }
     }
   }
-  return missingResults;
 }
 
 function generateMissingMessage(missingResults) {
@@ -112,9 +143,9 @@ function generateMissingMessage(missingResults) {
   for (const [testType, pkgs] of Object.entries(missingResults)) {
     if (pkgs.length > 0) {
       if (!missingMessage) {
-        console.log('Missing results found:\n');
+        console.log('\nMissing results found:');
         console.log(missingResults);
-        missingMessage = 'Missing junit results for the following packages:\n';
+        missingMessage = '\nMissing junit results for the following packages:\n';
       }
       missingMessage += `\n* ${testType}:`;
       missingMessage = pkgs.reduce(
@@ -142,7 +173,8 @@ function checkMissingMessage(missingMessage) {
 
 const flags = getTestCategories();
 createAggregateDirectory();
-const missingResults = getMissingResults(flags);
+getMissingResults(flags);
+
 const missingMessage = generateMissingMessage(missingResults);
 checkMissingMessage(missingMessage);
 
