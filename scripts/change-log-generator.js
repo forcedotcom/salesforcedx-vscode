@@ -404,7 +404,7 @@ console.log("Starting script 'change-log-generator'\n");
 let ADD_VERBOSE_LOGGING = process.argv.indexOf(VERBOSE_LOGGING_ARG) > -1 ? true : false;
 let PACKAGES_TO_IGNORE = getArgumentValue(PACKAGES_TO_IGNORE_ARG);
 
-updateBranches('develop');
+// updateBranches('develop');
 const releaseBranch = getReleaseBranch();
 const previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
