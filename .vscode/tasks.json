@@ -103,12 +103,12 @@
       "type": "shell",
       "args": [
         "${input:verboseOutput}",
+        "-t",
+        "${input:date}",
         "-i",
         "${input:packagesToIgnore}",
         "-o",
         "${input:releaseOverride}",
-        "-t",
-        "${input:date}"
       ]
     },
     {

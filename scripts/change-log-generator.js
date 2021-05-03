@@ -54,6 +54,16 @@ const typesToIgnore = [
   'revert'
 ];
 
+function getArgumentValue(arg) {
+  const argIndex = process.argv.indexOf(arg);
+  if (argIndex > -1) {
+    const argValue = process.argv[argIndex + 1];
+    return argValue && !argValue.startsWith('-') ? argValue : '';
+  } else {
+    return '';
+  }
+}
+
 /**
  * Checks if the user has provided a release branch override. If they
  * have not, returns the latest release branch.
@@ -62,10 +72,10 @@ function getReleaseBranch() {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 1: Determine release branch.');
   }
-  const releaseIndex = process.argv.indexOf('-o');
+  const releaseBranchArg = getArgumentValue('-o');
   const releaseBranch =
-    releaseIndex > -1 && process.argv[releaseIndex + 1]
-      ? constants.RELEASE_BRANCH_PREFIX + process.argv[releaseIndex + 1]
+    releaseBranchArg
+      ? constants.RELEASE_BRANCH_PREFIX + releaseBranchArg
       : getReleaseBranches()[0];
   validateReleaseBranch(releaseBranch);
   return releaseBranch;
@@ -107,16 +117,13 @@ function validateReleaseBranch(releaseBranch) {
 }
 
 function getReleaseDate() {
-  const dateIndex = process.argv.indexOf('-t');
-  if (dateIndex > -1 && process.argv[dateIndex + 1]) {
-    return process.argv[dateIndex + 1];
-  } else {
-    return new Intl.DateTimeFormat('en-US', {
+  const dateArg = getArgumentValue('-t');
+  return dateArg ? dateArg :
+    new Intl.DateTimeFormat('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
     }).format(new Date());
-  }
 }
 
 function getNewChangeLogBranch(releaseBranch) {
@@ -372,10 +379,7 @@ function writeAdditionalInfo() {
 console.log("Starting script 'change-log-generator'\n");
 
 let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
-let PACKAGES_TO_IGNORE =
-  process.argv.indexOf('-i') > -1
-    ? process.argv[process.argv.indexOf('-i') + 1]
-    : '';
+let PACKAGES_TO_IGNORE = getArgumentValue('-i');
 
 const releaseBranch = getReleaseBranch();
 const previousBranch = getPreviousReleaseBranch(releaseBranch);
