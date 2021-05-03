@@ -54,6 +54,11 @@ const typesToIgnore = [
   'revert'
 ];
 
+const RELEASE_OVERRIDE_ARG = '-o';
+const RELEASE_DATE_ARG = '-t';
+const VERBOSE_LOGGING_ARG = '-v';
+const PACKAGES_TO_IGNORE_ARG = '-i';
+
 function getArgumentValue(arg) {
   const argIndex = process.argv.indexOf(arg);
   if (argIndex > -1) {
@@ -84,13 +89,13 @@ function updateBranches(baseBranch) {
 
 /**
  * Checks if the user has provided a release branch override. If they
- * have not, returns the latest release branch.
+ * have not, return the latest release branch.
  */
 function getReleaseBranch() {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 1: Determine release branch.');
   }
-  const releaseBranchArg = getArgumentValue('-o');
+  const releaseBranchArg = getArgumentValue(RELEASE_OVERRIDE_ARG);
   const releaseBranch =
     releaseBranchArg
       ? constants.RELEASE_BRANCH_PREFIX + releaseBranchArg
@@ -135,7 +140,7 @@ function validateReleaseBranch(releaseBranch) {
 }
 
 function getReleaseDate() {
-  const dateArg = getArgumentValue('-t');
+  const dateArg = getArgumentValue(RELEASE_DATE_ARG);
   return dateArg ? dateArg :
     new Intl.DateTimeFormat('en-US', {
       month: 'long',
@@ -396,8 +401,8 @@ function writeAdditionalInfo() {
 
 console.log("Starting script 'change-log-generator'\n");
 
-let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
-let PACKAGES_TO_IGNORE = getArgumentValue('-i');
+let ADD_VERBOSE_LOGGING = process.argv.indexOf(VERBOSE_LOGGING_ARG) > -1 ? true : false;
+let PACKAGES_TO_IGNORE = getArgumentValue(PACKAGES_TO_IGNORE_ARG);
 
 updateBranches('develop');
 const releaseBranch = getReleaseBranch();
