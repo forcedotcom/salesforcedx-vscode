@@ -96,10 +96,9 @@ function getReleaseBranch() {
     console.log('\nStep 1: Determine release branch.');
   }
   const releaseBranchArg = getArgumentValue(RELEASE_OVERRIDE_ARG);
-  const releaseBranch =
-    releaseBranchArg
-      ? constants.RELEASE_BRANCH_PREFIX + releaseBranchArg
-      : getReleaseBranches()[0];
+  const releaseBranch = releaseBranchArg
+    ? constants.RELEASE_BRANCH_PREFIX + releaseBranchArg
+    : getReleaseBranches()[0];
   validateReleaseBranch(releaseBranch);
   return releaseBranch;
 }
@@ -141,12 +140,13 @@ function validateReleaseBranch(releaseBranch) {
 
 function getReleaseDate() {
   const dateArg = getArgumentValue(RELEASE_DATE_ARG);
-  return dateArg ? dateArg :
-    new Intl.DateTimeFormat('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(new Date());
+  return dateArg
+    ? dateArg
+    : new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(new Date());
 }
 
 function getNewChangeLogBranch(releaseBranch) {
@@ -174,7 +174,7 @@ function getCommits(releaseBranch, previousBranch) {
   if (ADD_VERBOSE_LOGGING) {
     console.log(
       '\nStep 3: Determine differences between current release branch and previous release branch.' +
-      '\nCommits:'
+        '\nCommits:'
     );
   }
   const commits = shell
@@ -247,7 +247,7 @@ function getFilesChanged(commitNumber) {
 
 function getPackageHeaders(filesChanged) {
   let packageHeaders = new Set();
-  filesChanged.split(',').forEach(function (filePath) {
+  filesChanged.split(',').forEach(function(filePath) {
     const packageName = getPackageName(filePath);
     if (packageName) {
       packageHeaders.add(packageName);
@@ -274,7 +274,7 @@ function getPackageName(filePath) {
 function filterPackageNames(packageHeaders) {
   let filteredHeaders = new Set(packageHeaders);
   if (packageHeaders.has('salesforcedx-vscode-core')) {
-    packageHeaders.forEach(function (packageName) {
+    packageHeaders.forEach(function(packageName) {
       if (packageName != 'salesforcedx-vscode-core' && packageName != 'docs') {
         filteredHeaders.delete(packageName);
       }
@@ -286,7 +286,7 @@ function filterPackageNames(packageHeaders) {
 function filterExistingPREntries(parsedCommits) {
   let currentChangeLog = fs.readFileSync(constants.CHANGE_LOG_PATH);
   let filteredResults = [];
-  parsedCommits.forEach(function (map) {
+  parsedCommits.forEach(function(map) {
     if (!currentChangeLog.includes('PR #' + map[PR_NUM])) {
       filteredResults.push(map);
     } else if (ADD_VERBOSE_LOGGING) {
@@ -303,8 +303,8 @@ function filterExistingPREntries(parsedCommits) {
 function getMessagesGroupedByPackage(parsedCommits) {
   let groupedMessages = {};
   let sortedMessages = {};
-  parsedCommits.forEach(function (map) {
-    map[PACKAGES].forEach(function (packageName) {
+  parsedCommits.forEach(function(map) {
+    map[PACKAGES].forEach(function(packageName) {
       const key = generateKey(packageName, map[TYPE]);
       if (key) {
         groupedMessages[key] = groupedMessages[key] || [];
@@ -316,7 +316,7 @@ function getMessagesGroupedByPackage(parsedCommits) {
   });
   Object.keys(groupedMessages)
     .sort()
-    .forEach(function (key) {
+    .forEach(function(key) {
       sortedMessages[key] = groupedMessages[key];
     });
   if (ADD_VERBOSE_LOGGING) {
@@ -352,14 +352,14 @@ function getChangeLogText(releaseBranch, groupedMessages) {
     getReleaseDate()
   );
   let lastType = '';
-  Object.keys(groupedMessages).forEach(function (typeAndPackageName) {
+  Object.keys(groupedMessages).forEach(function(typeAndPackageName) {
     let [type, packageName] = typeAndPackageName.split('|');
     if (!lastType || lastType != type) {
       changeLogText += util.format(TYPE_HEADER, type);
       lastType = type;
     }
     changeLogText += util.format(SECTION_HEADER, packageName);
-    groupedMessages[typeAndPackageName].forEach(function (message) {
+    groupedMessages[typeAndPackageName].forEach(function(message) {
       changeLogText += message;
     });
   });
@@ -391,15 +391,22 @@ function openPRForChanges(releaseBranch, changeLogBranch) {
 
 function writeAdditionalInfo() {
   console.log('\nNext Steps:');
-  console.log("  1) Remove entries that are not customer facing.");
-  console.log('  2) Add documentation links: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)');
-  console.log('  3) Add external contributors: Contribution by [@contributor](https://github.com/contributor)');
-  console.log('  4) Add issue links: [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490))');
+  console.log('  1) Remove entries that are not customer facing.');
+  console.log(
+    '  2) Add documentation links: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)'
+  );
+  console.log(
+    '  3) Add external contributors: Contribution by [@contributor](https://github.com/contributor)'
+  );
+  console.log(
+    '  4) Add issue links: [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490))'
+  );
 }
 
 console.log("Starting script 'change-log-generator'\n");
 
-let ADD_VERBOSE_LOGGING = process.argv.indexOf(VERBOSE_LOGGING_ARG) > -1 ? true : false;
+let ADD_VERBOSE_LOGGING =
+  process.argv.indexOf(VERBOSE_LOGGING_ARG) > -1 ? true : false;
 let PACKAGES_TO_IGNORE = getArgumentValue(PACKAGES_TO_IGNORE_ARG);
 
 updateBranches('develop');
