@@ -116,7 +116,7 @@ function getMissingResults(flags) {
             // Rerun the test in case the test suite crashed.
             if (testEntry === 'vscode-integration') {
               console.log(`\nRerunning vscode integration test ${packagePath} due to crash.`);
-              // shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
+              shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
 
               if (fs.existsSync(junitFilePath)) {
                 shell.cp(
