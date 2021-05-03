@@ -381,7 +381,7 @@ function openPRForChanges(releaseBranch, changeLogBranch) {
   shell.exec(commitCommand);
   shell.exec(pushCommand, { silent: true });
   shell.exec(
-    `open "https://github.com/forcedotcom/salesforcedx-vscode/pull/new/${changeLogBranch}"`
+    `open "https://github.com/forcedotcom/salesforcedx-vscode/pull/new/${releaseBranch}...${changeLogBranch}"`
   );
 }
 
