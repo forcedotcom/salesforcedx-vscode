@@ -371,11 +371,12 @@ jobs:
           shell: cmd.exe
           command: npm run test:integration-tests-without-system-tests
       - run:
-          name: 'Aggregate test results'
+          name: 'Assert all tests ran'
           shell: bash.exe
           command: |
             set -e
-            npm run aggregateJUnit -- --integration --vscode-integration
+            echo "export MAIN_RELEASE_VERSION="$(node -pe "require('<< parameters.package-json-path >>').version")"" >> $BASH_ENV
+            echo `npm run aggregateJUnit -- --integration --vscode-integration` >> $MISSING_TESTS
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/

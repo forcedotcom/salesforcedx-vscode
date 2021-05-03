@@ -33,10 +33,10 @@ const path = require('path');
 const shell = require('shelljs');
 
 // Pass this param when you do not check for any crashed tests, but don't want to fail.
-const RETURN_MISSING_PACKAGES_ARG = '-m';
+// const RETURN_MISSING_PACKAGES_ARG = '-m';
 const TEST_TYPE_ARG = '-t';
 
-const returnMissingPackages = process.argv.indexOf(RETURN_MISSING_PACKAGES_ARG) > - 1 ? false : true;
+// const returnMissingPackages = process.argv.indexOf(RETURN_MISSING_PACKAGES_ARG) > - 1 ? false : true;
 
 const categoryToFile = {
   'vscode-integration': 'junit-custom-vscodeIntegrationTests.xml',
@@ -54,17 +54,19 @@ function getTestCategories() {
     console.log('Checking all test categories.');
     flags = new Set(Object.keys(categoryToFile).map(c => `--${c}`));
   }
+  return flags;
 }
 
 function createAggregateDirectory() {
-  const aggregateDir = path.join(cwd, 'junit-aggregate');
+  const aggregateDir = path.join(process.cwd(), 'junit-aggregate');
   if (!fs.existsSync(aggregateDir)) {
-    shell.mkdir(path.join(cwd, 'junit-aggregate'));
+    shell.mkdir(aggregateDir);
   }
 }
 
-function getMissingResults() {
-  const packagesDir = path.join(process.cwd(), 'packages');
+function getMissingResults(flags) {
+  const cwd = process.cwd();
+  const packagesDir = path.join(cwd, 'packages');
   const missingResults = {
     'vscode-integration': [],
     integration: [],
@@ -110,7 +112,8 @@ function generateMissingMessage(missingResults) {
   for (const [testType, pkgs] of Object.entries(missingResults)) {
     if (pkgs.length > 0) {
       if (!missingMessage) {
-        console.log('Missing results found:\n' + missingResults);
+        console.log('Missing results found:\n');
+        console.log(missingResults);
         missingMessage = 'Missing junit results for the following packages:\n';
       }
       missingMessage += `\n* ${testType}:`;
@@ -139,7 +142,13 @@ function checkMissingMessage(missingMessage) {
 
 const flags = getTestCategories();
 createAggregateDirectory();
-const missingResults = getMissingResults();
+const missingResults = getMissingResults(flags);
 const missingMessage = generateMissingMessage(missingResults);
 checkMissingMessage(missingMessage);
 
+// Testing exporting info out of the script with environment variables
+// let ph = process.argv[process.argv.indexOf(RETURN_MISSING_PACKAGES_ARG) + 1];
+// ph = 'changed it!';
+// shell.exec('echo "export TEST=123" >> $BASH_ENV');
+// console.log('got here');
+// shell.env['TEST_123'] = '123';
