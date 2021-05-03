@@ -55,6 +55,8 @@ const missingResults = {
 function getTestCategories() {
   let flags;
   if (process.argv.indexOf(TEST_TYPE_ARG) > -1) {
+    console.log('args were: ');
+    console.log(process.argv.slice(process.argv.indexOf(TEST_TYPE_ARG) + 1));
     flags = new Set(process.argv.slice(process.argv.indexOf(TEST_TYPE_ARG) + 1));
   }
   if (!flags || flags.size === 0) {
