@@ -67,8 +67,8 @@ commands:
     steps:
       - run: git config --global core.autocrlf false
       - checkout
-      # - restore_dependency_cache:
-      #     base-cache-path: << pipeline.parameters.cache-version >>-win
+      - restore_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Install node'
           shell: bash.exe
@@ -89,8 +89,8 @@ commands:
           name: 'Compile'
           shell: bash.exe
           command: npm run compile
-      # - save_dependency_cache:
-      #     base-cache-path: << pipeline.parameters.cache-version >>-win
+      - save_dependency_cache:
+          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Run lint'
           shell: bash.exe
@@ -367,9 +367,9 @@ jobs:
       # - run:
       #     command: bash ./scripts/purgeVSCode.sh
       # - run:
-          # command: |
-            # echo $(circleci tests glob "./packages/")
-#            circleci tests glob "packages/**/"
+      # command: |
+      # echo $(circleci tests glob "./packages/")
+      #            circleci tests glob "packages/**/"
       - run:
           name: 'Authenticate to the default DevHub'
           shell: bash.exe
