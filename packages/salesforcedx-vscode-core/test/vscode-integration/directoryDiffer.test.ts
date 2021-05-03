@@ -55,11 +55,11 @@ describe('Directory Differ', () => {
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'
-    ).to.equal(42);
+    ).to.equal(43);
     expect(
       results.scannedRemote,
       'incorrect number of files scanned in dirTwo'
-    ).to.equal(41);
+    ).to.equal(42);
   });
 
   it('Should detect text differences', () => {
@@ -91,11 +91,11 @@ describe('Directory Differ', () => {
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'
-    ).to.equal(42);
+    ).to.equal(43);
     expect(
       results.scannedRemote,
       'incorrect number of files scanned in dirTwo'
-    ).to.equal(41);
+    ).to.equal(42);
   });
 
   it('Should detect binary differences', () => {
@@ -127,10 +127,10 @@ describe('Directory Differ', () => {
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'
-    ).to.equal(42);
+    ).to.equal(43);
     expect(
       results.scannedRemote,
       'incorrect number of files scanned in dirTwo'
-    ).to.equal(41);
+    ).to.equal(42);
   });
 });

@@ -43,22 +43,25 @@ export class MetadataCacheService {
   private username: string;
   private cachePath: string;
   private componentPath?: string;
+  private projectPath?: string;
   private sourceComponents: ComponentSet;
 
   public constructor(username: string) {
     this.username = username;
     this.sourceComponents = new ComponentSet();
-    this.cachePath = this.getCachePath(username);
+    this.cachePath = this.makeCachePath(username);
   }
 
-  public initialize(componentPath: string): void {
+  public initialize(componentPath: string, projectPath: string): void {
     this.componentPath = componentPath;
+    this.projectPath = projectPath;
   }
 
   public async loadCache(
-    componentPath: string
+    componentPath: string,
+    projectPath: string
   ): Promise<MetadataCacheResult | undefined> {
-    this.initialize(componentPath);
+    this.initialize(componentPath, projectPath);
     const components = await this.getSourceComponents();
     const operation = await this.createRetrieveOperation(components);
     const results = await operation.start();
@@ -94,14 +97,13 @@ export class MetadataCacheService {
     }
 
     const { components, properties } = this.extractResults(result);
-    if (components.length > 0 && this.componentPath) {
+    if (components.length > 0 && this.componentPath && this.projectPath) {
       const propsFile = this.saveProperties(properties);
       const cacheCommon = this.findLongestCommonDir(components, this.cachePath);
 
-      const projectDir = getRootWorkspacePath();
       const projCommon = this.findLongestCommonDir(
         this.sourceComponents.getSourceComponents().toArray(),
-        projectDir
+        this.projectPath
       );
 
       const isPathDirectory =
@@ -120,7 +122,7 @@ export class MetadataCacheService {
         cachePropPath: propsFile,
 
         project: {
-          baseDirectory: projectDir,
+          baseDirectory: this.projectPath,
           commonRoot: projCommon,
           components: this.sourceComponents.getSourceComponents().toArray()
         }
@@ -179,7 +181,8 @@ export class MetadataCacheService {
       }
     }
 
-    return baseline.substring(0, shortest);
+    const dir = baseline.substring(0, shortest);
+    return dir.endsWith(path.sep) ? dir.slice(0, -path.sep.length) : dir;
   }
 
   private saveProperties(properties: FileProperties[]): string {
@@ -204,7 +207,11 @@ export class MetadataCacheService {
     return '';
   }
 
-  public getCachePath(cacheKey: string): string {
+  public getCachePath(): string {
+    return this.cachePath;
+  }
+
+  public makeCachePath(cacheKey: string): string {
     return path.join(
       os.tmpdir(),
       ...MetadataCacheService.CACHE_FOLDER,
@@ -214,6 +221,11 @@ export class MetadataCacheService {
 
   public getPropsPath(): string {
     return path.join(this.cachePath, ...MetadataCacheService.PROPERTIES_FOLDER);
+  }
+
+  public clearCache(throwErrorOnFailure: boolean = false): string {
+    this.clearDirectory(this.cachePath, throwErrorOnFailure);
+    return this.cachePath;
   }
 
   private clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
@@ -247,7 +259,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   }
 
   protected async getComponents(response: any): Promise<ComponentSet> {
-    this.cacheService.initialize(response.data);
+    this.cacheService.initialize(response.data, getRootWorkspacePath());
     return this.cacheService.getSourceComponents();
   }
 
