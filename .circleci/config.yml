@@ -316,7 +316,7 @@ jobs:
           shell: bash.exe
           command: |
             set -e
-            npm run aggregateJUnit -- --unit
+            npm run aggregateJUnit -t unit
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/
