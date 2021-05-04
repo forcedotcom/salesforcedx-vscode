@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
@@ -61,6 +62,10 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
+      const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
+        | string
+        | undefined;
+      components.apiVersion = apiVersion ?? components.apiVersion;
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,

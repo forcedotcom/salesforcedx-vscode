@@ -6,6 +6,7 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
@@ -82,10 +83,10 @@ describe('Base Deploy Retrieve Commands', () => {
         return this.lifecycle.getComponentsStub();
       }
       protected doOperation(components: ComponentSet): Promise<undefined> {
-        return this.lifecycle.doOperationStub();
+        return this.lifecycle.doOperationStub(components);
       }
       protected postOperation(result: undefined): Promise<void> {
-        return this.lifecycle.postOperationStub();
+        return this.lifecycle.postOperationStub(result);
       }
     }
 
@@ -180,6 +181,32 @@ describe('Base Deploy Retrieve Commands', () => {
       } catch (e) {
         expect(e.message).to.equal(`Problem with ${sep}${projectPath}`);
       }
+    });
+
+    it('should use the api version from SFDX configuration', async () => {
+      const executor = new TestDeployRetrieve();
+      const configApiVersion = '30.0';
+      sb.stub(ConfigUtil, 'getConfigValue')
+        .withArgs('apiVersion')
+        .returns(configApiVersion);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(configApiVersion);
+    });
+
+    it('should use the registry api version if SFDX configuration is not set', async () => {
+      const executor = new TestDeployRetrieve();
+      const registryApiVersion = registry.apiVersion;
+      sb.stub(ConfigUtil, 'getConfigValue')
+        .withArgs('apiVersion')
+        .returns(undefined);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(registryApiVersion);
     });
   });
 
