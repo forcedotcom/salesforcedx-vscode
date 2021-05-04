@@ -8,8 +8,7 @@ import {
   ComponentSet,
   MetadataApiRetrieve,
   RetrieveResult,
-  SourceComponent,
-  SourceRetrieveResult
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { FileProperties } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as fs from 'fs';
@@ -52,11 +51,24 @@ export class MetadataCacheService {
     this.cachePath = this.makeCachePath(username);
   }
 
+  /**
+   * Specify the base project path and a component path that will define the metadata to cache for the project.
+   *
+   * @param componentPath A path referring to a project folder or an individual component resource
+   * @param projectPath The base path of an sfdx project
+   */
   public initialize(componentPath: string, projectPath: string): void {
     this.componentPath = componentPath;
     this.projectPath = projectPath;
   }
 
+  /**
+   * Load a metadata cache based on a project path that defines a set of components.
+   *
+   * @param componentPath A path referring to a project folder or an individual component resource
+   * @param projectPath The base path of an sfdx project
+   * @returns MetadataCacheResult describing the project and cache folders
+   */
   public async loadCache(
     componentPath: string,
     projectPath: string
@@ -68,7 +80,7 @@ export class MetadataCacheService {
     return this.processResults(results);
   }
 
-  public async getSourceComponents(): Promise<ComponentSet> {
+  public getSourceComponents(): ComponentSet {
     return this.componentPath
       ? (this.sourceComponents = ComponentSet.fromSource(this.componentPath))
       : new ComponentSet();
@@ -90,7 +102,7 @@ export class MetadataCacheService {
   }
 
   public async processResults(
-    result: RetrieveResult | SourceRetrieveResult | undefined
+    result: RetrieveResult | undefined
   ): Promise<MetadataCacheResult | undefined> {
     if (!result) {
       return;
@@ -131,26 +143,15 @@ export class MetadataCacheService {
   }
 
   private extractResults(
-    result: RetrieveResult | SourceRetrieveResult
+    result: RetrieveResult
   ): { components: SourceComponent[]; properties: FileProperties[] } {
-    let components: SourceComponent[] = [];
     const properties: FileProperties[] = [];
-
-    if (result instanceof RetrieveResult) {
-      if (Array.isArray(result.response.fileProperties)) {
-        properties.push(...result.response.fileProperties);
-      } else {
-        properties.push(result.response.fileProperties);
-      }
-      components = result.components.getSourceComponents().toArray();
+    if (Array.isArray(result.response.fileProperties)) {
+      properties.push(...result.response.fileProperties);
     } else {
-      result.successes?.forEach(s => {
-        if (s.properties) {
-          properties.push(s.properties);
-        }
-        components.push(s.component);
-      });
+      properties.push(result.response.fileProperties);
     }
+    const components = result.components.getSourceComponents().toArray();
     return { components, properties };
   }
 
@@ -274,9 +275,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
     return operation.start();
   }
 
-  protected async postOperation(
-    result: RetrieveResult | SourceRetrieveResult | undefined
-  ) {
+  protected async postOperation(result: RetrieveResult | undefined) {
     const cache:
       | MetadataCacheResult
       | undefined = await this.cacheService.processResults(result);
