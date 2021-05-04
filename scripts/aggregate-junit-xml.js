@@ -55,16 +55,12 @@ const missingResults = {
 function getTestCategories() {
   let flags;
   if (process.argv.indexOf(TEST_TYPE_ARG) > -1) {
-    console.log('args were: ');
-    console.log(process.argv.slice(process.argv.indexOf(TEST_TYPE_ARG) + 1));
     flags = new Set(process.argv.slice(process.argv.indexOf(TEST_TYPE_ARG) + 1));
   }
   if (!flags || flags.size === 0) {
     console.log('Checking all test categories.');
     flags = new Set(Object.keys(categoryToFile).map(c => `${c}`));
   }
-  console.log(`\nComparing categories:`);
-  console.log(flags);
   return flags;
 }
 
@@ -142,7 +138,7 @@ function copyJunitTestResult(packagePath, packageName, testEntry) {
  */
 function rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry) {
   console.assert(testEntry === 'vscode-integration');
-  console.log(`\nRerunning vscode integration test ${packagePath} due to crash.`);
+  console.log(`\nRerunning vscode integration test suite ${packageName} due to crash.`);
   shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
 
   if (!copyJunitTestResult(packagePath, packageName, testEntry)) {
@@ -189,10 +185,4 @@ getMissingResults(flags);
 
 const missingMessage = generateMissingMessage(missingResults);
 checkMissingMessage(missingMessage);
-
-// Testing exporting info out of the script with environment variables
-// let ph = process.argv[process.argv.indexOf(RETURN_MISSING_PACKAGES_ARG) + 1];
-// ph = 'changed it!';
-// shell.exec('echo "export TEST=123" >> $BASH_ENV');
-// console.log('got here');
-// shell.env['TEST_123'] = '123';
+console.log('Finished test check and aggregation.');
