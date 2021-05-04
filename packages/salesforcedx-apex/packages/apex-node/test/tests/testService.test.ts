@@ -123,6 +123,9 @@ describe('Apex Test Suites', async () => {
 
     expect(tests).to.deep.equal([{ ApexClassId: 'xxxxxx55555' }]);
     expect(toolingQueryStub.calledTwice).to.be.true;
+    expect(toolingQueryStub.args[1]).to.deep.include(
+      `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = 'xxxxxxx243'`
+    );
   });
 
   it('should return tests from suite when suite id is provided', async () => {

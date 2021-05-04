@@ -102,7 +102,7 @@ export class TestService {
     }
 
     if (suitename) {
-      const suiteId = await this.retrieveSuiteId(suitename);
+      suiteId = await this.retrieveSuiteId(suitename);
       if (suiteId === undefined) {
         throw new Error(nls.localize('missingSuiteErr'));
       }
