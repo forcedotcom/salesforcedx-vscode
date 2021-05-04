@@ -134,7 +134,7 @@ function copyJunitTestResult(packagePath, packageName, testEntry) {
 
 /*
  * Rerun vscode test suites that have crashed. The reason for this crash appears
- * to be due to a Windows bug. See W-9138899 for more information.
+ * to be due to either Windows or Electron. See W-9138899 for more information.
  */
 function rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry) {
   console.assert(testEntry === 'vscode-integration');
