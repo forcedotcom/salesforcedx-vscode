@@ -3,14 +3,14 @@ title: 概要
 lang: ja
 ---
 
-Lightning Web コンポーネント拡張機能では、エディタに内蔵されたコードナビゲーションや言語機能を活用し、Lightning Web コンポーネントを効果的に構築することができます。
+Lightning Web コンポーネント拡張機能では、エディタに内蔵されたコードナビゲーションや言語機能を活用し、Lightning Web コンポーネントを効率的に構築することができます。
 
 以下の Lightning Web コンポーネント拡張機能を利用できます。
 
-- [コード補完](#)
-- [カーソルを置くとコンポーネントドキュメントを表示](#)
-- [リンティング](#)
-- [コードナビゲーション](#)
+- [コード補完](./ja/lwc/writing#コード補完)
+- [カーソルを置くとコンポーネントドキュメントを表示](./ja/lwc/writing#カーソルを置くとコンポーネントドキュメントを表示)
+- [リンティング](./ja/lwc/writing#リンティング)
+- [コードナビゲーション](./ja/lwc/writing#コードナビゲーション)
 
 ## コード補完
 
@@ -29,15 +29,15 @@ Lightning コンポーネントでは scoped modules を通して Salesforce の
 
 以下の例では、`import` 文の補完にあたり、可能性のある静的リソースの名前を候補として表示しています。
 
-![Static Resource Completion](./images/vscode_lwc_staticresource_trailhead.png)
+![静的リソースの補完](./images/vscode_lwc_staticresource_trailhead.png)
 
 以下は、`@salesforce/schema` に対するコード補完の例です。
 
-![Schema Completion](./images/vscode_lwc_schema.png)
+![Schema の補完](./images/vscode_lwc_schema.png)
 
 以下は、Apex コントローラに対するコード補完の例です。
 
-![Apex Completion](./images/vscode_lwc_apex.png)
+![Apex の補完](./images/vscode_lwc_apex.png)
 
 ### Lightning API
 
@@ -49,19 +49,19 @@ VS Code は Lightning Web コンポーネントフレームワークが備える
 
 以下は、`@wire` デコレータの `getContactList` Apex 関数を含むコード補完の例です。
 
-![Lightning @wire Completion](./images/vscode_lwc_wire.png)
+![Lightning @wire の補完](./images/vscode_lwc_wire.png)
 
 ### HTML 属性とタグにおける名前空間の補完
 
 コード補完は、`lightning` および `c` 名前空間のコンポーネントの HTML タグおよび属性に対しても利用できます。以下では、`c-view-source` タグにおいて `source` 属性が補完されています。
 
-![HTML Attribute Completion](./images/vscode_lwc_html_attr.png)
+![HTML 属性の補完](./images/vscode_lwc_html_attr.png)
 
 ## カーソルを置くとコンポーネントドキュメントを表示
 
 `lightning` 名前空間の 標準の Lightning Web コンポーネントにカーソルを置いたときに、そのドキュメントを表示します。`c` 名前空間のカスタムコンポーネントでも、そのカスタムコンポーネントのドキュメントを提供している場合は、ドキュメントを表示します。以下はでは、`lightning-layout` のドキュメントを表示しています。このドロップダウンには、コンポーネントライブラリでコンポーネントを表示するためのリンクも含まれます。
 
-![Documentation on Hover](./images/vscode_lwc_hover.png)
+![カーソルを合わせたときのドキュメント](./images/vscode_lwc_hover.png)
 
 ## リンティング
 
@@ -69,25 +69,23 @@ VS Code は Lightning Web コンポーネントフレームワークが備える
 
 以下の例では、`onpress` にカーソルを置いたとき、API プロパティには "on" で始まる名前を使用できないとリンターがレポートしています。
 
-## 問題の表示とクイックフィックス
+### 問題の表示とクイックフィックス
 
-VS Code には、クイックフィックスや問題の表示など、問題に素早く対処してコードをリファクタリングするためのアクションが用意されています。詳細については、VS Code ドキュメントの [Refactoring](https://code.visualstudio.com/docs/editor/refactoring) を参照してください。
+VS Code には、クイックフィックスや問題の表示など、問題に素早く対処してコードをリファクタリングするためのアクションが用意されています。詳細については、『VS Code ドキュメント』の [「Refactoring」](https://code.visualstudio.com/docs/editor/refactoring) を参照してください。
 
 エラーメッセージの **問題を表示する** をクリックすると、リンターがエラーを発見した行がハイライトされます。複数のエラーがあると表示されている場合は、メッセージの右上にある下矢印をクリックすると、他のエラーが表示されます。
 
-![Linter Example with Peek](./images/vscode_lwc_peek.png)
+![問題を表示を使用したリンターの例](./images/vscode_lwc_peek.png)
 
-Clicking **Quick Fix** provides options to disable the warning on valid API names in the line or in the file, and links to the documentation. You can see these same options by clicking on the yellow lightbulb icon next to `@api onpress;`.
+以下では、**[Quick Fix \(クイック フィックス\)]** をクリックすると、行内やファイル内の有効な API 名に対する警告を無効にするオプションや、ドキュメントへのリンクが表示されています。これらの同じオプションは、`@api onpress;` の隣にある黄色い電球のアイコンをクリックすることでも表示できます。
 
-以下では、**クイックフィックス**をクリックすると、行内やファイル内の有効な API 名に対する警告を無効にするオプションや、ドキュメントへのリンクが表示されています。これらの同じオプションは、`@api onpress;` の隣にある黄色い電球のアイコンをクリックすることでも表示できます。
-
-![Linter Example with Quick Fix](./images/vscode_lwc_quickfix.png)
+![クイックフィックスを使用したリンターの例](./images/vscode_lwc_quickfix.png)
 
 ### エラーと警告
 
-ファイルとコンパイラのエラーがホバーで表示されます。以下では、`@track` にカーソルを合わせたときに、それが宣言されていないという内容のエラーが表示されています。
+ファイルとコンパイラのエラーがカーソルを置くと表示されます。以下では、`@track` にカーソルを合わせたときに、それが宣言されていないという内容のエラーが表示されています。
 
-![Documentation on Hover](./images/vscode_lwc_track.png)
+![カーソルを合わせたときのドキュメント](./images/vscode_lwc_track.png)
 
 ## コードナビゲーション
 
@@ -95,7 +93,7 @@ VS Code には、現在作業中のコードを見失うことなく、コード
 
 定義をプレビューするには、**Ctrl** (Windows または Linux) または **Command** (macOS) を押しながら、定義を見たい項目の上にカーソルを置きます。以下の例では、`c` 名前空間コンポーネントのソースをプレビューしています。
 
-![View source of a c namespace component](./images/vscode_lwc_commandhover.png)
+![c名前空間のソースを表示](./images/vscode_lwc_commandhover.png)
 
 定義を参照するには、項目を右クリックし、**Peek Definition (定義をここに表示)** を選択するか **Alt+F12** を押します。
 
@@ -103,6 +101,6 @@ VS Code には、現在作業中のコードを見失うことなく、コード
 
 ## js-meta.xml のサポート
 
-Red Hat の XML VS Code 拡張機能を js-meta.xml に統合することで、IntelliSense をサポートしています。これにより、自動提案、シンタックスエラーのレポート、リネームのサポート、コードの自動生成など、これら以外にも拡張機能にデフォルトで備わる機能を活用することができます。
+VS Code では、Red Hat の XML VS Code 拡張機能を js-meta.xml に統合することで、IntelliSense をサポートしています。これにより、自動提案、シンタックスエラーのレポート、リネームのサポート、コードの自動生成など、これら以外にも拡張機能にデフォルトで備わる機能を活用することができます。
 
-![View suggestions for target in js-meta.xml](./images/vscode-lwc-jsmeta-intellisense.png)
+![js-meta.xml の target に対する候補を表示](./images/vscode-lwc-jsmeta-intellisense.png)

@@ -92,7 +92,7 @@ Apex アウトラインビューには、エディタに開いている Apex ク
 
 ![電球から、存在しないメソッドを宣言するクイックフィックスを呼び出す様子を示す GIF](./images/declare-missing-methods-1.gif)
 
-- メソッド名の上にカーソルを置き、ポップアップウィンドウで **クイック フィックス** をクリックします。そして、**Create method 'yourMethod' in 'yourClass'** をクリックして、クイックフィックスを行います。
+- メソッド名の上にカーソルを置き、ポップアップウィンドウで **[Quick Fix \(クイック フィックス\)]** をクリックします。そして、**Create method 'yourMethod' in 'yourClass'** をクリックして、クイックフィックスを行います。
 
 ![ウィンドウのポップアップから、存在しないメソッドを宣言するクイックフィックスを呼び出す様子を示す GIF](./images/declare-missing-methods-2.gif)
 
@@ -100,7 +100,7 @@ Apex アウトラインビューには、エディタに開いている Apex ク
 
 ## 匿名 Apex
 
-VS Code で[匿名 Apex](https://developer.salesforce.com/docs/atlas.ja-jp.apexcode.meta/apexcode/apex_anonymous_block.htm)を実行するには 2 つの方法があります。1 つは、任意の Apex コードを選択して、`SFDX: 現在選択されているテキストで匿名 Apex コードを実行 (SFDX: Execute Anonymous Apex with Currently Selected Text)` というコマンドを実行するだけです。または、ファイルのコンテキスト全体を実行したい場合は、`SFDX: エディタの内容で匿名 Apex コードを実行 (SFDX: Execute Anonymous Apex with Editor Contents)` というコマンドを実行します。いずれの場合も、実行されたコードの結果は出力ペインに表示されます。
+VS Code で[匿名 Apex](https://developer.salesforce.com/docs/atlas.ja-jp.apexcode.meta/apexcode/apex_anonymous_block.htm)を実行するには 2 つの方法があります。1 つは、任意の Apex コードを選択して、`SFDX: Execute Anonymous Apex with Currently Selected Text (SFDX: 現在選択されているテキストで匿名 Apex コードを実行)` というコマンドを実行するだけです。または、ファイルのコンテキスト全体を実行したい場合は、`SFDX: Execute Anonymous Apex with Editor Contents (SFDX: エディタの内容で匿名 Apex コードを実行)` というコマンドを実行します。いずれの場合も、実行されたコードの結果は出力ペインに表示されます。
 
 ![SFDX: 現在選択されているテキストで匿名 Apex コードを実行](./images/apex_execute_selected.png)
 

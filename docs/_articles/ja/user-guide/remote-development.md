@@ -5,7 +5,7 @@ lang: ja
 
 ## 概要
 
-Salesforce Extension for VS Code は、リモート開発をサポートし、コンテナをフル機能の開発環境として利用することができます。コンテナにマウントされたプロジェクトを開いて、完全なコード補完、コードナビゲーション、デバッグなどを使用して編集することができます。
+Salesforce Extension for VS Code は、リモート開発をサポートし、コンテナをフル機能の開発環境として利用することができます。Docker コンテナまたは Windows Subsystems for Linux (WSL) 2 にマウントされたプロジェクトを開いて、完全なコード補完、コードナビゲーション、デバッグなどを使用して編集することができます。
 
 > 注意: リモート開発機能は現在ベータ版です。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。
 
@@ -20,7 +20,7 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
 
 リモート開発に Docker コンテナを使用するには以下の手順に従ってください。
 
-## インストール
+### インストール
 
 開発コンテナでリモート開発を開始するには、以下をインストールします。
 
@@ -35,7 +35,7 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
   - Linux の場合、[supported platforms](https://docs.docker.com/install/#supported-platforms) を参照してください。ターミナルから、`sudo usermod -aG docker $USER` を実行して、ユーザを `docker` グループに追加します。この設定は、一度サインアウトして再度ログインした後に有効になります。
 - [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) の最新版
 
-## 開発コンテナでプロジェクトを開く
+### 開発コンテナでプロジェクトを開く
 
 1. 作業したい既存のプロジェクトを開くか、新しいプロジェクトを作成ます。
 2. コマンドパレットから、`Remote-Container: Add Development Container Configuration Files` を実行します。
@@ -47,11 +47,11 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
 
    VS Code では開発コンテナの設定ファイルが検出され、コンテナ内のプロジェクトフォルダを再度開くように促されます。ポップアップウィンドウが非表示になる場合は、コマンドパレットから、**Remote-Containers: Reopen in Container** を実行します。
 
-   VS Code は、プロジェクトを初めて開いたときに開発コンテナを作成します。開発コンテナが作成されると、ローカルシステム内のプロジェクトフォルダがコンテナに自動的に接続、マップされ、サイドバーには **Dev Container: Salesforce Project** が表示されます。コンテナでは、Java、Git、Salesforce CLI、および `devcontainer.json` ファイルで定義された他のすべての拡張機能がプリインストールされ設定されます。
+   VS Code は、プロジェクトを初めて開いたときに開発コンテナを作成します。開発コンテナが作成されると、ローカルシステム内のプロジェクトフォルダがコンテナに自動的に接続、マップされ、サイドバーには `Dev Container: Salesforce Project` が表示されます。コンテナでは、Java、Git、Salesforce CLI、および `devcontainer.json` ファイルで定義された他のすべての拡張機能がプリインストールされ設定されます。
 
    ![開発コンテナ](./images/devcontainer.png)
 
-4. コマンドパレットから、`SFDX: Dev Hub を認証 (SFDX: Authorize a Dev Hub)` をコンテナで実行します。出力パネル (エディタ領域の下) から、認証を完了するために必要なユーザコードと検証 URL を取得することができます。
+4. コマンドパレットから、`SFDX: Authorize a Dev Hub (SFDX: Dev Hub を認証)` をコンテナで実行します。[Output \(出力\)] パネル (エディタ領域の下) から、認証を完了するために必要なユーザコードと検証 URL を取得することができます。
 
    Dev Hub として認証したくない組織にログインしている場合は、必ずログアウトしてください。そうしないと、認証したい組織の認証情報を入力するプロンプトが表示されません。認証が完了すると、`SFDX: Dev Hub を認証 が正常に実行されました` というメッセージが表示されます。成功メッセージが表示されない場合は、正しいユーザコードを入力しているかどうかを確認してから再度実行してください。ログインページでコードの再入力を促されない場合は、コマンドを終了して再度実行してください。
 
@@ -59,7 +59,7 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
 
 ![認証成功のメッセージ](./images/authorize_message.png)
 
-5. `SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)` を実行します。
+5. **SFDX: Create a Default Scratch Org (SFDX: デフォルトのスクラッチ組織を作成)** を実行します。
 6. **Reopen in Container** をクリックして開発コンテナを構築します。サイドバーには `Dev Container: Salesforce Project` が表示されます。
 
    既存のプロジェクトの開発コンテナを設定して、フルタイムの開発環境として使用できるようになりました。
@@ -72,7 +72,7 @@ Salesforce Extension for VS Code は、リモート開発をサポートし、�
 
 最初に、WSL 2 を設定します。[Microsoft が提供するインストールガイド](https://docs.microsoft.com/ja-jp/windows/wsl/install-win10)に従ってください。
 
-**重要:** WSL 2 のみを使用してください。WSL 1 には既知の問題があります。 以下の手順は Ubuntu を想定しています。他の Linux ディス鳥ビューションでも動作するはずですが、手順が少し異なる可能性があります。
+**重要:** WSL 2 のみを使用してください。WSL 1 には既知の問題があります。 以下の手順は Ubuntu を想定しています。他の Linux ディストリビューションでも動作するはずですが、手順が少し異なる可能性があります。
 
 WSL 2 をインストールした後、Salesforce の開発環境を設定します。Node.js、Salesforce CLI、OpenJDK が必要になります。
 
@@ -98,7 +98,7 @@ $ update-java-alternatives --list
 
 出力には `/usr/lib/java-1.11.0-openjdk-amd64` のようなパスが含まれています。このパスを後で使用するためコピーします。
 
-## 開発コンテナでプロジェクトを開く
+### 開発コンテナでプロジェクトを開く
 
 1. 既存のプロジェクトを開くか、新しいプロジェクトを作成ます。
 2. コマンドパレットから、`Remote-Container: Add Development Container Configuration Files` を実行します。
