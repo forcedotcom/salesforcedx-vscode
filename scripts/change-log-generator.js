@@ -405,7 +405,7 @@ function writeAdditionalInfo() {
     '  3) Add external contributors: Contribution by [@contributor](https://github.com/contributor)'
   );
   console.log(
-    '  4) Add issue links: [Issue #2490](https://github.com/forcedotcom/salesforcedx-vscode/issues/2490))'
+    '  4) Add issue links: [Issue #1234](https://github.com/forcedotcom/salesforcedx-vscode/issues/1234))'
   );
 }
 
