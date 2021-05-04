@@ -55,6 +55,7 @@ const typesToIgnore = [
 ];
 
 const RELEASE_OVERRIDE_ARG = '-o';
+const PREVIOUS_RELEASE_OVERRIDE_ARG = '-p';
 const RELEASE_DATE_ARG = '-t';
 const VERBOSE_LOGGING_ARG = '-v';
 const PACKAGES_TO_IGNORE_ARG = '-i';
@@ -119,13 +120,18 @@ function getReleaseBranches() {
 }
 
 function getPreviousReleaseBranch(releaseBranch) {
-  const releaseBranches = getReleaseBranches();
-  const index = releaseBranches.indexOf(releaseBranch);
-  if (index != -1 && index + 1 < releaseBranches.length) {
-    return releaseBranches[index + 1];
+  const previousReleaseOverride = getArgumentValue(PREVIOUS_RELEASE_OVERRIDE_ARG);
+  if (previousReleaseOverride) {
+    return previousReleaseOverride;
   } else {
-    console.log('Unable to retrieve previous release. Exiting.');
-    process.exit(-1);
+    const releaseBranches = getReleaseBranches();
+    const index = releaseBranches.indexOf(releaseBranch);
+    if (index != -1 && index + 1 < releaseBranches.length) {
+      return releaseBranches[index + 1];
+    } else {
+      console.log('Unable to retrieve previous release. Exiting.');
+      process.exit(-1);
+    }
   }
 }
 
