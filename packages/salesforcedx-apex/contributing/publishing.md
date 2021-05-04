@@ -23,7 +23,7 @@ To port changes from the develop branch to main, we utilize a script called `por
 1. Search for `Tasks: Run Task`.
 1. Select `Create Port PR for Publishing`.
 1. Select `-v` to see the full output.
-1. Select the type of version bump. Typically using the default value of `patch` is fine.
+1. Select the type of version bump. In most instances we will be using `patch`. Select `patch` when backwards compatible bug fixes are made. Select `minor` when new backwards compatible functionality is added. Select `major` when incompatible API changes are made. See https://semver.org/ for more information.
 1. Push your branch up with `git push origin <branchName>` and open the pull request for review.
 1. <b>Important:</b> When your PR has been approved, be sure to merge with the option `Rebase and Merge`. We do <b>not</b> want to squash these commits.
 
