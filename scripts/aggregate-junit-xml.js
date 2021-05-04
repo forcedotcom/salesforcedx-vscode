@@ -24,19 +24,15 @@
  * categories, call the script with desired categories separated by a space.
  *
  * e.g. 
- * Return missing tests, but don't error: node aggregate-junit-xml.js -m -t integration vscode-integration
- * Exit on error: node aggregate-junit-xml.js -m -t integration vscode-integration
+ * node aggregate-junit-xml.js -t integration vscode-integration
+ * npm run aggregateJUnit -- -t integration vscode-integration
  */
 
 const fs = require('fs-extra');
 const path = require('path');
 const shell = require('shelljs');
 
-// Pass this param when you do not check for any crashed tests, but don't want to fail.
-// const RETURN_MISSING_PACKAGES_ARG = '-m';
 const TEST_TYPE_ARG = '-t';
-
-// const returnMissingPackages = process.argv.indexOf(RETURN_MISSING_PACKAGES_ARG) > - 1 ? false : true;
 
 const categoryToFile = {
   'vscode-integration': 'junit-custom-vscodeIntegrationTests.xml',
@@ -151,8 +147,6 @@ function generateMissingMessage(missingResults) {
   for (const [testType, pkgs] of Object.entries(missingResults)) {
     if (pkgs.length > 0) {
       if (!missingMessage) {
-        console.log('\nMissing results found:');
-        console.log(missingResults);
         missingMessage = '\nMissing junit results for the following packages:\n';
       }
       missingMessage += `\n* ${testType}:`;
