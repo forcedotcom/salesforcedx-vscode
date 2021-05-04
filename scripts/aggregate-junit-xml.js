@@ -97,39 +97,10 @@ function getMissingResults(flags) {
       for (const testEntry of fs.readdirSync(testDir)) {
         if (flags.has(`${testEntry}`)) {
 
-          // if package test directory has a test category that matches the
-          // category input, copy the junit results to the aggregate folder
-          const junitFilePath = path.join(
-            packagePath,
-            categoryToFile[testEntry]
-          );
-          if (fs.existsSync(junitFilePath)) {
-            shell.cp(
-              junitFilePath,
-              path.join(
-                process.cwd(),
-                'junit-aggregate',
-                `${packageName}-${categoryToFile[testEntry]}`
-              )
-            );
-          } else {
-            // Rerun the test in case the test suite crashed.
-            if (testEntry === 'vscode-integration') {
-              console.log(`\nRerunning vscode integration test ${packagePath} due to crash.`);
-              shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
+          if (!copyJunitTestResult(packagePath, packageName, testEntry)) {
 
-              if (fs.existsSync(junitFilePath)) {
-                shell.cp(
-                  junitFilePath,
-                  path.join(
-                    process.cwd(),
-                    'junit-aggregate',
-                    `${packageName}-${categoryToFile[testEntry]}`
-                  )
-                );
-              } else {
-                missingResults[testEntry].push(packageName);
-              }
+            if (testEntry === 'vscode-integration') {
+              rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry);
             } else {
               missingResults[testEntry].push(packageName);
             }
@@ -137,6 +108,45 @@ function getMissingResults(flags) {
         }
       }
     }
+  }
+}
+
+/*
+ * If the current test directory is one we want to aggregate, copy the
+ * junit results to the aggregate folder. 
+ * 
+ * Return true or false if the test result was found.
+ */
+function copyJunitTestResult(packagePath, packageName, testEntry) {
+  const junitFilePath = path.join(
+    packagePath,
+    categoryToFile[testEntry]
+  );
+  if (fs.existsSync(junitFilePath)) {
+    shell.cp(
+      junitFilePath,
+      path.join(
+        process.cwd(),
+        'junit-aggregate',
+        `${packageName}-${categoryToFile[testEntry]}`
+      )
+    );
+    return true;
+  }
+  return false;
+}
+
+/*
+ * Rerun vscode test suites that have crashed. The reason for this crash appears
+ * to be due to a Windows bug. See W-9138899 for more information.
+ */
+function rerunCrashedVSCodeIntegrationTests(packagePath, packageName, testEntry) {
+  console.assert(testEntry === 'vscode-integration');
+  console.log(`\nRerunning vscode integration test ${packagePath} due to crash.`);
+  shell.exec(`npm run --prefix ${packagePath} test:vscode-integration`);
+
+  if (!copyJunitTestResult(packagePath, packageName, testEntry)) {
+    missingResults[testEntry].push(packageName);
   }
 }
 

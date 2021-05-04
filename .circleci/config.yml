@@ -371,7 +371,7 @@ jobs:
           shell: cmd.exe
           command: npm run test:integration-tests-without-system-tests
       - run:
-          name: 'Assert all tests ran'
+          name: 'Assert all tests ran and aggregate results'
           shell: bash.exe
           command: |
             set -e
