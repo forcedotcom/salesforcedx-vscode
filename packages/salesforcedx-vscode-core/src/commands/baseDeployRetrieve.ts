@@ -20,6 +20,7 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
+  registry,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
@@ -62,10 +63,16 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-      const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
-        | string
-        | undefined;
-      components.apiVersion = apiVersion ?? components.apiVersion;
+
+      // concrete classes may have purposefully changed the api version.
+      // if there's an indication they didn't, check the SFDX configuration to see
+      // if there is an overridden api version.
+      if (components.apiVersion === registry.apiVersion) {
+        const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
+          | string
+          | undefined;
+        components.apiVersion = apiVersion ?? components.apiVersion;
+      }
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,

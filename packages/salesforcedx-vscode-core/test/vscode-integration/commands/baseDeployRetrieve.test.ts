@@ -196,7 +196,25 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(components.apiVersion).to.equal(configApiVersion);
     });
 
-    it('should use the registry api version if SFDX configuration is not set', async () => {
+    it('should not override api version if getComponents set it already', async () => {
+      const executor = new TestDeployRetrieve();
+
+      const getComponentsResult = new ComponentSet();
+      getComponentsResult.apiVersion = '41.0';
+      executor.lifecycle.getComponentsStub.returns(getComponentsResult);
+
+      const configApiVersion = '45.0';
+      sb.stub(ConfigUtil, 'getConfigValue')
+        .withArgs('apiVersion')
+        .returns(configApiVersion);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
+    });
+
+    it('should use the registry api version by default', async () => {
       const executor = new TestDeployRetrieve();
       const registryApiVersion = registry.apiVersion;
       sb.stub(ConfigUtil, 'getConfigValue')
