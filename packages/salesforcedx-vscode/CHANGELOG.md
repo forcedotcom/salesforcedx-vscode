@@ -1,3 +1,11 @@
+# 51.12.0 - May 5, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Respect sfdx api version override during new deploy/retrieve ([PR #3208](https://github.com/forcedotcom/salesforcedx-vscode/pull/3208)), ([Issue #3151](https://github.com/forcedotcom/salesforcedx-vscode/issues/3151))
+
 # 51.11.0 - April 29, 2021
 
 ## Fixed
