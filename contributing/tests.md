@@ -254,7 +254,6 @@ Thus, instead of dynamic instrumentation, we opt for static instrumentation.
    `remap-istanbul` to remap the line numbers to their TypeScript counterparts.
 1. Then we replace the original `coverage/coverage.json` with this new version
    and generate the corresponding coverage.lcov.
-1. `coverage/coverage.json` and `lcov.info` are uploaded to codecov.io.
 
 Because we are changing the built modules and writing to file, the steps above
 have to be explicitly requested using the command `npm run coverage:system-tests`.
