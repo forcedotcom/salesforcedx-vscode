@@ -83,7 +83,6 @@ commands:
             npm config set scripts-prepend-node-path true
             npm install
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
-            npm install -g codecov
             npm install -g junit-merge
       - run:
           name: 'Compile'
@@ -321,11 +320,6 @@ jobs:
       - store_test_results:
           path: ./junit-aggregate/
       - run:
-          name: 'Generate code coverage'
-          shell: bash.exe
-          command: |
-            codecov --disable=gcov
-      - run:
           name: 'Check for Test Failures'
           shell: powershell.exe
           command: |
@@ -380,11 +374,6 @@ jobs:
       - store_test_results:
           path: ./junit-aggregate/
       - store-crash-logs
-      - run:
-          name: 'Generate code coverage'
-          shell: bash.exe
-          command: |
-            codecov --disable=gcov
       - run:
           name: 'Check for Test Failures'
           shell: powershell.exe
