@@ -49,9 +49,6 @@ parameters:
   pre-publish:
     type: boolean
     default: false
-  scheduled-build:
-    type: string
-    default: ''
 
 commands:
   build-artifacts:
@@ -184,9 +181,8 @@ commands:
           name: 'Prepare environment variables for GUS Change Case Management'
           command: |
             export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
-            echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
+            echo "export SF_CHANGE_CASE_SCHEDULE_BUILD=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
             source $BASH_ENV
-            echo "GUS_RELEASE is: ${GUS_RELEASE}"
 
   prepare-release-environment-variables:
     parameters:
@@ -449,11 +445,6 @@ jobs:
       - prepare-gus-environment-variables
       - restore_dependency_cache
       - gh-config
-      - run:
-          name: 'Set Scheduled Build'
-          command: |
-            export GUS_BUILD="<< pipeline.parameters.scheduled-build >>"
-            echo "export SF_CHANGE_CASE_SCHEDULE_BUILD=offcore.tooling.$GUS_BUILD" >> $BASH_ENV
       - release-management/install-change-case-mgmt
       - release-management/change-case-create
       - install

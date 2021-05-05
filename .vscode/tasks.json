@@ -112,7 +112,7 @@
       "label": "Publish Extensions",
       "command": "./scripts/publish-workflow.sh",
       "type": "shell",
-      "args": ["${input:circleCiId}", "${input:scheduledBuild}"]
+      "args": ["${input:circleCiId}"]
     },
     {
       "label": "Watch",
@@ -162,11 +162,6 @@
       "id": "releaseBranch",
       "type": "promptString",
       "description": "Provide the release version (Ex 49.11.0)"
-    },
-    {
-      "id": "scheduledBuild",
-      "type": "promptString",
-      "description": "Scheduled Build (should match current week's release version). Ex: 50.7.0"
     }
   ]
 }
