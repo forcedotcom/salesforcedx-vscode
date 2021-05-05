@@ -11,7 +11,7 @@ version: 2.1
 
 orbs:
   win: circleci/windows@2.2.0
-  # sfchangecase: salesforce/change-case-management@3
+  release-management: salesforce/npm-release-management@4
   slack: circleci/slack@3.4.2
 
 parameters:
@@ -181,9 +181,8 @@ commands:
           name: 'Prepare environment variables for GUS Change Case Management'
           command: |
             export GUS_BUILD="$(node -pe "require('<< parameters.package-json-path >>').version")"
-            echo "export GUS_RELEASE=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
+            echo "export SF_CHANGE_CASE_SCHEDULE_BUILD=<< parameters.release-tag-name >>.$GUS_BUILD" >> $BASH_ENV
             source $BASH_ENV
-            echo "GUS_RELEASE is: ${GUS_RELEASE}"
 
   prepare-release-environment-variables:
     parameters:
@@ -445,17 +444,9 @@ jobs:
       - prepare-release-environment-variables
       - prepare-gus-environment-variables
       - restore_dependency_cache
-      - run:
-          name: 'Setup gus case management'
-          command: |
-            sudo npm install -g @salesforce/change-case-management
-      # - sfchangecase/create:
-      #     location: REPO_LOCATION
-      #     release: GUS_RELEASE
-      # - sfchangecase/check:
-      #     location: REPO_LOCATION
-      #     release: GUS_RELEASE
       - gh-config
+      - release-management/install-change-case-mgmt
+      - release-management/change-case-create
       - install
       - compile
       - package-extensions
@@ -470,9 +461,6 @@ jobs:
             git tag v${RELEASE_VERSION}
             git push origin v${RELEASE_VERSION}
             git push origin main
-      # - sfchangecase/update:
-      #     location: REPO_LOCATION
-      #     release: GUS_RELEASE
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
@@ -495,6 +483,24 @@ jobs:
       - slack/status:
           channel: 'pdt_releases'
           fail_only: true
+      - run:
+          when: on_fail
+          name: Close CTC case as Not Implemented
+          command: |
+            if [ -z "${SF_CHANGE_CASE_SFDX_AUTH_URL}" ] || [ -z "${SF_CHANGE_CASE_TEMPLATE_ID}" ] || [ -z "${SF_CHANGE_CASE_SCHEDULE_BUILD}" ]; then
+                echo "Environment not configured for CTC"
+            else
+                sfchangecase close --location "https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME" --status "Not Implemented"
+            fi
+      - run:
+          when: on_success
+          name: All Good! Close CTC case/implementations
+          command: |
+            if [ -z "${SF_CHANGE_CASE_SFDX_AUTH_URL}" ] || [ -z "${SF_CHANGE_CASE_TEMPLATE_ID}" ] || [ -z "${SF_CHANGE_CASE_SCHEDULE_BUILD}" ]; then
+                echo "Environment not configured for CTC"
+            else
+                sfchangecase close --location "https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
+            fi
 
   create-release-branch:
     parameters:
