@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 /*
- * Asserts JUnit test results were generated from a test run with the specified
- * test categories and aggregates them into a directory.
+ * Asserts JUnit test results were generated for the specified test categories.
+ * If any vscode-integration test runs appear to have crashed, then
+ * rerun them once. Lastly, aggregate all results into a directory.
  *
  *
  * e.g. with the following structure:
