@@ -28,7 +28,7 @@ shell.set('+v');
 
 // Text Values
 const RELEASE_MESSAGE = 'Using Release Branch: %s\nPrevious Release Branch: %s';
-const LOG_HEADER = '# %s - Month DD, YYYY\n';
+const LOG_HEADER = '# %s - %s\n';
 const TYPE_HEADER = '\n## %s\n';
 const SECTION_HEADER = '\n#### %s\n';
 const MESSAGE_FORMAT =
@@ -54,19 +54,52 @@ const typesToIgnore = [
   'revert'
 ];
 
+const RELEASE_OVERRIDE_ARG = '-o';
+const PREVIOUS_RELEASE_OVERRIDE_ARG = '-p';
+const RELEASE_DATE_ARG = '-t';
+const VERBOSE_LOGGING_ARG = '-v';
+const PACKAGES_TO_IGNORE_ARG = '-i';
+
+function getArgumentValue(arg) {
+  const argIndex = process.argv.indexOf(arg);
+  if (argIndex > -1) {
+    const argValue = process.argv[argIndex + 1];
+    return argValue && !argValue.startsWith('-') ? argValue : '';
+  } else {
+    return '';
+  }
+}
+
+function checkErrorCode(code, errorMessage) {
+  if (code !== 0) {
+    console.log(errorMessage);
+    process.exit(-1);
+  }
+}
+
+function updateBranches(baseBranch) {
+  checkErrorCode(
+    shell.exec(`git checkout ${baseBranch}`).code,
+    `\n\nAn error occurred switching your current branch to ${baseBranch}. Exitting.`
+  );
+  checkErrorCode(
+    shell.exec(`git pull`).code,
+    `\n\nAn error occurred updating your base branch ${baseBranch}. Exitting.`
+  );
+}
+
 /**
  * Checks if the user has provided a release branch override. If they
- * have not, returns the latest release branch.
+ * have not, return the latest release branch.
  */
 function getReleaseBranch() {
   if (ADD_VERBOSE_LOGGING) {
     console.log('\nStep 1: Determine release branch.');
   }
-  const releaseIndex = process.argv.indexOf('-o');
-  const releaseBranch =
-    releaseIndex > -1 && process.argv[releaseIndex + 1]
-      ? constants.RELEASE_BRANCH_PREFIX + process.argv[releaseIndex + 1]
-      : getReleaseBranches()[0];
+  const releaseBranchArg = getArgumentValue(RELEASE_OVERRIDE_ARG);
+  const releaseBranch = releaseBranchArg
+    ? constants.RELEASE_BRANCH_PREFIX + releaseBranchArg
+    : getReleaseBranches()[0];
   validateReleaseBranch(releaseBranch);
   return releaseBranch;
 }
@@ -87,13 +120,18 @@ function getReleaseBranches() {
 }
 
 function getPreviousReleaseBranch(releaseBranch) {
-  const releaseBranches = getReleaseBranches();
-  const index = releaseBranches.indexOf(releaseBranch);
-  if (index != -1 && index + 1 < releaseBranches.length) {
-    return releaseBranches[index + 1];
+  const previousReleaseOverride = getArgumentValue(PREVIOUS_RELEASE_OVERRIDE_ARG);
+  if (previousReleaseOverride) {
+    return previousReleaseOverride;
   } else {
-    console.log('Unable to retrieve previous release. Exiting.');
-    process.exit(-1);
+    const releaseBranches = getReleaseBranches();
+    const index = releaseBranches.indexOf(releaseBranch);
+    if (index != -1 && index + 1 < releaseBranches.length) {
+      return releaseBranches[index + 1];
+    } else {
+      console.log('Unable to retrieve previous release. Exiting.');
+      process.exit(-1);
+    }
   }
 }
 
@@ -104,6 +142,17 @@ function validateReleaseBranch(releaseBranch) {
     );
     process.exit(-1);
   }
+}
+
+function getReleaseDate() {
+  const dateArg = getArgumentValue(RELEASE_DATE_ARG);
+  return dateArg
+    ? dateArg
+    : new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(new Date());
 }
 
 function getNewChangeLogBranch(releaseBranch) {
@@ -305,7 +354,8 @@ function generateKey(packageName, type) {
 function getChangeLogText(releaseBranch, groupedMessages) {
   let changeLogText = util.format(
     LOG_HEADER,
-    releaseBranch.toString().replace(constants.RELEASE_BRANCH_PREFIX, '')
+    releaseBranch.toString().replace(constants.RELEASE_BRANCH_PREFIX, ''),
+    getReleaseDate()
   );
   let lastType = '';
   Object.keys(groupedMessages).forEach(function(typeAndPackageName) {
@@ -329,40 +379,43 @@ function writeChangeLog(textToInsert) {
   fs.writeSync(fd, buffer, 0, buffer.length, 0);
   fs.writeSync(fd, data, 0, data.length, buffer.length);
   fs.closeSync(fd);
+  console.log(`\nChange log written to: ${constants.CHANGE_LOG_PATH}`);
 }
 
 function openPRForChanges(releaseBranch, changeLogBranch) {
+  if (ADD_VERBOSE_LOGGING) {
+    console.log('\nOpening Pull Request for team review.');
+  }
   const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranch}"`;
   const pushCommand = `git push origin ${changeLogBranch}`;
   shell.exec(commitCommand);
   shell.exec(pushCommand, { silent: true });
   shell.exec(
-    `open "https://github.com/forcedotcom/salesforcedx-vscode/pull/new/${changeLogBranch}"`
+    `open "https://github.com/forcedotcom/salesforcedx-vscode/pull/new/${releaseBranch}...${changeLogBranch}"`
   );
 }
 
 function writeAdditionalInfo() {
-  if (ADD_VERBOSE_LOGGING) {
-    console.log('\nStep 6: Write results to the change log.');
-  }
-  console.log(`Change log written to: ${constants.CHANGE_LOG_PATH}`);
   console.log('\nNext Steps:');
-  console.log("  1) Remove entries that shouldn't be included in the release.");
-  console.log('  2) Add documentation links as needed.');
+  console.log('  1) Remove entries that are not customer facing.');
   console.log(
-    '     Format: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)'
+    '  2) Add documentation links: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)'
   );
-  console.log('  3) Open your PR for team review.');
+  console.log(
+    '  3) Add external contributors: Contribution by [@contributor](https://github.com/contributor)'
+  );
+  console.log(
+    '  4) Add issue links: [Issue #1234](https://github.com/forcedotcom/salesforcedx-vscode/issues/1234))'
+  );
 }
 
 console.log("Starting script 'change-log-generator'\n");
 
-let ADD_VERBOSE_LOGGING = process.argv.indexOf('-v') > -1 ? true : false;
-let PACKAGES_TO_IGNORE =
-  process.argv.indexOf('-i') > -1
-    ? process.argv[process.argv.indexOf('-i') + 1]
-    : '';
+let ADD_VERBOSE_LOGGING =
+  process.argv.indexOf(VERBOSE_LOGGING_ARG) > -1 ? true : false;
+let PACKAGES_TO_IGNORE = getArgumentValue(PACKAGES_TO_IGNORE_ARG);
 
+updateBranches('develop');
 const releaseBranch = getReleaseBranch();
 const previousBranch = getPreviousReleaseBranch(releaseBranch);
 console.log(util.format(RELEASE_MESSAGE, releaseBranch, previousBranch));
