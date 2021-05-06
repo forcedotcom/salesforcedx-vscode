@@ -445,7 +445,10 @@ jobs:
       - prepare-gus-environment-variables
       - restore_dependency_cache
       - gh-config
-      - release-management/install-change-case-mgmt
+      - run:
+          name: 'Setup gus case management'
+          command: |
+            sudo npm install -g @salesforce/change-case-management@latest
       - release-management/change-case-create
       - install
       - compile
