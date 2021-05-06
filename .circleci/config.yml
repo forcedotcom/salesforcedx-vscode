@@ -10,7 +10,7 @@
 version: 2.1
 
 orbs:
-  win: circleci/windows@2.2.0
+  win: circleci/windows@2.4.0
   release-management: salesforce/npm-release-management@4
   slack: circleci/slack@3.4.2
 
@@ -315,7 +315,7 @@ jobs:
           shell: bash.exe
           command: |
             set -e
-            npm run aggregateJUnit -- --unit
+            npm run aggregateJUnit -- -t unit
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/
@@ -325,7 +325,7 @@ jobs:
           command: |
             codecov --disable=gcov
       - run:
-          name: 'Fail build for test failures'
+          name: 'Check for Test Failures'
           shell: powershell.exe
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
@@ -356,10 +356,6 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
-    parameters:
-      run-unit-tests:
-        type: boolean
-        default: true
     steps:
       - build-win
       - run:
@@ -374,11 +370,11 @@ jobs:
           shell: cmd.exe
           command: npm run test:integration-tests-without-system-tests
       - run:
-          name: 'Aggregate test results'
+          name: 'Assert all tests ran and aggregate results'
           shell: bash.exe
           command: |
             set -e
-            npm run aggregateJUnit -- --integration --vscode-integration
+            npm run aggregateJUnit -- -t integration vscode-integration
             junit-merge -d junit-aggregate -o junit-aggregate.xml
       - store_test_results:
           path: ./junit-aggregate/
@@ -389,7 +385,7 @@ jobs:
           command: |
             codecov --disable=gcov
       - run:
-          name: 'Fail build for test failures'
+          name: 'Check for Test Failures'
           shell: powershell.exe
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
@@ -445,7 +441,10 @@ jobs:
       - prepare-gus-environment-variables
       - restore_dependency_cache
       - gh-config
-      - release-management/install-change-case-mgmt
+      - run:
+          name: 'Setup gus case management'
+          command: |
+            sudo npm install -g @salesforce/change-case-management@latest
       - release-management/change-case-create
       - install
       - compile
