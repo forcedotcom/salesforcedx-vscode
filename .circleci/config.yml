@@ -569,7 +569,9 @@ workflows:
           type: approval
       - publish:
           e: default-executor
-          context: pdt-publish-restricted-context
+          context:
+            - pdt-publish-restricted-context
+            - CLI_CTC
           requires:
             - build-all
             - unit-tests
