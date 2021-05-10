@@ -63,6 +63,9 @@ async function createServer(
         '-Dtrace.protocol=false',
         `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`
       );
+      if (process.env.YOURKIT_PROFILER_AGENT) {
+        args.push(`-agentpath:${process.env.YOURKIT_PROFILER_AGENT}`);
+      }
     }
 
     args.push(APEX_LANGUAGE_SERVER_MAIN);
