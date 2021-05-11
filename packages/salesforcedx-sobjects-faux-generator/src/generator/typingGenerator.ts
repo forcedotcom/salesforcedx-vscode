@@ -9,15 +9,23 @@ import { EOL } from 'os';
 import * as path from 'path';
 import {
   FieldDeclaration,
+  SObject,
   SObjectDefinition,
   SObjectGenerator,
   SObjectRefreshOutput
 } from '../types';
+import { DeclarationGenerator } from './declarationGenerator';
 
 export const TYPESCRIPT_TYPE_EXT = '.d.ts';
 const TYPING_PATH = ['typings', 'lwc', 'sobjects'];
 
 export class TypingGenerator implements SObjectGenerator {
+  private declGenerator: DeclarationGenerator;
+
+  public constructor() {
+    this.declGenerator = new DeclarationGenerator();
+  }
+
   public generate(output: SObjectRefreshOutput): void {
     const typingsFolderPath = path.join(output.sfdxPath, ...TYPING_PATH);
     this.generateTypes(
@@ -26,17 +34,17 @@ export class TypingGenerator implements SObjectGenerator {
     );
   }
 
-  public generateTypes(
-    definitions: SObjectDefinition[],
-    targetFolder: string
-  ): void {
+  public generateTypes(sobjects: SObject[], targetFolder: string): void {
     if (!fs.existsSync(targetFolder)) {
       fs.mkdirSync(targetFolder);
     }
 
-    for (const def of definitions) {
-      if (def.name) {
-        this.generateType(targetFolder, def);
+    for (const sobj of sobjects) {
+      if (sobj.name) {
+        const sobjDefinition = this.declGenerator.generateSObjectDefinition(
+          sobj
+        );
+        this.generateType(targetFolder, sobjDefinition);
       }
     }
   }

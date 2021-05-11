@@ -17,31 +17,27 @@ import {
   SObjectGenerator,
   SObjectRefreshOutput
 } from '../types';
-import { MODIFIER } from './declarationGenerator';
+import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
 export const APEX_CLASS_EXTENSION = '.cls';
 const REL_BASE_FOLDER = [TOOLS_DIR, SOBJECTS_DIR];
 
 export class FauxClassGenerator implements SObjectGenerator {
-  private definitionSelector: SObjectCategory;
+  private sobjectSelector: SObjectCategory;
   private relativePath: string;
+  private declGenerator: DeclarationGenerator;
 
-  public constructor(
-    definitionSelector: SObjectCategory,
-    relativePath: string
-  ) {
-    this.definitionSelector = definitionSelector;
+  public constructor(selector: SObjectCategory, relativePath: string) {
+    this.sobjectSelector = selector;
     this.relativePath = relativePath;
+    this.declGenerator = new DeclarationGenerator();
 
     if (
-      definitionSelector !== SObjectCategory.STANDARD &&
-      definitionSelector !== SObjectCategory.CUSTOM
+      selector !== SObjectCategory.STANDARD &&
+      selector !== SObjectCategory.CUSTOM
     ) {
-      throw nls.localize(
-        'unsupported_sobject_category',
-        String(definitionSelector)
-      );
+      throw nls.localize('unsupported_sobject_category', String(selector));
     }
   }
 
@@ -72,14 +68,17 @@ export class FauxClassGenerator implements SObjectGenerator {
       throw nls.localize('no_sobject_output_folder_text', outputFolderPath);
     }
 
-    const definitions =
-      this.definitionSelector === SObjectCategory.STANDARD
+    const sobjects =
+      this.sobjectSelector === SObjectCategory.STANDARD
         ? output.getStandard()
         : output.getCustom();
 
-    for (const objDef of definitions) {
-      if (objDef.name) {
-        this.generateFauxClass(outputFolderPath, objDef);
+    for (const sobj of sobjects) {
+      if (sobj.name) {
+        const sobjDefinition = this.declGenerator.generateSObjectDefinition(
+          sobj
+        );
+        this.generateFauxClass(outputFolderPath, sobjDefinition);
       }
     }
   }

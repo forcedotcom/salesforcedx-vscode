@@ -6,10 +6,11 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { DescribeGlobalResult } from 'jsforce';
+import { DescribeGlobalResult, DescribeSObjectResult, Field } from 'jsforce';
 import { SObjectShortDescription } from '.';
 import { CLIENT_ID } from '../constants';
 import { BatchRequest, BatchResponse, SObject } from '../types';
+import { SObjectField } from '../types/describe';
 export const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {
@@ -104,9 +105,9 @@ export class SObjectDescribe {
           if (sr.result[0].errorCode && sr.result[0].message) {
             console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
           }
-        }
-        fetchedObjects.push(sr.result);
+        } else fetchedObjects.push(toMinimalSObject(sr.result));
       });
+
       return Promise.resolve(fetchedObjects);
     } catch (error) {
       const errorMsg = error.hasOwnProperty('body')
@@ -128,4 +129,57 @@ export class SObjectDescribe {
     const fetchedSObjects = ([] as SObject[]).concat(...results);
     return fetchedSObjects;
   }
+}
+
+/**
+ * Convert jsforce's complete sobject metadata to our internal (smaller) SObject representation
+ *
+ * @param describeSObject full metadata of an sobject, as returned by the jsforce's sobject/describe api
+ * @returns SObject containing a subset of DescribeSObjectResult information
+ */
+export function toMinimalSObject(
+  describeSObject: DescribeSObjectResult
+): SObject {
+  return {
+    fields: describeSObject.fields
+      ? describeSObject.fields.map(toMinimalSObjectField)
+      : [],
+    ...pick(
+      describeSObject,
+      'label',
+      'childRelationships',
+      'custom',
+      'name',
+      'queryable'
+    )
+  };
+}
+
+function toMinimalSObjectField(describeField: Field): SObjectField {
+  return pick(
+    describeField,
+    'aggregatable',
+    'custom',
+    'defaultValue',
+    'extraTypeInfo',
+    'filterable',
+    'groupable',
+    'inlineHelpText',
+    'label',
+    'name',
+    'nillable',
+    'picklistValues',
+    'referenceTo',
+    'relationshipName',
+    'sortable',
+    'type'
+  );
+}
+
+function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+  const ret: any = {};
+  keys.forEach(key => {
+    ret[key] = obj[key];
+  });
+  return ret;
 }
