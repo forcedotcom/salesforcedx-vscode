@@ -136,9 +136,8 @@
               <xs:annotation>
                 <xs:documentation>Enables a custom chat header component to be selected from Embedded Service Chat Setup. A component that imports the lightningsnapin/baseChatHeader module must specify that lightningSnapin__ChatHeader target. For more information, see the lightningsnapin/baseChatHeader documentation.</xs:documentation>
               </xs:annotation>
-
             </xs:enumeration>
-             <xs:enumeration value="lightning__RecordAction">
+            <xs:enumeration value="lightning__RecordAction">
               <xs:annotation>
                 <xs:documentation>Makes Lightning web component record action available for quick action.</xs:documentation>
               </xs:annotation>
@@ -146,6 +145,11 @@
             <xs:enumeration value="lightning__GlobalAction">
               <xs:annotation>
                 <xs:documentation>Makes Lightning web component global action available for quick action.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="analytics__Dashboard">
+              <xs:annotation>
+                <xs:documentation>Enables a component for use in Tableau CRM dashboards. This feature is currently in pilot in Spring and Summer '21 releases. If you're interested in participating in the pilot program, ask your Salesforce Account Executive.</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
           </xs:restriction>
@@ -289,6 +293,11 @@
             <xs:documentation>Use a separate targetConfig for each different page type configuration.</xs:documentation>
           </xs:annotation>
           <xs:sequence>
+            <xs:element type="xs:boolean" name="hasStep" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>Specify that your component requires an attached step to function as expected. Only valid for `analytics__Dashboard` targets. When set to `true`, the Tableau CRM dashboard builder UI prompts you to attach an existing step or create a new step when creating an instance of your component. Components with an attached step have access to step-specific properties like `results` and `selection`.</xs:documentation>
+              </xs:annotation>
+            </xs:element>
             <xs:element type="objects" name="objects" minOccurs="0" />
             <xs:element type="property" name="property" minOccurs="0" maxOccurs="unbounded" />
             <xs:element type="supportedFormFactors" name="supportedFormFactors" minOccurs="0" />
