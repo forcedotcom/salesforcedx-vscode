@@ -1,3 +1,11 @@
+# 51.13.0 - Month DD, YYYY
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Cache metadata based on a project path ([PR #3191](https://github.com/forcedotcom/salesforcedx-vscode/pull/3191))
+
 # 51.12.0 - May 6, 2021
 
 ## Fixed
