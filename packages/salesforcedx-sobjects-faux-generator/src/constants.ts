@@ -11,6 +11,7 @@ export const TOOLS_DIR = 'tools';
 export const SOBJECTS_DIR = 'sobjects';
 export const STANDARDOBJECTS_DIR = 'standardObjects';
 export const CUSTOMOBJECTS_DIR = 'customObjects';
+export const SOQLMETADATA_DIR = 'soqlMetadata';
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
 export const EXIT_EVENT = 'exitEvent';
 export const ERROR_EVENT = 'errorEvent';

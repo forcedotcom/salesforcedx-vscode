@@ -219,7 +219,16 @@ describe('Transform sobject definitions', () => {
         [
           {
             retrieve: out => {
-              out.addStandard([{ name: 'Account', fields: [] }]);
+              out.addStandard([
+                {
+                  name: 'Account',
+                  label: 'Account',
+                  queryable: true,
+                  custom: false,
+                  fields: [],
+                  childRelationships: []
+                }
+              ]);
               return Promise.resolve();
             }
           }
@@ -248,7 +257,16 @@ describe('Transform sobject definitions', () => {
         [
           {
             retrieve: out => {
-              out.addCustom([{ name: 'Custom_1', fields: [] }]);
+              out.addCustom([
+                {
+                  name: 'Custom_1',
+                  label: 'Custom_1',
+                  queryable: true,
+                  custom: true,
+                  fields: [],
+                  childRelationships: []
+                }
+              ]);
               return Promise.resolve();
             }
           }

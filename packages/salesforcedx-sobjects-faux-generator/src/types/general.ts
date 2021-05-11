@@ -42,10 +42,10 @@ export interface SObjectRefreshOutput {
   sfdxPath: string;
   addTypeNames: (names: SObjectShortDescription[]) => void;
   getTypeNames: () => SObjectShortDescription[];
-  addStandard: (standard: SObjectDefinition[]) => void;
-  getStandard: () => SObjectDefinition[];
-  addCustom: (standard: SObjectDefinition[]) => void;
-  getCustom: () => SObjectDefinition[];
+  addStandard: (standard: SObject[]) => void;
+  getStandard: () => SObject[];
+  addCustom: (standard: SObject[]) => void;
+  getCustom: () => SObject[];
   setError: (message: string, stack?: string) => void;
 }
 

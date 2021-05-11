@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
 import { ConfigUtil } from '../generator/configUtil';
+import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
 import {
   MinObjectRetriever,
   OrgObjectDetailRetriever,
@@ -77,6 +78,8 @@ export class SObjectTransformerFactory {
     }
     // TODO Enable as part of W-8912293
     // generators.push(new TypingGenerator());
+
+    generators.push(new SOQLMetadataGenerator(category));
 
     return new SObjectTransformer(
       emitter,

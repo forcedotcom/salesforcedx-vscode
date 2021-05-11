@@ -11,11 +11,10 @@ import {
   SObjectSelector,
   SObjectShortDescription
 } from '../describe';
-import { DeclarationGenerator } from '../generator';
+
 import { nls } from '../messages';
 import {
   SObject,
-  SObjectDefinition,
   SObjectDefinitionRetriever,
   SObjectRefreshOutput
 } from '../types';
@@ -46,12 +45,9 @@ export class OrgObjectRetriever implements SObjectDefinitionRetriever {
 export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
   private describer: SObjectDescribe;
   private selector: SObjectSelector;
-  private declGenerator: DeclarationGenerator;
-
   public constructor(connection: Connection, selector: SObjectSelector) {
     this.describer = new SObjectDescribe(connection);
     this.selector = selector;
-    this.declGenerator = new DeclarationGenerator();
   }
 
   public async retrieve(output: SObjectRefreshOutput): Promise<void> {
@@ -67,18 +63,14 @@ export class OrgObjectDetailRetriever implements SObjectDefinitionRetriever {
       return;
     }
 
-    const standardSObjects: SObjectDefinition[] = [];
-    const customSObjects: SObjectDefinition[] = [];
+    const standardSObjects: SObject[] = [];
+    const customSObjects: SObject[] = [];
     // tslint:disable-next-line:prefer-for-of
     for (let i = 0; i < fetchedSObjects.length; i++) {
       if (fetchedSObjects[i].custom) {
-        customSObjects.push(
-          this.declGenerator.generateSObjectDefinition(fetchedSObjects[i])
-        );
+        customSObjects.push(fetchedSObjects[i]);
       } else {
-        standardSObjects.push(
-          this.declGenerator.generateSObjectDefinition(fetchedSObjects[i])
-        );
+        standardSObjects.push(fetchedSObjects[i]);
       }
     }
 

@@ -6,11 +6,11 @@
  */
 import {
   ChildRelationship,
-  Field,
   FieldDeclaration,
   SObject,
   SObjectDefinition
 } from '../types';
+import { SObjectField } from '../types/describe';
 
 export const MODIFIER = 'global';
 
@@ -75,7 +75,7 @@ export class DeclarationGenerator {
     if (sobject.childRelationships) {
       for (const rel of sobject.childRelationships) {
         if (rel.relationshipName) {
-          const decl: FieldDeclaration = this.generateChildRelationship(rel);
+          const decl = this.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }
@@ -85,7 +85,7 @@ export class DeclarationGenerator {
       for (const rel of sobject.childRelationships) {
         // handle the odd childRelationships last (without relationshipName)
         if (!rel.relationshipName) {
-          const decl: FieldDeclaration = this.generateChildRelationship(rel);
+          const decl = this.generateChildRelationship(rel);
           if (decl) {
             declarations.push(decl);
           }
@@ -115,12 +115,15 @@ export class DeclarationGenerator {
     return gentype ? gentype : this.capitalize(describeType);
   }
 
-  private getReferenceName(relationshipName: string, name: string): string {
+  private getReferenceName(
+    name: string,
+    relationshipName?: string | null
+  ): string {
     return relationshipName ? relationshipName : this.stripId(name);
   }
 
   private generateChildRelationship(rel: ChildRelationship): FieldDeclaration {
-    const name = this.getReferenceName(rel.relationshipName, rel.field);
+    const name = this.getReferenceName(rel.field, rel.relationshipName);
     return {
       modifier: MODIFIER,
       type: `List<${rel.childSObject}>`,
@@ -128,11 +131,11 @@ export class DeclarationGenerator {
     };
   }
 
-  private generateField(field: Field): FieldDeclaration[] {
+  private generateField(field: SObjectField): FieldDeclaration[] {
     const decls: FieldDeclaration[] = [];
     const comment = field.inlineHelpText;
     let genType = '';
-    if (field.referenceTo.length === 0) {
+    if (!field.referenceTo || field.referenceTo.length === 0) {
       // should be a normal field EXCEPT for external lookup & metadata relationship
       // which is a reference, but no referenceTo targets
       if (field.extraTypeInfo === 'externallookup') {
@@ -141,28 +144,43 @@ export class DeclarationGenerator {
         genType = this.getTargetType(field.type);
       }
 
-      decls.push({
-        modifier: MODIFIER,
-        type: genType,
-        name: field.name,
-        comment
-      });
+      decls.push(
+        Object.assign(
+          {
+            modifier: MODIFIER,
+            type: genType,
+            name: field.name
+          },
+          comment ? { comment } : {}
+        )
+      );
     } else {
-      const name = this.getReferenceName(field.relationshipName, field.name);
+      const name = this.getReferenceName(field.name, field.relationshipName);
 
-      decls.push({
-        modifier: MODIFIER,
-        name,
-        type: field.referenceTo.length > 1 ? 'SObject' : `${field.referenceTo}`,
-        comment
-      });
+      decls.push(
+        Object.assign(
+          {
+            modifier: MODIFIER,
+            name,
+            type:
+              field.referenceTo && field.referenceTo.length > 1
+                ? 'SObject'
+                : `${field.referenceTo}`
+          },
+          comment ? { comment } : {}
+        )
+      );
       // field.type will be "reference", but the actual type is an Id for Apex
-      decls.push({
-        modifier: MODIFIER,
-        name: field.name,
-        type: 'Id',
-        comment
-      });
+      decls.push(
+        Object.assign(
+          {
+            modifier: MODIFIER,
+            name: field.name,
+            type: 'Id'
+          },
+          comment ? { comment } : {}
+        )
+      );
     }
     return decls;
   }

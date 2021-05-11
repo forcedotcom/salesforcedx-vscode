@@ -20,6 +20,7 @@ import {
 import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
 import {
+  SObject,
   SObjectDefinition,
   SObjectDefinitionRetriever,
   SObjectGenerator,
@@ -33,8 +34,8 @@ export interface CancellationToken {
 
 export type SObjectRefreshTransformData = SObjectRefreshData & {
   typeNames: SObjectShortDescription[];
-  standard: SObjectDefinition[];
-  custom: SObjectDefinition[];
+  standard: SObject[];
+  custom: SObject[];
   error?: { message: string; stack?: string };
 };
 
@@ -67,9 +68,7 @@ export class SObjectTransformer {
       );
     }
 
-    const output: SObjectRefreshTransformData = this.initializeData(
-      projectPath
-    );
+    const output: SObjectRefreshData = this.initializeData(projectPath);
 
     for (const retriever of this.retrievers) {
       if (this.didCancel()) {
@@ -109,7 +108,7 @@ export class SObjectTransformer {
     return this.successExit();
   }
 
-  private initializeData(projectPath: string): SObjectRefreshTransformData {
+  private initializeData(projectPath: string): SObjectRefreshData {
     const output: SObjectRefreshTransformData = {
       addTypeNames: names => {
         output.typeNames = output.typeNames.concat(names);
@@ -135,6 +134,7 @@ export class SObjectTransformer {
       },
 
       sfdxPath: path.join(projectPath, SFDX_DIR),
+
       typeNames: [],
       custom: [],
       standard: []

@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const mockDescribeResponse = {
+import { SObject } from '../../src/types';
+
+export const mockAPIResponse = {
   hasErrors: false,
   results: [
     {
@@ -115,6 +117,34 @@ export const mockDescribeResponse = {
       }
     }
   ]
+};
+
+// Minimal version of result[0] above, using smaller SObject representation
+export const mockMinimizedResponseResult: SObject = {
+  childRelationships: [],
+  custom: false,
+  fields: [
+    {
+      aggregatable: true,
+      custom: false,
+      defaultValue: null,
+      extraTypeInfo: null,
+      filterable: true,
+      groupable: true,
+      inlineHelpText: null,
+      label: 'Apex Page Info ID',
+      name: 'Id',
+      nillable: false,
+      picklistValues: [],
+      referenceTo: [],
+      relationshipName: null,
+      sortable: true,
+      type: 'id'
+    }
+  ],
+  label: 'Apex Page Info',
+  name: 'ApexPageInfo',
+  queryable: true
 };
 
 export const mockBatchResponse = {
