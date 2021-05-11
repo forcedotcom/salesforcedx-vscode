@@ -1,4 +1,4 @@
-# 51.13.0 - Month DD, YYYY
+# 51.13.0 - May 12, 2021
 
 ## Added
 
