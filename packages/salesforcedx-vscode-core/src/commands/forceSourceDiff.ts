@@ -12,8 +12,16 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { CommonDirDirectoryDiffer, conflictView } from '../conflict';
+import {
+  MetadataCacheExecutor,
+  MetadataCacheResult
+} from '../conflict/metadataCacheService';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
@@ -146,4 +154,95 @@ export async function forceSourceDiff(sourceUri: vscode.Uri) {
     new ForceSourceDiffExecutor()
   );
   await commandlet.run();
+}
+
+export async function superSourceDiff(explorerPath: vscode.Uri) {
+  if (!explorerPath) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
+      explorerPath = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize('force_source_diff_unsupported_type');
+      telemetryService.sendException('unsupported_type_on_diff', errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
+    }
+  }
+
+  const username = workspaceContext.username;
+  if (!username) {
+    notificationService.showErrorMessage('No default org');
+    return;
+  }
+
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new FilePathGatherer(explorerPath),
+    new MetadataCacheExecutor(
+      username,
+      'Source Diff',
+      'source-diff-loader',
+      handleCacheResults
+    )
+  );
+  await commandlet.run();
+}
+
+async function handleCacheResults(cache?: MetadataCacheResult): Promise<void> {
+  if (cache) {
+    console.log(`PROF-FILE: ${cache.cachePropPath}`);
+    if (!cache.selectedIsDirectory && cache.cache.components) {
+      await diffOneFile(cache.selectedPath, cache.cache.components[0]);
+    } else if (cache.selectedIsDirectory) {
+      const localPath = path.join(
+        cache.project.baseDirectory,
+        cache.project.commonRoot
+      );
+      const remotePath = path.join(
+        cache.cache.baseDirectory,
+        cache.cache.commonRoot
+      );
+      const differ = new CommonDirDirectoryDiffer();
+      const diffs = differ.diff(localPath, remotePath);
+
+      conflictView.visualizeDifferences(
+        'PDTDevHub2 - File Diffs',
+        'PDTDevHub2',
+        true,
+        diffs
+      );
+    }
+  } else {
+    notificationService.showErrorMessage(
+      'Selected components are not available in the org'
+    );
+  }
+}
+
+async function diffOneFile(
+  localFile: string,
+  remoteComponent: SourceComponent
+): Promise<void> {
+  const filePart = path.basename(localFile);
+
+  for (const filePath of remoteComponent.walkContent()) {
+    if (filePath.endsWith(filePart)) {
+      const remoteUri = vscode.Uri.file(filePath);
+      const localUri = vscode.Uri.file(localFile);
+
+      try {
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          remoteUri,
+          localUri,
+          'Source File Diff ( Local File / Org File )'
+        );
+      } catch (err) {
+        console.log(`ERROR: ${err}`);
+      }
+      return;
+    }
+  }
 }

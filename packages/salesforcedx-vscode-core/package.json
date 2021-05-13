@@ -196,6 +196,10 @@
         {
           "command": "sfdx.force.diff",
           "when": "sfdx:project_opened && resourceLangId == visualforce"
+        },
+        {
+          "command": "sfdx.force.superdiff",
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
@@ -270,6 +274,10 @@
         {
           "command": "sfdx.force.diff",
           "when": "sfdx:project_opened && resourceLangId == visualforce"
+        },
+        {
+          "command": "sfdx.force.superdiff",
+          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
@@ -523,6 +531,10 @@
         },
         {
           "command": "sfdx.force.diff",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.force.superdiff",
           "when": "false"
         },
         {
@@ -807,6 +819,10 @@
       {
         "command": "sfdx.force.diff",
         "title": "%force_diff_against_org%"
+      },
+      {
+        "command": "sfdx.force.superdiff",
+        "title": "SFDX: Super Diff Source from Org"
       },
       {
         "command": "sfdx.force.conflict.open",

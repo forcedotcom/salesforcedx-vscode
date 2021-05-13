@@ -62,6 +62,7 @@ import {
   forceVisualforcePageCreate,
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
+  superSourceDiff,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
@@ -78,7 +79,10 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_CONFIGURATION_NAME } from './constants';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  SFDX_CORE_CONFIGURATION_NAME
+} from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
@@ -322,6 +326,11 @@ function registerCommands(
     forceSourceDiff
   );
 
+  const superDiff = vscode.commands.registerCommand(
+    'sfdx.force.superdiff',
+    superSourceDiff
+  );
+
   const forceFunctionCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.function.create',
     forceFunctionCreate
@@ -409,6 +418,7 @@ function registerCommands(
     forceStartApexDebugLoggingCmd,
     forceStopApexDebugLoggingCmd,
     isvDebugBootstrapCmd,
+    superDiff,
     forceConfigSetCmd
   );
 }
@@ -631,8 +641,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const sobjectRefreshStartup: boolean = vscode.workspace
-  .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-  .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
   if (sobjectRefreshStartup) {
     initSObjectDefinitions(
