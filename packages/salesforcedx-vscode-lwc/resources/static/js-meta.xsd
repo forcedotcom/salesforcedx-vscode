@@ -190,6 +190,11 @@
         <xs:documentation>Displays as an i-bubble for the attribute in the tool.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute type="xs:string" name="filter" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the Salesforce CMS content types to display in the component in Experience Builder. Supported only if the target is `lightningCommunity__Default` and the type is `ContentReference`.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute type="xs:string" name="label" use="optional">
       <xs:annotation>
         <xs:documentation>Displays as a label for the attribute in the tool.</xs:documentation>
@@ -228,6 +233,32 @@
     <xs:attribute type="xs:string" name="type" use="required">
       <xs:annotation>
         <xs:documentation>The attribute’s data type. Please refer to the documentation for all supported types for different targets.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <!-- property XSD-->
+  <xs:complexType name="propertyType">
+    <xs:annotation>
+      <xs:documentation>Defines a data type to extend for component properties in flow screen components. Only generic `sObject` and `sObject` collection data types can be extended. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute type="xs:string" name="extends" use="required">
+      <xs:annotation>
+        <xs:documentation>Specifies the data type to extend for component properties.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="description" use="optional">
+      <xs:annotation>
+        <xs:documentation>Description of the property type.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="label" use="optional">
+      <xs:annotation>
+        <xs:documentation>Label of the property type.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="name" use="required">
+      <xs:annotation>
+        <xs:documentation>Specifies the data type name to reference from each type attribute that is defined in a component’s property subtag.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
@@ -292,6 +323,7 @@
           <xs:annotation>
             <xs:documentation>Use a separate targetConfig for each different page type configuration.</xs:documentation>
           </xs:annotation>
+          <!-- These are really allowed to be unordered in the server, but xsd doesn't support unordered child elements with some being optional and some being unbounded -->
           <xs:sequence>
             <xs:element type="xs:boolean" name="hasStep" minOccurs="0">
               <xs:annotation>
@@ -299,7 +331,11 @@
               </xs:annotation>
             </xs:element>
             <xs:element type="objects" name="objects" minOccurs="0" />
-            <xs:element type="property" name="property" minOccurs="0" maxOccurs="unbounded" />
+            <!-- Do allow these unbounded ones to be unordered, which makes the propertyType example in the docs validate -->
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element type="property" name="property" />
+              <xs:element type="propertyType" name="propertyType" />
+            </xs:choice>
             <xs:element type="supportedFormFactors" name="supportedFormFactors" minOccurs="0" />
           </xs:sequence>
           <xs:attribute type="xs:string" name="configurationEditor" use="optional">
