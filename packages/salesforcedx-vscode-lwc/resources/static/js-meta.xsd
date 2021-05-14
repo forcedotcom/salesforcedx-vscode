@@ -276,6 +276,16 @@
               <xs:documentation>A datetime in ISO 8601 format. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
             </xs:annotation>
           </xs:enumeration>
+          <xs:enumeration value="Dimension">
+            <xs:annotation>
+              <xs:documentation>A dimension column from the results of the attached step. Supported only if hasStep is `true`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Measure">
+            <xs:annotation>
+              <xs:documentation>A measure column from the results of the attached step. Supported only if hasStep is `true`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
         </xs:restriction>
       </xs:simpleType>
       <xs:simpleType>
