@@ -67,6 +67,7 @@ async function diffFile(
 async function handleCacheResults(cache?: MetadataCacheResult): Promise<void> {
   if (cache) {
     if (!cache.selectedIsDirectory && cache.cache.components) {
+      // file
       await diffFile(cache.selectedPath, cache.cache.components[0]);
     } else {
       // directory
@@ -74,12 +75,11 @@ async function handleCacheResults(cache?: MetadataCacheResult): Promise<void> {
   } else {
     const message = nls.localize('force_source_diff_remote_not_found');
     notificationService.showErrorMessage(message);
-    channelService.appendLine(message);
-    channelService.showChannelOutput();
+    throw new Error(message);
   }
 }
 
-export async function forceSourceDiff(sourceUri: vscode.Uri) {
+export async function forceSourceDiff(sourceUri?: vscode.Uri) {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
