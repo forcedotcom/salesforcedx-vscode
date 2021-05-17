@@ -36,7 +36,11 @@ async function diffFile(
   const defaultUsernameorAlias =
     workspaceContext.alias || workspaceContext.username;
 
-  for (const filePath of remoteComponent.walkContent()) {
+  const remoteFilePaths = remoteComponent.walkContent();
+  if (remoteComponent.xml) {
+    remoteFilePaths.push(remoteComponent.xml);
+  }
+  for (const filePath of remoteFilePaths) {
     if (filePath.endsWith(filePart)) {
       const remoteUri = vscode.Uri.file(filePath);
       const localUri = vscode.Uri.file(localFile);
