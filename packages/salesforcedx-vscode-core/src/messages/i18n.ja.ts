@@ -496,7 +496,7 @@ export const messages = {
 
   force_source_diff_text: 'SFDX: 組織のファイルとの差分を表示',
   force_source_diff_remote_not_found:
-    'Selected file or directory was not found in org',
+    'Selected file or directory was not found in the org',
   force_source_diff_unsupported_type:
     'このメタデータ型に対する差分は現在サポートされていません。',
   force_source_diff_title: '%s//%s ↔ ローカル //%s',

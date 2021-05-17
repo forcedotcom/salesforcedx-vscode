@@ -562,7 +562,7 @@ export const messages = {
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_remote_not_found:
-    'Selected file or directory was not found in org',
+    'Selected file or directory was not found in the org',
   force_source_diff_unsupported_type:
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
