@@ -213,7 +213,7 @@
         },
         {
           "command": "sfdx.force.folder.diff",
-          "when": "explorerResourceIsFolder && resourceFilename =~ /applications|aura|classes|components|contentassets|flexipages|layouts|lwc|objects|pages|permissionsets|staticresources|tabs|triggers$/ && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.analytics.template.create",
