@@ -16,11 +16,11 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import * as conflictDetectionService from '../conflict/conflictDetectionService';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult
 } from '../conflict';
+import * as conflictDetectionService from '../conflict/conflictDetectionService';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
