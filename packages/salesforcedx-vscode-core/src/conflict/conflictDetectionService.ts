@@ -12,12 +12,17 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as AdmZip from 'adm-zip';
 import * as os from 'os';
 import * as path from 'path';
 import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { conflictView } from '../conflict';
+import {
+  MetadataCacheResult
+} from '../conflict/metadataCacheService';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
@@ -237,4 +242,50 @@ export class ConflictDetector {
     notificationService.showErrorMessage(errorMsg);
     telemetryService.sendException('ConflictDetectionException', errorMsg);
   }
+}
+
+export async function diffOneFile(
+  localFile: string,
+  remoteComponent: SourceComponent
+): Promise<void> {
+  const filePart = path.basename(localFile);
+
+  for (const filePath of remoteComponent.walkContent()) {
+    if (filePath.endsWith(filePart)) {
+      const remoteUri = vscode.Uri.file(filePath);
+      const localUri = vscode.Uri.file(localFile);
+
+      try {
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          remoteUri,
+          localUri,
+          'Source File Diff ( Local File / Org File )'
+        );
+      } catch (err) {
+        console.log(`ERROR: ${err}`);
+      }
+      return;
+    }
+  }
+}
+
+export async function diffFolder(cache: MetadataCacheResult, username: string) {
+  const localPath = path.join(
+    cache.project.baseDirectory,
+    cache.project.commonRoot
+  );
+  const remotePath = path.join(
+    cache.cache.baseDirectory,
+    cache.cache.commonRoot
+  );
+  const differ = new CommonDirDirectoryDiffer();
+  const diffs = differ.diff(localPath, remotePath);
+
+  conflictView.visualizeDifferences(
+    'PDTDevHub - File Diffs',
+    username,
+    true,
+    diffs
+  );
 }

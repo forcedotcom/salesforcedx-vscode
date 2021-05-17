@@ -143,8 +143,10 @@ export {
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,
+  forceSourceFolderDiff,
   ForceSourceDiffExecutor,
-  handleDiffResponse
+  handleDiffResponse,
+  handleCacheResults
 } from './forceSourceDiff';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';

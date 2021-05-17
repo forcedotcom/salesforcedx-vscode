@@ -13,7 +13,9 @@ import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
 export {
   ConflictDetectionConfig,
-  ConflictDetector
+  ConflictDetector,
+  diffFolder,
+  diffOneFile
 } from './conflictDetectionService';
 export {
   CommonDirDirectoryDiffer,
@@ -65,6 +67,6 @@ function openResource(node: ConflictNode) {
   const file = node.conflict;
   if (file) {
     const local = Uri.file(path.join(file.localPath, file.relPath));
-    window.showTextDocument(local).then(() => {});
+    window.showTextDocument(local).then(() => { });
   }
 }

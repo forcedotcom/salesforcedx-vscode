@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { StreamingMockSubscriptionCall } from '@salesforce/core/lib/testSetup';
 import {
   CliCommandExecutor,
   Command,
@@ -12,8 +13,15 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import * as conflictDetectionService from '../conflict/conflictDetectionService';
+import {
+  MetadataCacheExecutor,
+  MetadataCacheResult
+} from '../conflict/metadataCacheService';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
@@ -146,4 +154,52 @@ export async function forceSourceDiff(sourceUri: vscode.Uri) {
     new ForceSourceDiffExecutor()
   );
   await commandlet.run();
+}
+
+export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
+  if (!explorerPath) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
+      explorerPath = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize('force_source_diff_unsupported_type');
+      telemetryService.sendException('unsupported_type_on_diff', errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
+    }
+  }
+
+  const username = workspaceContext.username;
+  if (!username) {
+    notificationService.showErrorMessage('No default org');
+    return;
+  }
+
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new FilePathGatherer(explorerPath),
+    new MetadataCacheExecutor(
+      username,
+      'Source Diff',
+      'source-diff-loader',
+      handleCacheResults
+    )
+  );
+  await commandlet.run();
+}
+
+export async function handleCacheResults(username: string, cache?: MetadataCacheResult): Promise<void> {
+  if (cache) {
+    if (!cache.selectedIsDirectory && cache.cache.components) {
+      await conflictDetectionService.diffOneFile(cache.selectedPath, cache.cache.components[0]);
+    } else if (cache.selectedIsDirectory) {
+      await conflictDetectionService.diffFolder(cache, username);
+    }
+  } else {
+    notificationService.showErrorMessage(
+      nls.localize('force_source_diff_components_not_in_org')
+    );
+  }
 }

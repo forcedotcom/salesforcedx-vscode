@@ -49,6 +49,7 @@ import {
   forceSourceDeployMultipleSourcePaths,
   forceSourceDeploySourcePath,
   forceSourceDiff,
+  forceSourceFolderDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
@@ -320,6 +321,11 @@ function registerCommands(
   const forceDiffFile = vscode.commands.registerCommand(
     'sfdx.force.diff',
     forceSourceDiff
+  );
+
+  const forceDiffFolder = vscode.commands.registerCommand(
+    'sfdx.force.folder.diff',
+    forceSourceFolderDiff
   );
 
   const forceFunctionCreateCmd = vscode.commands.registerCommand(
@@ -631,8 +637,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const sobjectRefreshStartup: boolean = vscode.workspace
-  .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-  .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
   if (sobjectRefreshStartup) {
     initSObjectDefinitions(

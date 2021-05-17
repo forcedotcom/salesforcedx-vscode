@@ -589,5 +589,6 @@ export const messages = {
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects'
+  sobject_refresh_standard: 'Standard SObjects',
+  force_source_diff_components_not_in_org: 'Selected components are not available in the org'
 };
