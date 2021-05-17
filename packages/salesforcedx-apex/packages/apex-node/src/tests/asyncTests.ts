@@ -138,7 +138,7 @@ export class AsyncTests {
       message: nls.localize('retrievingTestRunSummary')
     });
 
-    const testRunSummaryResults = (await this.connection.tooling.query(
+    const testRunSummaryResults = (await this.connection.tooling.autoFetchQuery(
       testRunSummaryQuery
     )) as ApexTestRunResult;
 
@@ -261,7 +261,9 @@ export class AsyncTests {
     }
 
     const queryPromises = queries.map(query => {
-      return this.connection.tooling.query(query) as Promise<ApexTestResult>;
+      return this.connection.tooling.autoFetchQuery(query) as Promise<
+        ApexTestResult
+      >;
     });
     const apexTestResults = await Promise.all(queryPromises);
     return apexTestResults;
@@ -354,7 +356,7 @@ export class AsyncTests {
       testRunId
     });
 
-    const testQueueItems = await this.connection.tooling.query<
+    const testQueueItems = await this.connection.tooling.autoFetchQuery<
       ApexTestQueueItemRecord
     >(
       `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`

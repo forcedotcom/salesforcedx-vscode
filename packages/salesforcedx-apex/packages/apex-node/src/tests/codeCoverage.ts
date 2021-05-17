@@ -95,7 +95,7 @@ export class CodeCoverage {
 
     const perClassCodeCovQuery =
       'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
-    const perClassCodeCovResuls = (await this.connection.tooling.query(
+    const perClassCodeCovResuls = (await this.connection.tooling.autoFetchQuery(
       util.format(perClassCodeCovQuery, `${str}`)
     )) as ApexCodeCoverage;
     return perClassCodeCovResuls;
@@ -164,7 +164,7 @@ export class CodeCoverage {
 
     const codeCoverageQuery =
       'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate WHERE ApexClassorTriggerId IN (%s)';
-    const codeCoverageResuls = (await this.connection.tooling.query(
+    const codeCoverageResuls = (await this.connection.tooling.autoFetchQuery(
       util.format(codeCoverageQuery, `${str}`)
     )) as ApexCodeCoverageAggregate;
     return codeCoverageResuls;

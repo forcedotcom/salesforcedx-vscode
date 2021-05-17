@@ -157,7 +157,10 @@ describe('Streaming API Client', () => {
   });
 
   it('should throw error if handler can not find test records', async () => {
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.resolves({
       done: true,
       totalSize: 0,
@@ -180,7 +183,10 @@ describe('Streaming API Client', () => {
   });
 
   it('should not run a query if the subscribed test run id does not match the message test run id', async () => {
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     const streamClient = new StreamingClient(mockConnection);
     streamClient.subscribedTestRunId = '707xx0000gtQ3jx3x5';
     const streamHandlerResult = await streamClient.handler(testResultMsg);
@@ -201,7 +207,10 @@ describe('Streaming API Client', () => {
         }
       ]
     };
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.resolves(queryResponse);
     const streamClient = new StreamingClient(mockConnection);
     streamClient.subscribedTestRunId = '707xx0000AGQ3jbQQD';
@@ -230,7 +239,10 @@ describe('Streaming API Client', () => {
       ]
     };
 
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.resolves(queryResponse);
     const streamClient = new StreamingClient(mockConnection);
     streamClient.subscribedTestRunId = '707xx0000AGQ3jbQQD';
@@ -280,7 +292,10 @@ describe('Streaming API Client', () => {
   });
 
   it('should report streamingProcessingTestRun progress', async () => {
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.resolves({
       done: true,
       totalSize: 0,
@@ -310,7 +325,10 @@ describe('Streaming API Client', () => {
   });
 
   it('should report test queue progress', async () => {
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.resolves({
       done: true,
       totalSize: 0,

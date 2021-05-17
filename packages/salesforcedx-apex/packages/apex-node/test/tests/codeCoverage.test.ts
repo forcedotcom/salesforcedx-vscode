@@ -20,6 +20,7 @@ const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingQueryStub: SinonStub;
+let toolingAutoQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
 describe('Get code coverage results', () => {
@@ -38,6 +39,10 @@ describe('Get code coverage results', () => {
       })
     });
     toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
+    toolingAutoQueryStub = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
   });
 
   afterEach(() => {
@@ -132,7 +137,7 @@ describe('Get code coverage results', () => {
         uncoveredLines: [8, 9, 10]
       }
     ];
-    toolingQueryStub.resolves({
+    toolingAutoQueryStub.resolves({
       done: true,
       totalSize: 3,
       records: codeCoverageQueryResult
@@ -195,7 +200,7 @@ describe('Get code coverage results', () => {
         }
       }
     ];
-    toolingQueryStub.resolves({
+    toolingAutoQueryStub.resolves({
       done: true,
       totalSize: 3,
       records: perClassCodeCovResult
@@ -269,7 +274,7 @@ describe('Get code coverage results', () => {
         Coverage: { coveredLines: [1, 2, 3, 4, 5, 6], uncoveredLines: [7, 8] }
       }
     ];
-    toolingQueryStub.resolves({
+    toolingAutoQueryStub.resolves({
       done: true,
       totalSize: 2,
       records: perClassCodeCovResult

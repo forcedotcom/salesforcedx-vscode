@@ -204,7 +204,7 @@ export class StreamingClient {
     testRunId: string
   ): Promise<ApexTestQueueItem> {
     const queryApexTestQueueItem = `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`;
-    const result = (await this.conn.tooling.query(
+    const result = (await this.conn.tooling.autoFetchQuery(
       queryApexTestQueueItem
     )) as ApexTestQueueItem;
 

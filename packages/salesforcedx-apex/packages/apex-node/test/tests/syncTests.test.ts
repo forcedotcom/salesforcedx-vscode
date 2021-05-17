@@ -38,7 +38,6 @@ const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingRequestStub: SinonStub;
-let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
 describe('Run Apex tests synchronously', () => {
@@ -67,7 +66,6 @@ describe('Run Apex tests synchronously', () => {
       })
     });
     toolingRequestStub = sandboxStub.stub(mockConnection.tooling, 'request');
-    toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
     testRequest = {
       method: 'POST',
       url: `${mockConnection.tooling._baseUrl()}/runTestsSynchronous`,
@@ -175,17 +173,7 @@ describe('Run Apex tests synchronously', () => {
 
   it('should run a test with code coverage', async () => {
     toolingRequestStub.withArgs(testRequest).returns(syncTestResultSimple);
-    toolingQueryStub.onCall(0).resolves({
-      done: true,
-      totalSize: 3,
-      records: perClassCodeCoverage
-    } as ApexCodeCoverage);
-    toolingQueryStub.onCall(1).resolves({
-      done: true,
-      totalSize: 3,
-      records: codeCoverageQueryResult
-    } as ApexCodeCoverageAggregate);
-    toolingQueryStub.onCall(2).resolves({
+    sandboxStub.stub(mockConnection.tooling, 'query').resolves({
       done: true,
       totalSize: 1,
       records: [
@@ -194,6 +182,20 @@ describe('Run Apex tests synchronously', () => {
         }
       ]
     } as ApexOrgWideCoverage);
+    const toolingAutoQueryStub = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
+    toolingAutoQueryStub.onCall(0).resolves({
+      done: true,
+      totalSize: 3,
+      records: perClassCodeCoverage
+    } as ApexCodeCoverage);
+    toolingAutoQueryStub.onCall(1).resolves({
+      done: true,
+      totalSize: 3,
+      records: codeCoverageQueryResult
+    } as ApexCodeCoverageAggregate);
 
     const testSrv = new TestService(mockConnection);
     const testResult = await testSrv.runTestSynchronous(requestOptions, true);

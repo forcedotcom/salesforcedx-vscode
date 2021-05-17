@@ -171,7 +171,10 @@ describe('Run Apex tests asynchronously', () => {
     missingTimeTestData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     missingTimeTestData.summary.username = mockConnection.getUsername();
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.onFirstCall().resolves({
       done: true,
       totalSize: 1,
@@ -235,7 +238,10 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should report progress for formatting async results', async () => {
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.onFirstCall().resolves({
       done: true,
       totalSize: 1,
@@ -298,7 +304,10 @@ describe('Run Apex tests asynchronously', () => {
     skippedTestData.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     skippedTestData.summary.username = mockConnection.getUsername();
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.onFirstCall().resolves({
       done: true,
       totalSize: 1,
@@ -364,7 +373,10 @@ describe('Run Apex tests asynchronously', () => {
     diagnosticResult.summary.orgId = mockConnection.getAuthInfoFields().orgId;
     diagnosticResult.summary.username = mockConnection.getUsername();
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.onFirstCall().resolves({
       done: true,
       totalSize: 1,
@@ -420,7 +432,10 @@ describe('Run Apex tests asynchronously', () => {
     diagnosticFailure.tests[0].diagnostic.exceptionStackTrace = undefined;
     diagnosticFailure.tests[0].stackTrace = undefined;
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.onFirstCall().resolves({
       done: true,
       totalSize: 1,
@@ -471,7 +486,10 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should return an error if no test results are found', async () => {
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
+    const mockToolingQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
     mockToolingQuery.onFirstCall().resolves({
       done: true,
       totalSize: 0,
@@ -542,8 +560,20 @@ describe('Run Apex tests asynchronously', () => {
 
   it('should return formatted test results with code coverage', async () => {
     const asyncTestSrv = new AsyncTests(mockConnection);
-    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
-    mockToolingQuery.onCall(0).resolves({
+    const mockToolingAutoQuery = sandboxStub.stub(
+      mockConnection.tooling,
+      'autoFetchQuery'
+    );
+    sandboxStub.stub(mockConnection.tooling, 'query').resolves({
+      done: true,
+      totalSize: 1,
+      records: [
+        {
+          PercentCovered: '57'
+        }
+      ]
+    } as ApexOrgWideCoverage);
+    mockToolingAutoQuery.onCall(0).resolves({
       done: true,
       totalSize: 1,
       records: [
@@ -557,33 +587,23 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as ApexTestRunResult);
 
-    mockToolingQuery.onCall(1).resolves({
+    mockToolingAutoQuery.onCall(1).resolves({
       done: true,
       totalSize: 6,
       records: mixedTestResults
     } as ApexTestResult);
 
-    mockToolingQuery.onCall(2).resolves({
+    mockToolingAutoQuery.onCall(2).resolves({
       done: true,
       totalSize: 3,
       records: mixedPerClassCodeCoverage
     } as ApexCodeCoverage);
 
-    mockToolingQuery.onCall(3).resolves({
+    mockToolingAutoQuery.onCall(3).resolves({
       done: true,
       totalSize: 3,
       records: codeCoverageQueryResult
     } as ApexCodeCoverageAggregate);
-
-    mockToolingQuery.onCall(4).resolves({
-      done: true,
-      totalSize: 1,
-      records: [
-        {
-          PercentCovered: '57'
-        }
-      ]
-    } as ApexOrgWideCoverage);
 
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       pollResponse,
@@ -615,7 +635,7 @@ describe('Run Apex tests asynchronously', () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
       const mockToolingQuery = sandboxStub.stub(
         mockConnection.tooling,
-        'query'
+        'autoFetchQuery'
       );
       mockToolingQuery.onCall(0).resolves({
         done: true,
@@ -714,7 +734,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should split into multiple queries if query is longer than char limit', async () => {
       const mockToolingQuery = sandboxStub.stub(
         mockConnection.tooling,
-        'query'
+        'autoFetchQuery'
       );
       mockToolingQuery.onFirstCall().resolves({
         done: true,
@@ -775,7 +795,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should make a single api call if query is under char limit', async () => {
       const mockToolingQuery = sandboxStub.stub(
         mockConnection.tooling,
-        'query'
+        'autoFetchQuery'
       );
       mockToolingQuery.onFirstCall().resolves({
         done: true,
@@ -823,7 +843,7 @@ describe('Run Apex tests asynchronously', () => {
 
       const mockToolingQuery = sandboxStub.stub(
         mockConnection.tooling,
-        'query'
+        'autoFetchQuery'
       );
       mockToolingQuery.onFirstCall().resolves({
         done: true,
@@ -902,7 +922,7 @@ describe('Run Apex tests asynchronously', () => {
 
       const mockToolingQuery = sandboxStub.stub(
         mockConnection.tooling,
-        'query'
+        'autoFetchQuery'
       );
       mockToolingQuery.onFirstCall().resolves({
         done: true,
@@ -965,7 +985,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should format single query correctly', async () => {
       const mockToolingQuery = sandboxStub.stub(
         mockConnection.tooling,
-        'query'
+        'autoFetchQuery'
       );
       const id = '7092M000000Vt94QAC';
       mockToolingQuery.onFirstCall().resolves({
@@ -1175,7 +1195,7 @@ describe('Run Apex tests asynchronously', () => {
         ]
       } as unknown) as ApexTestQueueItem;
       sandboxStub
-        .stub(mockConnection.tooling, 'query')
+        .stub(mockConnection.tooling, 'autoFetchQuery')
         //@ts-ignore
         .resolves<ApexTestQueueItemRecord>(mockTestQueueItemRecord);
       const toolingUpdateStub = sandboxStub.stub(
