@@ -283,7 +283,7 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
   const diffs = differ.diff(localPath, remotePath);
 
   conflictView.visualizeDifferences(
-    'PDTDevHub - File Diffs',
+    nls.localize('force_source_diff_folder_title', username),
     username,
     true,
     diffs
