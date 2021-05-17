@@ -22,6 +22,13 @@ export {
   DirectoryDiffer,
   DirectoryDiffResults
 } from './directoryDiffer';
+export {
+  MetadataCacheCallback,
+  MetadataCacheExecutor,
+  MetadataCacheResult,
+  MetadataCacheService,
+  MetadataContext
+} from './metadataCacheService';
 export const conflictView = ConflictView.getInstance();
 export const conflictDetector = ConflictDetector.getInstance();
 

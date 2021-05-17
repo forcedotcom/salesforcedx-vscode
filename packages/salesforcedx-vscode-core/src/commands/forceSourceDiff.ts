@@ -20,7 +20,7 @@ import * as conflictDetectionService from '../conflict/conflictDetectionService'
 import {
   MetadataCacheExecutor,
   MetadataCacheResult
-} from '../conflict/metadataCacheService';
+} from '../conflict';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
@@ -173,7 +173,7 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
 
   const username = workspaceContext.username;
   if (!username) {
-    notificationService.showErrorMessage('No default org');
+    notificationService.showErrorMessage(nls.localize('missing_default_org'));
     return;
   }
 
