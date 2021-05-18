@@ -23,7 +23,8 @@ import * as shell from 'shelljs';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
-  MetadataCacheService
+  MetadataCacheService,
+  PathType
 } from '../../../src/conflict/metadataCacheService';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 import sinon = require('sinon');
@@ -192,6 +193,26 @@ describe('Metadata Cache', () => {
       expect(components.size).to.equal(14);
     });
 
+    it('Should find components using a manifest', async () => {
+      const projectPath = path.join(PROJECT_DIR, 'src');
+      const manifestPath = path.join(
+        TEST_ASSETS_FOLDER,
+        'proj-testdata',
+        'manifest',
+        'one-class.xml'
+      );
+
+      // populate project metadata
+      const projectZip = new AdmZip();
+      projectZip.addLocalFolder(TEST_DATA_FOLDER);
+      projectZip.extractAllTo(projectPath);
+
+      service.initialize(manifestPath, PROJECT_DIR, true);
+      const components = await service.getSourceComponents();
+
+      expect(components.size).to.equal(1);
+    });
+
     it('Should return cache results', async () => {
       const projectPath = path.join(PROJECT_DIR, 'src');
       const cachePath = service.getCachePath();
@@ -211,7 +232,7 @@ describe('Metadata Cache', () => {
 
       expect(cache).to.not.equal(undefined);
       expect(cache?.selectedPath).to.equal(projectPath);
-      expect(cache?.selectedIsDirectory).to.equal(true);
+      expect(cache?.selectedType).to.equal(PathType.Folder);
       expect(cache?.cachePropPath).to.equal(
         path.join(cachePath, 'prop', 'file-props.json')
       );

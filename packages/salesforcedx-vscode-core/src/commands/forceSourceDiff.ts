@@ -11,7 +11,8 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
   MetadataCacheExecutor,
-  MetadataCacheResult
+  MetadataCacheResult,
+  PathType
 } from '../conflict/metadataCacheService';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -70,7 +71,7 @@ async function diffFile(
 
 async function handleCacheResults(cache?: MetadataCacheResult): Promise<void> {
   if (cache) {
-    if (!cache.selectedIsDirectory && cache.cache.components) {
+    if (cache.selectedType === PathType.Individual && cache.cache.components) {
       // file
       await diffFile(cache.selectedPath, cache.cache.components[0]);
     } else {

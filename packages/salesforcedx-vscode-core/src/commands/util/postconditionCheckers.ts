@@ -19,16 +19,12 @@ import {
   conflictView,
   DirectoryDiffResults
 } from '../../conflict';
+import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
-import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
-import {
-  getRootWorkspacePath,
-  MetadataDictionary,
-  OrgAuthInfo
-} from '../../util';
+import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
@@ -206,35 +202,21 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
     }
 
     if (inputs.type === 'CONTINUE') {
-      const usernameOrAlias = await this.getDefaultUsernameOrAlias();
-      if (!usernameOrAlias) {
+      const { username } = workspaceContext;
+      if (!username) {
         return {
           type: 'CANCEL',
           msg: nls.localize('conflict_detect_no_default_username')
         };
       }
 
-      const defaultPackageDir = await SfdxPackageDirectories.getDefaultPackageDir();
-      if (!defaultPackageDir) {
-        return {
-          type: 'CANCEL',
-          msg: nls.localize('conflict_detect_no_default_package_dir')
-        };
-      }
-
+      const manifest = inputs.data;
       const config: ConflictDetectionConfig = {
-        usernameOrAlias,
-        packageDir: defaultPackageDir,
-        manifest: inputs.data
+        username,
+        manifest
       };
       const results = await conflictDetector.checkForConflicts(config);
-
-      return this.handleConflicts(
-        inputs.data,
-        usernameOrAlias,
-        defaultPackageDir,
-        results
-      );
+      return this.handleConflicts(manifest, username, results);
     }
     return { type: 'CANCEL' };
   }
@@ -242,7 +224,6 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
   public async handleConflicts(
     manifest: string,
     usernameOrAlias: string,
-    defaultPackageDir: string,
     results: DirectoryDiffResults
   ): Promise<ContinueResponse<string> | CancelResponse> {
     const conflictTitle = nls.localize(
@@ -252,7 +233,6 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
     );
 
     if (results.different.size === 0) {
-      conflictDetector.clearCache(usernameOrAlias);
       conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
     } else {
       channelService.appendLine(
@@ -264,7 +244,7 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(join(defaultPackageDir, file));
+        channelService.appendLine(file);
       });
       channelService.showChannelOutput();
 
@@ -275,7 +255,6 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
       );
 
       if (choice === nls.localize('conflict_detect_override')) {
-        conflictDetector.clearCache(usernameOrAlias);
         conflictView.visualizeDifferences(
           conflictTitle,
           usernameOrAlias,
@@ -303,9 +282,5 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
       }
     }
     return { type: 'CONTINUE', data: manifest };
-  }
-
-  public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    return await OrgAuthInfo.getDefaultUsernameOrAlias(true);
   }
 }

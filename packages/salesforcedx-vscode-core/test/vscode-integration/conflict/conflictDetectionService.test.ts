@@ -5,61 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as AdmZip from 'adm-zip';
+import { fail } from 'assert';
 import { expect } from 'chai';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { stub } from 'sinon';
+import * as sinon from 'sinon';
+import { SfdxCommandlet } from '../../../src/commands/util';
 import {
   CommonDirDirectoryDiffer,
   ConflictDetectionConfig,
   ConflictDetector
 } from '../../../src/conflict';
+import {
+  MetadataCacheCallback,
+  MetadataCacheResult
+} from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
-
-describe('Conflict Detection Service', () => {
-  it('Should build the source retrieve command', () => {
-    const detector = new ConflictDetector(new CommonDirDirectoryDiffer());
-    const tempPath = detector.getCachePath('MyOrg');
-    const manifestPath = path.join(tempPath, 'package.xml');
-
-    const sourceRetrieveCommand = detector.buildRetrieveOrgSourceCommand(
-      'MyOrg',
-      tempPath,
-      manifestPath
-    );
-
-    expect(sourceRetrieveCommand.toCommand()).to.equal(
-      `sfdx force:mdapi:retrieve --retrievetargetdir ${tempPath} --unpackaged ${manifestPath} --targetusername MyOrg`
-    );
-
-    expect(sourceRetrieveCommand.description).to.equal(
-      nls.localize('conflict_detect_retrieve_org_source')
-    );
-  });
-
-  it('Should build the source convert command', () => {
-    const detector = new ConflictDetector(new CommonDirDirectoryDiffer());
-    const tempPath = detector.getCachePath('MyOtherOrg');
-    const packagedPath = path.join(tempPath, 'unpackaged');
-    const convertedPath = path.join(tempPath, 'converted');
-
-    const sourceRetrieveCommand = detector.buildMetadataApiConvertOrgSourceCommand(
-      packagedPath,
-      convertedPath
-    );
-
-    expect(sourceRetrieveCommand.toCommand()).to.equal(
-      `sfdx force:mdapi:convert --rootdir ${packagedPath} --outputdir ${convertedPath}`
-    );
-
-    expect(sourceRetrieveCommand.description).to.equal(
-      nls.localize('conflict_detect_convert_org_source')
-    );
-  });
-});
 
 describe('Conflict Detection Service Execution', () => {
   const PROJ_ROOT = path.join(
@@ -87,83 +49,112 @@ describe('Conflict Detection Service Execution', () => {
 
   let workspaceStub: sinon.SinonStub;
   let executor: ConflictDetector;
-  let executeCommandSpy: sinon.SinonStub;
+  let executorSpy: sinon.SinonSpy;
+  let metadataStub: sinon.SinonStub;
+  let differStub: sinon.SinonStub;
 
   beforeEach(() => {
-    executor = new ConflictDetector(new CommonDirDirectoryDiffer());
-    executeCommandSpy = stub(executor, 'executeCommand');
+    differStub = sinon.stub(new CommonDirDirectoryDiffer(), 'diff');
+    executor = new ConflictDetector({ diff: differStub });
+    executorSpy = sinon.spy(ConflictDetector.prototype, 'createCacheExecutor');
+    metadataStub = sinon.stub(SfdxCommandlet.prototype, 'run');
     workspaceStub = stubRootWorkspace(PROJECT_DIR);
   });
 
   afterEach(() => {
-    executeCommandSpy.restore();
+    executorSpy.restore();
+    metadataStub.restore();
+    differStub.restore();
     workspaceStub!.restore();
     shell.rm('-rf', PROJECT_DIR);
   });
 
-  it('Should clear cache directory', async () => {
-    const usernameOrAlias = 'admin@ut-sandbox.org';
-    const cachePath = executor.getCachePath(usernameOrAlias);
-    const tempFilePath = path.join(cachePath, 'TestFile.xml');
-
-    shell.mkdir('-p', cachePath);
-    shell.touch([tempFilePath]);
-
-    expect(
-      fs.existsSync(tempFilePath),
-      `folder ${tempFilePath} should exist`
-    ).to.equal(true);
-
-    const actualCachePath = executor.clearCache(usernameOrAlias);
-    expect(actualCachePath).to.equal(cachePath);
-
-    expect(
-      fs.existsSync(actualCachePath),
-      `folder ${actualCachePath} should not exist`
-    ).to.equal(false);
-  });
-
-  it('Should find differences', async () => {
-    const usernameOrAlias = 'admin@ut-sandbox.org';
-    const cachePath = executor.getCachePath(usernameOrAlias);
-
-    // populate project metadata
-    const projectZip = new AdmZip();
-    projectZip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'proj-source'));
-    projectZip.extractAllTo(path.join(PROJECT_DIR, 'force-app'));
-
-    // simulate retrieval of remote metadata
-    executeCommandSpy.onCall(0).callsFake(() => {
-      const zip = new AdmZip();
-      zip.addLocalFolder(path.join(TEST_DATA_FOLDER, 'org-source'));
-      zip.writeZip(path.join(cachePath, 'unpackaged.zip'));
-    });
-
-    // simulate conversion to source format
-    executeCommandSpy.onCall(1).callsFake(() => {
-      shell.cp(
-        '-R',
-        path.join(cachePath, 'unpackaged/'),
-        path.join(cachePath, 'converted/')
-      );
-    });
+  it('Should report differences', async () => {
+    const username = 'admin@ut-sandbox.org';
+    const cacheResults = {
+      cache: { baseDirectory: path.normalize('/a/b'), commonRoot: 'c' },
+      project: {
+        baseDirectory: path.normalize('/d'),
+        commonRoot: path.normalize('e/f')
+      }
+    } as MetadataCacheResult;
+    const diffResults = {
+      localRoot: path.normalize('/d/e/f'),
+      remoteRoot: path.normalize('/a/b/c'),
+      different: new Set<string>(['classes/HandlerCostCenter.cls']),
+      scannedLocal: 0,
+      scannedRemote: 0
+    };
+    differStub.returns(diffResults);
 
     const input: ConflictDetectionConfig = {
-      usernameOrAlias,
-      packageDir: 'force-app',
-      manifest: path.join(TEST_DATA_FOLDER, 'org-source', 'package.xml')
+      username,
+      manifest: path.join(
+        TEST_DATA_FOLDER,
+        'proj-testdata',
+        'manifest',
+        'one-class.xml'
+      )
     };
 
+    let args: any[] = [];
+    let callback: MetadataCacheCallback;
+    // short-circuit executor, and manually trigger callback
+    metadataStub.callsFake(async () => {
+      args = executorSpy.getCall(0).args;
+      callback = args[1];
+      await callback(cacheResults);
+    });
     const results = await executor.checkForConflicts(input);
-    expect(executeCommandSpy.callCount).to.equal(2);
-    expect(results.different).to.have.keys([
-      path.normalize('main/default/classes/HandlerCostCenter.cls')
-    ]);
 
-    // verify file cache exists
-    expect(
-      fs.existsSync(cachePath),
-      `folder ${cachePath} should exist`
-    ).to.equal(true);
+    expect(executorSpy.callCount).to.equal(1);
+    expect(metadataStub.callCount).to.equal(1);
+    expect(args[0]).to.equal(username);
+
+    expect(differStub.callCount).to.equal(1);
+    expect(differStub.getCall(0).args).to.eql([
+      path.normalize('/d/e/f'),
+      path.normalize('/a/b/c')
+    ]);
+    expect(results.different).to.have.keys([
+      path.normalize('classes/HandlerCostCenter.cls')
+    ]);
+  });
+
+  it('Should report an error during conflict detection', async () => {
+    const username = 'admin@ut-sandbox.org';
+    const cacheResults = undefined;
+
+    const input: ConflictDetectionConfig = {
+      username,
+      manifest: path.join(
+        TEST_DATA_FOLDER,
+        'proj-testdata',
+        'manifest',
+        'one-class.xml'
+      )
+    };
+
+    let args: any[] = [];
+    let callback: MetadataCacheCallback;
+    // short-circuit executor, and manually trigger callback
+    metadataStub.callsFake(async () => {
+      args = executorSpy.getCall(0).args;
+      callback = args[1];
+      await callback(cacheResults);
+    });
+
+    try {
+      const results = await executor.checkForConflicts(input);
+      fail('Failed to raise an exception during conflict detection');
+    } catch (err) {
+      expect(err.message).to.equal(
+        nls.localize('conflict_detect_empty_results')
+      );
+      expect(executorSpy.callCount).to.equal(1);
+      expect(metadataStub.callCount).to.equal(1);
+      expect(args[0]).to.equal(username);
+      expect(differStub.callCount).to.equal(0);
+    }
   });
 });

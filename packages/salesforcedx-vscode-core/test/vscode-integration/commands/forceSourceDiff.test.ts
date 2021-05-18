@@ -19,7 +19,8 @@ import {
 } from '../../../src/commands/util';
 import {
   MetadataCacheResult,
-  MetadataCacheService
+  MetadataCacheService,
+  PathType
 } from '../../../src/conflict/metadataCacheService';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
@@ -108,7 +109,7 @@ describe('Force Source Diff', () => {
       }
     });
     const mockResult: MetadataCacheResult = {
-      selectedIsDirectory: false,
+      selectedType: PathType.Individual,
       selectedPath: mockFilePath,
       cache: {
         baseDirectory: path.join(`/tmp/.sfdx/diff/${mockUsername}/`),
