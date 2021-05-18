@@ -80,14 +80,11 @@ export class MetaSupport {
     } else if (redHatExtension) {
       const pluginVersionNumber = redHatExtension!.packageJSON['version'];
 
-      // checks if the installed plugin version is exactly 0.14.0
+      // checks if the installed plugin version is exactly 0.14.0 or 0.16+,
       // 0.15.0 has a regression and 0.13.0 or earlier versions are not supported
-
-      if (parseInt(pluginVersionNumber.split('.')[1], 10) === 15) {
-        channelService.appendLine(
-          nls.localize('force_lightning_lwc_redhat_extension_regression')
-        );
-      } else if (parseInt(pluginVersionNumber.split('.')[1], 10) === 14) {
+      const major = parseInt(pluginVersionNumber.split('.')[0], 10);
+      const minor = parseInt(pluginVersionNumber.split('.')[1], 10);
+      if (major >= 1 || minor === 14 || minor >= 16) {
         const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
         const fileAssociations = [
           {
@@ -96,6 +93,10 @@ export class MetaSupport {
           }
         ];
         await this.setupRedhatXml(catalogs, fileAssociations);
+      } else if (minor === 15) {
+        channelService.appendLine(
+          nls.localize('force_lightning_lwc_redhat_extension_regression')
+        );
       } else {
         channelService.appendLine(
           nls.localize('force_lightning_lwc_deprecated_redhat_extension')

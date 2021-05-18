@@ -101,7 +101,7 @@ export const messages = {
   force_lightning_lwc_deprecated_redhat_extension:
     'Salesforce js-meta.xml IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
   force_lightning_lwc_redhat_extension_regression:
-    'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Downgrade the Red Hat XML extension to 0.14.0.',
+    'Salesforce js-meta.xml IntelliSense does not work with Red Hat XML extension version 0.15.0. Upgrade the Red Hat XML extension.',
   force_lightning_lwc_fail_redhat_extension:
     'Failed to setup Red Hat XML extension'
 };
