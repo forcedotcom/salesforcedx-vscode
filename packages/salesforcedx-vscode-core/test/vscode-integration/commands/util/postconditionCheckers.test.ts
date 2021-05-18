@@ -394,7 +394,6 @@ describe('Postcondition Checkers', () => {
         nls.localize('conflict_detect_show_conflicts')
       ]);
 
-      console.log(`CHANNEL-OUTPUT: ${JSON.stringify(channelOutput, null, 2)}`);
       expect(channelOutput).to.include.members([
         nls.localize('conflict_detect_conflict_header', 2, 6, 4),
         normalize(

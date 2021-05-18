@@ -125,10 +125,6 @@ describe('Conflict Detection Service Execution', () => {
     expect(sendCommandEventStub.callCount).to.equal(1);
     expect(sendCommandEventStub.getCall(0).args[0]).to.equal('conflict_detect');
 
-    console.log('CONFLICT-DIFFS:');
-    for (const k of results.different.values()) {
-      console.log(`  KEY: ${k}`);
-    }
     expect(results.different).to.have.all.keys(
       path.normalize('classes/HandlerCostCenter.cls')
     );

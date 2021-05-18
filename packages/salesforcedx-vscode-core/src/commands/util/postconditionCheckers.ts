@@ -11,7 +11,7 @@ import {
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { join, normalize } from 'path';
 import { channelService } from '../../channels';
 import {
   ConflictDetectionConfig,
@@ -244,7 +244,7 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(file);
+        channelService.appendLine(normalize(file));
       });
       channelService.showChannelOutput();
 
