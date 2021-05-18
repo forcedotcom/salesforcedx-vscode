@@ -29,9 +29,9 @@ import { BaseTemplateCommand } from './baseTemplateCommand';
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
-  // constructor() {
-  //   super();
-  // }
+  constructor() {
+    super();
+  }
 
   public build(data: FunctionInfo): Command {
     if (data.language === 'javascript') {
