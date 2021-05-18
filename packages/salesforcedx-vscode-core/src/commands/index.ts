@@ -144,8 +144,6 @@ export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,
   forceSourceFolderDiff,
-  ForceSourceDiffExecutor,
-  handleDiffResponse,
   handleCacheResults
 } from './forceSourceDiff';
 export { forceOrgList } from './forceOrgList';
