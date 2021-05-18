@@ -36,17 +36,17 @@ export class ConflictDetector {
   private diffs: DirectoryDiffResults;
   private error?: Error;
   private static instance: ConflictDetector;
-  private static EMPTY_DIFFS = Object.freeze({
+  private static EMPTY_DIFFS = {
     localRoot: '',
     remoteRoot: '',
     different: new Set<string>(),
     scannedLocal: 0,
     scannedRemote: 0
-  });
+  };
 
   constructor(differ?: DirectoryDiffer) {
     this.differ = differ || new CommonDirDirectoryDiffer();
-    this.diffs = ConflictDetector.EMPTY_DIFFS;
+    this.diffs = Object.assign({}, ConflictDetector.EMPTY_DIFFS);
   }
 
   public static getInstance(): ConflictDetector {
@@ -62,7 +62,7 @@ export class ConflictDetector {
     data: ConflictDetectionConfig
   ): Promise<DirectoryDiffResults> {
     const startTime = process.hrtime();
-    this.diffs = ConflictDetector.EMPTY_DIFFS;
+    this.diffs = Object.assign({}, ConflictDetector.EMPTY_DIFFS);
     this.error = undefined;
 
     try {

@@ -21,6 +21,7 @@ import {
   MetadataCacheResult
 } from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
+import { telemetryService } from '../../../src/telemetry';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 describe('Conflict Detection Service Execution', () => {
@@ -52,12 +53,14 @@ describe('Conflict Detection Service Execution', () => {
   let executorSpy: sinon.SinonSpy;
   let metadataStub: sinon.SinonStub;
   let differStub: sinon.SinonStub;
+  let sendCommandEventStub: sinon.SinonStub;
 
   beforeEach(() => {
     differStub = sinon.stub(new CommonDirDirectoryDiffer(), 'diff');
     executor = new ConflictDetector({ diff: differStub });
     executorSpy = sinon.spy(ConflictDetector.prototype, 'createCacheExecutor');
     metadataStub = sinon.stub(SfdxCommandlet.prototype, 'run');
+    sendCommandEventStub = sinon.stub(telemetryService, 'sendCommandEvent');
     workspaceStub = stubRootWorkspace(PROJECT_DIR);
   });
 
@@ -65,6 +68,7 @@ describe('Conflict Detection Service Execution', () => {
     executorSpy.restore();
     metadataStub.restore();
     differStub.restore();
+    sendCommandEventStub.restore();
     workspaceStub!.restore();
     shell.rm('-rf', PROJECT_DIR);
   });
@@ -81,7 +85,9 @@ describe('Conflict Detection Service Execution', () => {
     const diffResults = {
       localRoot: path.normalize('/d/e/f'),
       remoteRoot: path.normalize('/a/b/c'),
-      different: new Set<string>(['classes/HandlerCostCenter.cls']),
+      different: new Set<string>([
+        path.normalize('classes/HandlerCostCenter.cls')
+      ]),
       scannedLocal: 0,
       scannedRemote: 0
     };
@@ -116,9 +122,16 @@ describe('Conflict Detection Service Execution', () => {
       path.normalize('/d/e/f'),
       path.normalize('/a/b/c')
     ]);
-    expect(results.different).to.have.keys([
+    expect(sendCommandEventStub.callCount).to.equal(1);
+    expect(sendCommandEventStub.getCall(0).args[0]).to.equal('conflict_detect');
+
+    console.log('CONFLICT-DIFFS:');
+    for (const k of results.different.values()) {
+      console.log(`  KEY: ${k}`);
+    }
+    expect(results.different).to.have.all.keys(
       path.normalize('classes/HandlerCostCenter.cls')
-    ]);
+    );
   });
 
   it('Should report an error during conflict detection', async () => {
