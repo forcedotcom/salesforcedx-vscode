@@ -26,23 +26,25 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 import { BaseTemplateCommand } from './baseTemplateCommand';
-import { FUNCTION_TYPE } from './metadataTypeConstants';
+import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
-  constructor() {
-    super(FUNCTION_TYPE);
-  }
+  // constructor() {
+  //   super();
+  // }
 
   public build(data: FunctionInfo): Command {
     if (data.language === 'javascript') {
+      this.setMetadataType(FUNCTION_TYPE_JS);
       this.setFileExtension('js');
-    } else if (data.language === 'typescript') {
-      this.setFileExtension('ts');
+    } else if (data.language === 'java') {
+      this.setMetadataType(FUNCTION_TYPE_JAVA);
+      this.setFileExtension('java');
     }
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_function_create_text'))
-      .withArg('evergreen:function:create')
-      .withArg(data.fileName)
+      .withArg('generate:function')
+      .withFlag('--name', data.fileName)
       .withFlag('--language', data.language)
       .withLogName('force_create_function')
       .build();
@@ -92,7 +94,7 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     }
 
     const language = await vscode.window.showQuickPick(
-      ['javascript', 'typescript'],
+      ['java', 'javascript'],
       {
         placeHolder: nls.localize('force_function_enter_language')
       }
