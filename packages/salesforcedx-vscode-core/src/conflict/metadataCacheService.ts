@@ -273,6 +273,7 @@ export class MetadataCacheService {
 }
 
 export type MetadataCacheCallback = (
+  username: string,
   cache: MetadataCacheResult | undefined
 ) => Promise<void>;
 
@@ -280,6 +281,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   private cacheService: MetadataCacheService;
   private callback: MetadataCacheCallback;
   private isManifest: boolean = false;
+  private username: string;
 
   constructor(
     username: string,
@@ -291,6 +293,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
     super(executionName, logName);
     this.callback = callback;
     this.isManifest = isManifest;
+    this.username = username;
     this.cacheService = new MetadataCacheService(username);
   }
 
@@ -318,6 +321,6 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
     const cache:
       | MetadataCacheResult
       | undefined = await this.cacheService.processResults(result);
-    await this.callback(cache);
+    await this.callback(this.username, cache);
   }
 }

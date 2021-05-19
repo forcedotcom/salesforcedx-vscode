@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import * as conflictDetectionService from '../conflict/conflictDetectionService';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
@@ -21,68 +20,6 @@ import { telemetryService } from '../telemetry';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-
-/**
- * Perform file diff and execute VS Code diff comand to show in UI.
- * It matches the correspondent file in compoennt.
- * @param localFile local file
- * @param remoteComponent remote source component
- * @returns {Promise<void>}
- */
-async function diffFile(
-  localFile: string,
-  remoteComponent: SourceComponent
-): Promise<void> {
-  const filePart = path.basename(localFile);
-  const defaultUsernameorAlias =
-    workspaceContext.alias || workspaceContext.username;
-
-  const remoteFilePaths = remoteComponent.walkContent();
-  if (remoteComponent.xml) {
-    remoteFilePaths.push(remoteComponent.xml);
-  }
-  for (const filePath of remoteFilePaths) {
-    if (filePath.endsWith(filePart)) {
-      const remoteUri = vscode.Uri.file(filePath);
-      const localUri = vscode.Uri.file(localFile);
-
-      try {
-        await vscode.commands.executeCommand(
-          'vscode.diff',
-          remoteUri,
-          localUri,
-          nls.localize(
-            'force_source_diff_title',
-            defaultUsernameorAlias,
-            filePart,
-            filePart
-          )
-        );
-      } catch (err) {
-        notificationService.showErrorMessage(err.message);
-        channelService.appendLine(err.message);
-        channelService.showChannelOutput();
-        telemetryService.sendException(err.name, err.message);
-      }
-      return;
-    }
-  }
-}
-
-async function handleCacheResults(cache?: MetadataCacheResult): Promise<void> {
-  if (cache) {
-    if (cache.selectedType === PathType.Individual && cache.cache.components) {
-      // file
-      await diffFile(cache.selectedPath, cache.cache.components[0]);
-    } else {
-      // directory
-    }
-  } else {
-    const message = nls.localize('force_source_diff_remote_not_found');
-    notificationService.showErrorMessage(message);
-    throw new Error(message);
-  }
-}
 
 export async function forceSourceDiff(sourceUri?: vscode.Uri) {
   if (!sourceUri) {
@@ -113,5 +50,60 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
       executor
     );
     await commandlet.run();
+  }
+}
+
+export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
+  if (!explorerPath) {
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
+      explorerPath = editor.document.uri;
+    } else {
+      const errorMessage = nls.localize('force_source_diff_unsupported_type');
+      telemetryService.sendException('unsupported_type_on_diff', errorMessage);
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+      return;
+    }
+  }
+
+  const username = workspaceContext.username;
+  if (!username) {
+    notificationService.showErrorMessage(nls.localize('missing_default_org'));
+    return;
+  }
+
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new FilePathGatherer(explorerPath),
+    new MetadataCacheExecutor(
+      username,
+      'Source Diff',
+      'source-diff-loader',
+      handleCacheResults
+    )
+  );
+  await commandlet.run();
+}
+
+export async function handleCacheResults(
+  username: string,
+  cache?: MetadataCacheResult
+): Promise<void> {
+  if (cache) {
+    if (cache.selectedType === PathType.Individual && cache.cache.components) {
+      await conflictDetectionService.diffOneFile(
+        cache.selectedPath,
+        cache.cache.components[0],
+        username
+      );
+    } else if (cache.selectedType === PathType.Folder) {
+      await conflictDetectionService.diffFolder(cache, username);
+    }
+  } else {
+    notificationService.showErrorMessage(
+      nls.localize('force_source_diff_components_not_in_org')
+    );
   }
 }

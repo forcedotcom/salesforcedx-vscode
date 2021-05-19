@@ -109,7 +109,7 @@ describe('Conflict Detection Service Execution', () => {
     metadataStub.callsFake(async () => {
       args = executorSpy.getCall(0).args;
       callback = args[1];
-      await callback(cacheResults);
+      await callback(username, cacheResults);
     });
     const results = await executor.checkForConflicts(input);
 
@@ -150,7 +150,7 @@ describe('Conflict Detection Service Execution', () => {
     metadataStub.callsFake(async () => {
       args = executorSpy.getCall(0).args;
       callback = args[1];
-      await callback(cacheResults);
+      await callback(username, cacheResults);
     });
 
     try {
