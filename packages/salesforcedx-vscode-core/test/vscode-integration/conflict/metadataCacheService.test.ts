@@ -28,6 +28,7 @@ import {
 } from '../../../src/conflict/metadataCacheService';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 import sinon = require('sinon');
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
@@ -125,15 +126,20 @@ describe('Metadata Cache', () => {
     const usernameOrAlias = 'admin@ut-sandbox.org';
     const PROJECT_DIR = path.join(PROJ_ROOT, 'meta-proj2');
     let workspaceStub: sinon.SinonStub;
+    let packageStub: sinon.SinonStub;
     let service: MetadataCacheService;
 
     beforeEach(() => {
       service = new MetadataCacheService(usernameOrAlias);
+      packageStub = sinon
+        .stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths')
+        .resolves([]);
       workspaceStub = stubRootWorkspace(PROJECT_DIR);
     });
 
     afterEach(() => {
       service.clearCache();
+      packageStub.restore();
       workspaceStub!.restore();
       shell.rm('-rf', PROJECT_DIR);
     });

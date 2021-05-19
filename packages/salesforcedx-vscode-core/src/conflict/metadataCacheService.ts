@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { getRootWorkspacePath } from '../util';
 
 export interface MetadataContext {
@@ -98,10 +99,11 @@ export class MetadataCacheService {
 
   public async getSourceComponents(): Promise<ComponentSet> {
     if (this.componentPath && this.projectPath) {
+      const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,
-            resolveSourcePaths: [this.projectPath]
+            resolveSourcePaths: packageDirs
           })
         : ComponentSet.fromSource(this.componentPath);
       return this.sourceComponents;
@@ -303,7 +305,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
       getRootWorkspacePath(),
       this.isManifest
     );
-    return await this.cacheService.getSourceComponents();
+    return this.cacheService.getSourceComponents();
   }
 
   protected async doOperation(
