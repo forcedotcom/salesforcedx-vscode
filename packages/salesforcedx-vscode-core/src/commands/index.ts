@@ -141,7 +141,11 @@ export {
   ForceListMetadataExecutor
 } from './forceListMetadata';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
-export { forceSourceDiff } from './forceSourceDiff';
+export {
+  forceSourceDiff,
+  forceSourceFolderDiff,
+  handleCacheResults
+} from './forceSourceDiff';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';

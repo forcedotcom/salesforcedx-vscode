@@ -204,6 +204,10 @@
           "when": "explorerResourceIsFolder && resourceFilename == classes && sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.folder.diff",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.analytics.template.create",
           "when": "explorerResourceIsFolder && resourceFilename == waveTemplates && sfdx:project_opened"
         },
@@ -791,6 +795,10 @@
       {
         "command": "sfdx.force.diff",
         "title": "%force_diff_against_org%"
+      },
+      {
+        "command": "sfdx.force.folder.diff",
+        "title": "%force_diff_folder_against_org%"
       },
       {
         "command": "sfdx.force.conflict.open",

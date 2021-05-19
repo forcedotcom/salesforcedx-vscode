@@ -240,6 +240,7 @@ describe('Metadata Cache', () => {
   });
 
   async function handleCacheResults(
+    username: string,
     cache?: MetadataCacheResult
   ): Promise<void> {}
 
