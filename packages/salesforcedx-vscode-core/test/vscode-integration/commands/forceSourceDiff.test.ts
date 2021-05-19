@@ -141,7 +141,7 @@ describe('Force Source Diff', () => {
         match.has('fsPath', localFsPath),
         nls.localize(
           'force_source_diff_title',
-          mockAlias,
+          mockUsername,
           'mockFile.cls',
           'mockFile.cls'
         )
