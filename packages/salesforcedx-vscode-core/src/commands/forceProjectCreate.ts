@@ -127,14 +127,6 @@ export class SelectProjectTemplate
         'force_project_create_analytics_template'
       )
     ];
-    if (sfdxCoreSettings.getFunctionsEnabled()) {
-      items.push(
-        new ProjectTemplateItem(
-          'force_project_create_functions_template_display_text',
-          'force_project_create_functions_template'
-        )
-      );
-    }
 
     const selection = await vscode.window.showQuickPick(items);
     let projectTemplate: string | undefined;
