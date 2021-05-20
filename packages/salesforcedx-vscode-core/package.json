@@ -845,10 +845,10 @@
       "type": "object",
       "title": "%feature_previews_title%",
       "properties": {
-        "salesforcedx-vscode-core.force-push-and-pull.enabled": {
+        "salesforcedx-vscode-core.force-push-on-save": {
           "type": "boolean",
           "default": false,
-          "description": "%force_push_and_pull_enabled_description%"
+          "description": "%force_push_on_save_description%"
         },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",

@@ -37,7 +37,7 @@
   "force_project_create_text": "SFDX: Create Project",
   "force_project_with_manifest_create_text": "SFDX: Create Project with Manifest",
   "force_apex_trigger_create_text": "SFDX: Create Apex Trigger",
-  "force_push_and_pull_enabled_description": "Specifies whether to always use --forceoverwrite when doing force:source:push and force:source:pull.",
+  "force_push_on_save_description": "Specifies whether to always use --forceoverwrite when doing force:source:push on save.",
   "show_cli_success_msg_description": "Specifies whether status messages for Salesforce CLI commands run using the VS Code command palette will appear as pop-up information messages (true) or as status bar messages (false).",
   "force_start_apex_debug_logging": "SFDX: Turn On Apex Debug Log for Replay Debugger",
   "force_stop_apex_debug_logging": "SFDX: Turn Off Apex Debug Log for Replay Debugger",

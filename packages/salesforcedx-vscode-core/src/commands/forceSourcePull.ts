@@ -10,7 +10,6 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
 import {
   EmptyParametersGatherer,
   FlagParameter,
@@ -34,12 +33,9 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       .withArg('force:source:pull')
       .withLogName('force_source_pull_default_scratch_org');
 
-    if (
-      sfdxCoreSettings.getForcePushAndPullEnabled() ||
-      this.flag === '--forceoverwrite'
-    ) {
+    if (this.flag === '--forceoverwrite') {
       builder
-        .withArg('--forceoverwrite')
+        .withArg(this.flag)
         .withDescription(
           nls.localize('force_source_pull_force_default_scratch_org_text')
         );

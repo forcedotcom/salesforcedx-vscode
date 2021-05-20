@@ -9,9 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { from } from 'rxjs/observable/from';
 import { nls } from '../messages';
-import { sfdxCoreSettings } from '../settings';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   EmptyParametersGatherer,
@@ -34,11 +32,8 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
       .withArg('force:source:push')
       .withJson()
       .withLogName('force_source_push_default_scratch_org');
-    if (
-      sfdxCoreSettings.getForcePushAndPullEnabled() ||
-      this.flag === '--forceoverwrite'
-    ) {
-      builder.withArg('--forceoverwrite');
+    if (this.flag === '--forceoverwrite') {
+      builder.withArg(this.flag);
       builder.withDescription(
         nls.localize('force_source_push_force_default_scratch_org_text')
       );

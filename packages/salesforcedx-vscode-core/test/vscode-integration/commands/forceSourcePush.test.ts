@@ -33,20 +33,4 @@ describe('Force Source Push', () => {
       nls.localize('force_source_push_force_default_scratch_org_text')
     );
   });
-  it('Should build the source push command with force push setting', async () => {
-    const settings = stub(
-      SfdxCoreSettings.prototype,
-      'getForcePushAndPullEnabled'
-    );
-    settings.returns(true);
-    const sourcePushOverwrite = new ForceSourcePushExecutor();
-    const pushCommand = sourcePushOverwrite.build({});
-    expect(pushCommand.toCommand()).to.equal(
-      'sfdx force:source:push --json --loglevel fatal --forceoverwrite'
-    );
-    expect(pushCommand.description).to.equal(
-      nls.localize('force_source_push_force_default_scratch_org_text')
-    );
-    settings.restore();
-  });
 });

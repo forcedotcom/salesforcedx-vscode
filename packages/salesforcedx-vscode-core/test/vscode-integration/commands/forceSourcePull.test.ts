@@ -31,20 +31,4 @@ describe('Force Source Pull', () => {
       nls.localize('force_source_pull_force_default_scratch_org_text')
     );
   });
-  it('Should build the source pull command with force push setting', async () => {
-    const settings = stub(
-      SfdxCoreSettings.prototype,
-      'getForcePushAndPullEnabled'
-    );
-    settings.returns(true);
-    const sourcePullOverwrite = new ForceSourcePullExecutor();
-    const pullCommand = sourcePullOverwrite.build({});
-    expect(pullCommand.toCommand()).to.equal(
-      'sfdx force:source:pull --forceoverwrite'
-    );
-    expect(pullCommand.description).to.equal(
-      nls.localize('force_source_pull_force_default_scratch_org_text')
-    );
-    settings.restore();
-  });
 });
