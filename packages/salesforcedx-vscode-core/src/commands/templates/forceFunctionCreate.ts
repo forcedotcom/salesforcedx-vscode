@@ -35,10 +35,10 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
 
   public build(data: FunctionInfo): Command {
     if (data.language === 'javascript') {
-      this.setMetadataType(FUNCTION_TYPE_JS);
+      this.metadata = FUNCTION_TYPE_JS;
       this.setFileExtension('js');
     } else if (data.language === 'java') {
-      this.setMetadataType(FUNCTION_TYPE_JAVA);
+      this.metadata = FUNCTION_TYPE_JAVA;
       this.setFileExtension('java');
     }
     return new SfdxCommandBuilder()

@@ -32,7 +32,7 @@ export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   }
 
   public build(data: DirFileNameSelection): Command {
-    this.setMetadataType(LWC_TYPE);
+    this.metadata = LWC_TYPE;
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
       .withArg('force:lightning:lwc:test:create')

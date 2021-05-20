@@ -33,6 +33,15 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
 > {
   private metadataType?: MetadataInfo;
 
+  constructor(type?: string) {
+    super();
+    const info = MetadataDictionary.getInfo(type!);
+    if (!info) {
+      throw new Error(`Unrecognized metadata type ${type}`);
+    }
+    this.metadataType = info;
+  }
+
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
@@ -91,26 +100,22 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   }
 
   public getSourcePathStrategy(): SourcePathStrategy {
-    // @ts-ignore
-    return this.metadataType.pathStrategy;
+    return this.metadataType!.pathStrategy;
   }
 
   public getFileExtension(): string {
-    // @ts-ignore
-    return `.${this.metadataType.suffix}`;
+    return `.${this.metadataType!.suffix}`;
   }
 
   public setFileExtension(extension: string): void {
-    // @ts-ignore
-    this.metadataType.suffix = extension;
+    this.metadataType!.suffix = extension;
   }
 
   public getDefaultDirectory(): string {
-    // @ts-ignore
-    return this.metadataType.directory;
+    return this.metadataType!.directory;
   }
 
-  public setMetadataType(type: string): void {
+  public set metadata(type: string) {
     const info = MetadataDictionary.getInfo(type);
     if (!info) {
       throw new Error(`Unrecognized metadata type ${type}`);
