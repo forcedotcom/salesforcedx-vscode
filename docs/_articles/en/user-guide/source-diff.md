@@ -3,7 +3,7 @@ title: Source Diff
 lang: en
 ---
 
-The Source Diff command allows you to diff metadata types against your default org. This feature makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at Diffs for an individual file or directory..
+The Source Diff command allows you to diff metadata types against your default org. This feature makes it easier to visualize the changes between files in your local project and the metadata in your org. You can look at Diffs for an individual file or directory.
 
 ## Usage
 Menu options `SFDX: Diff File Against Org` and `SFDX: Diff Folder Against Org` appear when you right-click a file or folder.  
