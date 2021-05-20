@@ -33,15 +33,6 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
 > {
   private metadataType?: MetadataInfo;
 
-  constructor(type?: string) {
-    super();
-    const info = MetadataDictionary.getInfo(type!);
-    if (!info) {
-      throw new Error(`Unrecognized metadata type ${type}`);
-    }
-    this.metadataType = info;
-  }
-
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
