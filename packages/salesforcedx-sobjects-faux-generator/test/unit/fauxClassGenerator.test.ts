@@ -6,21 +6,25 @@
  */
 
 import * as chai from 'chai';
-import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
+import { SObjectShortDescription } from '../../src/describe';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import {
   FauxClassGenerator,
   INDENT
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
-import { SObjectCategory } from '../../src/types';
-import { customSObject } from './sObjectMockData';
+import {
+  SObject,
+  SObjectCategory,
+  SObjectRefreshOutput
+} from '../../src/types';
+import { apiCustomSObject, minimalCustomSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 
@@ -29,8 +33,7 @@ describe('SObject faux class generator', () => {
   const declGenerator = new DeclarationGenerator();
 
   function getGenerator(): FauxClassGenerator {
-    const emitter: EventEmitter = new EventEmitter();
-    return new FauxClassGenerator(emitter);
+    return new FauxClassGenerator(SObjectCategory.CUSTOM, 'custom0');
   }
 
   afterEach(() => {
@@ -88,7 +91,9 @@ describe('SObject faux class generator', () => {
 
   it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
-    const customDef = declGenerator.generateSObjectDefinition(customSObject);
+    const customDef = declGenerator.generateSObjectDefinition(
+      minimalCustomSObject
+    );
     const classContent = gen.generateFauxClassText(customDef);
 
     let standardFieldComment = `    /* Please add a unique name${EOL}`;
@@ -396,8 +401,8 @@ describe('SObject faux class generator', () => {
   });
 
   describe('Clean SObject Folders', () => {
-    const gen = getGenerator();
-    const sobjectsFolder = join(process.cwd(), SOBJECTS_DIR);
+    const sfdxPath = process.cwd();
+    const sobjectsFolder = join(sfdxPath, SOBJECTS_DIR);
     const standardFolder = join(sobjectsFolder, STANDARDOBJECTS_DIR);
     const customFolder = join(sobjectsFolder, CUSTOMOBJECTS_DIR);
 
@@ -414,21 +419,45 @@ describe('SObject faux class generator', () => {
     });
 
     it('Should remove standardObjects folder when category is STANDARD', () => {
-      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
+      const gen = new FauxClassGenerator(
+        SObjectCategory.STANDARD,
+        STANDARDOBJECTS_DIR
+      );
+      const output: SObjectRefreshOutput = {
+        sfdxPath,
+        addTypeNames: () => {},
+        getTypeNames: () => [],
+        addStandard: () => {},
+        addCustom: () => {},
+        getStandard: () => [],
+        getCustom: () => [],
+        setError: (m, s) => {}
+      };
+
+      gen.generate(output);
       expect(fs.existsSync(customFolder));
       expect(!fs.existsSync(standardFolder));
     });
 
     it('Should remove customObjects folder when category is CUSTOM', () => {
-      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.CUSTOM);
+      const gen = new FauxClassGenerator(
+        SObjectCategory.CUSTOM,
+        CUSTOMOBJECTS_DIR
+      );
+      const output: SObjectRefreshOutput = {
+        sfdxPath,
+        addTypeNames: () => {},
+        getTypeNames: () => [],
+        addStandard: () => {},
+        addCustom: () => {},
+        getStandard: () => [],
+        getCustom: () => [],
+        setError: (m, s) => {}
+      };
+
+      gen.generate(output);
       expect(!fs.existsSync(customFolder));
       expect(fs.existsSync(standardFolder));
-    });
-
-    it('Should remove base sobjects folder when category is ALL', () => {
-      gen.cleanupSObjectFolders(sobjectsFolder, SObjectCategory.STANDARD);
-      expect(!fs.existsSync(customFolder));
-      expect(!fs.existsSync(standardFolder));
     });
   });
 });

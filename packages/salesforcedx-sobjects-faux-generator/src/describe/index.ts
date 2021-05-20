@@ -5,4 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { SObjectDescribe } from './sObjectDescribe';
+import { SObject } from '../types';
+export { SObjectDescribe, toMinimalSObject } from './sObjectDescribe';
+
+export type SObjectShortDescription = Pick<SObject, 'name' | 'custom'>;
+
+export interface SObjectSelector {
+  select(sobject: SObjectShortDescription): boolean;
+}

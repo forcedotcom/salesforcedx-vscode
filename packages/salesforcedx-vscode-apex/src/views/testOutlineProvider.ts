@@ -25,9 +25,7 @@ import {
   languageClientUtils
 } from '../languageClientUtils';
 import { nls } from '../messages';
-import * as settings from '../settings';
 import { ApexTestMethod } from './lspConverter';
-import { FullTestResult } from './testDataAccessObjects';
 
 // Message
 const LOADING_MESSAGE = nls.localize('force_test_view_loading_message');
@@ -179,49 +177,10 @@ export class ApexTestOutlineProvider
 
   public updateTestResults(testResultFilePath: string) {
     const testResultOutput = readFileSync(testResultFilePath, 'utf8');
-    const testResultContent = JSON.parse(testResultOutput);
+    const testResultContent = JSON.parse(testResultOutput) as TestResult;
 
-    settings.useApexLibrary()
-      ? this.updateTestsFromLibrary(testResultContent as TestResult)
-      : this.updateTestsFromJSON(testResultContent as FullTestResult);
+    this.updateTestsFromLibrary(testResultContent);
     this.onDidChangeTestData.fire(undefined);
-  }
-
-  private updateTestsFromJSON(jsonSummary: FullTestResult) {
-    const groups = new Set<ApexTestGroupNode>();
-    for (const testResult of jsonSummary.tests) {
-      const { Name, NamespacePrefix } = testResult.ApexClass;
-      const apexGroupName = NamespacePrefix
-        ? `${NamespacePrefix}.${Name}`
-        : Name;
-
-      const apexGroup = this.apexTestMap.get(
-        apexGroupName
-      ) as ApexTestGroupNode;
-      // Check if new group, if so, set to pass
-      if (apexGroup) {
-        groups.add(apexGroup as ApexTestGroupNode);
-      }
-
-      const testFullName = NamespacePrefix
-        ? `${NamespacePrefix}.${Name}.${testResult.MethodName}`
-        : `${Name}.${testResult.MethodName}`;
-      const apexTest = this.apexTestMap.get(testFullName) as ApexTestNode;
-
-      if (apexTest) {
-        apexTest.outcome = testResult.Outcome;
-        apexTest.updateOutcome();
-        if (testResult.Outcome === 'Fail') {
-          apexTest.errorMessage = testResult.Message;
-          apexTest.stackTrace = testResult.StackTrace;
-          apexTest.description =
-            apexTest.stackTrace + '\n' + apexTest.errorMessage;
-        }
-      }
-    }
-    groups.forEach(group => {
-      group.updatePassFailLabel();
-    });
   }
 
   private updateTestsFromLibrary(testResult: TestResult) {

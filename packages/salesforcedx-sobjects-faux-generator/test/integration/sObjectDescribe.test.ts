@@ -10,8 +10,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
 import { SObjectDescribe } from '../../src/describe';
-import { SObjectCategory, SObjectRefreshSource } from '../../src/types';
-import { mockDescribeResponse } from './mockData';
+import { mockAPIResponse, mockMinimizedResponseResult } from './mockData';
 
 const CONNECTION_DATA = {
   accessToken: '00Dxx000thisIsATestToken',
@@ -61,10 +60,7 @@ describe('Fetch sObjects', () => {
       new Error('Unexpected error when running describeGlobal')
     );
     try {
-      await sobjectdescribe.describeGlobal(
-        SObjectCategory.ALL,
-        SObjectRefreshSource.Manual
-      );
+      await sobjectdescribe.describeGlobal();
       fail('test should have failed with an api exception');
     } catch (e) {
       expect(e.message).contains(
@@ -83,117 +79,13 @@ describe('Fetch sObjects', () => {
       ]
     });
 
-    const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Manual
-    );
+    const results = await sobjectdescribe.describeGlobal();
     expect(results.length).to.eql(4);
     expect(results).to.deep.equal([
-      'MyCustomObj1',
-      'MyCustomObj2',
-      'Account',
-      'Contact'
-    ]);
-  });
-
-  it('Should return only custom sobjects when running describeGlobal', async () => {
-    describeGlobalStub.resolves({
-      sobjects: [
-        { custom: true, name: 'MyCustomObj1' },
-        { custom: true, name: 'MyCustomObj2' },
-        { custom: false, name: 'Account' },
-        { custom: false, name: 'Contact' }
-      ]
-    });
-
-    const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.CUSTOM,
-      SObjectRefreshSource.Manual
-    );
-    expect(results.length).to.eql(2);
-    expect(results).to.deep.equal(['MyCustomObj1', 'MyCustomObj2']);
-  });
-
-  it('Should return only standard sobjects when running describeGlobal', async () => {
-    describeGlobalStub.resolves({
-      sobjects: [
-        { custom: true, name: 'MyCustomObj1' },
-        { custom: true, name: 'MyCustomObj2' },
-        { custom: false, name: 'Account' },
-        { custom: false, name: 'Contact' },
-        { custom: false, name: 'Lead' }
-      ]
-    });
-
-    const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.STANDARD,
-      SObjectRefreshSource.Manual
-    );
-    expect(results.length).to.eql(3);
-    expect(results).to.deep.equal(['Account', 'Contact', 'Lead']);
-  });
-
-  it('Should filter out sobjects if category is CUSTOM when running describeGlobal', async () => {
-    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
-
-    const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.CUSTOM,
-      SObjectRefreshSource.Manual
-    );
-    expect(results.length).to.eql(3);
-    expect(results).to.deep.equal([
-      'MyCustomObj1',
-      'MyCustomObj2',
-      'Custom_History_Obj'
-    ]);
-  });
-
-  it('Should filter out sobjects if category is STANDARD when running describeGlobal', async () => {
-    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
-
-    const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.STANDARD,
-      SObjectRefreshSource.Manual
-    );
-    expect(results.length).to.eql(4);
-    expect(results).to.deep.equal(['Account', 'Contact', 'Lead', 'Event']);
-  });
-
-  it('Should filter out sobjects if category is ALL & source is Startup when running describeGlobal', async () => {
-    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
-
-    const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Startup
-    );
-    expect(results.length).to.eql(7);
-    expect(results).to.deep.equal([
-      'MyCustomObj1',
-      'MyCustomObj2',
-      'Custom_History_Obj',
-      'Account',
-      'Contact',
-      'Lead',
-      'Event'
-    ]);
-  });
-
-  it('Should filter out sobjects if category is ALL & source is StartupMin when running describeGlobal', async () => {
-    describeGlobalStub.resolves(SOBJECTS_DESCRIBE_SAMPLE);
-
-    const results = await sobjectdescribe.describeGlobal(
-      SObjectCategory.ALL,
-      SObjectRefreshSource.Startup
-    );
-    expect(results.length).to.eql(7);
-    expect(results).to.deep.equal([
-      'MyCustomObj1',
-      'MyCustomObj2',
-      'Custom_History_Obj',
-      'Account',
-      'Contact',
-      'Lead',
-      'Event'
+      { custom: true, name: 'MyCustomObj1' },
+      { custom: true, name: 'MyCustomObj2' },
+      { custom: false, name: 'Account' },
+      { custom: false, name: 'Contact' }
     ]);
   });
 
@@ -249,16 +141,14 @@ describe('Fetch sObjects', () => {
 
   it('Should return sobjects when calling describeSObjectBatch', async () => {
     const sobjectTypes = ['ApexPageInfo'];
-    env.stub(connection, 'request').resolves(mockDescribeResponse);
+    env.stub(connection, 'request').resolves(mockAPIResponse);
 
     const batchResponse = await sobjectdescribe.describeSObjectBatchRequest(
       sobjectTypes
     );
 
     expect(batchResponse.length).to.be.equal(1);
-    expect(batchResponse[0]).to.deep.equal(
-      mockDescribeResponse.results[0].result
-    );
+    expect(batchResponse[0]).to.deep.equal(mockMinimizedResponseResult);
   });
 
   it('Should handle describe call returning no sobjects when calling describeSObjectBatch', async () => {

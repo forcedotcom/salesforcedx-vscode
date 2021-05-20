@@ -6,6 +6,7 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
@@ -13,10 +14,9 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  registryData,
+  registry,
   RetrieveResult,
-  SourceComponent,
-  ToolingApi
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
@@ -39,10 +39,8 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -85,10 +83,10 @@ describe('Base Deploy Retrieve Commands', () => {
         return this.lifecycle.getComponentsStub();
       }
       protected doOperation(components: ComponentSet): Promise<undefined> {
-        return this.lifecycle.doOperationStub();
+        return this.lifecycle.doOperationStub(components);
       }
       protected postOperation(result: undefined): Promise<void> {
-        return this.lifecycle.postOperationStub();
+        return this.lifecycle.postOperationStub(result);
       }
     }
 
@@ -164,10 +162,7 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(success).to.equal(false);
     });
 
-    it('should format type inference error with project path', async () => {
-      sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
-        'force-app'
-      ]);
+    it('should format error with project path', async () => {
       const executor = new TestDeployRetrieve();
       const projectPath = join(
         'force-app',
@@ -176,37 +171,60 @@ describe('Base Deploy Retrieve Commands', () => {
         'classes',
         'someclass.xyz'
       );
-      const fullPath = join(sep, 'path', 'to', projectPath);
-      const typeInferenceError = new Error(
-        `${fullPath}: Could not infer metadata type`
-      );
-      typeInferenceError.name = 'TypeInferenceError';
-      executor.lifecycle.getComponentsStub.throws(typeInferenceError);
+      const fullPath = join(getRootWorkspacePath(), projectPath);
+      const error = new Error(`Problem with ${fullPath}`);
+      executor.lifecycle.getComponentsStub.throws(error);
 
       try {
         await executor.run({ data: {}, type: 'CONTINUE' });
         fail('should have thrown an error');
       } catch (e) {
-        expect(e.name).to.equal(typeInferenceError.name);
-        expect(e.message).to.equal(
-          `${projectPath}: Could not infer metadata type`
-        );
+        expect(e.message).to.equal(`Problem with ${sep}${projectPath}`);
       }
     });
 
-    it('should throw unknown exception if error is unknown', async () => {
+    it('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
-      const testException = new Error('some error message');
-      testException.name = 'SomeUnknownException';
-      executor.lifecycle.getComponentsStub.throws(testException);
+      const configApiVersion = '30.0';
+      sb.stub(ConfigUtil, 'getConfigValue')
+        .withArgs('apiVersion')
+        .returns(configApiVersion);
 
-      try {
-        await executor.run({ data: {}, type: 'CONTINUE' });
-        fail('should have thrown an error');
-      } catch (e) {
-        expect(e.name).to.equal(testException.name);
-        expect(e.message).to.equal('Unknown Exception');
-      }
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(configApiVersion);
+    });
+
+    it('should not override api version if getComponents set it already', async () => {
+      const executor = new TestDeployRetrieve();
+
+      const getComponentsResult = new ComponentSet();
+      getComponentsResult.apiVersion = '41.0';
+      executor.lifecycle.getComponentsStub.returns(getComponentsResult);
+
+      const configApiVersion = '45.0';
+      sb.stub(ConfigUtil, 'getConfigValue')
+        .withArgs('apiVersion')
+        .returns(configApiVersion);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
+    });
+
+    it('should use the registry api version by default', async () => {
+      const executor = new TestDeployRetrieve();
+      const registryApiVersion = registry.apiVersion;
+      sb.stub(ConfigUtil, 'getConfigValue')
+        .withArgs('apiVersion')
+        .returns(undefined);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(registryApiVersion);
     });
   });
 
@@ -447,7 +465,7 @@ describe('Base Deploy Retrieve Commands', () => {
     const packageDir = 'test-app';
     const props = {
       name: 'MyTrigger',
-      type: registryData.types.apextrigger,
+      type: registry.types.apextrigger,
       content: join('project', 'classes', 'MyTrigger.cls'),
       xml: join('project', 'classes', 'MyTrigger.cls-meta.xml')
     };
@@ -462,7 +480,6 @@ describe('Base Deploy Retrieve Commands', () => {
       public components: ComponentSet;
       public startStub: SinonStub;
       public retrieveStub: SinonStub;
-      public toolingRetrieveStub: SinonStub;
 
       constructor(toRetrieve = new ComponentSet()) {
         super('test', 'testlog');
@@ -471,7 +488,6 @@ describe('Base Deploy Retrieve Commands', () => {
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
           .returns({ start: this.startStub });
-        this.toolingRetrieveStub = sb.stub(ToolingApi.prototype, 'retrieve');
       }
 
       protected async getComponents(
@@ -487,62 +503,6 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
     });
 
-    it('should utilize Tooling API if retrieving one source-backed component', async () => {
-      const components = new ComponentSet([
-        new SourceComponent({
-          name: 'MyClass',
-          type: registryData.types.apexclass,
-          content: join('project', 'classes', 'MyClass.cls'),
-          xml: join('project', 'classes', 'MyClass.cls-meta.xml')
-        })
-      ]);
-      const executor = new TestRetrieve(components);
-
-      await executor.run({ data: {}, type: 'CONTINUE' });
-
-      expect(executor.toolingRetrieveStub.callCount).to.equal(1);
-      expect(executor.retrieveStub.callCount).to.equal(0);
-    });
-
-    it('should pass project namespace when using Tooling API', async () => {
-      const components = new ComponentSet([
-        new SourceComponent({
-          name: 'MyClass',
-          type: registryData.types.apexclass,
-          content: join('project', 'classes', 'MyClass.cls'),
-          xml: join('project', 'classes', 'MyClass.cls-meta.xml')
-        })
-      ]);
-      const executor = new TestRetrieve(components);
-      sb.stub(SfdxProjectConfig, 'getValue')
-        .withArgs('namespace')
-        .returns('testns');
-
-      await executor.run({ data: {}, type: 'CONTINUE' });
-
-      expect(executor.toolingRetrieveStub.callCount).to.equal(1);
-      expect(executor.toolingRetrieveStub.firstCall.args[0]).to.deep.equal({
-        components,
-        namespace: 'testns'
-      });
-    });
-
-    it('should not utilize Tooling API if retrieving one source-backed component but type is unsupported', async () => {
-      const components = new ComponentSet([
-        new SourceComponent({
-          name: 'MyLayout',
-          type: registryData.types.layout,
-          xml: join('project', 'layouts', 'MyLayout.cls-meta.xml')
-        })
-      ]);
-      const executor = new TestRetrieve(components);
-
-      await executor.run({ data: {}, type: 'CONTINUE' });
-
-      expect(executor.toolingRetrieveStub.callCount).to.equal(0);
-      expect(executor.retrieveStub.callCount).to.equal(1);
-    });
-
     it('should call retrieve on component set', async () => {
       const components = new ComponentSet([
         { fullName: 'MyClass', type: 'ApexClass' },
@@ -552,7 +512,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({ data: {}, type: 'CONTINUE' });
 
-      expect(executor.toolingRetrieveStub.callCount).to.equal(0);
       expect(executor.retrieveStub.callCount).to.equal(1);
     });
 
@@ -570,86 +529,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
       beforeEach(() => {
         appendLineStub = sb.stub(channelService, 'appendLine');
-      });
-
-      it('should output table of components for successful tooling retrieve', async () => {
-        const componentSet = new ComponentSet([component]);
-        const executor = new TestRetrieve(componentSet);
-        executor.toolingRetrieveStub.resolves({
-          successes: [
-            {
-              component
-            }
-          ],
-          failures: []
-        });
-
-        const expectedOutput = new Table().createTable(
-          [
-            {
-              fullName: component.fullName,
-              type: component.type.name,
-              filePath: component.content!
-            },
-            {
-              fullName: component.fullName,
-              type: component.type.name,
-              filePath: component.xml!
-            }
-          ],
-          [
-            { key: 'fullName', label: nls.localize('table_header_full_name') },
-            { key: 'type', label: nls.localize('table_header_type') },
-            {
-              key: 'filePath',
-              label: nls.localize('table_header_project_path')
-            }
-          ],
-          nls.localize(`lib_retrieve_result_title`)
-        );
-
-        await executor.run({ data: {}, type: 'CONTINUE' });
-
-        expect(appendLineStub.callCount).to.equal(1);
-        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
-      });
-
-      it('should output table of components for failed tooling retrieve', async () => {
-        const componentSet = new ComponentSet([component]);
-        const executor = new TestRetrieve(componentSet);
-        executor.toolingRetrieveStub.resolves({
-          successes: [],
-          failures: [
-            {
-              component,
-              message: `${component.fullName} was not found in org`
-            }
-          ]
-        });
-
-        const expectedOutput = new Table().createTable(
-          [
-            {
-              fullName: component.fullName,
-              type: component.type.name,
-              error: `${component.fullName} was not found in org`
-            }
-          ],
-          [
-            { key: 'fullName', label: nls.localize('table_header_full_name') },
-            { key: 'type', label: nls.localize('table_header_type') },
-            {
-              key: 'error',
-              label: nls.localize('table_header_message')
-            }
-          ],
-          nls.localize('lib_retrieve_message_title')
-        );
-
-        await executor.run({ data: {}, type: 'CONTINUE' });
-
-        expect(appendLineStub.callCount).to.equal(1);
-        expect(appendLineStub.firstCall.args[0]).to.equal(expectedOutput);
       });
 
       it('should output table of components for successful retrieve', async () => {

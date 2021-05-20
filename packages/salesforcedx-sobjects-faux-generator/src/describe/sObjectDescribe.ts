@@ -6,15 +6,11 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { DescribeGlobalResult } from 'jsforce';
+import { DescribeGlobalResult, DescribeSObjectResult, Field } from 'jsforce';
+import { SObjectShortDescription } from '.';
 import { CLIENT_ID } from '../constants';
-import {
-  BatchRequest,
-  BatchResponse,
-  SObject,
-  SObjectCategory,
-  SObjectRefreshSource
-} from '../types';
+import { BatchRequest, BatchResponse, SObject } from '../types';
+import { SObjectField } from '../types/describe';
 export const MAX_BATCH_REQUEST_SIZE = 25;
 
 export class SObjectDescribe {
@@ -33,53 +29,14 @@ export class SObjectDescribe {
   /**
    * Method that returns a list of SObjects based on running a describe global request
    * More info at https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_describeGlobal.htm
-   * @param type SObjectCategory
-   * @returns string[] containing the sobject names
+   * @returns Promise<SObjectShortDescription[]> containing the sobject names and 'custom' classification
    */
-  public async describeGlobal(
-    category: SObjectCategory,
-    source: SObjectRefreshSource
-  ): Promise<string[]> {
-    let requestedDescriptions: string[] = [];
+  public async describeGlobal(): Promise<SObjectShortDescription[]> {
     const allDescriptions: DescribeGlobalResult = await this.connection.describeGlobal();
-
-    requestedDescriptions = allDescriptions.sobjects.reduce(
-      (acc: string[], sobject) => {
-        const isCustomObject =
-          sobject.custom === true && category === SObjectCategory.CUSTOM;
-        const isStandardObject =
-          sobject.custom === false && category === SObjectCategory.STANDARD;
-
-        if (
-          category === SObjectCategory.ALL &&
-          source === SObjectRefreshSource.Manual
-        ) {
-          acc.push(sobject.name);
-        } else if (
-          category === SObjectCategory.ALL &&
-          (source === SObjectRefreshSource.StartupMin ||
-            source === SObjectRefreshSource.Startup) &&
-          this.isRequiredSObject(sobject.name)
-        ) {
-          acc.push(sobject.name);
-        } else if (
-          (isCustomObject || isStandardObject) &&
-          source === SObjectRefreshSource.Manual &&
-          this.isRequiredSObject(sobject.name)
-        ) {
-          acc.push(sobject.name);
-        }
-
-        return acc;
-      },
-      []
-    );
+    const requestedDescriptions = allDescriptions.sobjects.map(sobject => {
+      return { name: sobject.name, custom: sobject.custom };
+    });
     return requestedDescriptions;
-  }
-
-  private isRequiredSObject(sobject: string): boolean {
-    // Ignore all sobjects that end with Share or History or Feed or Event
-    return !/Share$|History$|Feed$|.+Event$/.test(sobject);
   }
 
   public getVersion(): string {
@@ -148,9 +105,9 @@ export class SObjectDescribe {
           if (sr.result[0].errorCode && sr.result[0].message) {
             console.log(`Error: ${sr.result[0].message} - ${types[i]}`);
           }
-        }
-        fetchedObjects.push(sr.result);
+        } else fetchedObjects.push(toMinimalSObject(sr.result));
       });
+
       return Promise.resolve(fetchedObjects);
     } catch (error) {
       const errorMsg = error.hasOwnProperty('body')
@@ -172,4 +129,57 @@ export class SObjectDescribe {
     const fetchedSObjects = ([] as SObject[]).concat(...results);
     return fetchedSObjects;
   }
+}
+
+/**
+ * Convert jsforce's complete sobject metadata to our internal (smaller) SObject representation
+ *
+ * @param describeSObject full metadata of an sobject, as returned by the jsforce's sobject/describe api
+ * @returns SObject containing a subset of DescribeSObjectResult information
+ */
+export function toMinimalSObject(
+  describeSObject: DescribeSObjectResult
+): SObject {
+  return {
+    fields: describeSObject.fields
+      ? describeSObject.fields.map(toMinimalSObjectField)
+      : [],
+    ...pick(
+      describeSObject,
+      'label',
+      'childRelationships',
+      'custom',
+      'name',
+      'queryable'
+    )
+  };
+}
+
+function toMinimalSObjectField(describeField: Field): SObjectField {
+  return pick(
+    describeField,
+    'aggregatable',
+    'custom',
+    'defaultValue',
+    'extraTypeInfo',
+    'filterable',
+    'groupable',
+    'inlineHelpText',
+    'label',
+    'name',
+    'nillable',
+    'picklistValues',
+    'referenceTo',
+    'relationshipName',
+    'sortable',
+    'type'
+  );
+}
+
+function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+  const ret: any = {};
+  keys.forEach(key => {
+    ret[key] = obj[key];
+  });
+  return ret;
 }

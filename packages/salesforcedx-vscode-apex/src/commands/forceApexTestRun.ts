@@ -19,13 +19,8 @@ import {
   hasRootWorkspace,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
@@ -42,14 +37,13 @@ import * as settings from '../settings';
 
 export enum TestType {
   All,
+  AllLocal,
   Suite,
   Class
 }
-
 export interface ApexTestQuickPickItem extends vscode.QuickPickItem {
   type: TestType;
 }
-
 export class TestsSelector
   implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<
@@ -66,6 +60,14 @@ export class TestsSelector
         description: testSuite.fsPath,
         type: TestType.Suite
       };
+    });
+
+    fileItems.push({
+      label: nls.localize('force_apex_test_run_all_local_test_label'),
+      description: nls.localize(
+        'force_apex_test_run_all_local_tests_description_text'
+      ),
+      type: TestType.AllLocal
     });
 
     fileItems.push({
@@ -97,85 +99,12 @@ export class TestsSelector
   }
 }
 
-export class ForceApexTestRunCommandFactory {
-  private data: ApexTestQuickPickItem;
-  private getCodeCoverage: boolean;
-  private builder: SfdxCommandBuilder = new SfdxCommandBuilder();
-  private testRunExecutorCommand!: Command;
-  private outputToJson: string;
-
-  constructor(
-    data: ApexTestQuickPickItem,
-    getCodeCoverage: boolean,
-    outputToJson: string
-  ) {
-    this.data = data;
-    this.getCodeCoverage = getCodeCoverage;
-    this.outputToJson = outputToJson;
-  }
-
-  public constructExecutorCommand(): Command {
-    this.builder = this.builder
-      .withDescription(nls.localize('force_apex_test_run_text'))
-      .withArg('force:apex:test:run')
-      .withLogName('force_apex_test_run');
-
-    switch (this.data.type) {
-      case TestType.Suite:
-        this.builder = this.builder.withFlag(
-          '--suitenames',
-          `${this.data.label}`
-        );
-        break;
-      case TestType.Class:
-        this.builder = this.builder.withFlag(
-          '--classnames',
-          `${this.data.label}`
-        );
-        break;
-      default:
-        break;
-    }
-
-    if (this.getCodeCoverage) {
-      this.builder = this.builder.withArg('--codecoverage');
-    }
-
-    this.builder = this.builder
-      .withFlag('--resultformat', 'human')
-      .withFlag('--outputdir', this.outputToJson)
-      .withFlag('--loglevel', 'error');
-
-    this.testRunExecutorCommand = this.builder.build();
-    return this.testRunExecutorCommand;
-  }
-}
-
 function getTempFolder(): string {
   if (hasRootWorkspace()) {
     const apexDir = getTestResultsFolder(getRootWorkspacePath(), 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
-  }
-}
-
-export class ForceApexTestRunExecutor extends SfdxCommandletExecutor<
-  ApexTestQuickPickItem
-> {
-  constructor() {
-    super(OUTPUT_CHANNEL);
-  }
-
-  public build(data: ApexTestQuickPickItem): Command {
-    const getCodeCoverage = settings.retrieveTestCodeCoverage();
-    const outputToJson = getTempFolder();
-    const factory: ForceApexTestRunCommandFactory = new ForceApexTestRunCommandFactory(
-      data,
-      getCodeCoverage,
-      outputToJson
-    );
-    return factory.constructExecutorCommand();
   }
 }
 
@@ -226,6 +155,12 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
           response.data.label
         );
         break;
+      case TestType.AllLocal:
+        payload = { testLevel: TestLevel.RunLocalTests };
+        break;
+      case TestType.All:
+        payload = { testLevel: TestLevel.RunAllTestsInOrg };
+        break;
       default:
         payload = { testLevel: TestLevel.RunAllTestsInOrg };
     }
@@ -272,9 +207,7 @@ export async function forceApexTestRun() {
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
-    settings.useApexLibrary()
-      ? new ApexLibraryTestRunExecutor()
-      : new ForceApexTestRunExecutor()
+    new ApexLibraryTestRunExecutor()
   );
   await commandlet.run();
 }

@@ -561,9 +561,12 @@ export const messages = {
   conflict_detect_diff_command_title: 'Compare Files',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
+  force_source_diff_remote_not_found:
+    'Selected file or directory was not found in the org',
   force_source_diff_unsupported_type:
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
+  force_source_diff_folder_title: '%s - File Diffs',
   force_source_diff_command_not_found:
     'To run this command, first install the @salesforce/sfdx-diff plugin. For more info, see [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff).',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
@@ -589,5 +592,6 @@ export const messages = {
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects'
+  sobject_refresh_standard: 'Standard SObjects',
+  force_source_diff_components_not_in_org: 'Selected components are not available in the org'
 };

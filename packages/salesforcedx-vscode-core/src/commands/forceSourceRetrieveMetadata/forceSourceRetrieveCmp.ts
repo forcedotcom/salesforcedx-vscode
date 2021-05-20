@@ -21,7 +21,7 @@ import {
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import { SourceRetrieveResult } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/common/types';
+import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
@@ -156,30 +156,26 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   protected async getComponents(
     response: ContinueResponse<LocalComponent[]>
   ): Promise<ComponentSet> {
-    const filter = new ComponentSet(
+    const toRetrieve = new ComponentSet(
       response.data.map(lc => ({ fullName: lc.fileName, type: lc.type }))
     );
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
-    for (const dir of packageDirs) {
-      filter.resolveSourceComponents(dir, { filter });
+    const localSourceComponents = ComponentSet.fromSource({
+      fsPaths: packageDirs,
+      include: toRetrieve
+    });
+    for (const component of localSourceComponents) {
+      toRetrieve.add(component);
     }
-    return filter;
+    return toRetrieve;
   }
 
-  protected async postOperation(
-    result: RetrieveResult | SourceRetrieveResult | undefined
-  ) {
+  protected async postOperation(result: RetrieveResult | undefined) {
     await super.postOperation(result);
 
     // assumes opening only one component
     if (result && this.openAfterRetrieve) {
-      let componentToOpen: SourceComponent | undefined;
-
-      if (result instanceof RetrieveResult) {
-        componentToOpen = result.components.getSourceComponents().first();
-      } else {
-        componentToOpen = result.successes[0]?.component;
-      }
+      const componentToOpen = result.components.getSourceComponents().first();
 
       if (componentToOpen) {
         const dirPath =

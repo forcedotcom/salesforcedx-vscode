@@ -58,11 +58,13 @@ export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
     response: ContinueResponse<string>
   ): Promise<ComponentSet> {
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
-    return ComponentSet.fromManifestFile(response.data, {
-      resolve: packageDirs.map(relativeDir =>
+
+    return ComponentSet.fromManifest({
+      manifestPath: response.data,
+      resolveSourcePaths: packageDirs.map(relativeDir =>
         join(getRootWorkspacePath(), relativeDir)
       ),
-      literalWildcard: true
+      forceAddWildcards: true
     });
   }
 }
