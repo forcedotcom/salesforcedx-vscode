@@ -187,7 +187,7 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
@@ -202,6 +202,10 @@
         {
           "command": "sfdx.force.apex.class.create",
           "when": "explorerResourceIsFolder && resourceFilename == classes && sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.folder.diff",
+          "when": "explorerResourceIsFolder && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.analytics.template.create",
@@ -253,7 +257,7 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
@@ -791,6 +795,10 @@
       {
         "command": "sfdx.force.diff",
         "title": "%force_diff_against_org%"
+      },
+      {
+        "command": "sfdx.force.folder.diff",
+        "title": "%force_diff_folder_against_org%"
       },
       {
         "command": "sfdx.force.conflict.open",
