@@ -81,10 +81,10 @@ export class DeployQueue {
         }
         const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
         if (orgType === OrgType.SourceTracked) {
-          let forceCommand = sfdxCoreSettings.getForcePushOnSave()
+          const forceCommand = sfdxCoreSettings.getForcePushOnSave()
             ? '.force'
             : '';
-          let command = `sfdx.force.source.push${forceCommand}`;
+          const command = `sfdx.force.source.push${forceCommand}`;
           vscode.commands.executeCommand(command);
         } else {
           vscode.commands.executeCommand(
