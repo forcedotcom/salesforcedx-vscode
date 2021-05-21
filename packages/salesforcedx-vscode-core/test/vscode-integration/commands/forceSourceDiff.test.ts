@@ -15,7 +15,12 @@ import { channelService } from '../../../src/channels';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
 import * as conflictDetectionService from '../../../src/conflict/conflictDetectionService';
-import { MetadataCacheResult, MetadataCacheService, MetadataContext } from '../../../src/conflict/metadataCacheService';
+import {
+  MetadataCacheResult,
+  MetadataCacheService,
+  MetadataContext,
+  PathType
+} from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import Sinon = require('sinon');
@@ -109,7 +114,7 @@ describe('Force Source Diff', () => {
         }
       });
       const mockResult: MetadataCacheResult = {
-        selectedIsDirectory: false,
+        selectedType: PathType.Individual,
         selectedPath: mockFilePath,
         cache: {
           baseDirectory: path.join(`/tmp/.sfdx/diff/${mockUsername}/`),
@@ -224,15 +229,33 @@ describe('Force Source Diff', () => {
     });
 
     it('Should diff one file', async () => {
-      const metadataCache: MetadataContext = { baseDirectory: '.', commonRoot: '.', components: [] };
-      const cacheResult: MetadataCacheResult = { selectedIsDirectory: false, selectedPath: '.', cache: metadataCache, project: metadataCache };
+      const metadataCache: MetadataContext = {
+        baseDirectory: '.',
+        commonRoot: '.',
+        components: []
+      };
+      const cacheResult: MetadataCacheResult = {
+        selectedType: PathType.Individual,
+        selectedPath: '.',
+        cache: metadataCache,
+        project: metadataCache
+      };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffOneFileStub);
     });
 
     it('Should diff folder', async () => {
-      const metadataCache: MetadataContext = { baseDirectory: '.', commonRoot: '.', components: [] };
-      const cacheResult: MetadataCacheResult = { selectedIsDirectory: true, selectedPath: '.', cache: metadataCache, project: metadataCache };
+      const metadataCache: MetadataContext = {
+        baseDirectory: '.',
+        commonRoot: '.',
+        components: []
+      };
+      const cacheResult: MetadataCacheResult = {
+        selectedType: PathType.Folder,
+        selectedPath: '.',
+        cache: metadataCache,
+        project: metadataCache
+      };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffFolderStub);
     });

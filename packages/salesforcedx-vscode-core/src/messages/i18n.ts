@@ -530,12 +530,11 @@ export const messages = {
   EmbeddedServiceMenuSettings: 'Embedded Service Menu Settings',
   CallCoachingMediaProvider: 'Call Coaching Media Providers',
 
+  conflict_detect_execution_name: 'Conflict Detection',
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
-  conflict_detect_retrieve_org_source:
-    'Conflict Detection: retrieving org source',
-  conflict_detect_convert_org_source:
-    'Conflict Detection: converting org source',
+  conflict_detect_empty_results:
+    'Conflict Detection failed to retrieve org file state',
   conflict_detect_conflicts_during_deploy:
     'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
   conflict_detect_conflicts_during_retrieve:
