@@ -152,9 +152,7 @@ describe('Postcondition Checkers', () => {
 
       it('Should show correct message for 1 < components <= 10 ', async () => {
         const components = generateComponents(2);
-        const expectedBody = `${components[1].type}:${
-          components[1].fileName
-        }\n`;
+        const expectedBody = `${components[1].type}:${components[1].fileName}\n`;
 
         await doPrompt(components, [undefined]);
 
@@ -297,7 +295,6 @@ describe('Postcondition Checkers', () => {
     let modalStub: SinonStub;
     let settingsStub: SinonStub;
     let detectorStub: SinonStub;
-    let detectorCleanupStub: SinonStub;
     let conflictViewStub: SinonStub;
     let appendLineStub: SinonStub;
     let channelOutput: string[] = [];
@@ -308,7 +305,6 @@ describe('Postcondition Checkers', () => {
       modalStub = env.stub(notificationService, 'showWarningModal');
       settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
       detectorStub = env.stub(conflictDetector, 'checkForConflicts');
-      detectorCleanupStub = env.stub(conflictDetector, 'clearCache');
       conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
       appendLineStub = env.stub(channelService, 'appendLine');
       appendLineStub.callsFake(line => channelOutput.push(line));
@@ -353,30 +349,10 @@ describe('Postcondition Checkers', () => {
 
     it('Should return CancelResponse when a username is not defined.', async () => {
       const postChecker = new ConflictDetectionChecker(emptyMessages);
-      const usernameStub = env
-        .stub(postChecker, 'getDefaultUsernameOrAlias')
-        .returns(undefined);
       settingsStub.returns(true);
 
       const response = await postChecker.check(validInput);
       expect(response.type).to.equal('CANCEL');
-      expect(usernameStub.calledOnce).to.equal(true);
-    });
-
-    it('Should return CancelResponse when a default package directory is not defined.', async () => {
-      const postChecker = new ConflictDetectionChecker(emptyMessages);
-      const usernameStub = env
-        .stub(postChecker, 'getDefaultUsernameOrAlias')
-        .returns('MyAlias');
-      const packageDirStub = env
-        .stub(SfdxPackageDirectories, 'getDefaultPackageDir')
-        .returns(undefined);
-      settingsStub.returns(true);
-
-      const response = await postChecker.check(validInput);
-      expect(response.type).to.equal('CANCEL');
-      expect(usernameStub.calledOnce).to.equal(true);
-      expect(packageDirStub.calledOnce).to.equal(true);
     });
 
     it('Should return ContinueResponse when no conflicts are detected', async () => {
@@ -384,7 +360,6 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.handleConflicts(
         'manifest.xml',
         'admin@example.com',
-        'hub-app',
         { different: new Set<string>() } as DirectoryDiffResults
       );
 
@@ -393,8 +368,6 @@ describe('Postcondition Checkers', () => {
         'manifest.xml'
       );
       expect(appendLineStub.notCalled).to.equal(true);
-
-      expect(detectorCleanupStub.firstCall.args).to.eql(['admin@example.com']);
     });
 
     it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
@@ -412,7 +385,6 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.handleConflicts(
         'package.xml',
         'admin@example.com',
-        'force-app',
         results
       );
       expect(response.type).to.equal('CANCEL');
@@ -425,17 +397,15 @@ describe('Postcondition Checkers', () => {
       expect(channelOutput).to.include.members([
         nls.localize('conflict_detect_conflict_header', 2, 6, 4),
         normalize(
-          'force-app/main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+          'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
         ),
         normalize(
-          'force-app/main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
+          'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
         ),
         nls.localize('conflict_detect_command_hint', 'package.xml')
       ]);
 
       expect(conflictViewStub.calledOnce).to.equal(true);
-
-      expect(detectorCleanupStub.calledOnce).to.equal(false);
     });
 
     it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
@@ -448,7 +418,6 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.handleConflicts(
         'manifest.xml',
         'admin@example.com',
-        'hub-app',
         results
       );
       expect(response.type).to.equal('CONTINUE');
@@ -457,8 +426,6 @@ describe('Postcondition Checkers', () => {
         nls.localize('conflict_detect_override'),
         nls.localize('conflict_detect_show_conflicts')
       ]);
-
-      expect(detectorCleanupStub.firstCall.args).to.eql(['admin@example.com']);
     });
 
     it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
@@ -471,7 +438,6 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.handleConflicts(
         'manifest.xml',
         'admin@example.com',
-        'hub-app',
         results
       );
       expect(response.type).to.equal('CANCEL');
@@ -482,8 +448,6 @@ describe('Postcondition Checkers', () => {
       ]);
 
       expect(conflictViewStub.calledOnce).to.equal(true);
-
-      expect(detectorCleanupStub.calledOnce).to.equal(false);
     });
   });
 });

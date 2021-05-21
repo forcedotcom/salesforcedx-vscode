@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SourceComponent } from '@salesforce/source-deploy-retrieve';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import * as conflictDetectionService from '../conflict/conflictDetectionService';
 import {
   MetadataCacheExecutor,
-  MetadataCacheResult
-} from '../conflict';
-import * as conflictDetectionService from '../conflict/conflictDetectionService';
+  MetadataCacheResult,
+  PathType
+} from '../conflict/metadataCacheService';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -88,11 +87,18 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
   await commandlet.run();
 }
 
-export async function handleCacheResults(username: string, cache?: MetadataCacheResult): Promise<void> {
+export async function handleCacheResults(
+  username: string,
+  cache?: MetadataCacheResult
+): Promise<void> {
   if (cache) {
-    if (!cache.selectedIsDirectory && cache.cache.components) {
-      await conflictDetectionService.diffOneFile(cache.selectedPath, cache.cache.components[0], username);
-    } else if (cache.selectedIsDirectory) {
+    if (cache.selectedType === PathType.Individual && cache.cache.components) {
+      await conflictDetectionService.diffOneFile(
+        cache.selectedPath,
+        cache.cache.components[0],
+        username
+      );
+    } else if (cache.selectedType === PathType.Folder) {
       await conflictDetectionService.diffFolder(cache, username);
     }
   } else {
