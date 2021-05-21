@@ -560,8 +560,8 @@ export const messages = {
   conflict_detect_diff_command_title: 'Compare Files',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
-  force_source_diff_remote_not_found:
-    'Selected file or directory was not found in the org',
+  force_source_diff_components_not_in_org:
+    'Selected components are not available in the org',
   force_source_diff_unsupported_type:
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
@@ -591,6 +591,5 @@ export const messages = {
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects',
-  force_source_diff_components_not_in_org: 'Selected components are not available in the org'
+  sobject_refresh_standard: 'Standard SObjects'
 };

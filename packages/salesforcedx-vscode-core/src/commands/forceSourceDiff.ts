@@ -102,8 +102,8 @@ export async function handleCacheResults(
       await conflictDetectionService.diffFolder(cache, username);
     }
   } else {
-    notificationService.showErrorMessage(
-      nls.localize('force_source_diff_components_not_in_org')
-    );
+    const message = nls.localize('force_source_diff_components_not_in_org');
+    notificationService.showErrorMessage(message);
+    throw new Error(message);
   }
 }
