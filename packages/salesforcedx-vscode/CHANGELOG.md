@@ -1,3 +1,31 @@
+# 51.14.0 - May 21, 201
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable conflict UI for folder diff @W-9166602@ ([PR #3243](https://github.com/forcedotcom/salesforcedx-vscode/pull/3243))
+
+- Single file diff ([PR #3240](https://github.com/forcedotcom/salesforcedx-vscode/pull/3240))
+
+#### salesforcedx-vscode-lwc
+
+- Add analytics__Dashboard js-meta.xml support, and js-meta bug fixes ([PR #3232](https://github.com/forcedotcom/salesforcedx-vscode/pull/3232))
+
+## Fixed
+
+#### docs
+
+- Update source-diff.md ([PR #3250](https://github.com/forcedotcom/salesforcedx-vscode/pull/3250))
+
+#### salesforcedx-sobjects-faux-generator
+
+- Feat(faux-generator): refactor generators. Add one for SOQL LSP ([PR #3180](https://github.com/forcedotcom/salesforcedx-vscode/pull/3180))
+
+#### salesforcedx-vscode-core
+
+- Remove file diff on folders @W-9166602@ ([PR #3251](https://github.com/forcedotcom/salesforcedx-vscode/pull/3251))
+
 # 51.13.0 - May 12, 2021
 
 ## Added
