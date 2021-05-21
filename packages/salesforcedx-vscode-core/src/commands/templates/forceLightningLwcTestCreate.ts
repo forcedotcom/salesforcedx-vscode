@@ -28,10 +28,11 @@ import { LWC_TYPE } from './metadataTypeConstants';
 
 export class ForceLightningLwcTestCreateExecutor extends BaseTemplateCommand {
   constructor() {
-    super(LWC_TYPE);
+    super();
   }
 
   public build(data: DirFileNameSelection): Command {
+    this.metadata = LWC_TYPE;
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize('force_lightning_lwc_test_create_text'))
       .withArg('force:lightning:lwc:test:create')

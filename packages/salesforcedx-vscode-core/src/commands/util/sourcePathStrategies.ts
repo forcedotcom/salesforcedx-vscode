@@ -48,6 +48,17 @@ class FunctionTemplatePathStrategy implements SourcePathStrategy {
   }
 }
 
+class FunctionJavaTemplatePathStrategy implements SourcePathStrategy {
+  public getPathToSource(
+    dirPath: string,
+    fileName: string,
+    fileExt: string
+  ): string {
+    const className = fileName.charAt(0).toUpperCase() + fileName.slice(1) + 'Function';
+    return join(dirPath, 'functions', fileName, 'src', 'main', 'java', 'com', 'example', `${className}${fileExt}`);
+  }
+}
+
 class LwcTestPathStrategy implements SourcePathStrategy {
   public getPathToSource(
     dirPath: string,
@@ -81,5 +92,9 @@ export class PathStrategyFactory {
 
   public static createFunctionTemplateStrategy(): FunctionTemplatePathStrategy {
     return new FunctionTemplatePathStrategy();
+  }
+
+  public static createFunctionJavaTemplateStrategy(): FunctionTemplatePathStrategy {
+    return new FunctionJavaTemplatePathStrategy();
   }
 }
