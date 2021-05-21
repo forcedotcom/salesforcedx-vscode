@@ -1,30 +1,20 @@
-# 51.14.0 - May 21, 201
+# 51.14.0 - May 21, 2021
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Enable conflict UI for folder diff @W-9166602@ ([PR #3243](https://github.com/forcedotcom/salesforcedx-vscode/pull/3243))
+- Enable diff detection for folders ([PR #3243](https://github.com/forcedotcom/salesforcedx-vscode/pull/3243))
 
-- Single file diff ([PR #3240](https://github.com/forcedotcom/salesforcedx-vscode/pull/3240))
+- Add diff detection for all metadata types ([PR #3240](https://github.com/forcedotcom/salesforcedx-vscode/pull/3240))
 
 #### salesforcedx-vscode-lwc
 
-- Add analytics__Dashboard js-meta.xml support, and js-meta bug fixes ([PR #3232](https://github.com/forcedotcom/salesforcedx-vscode/pull/3232))
-
-## Fixed
+- Add support for new LWC Analytics Dashboard feature and fix some under-the-hood bugs ([PR #3232](https://github.com/forcedotcom/salesforcedx-vscode/pull/3232))
 
 #### docs
 
-- Update source-diff.md ([PR #3250](https://github.com/forcedotcom/salesforcedx-vscode/pull/3250))
-
-#### salesforcedx-sobjects-faux-generator
-
-- Feat(faux-generator): refactor generators. Add one for SOQL LSP ([PR #3180](https://github.com/forcedotcom/salesforcedx-vscode/pull/3180))
-
-#### salesforcedx-vscode-core
-
-- Remove file diff on folders @W-9166602@ ([PR #3251](https://github.com/forcedotcom/salesforcedx-vscode/pull/3251))
+- Update docs for Diff Detection([PR #3250](https://github.com/forcedotcom/salesforcedx-vscode/pull/3250))
 
 # 51.13.0 - May 12, 2021
 
@@ -73,6 +63,7 @@
 #### salesforcedx-vscode-core
 
 - Fix issues with the following types for deploy/retrieve library ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147), [Issue #3114](https://github.com/forcedotcom/salesforcedx-vscode/issues/3114), [Issue #3157](https://github.com/forcedotcom/salesforcedx-vscode/issues/3157)):
+
   - AccountRelationshipShareRule
   - TimeSheetTemplate
   - WaveDashboard
