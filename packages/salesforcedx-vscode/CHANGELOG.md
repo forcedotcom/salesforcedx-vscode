@@ -6,7 +6,7 @@
 
 - Enable diff detection for folders ([PR #3243](https://github.com/forcedotcom/salesforcedx-vscode/pull/3243))
 
-- Add diff detection for all metadata types ([PR #3240](https://github.com/forcedotcom/salesforcedx-vscode/pull/3240))
+- Enable diff detection for all metadata types ([PR #3240](https://github.com/forcedotcom/salesforcedx-vscode/pull/3240))
 
 #### salesforcedx-vscode-lwc
 
@@ -14,7 +14,7 @@
 
 #### docs
 
-- Update docs for Diff Detection([PR #3250](https://github.com/forcedotcom/salesforcedx-vscode/pull/3250))
+- Doc updates for Diff Detection([PR #3250](https://github.com/forcedotcom/salesforcedx-vscode/pull/3250))
 
 # 51.13.0 - May 12, 2021
 
@@ -63,7 +63,6 @@
 #### salesforcedx-vscode-core
 
 - Fix issues with the following types for deploy/retrieve library ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147), [Issue #3114](https://github.com/forcedotcom/salesforcedx-vscode/issues/3114), [Issue #3157](https://github.com/forcedotcom/salesforcedx-vscode/issues/3157)):
-
   - AccountRelationshipShareRule
   - TimeSheetTemplate
   - WaveDashboard
