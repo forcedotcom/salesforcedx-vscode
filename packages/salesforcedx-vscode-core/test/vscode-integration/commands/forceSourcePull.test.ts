@@ -6,10 +6,8 @@
  */
 
 import { expect } from 'chai';
-import { stub } from 'sinon';
 import { ForceSourcePullExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
-import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Pull', () => {
