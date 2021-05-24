@@ -16,6 +16,7 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as cp from 'child_process';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -28,13 +29,15 @@ import {
 import { BaseTemplateCommand } from './baseTemplateCommand';
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
+const LANGUAGE_JAVA = 'java';
+const LANGUAGE_JAVASCRIPT = 'javascript';
 export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
 
   public build(data: FunctionInfo): Command {
-    if (data.language === 'javascript') {
+    if (data.language === LANGUAGE_JAVASCRIPT) {
       this.metadata = FUNCTION_TYPE_JS;
       this.setFileExtension('js');
-    } else if (data.language === 'java') {
+    } else if (data.language === LANGUAGE_JAVA) {
       this.metadata = FUNCTION_TYPE_JAVA;
       this.setFileExtension('java');
     }
@@ -47,33 +50,42 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       .build();
   }
 
-  public runPostCommandTasks(targetDir: string) {
-    if (sfdxCoreSettings.getFunctionsPullDependencies()) {
-      vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Window,
-          title: nls.localize(
-            'force_function_install_npm_dependencies_progress'
-          ),
-          cancellable: true
-        },
-        () => {
-          return new Promise((resolve, reject) => {
-            cp.exec('npm install', { cwd: targetDir }, err => {
-              if (err) {
-                notificationService.showWarningMessage(
-                  nls.localize(
-                    'force_function_install_npm_dependencies_error',
-                    err.message
-                  )
-                );
-                reject(err);
-              }
-              resolve();
-            });
-          });
-        }
-      );
+  public runPostCommandTasks(data: FunctionInfo) {
+    const language = data.language;
+    if (language === LANGUAGE_JAVA) {
+      const pathToSource = this.getPathToSource(data.outputdir, data.fileName);
+      const targetDir = path.join(path.dirname(pathToSource), '../', '../', '../', '../', '../');
+      return new Promise((resolve, reject) => {
+        cp.exec('mvn install', { cwd: path.join(targetDir) }, err => {
+          if (err) {
+            notificationService.showWarningMessage(
+              nls.localize(
+                'force_function_install_mvn_dependencies_error',
+                err.message
+              )
+            );
+            reject(err);
+          }
+          resolve();
+        });
+      });
+    } else {
+      return new Promise((resolve, reject) => {
+        const pathToSource = this.getPathToSource(data.outputdir, data.fileName);
+        const targetDir = path.dirname(pathToSource);
+        cp.exec('npm install', { cwd: targetDir }, err => {
+          if (err) {
+            notificationService.showWarningMessage(
+              nls.localize(
+                'force_function_install_npm_dependencies_error',
+                err.message
+              )
+            );
+            reject(err);
+          }
+          resolve();
+        });
+      });
     }
   }
 }
@@ -91,7 +103,7 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     }
 
     const language = await vscode.window.showQuickPick(
-      ['java', 'javascript'],
+      [LANGUAGE_JAVA, LANGUAGE_JAVASCRIPT],
       {
         placeHolder: nls.localize('force_function_enter_language')
       }

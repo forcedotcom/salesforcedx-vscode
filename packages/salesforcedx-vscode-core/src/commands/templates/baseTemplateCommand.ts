@@ -52,7 +52,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
           outputFile
         );
         vscode.window.showTextDocument(document);
-        this.runPostCommandTasks(path.dirname(outputFile));
+        this.runPostCommandTasks(response.data);
       }
     });
 
@@ -65,7 +65,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
 
-  protected runPostCommandTasks(targetDir: string) {
+  protected runPostCommandTasks(data: DirFileNameSelection) {
     // By default do nothing
     // This method is overridden in child classes to run any post command tasks
     // Currently only Functions uses this to run "npm install"
@@ -81,7 +81,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
       : 'customDir';
   }
 
-  private getPathToSource(outputDir: string, fileName: string): string {
+  public getPathToSource(outputDir: string, fileName: string): string {
     const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
     return this.getSourcePathStrategy().getPathToSource(
       sourceDirectory,

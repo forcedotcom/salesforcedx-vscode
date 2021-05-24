@@ -585,6 +585,8 @@ export const messages = {
     'Installing NPM dependencies',
   force_function_install_npm_dependencies_error:
     "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json",
+  force_function_install_mvn_dependencies_error:
+    "%s. Make sure you have Maven installed (https://maven.apache.org/) and then run 'mvn install' to install dependencies from pom.xml",
   sobjects_refresh_needed:
     "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions',
