@@ -1,3 +1,29 @@
+# 51.14.0 - May 21, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable diff detection for folders ([PR #3243](https://github.com/forcedotcom/salesforcedx-vscode/pull/3243))
+
+- Enable diff detection for all metadata types ([PR #3240](https://github.com/forcedotcom/salesforcedx-vscode/pull/3240))
+
+#### salesforcedx-vscode-lwc
+
+- Add support for new LWC Analytics Dashboard feature and fix some under-the-hood bugs ([PR #3232](https://github.com/forcedotcom/salesforcedx-vscode/pull/3232))
+
+#### docs
+
+- Doc updates for Diff Detection([PR #3250](https://github.com/forcedotcom/salesforcedx-vscode/pull/3250))
+
+# 51.13.0 - May 12, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Cache metadata based on a project path ([PR #3191](https://github.com/forcedotcom/salesforcedx-vscode/pull/3191))
+
 # 51.12.0 - May 6, 2021
 
 ## Fixed

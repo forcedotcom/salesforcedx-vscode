@@ -5,42 +5,51 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CliCommandExecutor,
-  Command,
-  CommandExecution,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import * as AdmZip from 'adm-zip';
-import * as os from 'os';
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as path from 'path';
-import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import {
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  SimpleGatherer
+} from '../commands/util';
+import { conflictView } from '../conflict';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
-import { taskViewService } from '../statuses';
+import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
 import {
   CommonDirDirectoryDiffer,
   DirectoryDiffer,
   DirectoryDiffResults
 } from './directoryDiffer';
+import {
+  MetadataCacheCallback,
+  MetadataCacheExecutor,
+  MetadataCacheResult
+} from './metadataCacheService';
 
 export interface ConflictDetectionConfig {
-  usernameOrAlias: string;
-  packageDir: string;
+  username: string;
   manifest: string;
 }
 
 export class ConflictDetector {
   private differ: DirectoryDiffer;
+  private diffs: DirectoryDiffResults;
+  private error?: Error;
   private static instance: ConflictDetector;
+  private static EMPTY_DIFFS = {
+    localRoot: '',
+    remoteRoot: '',
+    different: new Set<string>(),
+    scannedLocal: 0,
+    scannedRemote: 0
+  };
 
   constructor(differ?: DirectoryDiffer) {
     this.differ = differ || new CommonDirDirectoryDiffer();
+    this.diffs = Object.assign({}, ConflictDetector.EMPTY_DIFFS);
   }
 
   public static getInstance(): ConflictDetector {
@@ -52,181 +61,72 @@ export class ConflictDetector {
     return ConflictDetector.instance;
   }
 
-  public getCachePath(username: string): string {
-    return path.join(os.tmpdir(), '.sfdx', 'tools', 'conflicts', username);
-  }
-
-  public buildRetrieveOrgSourceCommand(
-    usernameOrAlias: string,
-    targetPath: string,
-    manifestPath: string
-  ): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('conflict_detect_retrieve_org_source'))
-      .withArg('force:mdapi:retrieve')
-      .withFlag('--retrievetargetdir', targetPath)
-      .withFlag('--unpackaged', manifestPath)
-      .withFlag('--targetusername', usernameOrAlias)
-      .withLogName('conflict_detect_retrieve_org_source')
-      .build();
-  }
-
-  public buildMetadataApiConvertOrgSourceCommand(
-    rootDir: string,
-    outputDir: string
-  ): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('conflict_detect_convert_org_source'))
-      .withArg('force:mdapi:convert')
-      .withFlag('--rootdir', rootDir)
-      .withFlag('--outputdir', outputDir)
-      .withLogName('conflict_detect_convert_org_source')
-      .build();
-  }
-
-  public clearCache(
-    usernameOrAlias: string,
-    throwErrorOnFailure: boolean = false
-  ): string {
-    const cachePath = this.getCachePath(usernameOrAlias);
-    this.clearDirectory(cachePath, throwErrorOnFailure);
-    return cachePath;
-  }
-
   public async checkForConflicts(
     data: ConflictDetectionConfig
   ): Promise<DirectoryDiffResults> {
     const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
+    this.diffs = Object.assign({}, ConflictDetector.EMPTY_DIFFS);
+    this.error = undefined;
 
-    let results;
     try {
-      results = await this.checkForConflictsInternal(
-        getRootWorkspacePath(),
-        data,
-        cancellationTokenSource,
-        cancellationToken
+      const cacheExecutor = this.createCacheExecutor(
+        data.username,
+        this.handleCacheResults.bind(this)
       );
+      const commandlet = new SfdxCommandlet<string>(
+        new SfdxWorkspaceChecker(),
+        new SimpleGatherer<string>(data.manifest),
+        cacheExecutor
+      );
+      await commandlet.run();
+
+      if (this.error) {
+        throw this.error;
+      }
     } catch (error) {
       this.reportError('conflict_detect_error', error);
       return Promise.reject(error);
     }
 
     telemetryService.sendCommandEvent('conflict_detect', startTime, undefined, {
-      conflicts: results.different.size,
-      orgFiles: results.scannedRemote,
-      localFiles: results.scannedLocal
+      conflicts: this.diffs.different.size,
+      orgFiles: this.diffs.scannedRemote,
+      localFiles: this.diffs.scannedLocal
     });
 
-    return results;
+    return this.diffs;
   }
 
-  private async checkForConflictsInternal(
-    projectPath: string,
-    data: ConflictDetectionConfig,
-    cancellationTokenSource: any,
-    cancellationToken: any
-  ): Promise<DirectoryDiffResults> {
-    const tempMetadataPath = this.clearCache(data.usernameOrAlias, true);
-
-    // 1: prep the shadow directory
-    const manifestPath = path.join(tempMetadataPath, 'package.xml');
-    try {
-      shell.mkdir('-p', tempMetadataPath);
-      shell.cp(data.manifest, manifestPath);
-    } catch (error) {
-      this.reportError('error_creating_packagexml', error);
-      return Promise.reject();
-    }
-
-    // 2: retrieve unmanaged org source to the shadow directory
-    await this.executeCommand(
-      this.buildRetrieveOrgSourceCommand(
-        data.usernameOrAlias,
-        tempMetadataPath,
-        manifestPath
-      ),
-      projectPath,
-      cancellationTokenSource,
-      cancellationToken
-    );
-
-    // 3: unzip retrieved source
-    const unpackagedZipFile = path.join(tempMetadataPath, 'unpackaged.zip');
-    try {
-      const zip = new AdmZip(unpackagedZipFile);
-      zip.extractAllTo(tempMetadataPath, true);
-    } catch (error) {
-      this.reportError('error_extracting_org_source', error);
-      return Promise.reject();
-    }
-
-    // 4: convert org source to decomposed (source) format
-    const unconvertedSourcePath = path.join(tempMetadataPath, 'unpackaged');
-    const convertedSourcePath = path.join(tempMetadataPath, 'converted');
-    await this.executeCommand(
-      this.buildMetadataApiConvertOrgSourceCommand(
-        unconvertedSourcePath,
-        convertedSourcePath
-      ),
-      projectPath,
-      cancellationTokenSource,
-      cancellationToken
-    );
-
-    // 5: diff project directory (local) and retrieved directory (remote)
-    // Assume there are consistent subdirs from each root i.e. 'main/default'
-    const localSourcePath: string = path.join(projectPath, data.packageDir);
-    const diffs = this.differ.diff(localSourcePath, convertedSourcePath);
-
-    return diffs;
-  }
-
-  public async executeCommand(
-    command: Command,
-    projectPath: string,
-    cancellationTokenSource: vscode.CancellationTokenSource,
-    cancellationToken: vscode.CancellationToken
-  ): Promise<string> {
-    const startTime = process.hrtime();
-    const execution = new CliCommandExecutor(
-      command,
-      { cwd: projectPath, env: { SFDX_JSON_TO_STDOUT: 'true' } },
+  public createCacheExecutor(
+    username: string,
+    callback: MetadataCacheCallback
+  ): MetadataCacheExecutor {
+    const executor = new MetadataCacheExecutor(
+      username,
+      nls.localize('conflict_detect_execution_name'),
+      'conflict_detect',
+      callback,
       true
-    ).execute(cancellationToken);
-
-    const result = new CommandOutput().getCmdResult(execution);
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-    execution.processExitSubject.subscribe(() => {
-      telemetryService.sendCommandEvent(execution.command.logName, startTime);
-    });
-    return result;
-  }
-
-  protected attachExecution(
-    execution: CommandExecution,
-    cancellationTokenSource: vscode.CancellationTokenSource,
-    cancellationToken: vscode.CancellationToken
-  ) {
-    channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
     );
-    ProgressNotification.show(execution, cancellationTokenSource);
-    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+    return executor;
   }
 
-  private clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
-    try {
-      shell.rm('-rf', dirToRemove);
-    } catch (error) {
-      this.reportError('error_cleanup_temp_files', error);
-      if (throwErrorOnFailure) {
-        throw error;
-      }
+  private async handleCacheResults(
+    username: string,
+    result?: MetadataCacheResult
+  ): Promise<void> {
+    if (result) {
+      const localPath = path.join(
+        result.project.baseDirectory,
+        result.project.commonRoot
+      );
+      const remotePath = path.join(
+        result.cache.baseDirectory,
+        result.cache.commonRoot
+      );
+      this.diffs = this.differ.diff(localPath, remotePath);
+    } else {
+      this.error = new Error(nls.localize('conflict_detect_empty_results'));
     }
   }
 
@@ -234,7 +134,73 @@ export class ConflictDetector {
     console.error(error);
     const errorMsg = nls.localize(messageKey, error.toString());
     channelService.appendLine(errorMsg);
-    notificationService.showErrorMessage(errorMsg);
     telemetryService.sendException('ConflictDetectionException', errorMsg);
+  }
+}
+
+export async function diffFolder(cache: MetadataCacheResult, username: string) {
+  const localPath = path.join(
+    cache.project.baseDirectory,
+    cache.project.commonRoot
+  );
+  const remotePath = path.join(
+    cache.cache.baseDirectory,
+    cache.cache.commonRoot
+  );
+  const differ = new CommonDirDirectoryDiffer();
+  const diffs = differ.diff(localPath, remotePath);
+
+  conflictView.visualizeDifferences(
+    nls.localize('force_source_diff_folder_title', username),
+    username,
+    true,
+    diffs
+  );
+}
+
+/**
+ * Perform file diff and execute VS Code diff comand to show in UI.
+ * It matches the correspondent file in compoennt.
+ * @param localFile local file
+ * @param remoteComponent remote source component
+ * @param defaultUsernameorAlias username/org info to show in diff
+ * @returns {Promise<void>}
+ */
+export async function diffOneFile(
+  localFile: string,
+  remoteComponent: SourceComponent,
+  defaultUsernameorAlias: string
+): Promise<void> {
+  const filePart = path.basename(localFile);
+
+  const remoteFilePaths = remoteComponent.walkContent();
+  if (remoteComponent.xml) {
+    remoteFilePaths.push(remoteComponent.xml);
+  }
+  for (const filePath of remoteFilePaths) {
+    if (filePath.endsWith(filePart)) {
+      const remoteUri = vscode.Uri.file(filePath);
+      const localUri = vscode.Uri.file(localFile);
+
+      try {
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          remoteUri,
+          localUri,
+          nls.localize(
+            'force_source_diff_title',
+            defaultUsernameorAlias,
+            filePart,
+            filePart
+          )
+        );
+      } catch (err) {
+        notificationService.showErrorMessage(err.message);
+        channelService.appendLine(err.message);
+        channelService.showChannelOutput();
+        telemetryService.sendException(err.name, err.message);
+      }
+      return;
+    }
   }
 }

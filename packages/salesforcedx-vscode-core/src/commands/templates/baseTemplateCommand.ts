@@ -30,17 +30,8 @@ import {
 
 export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   DirFileNameSelection
-  > {
-  private metadataType: MetadataInfo;
-
-  constructor(type: string) {
-    super();
-    const info = MetadataDictionary.getInfo(type);
-    if (!info) {
-      throw new Error(`Unrecognized metadata type ${type}`);
-    }
-    this.metadataType = info;
-  }
+> {
+  private metadataType?: MetadataInfo;
 
   public execute(response: ContinueResponse<DirFileNameSelection>): void {
     const startTime = process.hrtime();
@@ -100,18 +91,26 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   }
 
   public getSourcePathStrategy(): SourcePathStrategy {
-    return this.metadataType.pathStrategy;
+    return this.metadataType!.pathStrategy;
   }
 
   public getFileExtension(): string {
-    return `.${this.metadataType.suffix}`;
+    return `.${this.metadataType!.suffix}`;
   }
 
   public setFileExtension(extension: string): void {
-    this.metadataType.suffix = extension;
+    this.metadataType!.suffix = extension;
   }
 
   public getDefaultDirectory(): string {
-    return this.metadataType.directory;
+    return this.metadataType!.directory;
+  }
+
+  public set metadata(type: string) {
+    const info = MetadataDictionary.getInfo(type);
+    if (!info) {
+      throw new Error(`Unrecognized metadata type ${type}`);
+    }
+    this.metadataType = info;
   }
 }
