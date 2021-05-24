@@ -54,7 +54,7 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
     const language = data.language;
     if (language === LANGUAGE_JAVA) {
       const pathToSource = this.getPathToSource(data.outputdir, data.fileName);
-      const targetDir = path.join(path.dirname(pathToSource), '../', '../', '../', '../', '../');
+      const targetDir = path.join(path.dirname(pathToSource), '..', '..', '..', '..', '..');
       return new Promise((resolve, reject) => {
         cp.exec('mvn install', { cwd: path.join(targetDir) }, err => {
           if (err) {

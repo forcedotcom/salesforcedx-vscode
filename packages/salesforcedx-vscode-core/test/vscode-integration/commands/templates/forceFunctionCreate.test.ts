@@ -7,8 +7,8 @@
 
 import { expect } from 'chai';
 import * as cp from 'child_process';
-import { match, SinonStub, stub } from 'sinon';
 import * as path from 'path';
+import { match, SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ForceFunctionCreateExecutor } from '../../../../src/commands/templates/forceFunctionCreate';
@@ -89,7 +89,7 @@ describe('Force Function Create', () => {
       funcCreate.metadata = FUNCTION_TYPE_JAVA;
       funcCreate.runPostCommandTasks(functionInfoJava).catch();
       sinon.assert.calledOnce(execStub);
-      sinon.assert.calledWith(execStub, 'mvn install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1/') });
+      sinon.assert.calledWith(execStub, 'mvn install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1') });
     });
 
     it('Should call notification service when errored for javascript', async () => {
@@ -113,7 +113,7 @@ describe('Force Function Create', () => {
       execStub.yields(new Error(errorText));
       funcCreate.runPostCommandTasks(functionInfoJava).catch();
       sinon.assert.calledOnce(execStub);
-      sinon.assert.calledWith(execStub, 'mvn install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1/') });
+      sinon.assert.calledWith(execStub, 'mvn install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1') });
       sinon.assert.calledWith(
         notificationServiceStub,
         nls.localize('force_function_install_mvn_dependencies_error', errorText)
