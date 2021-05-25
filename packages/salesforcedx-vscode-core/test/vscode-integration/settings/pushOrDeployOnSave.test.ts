@@ -12,6 +12,7 @@ import * as context from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { DeployQueue, pathIsInPackageDirectory } from '../../../src/settings';
+import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
 
@@ -198,6 +199,36 @@ describe('Push or Deploy on Save', () => {
 
     it('should call force:source:push', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+
+      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.getCall(0).args[0]).to.eql(
+        'sfdx.force.source.push'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.false;
+      expect(appendLineStub.calledOnce).to.be.false;
+      executeCommandStub.restore();
+    });
+
+    it('should call force:source:push --forceoverwrite when getForcePushOnSave is true', async () => {
+      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+      stub(SfdxCoreSettings.prototype, 'getForcePushOnSave').returns(true);
+
+      await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
+
+      expect(executeCommandStub.calledOnce).to.be.true;
+      expect(executeCommandStub.getCall(0).args[0]).to.eql(
+        'sfdx.force.source.push.force'
+      );
+      expect(showErrorMessageStub.calledOnce).to.be.false;
+      expect(appendLineStub.calledOnce).to.be.false;
+      executeCommandStub.restore();
+    });
+
+    it('should call force:source:push when getForcePushOnSave is false', async () => {
+      getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
+      stub(SfdxCoreSettings.prototype, 'getForcePushOnSave').returns(false);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
