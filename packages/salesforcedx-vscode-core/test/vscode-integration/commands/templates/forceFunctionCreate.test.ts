@@ -28,7 +28,7 @@ describe('Force Function Create', () => {
       });
 
       expect(funcCreateCmd.toCommand()).to.equal(
-        'sfdx evergreen:function:create myFunc1 --language javascript'
+        'sfdx generate:function --name myFunc1 --language javascript'
       );
       expect(funcCreateCmd.description).to.equal(
         nls.localize('force_function_create_text')
@@ -36,22 +36,22 @@ describe('Force Function Create', () => {
       expect(funcCreate.getFileExtension()).to.equal('.js');
     });
 
-    it('Should build apex function create command for typescript', async () => {
+    it('Should build apex function create command for java', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
       const fileName = 'myFunc2';
       const funcCreateCmd = funcCreate.build({
         fileName,
-        language: 'typescript',
+        language: 'java',
         outputdir: ''
       });
 
       expect(funcCreateCmd.toCommand()).to.equal(
-        'sfdx evergreen:function:create myFunc2 --language typescript'
+        'sfdx generate:function --name myFunc2 --language java'
       );
       expect(funcCreateCmd.description).to.equal(
         nls.localize('force_function_create_text')
       );
-      expect(funcCreate.getFileExtension()).to.equal('.ts');
+      expect(funcCreate.getFileExtension()).to.equal('.java');
     });
   });
 
