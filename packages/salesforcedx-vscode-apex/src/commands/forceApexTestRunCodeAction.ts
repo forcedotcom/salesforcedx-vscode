@@ -123,7 +123,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
             fullName: test.apexClass.name,
             type: 'ApexClass'
           })
-          .next().value as SourceComponent;
+          .first() as SourceComponent;
         const componentPath = testClassCmp.content;
 
         const vscDiagnostic: vscode.Diagnostic = {
