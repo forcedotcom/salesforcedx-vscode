@@ -6,7 +6,7 @@
 
 - Conflict detection performance improvements ([PR #3246](https://github.com/forcedotcom/salesforcedx-vscode/pull/3246))
 
-- Use new cli for function creation + java support ([PR #3247](https://github.com/forcedotcom/salesforcedx-vscode/pull/3247))
+- Use new CLI for Functions creation and add Java Functions support ([PR #3247](https://github.com/forcedotcom/salesforcedx-vscode/pull/3247))
 
 ## Fixed
 
