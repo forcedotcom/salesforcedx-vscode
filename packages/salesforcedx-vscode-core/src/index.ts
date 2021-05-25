@@ -12,6 +12,7 @@ import {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
+  forceAuthAccessToken,
   forceAuthDevHub,
   forceAuthLogoutAll,
   forceAuthWebLogin,
@@ -79,7 +80,10 @@ import {
   SfdxWorkspaceChecker
 } from './commands/util';
 import { registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_CONFIGURATION_NAME } from './constants';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  SFDX_CORE_CONFIGURATION_NAME
+} from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
@@ -98,6 +102,10 @@ function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
+  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.accessToken',
+    forceAuthAccessToken
+  );
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
@@ -359,6 +367,7 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
+    forceAuthAccessTokenCmd,
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
