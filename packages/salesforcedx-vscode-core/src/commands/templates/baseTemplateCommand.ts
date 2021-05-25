@@ -81,7 +81,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
       : 'customDir';
   }
 
-  public getPathToSource(outputDir: string, fileName: string): string {
+  protected getPathToSource(outputDir: string, fileName: string): string {
     const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
     return this.getSourcePathStrategy().getPathToSource(
       sourceDirectory,

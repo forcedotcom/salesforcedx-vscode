@@ -89,6 +89,10 @@ describe('Force Function Create', () => {
       funcCreate.metadata = FUNCTION_TYPE_JAVA;
       funcCreate.runPostCommandTasks(functionInfoJava).catch();
       sinon.assert.calledOnce(execStub);
+      /**
+       * If this test fails, check if the Java Functions path strategy has changed.
+       * Finding the root path for Java in runPostCommandTasks needs to be updated accordingly.
+       */
       sinon.assert.calledWith(execStub, 'mvn install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1') });
     });
 
