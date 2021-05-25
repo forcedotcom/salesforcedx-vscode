@@ -4,9 +4,15 @@
 
 #### salesforcedx-vscode-core
 
-- Use SDR for conflict detect perf improvements ([PR #3246](https://github.com/forcedotcom/salesforcedx-vscode/pull/3246))
+- Conflict detection performance improvements ([PR #3246](https://github.com/forcedotcom/salesforcedx-vscode/pull/3246))
 
-- Use new cli for function creation + java support @W-9282205@ ([PR #3247](https://github.com/forcedotcom/salesforcedx-vscode/pull/3247))
+- Use new cli for function creation + java support ([PR #3247](https://github.com/forcedotcom/salesforcedx-vscode/pull/3247))
+
+## Fixed
+
+- Fix "Cannot read property split of undefined" issue when retrieving with Org Browser or Manifest ([#3262](https://github.com/forcedotcom/salesforcedx-vscode/pull/3263), [#3210](https://github.com/forcedotcom/salesforcedx-vscode/issues/3210), [#3218](https://github.com/forcedotcom/salesforcedx-vscode/issues/3218))
+
+- Remove Functions template for `SFDX: Create Project` command ([#3253](https://github.com/forcedotcom/salesforcedx-vscode/pull/3253))
 
 # 51.14.0 - May 21, 2021
 
@@ -73,6 +79,7 @@
 #### salesforcedx-vscode-core
 
 - Fix issues with the following types for deploy/retrieve library ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147), [Issue #3114](https://github.com/forcedotcom/salesforcedx-vscode/issues/3114), [Issue #3157](https://github.com/forcedotcom/salesforcedx-vscode/issues/3157)):
+
   - AccountRelationshipShareRule
   - TimeSheetTemplate
   - WaveDashboard
