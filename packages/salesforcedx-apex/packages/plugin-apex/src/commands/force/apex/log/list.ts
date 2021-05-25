@@ -7,7 +7,7 @@
 
 import { LogRecord, LogService, Table, Row } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, Org } from '@salesforce/core';
+import { Messages } from '@salesforce/core';
 import { buildDescription, logLevels } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
@@ -15,7 +15,6 @@ const messages = Messages.loadMessages('@salesforce/plugin-apex', 'list');
 
 export default class List extends SfdxCommand {
   protected static requiresUsername = true;
-  protected org!: Org;
 
   public static description = buildDescription(
     messages.getMessage('commandDescription'),
@@ -43,7 +42,8 @@ export default class List extends SfdxCommand {
 
   public async run(): Promise<LogRecord[]> {
     try {
-      const conn = this.org.getConnection();
+      // org is guaranteed by requiresUsername field
+      const conn = this.org!.getConnection();
       const logService = new LogService(conn);
       const logRecords = await logService.getLogRecords();
 

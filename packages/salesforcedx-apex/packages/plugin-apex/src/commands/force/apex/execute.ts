@@ -10,7 +10,7 @@ import {
   ExecuteAnonymousResponse
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, Org } from '@salesforce/core';
+import { Messages } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import {
   buildDescription,
@@ -35,8 +35,6 @@ export default class Execute extends SfdxCommand {
     `$ sfdx force:apex:execute \nStart typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.`
   ];
   protected static requiresUsername = true;
-  // Guaranteed by requires username
-  protected org!: Org;
 
   protected static flagsConfig = {
     apexcodefile: flags.filepath({
@@ -54,7 +52,8 @@ export default class Execute extends SfdxCommand {
 
   public async run(): Promise<AnyJson> {
     try {
-      const conn = this.org.getConnection();
+      // org is guaranteed by requiresUsername field
+      const conn = this.org!.getConnection();
       const exec = new ExecuteService(conn);
 
       const execAnonOptions: ApexExecuteOptions = {

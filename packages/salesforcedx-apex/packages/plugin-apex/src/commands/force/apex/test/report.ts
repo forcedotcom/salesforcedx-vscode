@@ -13,7 +13,7 @@ import {
   ApexTestRunResultStatus
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, Org } from '@salesforce/core';
+import { Messages } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import {
   JsonReporter,
@@ -32,8 +32,6 @@ const messages = Messages.loadMessages('@salesforce/plugin-apex', 'report');
 
 export default class Report extends SfdxCommand {
   protected static requiresUsername = true;
-  // Guaranteed by requires username
-  protected org!: Org;
 
   public static description = buildDescription(
     messages.getMessage('commandDescription'),
@@ -90,7 +88,8 @@ export default class Report extends SfdxCommand {
     if (this.flags.outputdir) {
       this.ux.warn(messages.getMessage('warningMessage'));
     }
-    const conn = this.org.getConnection();
+    // org is guaranteed by requiresUsername field
+    const conn = this.org!.getConnection();
     const testService = new TestService(conn);
     const result = await testService.reportAsyncResults(
       this.flags.testrunid,
@@ -128,7 +127,10 @@ export default class Report extends SfdxCommand {
         case 'json':
           // when --json flag is specified, we should log CLI json format
           if (!this.flags.json) {
-            this.ux.logJson({ status: process.exitCode, result: jsonOutput });
+            this.ux.logJson({
+              status: process.exitCode,
+              result: jsonOutput
+            });
           }
           break;
         default:

@@ -7,7 +7,7 @@
 
 import { LogService } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, Org } from '@salesforce/core';
+import { Messages } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import { buildDescription, colorLogs, logLevels } from '../../../../utils';
 
@@ -16,8 +16,6 @@ const messages = Messages.loadMessages('@salesforce/plugin-apex', 'get');
 
 export default class Get extends SfdxCommand {
   protected static requiresUsername = true;
-  // Guaranteed by requires username
-  protected org!: Org;
 
   public static description = buildDescription(
     messages.getMessage('commandDescription'),
@@ -62,7 +60,8 @@ export default class Get extends SfdxCommand {
 
   public async run(): Promise<AnyJson> {
     try {
-      const conn = this.org.getConnection();
+      // org is guaranteed by requiresUsername field
+      const conn = this.org!.getConnection();
       const logService = new LogService(conn);
 
       if (!this.flags.logid && !this.flags.number) {

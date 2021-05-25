@@ -15,7 +15,7 @@ import {
   ApexTestRunResultStatus
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, Org, SfdxError } from '@salesforce/core';
+import { Messages, SfdxError } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import {
   buildOutputDirConfig,
@@ -39,8 +39,6 @@ export const TestLevelValues = [
 ];
 export default class Run extends SfdxCommand {
   protected static requiresUsername = true;
-  // Guaranteed by requires username
-  protected org!: Org;
   protected cancellationTokenSource = new CancellationTokenSource();
 
   public static description = buildDescription(
@@ -142,7 +140,8 @@ export default class Run extends SfdxCommand {
 
     const testLevel = this.getTestLevelfromFlags();
 
-    const conn = this.org.getConnection();
+    // org is guaranteed by requiresUsername field
+    const conn = this.org!.getConnection();
     const testService = new TestService(conn);
     let result: TestResult;
 
