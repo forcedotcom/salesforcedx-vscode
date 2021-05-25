@@ -1,3 +1,13 @@
+# 51.15.0 - May 27, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Use SDR for conflict detect perf improvements ([PR #3246](https://github.com/forcedotcom/salesforcedx-vscode/pull/3246))
+
+- Use new cli for function creation + java support @W-9282205@ ([PR #3247](https://github.com/forcedotcom/salesforcedx-vscode/pull/3247))
+
 # 51.14.0 - May 21, 2021
 
 ## Added
