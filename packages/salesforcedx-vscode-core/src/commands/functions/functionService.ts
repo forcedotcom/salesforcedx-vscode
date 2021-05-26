@@ -22,7 +22,7 @@ interface Terminable {
  */
 export interface FunctionExecution extends Terminable {
   /**
-   * root dir where function.toml is located
+   * root dir where project.toml is located
    */
   rootDir: string;
   /**
@@ -49,8 +49,8 @@ export class FunctionService {
   }
 
   /**
-   * Locate the directory that has function.toml.
-   * If sourceFsPath is the function folder that has function.toml, or a subdirectory
+   * Locate the directory that has project.toml.
+   * If sourceFsPath is the function folder that has project.toml, or a subdirectory
    * or file within that folder, this method returns the function folder by recursively looking up.
    * Otherwise, it returns undefined.
    * @param sourceFsPath path to start function from
@@ -62,7 +62,7 @@ export class FunctionService {
     const { root } = path.parse(sourceFsPath);
     const rootWorkspacePath = getRootWorkspacePath();
     while (current !== rootWorkspacePath && current !== root) {
-      const tomlPath = path.join(current, 'function.toml');
+      const tomlPath = path.join(current, 'project.toml');
       if (fs.existsSync(tomlPath)) {
         return current;
       }

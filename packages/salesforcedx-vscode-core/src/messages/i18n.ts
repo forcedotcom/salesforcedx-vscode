@@ -140,7 +140,7 @@ export const messages = {
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
-    'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
+    'No project.toml found. Create a project.toml, or create a new function using SFDX: Create Function.',
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
@@ -592,5 +592,6 @@ export const messages = {
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
-  force_source_diff_components_not_in_org: 'Selected components are not available in the org'
+  force_source_diff_components_not_in_org:
+    'Selected components are not available in the org'
 };

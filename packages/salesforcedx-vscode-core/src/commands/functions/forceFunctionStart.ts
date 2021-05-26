@@ -69,7 +69,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     this.executionCwd = functionDirPath;
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_function_start_text'))
-      .withArg('evergreen:function:start')
+      .withArg('run:function:start')
       .withArg('--verbose')
       .withLogName('force_function_start')
       .build();
@@ -219,7 +219,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
 }
 
 /**
- * Executes sfdx evergreen:function:start --verbose
+ * Executes sfdx run:function:start --verbose
  * @param sourceUri
  */
 export async function forceFunctionStart(sourceUri?: Uri) {
