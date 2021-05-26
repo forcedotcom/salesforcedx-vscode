@@ -75,7 +75,7 @@ describe('Apex Language Server Client', () => {
 
       expect(clientOptions.middleware).not.to.be.undefined;
       expect(clientOptions.initializationOptions).not.to.be.undefined;
-      expect(clientOptions.initializationOptions.detectEmbeddedSoqlCompletion)
+      expect(clientOptions.initializationOptions.enableEmbeddedSoqlCompletion)
         .to.be.true;
     });
 
@@ -89,7 +89,7 @@ describe('Apex Language Server Client', () => {
 
       expect(clientOptions.middleware).to.be.undefined;
       expect(clientOptions.initializationOptions).not.to.be.undefined;
-      expect(clientOptions.initializationOptions.detectEmbeddedSoqlCompletion)
+      expect(clientOptions.initializationOptions.enableEmbeddedSoqlCompletion)
         .to.be.false;
     });
   });

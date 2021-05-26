@@ -170,7 +170,7 @@ export function buildClientOptions(): LanguageClientOptions {
       protocol2Code: protocol2CodeConverter
     },
     initializationOptions: {
-      detectEmbeddedSoqlCompletion: soqlExtensionInstalled
+      enableEmbeddedSoqlCompletion: soqlExtensionInstalled
     },
     ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {})
   };
