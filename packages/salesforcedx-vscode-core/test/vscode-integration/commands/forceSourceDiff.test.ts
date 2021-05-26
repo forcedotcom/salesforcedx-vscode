@@ -153,23 +153,6 @@ describe('Force Source Diff', () => {
       );
     });
 
-    it('Should show message when remote file is not found in org', async () => {
-      processStub.returns(null);
-
-      try {
-        await forceSourceDiff(Uri.file(mockFilePath));
-      } catch (error) {
-        expect(error.message).to.be(
-          nls.localize('force_source_diff_remote_not_found')
-        );
-        assert.calledOnce(notificationStub);
-        assert.calledWith(
-          notificationStub,
-          nls.localize('force_source_diff_remote_not_found')
-        );
-      }
-    });
-
     it('Should show message when diffing on unsupported file type', async () => {
       const mockActiveTextEditor = {
         document: {
@@ -221,9 +204,18 @@ describe('Force Source Diff', () => {
     });
 
     it('Should throw error for empty cache', async () => {
-      await conflictCommands.handleCacheResults('username', undefined);
+      let expectedError = null;
+      try {
+        await conflictCommands.handleCacheResults('username', undefined);
+      } catch (error) {
+        expectedError = error;
+      }
+      expect(expectedError.message).to.equal(
+        nls.localize('force_source_diff_components_not_in_org')
+      );
       assert.calledOnce(notificationStub);
-      expect(notificationStub.getCall(0).args[0]).to.equal(
+      assert.calledWith(
+        notificationStub,
         nls.localize('force_source_diff_components_not_in_org')
       );
     });
