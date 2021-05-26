@@ -30,14 +30,11 @@ import {
 import {
   AccessTokenParams,
   AccessTokenParamsGatherer,
-  AuthParams,
-  AuthParamsGatherer
+  AuthParams
 } from './authParamsGatherer';
 
-type AuthAccessTokenParams = AuthParams & AccessTokenParams;
-
 export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
-  AuthAccessTokenParams
+  AccessTokenParams
 > {
   constructor() {
     super(
@@ -48,17 +45,17 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
   }
 
   public async run(
-    response: ContinueResponse<AuthAccessTokenParams>,
+    response: ContinueResponse<AccessTokenParams>,
     progress?: vscode.Progress<{
       message?: string | undefined;
       increment?: number | undefined;
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const { loginUrl, accessToken, alias } = response.data;
+    const { instanceUrl, accessToken, alias } = response.data;
 
     const authInfo = await AuthInfo.create({
-      accessTokenOptions: { accessToken, instanceUrl: loginUrl }
+      accessTokenOptions: { accessToken, instanceUrl }
     });
     await authInfo.save();
     await authInfo.setAlias(alias);
@@ -71,10 +68,7 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
-const parameterGatherer = new CompositeParametersGatherer(
-  new AuthParamsGatherer(),
-  new AccessTokenParamsGatherer()
-);
+const parameterGatherer = new AccessTokenParamsGatherer();
 
 export async function forceAuthAccessToken() {
   const commandlet = new SfdxCommandlet(

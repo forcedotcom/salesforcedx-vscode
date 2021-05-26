@@ -12,7 +12,10 @@ export {
   PRODUCTION_URL,
   SANDBOX_URL
 } from './auth/authParamsGatherer';
-export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
+export {
+  forceAuthAccessToken,
+  ForceAuthAccessTokenExecutor
+} from './auth/forceAuthAccessTokenLogin';
 export {
   forceAuthWebLogin,
   createAuthWebLoginExecutor,

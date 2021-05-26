@@ -7,38 +7,60 @@
 
 import * as vscode from 'vscode';
 
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { Observable } from 'rxjs/Observable';
-import { CancellationTokenSource } from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
-import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
-import {
-  notificationService,
-  ProgressNotification
-} from '../../notifications/index';
 import { SfdxProjectConfig } from '../../sfdxProject';
-import { taskViewService } from '../../statuses/index';
-import { getRootWorkspacePath, isSFDXContainerMode } from '../../util';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
 export const PRODUCTION_URL = 'https://login.salesforce.com';
 export const SANDBOX_URL = 'https://test.salesforce.com';
+const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 
 export interface AuthParams {
   alias: string;
   loginUrl: string;
+}
+
+export interface AccessTokenParams {
+  alias: string;
+  instanceUrl: string;
+  accessToken: string;
+}
+
+async function inputInstanceUrl() {
+  const customUrlInputOptions = {
+    prompt: nls.localize('parameter_gatherer_enter_instance_url'),
+    placeHolder: INSTANCE_URL_PLACEHOLDER,
+    validateInput: AuthParamsGatherer.validateUrl
+  };
+  const instanceUrl = await vscode.window.showInputBox(customUrlInputOptions);
+  return instanceUrl;
+}
+
+async function inputAlias() {
+  const aliasInputOptions = {
+    prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+    placeHolder: DEFAULT_ALIAS
+  } as vscode.InputBoxOptions;
+  // Hitting enter with no alias will default the alias to 'vscodeOrg'
+  const alias = await vscode.window.showInputBox(aliasInputOptions);
+  return alias;
+}
+
+async function inputAccessToken() {
+  const accessToken = await vscode.window.showInputBox({
+    value: '',
+    placeHolder: 'Enter access token', // TODO: nls
+    password: true,
+    validateInput: text => {
+      return text && text.length > 0 ? null : 'Enter a valid access token'; // TODO: nls
+    }
+  });
+  return accessToken;
 }
 
 export class OrgTypeItem implements vscode.QuickPickItem {
@@ -47,33 +69,6 @@ export class OrgTypeItem implements vscode.QuickPickItem {
   constructor(localizeLabel: string, localizeDetail: string) {
     this.label = nls.localize(localizeLabel);
     this.detail = nls.localize(localizeDetail);
-  }
-}
-
-export interface AccessTokenParams {
-  accessToken: string;
-}
-
-export class AccessTokenParamsGatherer
-  implements ParametersGatherer<AccessTokenParams> {
-  public async gather(): Promise<
-    CancelResponse | ContinueResponse<AccessTokenParams>
-  > {
-    const accessToken = await vscode.window.showInputBox({
-      value: '',
-      placeHolder: 'Enter access token', // TODO: nls
-      password: true,
-      validateInput: text => {
-        return text && text.length > 0 ? null : 'Enter a valid access token'; // TODO: nls
-      }
-    });
-    if (accessToken === undefined) {
-      return { type: 'CANCEL' };
-    }
-    return {
-      type: 'CONTINUE',
-      data: { accessToken }
-    };
   }
 }
 
@@ -153,6 +148,36 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
       data: {
         alias: alias || DEFAULT_ALIAS,
         loginUrl: loginUrl || PRODUCTION_URL
+      }
+    };
+  }
+}
+
+export class AccessTokenParamsGatherer
+  implements ParametersGatherer<AccessTokenParams> {
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<AccessTokenParams>
+  > {
+    const instanceUrl = await inputInstanceUrl();
+    if (instanceUrl === undefined) {
+      return { type: 'CANCEL' };
+    }
+
+    const alias = await inputAlias();
+    if (alias === undefined) {
+      return { type: 'CANCEL' };
+    }
+
+    const accessToken = await inputAccessToken();
+    if (accessToken === undefined) {
+      return { type: 'CANCEL' };
+    }
+    return {
+      type: 'CONTINUE',
+      data: {
+        accessToken,
+        alias,
+        instanceUrl
       }
     };
   }
