@@ -11,6 +11,7 @@ import { nls } from '../messages';
 import { ConflictDetector } from './conflictDetectionService';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
+import { PersistentStorageService } from './persistentStorageService';
 export {
   ConflictDetectionConfig,
   ConflictDetector,
@@ -76,4 +77,10 @@ function openResource(node: ConflictNode) {
     const local = Uri.file(path.join(file.localPath, file.relPath));
     window.showTextDocument(local).then(() => { });
   }
+}
+
+export function setupFilePropertyStorage(
+  extensionContext: ExtensionContext
+) {
+  PersistentStorageService.initialize(extensionContext);
 }
