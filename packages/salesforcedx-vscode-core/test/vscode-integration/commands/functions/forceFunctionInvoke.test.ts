@@ -29,7 +29,7 @@ describe('Force Function Invoke', () => {
     const funcInvokeCmd = invokeFunc.build(payloadUri);
 
     expect(funcInvokeCmd.toCommand()).to.equal(
-      `sfdx evergreen:function:invoke http://localhost:8080 --payload @${payloadUri}`
+      `sfdx run:function --url http://localhost:8080 --payload @${payloadUri}`
     );
     expect(funcInvokeCmd.description).to.equal(
       nls.localize('force_function_invoke_text')
