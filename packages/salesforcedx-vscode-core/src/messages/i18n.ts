@@ -42,6 +42,8 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
+  force_auth_access_token_authorize_org_text:
+    'SFDX: Authorize an Org using Session ID',
 
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
@@ -592,5 +594,6 @@ export const messages = {
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
-  force_source_diff_components_not_in_org: 'Selected components are not available in the org'
+  force_source_diff_components_not_in_org:
+    'Selected components are not available in the org'
 };
