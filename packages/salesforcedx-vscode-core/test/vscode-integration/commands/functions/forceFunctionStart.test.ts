@@ -30,9 +30,7 @@ describe('Force Function Start', () => {
     it('returns a command with the correct params', () => {
       const executor = new ForceFunctionStartExecutor();
       const command = executor.build('');
-      expect(command.toCommand()).to.equal(
-        `sfdx evergreen:function:start --verbose`
-      );
+      expect(command.toCommand()).to.equal(`sfdx run:function:start --verbose`);
     });
 
     it('returns a command with the correct description', () => {
@@ -303,7 +301,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
       mockExecution.stderrSubject.next(
-        ' ›   Warning: evergreen:function:start is not a sfdx command.'
+        ' ›   Warning: run:function:start is not a sfdx command.'
       );
       mockExecution.processExitSubject.next(127);
 

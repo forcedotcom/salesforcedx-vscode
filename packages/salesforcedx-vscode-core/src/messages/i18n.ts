@@ -140,7 +140,7 @@ export const messages = {
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
-    'No function.toml found. Create a function.toml, or create a new function using SFDX: Create Function.',
+    'No project.toml found. Create a project.toml, or create a new function using SFDX: Create Function.',
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
@@ -198,8 +198,6 @@ export const messages = {
   force_project_create_analytics_template_display_text: 'Analytics',
   force_project_create_empty_template: 'Empty project template',
   force_project_create_analytics_template: 'Analytics project template',
-  force_project_create_functions_template_display_text: 'Functions',
-  force_project_create_functions_template: 'Functions project template',
   force_apex_trigger_create_text: 'SFDX: Create Apex Trigger',
   force_start_apex_debug_logging:
     'SFDX: Turn On Apex Debug Log for Replay Debugger',
@@ -585,6 +583,8 @@ export const messages = {
     'Installing NPM dependencies',
   force_function_install_npm_dependencies_error:
     "%s. Make sure you have NodeJS installed (https://nodejs.org/) and then run 'npm install' to install dependencies from package.json",
+  force_function_install_mvn_dependencies_error:
+    "%s. Make sure you have Maven installed (https://maven.apache.org/) and then run 'mvn install' to install dependencies from pom.xml",
   sobjects_refresh_needed:
     "You don't have any sObjects cached locally. To take advantage of autocompletion for sObjects in Apex code, run SFDX: Refresh SObject Definitions.",
   sobjects_refresh_now: 'Run SFDX: Refresh SObject Definitions',
