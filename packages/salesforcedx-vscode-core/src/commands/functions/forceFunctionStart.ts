@@ -143,7 +143,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     );
 
     execution.stdoutSubject.subscribe(data => {
-      if (data.toString().includes('Ready to process signals')) {
+      if (data.toString().includes('Debugger running on port')) {
         progress.complete();
         taskViewService.removeTask(task);
         notificationService
