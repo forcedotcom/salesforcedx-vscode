@@ -6,7 +6,7 @@
  */
 
 /**
- * Executes sfdx run:function http://localhost:8080 --payload=@functions/MyFunction/payload.json
+ * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
 import {
   Command,
