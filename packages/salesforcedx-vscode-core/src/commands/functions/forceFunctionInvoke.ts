@@ -6,7 +6,7 @@
  */
 
 /**
- * Executes sfdx evergreen:function:invoke http://localhost:8080 --payload=@functions/MyFunction/payload.json
+ * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
 import {
   Command,
@@ -28,8 +28,8 @@ export class ForceFunctionInvoke extends SfdxCommandletExecutor<string> {
   public build(payloadUri: string): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_function_invoke_text'))
-      .withArg('evergreen:function:invoke')
-      .withArg('http://localhost:8080')
+      .withArg('run:function')
+      .withFlag('--url', 'http://localhost:8080')
       .withFlag('--payload', `@${payloadUri}`)
       .withLogName('force_function_invoke')
       .build();
