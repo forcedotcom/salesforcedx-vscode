@@ -286,7 +286,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      mockExecution.stdoutSubject.next('Ready to process signals');
+      mockExecution.stdoutSubject.next('Debugger running on port');
       assert.calledOnce(logMetricStub);
       assert.calledWith(logMetricStub, 'force_function_start', mockStartTime);
     });
