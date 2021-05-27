@@ -28,14 +28,14 @@ export class PersistentStorageService {
   }
 
   public static initialize(context: ExtensionContext) {
-    this.instance = new PersistentStorageService(context);
+    PersistentStorageService.instance = new PersistentStorageService(context);
   }
 
   public static getInstance(): PersistentStorageService {
-    if (!this.instance) {
+    if (!PersistentStorageService.instance) {
       throw new Error('Storage should have been initialized upon extension activation');
     }
-    return this.instance;
+    return PersistentStorageService.instance;
   }
 
   private getPropertiesForFile(fileName: string): ConflictFileProperties | undefined {
@@ -59,14 +59,13 @@ export class PersistentStorageService {
   }
 
   public setPropertiesForFiles(fileProperties: FileProperties[]) {
-    fileProperties.forEach(fileProperty => {
+    for (const fileProperty of fileProperties) {
       this.setPropertiesForFile(
         fileProperty.fileName,
         {
           lastModifiedByName: fileProperty.lastModifiedByName,
           lastModifiedDate: fileProperty.lastModifiedDate
         });
-    });
+    }
   }
-
 }
