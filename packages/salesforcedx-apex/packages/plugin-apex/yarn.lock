@@ -293,10 +293,10 @@
     chalk "^2.4.2"
     cli-ux "^4.9.3"
 
-"@salesforce/core@2.21.0", "@salesforce/core@^2.16.3", "@salesforce/core@^2.2.0", "@salesforce/core@^2.6.0":
-  version "2.21.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.21.0.tgz#1451193683d9c132216e877eb1e9e3427167616b"
-  integrity sha512-abiZewaM89LuMZghvg6uP2TKXsqeBra4uRR6m5hA5C5wuWOufZf4ASx47rgcg1Zj+HK5ZiAO4iysAoOy1mnOyg==
+"@salesforce/core@2.23.1", "@salesforce/core@^2.16.3", "@salesforce/core@^2.2.0", "@salesforce/core@^2.6.0":
+  version "2.23.1"
+  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.23.1.tgz#0a489cfba0ba3318ad760f38587389404e79c2f2"
+  integrity sha512-qANGCrOxk1+BXIfniMLUfZcgCZmRid0k+jLSWcQsg5gziG79nwzntZs+AxqniyhiK00X1qmtKaA7H6n7gTD3qA==
   dependencies:
     "@salesforce/bunyan" "^2.0.0"
     "@salesforce/kit" "^1.5.0"
