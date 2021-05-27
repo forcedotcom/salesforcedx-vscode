@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 
-import { Aliases, AuthInfo } from '@salesforce/core';
+import { AuthInfo } from '@salesforce/core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { OUTPUT_CHANNEL } from '../../channels/index';

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export {
+  AccessTokenParamsGatherer,
   AuthParams,
   AuthParamsGatherer,
   DEFAULT_ALIAS,
@@ -12,10 +13,7 @@ export {
   PRODUCTION_URL,
   SANDBOX_URL
 } from './auth/authParamsGatherer';
-export {
-  forceAuthAccessToken,
-  ForceAuthAccessTokenExecutor
-} from './auth/forceAuthAccessTokenLogin';
+export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
 export {
   forceAuthWebLogin,
   createAuthWebLoginExecutor,
