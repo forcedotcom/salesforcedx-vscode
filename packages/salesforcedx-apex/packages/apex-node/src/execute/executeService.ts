@@ -94,6 +94,7 @@ export class ExecuteService {
       });
       readInterface.on('close', () => {
         resolve(apexCode);
+        clearTimeout(timeout);
       });
       readInterface.on('error', (err: Error) => {
         reject(
