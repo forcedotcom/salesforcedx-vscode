@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
+import { SfdxPackageDirectories } from '../sfdxProject';
 import { getRootWorkspacePath } from '../util';
 
 export interface MetadataContext {
@@ -25,9 +26,16 @@ export interface MetadataContext {
   components: SourceComponent[];
 }
 
+export const enum PathType {
+  Folder = 'folder',
+  Individual = 'individual',
+  Manifest = 'manifest',
+  Unknown = 'unknown'
+}
+
 export interface MetadataCacheResult {
   selectedPath: string;
-  selectedIsDirectory: boolean;
+  selectedType: PathType;
 
   cachePropPath?: string;
   cache: MetadataContext;
@@ -43,6 +51,7 @@ export class MetadataCacheService {
   private cachePath: string;
   private componentPath?: string;
   private projectPath?: string;
+  private isManifest: boolean = false;
   private sourceComponents: ComponentSet;
 
   public constructor(username: string) {
@@ -57,33 +66,49 @@ export class MetadataCacheService {
    * @param componentPath A path referring to a project folder or an individual component resource
    * @param projectPath The base path of an sfdx project
    */
-  public initialize(componentPath: string, projectPath: string): void {
+  public initialize(
+    componentPath: string,
+    projectPath: string,
+    isManifest: boolean = false
+  ): void {
     this.componentPath = componentPath;
     this.projectPath = projectPath;
+    this.isManifest = isManifest;
   }
 
   /**
    * Load a metadata cache based on a project path that defines a set of components.
    *
-   * @param componentPath A path referring to a project folder or an individual component resource
+   * @param componentPath A path referring to a project folder, an individual component resource
+   * or a manifest file
    * @param projectPath The base path of an sfdx project
+   * @param isManifest Whether the componentPath references a manifest file
    * @returns MetadataCacheResult describing the project and cache folders
    */
   public async loadCache(
     componentPath: string,
-    projectPath: string
+    projectPath: string,
+    isManifest: boolean = false
   ): Promise<MetadataCacheResult | undefined> {
-    this.initialize(componentPath, projectPath);
+    this.initialize(componentPath, projectPath, isManifest);
     const components = await this.getSourceComponents();
     const operation = await this.createRetrieveOperation(components);
     const results = await operation.start();
     return this.processResults(results);
   }
 
-  public getSourceComponents(): ComponentSet {
-    return this.componentPath
-      ? (this.sourceComponents = ComponentSet.fromSource(this.componentPath))
-      : new ComponentSet();
+  public async getSourceComponents(): Promise<ComponentSet> {
+    if (this.componentPath && this.projectPath) {
+      const packageDirs = await SfdxPackageDirectories.getPackageDirectoryFullPaths();
+      this.sourceComponents = this.isManifest
+        ? await ComponentSet.fromManifest({
+            manifestPath: this.componentPath,
+            resolveSourcePaths: packageDirs
+          })
+        : ComponentSet.fromSource(this.componentPath);
+      return this.sourceComponents;
+    }
+    return new ComponentSet();
   }
 
   public async createRetrieveOperation(
@@ -113,18 +138,27 @@ export class MetadataCacheService {
       const propsFile = this.saveProperties(properties);
       const cacheCommon = this.findLongestCommonDir(components, this.cachePath);
 
+      const sourceComps = this.sourceComponents.getSourceComponents().toArray();
       const projCommon = this.findLongestCommonDir(
-        this.sourceComponents.getSourceComponents().toArray(),
+        sourceComps,
         this.projectPath
       );
 
-      const isPathDirectory =
+      let selectedType = PathType.Unknown;
+      if (
         fs.existsSync(this.componentPath) &&
-        fs.lstatSync(this.componentPath).isDirectory();
+        fs.lstatSync(this.componentPath).isDirectory()
+      ) {
+        selectedType = PathType.Folder;
+      } else if (this.isManifest) {
+        selectedType = PathType.Manifest;
+      } else {
+        selectedType = PathType.Individual;
+      }
 
       return {
         selectedPath: this.componentPath,
-        selectedIsDirectory: isPathDirectory,
+        selectedType,
 
         cache: {
           baseDirectory: this.cachePath,
@@ -136,7 +170,7 @@ export class MetadataCacheService {
         project: {
           baseDirectory: this.projectPath,
           commonRoot: projCommon,
-          components: this.sourceComponents.getSourceComponents().toArray()
+          components: sourceComps
         }
       };
     }
@@ -241,28 +275,36 @@ export class MetadataCacheService {
 }
 
 export type MetadataCacheCallback = (
-  username: string, cache: MetadataCacheResult | undefined
+  username: string,
+  cache: MetadataCacheResult | undefined
 ) => Promise<void>;
 
 export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   private cacheService: MetadataCacheService;
   private callback: MetadataCacheCallback;
+  private isManifest: boolean = false;
   private username: string;
 
   constructor(
     username: string,
     executionName: string,
     logName: string,
-    callback: MetadataCacheCallback
+    callback: MetadataCacheCallback,
+    isManifest: boolean = false
   ) {
     super(executionName, logName);
     this.callback = callback;
+    this.isManifest = isManifest;
     this.username = username;
     this.cacheService = new MetadataCacheService(username);
   }
 
   protected async getComponents(response: any): Promise<ComponentSet> {
-    this.cacheService.initialize(response.data, getRootWorkspacePath());
+    this.cacheService.initialize(
+      response.data,
+      getRootWorkspacePath(),
+      this.isManifest
+    );
     return this.cacheService.getSourceComponents();
   }
 

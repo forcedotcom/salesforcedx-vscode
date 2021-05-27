@@ -15,7 +15,12 @@ import { channelService } from '../../../src/channels';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
 import * as conflictDetectionService from '../../../src/conflict/conflictDetectionService';
-import { MetadataCacheResult, MetadataCacheService, MetadataContext } from '../../../src/conflict/metadataCacheService';
+import {
+  MetadataCacheResult,
+  MetadataCacheService,
+  MetadataContext,
+  PathType
+} from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import Sinon = require('sinon');
@@ -109,7 +114,7 @@ describe('Force Source Diff', () => {
         }
       });
       const mockResult: MetadataCacheResult = {
-        selectedIsDirectory: false,
+        selectedType: PathType.Individual,
         selectedPath: mockFilePath,
         cache: {
           baseDirectory: path.join(`/tmp/.sfdx/diff/${mockUsername}/`),
@@ -146,23 +151,6 @@ describe('Force Source Diff', () => {
           'mockFile.cls'
         )
       );
-    });
-
-    it('Should show message when remote file is not found in org', async () => {
-      processStub.returns(null);
-
-      try {
-        await forceSourceDiff(Uri.file(mockFilePath));
-      } catch (error) {
-        expect(error.message).to.be(
-          nls.localize('force_source_diff_remote_not_found')
-        );
-        assert.calledOnce(notificationStub);
-        assert.calledWith(
-          notificationStub,
-          nls.localize('force_source_diff_remote_not_found')
-        );
-      }
     });
 
     it('Should show message when diffing on unsupported file type', async () => {
@@ -216,23 +204,50 @@ describe('Force Source Diff', () => {
     });
 
     it('Should throw error for empty cache', async () => {
-      await conflictCommands.handleCacheResults('username', undefined);
+      let expectedError = null;
+      try {
+        await conflictCommands.handleCacheResults('username', undefined);
+      } catch (error) {
+        expectedError = error;
+      }
+      expect(expectedError.message).to.equal(
+        nls.localize('force_source_diff_components_not_in_org')
+      );
       assert.calledOnce(notificationStub);
-      expect(notificationStub.getCall(0).args[0]).to.equal(
+      assert.calledWith(
+        notificationStub,
         nls.localize('force_source_diff_components_not_in_org')
       );
     });
 
     it('Should diff one file', async () => {
-      const metadataCache: MetadataContext = { baseDirectory: '.', commonRoot: '.', components: [] };
-      const cacheResult: MetadataCacheResult = { selectedIsDirectory: false, selectedPath: '.', cache: metadataCache, project: metadataCache };
+      const metadataCache: MetadataContext = {
+        baseDirectory: '.',
+        commonRoot: '.',
+        components: []
+      };
+      const cacheResult: MetadataCacheResult = {
+        selectedType: PathType.Individual,
+        selectedPath: '.',
+        cache: metadataCache,
+        project: metadataCache
+      };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffOneFileStub);
     });
 
     it('Should diff folder', async () => {
-      const metadataCache: MetadataContext = { baseDirectory: '.', commonRoot: '.', components: [] };
-      const cacheResult: MetadataCacheResult = { selectedIsDirectory: true, selectedPath: '.', cache: metadataCache, project: metadataCache };
+      const metadataCache: MetadataContext = {
+        baseDirectory: '.',
+        commonRoot: '.',
+        components: []
+      };
+      const cacheResult: MetadataCacheResult = {
+        selectedType: PathType.Folder,
+        selectedPath: '.',
+        cache: metadataCache,
+        project: metadataCache
+      };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffFolderStub);
     });
