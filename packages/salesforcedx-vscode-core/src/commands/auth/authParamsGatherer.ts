@@ -18,7 +18,7 @@ import { SfdxProjectConfig } from '../../sfdxProject';
 export const DEFAULT_ALIAS = 'vscodeOrg';
 export const PRODUCTION_URL = 'https://login.salesforce.com';
 export const SANDBOX_URL = 'https://test.salesforce.com';
-const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
+export const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 
 export interface AuthParams {
   alias: string;
@@ -32,12 +32,12 @@ export interface AccessTokenParams {
 }
 
 async function inputInstanceUrl() {
-  const customUrlInputOptions = {
+  const instanceUrlInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
     placeHolder: INSTANCE_URL_PLACEHOLDER,
     validateInput: AuthParamsGatherer.validateUrl
   };
-  const instanceUrl = await vscode.window.showInputBox(customUrlInputOptions);
+  const instanceUrl = await vscode.window.showInputBox(instanceUrlInputOptions);
   return instanceUrl;
 }
 
@@ -46,7 +46,6 @@ async function inputAlias() {
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS
   } as vscode.InputBoxOptions;
-  // Hitting enter with no alias will default the alias to 'vscodeOrg'
   const alias = await vscode.window.showInputBox(aliasInputOptions);
   return alias;
 }
@@ -54,10 +53,17 @@ async function inputAlias() {
 async function inputAccessToken() {
   const accessToken = await vscode.window.showInputBox({
     value: '',
-    placeHolder: 'Enter access token', // TODO: nls
+    prompt: nls.localize('parameter_gatherer_enter_session_id'),
+    placeHolder: nls.localize(
+      'parameter_gatherer_enter_session_id_placeholder'
+    ),
     password: true,
     validateInput: text => {
-      return text && text.length > 0 ? null : 'Enter a valid access token'; // TODO: nls
+      return text && text.length > 0
+        ? null
+        : nls.localize(
+            'parameter_gatherer_enter_session_id_diagnostic_message'
+          );
     }
   });
   return accessToken;
@@ -164,6 +170,7 @@ export class AccessTokenParamsGatherer
     }
 
     const alias = await inputAlias();
+    // Hitting enter with no alias will default the alias to 'vscodeOrg'
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
@@ -176,7 +183,7 @@ export class AccessTokenParamsGatherer
       type: 'CONTINUE',
       data: {
         accessToken,
-        alias,
+        alias: alias || DEFAULT_ALIAS,
         instanceUrl
       }
     };

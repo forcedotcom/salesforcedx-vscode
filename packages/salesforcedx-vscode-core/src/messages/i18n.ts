@@ -59,6 +59,10 @@ export const messages = {
   parameter_gatherer_enter_custom_url:
     'Enter a custom login URL or use the default URL',
   parameter_gatherer_enter_instance_url: 'Enter Salesforce instance URL',
+  parameter_gatherer_enter_session_id: 'Enter Session ID',
+  parameter_gatherer_enter_session_id_placeholder: 'Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message:
+    'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_def_files:
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:

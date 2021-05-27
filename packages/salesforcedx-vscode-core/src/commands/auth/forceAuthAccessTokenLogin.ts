@@ -12,25 +12,10 @@ import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
-import {
-  notificationService,
-  ProgressNotification
-} from '../../notifications/index';
-import { SfdxProjectConfig } from '../../sfdxProject';
-import { taskViewService } from '../../statuses/index';
-import { getRootWorkspacePath, isSFDXContainerMode } from '../../util';
-import {
-  CompositeParametersGatherer,
-  DemoModePromptGatherer,
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from '../util';
-
+import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
 import {
   AccessTokenParams,
-  AccessTokenParamsGatherer,
-  AuthParams
+  AccessTokenParamsGatherer
 } from './authParamsGatherer';
 
 export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
