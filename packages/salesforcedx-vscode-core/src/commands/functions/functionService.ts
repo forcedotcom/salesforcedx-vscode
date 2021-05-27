@@ -34,6 +34,10 @@ export interface FunctionExecution extends Terminable {
    */
   debugPort: number;
   /**
+   * Type of debug (node, java)
+   */
+  debugType: string;
+  /**
    * Active debug session attached
    */
   debugSession?: vscode.DebugSession;
@@ -90,6 +94,18 @@ export class FunctionService {
     };
   }
 
+  public updateFunction(rootDir: string, debugType: string): void {
+    const functionExecution = this.getStartedFunction(rootDir);
+    if (functionExecution) {
+      const type = debugType.toLowerCase();
+      if (type.startsWith('node')) {
+        functionExecution.debugType = 'node';
+      } else if (type.startsWith('java')) {
+        functionExecution.debugType = 'java';
+      }
+    }
+  }
+
   public isFunctionStarted() {
     return this.startedExecutions.size > 0;
   }
@@ -118,9 +134,9 @@ export class FunctionService {
   public async debugFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
-      const { debugPort } = functionExecution;
+      const { debugPort, debugType } = functionExecution;
       const debugConfiguration: vscode.DebugConfiguration = {
-        type: 'node',
+        type: debugType,
         request: 'attach',
         name: 'Debug Invoke', // This name doesn't surface in UI
         resolveSourceMapLocations: ['**', '!**/node_modules/**'],
@@ -128,6 +144,7 @@ export class FunctionService {
         internalConsoleOptions: 'openOnSessionStart',
         localRoot: rootDir,
         remoteRoot: '/workspace',
+        hostName: '127.0.0.1',
         port: debugPort
       };
       if (!functionExecution.debugSession) {
@@ -147,10 +164,7 @@ export class FunctionService {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const { debugSession } = functionExecution;
-      await debugSession?.customRequest('disconnect');
-      // When we update VS Code engine to 1.49 we should use stopDebugging
-      // https://code.visualstudio.com/updates/v1_49
-      // await vscode.debug.stopDebugging(debugSession);
+      await vscode.debug.stopDebugging(debugSession);
     }
   }
 

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as path from 'path';
-import { assert, createSandbox, match, SinonSandbox, SinonStub } from 'sinon';
+import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import {
@@ -28,6 +28,10 @@ describe('Function Service', () => {
       vscodeDebugStubs.startDebuggingStub = sandbox.stub(
         vscode.debug,
         'startDebugging'
+      );
+      vscodeDebugStubs.stopDebuggingStub = sandbox.stub(
+        vscode.debug,
+        'stopDebugging'
       );
       vscodeDebugStubs.onDidStartDebugSessionStub = sandbox.stub(
         vscode.debug,
@@ -78,7 +82,7 @@ describe('Function Service', () => {
         vscodeDebugStubs.startDebuggingStub,
         getRootWorkspace(),
         {
-          type: 'node',
+          type: undefined,
           request: 'attach',
           name: 'Debug Invoke',
           resolveSourceMapLocations: ['**', '!**/node_modules/**'],
@@ -86,7 +90,8 @@ describe('Function Service', () => {
           internalConsoleOptions: 'openOnSessionStart',
           localRoot: rootDir,
           remoteRoot: '/workspace',
-          port: debugPort
+          port: debugPort,
+          hostName: '127.0.0.1'
         }
       );
     });
@@ -96,7 +101,6 @@ describe('Function Service', () => {
         getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
-      const customRequestStub = sandbox.stub(mockDebugSession, 'customRequest');
       const getStartedFunctionStub = sandbox.stub(
         FunctionService.prototype,
         'getStartedFunction'
@@ -110,8 +114,8 @@ describe('Function Service', () => {
 
       await FunctionService.instance.stopDebuggingFunction(rootDir);
 
-      assert.calledOnce(customRequestStub);
-      assert.calledWith(customRequestStub, 'disconnect');
+      assert.calledOnce(vscodeDebugStubs.stopDebuggingStub);
+      assert.calledWith(vscodeDebugStubs.stopDebuggingStub, mockDebugSession);
     });
 
     it('Should set active debug session of function', () => {
