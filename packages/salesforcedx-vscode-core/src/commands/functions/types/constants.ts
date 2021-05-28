@@ -31,5 +31,5 @@ export const FUNCTION_PAYLOAD_DOCUMENT_SELECTOR = {
  * Pattern to capture a function runtime language
  */
 export const FUNCTION_RUNTIME_DETECTION_PATTERN: RegExp = new RegExp(
-  '.*Installing (.*) function runtime.*'
+  '.*heroku/(.*)-function-invoker.*'
 );

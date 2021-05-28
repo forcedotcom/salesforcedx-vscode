@@ -100,7 +100,7 @@ export class FunctionService {
       const type = debugType.toLowerCase();
       if (type.startsWith('node')) {
         functionExecution.debugType = 'node';
-      } else if (type.startsWith('java')) {
+      } else if (type.startsWith('java') || type.startsWith('jvm')) {
         functionExecution.debugType = 'java';
       }
     }
