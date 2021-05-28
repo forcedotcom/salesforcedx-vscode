@@ -26,3 +26,10 @@ export const FUNCTION_PAYLOAD_DOCUMENT_SELECTOR = {
   language: 'json',
   pattern: FUNCTION_PAYLOAD_PATTERN
 };
+
+/**
+ * Pattern to capture a function runtime language
+ */
+export const FUNCTION_RUNTIME_DETECTION_PATTERN: RegExp = new RegExp(
+  '.*Installing (.*) function runtime.*'
+);

@@ -190,5 +190,56 @@ describe('Function Service', () => {
         FunctionService.instance.getStartedFunction(rootDir)
       ).to.have.property('debugSession', undefined);
     });
+
+    it('Should update debugType of a Java function', () => {
+      const service = new FunctionService();
+      service.registerStartedFunction({
+        rootDir: 'Foo',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve()
+      });
+
+      service.updateFunction('Foo', 'Java');
+      expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
+    });
+
+    it('Should update debugType of a Node function', () => {
+      const service = new FunctionService();
+      service.registerStartedFunction({
+        rootDir: 'Bar',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve()
+      });
+
+      service.updateFunction('Bar', 'Node.js');
+      expect(service.getStartedFunction('Bar')?.debugType).to.equal('node');
+    });
+
+    it('Should not update debugType of an unknown function', () => {
+      const service = new FunctionService();
+      service.registerStartedFunction({
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve()
+      });
+
+      // right function, wrong type
+      service.updateFunction('FirstFunction', 'random');
+      expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
+        'unknown'
+      );
+
+      // wrong function, right type
+      service.updateFunction('Foo', 'Java');
+      expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
+        'unknown'
+      );
+    });
   });
 });

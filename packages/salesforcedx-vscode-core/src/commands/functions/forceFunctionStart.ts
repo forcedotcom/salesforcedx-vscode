@@ -30,7 +30,8 @@ import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
-  FUNCTION_DEFAULT_PORT
+  FUNCTION_DEFAULT_PORT,
+  FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
 
 /**
@@ -76,9 +77,6 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
   }
 
   public execute(response: ContinueResponse<string>) {
-    const runtimeDetection: RegExp = new RegExp(
-      '.*Installing (.*) function runtime.*'
-    );
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -147,7 +145,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     );
 
     execution.stdoutSubject.subscribe(data => {
-      const matches = String(data).match(runtimeDetection);
+      const matches = String(data).match(FUNCTION_RUNTIME_DETECTION_PATTERN);
       if (matches && matches.length > 1) {
         FunctionService.instance.updateFunction(functionDirPath, matches[1]);
       } else if (data.toString().includes('Debugger running on port')) {
