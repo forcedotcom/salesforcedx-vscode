@@ -10,6 +10,7 @@ export {
   AuthParamsGatherer,
   DEFAULT_ALIAS,
   OrgTypeItem,
+  INSTANCE_URL_PLACEHOLDER,
   PRODUCTION_URL,
   SANDBOX_URL
 } from './auth/authParamsGatherer';
