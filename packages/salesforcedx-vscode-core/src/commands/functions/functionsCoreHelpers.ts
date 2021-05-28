@@ -1,9 +1,9 @@
-import { SfFunctionCommand, OutputEvent } from '@salesforce/functions-core/';
+import { OutputEvent, SfFunctionCommand } from '@salesforce/functions-core/';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 
 export function streamFunctionCommandOutput(name: string, command: SfFunctionCommand) {
-  let task: string = "";
+  let task: string = '';
   ['error', 'warn', 'debug', 'log'].forEach(
     (eventType: string) => {
       command.on(eventType as OutputEvent, (data: any) => {
@@ -30,7 +30,7 @@ export function streamFunctionCommandOutput(name: string, command: SfFunctionCom
   });
   command.on('stop_action', (data: any) => {
     channelService.appendLine(`${task} ${data}`);
-    task = "";
+    task = '';
   });
   channelService.showChannelOutput();
 }

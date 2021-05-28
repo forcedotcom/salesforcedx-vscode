@@ -127,10 +127,10 @@ export abstract class LibraryCommandletExecutor<T>
   protected showChannelOutput = true;
   protected readonly telemetry = new TelemetryBuilder();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
-  [number, number]
->();
-public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
-  .onDidFinishExecutionEventEmitter.event;
+    [number, number]
+  >();
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
+    .onDidFinishExecutionEventEmitter.event;
 
   /**
    * @param name Name visible to user while executing.
@@ -145,7 +145,6 @@ public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
     this.executionName = executionName;
     this.logName = logName;
     this.outputChannel = outputChannel;
-    
   }
 
   /**

@@ -23,14 +23,6 @@ import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
 
 describe('Force Function Invoke', () => {
-  it('Should return a type of boolean', async () => {
-    const invokeFunc = new ForceFunctionInvoke();
-    const payloadUri = '/some/path/payload.json';
-    const funcInvokeCmd = await invokeFunc.run({type:"CONTINUE", data: payloadUri});
-
-    expect(funcInvokeCmd).to.be.an('boolean');
-  });
-
   describe('Debug Invoke', () => {
     let sandbox: SinonSandbox;
     let libraryCommandExecutorStub: SinonStub;
@@ -86,7 +78,7 @@ describe('Force Function Invoke', () => {
         'functions/demoJavaScriptFunction'
       );
       const executor = new ForceFunctionInvoke();
-      libraryCommandExecutorStub.returns(executor.run({type:"CONTINUE", data: srcUri.fsPath}));
+      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
 
       assert.calledOnce(functionServiceStubs.debugFunctionStub);
@@ -103,8 +95,7 @@ describe('Force Function Invoke', () => {
       const existsSyncStub = sandbox.stub(fs, 'existsSync');
       existsSyncStub.returns(false);
       const executor = new ForceFunctionInvoke();
-    //   const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      libraryCommandExecutorStub.returns(executor.run({type:"CONTINUE", data: srcUri.fsPath}));
+      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
 
       assert.notCalled(libraryCommandExecutorStub);
@@ -129,7 +120,7 @@ describe('Force Function Invoke', () => {
         )
       );
       const executor = new ForceFunctionInvoke();
-      libraryCommandExecutorStub.returns(executor.run({type:"CONTINUE", data: srcUri.fsPath}));
+      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
 
       return new Promise(resolve => {

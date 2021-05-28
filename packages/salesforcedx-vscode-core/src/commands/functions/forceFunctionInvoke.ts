@@ -8,24 +8,23 @@
 /**
  * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
-import { CancellationToken, Progress, Uri } from 'vscode';
+import { Uri } from 'vscode';
+import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
+import { OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 import { FunctionService } from './functionService';
-import { OrgAuthInfo } from '../../util';
-import { OUTPUT_CHANNEL } from '../../channels';
 
 import { RunFunction } from '@salesforce/functions-core';
-import { streamFunctionCommandOutput } from './functionsCoreHelpers';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { streamFunctionCommandOutput } from './functionsCoreHelpers';
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   constructor() {
     super(
@@ -34,21 +33,14 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
       OUTPUT_CHANNEL
     );
   }
-  async run(
-    response: ContinueResponse<string>,
-    progress?: Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
-    token?: CancellationToken
-  ): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
     const commandName = nls.localize('force_function_invoke_text');
 
     const runFunction = new RunFunction();
     const execution = runFunction.execute({
       url: 'http://localhost:8080',
-      payload: `${response.data}`,
+      payload: `@${response.data}`,
       targetusername: defaultUsername
     });
     streamFunctionCommandOutput(commandName, runFunction);
@@ -87,12 +79,12 @@ export async function forceFunctionDebugInvoke(sourceUri: Uri) {
   await commandlet.run();
 
   if (commandlet.onDidFinishExecution) {
-      commandlet.onDidFinishExecution(async startTime => {
-         await FunctionService.instance.stopDebuggingFunction(localRoot);
-        telemetryService.sendCommandEvent(
-          'force_function_debug_invoke',
-          startTime
-        );
-       });
-     }
+    commandlet.onDidFinishExecution(async startTime => {
+      await FunctionService.instance.stopDebuggingFunction(localRoot);
+      telemetryService.sendCommandEvent(
+        'force_function_debug_invoke',
+        startTime
+      );
+    });
+  }
 }
