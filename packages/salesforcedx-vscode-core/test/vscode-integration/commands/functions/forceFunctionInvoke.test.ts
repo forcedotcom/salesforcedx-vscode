@@ -5,27 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { RunFunction } from '@salesforce/functions-core';
 
-import { expect } from 'chai';
 import * as fs from 'fs';
+import { run } from 'mocha';
 import * as path from 'path';
-import { assert, createSandbox, match, SinonSandbox, SinonStub } from 'sinon';
+import { assert, createSandbox, match, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
 import {
   forceFunctionDebugInvoke,
+  forceFunctionInvoke,
   ForceFunctionInvoke
 } from '../../../../src/commands/functions/forceFunctionInvoke';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 
 describe('Force Function Invoke', () => {
   describe('Debug Invoke', () => {
     let sandbox: SinonSandbox;
-    let libraryCommandExecutorStub: SinonStub;
+    let runFunctionLibraryStub: SinonStub;
+    let functionInvokeSpy: SinonSpy;
     const notificationServiceStubs: {
       [key: string]: SinonStub;
     } = {};
@@ -37,10 +39,9 @@ describe('Force Function Invoke', () => {
     } = {};
     beforeEach(() => {
       sandbox = createSandbox();
-      libraryCommandExecutorStub = sandbox.stub(
-        LibraryCommandletExecutor.prototype,
-        'execute'
-      );
+      runFunctionLibraryStub = sandbox.stub(RunFunction.prototype, 'execute');
+      runFunctionLibraryStub.returns(Promise.resolve(true));
+      functionInvokeSpy = sandbox.spy(ForceFunctionInvoke.prototype, 'run');
       notificationServiceStubs.showWarningMessageStub = sandbox.stub(
         notificationService,
         'showWarningMessage'
@@ -66,6 +67,25 @@ describe('Force Function Invoke', () => {
       sandbox.restore();
     });
 
+    it('Should call library with proper args and log telemetry ', async () => {
+      const srcUri = Uri.file(
+        path.join(
+          getRootWorkspacePath(),
+          'functions/demoJavaScriptFunction/payload.json'
+        )
+      );
+
+      await forceFunctionInvoke(srcUri);
+      const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+
+      assert.calledOnce(runFunctionLibraryStub);
+      assert.calledWith(runFunctionLibraryStub, {
+        url: 'http://localhost:8080',
+        payload: `@${srcUri.fsPath}`,
+        targetusername: defaultUsername
+      });
+    });
+
     it('Should start a debug session and attach to debug port', async () => {
       const srcUri = Uri.file(
         path.join(
@@ -77,8 +97,6 @@ describe('Force Function Invoke', () => {
         getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
-      const executor = new ForceFunctionInvoke();
-      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
 
       assert.calledOnce(functionServiceStubs.debugFunctionStub);
@@ -94,11 +112,9 @@ describe('Force Function Invoke', () => {
       );
       const existsSyncStub = sandbox.stub(fs, 'existsSync');
       existsSyncStub.returns(false);
-      const executor = new ForceFunctionInvoke();
-      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
 
-      assert.notCalled(libraryCommandExecutorStub);
+      assert.notCalled(functionInvokeSpy);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
       assert.calledWith(
         notificationServiceStubs.showWarningMessageStub,
@@ -119,22 +135,21 @@ describe('Force Function Invoke', () => {
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
-      const executor = new ForceFunctionInvoke();
-      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
+
       await forceFunctionDebugInvoke(srcUri);
 
       return new Promise(resolve => {
         process.nextTick(() => {
           assert.calledOnce(functionServiceStubs.stopDebuggingFunctionStub);
-          assert.calledTwice(telemetryServiceStubs.sendCommandEventStub);
+          assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
+          // assert.calledWith(
+          //   telemetryServiceStubs.sendCommandEventStub,
+          //   'force_function_invoke_library',
+          //   match.array
+          // );
           assert.calledWith(
             telemetryServiceStubs.sendCommandEventStub,
-            'force_function_invoke',
-            match.array
-          );
-          assert.calledWith(
-            telemetryServiceStubs.sendCommandEventStub,
-            'force_function_debug_invoke',
+            'force_function_debug_invoke_library',
             match.array
           );
           resolve();

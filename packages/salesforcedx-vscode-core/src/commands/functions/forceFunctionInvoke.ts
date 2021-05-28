@@ -26,10 +26,10 @@ import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { streamFunctionCommandOutput } from './functionsCoreHelpers';
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
-  constructor() {
+  constructor(debug: boolean = false) {
     super(
       nls.localize('force_function_invoke_text'),
-      'force_function_invoke_library',
+      debug ? 'force_function_debug_invoke_library' : 'force_function_invoke_library',
       OUTPUT_CHANNEL
     );
   }
@@ -74,17 +74,9 @@ export async function forceFunctionDebugInvoke(sourceUri: Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    new ForceFunctionInvoke()
+    new ForceFunctionInvoke(true)
   );
-  await commandlet.run();
+  await await commandlet.run();
 
-  if (commandlet.onDidFinishExecution) {
-    commandlet.onDidFinishExecution(async startTime => {
-      await FunctionService.instance.stopDebuggingFunction(localRoot);
-      telemetryService.sendCommandEvent(
-        'force_function_debug_invoke',
-        startTime
-      );
-    });
-  }
+  await FunctionService.instance.stopDebuggingFunction(localRoot);
 }
