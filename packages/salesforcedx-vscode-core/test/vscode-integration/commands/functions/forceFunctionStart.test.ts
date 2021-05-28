@@ -485,7 +485,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      mockExecution.stdoutSubject.next('[Random runtime]');
+      mockExecution.stdoutSubject.next('heroku/nodejs-engine');
       assert.notCalled(functionServiceStub);
     });
 
@@ -504,9 +504,9 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      mockExecution.stdoutSubject.next('[Installing Java function runtime]');
+      mockExecution.stdoutSubject.next('  heroku/jvm-function-invoker@latest');
       assert.calledOnce(functionServiceStub);
-      assert.calledWith(functionServiceStub, srcUri.fsPath, 'Java');
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'jvm');
     });
 
     it('Should capture debug language type for Node runtime', async () => {
@@ -524,9 +524,9 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      mockExecution.stdoutSubject.next('[Installing Node.js function runtime]');
+      mockExecution.stdoutSubject.next('heroku/nodejs-function-invoker@2.1.1');
       assert.calledOnce(functionServiceStub);
-      assert.calledWith(functionServiceStub, srcUri.fsPath, 'Node.js');
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'nodejs');
     });
   });
 });

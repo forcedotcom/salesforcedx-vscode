@@ -205,6 +205,20 @@ describe('Function Service', () => {
       expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
     });
 
+    it('Should update debugType of a Java JVM function', () => {
+      const service = new FunctionService();
+      service.registerStartedFunction({
+        rootDir: 'Foo',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve()
+      });
+
+      service.updateFunction('Foo', 'jvm');
+      expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
+    });
+
     it('Should update debugType of a Node function', () => {
       const service = new FunctionService();
       service.registerStartedFunction({
