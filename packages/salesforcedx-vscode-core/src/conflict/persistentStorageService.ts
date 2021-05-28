@@ -24,7 +24,7 @@ export class PersistentStorageService {
   private static instance?: PersistentStorageService;
 
   private constructor(context: ExtensionContext) {
-    this.storage = context.globalState;
+    this.storage = context.workspaceState;
   }
 
   public static initialize(context: ExtensionContext) {
