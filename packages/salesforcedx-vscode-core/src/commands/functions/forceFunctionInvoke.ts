@@ -29,7 +29,7 @@ import { OUTPUT_CHANNEL } from '../../channels';
 import { RunFunction } from '@salesforce/functions-core';
 import {
   streamFunctionCommandOutput,
-  showFunctionCommandProgress
+  
 } from './functionsCoreHelpers';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -42,21 +42,17 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
     );
   }
   async run(response: ContinueResponse<string>, progress?: Progress<{ message?: string | undefined; increment?: number | undefined; }>, token?: CancellationToken): Promise<boolean> {
-    
-    if (await new SfdxWorkspaceChecker().check()) {
         const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
         const commandName = nls.localize('force_function_invoke_text');
     
         const runFunction = new RunFunction();
         const execution = runFunction.execute({
           url: 'http://localhost:8080',
-          payload: `@${response.data}`,
+          payload: `${response.data}`,
           targetusername: defaultUsername
         })
         streamFunctionCommandOutput(commandName, runFunction);
         return await execution;
-      }
-      return false;
   }
 }
 
