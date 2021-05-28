@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -20,25 +21,11 @@ import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
-import { MockExecution } from './mockExecution';
 
 describe('Force Function Invoke', () => {
-  it('Should build invoke command', async () => {
-    const invokeFunc = new ForceFunctionInvoke();
-    const payloadUri = '/some/path/payload.json';
-    const funcInvokeCmd = invokeFunc.build(payloadUri);
-
-    expect(funcInvokeCmd.toCommand()).to.equal(
-      `sfdx run:function --url http://localhost:8080 --payload @${payloadUri}`
-    );
-    expect(funcInvokeCmd.description).to.equal(
-      nls.localize('force_function_invoke_text')
-    );
-  });
-
   describe('Debug Invoke', () => {
     let sandbox: SinonSandbox;
-    let cliCommandExecutorStub: SinonStub;
+    let libraryCommandExecutorStub: SinonStub;
     const notificationServiceStubs: {
       [key: string]: SinonStub;
     } = {};
@@ -50,8 +37,8 @@ describe('Force Function Invoke', () => {
     } = {};
     beforeEach(() => {
       sandbox = createSandbox();
-      cliCommandExecutorStub = sandbox.stub(
-        CliCommandExecutor.prototype,
+      libraryCommandExecutorStub = sandbox.stub(
+        LibraryCommandletExecutor.prototype,
         'execute'
       );
       notificationServiceStubs.showWarningMessageStub = sandbox.stub(
@@ -91,9 +78,7 @@ describe('Force Function Invoke', () => {
         'functions/demoJavaScriptFunction'
       );
       const executor = new ForceFunctionInvoke();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
+      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
 
       assert.calledOnce(functionServiceStubs.debugFunctionStub);
@@ -110,12 +95,10 @@ describe('Force Function Invoke', () => {
       const existsSyncStub = sandbox.stub(fs, 'existsSync');
       existsSyncStub.returns(false);
       const executor = new ForceFunctionInvoke();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
+      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
 
-      assert.notCalled(cliCommandExecutorStub);
+      assert.notCalled(libraryCommandExecutorStub);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
       assert.calledWith(
         notificationServiceStubs.showWarningMessageStub,
@@ -137,10 +120,8 @@ describe('Force Function Invoke', () => {
         )
       );
       const executor = new ForceFunctionInvoke();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
+      libraryCommandExecutorStub.returns(executor.run({type: 'CONTINUE', data: srcUri.fsPath}));
       await forceFunctionDebugInvoke(srcUri);
-      mockExecution.processExitSubject.next(0);
 
       return new Promise(resolve => {
         process.nextTick(() => {

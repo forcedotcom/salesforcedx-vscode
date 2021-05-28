@@ -8,31 +8,43 @@
 /**
  * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { Uri } from 'vscode';
+import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
+import { OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 import { FunctionService } from './functionService';
 
-export class ForceFunctionInvoke extends SfdxCommandletExecutor<string> {
-  public build(payloadUri: string): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_function_invoke_text'))
-      .withArg('run:function')
-      .withFlag('--url', 'http://localhost:8080')
-      .withFlag('--payload', `@${payloadUri}`)
-      .withLogName('force_function_invoke')
-      .build();
+import { RunFunction } from '@salesforce/functions-core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { streamFunctionCommandOutput } from './functionsCoreHelpers';
+export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
+  constructor() {
+    super(
+      nls.localize('force_function_invoke_text'),
+      'force_function_invoke_library',
+      OUTPUT_CHANNEL
+    );
+  }
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
+    const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+    const commandName = nls.localize('force_function_invoke_text');
+
+    const runFunction = new RunFunction();
+    const execution = runFunction.execute({
+      url: 'http://localhost:8080',
+      payload: `@${response.data}`,
+      targetusername: defaultUsername
+    });
+    streamFunctionCommandOutput(commandName, runFunction);
+    return await execution;
   }
 }
 

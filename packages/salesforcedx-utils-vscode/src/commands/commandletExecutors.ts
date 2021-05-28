@@ -126,6 +126,11 @@ export abstract class LibraryCommandletExecutor<T>
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected readonly telemetry = new TelemetryBuilder();
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
+    [number, number]
+  >();
+  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this
+    .onDidFinishExecutionEventEmitter.event;
 
   /**
    * @param name Name visible to user while executing.
@@ -213,6 +218,7 @@ export abstract class LibraryCommandletExecutor<T>
       channelService.appendLine(e.message);
       channelService.showChannelOutput();
     }
+    this.onDidFinishExecutionEventEmitter.fire(startTime);
   }
 
   get telemetryData(): TelemetryData {

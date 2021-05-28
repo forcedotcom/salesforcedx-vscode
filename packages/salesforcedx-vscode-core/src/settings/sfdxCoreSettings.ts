@@ -76,7 +76,7 @@ export class SfdxCoreSettings {
   }
 
   public getFunctionsEnabled(): boolean {
-    return this.getConfigValue(FUNCTIONS_ENABLED, false);
+    return true;
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {
