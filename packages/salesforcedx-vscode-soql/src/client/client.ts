@@ -48,7 +48,7 @@ export async function startLanguageClient(
   };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: 'file', language: 'soql' }],
+    documentSelector: [{ language: 'soql' }],
     synchronize: {
       configurationSection: 'soql',
       fileEvents: workspace.createFileSystemWatcher('**/*.soql')
