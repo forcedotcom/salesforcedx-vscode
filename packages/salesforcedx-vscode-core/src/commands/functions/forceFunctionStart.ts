@@ -33,7 +33,7 @@ import {
   FUNCTION_DEFAULT_PORT
 } from './types/constants';
 
-import { StartFunction } from '@salesforce/functions-core';
+import { RunFunction, StartFunction } from '@salesforce/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { streamFunctionCommandOutput } from './functionsCoreHelpers';
@@ -69,15 +69,25 @@ const forceFunctionStartErrorInfo: {
   }
 };
 
-export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<string> {
-  constructor(debug: boolean = false) {
+export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
+  string
+> {
+  constructor() {
     super(
       nls.localize('force_function_start_text'),
       'force_function_start_library',
-      OUTPUT_CHANNEL
+      OUTPUT_CHANNEL,
+      true
     );
   }
-  public async run(response: ContinueResponse<string>): Promise<boolean> {
+  public async run(
+    response: ContinueResponse<string>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
     const sourceFsPath = response.data;
     const functionDirPath = FunctionService.getFunctionDir(sourceFsPath);
     if (!functionDirPath) {
@@ -96,184 +106,46 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<string
 
     const startFunction = new StartFunction();
     const execution = startFunction.execute({
-     verbose: true,
-     path: functionDirPath
+      verbose: true,
+      path: functionDirPath
     });
     streamFunctionCommandOutput(commandName, startFunction);
 
     OrgAuthInfo.getDefaultUsernameOrAlias(false)
-    .then(defaultUsernameorAlias => {
-      if (!defaultUsernameorAlias) {
-        const message = nls.localize('force_function_start_no_org_auth');
-        channelService.appendLine(message);
-        channelService.showChannelOutput();
-        notificationService.showInformationMessage(message);
-      }
-    })
-    .catch(error => {
-      // ignore, getDefaultUsernameOrAlias catches the error and logs telemetry
-    });
+      .then(defaultUsernameorAlias => {
+        if (!defaultUsernameorAlias) {
+          const message = nls.localize('force_function_start_no_org_auth');
+          channelService.appendLine(message);
+          channelService.showChannelOutput();
+          notificationService.showInformationMessage(message);
+        }
+      })
+      .catch(error => {
+        // ignore, getDefaultUsernameOrAlias catches the error and logs telemetry
+      });
 
     const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
-          {
-            rootDir: functionDirPath,
-            port: FUNCTION_DEFAULT_PORT,
-            debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
-            terminate: () => {
-              // return execution.killExecution('SIGTERM');
-              return new Promise(resolve => resolve(startFunction.cancel()));
-            }
-          }
-        );
+      {
+        rootDir: functionDirPath,
+        port: FUNCTION_DEFAULT_PORT,
+        debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
+        terminate: () => {
+          return new Promise(resolve => resolve(startFunction.cancel()));
+        }
+      }
+    );
 
     startFunction.on('error', data => {
       registeredStartedFunctionDisposable.dispose();
     });
-    // TODO: Loading progress bar until sesssion start
+
+    token?.onCancellationRequested(() => {
+      startFunction.cancel();
+      registeredStartedFunctionDisposable.dispose();
+    });
+    // TODO: Loading progress bar until sesssion start?
     return await execution;
   }
-
-  // public execute(response: ContinueResponse<string>) {
-  //   const startTime = process.hrtime();
-  //   const cancellationTokenSource = new vscode.CancellationTokenSource();
-  //   const cancellationToken = cancellationTokenSource.token;
-  //   const sourceFsPath = response.data;
-  //   const functionDirPath = FunctionService.getFunctionDir(sourceFsPath);
-  //   if (!functionDirPath) {
-  //     const warningMessage = nls.localize(
-  //       'force_function_start_warning_no_toml'
-  //     );
-  //     notificationService.showWarningMessage(warningMessage);
-  //     telemetryService.sendException(
-  //       'force_function_start_no_toml',
-  //       warningMessage
-  //     );
-  //     return;
-  //   }
-  //   const execution = new CliCommandExecutor(this.build(functionDirPath), {
-  //     cwd: this.executionCwd,
-  //     env: { SFDX_JSON_TO_STDOUT: 'true' }
-  //   }).execute(cancellationToken);
-  //   const executionName = execution.command.toString();
-
-  //   cancellationToken.onCancellationRequested(async () => {
-  //     await execution.killExecution('SIGTERM');
-  //     this.logMetric('force_function_start_cancelled', startTime);
-  //   });
-
-  //   OrgAuthInfo.getDefaultUsernameOrAlias(false)
-  //     .then(defaultUsernameorAlias => {
-  //       if (!defaultUsernameorAlias) {
-  //         const message = nls.localize('force_function_start_no_org_auth');
-  //         channelService.appendLine(message);
-  //         channelService.showChannelOutput();
-  //         notificationService.showInformationMessage(message);
-  //       }
-  //     })
-  //     .catch(error => {
-  //       // ignore, getDefaultUsernameOrAlias catches the error and logs telemetry
-  //     });
-
-  //   const registeredStartedFunctionDisposable = FunctionService.instance.registerStartedFunction(
-  //     {
-  //       rootDir: functionDirPath,
-  //       port: FUNCTION_DEFAULT_PORT,
-  //       debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
-  //       terminate: () => {
-  //         return execution.killExecution('SIGTERM');
-  //       }
-  //     }
-  //   );
-
-  //   channelService.streamCommandOutput(execution);
-  //   channelService.showChannelOutput();
-
-    // const progress = new Subject();
-    // ProgressNotification.show(
-    //   execution,
-    //   cancellationTokenSource,
-    //   vscode.ProgressLocation.Notification,
-    //   progress.asObservable() as Observable<number>
-    // );
-  //   const task = taskViewService.addCommandExecution(
-  //     execution,
-  //     cancellationTokenSource
-  //   );
-
-  //   execution.stdoutSubject.subscribe(data => {
-  //     if (data.toString().includes('Debugger running on port')) {
-  //       progress.complete();
-  //       taskViewService.removeTask(task);
-  //       notificationService
-  //         .showSuccessfulExecution(executionName)
-  //         .catch(() => {});
-  //       this.logMetric(execution.command.logName, startTime);
-  //     }
-  //   });
-
-  //   // Adding error messages here during command execution
-  //   const errorMessages = new Set();
-  //   execution.stderrSubject.subscribe(data => {
-  //     (Object.keys(
-  //       forceFunctionStartErrorInfo
-  //     ) as ForceFunctionStartErrorType[]).forEach(errorType => {
-  //       const { cliMessage } = forceFunctionStartErrorInfo[errorType];
-  //       if (data.toString().includes(cliMessage)) {
-  //         errorMessages.add(cliMessage);
-  //       }
-  //     });
-  //   });
-
-  //   execution.processExitSubject.subscribe(async exitCode => {
-  //     if (typeof exitCode === 'number' && exitCode !== 0) {
-  //       let unexpectedError = true;
-  //       (Object.keys(
-  //         forceFunctionStartErrorInfo
-  //       ) as ForceFunctionStartErrorType[]).forEach(errorType => {
-  //         const {
-  //           cliMessage,
-  //           cliExitCode,
-  //           errorNotificationMessage
-  //         } = forceFunctionStartErrorInfo[errorType];
-  //         // Matches error message and exit code
-  //         if (exitCode === cliExitCode && errorMessages.has(cliMessage)) {
-  //           unexpectedError = false;
-  //           telemetryService.sendException(errorType, errorNotificationMessage);
-  //           notificationService.showErrorMessage(errorNotificationMessage);
-  //           channelService.appendLine(`Error: ${errorNotificationMessage}`);
-  //           channelService.showChannelOutput();
-  //         }
-  //       });
-
-  //       if (unexpectedError) {
-  //         const errorNotificationMessage = nls.localize(
-  //           'force_function_start_unexpected_error',
-  //           exitCode
-  //         );
-  //         telemetryService.sendException(
-  //           'force_function_start_unexpected_error',
-  //           errorNotificationMessage
-  //         );
-  //         notificationService.showErrorMessage(errorNotificationMessage);
-  //         channelService.appendLine(`Error: ${errorNotificationMessage}`);
-  //         channelService.showChannelOutput();
-  //       }
-  //       notificationService.showErrorMessage(
-  //         nls.localize(
-  //           'notification_unsuccessful_execution_text',
-  //           nls.localize('force_function_start_text')
-  //         )
-  //       );
-  //     }
-  //     progress.complete();
-  //     registeredStartedFunctionDisposable.dispose();
-  //   });
-
-  //   notificationService.reportCommandExecutionStatus(
-  //     execution,
-  //     cancellationToken
-  //   );
-  // }
 }
 
 /**
