@@ -6,7 +6,7 @@
  */
 
 // Tooling API query char limit is 100,000 after v48; REST API limit for uri + headers is 16,348 bytes
-// local testing shows query char limit to be closer to ~12,400
-export const QUERY_CHAR_LIMIT = 12400;
+// local testing shows query char limit to be closer to ~12,300
+export const QUERY_CHAR_LIMIT = 12300;
 export const CLASS_ID_PREFIX = '01p';
 export const TEST_RUN_ID_PREFIX = '707';
