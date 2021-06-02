@@ -10,7 +10,7 @@ Use the Salesforce features for VS Code to create and test Salesforce Functions 
 ### Create Function
 Run `SFDX: Create Function` to create a Salesforce Function in Javascript or Java in a Salesforce DX project.
 
-A new directory named after your Function name and all the supporting files are created for you.
+This command creates a new directory named after your Function name and all the supporting files.
 
 * VS Code creates the basic scaffolding that contains files with some rudimentary, boilerplate code and supporting metadata.
 * The `package.json` file contains information about dependencies.
