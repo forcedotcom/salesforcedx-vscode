@@ -1,0 +1,33 @@
+---
+title: Overview
+lang: en
+---
+## Salesforce Functions (Beta)
+Use the Salesforce Functions extensions in VSCode to build event-driven, elastically scalable apps and experiences.
+
+Use the Salesforce features for VS Code to create and test Salesforce Functions locally.
+
+### Create Function
+Run `SFDX: Create Function` to create a Salesforce Function in Javascript or Java in a Salesforce DX project.
+
+A new directory named after your Function name and all the supporting files are created for you.
+
+* VS Code creates the basic scaffolding that contains files with some rudimentary, boilerplate code and supporting metadata.
+* The `package.json` file contains information about dependencies.
+
+![Create Function](../../../images/vs_code_create_func.gif)
+### Start Function
+Run `SFDX: Start Function` from the command palette to run the function locally.
+
+### Invoke Function
+The Salesforce extensions add `Invoke` and `Debug Invoke` CodeLens to a file that is in the correct format to send test events to a Function that is running locally. With one click, you can test a function that is running, by invoking it with a mock payload. You can also debug the function against the payload.
+
+A sample `payload.json` file that can invoke a function:
+
+![Invoke Debug ](../../../images/vscode_func_payload.png)
+
+### Stop Function
+Stop a function by running `SFDX: Stop Function` from the command palette. This operation simply kills the local process.
+
+### Resources
+For more information see [Developing Salesforce Functions using VSCode](https://dev.beta.developer.salesforce.com/docs/platform/functions/guide/vs-intro.html#prerequisites). 
