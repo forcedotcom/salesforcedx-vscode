@@ -254,14 +254,6 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-
-      sandbox
-        .stub(StartFunction.prototype, 'on')
-        .callsFake(
-          (event: OutputEvent | symbol, listener: (...args: any[]) => void) => {
-            return emitter.on(event, listener);
-          }
-        );
       await forceFunctionStart(srcUri);
       emitter.emit(
         'error',
@@ -289,13 +281,6 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      sandbox
-        .stub(StartFunction.prototype, 'on')
-        .callsFake(
-          (event: OutputEvent | symbol, listener: (...args: any[]) => void) => {
-            return emitter.on(event, listener);
-          }
-        );
 
       await forceFunctionStart(srcUri);
 
