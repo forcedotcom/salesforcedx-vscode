@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { startLanguageClient, stopLanguageClient } from './client/client';
+import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { soqlBuilderToggle, soqlOpenNew } from './commands';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
