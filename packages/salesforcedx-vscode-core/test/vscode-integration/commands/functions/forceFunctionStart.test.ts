@@ -7,16 +7,13 @@
 
 import { OutputEvent, StartFunction } from '@salesforce/functions-core';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { CancellationTokenSource, Uri, window } from 'vscode';
+import { Uri, window } from 'vscode';
 import { channelService } from '../../../../src/channels';
-import {
-  forceFunctionStart,
-  ForceFunctionStartExecutor
-} from '../../../../src/commands/functions/forceFunctionStart';
+import { forceFunctionStart } from '../../../../src/commands/functions/forceFunctionStart';
+import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
 import {
   notificationService,
@@ -25,12 +22,12 @@ import {
 import { taskViewService } from '../../../../src/statuses';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
-import { MockExecution } from './mockExecution';
 
 describe('Force Function Start', () => {
   describe('execute', () => {
     let sandbox: SinonSandbox;
     let startFunctionLibraryStub: SinonStub;
+    let emitter: EventEmitter;
     const channelServiceStubs: {
       [key: string]: SinonStub;
     } = {};
@@ -114,6 +111,15 @@ describe('Force Function Start', () => {
       getDefaultUsernameOrAliasStub.returns(
         Promise.resolve('test@example.com')
       );
+
+      emitter = new EventEmitter();
+      sandbox
+        .stub(StartFunction.prototype, 'on')
+        .callsFake(
+          (event: OutputEvent | symbol, listener: (...args: any[]) => void) => {
+            return emitter.on(event, listener);
+          }
+        );
     });
 
     afterEach(() => {
@@ -249,7 +255,6 @@ describe('Force Function Start', () => {
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
 
-      const emitter = new EventEmitter();
       sandbox
         .stub(StartFunction.prototype, 'on')
         .callsFake(
@@ -284,7 +289,6 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const emitter = new EventEmitter();
       sandbox
         .stub(StartFunction.prototype, 'on')
         .callsFake(
@@ -337,6 +341,57 @@ describe('Force Function Start', () => {
         notificationServiceStubs.showInformationMessageStub,
         nls.localize('force_function_start_no_org_auth')
       );
+    });
+    it('Should not capture debug language type for random pattern', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+
+      emitter.emit('log', 'heroku/nodejs-engine');
+      assert.notCalled(functionServiceStub);
+    });
+
+    it('Should capture debug language type for Java runtime', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+
+      emitter.emit('log', ' heroku/jvm-function-invoker@latest');
+      assert.calledOnce(functionServiceStub);
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'jvm');
+    });
+
+    it('Should capture debug language type for Node runtime', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+      emitter.emit('log', 'heroku/nodejs-function-invoker@2.1.1');
+      assert.calledOnce(functionServiceStub);
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'nodejs');
     });
   });
 });

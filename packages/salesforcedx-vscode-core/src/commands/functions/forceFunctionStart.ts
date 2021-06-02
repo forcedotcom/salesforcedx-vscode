@@ -23,7 +23,8 @@ import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
-  FUNCTION_DEFAULT_PORT
+  FUNCTION_DEFAULT_PORT,
+  FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
 
 import { StartFunction } from '@salesforce/functions-core';
@@ -111,11 +112,19 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
         rootDir: functionDirPath,
         port: FUNCTION_DEFAULT_PORT,
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
+        debugType: 'node',
         terminate: () => {
           return new Promise(resolve => resolve(startFunction.cancel()));
         }
       }
     );
+
+    startFunction.on('log', data => {
+      const matches = String(data).match(FUNCTION_RUNTIME_DETECTION_PATTERN);
+      if (matches && matches.length > 1) {
+        FunctionService.instance.updateFunction(functionDirPath, matches[1]);
+      }
+    });
     // Allows for showing custom notifications
     // and sending custom telemtry data for predefined errors
     startFunction.on('error', (error: string) => {

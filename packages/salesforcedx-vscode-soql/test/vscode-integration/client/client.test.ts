@@ -20,7 +20,7 @@ import {
   WorkspaceConfiguration,
   commands
 } from 'vscode';
-import { clearDiagnostics } from '../../../src/client/client';
+import { clearDiagnostics } from '../../../src/lspClient/client';
 import { stubMockConnection } from '../testUtilities';
 import {
   SOQL_CONFIGURATION_NAME,
@@ -86,6 +86,13 @@ describe('SOQL language client', () => {
     soqlFileUri = await writeSOQLFile(
       'testSemanticErrors_remoteRunDefault',
       'SELECT Ids FROM Account'
+    );
+    stubSOQLExtensionConfiguration(
+      sandbox,
+      {
+        // [SOQL_VALIDATION_CONFIG]: undefined
+      },
+      soqlExtension
     );
 
     const querySpy = sandbox.stub(mockConnection, 'query');
