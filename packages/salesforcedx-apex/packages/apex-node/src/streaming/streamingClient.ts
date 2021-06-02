@@ -130,7 +130,10 @@ export class StreamingClient {
     this.client.disconnect();
   }
 
-  public async subscribe(action: () => Promise<string>): Promise<AsyncTestRun> {
+  public async subscribe(
+    action?: () => Promise<string>,
+    testRunId?: string
+  ): Promise<AsyncTestRun> {
     return new Promise((subscriptionResolve, subscriptionReject) => {
       try {
         this.client.subscribe(
@@ -148,15 +151,20 @@ export class StreamingClient {
           }
         );
 
-        action()
-          .then(id => {
-            this.subscribedTestRunId = id;
-            this.subscribedTestRunIdDeferred.resolve(id);
-          })
-          .catch(e => {
-            this.client.disconnect();
-            subscriptionReject(e);
-          });
+        if (action) {
+          action()
+            .then(id => {
+              this.subscribedTestRunId = id;
+              this.subscribedTestRunIdDeferred.resolve(id);
+            })
+            .catch(e => {
+              this.client.disconnect();
+              subscriptionReject(e);
+            });
+        } else {
+          this.subscribedTestRunId = testRunId;
+          this.subscribedTestRunIdDeferred.resolve(testRunId);
+        }
       } catch (e) {
         this.client.disconnect();
         subscriptionReject(e);

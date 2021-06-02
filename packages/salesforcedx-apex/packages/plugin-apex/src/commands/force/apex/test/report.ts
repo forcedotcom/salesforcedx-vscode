@@ -13,7 +13,7 @@ import {
   ApexTestRunResultStatus
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages } from '@salesforce/core';
+import { Messages, SfdxError } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import {
   JsonReporter,
@@ -88,6 +88,16 @@ export default class Report extends SfdxCommand {
     if (this.flags.outputdir) {
       this.ux.warn(messages.getMessage('warningMessage'));
     }
+
+    // add listener for errors
+    process.on('uncaughtException', err => {
+      const formattedErr = this.formatError(
+        new SfdxError(messages.getMessage('apexLibErr', [err.message]))
+      );
+      this.ux.error(...formattedErr);
+      process.exit();
+    });
+
     // org is guaranteed by requiresUsername field
     const conn = this.org!.getConnection();
     const testService = new TestService(conn);

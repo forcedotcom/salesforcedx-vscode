@@ -8,7 +8,7 @@
 import { Connection } from '@salesforce/core';
 import { CancellationToken, Progress } from '../common';
 import { nls } from '../i18n';
-import { StreamingClient } from '../streaming';
+import { AsyncTestRun, StreamingClient } from '../streaming';
 import { formatStartTime, getCurrentTime } from '../utils';
 import { formatTestErrors, getAsyncDiagnostic } from './diagnosticUtil';
 import {
@@ -20,6 +20,7 @@ import {
   ApexTestResultData,
   ApexTestResultOutcome,
   ApexTestRunResult,
+  ApexTestRunResultRecord,
   ApexTestRunResultStatus,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
@@ -72,11 +73,12 @@ export class AsyncTests {
         return null;
       }
 
+      const testRunSummary = await this.checkRunStatus(asyncRunResult.runId);
       return await this.formatAsyncResults(
-        asyncRunResult.queueItem,
-        asyncRunResult.runId,
+        asyncRunResult,
         getCurrentTime(),
         codeCoverage,
+        testRunSummary,
         progress
       );
     } catch (e) {
@@ -95,33 +97,44 @@ export class AsyncTests {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
-    const sClient = new StreamingClient(this.connection);
-    const queueResult = await sClient.handler(undefined, testRunId);
+    try {
+      const sClient = new StreamingClient(this.connection);
+      await sClient.init();
+      await sClient.handshake();
+      let queueItem: ApexTestQueueItem;
+      let testRunSummary = await this.checkRunStatus(testRunId);
 
-    token &&
-      token.onCancellationRequested(async () => {
-        sClient.disconnect();
-      });
+      if (testRunSummary !== undefined) {
+        queueItem = await sClient.handler(undefined, testRunId);
+      } else {
+        queueItem = (await sClient.subscribe(undefined, testRunId)).queueItem;
+        testRunSummary = await this.checkRunStatus(testRunId);
+      }
 
-    if (token && token.isCancellationRequested) {
-      return null;
+      token &&
+        token.onCancellationRequested(async () => {
+          sClient.disconnect();
+        });
+
+      if (token && token.isCancellationRequested) {
+        return null;
+      }
+
+      return await this.formatAsyncResults(
+        { queueItem, runId: testRunId },
+        getCurrentTime(),
+        codeCoverage,
+        testRunSummary
+      );
+    } catch (e) {
+      throw formatTestErrors(e);
     }
-
-    return await this.formatAsyncResults(
-      queueResult,
-      testRunId,
-      getCurrentTime(),
-      codeCoverage
-    );
   }
 
-  public async formatAsyncResults(
-    testQueueResult: ApexTestQueueItem,
+  public async checkRunStatus(
     testRunId: string,
-    commandStartTime: number,
-    codeCoverage = false,
     progress?: Progress<ApexTestProgressValue>
-  ): Promise<TestResult> {
+  ): Promise<ApexTestRunResultRecord | undefined> {
     if (!isValidTestRunID(testRunId)) {
       throw new Error(nls.localize('invalidTestRunIdErr', testRunId));
     }
@@ -146,21 +159,56 @@ export class AsyncTests {
       throw new Error(nls.localize('noTestResultSummary', testRunId));
     }
 
-    const summaryRecord = testRunSummaryResults.records[0];
+    if (
+      testRunSummaryResults.records[0].Status ===
+        ApexTestRunResultStatus.Aborted ||
+      testRunSummaryResults.records[0].Status ===
+        ApexTestRunResultStatus.Failed ||
+      testRunSummaryResults.records[0].Status ===
+        ApexTestRunResultStatus.Completed ||
+      testRunSummaryResults.records[0].Status ===
+        ApexTestRunResultStatus.Passed ||
+      testRunSummaryResults.records[0].Status ===
+        ApexTestRunResultStatus.Skipped
+    ) {
+      return testRunSummaryResults.records[0];
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Format the results of a completed asynchronous test run
+   * @param asyncRunResult TestQueueItem and RunId for an async run
+   * @param commandStartTime start time for the async test run
+   * @param codeCoverage should report code coverages
+   * @param testRunSummary test run summary
+   * @param progress progress reporter
+   * @returns
+   */
+  public async formatAsyncResults(
+    asyncRunResult: AsyncTestRun,
+    commandStartTime: number,
+    codeCoverage = false,
+    testRunSummary: ApexTestRunResultRecord,
+    progress?: Progress<ApexTestProgressValue>
+  ): Promise<TestResult> {
     const coveredApexClassIdSet = new Set<string>();
-    const apexTestResults = await this.getAsyncTestResults(testQueueResult);
+    const apexTestResults = await this.getAsyncTestResults(
+      asyncRunResult.queueItem
+    );
     const {
       apexTestClassIdSet,
       testResults,
       globalTests
     } = await this.buildAsyncTestResults(apexTestResults);
 
-    let outcome = summaryRecord.Status;
+    let outcome = testRunSummary.Status;
     if (globalTests.failed > 0) {
       outcome = ApexTestRunResultStatus.Failed;
     } else if (globalTests.passed === 0) {
       outcome = ApexTestRunResultStatus.Skipped;
-    } else if (summaryRecord.Status === ApexTestRunResultStatus.Completed) {
+    } else if (testRunSummary.Status === ApexTestRunResultStatus.Completed) {
       outcome = ApexTestRunResultStatus.Passed;
     }
 
@@ -175,15 +223,15 @@ export class AsyncTests {
         passRate: calculatePercentage(globalTests.passed, testResults.length),
         failRate: calculatePercentage(globalTests.failed, testResults.length),
         skipRate: calculatePercentage(globalTests.skipped, testResults.length),
-        testStartTime: formatStartTime(summaryRecord.StartTime),
-        testExecutionTimeInMs: summaryRecord.TestTime ?? 0,
-        testTotalTimeInMs: summaryRecord.TestTime ?? 0,
+        testStartTime: formatStartTime(testRunSummary.StartTime),
+        testExecutionTimeInMs: testRunSummary.TestTime ?? 0,
+        testTotalTimeInMs: testRunSummary.TestTime ?? 0,
         commandTimeInMs: getCurrentTime() - commandStartTime,
         hostname: this.connection.instanceUrl,
         orgId: this.connection.getAuthInfoFields().orgId,
         username: this.connection.getUsername(),
-        testRunId,
-        userId: summaryRecord.UserId
+        testRunId: asyncRunResult.runId,
+        userId: testRunSummary.UserId
       },
       tests: testResults
     };
