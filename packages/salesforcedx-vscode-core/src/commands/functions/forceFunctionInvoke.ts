@@ -30,7 +30,7 @@ export class ForceFunctionInvoke extends SfdxCommandletExecutor<string> {
       .withDescription(nls.localize('force_function_invoke_text'))
       .withArg('run:function')
       .withFlag('--url', 'http://localhost:8080')
-      .withFlag('--payload', `@${payloadUri}`)
+      .withFlag('--payload', `@'${payloadUri}'`)
       .withLogName('force_function_invoke')
       .build();
   }
