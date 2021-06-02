@@ -4,25 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CliCommandExecutor,
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
-import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 
@@ -33,7 +26,7 @@ import {
   FUNCTION_DEFAULT_PORT
 } from './types/constants';
 
-import { RunFunction, StartFunction } from '@salesforce/functions-core';
+import { StartFunction } from '@salesforce/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { streamFunctionCommandOutput } from './functionsCoreHelpers';
@@ -42,27 +35,16 @@ import { streamFunctionCommandOutput } from './functionsCoreHelpers';
  * Error types when running SFDX: Start Function
  * This is also used as the telemetry log name.
  */
-type ForceFunctionStartErrorType =
-  | 'force_function_start_plugin_not_installed'
-  | 'force_function_start_docker_plugin_not_installed_or_started';
+type ForceFunctionStartErrorType = 'force_function_start_docker_plugin_not_installed_or_started';
 
 const forceFunctionStartErrorInfo: {
   [key in ForceFunctionStartErrorType]: {
     cliMessage: string;
-    cliExitCode: number;
     errorNotificationMessage: string;
   };
 } = {
-  force_function_start_plugin_not_installed: {
-    cliMessage: 'is not a sfdx command',
-    cliExitCode: 127,
-    errorNotificationMessage: nls.localize(
-      'force_function_start_warning_plugin_not_installed'
-    )
-  },
   force_function_start_docker_plugin_not_installed_or_started: {
     cliMessage: 'Cannot connect to the Docker daemon',
-    cliExitCode: 1,
     errorNotificationMessage: nls.localize(
       'force_function_start_warning_docker_not_installed_or_not_started'
     )
@@ -75,7 +57,7 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
   constructor() {
     super(
       nls.localize('force_function_start_text'),
-      'force_function_start_library',
+      'force_function_start',
       OUTPUT_CHANNEL,
       true
     );
@@ -134,8 +116,36 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
         }
       }
     );
+    // Allows for showing custom notifications
+    // and sending custom telemtry data for predefined errors
+    startFunction.on('error', (error: string) => {
+      let unexpectedError = true;
+      (Object.keys(
+        forceFunctionStartErrorInfo
+      ) as ForceFunctionStartErrorType[]).forEach(errorType => {
+        const {
+          cliMessage,
+          errorNotificationMessage
+        } = forceFunctionStartErrorInfo[errorType];
+        if (error.includes(cliMessage)) {
+          telemetryService.sendException(errorType, errorNotificationMessage);
+          notificationService.showErrorMessage(errorNotificationMessage);
+          unexpectedError = false;
+        }
+      });
 
-    startFunction.on('error', data => {
+      if (unexpectedError) {
+        const errorNotificationMessage = nls.localize(
+          'force_function_start_unexpected_error'
+        );
+        telemetryService.sendException(
+          'force_function_start_unexpected_error',
+          errorNotificationMessage
+        );
+        notificationService.showErrorMessage(errorNotificationMessage);
+      }
+
+      channelService.showChannelOutput();
       registeredStartedFunctionDisposable.dispose();
     });
 
@@ -143,7 +153,7 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
       startFunction.cancel();
       registeredStartedFunctionDisposable.dispose();
     });
-    // TODO: Loading progress bar until sesssion start?
+
     return await execution;
   }
 }

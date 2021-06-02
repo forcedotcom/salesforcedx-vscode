@@ -10,7 +10,14 @@ import { RunFunction } from '@salesforce/functions-core';
 import * as fs from 'fs';
 import { run } from 'mocha';
 import * as path from 'path';
-import { assert, createSandbox, match, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import {
+  assert,
+  createSandbox,
+  match,
+  SinonSandbox,
+  SinonSpy,
+  SinonStub
+} from 'sinon';
 import { Uri } from 'vscode';
 import {
   forceFunctionDebugInvoke,
@@ -76,7 +83,9 @@ describe('Force Function Invoke', () => {
       );
 
       await forceFunctionInvoke(srcUri);
-      const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+      const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(
+        false
+      );
 
       assert.calledOnce(runFunctionLibraryStub);
       assert.calledWith(runFunctionLibraryStub, {
@@ -142,11 +151,6 @@ describe('Force Function Invoke', () => {
         process.nextTick(() => {
           assert.calledOnce(functionServiceStubs.stopDebuggingFunctionStub);
           assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
-          // assert.calledWith(
-          //   telemetryServiceStubs.sendCommandEventStub,
-          //   'force_function_invoke_library',
-          //   match.array
-          // );
           assert.calledWith(
             telemetryServiceStubs.sendCommandEventStub,
             'force_function_debug_invoke_library',
