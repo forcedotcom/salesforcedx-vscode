@@ -211,9 +211,9 @@ describe('Push or Deploy on Save', () => {
       executeCommandStub.restore();
     });
 
-    it('should call force:source:push --forceoverwrite when getForcePushOnSave is true', async () => {
+    it('should call force:source:push --forceoverwrite when getPushOrDeployOnSaveOverrideConflicts is true', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
-      stub(SfdxCoreSettings.prototype, 'getForcePushOnSave').returns(true);
+      stub(SfdxCoreSettings.prototype, 'getPushOrDeployOnSaveOverrideConflicts').returns(true);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 
@@ -226,9 +226,9 @@ describe('Push or Deploy on Save', () => {
       executeCommandStub.restore();
     });
 
-    it('should call force:source:push when getForcePushOnSave is false', async () => {
+    it('should call force:source:push when getPushOrDeployOnSaveOverrideConflicts is false', async () => {
       getWorkspaceOrgTypeStub.resolves(OrgType.SourceTracked);
-      stub(SfdxCoreSettings.prototype, 'getForcePushOnSave').returns(false);
+      stub(SfdxCoreSettings.prototype, 'getPushOrDeployOnSaveOverrideConflicts').returns(false);
 
       await DeployQueue.get().enqueue(vscode.Uri.file('/sample'));
 

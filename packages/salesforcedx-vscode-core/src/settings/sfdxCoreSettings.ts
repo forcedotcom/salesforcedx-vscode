@@ -9,11 +9,11 @@ import * as vscode from 'vscode';
 import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
-  FORCE_PUSH_ON_SAVE,
   FUNCTIONS_ENABLED,
   FUNCTIONS_INSTALL_DEPENDENCIES,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
+  PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
@@ -39,10 +39,6 @@ export class SfdxCoreSettings {
     return vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME);
   }
 
-  public getForcePushOnSave(): boolean {
-    return this.getConfigValue<boolean>(FORCE_PUSH_ON_SAVE, false);
-  }
-
   public getShowCLISuccessMsg(): boolean {
     return this.getConfigValue<boolean>(SHOW_CLI_SUCCESS_INFO_MSG, true);
   }
@@ -63,6 +59,10 @@ export class SfdxCoreSettings {
 
   public getPushOrDeployOnSaveEnabled(): boolean {
     return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
+  }
+
+  public getPushOrDeployOnSaveOverrideConflicts(): boolean {
+    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS, false);
   }
 
   public getRetrieveTestCodeCoverage(): boolean {
