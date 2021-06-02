@@ -17,7 +17,7 @@ This command creates a new directory named after your Function name and all the 
 
 ![Create Function](../../../images/vs_code_create_func.gif)
 ### Start Function
-Run `SFDX: Start Function` from the command palette to run the function locally.
+Run `SFDX: Start Function` to run the function locally.
 
 ### Invoke Function
 The Salesforce extensions add the `Invoke` and `Debug Invoke` CodeLens to a file that is in the correct format to send test events to a Function that is running locally. With one click, you can test a function that is running, by invoking it with a mock payload. You can also debug the function against the payload.
