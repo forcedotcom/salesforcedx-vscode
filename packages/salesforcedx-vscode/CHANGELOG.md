@@ -14,7 +14,7 @@
 
 - Update default debug port ([PR #3272](https://github.com/forcedotcom/salesforcedx-vscode/pull/3272))
 
-- Use new cli for functions invoke @W-9282250@ ([PR #3270](https://github.com/forcedotcom/salesforcedx-vscode/pull/3270))
+- Use new CLI for functions invoke @W-9282250@ ([PR #3270](https://github.com/forcedotcom/salesforcedx-vscode/pull/3270))
 
 - Throw error on remote component not found ([PR #3259](https://github.com/forcedotcom/salesforcedx-vscode/pull/3259))
 
