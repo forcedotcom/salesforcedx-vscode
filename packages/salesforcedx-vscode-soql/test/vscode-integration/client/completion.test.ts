@@ -7,8 +7,10 @@
 import { expect } from 'chai';
 import { Connection } from '@salesforce/core';
 import * as path from 'path';
+import * as fsExtra from 'fs-extra';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
+
 import { CompletionItem, CompletionItemKind } from 'vscode';
 import { extensions, Position, Uri, workspace, commands } from 'vscode';
 import {
@@ -53,7 +55,41 @@ const userFieldItems = [
   { label: 'IsDeleted', kind: 4, detail: 'boolean' }
 ];
 
+// Register special provider to handle "embedded-soql" scheme.
+// This is the case when working on SOQL blocks inside Apex. In this situation,
+// SOQL LSP reads sobject metadata from the workspace's filesystem instead of
+// using jsforce lib (which invokes the remote SF remote API).
+workspace.registerTextDocumentContentProvider('embedded-soql', {
+  provideTextDocumentContent: (uri: Uri) => {
+    const originalUri = uri.path.replace(/^\//, '').replace(/.soql$/, '');
+    return workspace.fs
+      .readFile(Uri.parse(originalUri))
+      .then(content => content.toLocaleString());
+  }
+});
+
 describe('Should do completion', async () => {
+  before(() => {
+    // Populate filesystem with sobject's metadata. This is for the embedded-soql case
+    const workspaceDir = path.normalize(
+      __dirname + '/../../../../../system-tests/assets/sfdx-simple/.sfdx'
+    );
+    const targetDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
+    const soqlMetadataDir = path.normalize(
+      __dirname + '/../../../../test/vscode-integration/soqlMetadata/'
+    );
+
+    if (fsExtra.existsSync(targetDir)) {
+      console.log('Removing existing ' + targetDir);
+      fsExtra.removeSync(targetDir);
+    }
+    fsExtra.mkdirSync(targetDir, { recursive: true });
+    console.log('Copying ' + soqlMetadataDir + ' to ' + targetDir);
+    fsExtra.copySync(soqlMetadataDir, targetDir, { recursive: true });
+    const files = fsExtra.readdirSync(targetDir);
+    console.log('Copied ' + files.length + ' files');
+  });
+
   beforeEach(async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
     soqlFileUri = Uri.file(
@@ -86,6 +122,33 @@ describe('Should do completion', async () => {
     { label: 'User', kind: CompletionItemKind.Class }
   ]);
 
+  // Test the case of "embedded-soql" scheme:
+  // SOQL LSP should read sobject metadata from the workspace's filesystem instead of
+  // using jsforce lib (which invokes the remote SF remote API).
+  // See test data at `packages/system-tests/assets/sfdx-simple/.sfdx/tools/soqlMetadata`
+  testCompletion(
+    'SELECT id FROM |',
+    [
+      { label: 'Account', kind: CompletionItemKind.Class },
+      { label: 'Attachment', kind: CompletionItemKind.Class },
+      { label: 'Case', kind: CompletionItemKind.Class },
+      { label: 'Contact', kind: CompletionItemKind.Class },
+      { label: 'Contract', kind: CompletionItemKind.Class },
+      { label: 'Lead', kind: CompletionItemKind.Class },
+      { label: 'Note', kind: CompletionItemKind.Class },
+      { label: 'Opportunity', kind: CompletionItemKind.Class },
+      { label: 'Order', kind: CompletionItemKind.Class },
+      { label: 'Pricebook2', kind: CompletionItemKind.Class },
+      { label: 'PricebookEntry', kind: CompletionItemKind.Class },
+      { label: 'Product2', kind: CompletionItemKind.Class },
+      { label: 'RecordType', kind: CompletionItemKind.Class },
+      { label: 'Report', kind: CompletionItemKind.Class },
+      { label: 'Task', kind: CompletionItemKind.Class },
+      { label: 'User', kind: CompletionItemKind.Class }
+    ],
+    { embeddedSoql: true }
+  );
+
   testCompletion('SELECT | FROM Account', [
     { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
     {
@@ -93,7 +156,7 @@ describe('Should do completion', async () => {
       kind: CompletionItemKind.Field,
       detail: 'string'
     },
-    { label: 'Description', kind: 4, detail: 'string' },
+    { label: 'Description', kind: 4, detail: 'textarea' },
     { label: 'CreatedDate', kind: 4, detail: 'datetime' },
     { label: 'BillingCity', kind: 4, detail: 'string' },
     { label: 'IsDeleted', kind: 4, detail: 'boolean' },
@@ -107,6 +170,40 @@ describe('Should do completion', async () => {
     { label: 'COUNT()', kind: CompletionItemKind.Keyword },
     { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
   ]);
+
+  // Test the case of "embedded-soql" scheme:
+  // SOQL LSP should read sobject metadata from the workspace's filesystem instead of
+  // using jsforce lib (which invokes the remote SF remote API).
+  // See test data at `packages/system-tests/assets/sfdx-simple/.sfdx/tools/soqlMetadata`
+  testCompletion(
+    'SELECT | FROM Account',
+    [
+      { label: 'Id', kind: CompletionItemKind.Field, detail: 'id' },
+      {
+        label: 'Name',
+        kind: CompletionItemKind.Field,
+        detail: 'string'
+      },
+      { label: 'Description', kind: 4, detail: 'textarea' },
+      { label: 'CreatedDate', kind: 4, detail: 'datetime' },
+      { label: 'BillingCity', kind: 4, detail: 'string' },
+      { label: 'IsDeleted', kind: 4, detail: 'boolean' },
+      { label: 'LastActivityDate', kind: 4, detail: 'date' },
+      { label: 'Website', kind: 4, detail: 'url' },
+      { label: 'SystemModstamp', kind: 4, detail: 'datetime' },
+      { label: 'ShippingPostalCode', kind: 4, detail: 'string' },
+      ...aggregateFunctionItems,
+      {
+        label: '(SELECT ... FROM ...)',
+        kind: CompletionItemKind.Snippet,
+        insertText: '(SELECT $2 FROM $1)'
+      },
+      { label: 'COUNT()', kind: CompletionItemKind.Keyword },
+      { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
+    ],
+    { embeddedSoql: true, allowExtraCompletionItems: true }
+  );
+
   testCompletion('SELECT | FROM User', [
     ...userFieldItems,
     ...aggregateFunctionItems,
@@ -126,7 +223,7 @@ describe('Should do completion', async () => {
       kind: CompletionItemKind.Field,
       detail: 'string'
     },
-    { label: 'Description', kind: 4, detail: 'string' },
+    { label: 'Description', kind: 4, detail: 'textarea' },
     { label: 'CreatedDate', kind: 4, detail: 'datetime' },
     { label: 'BillingCity', kind: 4, detail: 'string' },
     { label: 'IsDeleted', kind: 4, detail: 'boolean' },
@@ -327,7 +424,19 @@ describe('Should do completion', async () => {
   ]);
 });
 
-describe('Should not do completion on connection errors', async () => {
+describe('Should not do completion on metadata errors', async () => {
+  const workspaceDir = path.normalize(
+    __dirname + '/../../../../../system-tests/assets/sfdx-simple/.sfdx'
+  );
+  const soqlMetadataDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
+
+  before(() => {
+    if (fsExtra.existsSync(soqlMetadataDir)) {
+      console.log('Removing existing ' + soqlMetadataDir);
+      fsExtra.removeSync(soqlMetadataDir);
+    }
+  });
+
   beforeEach(async () => {
     workspacePath = workspace.workspaceFolders![0].uri.fsPath;
     soqlFileUri = Uri.file(
@@ -349,7 +458,14 @@ describe('Should not do completion on connection errors', async () => {
       'the objects in the org. Make sure that you’re connected to an authorized org ' +
       'and have permissions to view the objects in the org.'
   });
-
+  testCompletion('SELECT Id FROM |', [], {
+    embeddedSoql: true,
+    expectChannelMsg:
+      'ERROR: We can’t retrieve list of objects. ' +
+      'Expected JSON files in directory: ' +
+      soqlMetadataDir +
+      '.'
+  });
   testCompletion(
     'SELECT | FROM Account',
     [
@@ -368,10 +484,32 @@ describe('Should not do completion on connection errors', async () => {
         'to an authorized org and have permissions to view the object and fields.'
     }
   );
+
+  testCompletion(
+    'SELECT | FROM Account',
+    [
+      ...aggregateFunctionItems,
+      {
+        label: '(SELECT ... FROM ...)',
+        kind: CompletionItemKind.Snippet,
+        insertText: '(SELECT $2 FROM $1)'
+      },
+      { label: 'COUNT()', kind: CompletionItemKind.Keyword },
+      { label: 'TYPEOF', kind: CompletionItemKind.Keyword }
+    ],
+    {
+      embeddedSoql: true,
+      expectChannelMsg:
+        'ERROR: We can’t retrieve the fields for Account. ' +
+        'Expected metadata file at: ' +
+        path.join(soqlMetadataDir, '*', 'Account.json.')
+      // [soqlMetadataDir, '*', 'Account.json.'].join(path.sep)
+    }
+  );
 });
 
 const shouldIgnoreCompletionItem = (i: CompletionItem) =>
-  i.detail !== 'tabnine' && i.kind !== CompletionItemKind.Text;
+  i.kind !== CompletionItemKind.Text;
 
 function testCompletion(
   soqlTextWithCursorMarker: string,
@@ -380,6 +518,7 @@ function testCompletion(
     cursorChar?: string;
     expectChannelMsg?: string;
     allowExtraCompletionItems?: boolean;
+    embeddedSoql?: boolean;
     only?: boolean;
     skip?: boolean;
   } = {}
@@ -396,13 +535,20 @@ function testCompletion(
     );
 
     const channelServiceSpy = spyChannelService(sandbox);
+    const docUri = options.embeddedSoql
+      ? Uri.parse(
+          `embedded-soql://soql/${encodeURIComponent(
+            soqlFileUri.toString()
+          )}.soql`
+        )
+      : soqlFileUri;
 
     let passed = false;
     for (let tries = 3; !passed && tries > 0; tries--) {
       try {
         const actualCompletionItems = ((await vscode.commands.executeCommand(
           'vscode.executeCompletionItemProvider',
-          soqlFileUri,
+          docUri,
           position
         )) as vscode.CompletionList).items;
 
@@ -431,12 +577,15 @@ function testCompletion(
         if (expectChannelMsg) {
           expect(channelServiceSpy.called).to.be.true;
           console.log(channelServiceSpy.getCalls());
-          expect(channelServiceSpy.lastCall.args[0]).to.equal(expectChannelMsg);
+          expect(channelServiceSpy.lastCall.args[0].toLowerCase()).to.equal(
+            expectChannelMsg.toLowerCase()
+          );
         }
 
         passed = true;
       } catch (failure) {
         if (tries === 1) {
+          console.log(failure);
           throw failure;
         } else {
           // give it a bit of time before trying again

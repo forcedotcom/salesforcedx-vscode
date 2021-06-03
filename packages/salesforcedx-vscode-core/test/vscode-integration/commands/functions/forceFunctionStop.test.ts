@@ -4,25 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { StartFunction } from '@salesforce/functions-core';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
 import { channelService } from '../../../../src/channels';
-import {
-  forceFunctionStart,
-  ForceFunctionStartExecutor
-} from '../../../../src/commands/functions/forceFunctionStart';
+import { forceFunctionStart } from '../../../../src/commands/functions/forceFunctionStart';
 import { forceFunctionStop } from '../../../../src/commands/functions/forceFunctionStop';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
-import { MockExecution } from './mockExecution';
 
 describe('Force Function Stop', () => {
   let sandbox: SinonSandbox;
-  let cliCommandExecutorStub: SinonStub;
+  const startFunctionLibraryStub: {
+    [key: string]: SinonStub;
+  } = {};
+
   const channelServiceStubs: {
     [key: string]: SinonStub;
   } = {};
@@ -36,9 +35,14 @@ describe('Force Function Stop', () => {
   beforeEach(() => {
     sandbox = createSandbox();
 
-    cliCommandExecutorStub = sandbox.stub(
-      CliCommandExecutor.prototype,
+    startFunctionLibraryStub.executeStub = sandbox.stub(
+      StartFunction.prototype,
       'execute'
+    );
+    startFunctionLibraryStub.executeStub.returns(true);
+    startFunctionLibraryStub.cancelStub = sandbox.stub(
+      StartFunction.prototype,
+      'cancel'
     );
     channelServiceStubs.appendLineStub = sandbox.stub(
       channelService,
@@ -70,17 +74,14 @@ describe('Force Function Stop', () => {
     const srcUri = Uri.file(
       path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
     );
-    const executor = new ForceFunctionStartExecutor();
-    const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-    const killExecutionStub = sandbox.stub(mockExecution, 'killExecution');
-    cliCommandExecutorStub.returns(mockExecution);
+
     await forceFunctionStart(srcUri);
 
     const mockStartTime = [1234, 5678];
     hrtimeStub.returns(mockStartTime);
     await forceFunctionStop();
 
-    assert.calledOnce(killExecutionStub);
+    assert.calledOnce(startFunctionLibraryStub.cancelStub);
     assert.calledOnce(channelServiceStubs.appendLineStub);
     assert.calledWith(
       channelServiceStubs.appendLineStub,
@@ -91,7 +92,7 @@ describe('Force Function Stop', () => {
       notificationServiceStubs.showSuccessfulExecutionStub,
       nls.localize('force_function_stop_text')
     );
-    assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
+    assert.calledTwice(telemetryServiceStubs.sendCommandEventStub);
     assert.calledWith(
       telemetryServiceStubs.sendCommandEventStub,
       'force_function_stop',
@@ -113,9 +114,7 @@ describe('Force Function Stop', () => {
     const srcUri = Uri.file(
       path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
     );
-    const executor = new ForceFunctionStartExecutor();
-    const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-    cliCommandExecutorStub.returns(mockExecution);
+
     await forceFunctionStart(srcUri);
 
     const mockStartTime = [1234, 5678];

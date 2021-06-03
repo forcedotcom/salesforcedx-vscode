@@ -5,16 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { expect } from 'chai';
+import { OutputEvent, StartFunction } from '@salesforce/functions-core';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { EventEmitter } from 'events';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { CancellationTokenSource, Uri, window } from 'vscode';
+import { Uri, window } from 'vscode';
 import { channelService } from '../../../../src/channels';
-import {
-  forceFunctionStart,
-  ForceFunctionStartExecutor
-} from '../../../../src/commands/functions/forceFunctionStart';
+import { forceFunctionStart } from '../../../../src/commands/functions/forceFunctionStart';
+import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
 import {
   notificationService,
@@ -23,34 +22,12 @@ import {
 import { taskViewService } from '../../../../src/statuses';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
-import { MockExecution } from './mockExecution';
 
 describe('Force Function Start', () => {
-  describe('build', () => {
-    it('returns a command with the correct params', () => {
-      const executor = new ForceFunctionStartExecutor();
-      const command = executor.build('');
-      expect(command.toCommand()).to.equal(`sfdx run:function:start --verbose`);
-    });
-
-    it('returns a command with the correct description', () => {
-      const executor = new ForceFunctionStartExecutor();
-      const command = executor.build('');
-      expect(command.description).to.equal(
-        nls.localize('force_function_start_text')
-      );
-    });
-
-    it('returns a command with the correct logName', () => {
-      const executor = new ForceFunctionStartExecutor();
-      const command = executor.build('');
-      expect(command.logName).to.equal('force_function_start');
-    });
-  });
-
   describe('execute', () => {
     let sandbox: SinonSandbox;
-    let cliCommandExecutorStub: SinonStub;
+    let startFunctionLibraryStub: SinonStub;
+    let emitter: EventEmitter;
     const channelServiceStubs: {
       [key: string]: SinonStub;
     } = {};
@@ -69,11 +46,11 @@ describe('Force Function Start', () => {
     let getDefaultUsernameOrAliasStub: SinonStub;
     beforeEach(() => {
       sandbox = createSandbox();
-
-      cliCommandExecutorStub = sandbox.stub(
-        CliCommandExecutor.prototype,
+      startFunctionLibraryStub = sandbox.stub(
+        StartFunction.prototype,
         'execute'
       );
+      startFunctionLibraryStub.returns(Promise.resolve(true));
       channelServiceStubs.streamCommandOutputStub = sandbox.stub(
         channelService,
         'streamCommandOutput'
@@ -123,8 +100,8 @@ describe('Force Function Start', () => {
       );
       activeTextEditorStub = sandbox.stub(window, 'activeTextEditor');
       logMetricStub = sandbox.stub(
-        ForceFunctionStartExecutor.prototype,
-        'logMetric'
+        TelemetryService.prototype,
+        'sendCommandEvent'
       );
       hrtimeStub = sandbox.stub(process, 'hrtime');
       getDefaultUsernameOrAliasStub = sandbox.stub(
@@ -134,6 +111,15 @@ describe('Force Function Start', () => {
       getDefaultUsernameOrAliasStub.returns(
         Promise.resolve('test@example.com')
       );
+
+      emitter = new EventEmitter();
+      sandbox
+        .stub(StartFunction.prototype, 'on')
+        .callsFake(
+          (event: OutputEvent | symbol, listener: (...args: any[]) => void) => {
+            return emitter.on(event, listener);
+          }
+        );
     });
 
     afterEach(() => {
@@ -144,13 +130,10 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
 
       await forceFunctionStart(srcUri);
 
-      assert.calledOnce(cliCommandExecutorStub);
+      assert.calledOnce(startFunctionLibraryStub);
     });
 
     it('Should start function from file', async () => {
@@ -162,13 +145,10 @@ describe('Force Function Start', () => {
           'index.js'
         )
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
 
       await forceFunctionStart(srcUri);
 
-      assert.calledOnce(cliCommandExecutorStub);
+      assert.calledOnce(startFunctionLibraryStub);
     });
 
     it('Should start function from active text editor if sourceUri not specified', async () => {
@@ -188,14 +168,9 @@ describe('Force Function Start', () => {
           }
         };
       });
-
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
       await forceFunctionStart();
 
-      assert.calledOnce(cliCommandExecutorStub);
+      assert.calledOnce(startFunctionLibraryStub);
     });
 
     it('Should show warning and log telemetry if sourceUri not specified and not actively editing a function file', async () => {
@@ -216,13 +191,9 @@ describe('Force Function Start', () => {
         };
       });
 
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
       await forceFunctionStart();
 
-      assert.notCalled(cliCommandExecutorStub);
+      assert.notCalled(startFunctionLibraryStub);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
       assert.calledWith(
         notificationServiceStubs.showWarningMessageStub,
@@ -240,13 +211,9 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'force-app/main/default/lwc')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
       await forceFunctionStart(srcUri);
 
-      assert.notCalled(cliCommandExecutorStub);
+      assert.notCalled(startFunctionLibraryStub);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
       assert.calledWith(
         notificationServiceStubs.showWarningMessageStub,
@@ -264,13 +231,8 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
       await forceFunctionStart(srcUri);
 
-      assert.calledOnce(channelServiceStubs.streamCommandOutputStub);
       assert.calledOnce(channelServiceStubs.showChannelOutputStub);
     });
 
@@ -278,66 +240,25 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
       const mockStartTime = [1234, 5678];
-      cliCommandExecutorStub.returns(mockExecution);
       hrtimeStub.returns(mockStartTime);
 
+      startFunctionLibraryStub.returns(true);
       await forceFunctionStart(srcUri);
 
-      mockExecution.stdoutSubject.next('Debugger running on port');
       assert.calledOnce(logMetricStub);
       assert.calledWith(logMetricStub, 'force_function_start', mockStartTime);
-    });
-
-    it('Should show error message and send telemetry if plugin is not installed', async () => {
-      const srcUri = Uri.file(
-        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
-      );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
-      await forceFunctionStart(srcUri);
-      mockExecution.stderrSubject.next(
-        ' ›   Warning: run:function:start is not a sfdx command.'
-      );
-      mockExecution.processExitSubject.next(127);
-
-      assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
-      assert.calledWith(
-        telemetryServiceStubs.sendExceptionStub,
-        'force_function_start_plugin_not_installed',
-        nls.localize('force_function_start_warning_plugin_not_installed')
-      );
-      assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
-      assert.calledWith(
-        notificationServiceStubs.showErrorMessageStub,
-        nls.localize('force_function_start_warning_plugin_not_installed')
-      );
-      assert.calledWith(
-        notificationServiceStubs.showErrorMessageStub,
-        nls.localize(
-          'notification_unsuccessful_execution_text',
-          nls.localize('force_function_start_text')
-        )
-      );
     });
 
     it('Should show error message and send telemetry if docker is not installed or started', async () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
       await forceFunctionStart(srcUri);
-      mockExecution.stderrSubject.next(
-        ' ›   Error: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?'
+      emitter.emit(
+        'error',
+        'Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?'
       );
-      mockExecution.processExitSubject.next(1);
 
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
@@ -347,18 +268,11 @@ describe('Force Function Start', () => {
           'force_function_start_warning_docker_not_installed_or_not_started'
         )
       );
-      assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+      assert.calledOnce(notificationServiceStubs.showErrorMessageStub);
       assert.calledWith(
         notificationServiceStubs.showErrorMessageStub,
         nls.localize(
           'force_function_start_warning_docker_not_installed_or_not_started'
-        )
-      );
-      assert.calledWith(
-        notificationServiceStubs.showErrorMessageStub,
-        nls.localize(
-          'notification_unsuccessful_execution_text',
-          nls.localize('force_function_start_text')
         )
       );
     });
@@ -367,30 +281,21 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
 
       await forceFunctionStart(srcUri);
-      mockExecution.processExitSubject.next(99);
+
+      emitter.emit('error', '');
 
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
         telemetryServiceStubs.sendExceptionStub,
         'force_function_start_unexpected_error',
-        nls.localize('force_function_start_unexpected_error', 99)
+        nls.localize('force_function_start_unexpected_error')
       );
-      assert.calledTwice(notificationServiceStubs.showErrorMessageStub);
+      assert.calledOnce(notificationServiceStubs.showErrorMessageStub);
       assert.calledWith(
         notificationServiceStubs.showErrorMessageStub,
-        nls.localize('force_function_start_unexpected_error', 99)
-      );
-      assert.calledWith(
-        notificationServiceStubs.showErrorMessageStub,
-        nls.localize(
-          'notification_unsuccessful_execution_text',
-          nls.localize('force_function_start_text')
-        )
+        nls.localize('force_function_start_unexpected_error')
       );
     });
 
@@ -402,9 +307,6 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
 
       await forceFunctionStart(srcUri);
 
@@ -417,10 +319,6 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      cliCommandExecutorStub.returns(mockExecution);
-
       await forceFunctionStart(srcUri);
 
       assert.calledOnce(notificationServiceStubs.showInformationMessageStub);
@@ -429,44 +327,56 @@ describe('Force Function Start', () => {
         nls.localize('force_function_start_no_org_auth')
       );
     });
-
-    it('Should handle cancellation requested', async () => {
+    it('Should not capture debug language type for random pattern', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      const executor = new ForceFunctionStartExecutor();
-      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
-      const killExecutionStub = sandbox.stub(mockExecution, 'killExecution');
-      const mockStartTime = [1234, 5678];
-      cliCommandExecutorStub.returns(mockExecution);
-      hrtimeStub.returns(mockStartTime);
 
-      let cancellationTokenSource: CancellationTokenSource | undefined;
-      notificationServiceStubs.progressNotificationShowStub.callsFake(
-        (execution, source) => {
-          cancellationTokenSource = source;
-        }
-      );
+      hrtimeStub.returns([1234, 5678]);
 
       await forceFunctionStart(srcUri);
 
-      if (cancellationTokenSource) {
-        cancellationTokenSource.cancel();
-      }
+      emitter.emit('log', 'heroku/nodejs-engine');
+      assert.notCalled(functionServiceStub);
+    });
 
-      assert.calledOnce(killExecutionStub);
-      assert.calledWith(killExecutionStub, 'SIGTERM');
-      return new Promise(resolve => {
-        process.nextTick(() => {
-          assert.calledOnce(logMetricStub);
-          assert.calledWith(
-            logMetricStub,
-            'force_function_start_cancelled',
-            mockStartTime
-          );
-          resolve();
-        });
-      });
+    it('Should capture debug language type for Java runtime', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+
+      emitter.emit('log', ' heroku/jvm-function-invoker@latest');
+      assert.calledOnce(functionServiceStub);
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'jvm');
+    });
+
+    it('Should capture debug language type for Node runtime', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+      emitter.emit('log', 'heroku/nodejs-function-invoker@2.1.1');
+      assert.calledOnce(functionServiceStub);
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'nodejs');
     });
   });
 });
