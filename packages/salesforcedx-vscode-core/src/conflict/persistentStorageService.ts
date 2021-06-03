@@ -11,12 +11,7 @@ import {
 } from 'vscode';
 
 interface ConflictFileProperties {
-  lastModifiedByName: string;
   lastModifiedDate: string;
-}
-export interface LabelledConflictFileProperties {
-  fileName: string;
-  properties: ConflictFileProperties | undefined;
 }
 
 export class PersistentStorageService {
@@ -38,32 +33,20 @@ export class PersistentStorageService {
     return PersistentStorageService.instance;
   }
 
-  private getPropertiesForFile(fileName: string): ConflictFileProperties | undefined {
+  public getPropertiesForFile(fileName: string): ConflictFileProperties | undefined {
     return this.storage.get<ConflictFileProperties>(fileName);
   }
 
-  private setPropertiesForFile(fileName: string, value: ConflictFileProperties) {
+  public setPropertiesForFile(fileName: string, value: ConflictFileProperties | undefined) {
     this.storage.update(fileName, value);
   }
 
-  public getPropertiesForFiles(fileProperties: FileProperties[]): LabelledConflictFileProperties[] {
-    const conflictFileProperties = new Array<LabelledConflictFileProperties>(fileProperties.length);
-    for (let i = 0; i < conflictFileProperties.length; i++) {
-      const propertiesForFile = this.getPropertiesForFile(fileProperties[i].fileName);
-      conflictFileProperties[i] = {
-        fileName: fileProperties[i].fileName,
-        properties: propertiesForFile
-      };
-    }
-    return conflictFileProperties;
-  }
-
-  public setPropertiesForFiles(fileProperties: FileProperties[]) {
-    for (const fileProperty of fileProperties) {
+  public setPropertiesForFiles(fileProperties: FileProperties | FileProperties[]) {
+    const fileArray = Array.isArray(fileProperties) ? fileProperties : [fileProperties];
+    for (const fileProperty of fileArray) {
       this.setPropertiesForFile(
         fileProperty.fileName,
         {
-          lastModifiedByName: fileProperty.lastModifiedByName,
           lastModifiedDate: fileProperty.lastModifiedDate
         });
     }

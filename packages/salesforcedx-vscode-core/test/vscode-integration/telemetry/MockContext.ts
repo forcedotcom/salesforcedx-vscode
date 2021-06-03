@@ -16,19 +16,38 @@ import {
 
 class MockMemento implements Memento {
   private telemetryGS: boolean;
+  private keys: string[] = [];
+  private values: any[] = [];
 
   constructor(setGlobalState: boolean) {
     this.telemetryGS = setGlobalState;
   }
 
-  public get(key: string): any {
-    if (this.telemetryGS === true) {
-      return true;
+  private getIndex(key: string): number {
+    for (let i = 0; i < this.keys.length; i++) {
+      if (this.keys[i] === key) {
+        return i;
+      }
     }
-    return undefined;
+    return -1;
+  }
+
+  public get<T>(key: string): T {
+    if (this.telemetryGS === true) {
+      return true as any;
+    }
+    const index = this.getIndex(key);
+    return index !== -1 ? this.values[index] : undefined;
   }
 
   public update(key: string, value: any): Promise<void> {
+    const index = this.getIndex(key);
+    if (index !== -1) {
+      this.values[index] = value;
+    } else {
+      this.keys.push(key);
+      this.values.push(value);
+    }
     return Promise.resolve();
   }
 }
@@ -69,6 +88,7 @@ class MockEnvironmentVariableCollection
 export class MockContext implements ExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
+    this.workspaceState = new MockMemento(false);
   }
   public storageUri: Uri | undefined;
   public globalStorageUri = Uri.parse('file://globalStorage');
@@ -77,7 +97,7 @@ export class MockContext implements ExtensionContext {
   public extensionUri = Uri.parse('file://test');
   public environmentVariableCollection = new MockEnvironmentVariableCollection();
   public subscriptions: Array<{ dispose(): any }> = [];
-  public workspaceState!: Memento;
+  public workspaceState: Memento;
   public globalState: Memento;
   public extensionPath: string = 'myExtensionPath';
   public globalStoragePath = 'globalStatePath';
