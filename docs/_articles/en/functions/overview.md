@@ -3,9 +3,7 @@ title: Overview
 lang: en
 ---
 ## Salesforce Functions (Beta)
-Use the Salesforce Functions extensions in VSCode to build event-driven, elastically scalable apps and experiences.
-
-Use the Salesforce features for VS Code to create and test Salesforce Functions locally.
+Use the Salesforce Functions features in VS Code to build event-driven, elastically scalable apps and experiences. You can create and test functions against sample payloads locally in VS Code.
 
 ### Create Function
 Run `SFDX: Create Function` to create a Salesforce Function in Javascript or Java in a Salesforce DX project.
