@@ -148,7 +148,7 @@ export const messages = {
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
   force_function_start_unexpected_error:
-    'SFDX: Start Function exited unexpectedly',
+    'SFDX: Start Function exited unexpectedly with code %s',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Invoke',
   force_function_debug_invoke_tooltip: 'Debug Invoke',

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as path from 'path';
-import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { assert, createSandbox, match, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import {
@@ -28,10 +28,6 @@ describe('Function Service', () => {
       vscodeDebugStubs.startDebuggingStub = sandbox.stub(
         vscode.debug,
         'startDebugging'
-      );
-      vscodeDebugStubs.stopDebuggingStub = sandbox.stub(
-        vscode.debug,
-        'stopDebugging'
       );
       vscodeDebugStubs.onDidStartDebugSessionStub = sandbox.stub(
         vscode.debug,
@@ -82,7 +78,7 @@ describe('Function Service', () => {
         vscodeDebugStubs.startDebuggingStub,
         getRootWorkspace(),
         {
-          type: undefined,
+          type: 'node',
           request: 'attach',
           name: 'Debug Invoke',
           resolveSourceMapLocations: ['**', '!**/node_modules/**'],
@@ -90,8 +86,7 @@ describe('Function Service', () => {
           internalConsoleOptions: 'openOnSessionStart',
           localRoot: rootDir,
           remoteRoot: '/workspace',
-          port: debugPort,
-          hostName: '127.0.0.1'
+          port: debugPort
         }
       );
     });
@@ -101,6 +96,7 @@ describe('Function Service', () => {
         getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
+      const customRequestStub = sandbox.stub(mockDebugSession, 'customRequest');
       const getStartedFunctionStub = sandbox.stub(
         FunctionService.prototype,
         'getStartedFunction'
@@ -114,8 +110,8 @@ describe('Function Service', () => {
 
       await FunctionService.instance.stopDebuggingFunction(rootDir);
 
-      assert.calledOnce(vscodeDebugStubs.stopDebuggingStub);
-      assert.calledWith(vscodeDebugStubs.stopDebuggingStub, mockDebugSession);
+      assert.calledOnce(customRequestStub);
+      assert.calledWith(customRequestStub, 'disconnect');
     });
 
     it('Should set active debug session of function', () => {
@@ -189,71 +185,6 @@ describe('Function Service', () => {
       expect(
         FunctionService.instance.getStartedFunction(rootDir)
       ).to.have.property('debugSession', undefined);
-    });
-
-    it('Should update debugType of a Java function', () => {
-      const service = new FunctionService();
-      service.registerStartedFunction({
-        rootDir: 'Foo',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve()
-      });
-
-      service.updateFunction('Foo', 'Java');
-      expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
-    });
-
-    it('Should update debugType of a Java JVM function', () => {
-      const service = new FunctionService();
-      service.registerStartedFunction({
-        rootDir: 'Foo',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve()
-      });
-
-      service.updateFunction('Foo', 'jvm');
-      expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
-    });
-
-    it('Should update debugType of a Node function', () => {
-      const service = new FunctionService();
-      service.registerStartedFunction({
-        rootDir: 'Bar',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve()
-      });
-
-      service.updateFunction('Bar', 'Node.js');
-      expect(service.getStartedFunction('Bar')?.debugType).to.equal('node');
-    });
-
-    it('Should not update debugType of an unknown function', () => {
-      const service = new FunctionService();
-      service.registerStartedFunction({
-        rootDir: 'FirstFunction',
-        debugPort: 7777,
-        port: 8080,
-        debugType: 'unknown',
-        terminate: () => Promise.resolve()
-      });
-
-      // right function, wrong type
-      service.updateFunction('FirstFunction', 'random');
-      expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
-        'unknown'
-      );
-
-      // wrong function, right type
-      service.updateFunction('Foo', 'Java');
-      expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
-        'unknown'
-      );
     });
   });
 });

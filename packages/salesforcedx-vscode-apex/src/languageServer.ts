@@ -14,7 +14,6 @@ import {
   LanguageClientOptions
 } from 'vscode-languageclient';
 import { LSP_ERR } from './constants';
-import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -135,26 +134,7 @@ function protocol2CodeConverter(value: string) {
 export async function createLanguageServer(
   context: vscode.ExtensionContext
 ): Promise<LanguageClient> {
-  const server = await createServer(context);
-  const client = new LanguageClient(
-    'apex',
-    nls.localize('client_name'),
-    server,
-    buildClientOptions()
-  );
-
-  client.onTelemetry(data =>
-    telemetryService.sendEventData('apexLSPLog', data.properties, data.measures)
-  );
-
-  return client;
-}
-
-// exported only for testing
-export function buildClientOptions(): LanguageClientOptions {
-  const soqlExtensionInstalled = isSOQLExtensionInstalled();
-
-  return {
+  const clientOptions: LanguageClientOptions = {
     // Register the server for Apex documents
     documentSelector: [{ language: 'apex', scheme: 'file' }],
     synchronize: {
@@ -168,16 +148,20 @@ export function buildClientOptions(): LanguageClientOptions {
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
-    },
-    initializationOptions: {
-      enableEmbeddedSoqlCompletion: soqlExtensionInstalled
-    },
-    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {})
+    }
   };
-}
 
-function isSOQLExtensionInstalled() {
-  const soqlExtensionName = 'salesforce.salesforcedx-vscode-soql';
-  const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
-  return soqlExtension !== undefined;
+  const server = await createServer(context);
+  const client = new LanguageClient(
+    'apex',
+    nls.localize('client_name'),
+    server,
+    clientOptions
+  );
+
+  client.onTelemetry(data =>
+    telemetryService.sendEventData('apexLSPLog', data.properties, data.measures)
+  );
+
+  return client;
 }
