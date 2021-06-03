@@ -837,10 +837,10 @@
       "type": "object",
       "title": "%feature_previews_title%",
       "properties": {
-        "salesforcedx-vscode-core.force-push-on-save": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": {
           "type": "boolean",
           "default": false,
-          "description": "%force_push_on_save_description%"
+          "description": "%override_conflicts_on_push_description%"
         },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",
