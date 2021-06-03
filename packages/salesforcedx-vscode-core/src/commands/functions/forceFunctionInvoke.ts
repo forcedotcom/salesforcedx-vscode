@@ -8,55 +8,43 @@
 /**
  * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CancellationToken, Progress, Uri } from 'vscode';
+import { Uri } from 'vscode';
+import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
+import { OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 import { FunctionService } from './functionService';
-import { OrgAuthInfo } from '../../util';
-import { OUTPUT_CHANNEL } from '../../channels';
 
 import { RunFunction } from '@salesforce/functions-core';
-import {
-  streamFunctionCommandOutput,
-  showFunctionCommandProgress
-} from './functionsCoreHelpers';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { streamFunctionCommandOutput } from './functionsCoreHelpers';
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
-  constructor(){
+  constructor(debug: boolean = false) {
     super(
       nls.localize('force_function_invoke_text'),
-      'force_function_invoke_library',
+      debug ? 'force_function_debug_invoke_library' : 'force_function_invoke_library',
       OUTPUT_CHANNEL
     );
   }
-  async run(response: ContinueResponse<string>, progress?: Progress<{ message?: string | undefined; increment?: number | undefined; }>, token?: CancellationToken): Promise<boolean> {
-    
-    if (await new SfdxWorkspaceChecker().check()) {
-        const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-        const commandName = nls.localize('force_function_invoke_text');
-    
-        const runFunction = new RunFunction();
-        const execution = runFunction.execute({
-          url: 'http://localhost:8080',
-          payload: `@${response.data}`,
-          targetusername: defaultUsername
-        })
-        streamFunctionCommandOutput(commandName, runFunction);
-        return await execution;
-      }
-      return false;
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
+    const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+    const commandName = nls.localize('force_function_invoke_text');
+
+    const runFunction = new RunFunction();
+    const execution = runFunction.execute({
+      url: 'http://localhost:8080',
+      payload: `@${response.data}`,
+      targetusername: defaultUsername
+    });
+    streamFunctionCommandOutput(commandName, runFunction);
+    return await execution;
   }
 }
 
@@ -86,17 +74,9 @@ export async function forceFunctionDebugInvoke(sourceUri: Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    new ForceFunctionInvoke()
+    new ForceFunctionInvoke(true)
   );
-  await commandlet.run();
+  await await commandlet.run();
 
-  if (commandlet.onDidFinishExecution) {
-    commandlet.onDidFinishExecution(async startTime => {
-      await FunctionService.instance.stopDebuggingFunction(localRoot);
-      telemetryService.sendCommandEvent(
-        'force_function_debug_invoke',
-        startTime
-      );
-    });
-  }
+  await FunctionService.instance.stopDebuggingFunction(localRoot);
 }

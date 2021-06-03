@@ -4,25 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  CliCommandExecutor,
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
-import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 
@@ -30,55 +23,54 @@ import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
-  FUNCTION_DEFAULT_PORT
+  FUNCTION_DEFAULT_PORT,
+  FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
+
+import { StartFunction } from '@salesforce/functions-core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { OUTPUT_CHANNEL } from '../../channels';
+import { streamFunctionCommandOutput } from './functionsCoreHelpers';
 
 /**
  * Error types when running SFDX: Start Function
  * This is also used as the telemetry log name.
  */
-type ForceFunctionStartErrorType =
-  | 'force_function_start_plugin_not_installed'
-  | 'force_function_start_docker_plugin_not_installed_or_started';
+type ForceFunctionStartErrorType = 'force_function_start_docker_plugin_not_installed_or_started';
 
 const forceFunctionStartErrorInfo: {
   [key in ForceFunctionStartErrorType]: {
     cliMessage: string;
-    cliExitCode: number;
     errorNotificationMessage: string;
   };
 } = {
-  force_function_start_plugin_not_installed: {
-    cliMessage: 'is not a sfdx command',
-    cliExitCode: 127,
-    errorNotificationMessage: nls.localize(
-      'force_function_start_warning_plugin_not_installed'
-    )
-  },
   force_function_start_docker_plugin_not_installed_or_started: {
     cliMessage: 'Cannot connect to the Docker daemon',
-    cliExitCode: 1,
     errorNotificationMessage: nls.localize(
       'force_function_start_warning_docker_not_installed_or_not_started'
     )
   }
 };
 
-export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
-  public build(functionDirPath: string): Command {
-    this.executionCwd = functionDirPath;
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_function_start_text'))
-      .withArg('run:function:start')
-      .withArg('--verbose')
-      .withLogName('force_function_start')
-      .build();
+export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
+  string
+> {
+  constructor() {
+    super(
+      nls.localize('force_function_start_text'),
+      'force_function_start',
+      OUTPUT_CHANNEL,
+      true
+    );
   }
-
-  public execute(response: ContinueResponse<string>) {
-    const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
+  public async run(
+    response: ContinueResponse<string>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
     const sourceFsPath = response.data;
     const functionDirPath = FunctionService.getFunctionDir(sourceFsPath);
     if (!functionDirPath) {
@@ -90,18 +82,17 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
         'force_function_start_no_toml',
         warningMessage
       );
-      return;
+      return false;
     }
-    const execution = new CliCommandExecutor(this.build(functionDirPath), {
-      cwd: this.executionCwd,
-      env: { SFDX_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
-    const executionName = execution.command.toString();
 
-    cancellationToken.onCancellationRequested(async () => {
-      await execution.killExecution('SIGTERM');
-      this.logMetric('force_function_start_cancelled', startTime);
+    const commandName = nls.localize('force_function_start_text');
+
+    const startFunction = new StartFunction();
+    const execution = startFunction.execute({
+      verbose: true,
+      path: functionDirPath
     });
+    streamFunctionCommandOutput(commandName, startFunction);
 
     OrgAuthInfo.getDefaultUsernameOrAlias(false)
       .then(defaultUsernameorAlias => {
@@ -121,100 +112,58 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
         rootDir: functionDirPath,
         port: FUNCTION_DEFAULT_PORT,
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
+        debugType: 'node',
         terminate: () => {
-          return execution.killExecution('SIGTERM');
+          return new Promise(resolve => resolve(startFunction.cancel()));
         }
       }
     );
 
-    channelService.streamCommandOutput(execution);
-    channelService.showChannelOutput();
-
-    const progress = new Subject();
-    ProgressNotification.show(
-      execution,
-      cancellationTokenSource,
-      vscode.ProgressLocation.Notification,
-      progress.asObservable() as Observable<number>
-    );
-    const task = taskViewService.addCommandExecution(
-      execution,
-      cancellationTokenSource
-    );
-
-    execution.stdoutSubject.subscribe(data => {
-      if (data.toString().includes('Debugger running on port')) {
-        progress.complete();
-        taskViewService.removeTask(task);
-        notificationService
-          .showSuccessfulExecution(executionName)
-          .catch(() => {});
-        this.logMetric(execution.command.logName, startTime);
+    startFunction.on('log', data => {
+      const matches = String(data).match(FUNCTION_RUNTIME_DETECTION_PATTERN);
+      if (matches && matches.length > 1) {
+        FunctionService.instance.updateFunction(functionDirPath, matches[1]);
       }
     });
-
-    // Adding error messages here during command execution
-    const errorMessages = new Set();
-    execution.stderrSubject.subscribe(data => {
+    // Allows for showing custom notifications
+    // and sending custom telemtry data for predefined errors
+    startFunction.on('error', (error: string) => {
+      let unexpectedError = true;
       (Object.keys(
         forceFunctionStartErrorInfo
       ) as ForceFunctionStartErrorType[]).forEach(errorType => {
-        const { cliMessage } = forceFunctionStartErrorInfo[errorType];
-        if (data.toString().includes(cliMessage)) {
-          errorMessages.add(cliMessage);
+        const {
+          cliMessage,
+          errorNotificationMessage
+        } = forceFunctionStartErrorInfo[errorType];
+        if (error.includes(cliMessage)) {
+          telemetryService.sendException(errorType, errorNotificationMessage);
+          notificationService.showErrorMessage(errorNotificationMessage);
+          unexpectedError = false;
         }
       });
-    });
 
-    execution.processExitSubject.subscribe(async exitCode => {
-      if (typeof exitCode === 'number' && exitCode !== 0) {
-        let unexpectedError = true;
-        (Object.keys(
-          forceFunctionStartErrorInfo
-        ) as ForceFunctionStartErrorType[]).forEach(errorType => {
-          const {
-            cliMessage,
-            cliExitCode,
-            errorNotificationMessage
-          } = forceFunctionStartErrorInfo[errorType];
-          // Matches error message and exit code
-          if (exitCode === cliExitCode && errorMessages.has(cliMessage)) {
-            unexpectedError = false;
-            telemetryService.sendException(errorType, errorNotificationMessage);
-            notificationService.showErrorMessage(errorNotificationMessage);
-            channelService.appendLine(`Error: ${errorNotificationMessage}`);
-            channelService.showChannelOutput();
-          }
-        });
-
-        if (unexpectedError) {
-          const errorNotificationMessage = nls.localize(
-            'force_function_start_unexpected_error',
-            exitCode
-          );
-          telemetryService.sendException(
-            'force_function_start_unexpected_error',
-            errorNotificationMessage
-          );
-          notificationService.showErrorMessage(errorNotificationMessage);
-          channelService.appendLine(`Error: ${errorNotificationMessage}`);
-          channelService.showChannelOutput();
-        }
-        notificationService.showErrorMessage(
-          nls.localize(
-            'notification_unsuccessful_execution_text',
-            nls.localize('force_function_start_text')
-          )
+      if (unexpectedError) {
+        const errorNotificationMessage = nls.localize(
+          'force_function_start_unexpected_error'
         );
+        telemetryService.sendException(
+          'force_function_start_unexpected_error',
+          errorNotificationMessage
+        );
+        notificationService.showErrorMessage(errorNotificationMessage);
       }
-      progress.complete();
+
+      channelService.showChannelOutput();
       registeredStartedFunctionDisposable.dispose();
     });
 
-    notificationService.reportCommandExecutionStatus(
-      execution,
-      cancellationToken
-    );
+    token?.onCancellationRequested(() => {
+      startFunction.cancel();
+      registeredStartedFunctionDisposable.dispose();
+    });
+
+    return await execution;
   }
 }
 
