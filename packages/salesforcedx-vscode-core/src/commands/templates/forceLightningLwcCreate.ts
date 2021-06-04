@@ -44,7 +44,7 @@ export class LibraryForceLightningLwcCreateExecutor extends LibraryBaseTemplateC
     const templateOptions: LightningComponentOptions = {
       outputdir: data.outputdir,
       componentname: data.fileName,
-      template: 'DefaultLightningCmp',
+      template: 'default',
       type: 'lwc',
       internal
     };
