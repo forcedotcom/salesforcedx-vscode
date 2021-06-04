@@ -128,7 +128,7 @@ export const mockSObjects = [
         name: 'Description',
         nameField: false,
         sortable: false,
-        type: 'string',
+        type: 'textarea',
         updateable: true
       },
       {

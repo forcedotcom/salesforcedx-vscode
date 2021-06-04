@@ -7,13 +7,20 @@
 
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
-import { retrieveSObject, retrieveSObjects, channelService } from '../sfdx';
 
 import { Middleware } from 'vscode-languageclient';
 import { SoqlItemContext } from '@salesforce/soql-language-server';
-import { telemetryService } from '../telemetry';
 import { nls } from '../messages';
-import { DescribeSObjectResult, Field } from 'jsforce';
+import { channelService } from '../sfdx';
+import { telemetryService } from '../telemetry';
+import {
+  FileSystemOrgDataSource,
+  JsforceOrgDataSource,
+  SObjectField,
+  SObject,
+  OrgDataSource
+} from './orgMetadata';
+import { Org } from '@salesforce/core';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -30,12 +37,20 @@ export const middleware: Middleware = {
       token
     )) as ProtocolCompletionItem[];
 
-    return expandPlaceholders(await filterByContext(items));
+    const dataSource: OrgDataSource = document.uri.scheme.includes('embedded')
+      ? new FileSystemOrgDataSource()
+      : new JsforceOrgDataSource();
+
+    return expandPlaceholders(
+      await filterByContext(items, dataSource),
+      dataSource
+    );
   }
 };
 
 async function filterByContext(
-  items: ProtocolCompletionItem[]
+  items: ProtocolCompletionItem[],
+  dataSource: OrgDataSource
 ): Promise<ProtocolCompletionItem[]> {
   const filteredItems: ProtocolCompletionItem[] = [];
 
@@ -46,6 +61,7 @@ async function filterByContext(
       item?.data?.soqlContext?.fieldName
     ) {
       const objMetadata = await safeRetrieveSObject(
+        dataSource,
         item.data.soqlContext.sobjectName
       );
       if (objMetadata) {
@@ -68,7 +84,8 @@ async function filterByContext(
 }
 
 async function expandPlaceholders(
-  items: ProtocolCompletionItem[]
+  items: ProtocolCompletionItem[],
+  dataSource: OrgDataSource
 ): Promise<ProtocolCompletionItem[]> {
   const expandedItems = [...items];
 
@@ -82,7 +99,7 @@ async function expandPlaceholders(
         expandedItems.splice(
           index,
           1,
-          ...(await handler(item?.data?.soqlContext || {}))
+          ...(await handler(item?.data?.soqlContext || {}, dataSource))
         );
       } else {
         telemetryService.sendException(
@@ -98,18 +115,22 @@ async function expandPlaceholders(
 
 const expandFunctions: {
   [key: string]: (
-    soqlContext: SoqlItemContext
+    soqlContext: SoqlItemContext,
+    dataSource: OrgDataSource
   ) => Promise<ProtocolCompletionItem[]>;
 } = {
   SOBJECTS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext
+    soqlContext: SoqlItemContext,
+    dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
     try {
-      const sobjectItems = (await safeRetrieveSObjectsList()).map(objName => {
-        const item = new ProtocolCompletionItem(objName);
-        item.kind = CompletionItemKind.Class;
-        return item;
-      });
+      const sobjectItems = (await dataSource.retrieveSObjectsList()).map(
+        objName => {
+          const item = new ProtocolCompletionItem(objName);
+          item.kind = CompletionItemKind.Class;
+          return item;
+        }
+      );
 
       return sobjectItems;
     } catch (metadataErrors) {
@@ -118,9 +139,13 @@ const expandFunctions: {
   },
 
   SOBJECT_FIELDS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext
+    soqlContext: SoqlItemContext,
+    dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
+      soqlContext.sobjectName
+    );
     if (!objMetadata) {
       return [];
     }
@@ -135,9 +160,13 @@ const expandFunctions: {
   },
 
   RELATIONSHIPS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext
+    soqlContext: SoqlItemContext,
+    dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
+      soqlContext.sobjectName
+    );
     if (!objMetadata) {
       return [];
     }
@@ -165,9 +194,13 @@ const expandFunctions: {
   },
 
   RELATIONSHIP_FIELDS_PLACEHOLDER: async (
-    soqlContext: SoqlItemContext
+    soqlContext: SoqlItemContext,
+    dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const parentObject = await safeRetrieveSObject(soqlContext.sobjectName);
+    const parentObject = await safeRetrieveSObject(
+      dataSource,
+      soqlContext.sobjectName
+    );
     if (!parentObject) {
       return [];
     }
@@ -180,7 +213,10 @@ const expandFunctions: {
       return [];
     }
 
-    const objMetadata = await safeRetrieveSObject(relationship?.childSObject);
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
+      relationship?.childSObject
+    );
     if (!objMetadata) {
       return [];
     }
@@ -195,9 +231,13 @@ const expandFunctions: {
   },
 
   LITERAL_VALUES_FOR_FIELD: async (
-    soqlContext: SoqlItemContext
+    soqlContext: SoqlItemContext,
+    dataSource: OrgDataSource
   ): Promise<ProtocolCompletionItem[]> => {
-    const objMetadata = await safeRetrieveSObject(soqlContext.sobjectName);
+    const objMetadata = await safeRetrieveSObject(
+      dataSource,
+      soqlContext.sobjectName
+    );
     if (!objMetadata || !soqlContext.fieldName) {
       return [];
     }
@@ -230,36 +270,21 @@ const expandFunctions: {
 };
 
 async function safeRetrieveSObject(
+  dataSource: OrgDataSource,
   sobjectName?: string
-): Promise<DescribeSObjectResult | undefined> {
-  try {
-    if (!sobjectName) {
-      telemetryService.sendException(
-        'SOQLanguageServerException',
-        'Missing `sobjectName` from SOQL completion context!'
-      );
-      return Promise.resolve(undefined);
-    }
-    return await retrieveSObject(sobjectName);
-  } catch (metadataError) {
-    const message = nls.localize('error_sobject_metadata_request', sobjectName);
-    channelService.appendLine(message);
-    return undefined;
+): Promise<SObject | undefined> {
+  if (!sobjectName) {
+    telemetryService.sendException(
+      'SOQLanguageServerException',
+      'Missing `sobjectName` from SOQL completion context!'
+    );
+    return Promise.resolve(undefined);
   }
-}
-
-async function safeRetrieveSObjectsList(): Promise<string[]> {
-  try {
-    return await retrieveSObjects();
-  } catch (metadataError) {
-    const message = nls.localize('error_sobjects_request');
-    channelService.appendLine(message);
-    return [];
-  }
+  return await dataSource.retrieveSObject(sobjectName);
 }
 
 function objectFieldMatchesSOQLContext(
-  field: Field,
+  field: SObjectField,
   soqlContext: SoqlItemContext
 ) {
   return (
@@ -293,7 +318,7 @@ function newCompletionItem(
 }
 
 function newFieldCompletionItems(
-  field: Field,
+  field: SObjectField,
   soqlContext: SoqlItemContext
 ): ProtocolCompletionItem[] {
   const fieldItems = [];
