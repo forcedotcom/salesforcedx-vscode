@@ -58,7 +58,7 @@ export const messages = {
     'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url:
     'Enter a custom login URL or use the default URL',
-  parameter_gatherer_enter_instance_url: 'Enter Salesforce instance URL',
+  parameter_gatherer_enter_instance_url: 'Enter Instance URL',
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
   parameter_gatherer_enter_session_id_diagnostic_message:

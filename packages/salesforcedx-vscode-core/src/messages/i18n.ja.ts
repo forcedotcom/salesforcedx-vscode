@@ -52,7 +52,7 @@ export const messages = {
     '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
   parameter_gatherer_enter_custom_url:
     'カスタムのログイン URL を入力またはデフォルトの URL を使用',
-  parameter_gatherer_enter_instance_url: 'Enter Salesforce instance URL',
+  parameter_gatherer_enter_instance_url: 'Enter Instance URL',
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
   parameter_gatherer_enter_session_id_diagnostic_message:
