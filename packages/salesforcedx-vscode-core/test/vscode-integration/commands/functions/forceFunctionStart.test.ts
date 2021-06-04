@@ -15,6 +15,7 @@ import {
   forceFunctionStart,
   ForceFunctionStartExecutor
 } from '../../../../src/commands/functions/forceFunctionStart';
+import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
 import {
   notificationService,
@@ -30,9 +31,7 @@ describe('Force Function Start', () => {
     it('returns a command with the correct params', () => {
       const executor = new ForceFunctionStartExecutor();
       const command = executor.build('');
-      expect(command.toCommand()).to.equal(
-        `sfdx evergreen:function:start --verbose`
-      );
+      expect(command.toCommand()).to.equal(`sfdx run:function:start --verbose`);
     });
 
     it('returns a command with the correct description', () => {
@@ -288,7 +287,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      mockExecution.stdoutSubject.next('Ready to process signals');
+      mockExecution.stdoutSubject.next('Debugger running on port');
       assert.calledOnce(logMetricStub);
       assert.calledWith(logMetricStub, 'force_function_start', mockStartTime);
     });
@@ -303,7 +302,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
       mockExecution.stderrSubject.next(
-        ' ›   Warning: evergreen:function:start is not a sfdx command.'
+        ' ›   Warning: run:function:start is not a sfdx command.'
       );
       mockExecution.processExitSubject.next(127);
 
@@ -469,6 +468,65 @@ describe('Force Function Start', () => {
           resolve();
         });
       });
+    });
+
+    it('Should not capture debug language type for random pattern', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+
+      mockExecution.stdoutSubject.next('heroku/nodejs-engine');
+      assert.notCalled(functionServiceStub);
+    });
+
+    it('Should capture debug language type for Java runtime', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+
+      mockExecution.stdoutSubject.next('  heroku/jvm-function-invoker@latest');
+      assert.calledOnce(functionServiceStub);
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'jvm');
+    });
+
+    it('Should capture debug language type for Node runtime', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+      const executor = new ForceFunctionStartExecutor();
+      const mockExecution = new MockExecution(executor.build(srcUri.fsPath));
+      cliCommandExecutorStub.returns(mockExecution);
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionStart(srcUri);
+
+      mockExecution.stdoutSubject.next('heroku/nodejs-function-invoker@2.1.1');
+      assert.calledOnce(functionServiceStub);
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'nodejs');
     });
   });
 });
