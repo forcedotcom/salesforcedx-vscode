@@ -547,16 +547,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  // Set functions enabled context
-  const functionsEnabled = sfdxCoreSettings.getFunctionsEnabled();
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:functions_enabled',
-    functionsEnabled
-  );
-  if (functionsEnabled) {
-    FunctionService.instance.handleDidStartTerminateDebugSessions(context);
-  }
+  FunctionService.instance.handleDidStartTerminateDebugSessions(context);
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
