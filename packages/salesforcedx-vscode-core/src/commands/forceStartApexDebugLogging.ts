@@ -68,7 +68,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       let resultJson = await this.subExecute(
         new ForceQueryTraceFlag().build(userId)
       );
-      if (resultJson && resultJson.result && resultJson.result.size >= 1) {
+      if (resultJson && resultJson.result && resultJson.result.totalSize >= 1) {
         const traceflag = resultJson.result.records[0];
         developerLogTraceFlag.setTraceFlagDebugLevelInfo(
           traceflag.Id,
@@ -177,9 +177,7 @@ export class CreateDebugLevel extends SfdxCommandletExecutor<{}> {
       .withFlag('--sobjecttype', 'DebugLevel')
       .withFlag(
         '--values',
-        `developername=${this.developerName} MasterLabel=${
-          this.developerName
-        } apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
+        `developername=${this.developerName} MasterLabel=${this.developerName} apexcode=${APEX_CODE_DEBUG_LEVEL} visualforce=${VISUALFORCE_DEBUG_LEVEL}`
       )
       .withArg('--usetoolingapi')
       .withJson()
