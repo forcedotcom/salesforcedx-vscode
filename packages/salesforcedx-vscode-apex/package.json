@@ -25,11 +25,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.2.1",
+    "@salesforce/apex-node": "0.2.2",
     "@salesforce/apex-tmlanguage": "1.4.0",
-    "@salesforce/core": "2.13.0",
+    "@salesforce/core": "2.23.2",
     "@salesforce/salesforcedx-utils-vscode": "51.16.0",
-    "@salesforce/source-deploy-retrieve": "2.1.4",
+    "@salesforce/source-deploy-retrieve": "2.1.5",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
