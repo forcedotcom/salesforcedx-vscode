@@ -24,18 +24,10 @@ class MockMemento implements Memento {
   }
 
   private getIndex(key: string): number {
-    for (let i = 0; i < this.keys.length; i++) {
-      if (this.keys[i] === key) {
-        return i;
-      }
-    }
-    return -1;
+    return this.keys.findIndex( value => value === key);
   }
 
   public get<T>(key: string): T {
-    if (this.telemetryGS === true) {
-      return true as any;
-    }
     const index = this.getIndex(key);
     return index !== -1 ? this.values[index] : undefined;
   }

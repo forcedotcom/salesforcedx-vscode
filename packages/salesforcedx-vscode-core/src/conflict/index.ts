@@ -11,7 +11,6 @@ import { nls } from '../messages';
 import { ConflictDetector } from './conflictDetectionService';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
-import { PersistentStorageService } from './persistentStorageService';
 export {
   ConflictDetectionConfig,
   ConflictDetector,
@@ -30,6 +29,7 @@ export {
   MetadataCacheService,
   MetadataContext
 } from './metadataCacheService';
+export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
 export const conflictDetector = ConflictDetector.getInstance();
 
@@ -77,10 +77,4 @@ function openResource(node: ConflictNode) {
     const local = Uri.file(path.join(file.localPath, file.relPath));
     window.showTextDocument(local).then(() => { });
   }
-}
-
-export function setupFilePropertyStorage(
-  extensionContext: ExtensionContext
-) {
-  PersistentStorageService.initialize(extensionContext);
 }

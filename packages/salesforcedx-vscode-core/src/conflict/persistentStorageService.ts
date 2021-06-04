@@ -9,6 +9,7 @@ import {
   ExtensionContext,
   Memento
 } from 'vscode';
+import { nls } from '../messages';
 
 interface ConflictFileProperties {
   lastModifiedDate: string;
@@ -19,7 +20,7 @@ export class PersistentStorageService {
   private static instance?: PersistentStorageService;
 
   private constructor(context: ExtensionContext) {
-    this.storage = context.workspaceState;
+    this.storage = context.globalState;
   }
 
   public static initialize(context: ExtensionContext) {
@@ -28,7 +29,8 @@ export class PersistentStorageService {
 
   public static getInstance(): PersistentStorageService {
     if (!PersistentStorageService.instance) {
-      throw new Error('Storage should have been initialized upon extension activation');
+      const errorMsg = nls.localize('conflict_detect_initialization_error');
+      throw new Error(errorMsg);
     }
     return PersistentStorageService.instance;
   }
