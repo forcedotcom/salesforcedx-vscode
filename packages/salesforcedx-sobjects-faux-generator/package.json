@@ -9,7 +9,7 @@
     "vscode": "^1.49.3"
   },
   "dependencies": {
-    "@salesforce/core": "2.13.0",
+    "@salesforce/core": "2.23.2",
     "shelljs": "0.8.3"
   },
   "devDependencies": {

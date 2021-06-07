@@ -25,12 +25,12 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "2.13.0",
+    "@salesforce/core": "2.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "51.16.0",
     "@salesforce/salesforcedx-utils-vscode": "51.16.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "2.1.4",
-    "@salesforce/templates": "51.4.0",
+    "@salesforce/source-deploy-retrieve": "2.1.5",
+    "@salesforce/templates": "51.5.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -163,7 +163,7 @@
       "editor/context": [
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
@@ -281,7 +281,7 @@
         },
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         }
       ],
       "commandPalette": [
@@ -519,11 +519,11 @@
         },
         {
           "command": "sfdx.force.function.create",
-          "when": "sfdx:functions_enabled"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
         },
         {
           "command": "sfdx.force.function.invoke",
@@ -535,7 +535,7 @@
         },
         {
           "command": "sfdx.force.function.stop",
-          "when": "sfdx:functions_enabled"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.internal.refreshsobjects",
