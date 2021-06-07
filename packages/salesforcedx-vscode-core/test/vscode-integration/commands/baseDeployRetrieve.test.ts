@@ -12,6 +12,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import {
   ComponentSet,
   DeployResult,
+  FileProperties,
   MetadataApiDeploy,
   MetadataApiRetrieve,
   registry,
@@ -20,7 +21,6 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
-  FileProperties,
   MetadataApiDeployStatus,
   MetadataApiRetrieveStatus,
   RequestStatus
