@@ -78,7 +78,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands/util';
-import { registerConflictView, setupConflictView } from './conflict';
+import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_CONFIGURATION_NAME } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
@@ -582,6 +582,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
     await setupOrgBrowser(context);
     await setupConflictView(context);
+
+    PersistentStorageService.initialize(context);
 
     // Register filewatcher for push or deploy on save
 

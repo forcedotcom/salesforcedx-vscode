@@ -533,6 +533,8 @@ export const messages = {
   conflict_detect_execution_name: 'Conflict Detection',
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
+  conflict_detect_initialization_error:
+    'Unexpected error initiliazing metadata cache',
   conflict_detect_empty_results:
     'Conflict Detection failed to retrieve org file state',
   conflict_detect_conflicts_during_deploy:
