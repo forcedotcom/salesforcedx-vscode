@@ -14,6 +14,7 @@ import {
   LanguageClientOptions
 } from 'vscode-languageclient';
 import { LSP_ERR } from './constants';
+import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
 import * as requirements from './requirements';
 import { telemetryService } from './telemetry';
@@ -63,6 +64,9 @@ async function createServer(
         '-Dtrace.protocol=false',
         `-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${JDWP_DEBUG_PORT},quiet=y`
       );
+      if (process.env.YOURKIT_PROFILER_AGENT) {
+        args.push(`-agentpath:${process.env.YOURKIT_PROFILER_AGENT}`);
+      }
     }
 
     args.push(APEX_LANGUAGE_SERVER_MAIN);
@@ -131,7 +135,26 @@ function protocol2CodeConverter(value: string) {
 export async function createLanguageServer(
   context: vscode.ExtensionContext
 ): Promise<LanguageClient> {
-  const clientOptions: LanguageClientOptions = {
+  const server = await createServer(context);
+  const client = new LanguageClient(
+    'apex',
+    nls.localize('client_name'),
+    server,
+    buildClientOptions()
+  );
+
+  client.onTelemetry(data =>
+    telemetryService.sendEventData('apexLSPLog', data.properties, data.measures)
+  );
+
+  return client;
+}
+
+// exported only for testing
+export function buildClientOptions(): LanguageClientOptions {
+  const soqlExtensionInstalled = isSOQLExtensionInstalled();
+
+  return {
     // Register the server for Apex documents
     documentSelector: [{ language: 'apex', scheme: 'file' }],
     synchronize: {
@@ -145,20 +168,16 @@ export async function createLanguageServer(
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
-    }
+    },
+    initializationOptions: {
+      enableEmbeddedSoqlCompletion: soqlExtensionInstalled
+    },
+    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {})
   };
+}
 
-  const server = await createServer(context);
-  const client = new LanguageClient(
-    'apex',
-    nls.localize('client_name'),
-    server,
-    clientOptions
-  );
-
-  client.onTelemetry(data =>
-    telemetryService.sendEventData('apexLSPLog', data.properties, data.measures)
-  );
-
-  return client;
+function isSOQLExtensionInstalled() {
+  const soqlExtensionName = 'salesforce.salesforcedx-vscode-soql';
+  const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
+  return soqlExtension !== undefined;
 }

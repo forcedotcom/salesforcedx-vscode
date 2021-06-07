@@ -30,7 +30,8 @@ import { Uri, window } from 'vscode';
 import { FunctionService } from './functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
-  FUNCTION_DEFAULT_PORT
+  FUNCTION_DEFAULT_PORT,
+  FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
 
 /**
@@ -69,7 +70,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     this.executionCwd = functionDirPath;
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_function_start_text'))
-      .withArg('evergreen:function:start')
+      .withArg('run:function:start')
       .withArg('--verbose')
       .withLogName('force_function_start')
       .build();
@@ -121,6 +122,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
         rootDir: functionDirPath,
         port: FUNCTION_DEFAULT_PORT,
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
+        debugType: 'node',
         terminate: () => {
           return execution.killExecution('SIGTERM');
         }
@@ -143,7 +145,10 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
     );
 
     execution.stdoutSubject.subscribe(data => {
-      if (data.toString().includes('Ready to process signals')) {
+      const matches = String(data).match(FUNCTION_RUNTIME_DETECTION_PATTERN);
+      if (matches && matches.length > 1) {
+        FunctionService.instance.updateFunction(functionDirPath, matches[1]);
+      } else if (data.toString().includes('Debugger running on port')) {
         progress.complete();
         taskViewService.removeTask(task);
         notificationService
@@ -219,7 +224,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
 }
 
 /**
- * Executes sfdx evergreen:function:start --verbose
+ * Executes sfdx run:function:start --verbose
  * @param sourceUri
  */
 export async function forceFunctionStart(sourceUri?: Uri) {

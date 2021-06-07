@@ -1,3 +1,81 @@
+# 51.16.0 - June 3, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add Java support for Functions debugging ([PR #3273](https://github.com/forcedotcom/salesforcedx-vscode/pull/3273))
+
+- Add Java support for `SFDX: Start Function` ([PR #3269](https://github.com/forcedotcom/salesforcedx-vscode/pull/3269))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Update default debug port ([PR #3272](https://github.com/forcedotcom/salesforcedx-vscode/pull/3272))
+
+- Use new CLI for functions invoke @W-9282250@ ([PR #3270](https://github.com/forcedotcom/salesforcedx-vscode/pull/3270))
+
+- Throw error on remote component not found ([PR #3259](https://github.com/forcedotcom/salesforcedx-vscode/pull/3259))
+
+- Pull function dependencies by default + Java/Maven support @W-9282387@ ([PR #3262](https://github.com/forcedotcom/salesforcedx-vscode/pull/3262))
+
+# 51.15.0 - May 27, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Conflict detection performance improvements ([PR #3246](https://github.com/forcedotcom/salesforcedx-vscode/pull/3246))
+
+- Use new CLI for Functions creation and add Java Functions support ([PR #3247](https://github.com/forcedotcom/salesforcedx-vscode/pull/3247))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix "Cannot read property split of undefined" issue when retrieving with Org Browser or Manifest ([#3262](https://github.com/forcedotcom/salesforcedx-vscode/pull/3263), [#3210](https://github.com/forcedotcom/salesforcedx-vscode/issues/3210), [#3218](https://github.com/forcedotcom/salesforcedx-vscode/issues/3218))
+
+- Remove Functions template for `SFDX: Create Project` command ([#3253](https://github.com/forcedotcom/salesforcedx-vscode/pull/3253))
+
+#### salesforcedx-vscode-apex
+
+- Fix an issue where Apex test results were limited to 2000 records ([#3265](https://github.com/forcedotcom/salesforcedx-vscode/pull/3265))
+
+# 51.14.0 - May 21, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable diff detection for folders ([PR #3243](https://github.com/forcedotcom/salesforcedx-vscode/pull/3243))
+
+- Enable diff detection for all metadata types ([PR #3240](https://github.com/forcedotcom/salesforcedx-vscode/pull/3240))
+
+#### salesforcedx-vscode-lwc
+
+- Add support for new LWC Analytics Dashboard feature and fix some under-the-hood bugs ([PR #3232](https://github.com/forcedotcom/salesforcedx-vscode/pull/3232))
+
+#### docs
+
+- Doc updates for Diff Detection([PR #3250](https://github.com/forcedotcom/salesforcedx-vscode/pull/3250))
+
+# 51.13.0 - May 12, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Cache metadata based on a project path ([PR #3191](https://github.com/forcedotcom/salesforcedx-vscode/pull/3191))
+
+# 51.12.0 - May 6, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Respect sfdx api version override during new deploy/retrieve ([PR #3208](https://github.com/forcedotcom/salesforcedx-vscode/pull/3208)), ([Issue #3151](https://github.com/forcedotcom/salesforcedx-vscode/issues/3151))
+
 # 51.11.0 - April 29, 2021
 
 ## Fixed
@@ -29,6 +107,7 @@
 #### salesforcedx-vscode-core
 
 - Fix issues with the following types for deploy/retrieve library ([PR #3147](https://github.com/forcedotcom/salesforcedx-vscode/pull/3147), [Issue #3114](https://github.com/forcedotcom/salesforcedx-vscode/issues/3114), [Issue #3157](https://github.com/forcedotcom/salesforcedx-vscode/issues/3157)):
+
   - AccountRelationshipShareRule
   - TimeSheetTemplate
   - WaveDashboard

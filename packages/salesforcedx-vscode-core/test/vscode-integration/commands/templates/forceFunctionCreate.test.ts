@@ -7,13 +7,15 @@
 
 import { expect } from 'chai';
 import * as cp from 'child_process';
+import * as path from 'path';
 import { match, SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ForceFunctionCreateExecutor } from '../../../../src/commands/templates/forceFunctionCreate';
+import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from '../../../../src/commands/templates/metadataTypeConstants';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import * as rootWorkspace from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Function Create', () => {
@@ -28,7 +30,7 @@ describe('Force Function Create', () => {
       });
 
       expect(funcCreateCmd.toCommand()).to.equal(
-        'sfdx evergreen:function:create myFunc1 --language javascript'
+        'sfdx generate:function --name myFunc1 --language javascript'
       );
       expect(funcCreateCmd.description).to.equal(
         nls.localize('force_function_create_text')
@@ -36,96 +38,97 @@ describe('Force Function Create', () => {
       expect(funcCreate.getFileExtension()).to.equal('.js');
     });
 
-    it('Should build apex function create command for typescript', async () => {
+    it('Should build apex function create command for java', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
       const fileName = 'myFunc2';
       const funcCreateCmd = funcCreate.build({
         fileName,
-        language: 'typescript',
+        language: 'java',
         outputdir: ''
       });
 
       expect(funcCreateCmd.toCommand()).to.equal(
-        'sfdx evergreen:function:create myFunc2 --language typescript'
+        'sfdx generate:function --name myFunc2 --language java'
       );
       expect(funcCreateCmd.description).to.equal(
         nls.localize('force_function_create_text')
       );
-      expect(funcCreate.getFileExtension()).to.equal('.ts');
+      expect(funcCreate.getFileExtension()).to.equal('.java');
     });
   });
 
   describe('Pull Dependencies', () => {
     let execStub: SinonStub;
-    let settings: SinonStub;
     let notificationServiceStub: SinonStub;
     let withProgressStub: SinonStub;
+    const functionInfoJS = { fileName: 'myFunc1', outputdir: 'some/dir', language: 'javascript' };
+    const functionInfoJava = { fileName: 'myFunc1', outputdir: 'some/dir', language: 'java' };
+    let rootWorkspacePathStub: SinonStub;
 
     beforeEach(() => {
       execStub = stub(cp, 'exec');
-      settings = stub(
-        SfdxCoreSettings.prototype,
-        'getFunctionsPullDependencies'
-      );
       notificationServiceStub = stub(notificationService, 'showWarningMessage');
+      rootWorkspacePathStub = stub(rootWorkspace, 'getRootWorkspacePath');
+      rootWorkspacePathStub.returns('');
       withProgressStub = stub(vscode.window, 'withProgress');
       withProgressStub.callsFake((options, task) => {
         task();
       });
     });
 
-    it('Should pull dependencies when settings on', async () => {
+    it('Should pull dependencies for javascript', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(true);
-      funcCreate.runPostCommandTasks('some/dir');
+      funcCreate.metadata = FUNCTION_TYPE_JS;
+      funcCreate.runPostCommandTasks(functionInfoJS).catch();
       sinon.assert.calledOnce(execStub);
-      sinon.assert.calledWith(execStub, 'npm install', { cwd: 'some/dir' });
+      sinon.assert.calledWith(execStub, 'npm install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1') });
     });
 
-    it('Should show install dependencies progress', async () => {
+    it('Should pull dependencies for java', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(true);
-      funcCreate.runPostCommandTasks('some/dir');
-      sinon.assert.calledOnce(withProgressStub);
-      sinon.assert.calledWith(
-        withProgressStub,
-        {
-          location: vscode.ProgressLocation.Window,
-          title: nls.localize(
-            'force_function_install_npm_dependencies_progress'
-          ),
-          cancellable: true
-        },
-        match.any
-      );
+      funcCreate.metadata = FUNCTION_TYPE_JAVA;
+      funcCreate.runPostCommandTasks(functionInfoJava).catch();
+      sinon.assert.calledOnce(execStub);
+      /**
+       * If this test fails, check if the Java Functions path strategy has changed.
+       * Finding the root path for Java in runPostCommandTasks needs to be updated accordingly.
+       */
+      sinon.assert.calledWith(execStub, 'mvn install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1') });
     });
 
-    it('Should not pull dependencies when settings off', async () => {
+    it('Should call notification service when errored for javascript', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(false);
-      funcCreate.runPostCommandTasks('some/dir');
-      sinon.assert.notCalled(execStub);
-    });
-
-    it('Should call notification service when errored', async () => {
-      const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(true);
+      funcCreate.metadata = FUNCTION_TYPE_JS;
       const errorText = 'custom error text';
       execStub.yields(new Error(errorText));
-      funcCreate.runPostCommandTasks('some/dir');
+      funcCreate.runPostCommandTasks(functionInfoJS).catch();
       sinon.assert.calledOnce(execStub);
-      sinon.assert.calledWith(execStub, 'npm install', { cwd: 'some/dir' });
+      sinon.assert.calledWith(execStub, 'npm install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1') });
       sinon.assert.calledWith(
         notificationServiceStub,
         nls.localize('force_function_install_npm_dependencies_error', errorText)
       );
     });
 
+    it('Should call notification service when errored for java', async () => {
+      const funcCreate = new ForceFunctionCreateExecutor();
+      funcCreate.metadata = FUNCTION_TYPE_JAVA;
+      const errorText = 'custom error text';
+      execStub.yields(new Error(errorText));
+      funcCreate.runPostCommandTasks(functionInfoJava).catch();
+      sinon.assert.calledOnce(execStub);
+      sinon.assert.calledWith(execStub, 'mvn install', { cwd: path.join('some', 'dir', 'functions', 'myFunc1') });
+      sinon.assert.calledWith(
+        notificationServiceStub,
+        nls.localize('force_function_install_mvn_dependencies_error', errorText)
+      );
+    });
+
     afterEach(() => {
       execStub.restore();
-      settings.restore();
       notificationServiceStub.restore();
       withProgressStub.restore();
+      rootWorkspacePathStub.restore();
     });
   });
 });

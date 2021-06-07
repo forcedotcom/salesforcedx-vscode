@@ -143,8 +143,8 @@ export {
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,
-  ForceSourceDiffExecutor,
-  handleDiffResponse
+  forceSourceFolderDiff,
+  handleCacheResults
 } from './forceSourceDiff';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
@@ -157,4 +157,8 @@ export {
   forceFunctionInvoke,
   registerFunctionInvokeCodeLensProvider
 } from './functions';
-export { checkSObjectsAndRefresh, forceRefreshSObjects, initSObjectDefinitions } from './forceRefreshSObjects';
+export {
+  checkSObjectsAndRefresh,
+  forceRefreshSObjects,
+  initSObjectDefinitions
+} from './forceRefreshSObjects';

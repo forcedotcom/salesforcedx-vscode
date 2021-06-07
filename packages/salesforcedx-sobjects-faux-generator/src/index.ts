@@ -9,6 +9,8 @@ export {
   SFDX_DIR,
   SOBJECTS_DIR,
   STANDARDOBJECTS_DIR,
+  CUSTOMOBJECTS_DIR,
+  SOQLMETADATA_DIR,
   TOOLS_DIR
 } from './constants';
 export { SObjectTransformer, SObjectTransformerFactory } from './transformer';

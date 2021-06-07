@@ -49,6 +49,7 @@ import {
   forceSourceDeployMultipleSourcePaths,
   forceSourceDeploySourcePath,
   forceSourceDiff,
+  forceSourceFolderDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
@@ -322,6 +323,11 @@ function registerCommands(
     forceSourceDiff
   );
 
+  const forceDiffFolder = vscode.commands.registerCommand(
+    'sfdx.force.folder.diff',
+    forceSourceFolderDiff
+  );
+
   const forceFunctionCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.function.create',
     forceFunctionCreate
@@ -541,16 +547,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  // Set functions enabled context
-  const functionsEnabled = sfdxCoreSettings.getFunctionsEnabled();
-  vscode.commands.executeCommand(
-    'setContext',
-    'sfdx:functions_enabled',
-    functionsEnabled
-  );
-  if (functionsEnabled) {
-    FunctionService.instance.handleDidStartTerminateDebugSessions(context);
-  }
+  FunctionService.instance.handleDidStartTerminateDebugSessions(context);
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
@@ -631,8 +628,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Refresh SObject definitions if there aren't any faux classes
   const sobjectRefreshStartup: boolean = vscode.workspace
-  .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-  .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
+    .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
 
   if (sobjectRefreshStartup) {
     initSObjectDefinitions(

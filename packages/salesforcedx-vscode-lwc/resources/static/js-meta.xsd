@@ -136,9 +136,8 @@
               <xs:annotation>
                 <xs:documentation>Enables a custom chat header component to be selected from Embedded Service Chat Setup. A component that imports the lightningsnapin/baseChatHeader module must specify that lightningSnapin__ChatHeader target. For more information, see the lightningsnapin/baseChatHeader documentation.</xs:documentation>
               </xs:annotation>
-
             </xs:enumeration>
-             <xs:enumeration value="lightning__RecordAction">
+            <xs:enumeration value="lightning__RecordAction">
               <xs:annotation>
                 <xs:documentation>Makes Lightning web component record action available for quick action.</xs:documentation>
               </xs:annotation>
@@ -146,6 +145,11 @@
             <xs:enumeration value="lightning__GlobalAction">
               <xs:annotation>
                 <xs:documentation>Makes Lightning web component global action available for quick action.</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="analytics__Dashboard">
+              <xs:annotation>
+                <xs:documentation>Enables a component for use in Tableau CRM dashboards. This feature is currently in pilot in Spring and Summer '21 releases. If you're interested in participating in the pilot program, ask your Salesforce Account Executive.</xs:documentation>
               </xs:annotation>
             </xs:enumeration>
           </xs:restriction>
@@ -186,6 +190,11 @@
         <xs:documentation>Displays as an i-bubble for the attribute in the tool.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute type="xs:string" name="filter" use="optional">
+      <xs:annotation>
+        <xs:documentation>Specifies the Salesforce CMS content types to display in the component in Experience Builder. Supported only if the target is `lightningCommunity__Default` and the type is `ContentReference`.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attribute type="xs:string" name="label" use="optional">
       <xs:annotation>
         <xs:documentation>Displays as a label for the attribute in the tool.</xs:documentation>
@@ -221,9 +230,116 @@
         <xs:documentation>Specifies whether the attribute is inputOnly or outputOnly. If you don’t specify the role attribute, the default value allows input and output. For example, if a property is restricted to outputOnly, users can’t set its value from a Lightning record page. Supported only if the target is lightning__FlowScreen. If you don’t set the role attribute, or if you set it to inputOnly, the property is exposed in a custom property editor. If you set it to outputOnly, the property isn’t exposed in a custom property editor.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
-    <xs:attribute type="xs:string" name="type" use="required">
+    <xs:attribute type="propertyTypeAttr" name="type" use="required">
       <xs:annotation>
         <xs:documentation>The attribute’s data type. Please refer to the documentation for all supported types for different targets.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+  </xs:complexType>
+  <!-- type attribute on property XSD -->
+  <xs:simpleType name="propertyTypeAttr">
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="Boolean">
+            <xs:annotation>
+              <xs:documentation>A boolean value.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Integer">
+            <xs:annotation>
+              <xs:documentation>An integer value.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="String">
+            <xs:annotation>
+              <xs:documentation>A string value.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Color">
+            <xs:annotation>
+              <xs:documentation>Displays a color selector. Use the default attribute to specify RGBA, RGB, or hex strings. Supported only if the target is `lightningCommunity__Default`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="ContentReference">
+            <xs:annotation>
+              <xs:documentation>Displays a window in Experience Builder for selecting Salesforce CMS content. You can use the filter attribute to restrict the window contents to specific content types. Supported only if the target is `lightningCommunity__Default`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Date">
+            <xs:annotation>
+              <xs:documentation>A date in ISO 8601 format. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="DateTime">
+            <xs:annotation>
+              <xs:documentation>A datetime in ISO 8601 format. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Dimension">
+            <xs:annotation>
+              <xs:documentation>A dimension column from the results of the attached step. Supported only if hasStep is `true`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="Measure">
+            <xs:annotation>
+              <xs:documentation>A measure column from the results of the attached step. Supported only if hasStep is `true`.</xs:documentation>
+            </xs:annotation>
+          </xs:enumeration>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="apex://.+">
+            <xs:annotation>
+              <xs:documentation>Apex class used for an Apex-defined data type. If the class is in the same namespace as the component, don’t specify a namespace. If the class is in a managed package, specify the namespace of the managed package. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+            </xs:annotation>
+          </xs:pattern>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="@salesforce/schema/.+">
+            <xs:annotation>
+              <xs:documentation>An object. If the object is in the same namespace as the component, don’t specify a namespace. If the object is in a managed package, specify the namespace of the managed package. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+            </xs:annotation>
+          </xs:pattern>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="xs:string">
+          <xs:pattern value="\{.+\}">
+            <xs:annotation>
+              <xs:documentation>A reference to a named &lt; propertyType &gt; data type. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+            </xs:annotation>
+          </xs:pattern>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  <!-- propertyType XSD-->
+  <xs:complexType name="propertyType">
+    <xs:annotation>
+      <xs:documentation>Defines a data type to extend for component properties in flow screen components. Only generic `sObject` and `sObject` collection data types can be extended. Supported only if the target is `lightning__FlowScreen`.</xs:documentation>
+    </xs:annotation>
+    <xs:attribute type="xs:string" name="extends" use="required">
+      <xs:annotation>
+        <xs:documentation>Specifies the data type to extend for component properties.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="description" use="optional">
+      <xs:annotation>
+        <xs:documentation>Description of the property type.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="label" use="optional">
+      <xs:annotation>
+        <xs:documentation>Label of the property type.</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute type="xs:string" name="name" use="required">
+      <xs:annotation>
+        <xs:documentation>Specifies the data type name to reference from each type attribute that is defined in a component’s property subtag.</xs:documentation>
       </xs:annotation>
     </xs:attribute>
   </xs:complexType>
@@ -288,9 +404,19 @@
           <xs:annotation>
             <xs:documentation>Use a separate targetConfig for each different page type configuration.</xs:documentation>
           </xs:annotation>
+          <!-- These are really allowed to be unordered in the server, but xsd doesn't support unordered child elements with some being optional and some being unbounded -->
           <xs:sequence>
+            <xs:element type="xs:boolean" name="hasStep" minOccurs="0">
+              <xs:annotation>
+                <xs:documentation>Specify that your component requires an attached step to function as expected. Only valid for `analytics__Dashboard` targets. When set to `true`, the Tableau CRM dashboard builder UI prompts you to attach an existing step or create a new step when creating an instance of your component. Components with an attached step have access to step-specific properties like `results` and `selection`.</xs:documentation>
+              </xs:annotation>
+            </xs:element>
             <xs:element type="objects" name="objects" minOccurs="0" />
-            <xs:element type="property" name="property" minOccurs="0" maxOccurs="unbounded" />
+            <!-- Do allow these unbounded ones to be unordered, which makes the propertyType example in the docs validate -->
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element type="property" name="property" />
+              <xs:element type="propertyType" name="propertyType" />
+            </xs:choice>
             <xs:element type="supportedFormFactors" name="supportedFormFactors" minOccurs="0" />
           </xs:sequence>
           <xs:attribute type="xs:string" name="configurationEditor" use="optional">
