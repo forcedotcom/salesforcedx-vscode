@@ -20,6 +20,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
+  FileProperties,
   MetadataApiDeployStatus,
   MetadataApiRetrieveStatus,
   RequestStatus
@@ -28,7 +29,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { Test } from 'mocha';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonStub, spy } from 'sinon';
+import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
@@ -483,7 +484,7 @@ describe('Base Deploy Retrieve Commands', () => {
       public components: ComponentSet;
       public startStub: SinonStub;
       public retrieveStub: SinonStub;
-      public cacheStub: SinonStub;
+      public cacheSpy: SinonSpy;
 
       constructor(toRetrieve = new ComponentSet()) {
         super('test', 'testlog');
@@ -492,7 +493,7 @@ describe('Base Deploy Retrieve Commands', () => {
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
           .returns({ start: this.startStub });
-        this.cacheStub = sb.stub(PersistentStorageService.getInstance(), 'setPropertiesForFiles');
+        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFiles');
       }
 
       protected async getComponents(
@@ -531,11 +532,15 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(operationSpy.calledOnce).to.equal(true);
     });
 
-    it('should call cache property setter on successful retrieve', async () => {
+    it('should store properties in metadata cache on successful retrieve', async () => {
       const executor = new TestRetrieve();
       const mockRetrieveResult = new RetrieveResult(
         {
-          status: RequestStatus.Succeeded
+          status: RequestStatus.Succeeded,
+          fileProperties: [
+            {fileName: 'a.cls', lastModifiedDate: 'Today'},
+            {fileName: 'b.cls', lastModifiedDate: 'Yesterday'}
+          ]
         } as MetadataApiRetrieveStatus,
         new ComponentSet()
       );
@@ -543,17 +548,27 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({data: {}, type: 'CONTINUE' });
 
-      expect(executor.cacheStub.callCount).to.equal(1);
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].length).to.equal(2);
+      expect(PersistentStorageService.getInstance().getPropertiesForFile('a.cls')?.lastModifiedDate).to.equal('Today');
+      expect(PersistentStorageService.getInstance().getPropertiesForFile('b.cls')?.lastModifiedDate).to.equal('Yesterday');
     });
 
-    it('should not call cache property setter on failed retrieve', async () => {
+    it('should not store any properties in metadata cache on failed retrieve', async () => {
       const executor = new TestRetrieve();
-      const mockRetrieveResult = undefined;
+      const mockRetrieveResult = new RetrieveResult(
+        {
+          status: RequestStatus.Failed,
+          fileProperties: [] as FileProperties[]
+        } as MetadataApiRetrieveStatus,
+        new ComponentSet()
+      );
       executor.startStub.resolves(mockRetrieveResult);
 
       await executor.run({data: {}, type: 'CONTINUE' });
 
-      expect(executor.cacheStub.callCount).to.equal(0);
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].length).to.equal(0);
     });
 
     describe('Result Output', () => {
@@ -567,7 +582,8 @@ describe('Base Deploy Retrieve Commands', () => {
         const executor = new TestRetrieve();
         const mockRetrieveResult = new RetrieveResult(
           {
-            status: RequestStatus.Succeeded
+            status: RequestStatus.Succeeded,
+            fileProperties: [] as FileProperties[]
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );
@@ -620,7 +636,8 @@ describe('Base Deploy Retrieve Commands', () => {
         const executor = new TestRetrieve();
         const mockRetrieveResult = new RetrieveResult(
           {
-            status: RequestStatus.Failed
+            status: RequestStatus.Failed,
+            fileProperties: [] as FileProperties[]
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );
