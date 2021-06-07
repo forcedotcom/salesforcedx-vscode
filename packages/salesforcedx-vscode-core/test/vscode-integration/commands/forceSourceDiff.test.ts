@@ -125,7 +125,8 @@ describe('Force Source Diff', () => {
           baseDirectory: path.join('/projects/trailheadapps/lwc-recipes'),
           commonRoot: path.join('force-app/main/default/classes'),
           components: []
-        }
+        },
+        properties: []
       };
       const remoteFsPath = path.join(
         mockResult.cache.baseDirectory,
@@ -230,7 +231,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Individual,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffOneFileStub);
@@ -246,7 +248,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Folder,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffFolderStub);

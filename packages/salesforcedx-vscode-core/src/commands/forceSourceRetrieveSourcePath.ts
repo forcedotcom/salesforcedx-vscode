@@ -28,6 +28,7 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import { CacheConflictChecker } from './util/postconditionCheckers';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -70,7 +71,7 @@ export class SourcePathChecker implements PostconditionChecker<string> {
           sourcePath
         );
         if (isInSfdxPackageDirectory) {
-          return inputs;
+          return await new CacheConflictChecker(false).check(inputs);
         }
       } catch (error) {
         telemetryService.sendException(

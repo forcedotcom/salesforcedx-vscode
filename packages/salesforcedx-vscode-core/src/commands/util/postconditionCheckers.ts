@@ -17,8 +17,11 @@ import {
   ConflictDetectionConfig,
   conflictDetector,
   conflictView,
-  DirectoryDiffResults
+  DirectoryDiffResults,
+  MetadataCacheResult,
+  MetadataCacheService
 } from '../../conflict';
+import { PersistentStorageService } from '../../conflict/persistentStorageService';
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -282,5 +285,78 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
       }
     }
     return { type: 'CONTINUE', data: manifest };
+  }
+}
+
+export class CacheConflictChecker implements PostconditionChecker<string> {
+
+  private isManifest: boolean;
+
+  constructor(isManifest: boolean) {
+    this.isManifest = isManifest;
+  }
+
+  public async check(inputs: ContinueResponse<string> | CancelResponse): Promise<ContinueResponse<string> | CancelResponse> {
+    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
+      return inputs;
+    }
+
+    if (inputs.type === 'CONTINUE') {
+      const { username } = workspaceContext;
+      if (!username) {
+        return {
+          type: 'CANCEL',
+          msg: nls.localize('conflict_detect_no_default_username')
+        };
+      }
+
+      const componentPath = inputs.data;
+      const cacheService = new MetadataCacheService(username);
+      const result = await cacheService.loadCache(componentPath, getRootWorkspacePath(), this.isManifest);
+      if (!result) {
+        return inputs;
+      }
+      const conflicts = this.determineConflicts(result);
+      await this.handleConflicts(inputs.data, username, conflicts);
+      return inputs;
+    }
+    return { type: 'CANCEL' };
+  }
+
+  private determineConflicts(result: MetadataCacheResult): Set<string> {
+    const cache = PersistentStorageService.getInstance();
+    const conflicts: Set<string> = new Set<string>();
+    result.cache.components.forEach(component => {
+      let lastModifiedInOrg;
+      let lastModifiedInCache;
+
+      result.properties.forEach(fileProperty => {
+        if (component.fullName === fileProperty.fullName && component.type.name === fileProperty.type) {
+          lastModifiedInOrg = fileProperty.lastModifiedDate;
+          lastModifiedInCache = cache.getPropertiesForFile(fileProperty.fileName)?.lastModifiedDate;
+          if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
+            conflicts.add(fileProperty.fileName);
+          }
+        }
+      });
+
+    });
+    console.log('');
+    return conflicts;
+  }
+
+  public async handleConflicts(
+    componentPath: string,
+    usernameOrAlias: string,
+    conflicts: Set<string>
+  ): Promise<ContinueResponse<string> | CancelResponse> {
+    if (conflicts.size === 0) {
+      console.log('No conflicts found!');
+    }
+    conflicts.forEach(conflict => {
+      console.log('Conflict: ' + conflict);
+    });
+
+    return { type: 'CONTINUE', data: componentPath };
   }
 }

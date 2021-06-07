@@ -40,6 +40,7 @@ export interface MetadataCacheResult {
   cachePropPath?: string;
   cache: MetadataContext;
   project: MetadataContext;
+  properties: FileProperties[];
 }
 
 export class MetadataCacheService {
@@ -171,7 +172,8 @@ export class MetadataCacheService {
           baseDirectory: this.projectPath,
           commonRoot: projCommon,
           components: sourceComps
-        }
+        },
+        properties
       };
     }
   }
