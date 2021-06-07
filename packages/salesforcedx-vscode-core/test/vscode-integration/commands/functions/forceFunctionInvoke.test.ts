@@ -153,7 +153,7 @@ describe('Force Function Invoke', () => {
           assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
           assert.calledWith(
             telemetryServiceStubs.sendCommandEventStub,
-            'force_function_debug_invoke_library',
+            'force_function_debug_invoke',
             match.array
           );
           resolve();

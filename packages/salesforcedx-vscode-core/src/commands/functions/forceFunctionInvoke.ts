@@ -29,7 +29,7 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   constructor(debug: boolean = false) {
     super(
       nls.localize('force_function_invoke_text'),
-      debug ? 'force_function_debug_invoke_library' : 'force_function_invoke_library',
+      debug ? 'force_function_debug_invoke' : 'force_function_invoke',
       OUTPUT_CHANNEL
     );
   }
