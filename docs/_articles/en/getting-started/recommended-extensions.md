@@ -40,3 +40,6 @@ VS Code doesn’t ship with rich XML tools by default. This extension, built by 
 ## Community Extensions
 
 The community has developed several extensions to help make Salesforce development more productive. To find these, search the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode) or browse all extensions tagged [Salesforce](https://marketplace.visualstudio.com/search?term=tag%3Asalesforce&target=VSCode&category=All%20categories&sortBy=Relevance).
+
+## Debugger for Java
+Java Debugger based on Java Debug Server that extends the Language Support for Java by Red Hat. It allows you to debug Java code in VSCode. Install this extension to invoke and debug Java functions.
