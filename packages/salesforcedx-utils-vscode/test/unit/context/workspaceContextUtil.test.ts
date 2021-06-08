@@ -8,7 +8,6 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { expect } from 'chai';
 import { join } from 'path';
-import * as path from 'path';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonStub, stub } from 'sinon';
 
@@ -240,7 +239,7 @@ describe('getLogDirPath', () => {
     const dirPath = getRootWorkspacePath();
     const result = getLogDirPath();
     expect(result).to.equal(
-      path.join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
+      join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
     );
   });
 });
