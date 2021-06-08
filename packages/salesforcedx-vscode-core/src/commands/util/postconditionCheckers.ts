@@ -291,8 +291,10 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
 export class CacheConflictChecker implements PostconditionChecker<string> {
 
   private isManifest: boolean;
+  private messages: ConflictDetectionMessages;
 
-  constructor(isManifest: boolean) {
+  constructor(isManifest: boolean, messages: ConflictDetectionMessages) {
+    this.messages = messages;
     this.isManifest = isManifest;
   }
 
@@ -317,8 +319,22 @@ export class CacheConflictChecker implements PostconditionChecker<string> {
         return inputs;
       }
       const conflicts = this.determineConflicts(result);
-      await this.handleConflicts(inputs.data, username, conflicts);
-      return inputs;
+      const localRoot = join(
+        result.project.baseDirectory,
+        result.project.commonRoot
+      );
+      const remoteRoot = join(
+        result.cache.baseDirectory,
+        result.cache.commonRoot
+      );
+      const results = {
+        different: conflicts,
+        localRoot,
+        remoteRoot,
+        scannedLocal: 0,
+        scannedRemote: 0
+      }
+      return await this.handleConflicts(inputs.data, username, results);
     }
     return { type: 'CANCEL' };
   }
@@ -335,7 +351,7 @@ export class CacheConflictChecker implements PostconditionChecker<string> {
           lastModifiedInOrg = fileProperty.lastModifiedDate;
           lastModifiedInCache = cache.getPropertiesForFile(fileProperty.fileName)?.lastModifiedDate;
           if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-            conflicts.add(fileProperty.fileName);
+            conflicts.add(component.fullName + (component.type.suffix ? '.' + component.type.suffix : ''));
           }
         }
       });
@@ -348,15 +364,63 @@ export class CacheConflictChecker implements PostconditionChecker<string> {
   public async handleConflicts(
     componentPath: string,
     usernameOrAlias: string,
-    conflicts: Set<string>
+    results: DirectoryDiffResults
   ): Promise<ContinueResponse<string> | CancelResponse> {
-    if (conflicts.size === 0) {
-      console.log('No conflicts found!');
-    }
-    conflicts.forEach(conflict => {
-      console.log('Conflict: ' + conflict);
-    });
+    const conflictTitle = nls.localize(
+      'conflict_detect_view_root',
+      usernameOrAlias,
+      results.different.size
+    );
 
+    if (results.different.size === 0) {
+      conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
+    } else {
+      channelService.appendLine(
+        nls.localize(
+          'conflict_detect_conflict_header',
+          results.different.size,
+          results.scannedRemote,
+          results.scannedLocal
+        )
+      );
+      results.different.forEach(file => {
+        channelService.appendLine(normalize(file));
+      });
+      channelService.showChannelOutput();
+
+      const choice = await notificationService.showWarningModal(
+        nls.localize(this.messages.warningMessageKey),
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
+      );
+
+      if (choice === nls.localize('conflict_detect_override')) {
+        conflictView.visualizeDifferences(
+          conflictTitle,
+          usernameOrAlias,
+          false
+        );
+      } else {
+        channelService.appendLine(
+          nls.localize(
+            'conflict_detect_command_hint',
+            this.messages.commandHint(componentPath)
+          )
+        );
+        channelService.showChannelOutput();
+
+        const doReveal =
+          choice === nls.localize('conflict_detect_show_conflicts');
+        conflictView.visualizeDifferences(
+          conflictTitle,
+          usernameOrAlias,
+          doReveal,
+          results
+        );
+
+        return { type: 'CANCEL' };
+      }
+    }
     return { type: 'CONTINUE', data: componentPath };
   }
 }

@@ -16,6 +16,7 @@ import {
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { ConflictDetectionMessages } from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -71,7 +72,17 @@ export class SourcePathChecker implements PostconditionChecker<string> {
           sourcePath
         );
         if (isInSfdxPackageDirectory) {
-          return await new CacheConflictChecker(false).check(inputs);
+          const messages: ConflictDetectionMessages = {
+            warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+            commandHint: input => {
+              return new SfdxCommandBuilder()
+                .withArg('force:source:retrieve')
+                .withFlag('--sourcepath', input)
+                .build()
+                .toString();
+            }
+          };
+          return await new CacheConflictChecker(false, messages).check(inputs);
         }
       } catch (error) {
         telemetryService.sendException(
