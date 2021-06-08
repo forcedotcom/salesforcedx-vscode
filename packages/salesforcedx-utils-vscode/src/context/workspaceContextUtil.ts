@@ -7,7 +7,6 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil } from '..';
 import { nls } from '../messages';
@@ -118,5 +117,5 @@ export class WorkspaceContextUtil {
 }
 
 export function getLogDirPath(): string {
-  return path.join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
+  return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
 }
