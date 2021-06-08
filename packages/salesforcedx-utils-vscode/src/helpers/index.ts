@@ -16,6 +16,5 @@ export {
 export {
   ensureDirectoryExists,
   getTestResultsFolder,
-  getLogDirPath,
   getRelativeProjectPath
 } from './paths';

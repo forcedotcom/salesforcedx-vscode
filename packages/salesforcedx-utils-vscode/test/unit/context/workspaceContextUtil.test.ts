@@ -8,6 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { expect } from 'chai';
 import { join } from 'path';
+import * as path from 'path';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonStub, stub } from 'sinon';
 
@@ -98,6 +99,20 @@ export class MockFileWatcher {
 }
 
 const { WorkspaceContextUtil } = proxyquire.noCallThru()(
+  '../../../src/index',
+  {
+    vscode: vscodeStub
+  }
+);
+
+const { getLogDirPath } = proxyquire.noCallThru()(
+  '../../../src/index',
+  {
+    vscode: vscodeStub
+  }
+);
+
+const { getRootWorkspacePath } = proxyquire.noCallThru()(
   '../../../src/index',
   {
     vscode: vscodeStub
@@ -217,5 +232,15 @@ describe('WorkspaceContext', () => {
 
       expect(createConnectionStub.callCount).to.equal(1);
     });
+  });
+});
+
+describe('getLogDirPath', () => {
+  it('should return a path to debug log folder', () => {
+    const dirPath = getRootWorkspacePath();
+    const result = getLogDirPath();
+    expect(result).to.equal(
+      path.join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
+    );
   });
 });

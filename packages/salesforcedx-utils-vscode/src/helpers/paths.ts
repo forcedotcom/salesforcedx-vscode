@@ -7,7 +7,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { getRootWorkspacePath } from '../workspaces';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -56,8 +55,4 @@ export function getRelativeProjectPath(
     }
   }
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
-}
-
-export function getLogDirPath(): string {
-  return path.join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
 }
