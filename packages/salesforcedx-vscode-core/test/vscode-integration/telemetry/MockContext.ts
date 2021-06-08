@@ -19,8 +19,8 @@ class MockMemento implements Memento {
   private keys: string[] = [];
   private values: any[] = [];
 
-  constructor(setGlobalState: boolean) {
-    this.telemetryGS = setGlobalState;
+  constructor(setTelemetryGlobalState: boolean) {
+    this.telemetryGS = setTelemetryGlobalState;
   }
 
   private getIndex(key: string): number {
@@ -28,6 +28,9 @@ class MockMemento implements Memento {
   }
 
   public get<T>(key: string): T {
+    if (this.telemetryGS === true) {
+      return true as any;
+    }
     const index = this.getIndex(key);
     return index !== -1 ? this.values[index] : undefined;
   }
