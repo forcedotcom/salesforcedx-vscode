@@ -44,6 +44,8 @@ export const messages = {
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
   force_auth_access_token_authorize_org_text:
     'SFDX: Authorize an Org using Session ID',
+  force_auth_access_token_login_bad_oauth_token_message:
+    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',

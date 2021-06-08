@@ -7,11 +7,13 @@
 
 import { AuthInfo } from '@salesforce/core';
 import { assert, createSandbox, SinonStub } from 'sinon';
+import { channelService } from '../../../../src/channels/index';
 import {
   AccessTokenParamsGatherer,
   forceAuthAccessToken
 } from '../../../../src/commands';
 import { SfdxWorkspaceChecker } from '../../../../src/commands/util';
+import { nls } from '../../../../src/messages';
 
 const sandbox = createSandbox();
 
@@ -22,6 +24,7 @@ describe('Force Auth Access Token Login', () => {
   let authInfoSaveStub: SinonStub;
   let authInfoSetAliasStub: SinonStub;
   let authInfoSetAsDefaultStub: SinonStub;
+  let channelServiceStub: SinonStub;
   const mockAccessToken = 'mockAccessToken';
   const mockAlias = 'mockAlias';
   const mockInstanceUrl = 'https://na42.salesforce.com';
@@ -56,6 +59,7 @@ describe('Force Auth Access Token Login', () => {
     authInfoSaveStub = sandbox.stub(AuthInfo.prototype, 'save');
     authInfoSetAliasStub = sandbox.stub(AuthInfo.prototype, 'setAlias');
     authInfoSetAsDefaultStub = sandbox.stub(AuthInfo.prototype, 'setAsDefault');
+    channelServiceStub = sandbox.stub(channelService, 'appendLine');
   });
   afterEach(() => {
     sandbox.restore();
@@ -77,5 +81,24 @@ describe('Force Auth Access Token Login', () => {
     assert.calledWith(authInfoSetAsDefaultStub, {
       defaultUsername: true
     });
+  });
+
+  it('Should show a user friendly message on Bad_OAuth_Token', async () => {
+    authInfoCreateStub.callsFake(() => {
+      throw new Error(
+        'Could not retrieve the username after successful auth code exchange.\nDue to: Bad_OAuth_Token'
+      );
+    });
+
+    await forceAuthAccessToken();
+
+    assert.calledOnce(channelServiceStub);
+    assert.calledWith(
+      channelServiceStub,
+      nls.localize('force_auth_access_token_login_bad_oauth_token_message')
+    );
+    assert.notCalled(authInfoSaveStub);
+    assert.notCalled(authInfoSetAliasStub);
+    assert.notCalled(authInfoSetAsDefaultStub);
   });
 });

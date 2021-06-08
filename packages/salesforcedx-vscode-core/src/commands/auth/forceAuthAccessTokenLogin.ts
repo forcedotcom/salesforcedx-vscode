@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { AuthInfo } from '@salesforce/core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { OUTPUT_CHANNEL } from '../../channels/index';
+import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
 import { nls } from '../../messages';
 import { SfdxCommandlet, SfdxWorkspaceChecker } from '../util';
 import {
@@ -39,14 +39,24 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
 
-    const authInfo = await AuthInfo.create({
-      accessTokenOptions: { accessToken, instanceUrl }
-    });
-    await authInfo.save();
-    await authInfo.setAlias(alias);
-    await authInfo.setAsDefault({
-      defaultUsername: true
-    });
+    try {
+      const authInfo = await AuthInfo.create({
+        accessTokenOptions: { accessToken, instanceUrl }
+      });
+      await authInfo.save();
+      await authInfo.setAlias(alias);
+      await authInfo.setAsDefault({
+        defaultUsername: true
+      });
+    } catch (error) {
+      if (error.message && error.message.includes('Bad_OAuth_Token')) {
+        // Provide a user-friendly message for invalid / expired session ID
+        channelService.appendLine(
+          nls.localize('force_auth_access_token_login_bad_oauth_token_message')
+        );
+      }
+      throw error;
+    }
 
     return true;
   }
