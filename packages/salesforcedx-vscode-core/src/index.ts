@@ -12,6 +12,7 @@ import {
   forceAnalyticsTemplateCreate,
   forceApexClassCreate,
   forceApexTriggerCreate,
+  forceAuthAccessToken,
   forceAuthDevHub,
   forceAuthLogoutAll,
   forceAuthWebLogin,
@@ -98,6 +99,10 @@ function registerCommands(
   extensionContext: vscode.ExtensionContext
 ): vscode.Disposable {
   // Customer-facing commands
+  const forceAuthAccessTokenCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.accessToken',
+    forceAuthAccessToken
+  );
   const forceAuthWebLoginCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.web.login',
     forceAuthWebLogin
@@ -359,6 +364,7 @@ function registerCommands(
   );
 
   return vscode.Disposable.from(
+    forceAuthAccessTokenCmd,
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,

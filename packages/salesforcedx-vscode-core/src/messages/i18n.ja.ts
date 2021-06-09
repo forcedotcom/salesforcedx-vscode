@@ -40,6 +40,10 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
   force_auth_web_login_authorize_org_text: 'SFDX: 組織を認証',
+  force_auth_access_token_authorize_org_text:
+    'SFDX: Authorize an Org using Session ID',
+  force_auth_access_token_login_bad_oauth_token_message:
+    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
     '必要なメタデータフォルダ "%s" がこのワークスペースに存在しません。',
@@ -52,6 +56,11 @@ export const messages = {
     '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
   parameter_gatherer_enter_custom_url:
     'カスタムのログイン URL を入力またはデフォルトの URL を使用',
+  parameter_gatherer_enter_instance_url: 'Enter Instance URL',
+  parameter_gatherer_enter_session_id: 'Enter Session ID',
+  parameter_gatherer_enter_session_id_placeholder: 'Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message:
+    'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_expiration_days:
     'スクラッチ組織の有効日数を入力 (1 から 30 まで) またはデフォルト値 (7) を使用',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',

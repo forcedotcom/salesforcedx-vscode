@@ -9,13 +9,13 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { nls } from '../messages';
+import { nls } from '../../messages';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './util';
+} from '../util';
 
 export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
   public static withoutShowingChannel(): ForceAuthLogoutAll {

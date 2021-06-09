@@ -16,20 +16,23 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from './util';
+} from '../util';
 
-import { getRootWorkspacePath } from '../util';
+import { getRootWorkspacePath } from '../../util';
 
 import { ConfigFile } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
-import { DEFAULT_DEV_HUB_USERNAME_KEY, SFDX_CONFIG_FILE } from '../constants';
-import { nls } from '../messages';
-import { isDemoMode } from '../modes/demo-mode';
-import { isSFDXContainerMode } from '../util';
-import { ConfigSource, OrgAuthInfo } from '../util/index';
+import {
+  DEFAULT_DEV_HUB_USERNAME_KEY,
+  SFDX_CONFIG_FILE
+} from '../../constants';
+import { nls } from '../../messages';
+import { isDemoMode } from '../../modes/demo-mode';
+import { isSFDXContainerMode } from '../../util';
+import { ConfigSource, OrgAuthInfo } from '../../util/index';
 import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
