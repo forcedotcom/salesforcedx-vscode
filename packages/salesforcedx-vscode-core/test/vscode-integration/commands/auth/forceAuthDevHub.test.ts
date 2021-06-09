@@ -13,10 +13,10 @@ import {
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
-} from '../../../src/commands';
-import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../src/constants';
-import { nls } from '../../../src/messages';
-import { ConfigSource, OrgAuthInfo } from '../../../src/util';
+} from '../../../../src/commands';
+import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
+import { nls } from '../../../../src/messages';
+import { ConfigSource, OrgAuthInfo } from '../../../../src/util';
 
 class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
   public getShowChannelOutput() {

@@ -18,8 +18,8 @@ import {
   OrgTypeItem,
   PRODUCTION_URL,
   SANDBOX_URL
-} from '../../../src/commands';
-import { nls } from '../../../src/messages';
+} from '../../../../src/commands';
+import { nls } from '../../../../src/messages';
 
 const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
