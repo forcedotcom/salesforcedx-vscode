@@ -42,6 +42,10 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
+  force_auth_access_token_authorize_org_text:
+    'SFDX: Authorize an Org using Session ID',
+  force_auth_access_token_login_bad_oauth_token_message:
+    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
@@ -56,6 +60,11 @@ export const messages = {
     'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url:
     'Enter a custom login URL or use the default URL',
+  parameter_gatherer_enter_instance_url: 'Enter Instance URL',
+  parameter_gatherer_enter_session_id: 'Enter Session ID',
+  parameter_gatherer_enter_session_id_placeholder: 'Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message:
+    'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_def_files:
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
