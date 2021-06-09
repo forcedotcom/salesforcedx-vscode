@@ -1,3 +1,35 @@
+# 51.17.0 - June 10, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Soql-in-apex support ([PR #3167](https://github.com/forcedotcom/salesforcedx-vscode/pull/3167))
+
+#### salesforcedx-vscode-core
+
+- Cache for FileProperties using Memento ([PR #3283](https://github.com/forcedotcom/salesforcedx-vscode/pull/3283))
+
+#### salesforcedx-vscode-soql
+
+- When embedded in Apex load metadata from filesystem ([PR #3228](https://github.com/forcedotcom/salesforcedx-vscode/pull/3228))
+
+- Soql-in-apex support ([PR #3167](https://github.com/forcedotcom/salesforcedx-vscode/pull/3167))
+
+## Fixed
+
+#### docs
+
+- New Functions article and related changes. ([PR #3278](https://github.com/forcedotcom/salesforcedx-vscode/pull/3278))
+
+#### salesforcedx-vscode-core
+
+- Remove functions feature-flag and update doc @W-9311863@ ([PR #3289](https://github.com/forcedotcom/salesforcedx-vscode/pull/3289))
+
+- Correct creation of trace flags ([PR #3290](https://github.com/forcedotcom/salesforcedx-vscode/pull/3290))
+
+- Xyc/update libs core versions ([PR #3292](https://github.com/forcedotcom/salesforcedx-vscode/pull/3292))
+
 # 51.16.0 - June 3, 2021
 
 ## Added
