@@ -9,7 +9,7 @@
  * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
 import { Uri } from 'vscode';
-import { OUTPUT_CHANNEL } from '../../channels';
+import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
@@ -21,10 +21,9 @@ import {
 } from '../util';
 import { FunctionService } from './functionService';
 
-import { RunFunction } from '@salesforce/functions-core';
+import { runFunction } from '@salesforce/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { streamFunctionCommandOutput } from './functionsCoreHelpers';
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   constructor(debug: boolean = false) {
     super(
@@ -35,16 +34,28 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   }
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
-    const commandName = nls.localize('force_function_invoke_text');
-
-    const runFunction = new RunFunction();
-    const execution = runFunction.execute({
-      url: 'http://localhost:8080',
-      payload: `@${response.data}`,
-      targetusername: defaultUsername
-    });
-    streamFunctionCommandOutput(commandName, runFunction);
-    return await execution;
+    const url = 'http://localhost:8080';
+    try {
+      channelService.appendLine(`POST ${url}`);
+      const functionResponse = await runFunction({
+        url: url,
+        payload: `@'${response.data}'`,
+        targetusername: defaultUsername
+      });
+      channelService.appendLine(
+        JSON.stringify(functionResponse.data, undefined, 4)
+      );
+    } catch (error) {
+      channelService.appendLine(error);
+      if (error.response) {
+        channelService.appendLine(error.response);
+        channelService.appendLine(
+          JSON.stringify(error.response.data, undefined, 4)
+        );
+      }
+      return false;
+    }
+    return true;
   }
 }
 
