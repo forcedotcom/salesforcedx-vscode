@@ -46,7 +46,7 @@ describe('Persistent Storage Service', () => {
 
   it('Should store and retrieve file properties in Memento cache', () => {
     const cache = PersistentStorageService.getInstance();
-    cache.setPropertiesForFiles(props);
+    cache.setPropertiesForFilesRetrieve(props);
     expect(cache.getPropertiesForFile(join('classes', 'One.cls'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
     expect(cache.getPropertiesForFile(join('objects', 'Two.cls'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
     cache.setPropertiesForFile(join('classes', 'One.cls'), undefined);
