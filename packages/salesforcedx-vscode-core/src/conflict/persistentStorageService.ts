@@ -54,7 +54,7 @@ export class PersistentStorageService {
     }
   }
 
-  public makeKey(fileType: string, fullName: string): string {
-    return `${fileType}#${fullName}`;
+  public makeKey(type: string, fullName: string): string {
+    return `${type}#${fullName}`;
   }
 }

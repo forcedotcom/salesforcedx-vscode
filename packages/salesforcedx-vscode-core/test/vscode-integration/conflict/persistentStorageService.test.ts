@@ -47,12 +47,12 @@ describe('Persistent Storage Service', () => {
   it('Should store and retrieve file properties in Memento cache', () => {
     const cache = PersistentStorageService.getInstance();
     cache.setPropertiesForFilesRetrieve(props);
-    expect(cache.getPropertiesForFile(join('classes', 'One.cls'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
-    expect(cache.getPropertiesForFile(join('objects', 'Two.cls'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    cache.setPropertiesForFile(join('classes', 'One.cls'), undefined);
-    cache.setPropertiesForFile(join('objects', 'Two.cls'), undefined);
-    expect(cache.getPropertiesForFile(join('classes', 'One.cls'))).to.equal(undefined);
-    expect(cache.getPropertiesForFile(join('objects', 'Two.cls'))).to.equal(undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
+    cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
+    cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
   });
 
 });
