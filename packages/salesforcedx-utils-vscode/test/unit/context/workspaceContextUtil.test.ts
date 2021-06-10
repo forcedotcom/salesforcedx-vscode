@@ -104,6 +104,20 @@ const { WorkspaceContextUtil } = proxyquire.noCallThru()(
   }
 );
 
+const { getLogDirPath } = proxyquire.noCallThru()(
+  '../../../src/index',
+  {
+    vscode: vscodeStub
+  }
+);
+
+const { getRootWorkspacePath } = proxyquire.noCallThru()(
+  '../../../src/index',
+  {
+    vscode: vscodeStub
+  }
+);
+
 const env = createSandbox();
 
 describe('WorkspaceContext', () => {
@@ -217,5 +231,15 @@ describe('WorkspaceContext', () => {
 
       expect(createConnectionStub.callCount).to.equal(1);
     });
+  });
+});
+
+describe('getLogDirPath', () => {
+  it('should return a path to debug log folder', () => {
+    const dirPath = getRootWorkspacePath();
+    const result = getLogDirPath();
+    expect(result).to.equal(
+      join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
+    );
   });
 });

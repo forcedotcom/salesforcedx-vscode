@@ -115,3 +115,7 @@ export class WorkspaceContextUtil {
     return this._alias;
   }
 }
+
+export function getLogDirPath(): string {
+  return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
+}

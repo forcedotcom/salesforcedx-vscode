@@ -21,7 +21,7 @@ export {
 } from './commands/commandletExecutors';
 export { SfdxCommandlet } from './commands/sfdxCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
-export { OrgInfo, WorkspaceContextUtil } from './context/workspaceContextUtil';
+export { OrgInfo, WorkspaceContextUtil, getLogDirPath } from './context/workspaceContextUtil';
 export {
   TelemetryService,
   TelemetryBuilder,
