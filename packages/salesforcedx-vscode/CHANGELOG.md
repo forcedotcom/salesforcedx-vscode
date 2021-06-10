@@ -2,17 +2,9 @@
 
 ## Added
 
-#### salesforcedx-vscode-apex
-
-- Add support for SOQL embedded in Apex ([PR #3167](https://github.com/forcedotcom/salesforcedx-vscode/pull/3167))
-
 #### salesforcedx-vscode-core
 
 - Add caching for conflict detection ([PR #3283](https://github.com/forcedotcom/salesforcedx-vscode/pull/3283))
-
-#### salesforcedx-vscode-soql
-
-- Auto-completion improvements for SOQL embedded in Apex ([PR #3228](https://github.com/forcedotcom/salesforcedx-vscode/pull/3228))
 
 ## Fixed
 
