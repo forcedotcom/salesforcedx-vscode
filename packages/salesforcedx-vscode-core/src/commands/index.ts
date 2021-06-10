@@ -5,23 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export {
-  forceAuthWebLogin,
+  AccessTokenParamsGatherer,
   AuthParams,
   AuthParamsGatherer,
-  createAuthWebLoginExecutor,
   DEFAULT_ALIAS,
-  ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor,
   OrgTypeItem,
+  INSTANCE_URL_PLACEHOLDER,
   PRODUCTION_URL,
   SANDBOX_URL
-} from './forceAuthWebLogin';
+} from './auth/authParamsGatherer';
+export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
+export {
+  forceAuthWebLogin,
+  createAuthWebLoginExecutor,
+  ForceAuthWebLoginDemoModeExecutor,
+  ForceAuthWebLoginExecutor
+} from './auth/forceAuthWebLogin';
 export {
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
-} from './forceAuthDevHub';
+} from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export {
   forceOrgCreate,
@@ -128,7 +133,7 @@ export {
   turnOffLogging,
   ForceStopApexDebugLoggingExecutor
 } from './forceStopApexDebugLogging';
-export { forceAuthLogoutAll, ForceAuthLogoutAll } from './forceAuthLogout';
+export { forceAuthLogoutAll, ForceAuthLogoutAll } from './auth/forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet, ForceConfigSetExecutor } from './forceConfigSet';
