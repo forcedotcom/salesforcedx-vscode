@@ -4,17 +4,15 @@
 
 #### salesforcedx-vscode-apex
 
-- Soql-in-apex support ([PR #3167](https://github.com/forcedotcom/salesforcedx-vscode/pull/3167))
+- Add support for SOQL embedded in Apex ([PR #3167](https://github.com/forcedotcom/salesforcedx-vscode/pull/3167))
 
 #### salesforcedx-vscode-core
 
-- Cache for FileProperties using Memento ([PR #3283](https://github.com/forcedotcom/salesforcedx-vscode/pull/3283))
+- Add caching for conflict detection ([PR #3283](https://github.com/forcedotcom/salesforcedx-vscode/pull/3283))
 
 #### salesforcedx-vscode-soql
 
-- When embedded in Apex load metadata from filesystem ([PR #3228](https://github.com/forcedotcom/salesforcedx-vscode/pull/3228))
-
-- Soql-in-apex support ([PR #3167](https://github.com/forcedotcom/salesforcedx-vscode/pull/3167))
+- Auto-completion improvements for SOQL embedded in Apex ([PR #3228](https://github.com/forcedotcom/salesforcedx-vscode/pull/3228))
 
 ## Fixed
 
@@ -24,11 +22,9 @@
 
 #### salesforcedx-vscode-core
 
-- Remove functions feature-flag and update doc @W-9311863@ ([PR #3289](https://github.com/forcedotcom/salesforcedx-vscode/pull/3289))
+- Remove Functions feature-flag and update doc ([PR #3289](https://github.com/forcedotcom/salesforcedx-vscode/pull/3289))
 
-- Correct creation of trace flags ([PR #3290](https://github.com/forcedotcom/salesforcedx-vscode/pull/3290))
-
-- Xyc/update libs core versions ([PR #3292](https://github.com/forcedotcom/salesforcedx-vscode/pull/3292))
+- Correct creation of trace flags when running `SFDX Turn on Apex Debug Log` ([PR #3290](https://github.com/forcedotcom/salesforcedx-vscode/pull/3290)), ([Issue #3288](https://github.com/forcedotcom/salesforcedx-vscode/issues/3288))
 
 # 51.16.0 - June 3, 2021
 
