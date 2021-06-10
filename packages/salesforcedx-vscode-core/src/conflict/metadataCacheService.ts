@@ -10,7 +10,7 @@ import {
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { FileProperties } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+import { FileProperties } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
