@@ -1,3 +1,23 @@
+# 51.17.0 - June 10, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add caching for conflict detection ([PR #3283](https://github.com/forcedotcom/salesforcedx-vscode/pull/3283))
+
+## Fixed
+
+#### docs
+
+- New Functions article and related changes. ([PR #3278](https://github.com/forcedotcom/salesforcedx-vscode/pull/3278))
+
+#### salesforcedx-vscode-core
+
+- Remove Functions feature-flag and update doc ([PR #3289](https://github.com/forcedotcom/salesforcedx-vscode/pull/3289))
+
+- Correct creation of trace flags when running `SFDX Turn on Apex Debug Log` ([PR #3290](https://github.com/forcedotcom/salesforcedx-vscode/pull/3290)), ([Issue #3288](https://github.com/forcedotcom/salesforcedx-vscode/issues/3288))
+
 # 51.16.0 - June 3, 2021
 
 ## Added
