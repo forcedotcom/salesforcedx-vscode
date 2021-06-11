@@ -44,7 +44,7 @@ describe('Persistent Storage Service', () => {
     fullName: 'One',
     type: registry.types.apexclass,
     content: join('project', 'classes', 'One.cls'),
-    xml: join('project', 'classes', 'Two.cls-meta.xml')
+    xml: join('project', 'classes', 'One.cls-meta.xml')
   };
   const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne,
     [{
@@ -94,7 +94,7 @@ describe('Persistent Storage Service', () => {
 
   it('Should set and get ConflictFileProperties in Memento cache for Deploy', () => {
     const cache = PersistentStorageService.getInstance();
-    cache.setPropertiesForFilesDeploy(mockDeployResult.components.getSourceComponents(), mockDeployResult.response);
+    cache.setPropertiesForFilesDeploy(mockDeployResult.components, mockDeployResult.response);
     expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
     expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
     cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
