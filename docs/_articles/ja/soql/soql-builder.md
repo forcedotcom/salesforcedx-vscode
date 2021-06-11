@@ -1,135 +1,130 @@
 ---
-title: SOQL Builder (Beta)
+title: SOQL ビルダー (ベータ)
 lang: ja
 ---
 
-SOQL Builder is a VS Code extension that eliminates the guesswork when building SOQL queries. With SOQL Query Builder, anyone can visually build, run, and explore results from queries. Build queries using clicks in a visual editor, then save and extend the queries using a text editor. You can instantly view query results, and then save the results to a `.csv` or `.json` file.
+SOQL ビルダーは、SOQL クエリを構築する際の当て推量をなくす VS Code 拡張機能です。SOQL クエリビルダーを使えば、誰でも視覚的にクエリを構築、実行し、その結果を調べることができます。ビジュアルエディタでクリックしてクエリを作成し、テキストエディタでクエリを保存して拡張することができます。クエリの結果をすぐに見ることができ、その結果を `.csv` や `.json` ファイルに保存することができます。
 
-> **NOTICE:** SOQL Builder is currently in beta. If you find any bugs or have feedback, open a [GitHub issue](https://github.com/forcedotcom/soql-tooling/issues/new/choose). See our [Roadmap](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Roadmap) for more information.
+> 注意: SOQL ビルダーは現在ベータです。バグを発見したかフィードバックがある場合は、[GitHub に issue をオープン](./ja/bugs-and-feedback)してください。より詳細な情報は、[ロードマップ](https://github.com/forcedotcom/salesforcedx-vscode/wiki/Roadmap) を参照してください。
 
-During beta, you can build simple query statements that include:
+ベータ版の間は、以下を含むシンプルなクエリステートメントを構築することができます。
 
-- FROM clause for only one sObject type
-- SELECT clause to pick fields from the selected sObject, or COUNT() to perform an aggregation of the results
-- WHERE clause to filter your data
-- ORDER BY clause with support for ASC, DESC, NULLS FIRST, and NULLS LAST
-- LIMIT clause
+- 単一の sObject に対する FROM 句
+- 選択された sObject から項目を選択するための SELECT 句、または結果の集計を行う COUNT()
+- データのフィルタするための WHERE 句
+- ASC、DESC、NULLS FIRST、NULLS LAST をサポートする ORDER BY 句
+- LIMIT 句
 
-  To dig deeper regarding SOQL syntax or to build more complex queries in the text editor, see the [SOQL and SOSL Reference guide](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_sosl_intro.htm).
+  SOQL の構文についてより深く知り、テキストエディタでより複雑なクエリを構築するには、[『SOQL および SOSL リファレンス』](https://developer.salesforce.com/docs/atlas.ja-jp.soql_sosl.meta/soql_sosl/sforce_api_calls_soql.htm) を参照してください。
 
-**Beta Limitations:**
+**ベータ版の制限**
 
-- You can still run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
-- WHERE clauses can be quite complex. SOQL Builder supports simple WHERE expressions. You can combine conditions using AND or OR, but not both.
+- サポートされない構文であるエラーメッセージが表示されますが、SOQL ビルダー内で複雑なクエリを実行することはできます。
+- WHERE 句は非常に複雑なこともあります。SOQL ビルダーはシンプルな WHERE 句をサポートします。AND または OR を使用して条件を組み合わせることができますが、両方を使用することはできません。
 
-## Install the SOQL Builder Extension
+## SOQL ビルダー拡張機能のインストール
 
-Install and configure the required [Salesforce developer tooling](https://developer.salesforce.com/tools/vscode/en/getting-started/install) on your computer.
+[Salesforce 開発者向けツール](https://developer.salesforce.com/tools/vscode/en/getting-started/install)をコンピュータにインストールし設定します。
 
 - Visual Studio Code
 - Salesforce CLI
-- Salesforce Extensions for VS code extension pack
+- Salesforce Extension Pack 拡張機能
 - Java Platform, Standard Edition Development Kit
 
-Next, install the SOQL Builder extension from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql).
+次に、[Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql) から SOQL ビルダー拡張機能をインストールします。
 
-## Launch SOQL Builder
+## SOQL ビルダーの起動
 
-Launch SOQL Builder from within a Salesforce DX project. How you launch SOQL Builder depends on if you have an existing `.soql` file or if you plan to create one.
+SOQL ビルダーは Salesforce DX プロジェクト上で起動します。どのように SOQL ビルダーを起動するかは、既に `.soql` ファイルがあるか、これから作成するのかによって異なります。
 
-### Prerequisites
+### 前提
 
-- In VS Code, open a Salesforce DX project.
-- Authorize the org whose objects you want to query.
+- VS Code で Salesforce DX プロジェクトを開いていること
+- クエリしたいオブジェクトのある組織に接続していること
 
-### Open an Existing SOQL File in SOQL Builder
+### 既存の SOQL ファイルを SOQL ビルダーで開く
 
-DX projects have a sample `accounts.soql` file in the `<project-folder>/scripts/soql` directory. However, you can create and store your `.soql` files in any directory.
+DX プロジェクトには、サンプルの `accounts.soql` ファイルが `<project-folder>/scripts/soql` ディレクトリにありますが、任意のフォルダに `.soql` ファイルを作成し保存することができます。
 
-1. (If necessary) Create a `.soql` file.
-1. Click on the `.soql` file.
-1. Click the **Switch Between SOQL Builder and Text Editor** icon.
+1. (必要に応じて) `.soql` ファイルを作成します。
+2. `.soql` ファイルをクリックします.
+3. **[Switch Between SOQL Builder and Text Editor \(SOQL ビルダーとテキストエディタの切り替え\)]** アイコンをクリックします.
 
-![Click the Switch Between SOQL Builder and Text Editor button to open the .soql file in SOQL Builder](./images/soql-builder-open.gif)
+![SOQL ビルダーとテキストエディタの切り替えをクリックして、.soql ファイルを SOQL ビルダーで開く](./images/soql-builder-open.gif)
 
-You can also open a `.soql` file in SOQL Builder from the VS Code menu. Right-click the file name, select **Open With**, then **SOQL Builder**.
+`.soql` ファイルを VS Code のメニューから SOQL ビルダーで開くこともできます。ファイル名をクリックして、**Open With** > **SOQL Builder** を選択します.
 
-### Launch SOQL Builder and Create a Query
+### SOQL ビルダーの起動とクエリの作成
 
-1. From the command palette, run **SFDX: Create Query in SOQL Builder**.
-1. Click **File > Save** to save the query. Make sure to retain the `.soql` file extension.
+1. コマンドパレットから、**[SFDX: Create Query in SOQL Builder \(SFDX: SOQL ビルダーでクエリの作成\)]** を実行します。
+1. **[File \(ファイル\)]** > **[Save \(保存\)]** からクエリを保存します。ファイルの拡張子は `.soql` としてください。
 
-## Build a Query
+## クエリの構築
 
-As you build your query, watch SOQL Builder display the query syntax while it simultaneously updates the `.soql` file. After you’re done building your statements, click **Run Query** to view the output.
+クエリを構築している間、SOQL ビルダがクエリのシンタックスを表示すると同時に `.soql` ファイルを更新していることを確認できます。SOQL ステートメントの構築が完了したら、**[Run Query \(クエリの実行\)]** をクリックして結果を確認します。
 
-You can select objects and fields from the drop-down list, or type to narrow the list results. You can select an object or a field only once. If a value is already selected, it doesn't appear in the drop-down or search results.
+ドロップダウンリストからオブジェクトと項目を選択するか、リストの結果を絞り込むために入力することができます。オブジェクトや項目は一度だけ選択することができます。オブジェクトや項目は一度だけ選択することができます。値が既に選択されている場合、ドロップダウンメニューや検索結果には表示されません。
 
-![Build your query](./images/soql-builder-build-a-query.gif)
+![クエリの構築](./images/soql-builder-build-a-query.gif)
 
-### Filter with the LIKE Operator
+### LIKE 演算子を使用したフィルタ
 
-When filtering your results, you can narrow and target those results even further by using the LIKE operator using wildcards to match partial text strings. This query returns only last names that start with with `mc`.
+検索結果をフィルタリングする際に、LIKE 演算子やワイルドカードを使って部分的なテキスト文字列にマッチさせることで、検索結果をさらに絞り込み、ターゲットを絞ることができます。次のクエリは、`mc` で始まる姓だけを返します。
 
 ```
-SELECT AccountId, FirstName, lastname
+SELECT AccountId, FirstName, LastName
 FROM Contact
-WHERE lastname LIKE 'mc%'
+WHERE LastName LIKE 'mc%'
 ```
 
-You can build your own filter using LIKE, or you can select one of these pre-built options.
+LIKE を使用して独自のフィルタを構築することもできますし、以下のあらかじめ用意されたオプションを選択することもできます。
 
 - starts with
 - ends with
 - contains
 
-### View COUNT Results
+### COUNT の結果を表示する
 
-Because COUNT() is an aggregate function, all other selected fields are removed. If you didn't intend to select COUNT, you can undo the action from the main menu. You can further refine the results by adding filters (WHERE clauses). When you run the query, the number of returned rows corresponds to the total number of records. In this example, the COUNT is 3.
+COUNT() は集計関数なので、他に選択された項目はすべて削除されます。COUNT を選択するつもりがなかった場合は、メインメニューから操作を取り消すことができます。フィルタ (WHERE 句) を追加することで、結果をさらに絞り込むことができます。クエリを実行すると、返される行の数はレコードの総数に対応します。次の例では、COUNT は 3 です。
 
-![Total number of records is the COUNT](./images/soql-builder-count.png)
+![レコードの総数はCOUNT](./images/soql-builder-count.png)
 
 <!-- **Tip:** If using the text editor to build your query, you can validate your syntax by turning on the SOQL Editor Remote Checks setting. ekapner update, 2/2/2021: this setting not ready for GA-->
 
-**Beta Limitations:**
+**ベータ版の制限**
 
-- SOQL Builder currently supports interactively building simple queries. We plan to add more functionality soon. However, you can still open a more complex `.soql` file and run the query from within SOQL Builder, but you must use a text editor to update it.
-- When selecting fields, you can select (click) only one at a time.
-- Every time you click Run Query, a SOQL Query Results tab appears. There’s no way to associate the results with the specific query statements. The SOQL Builder editor reflects your most-recent updates.
+- SOQL ビルダーは現在、シンプルなクエリをインタラクティブに作成することをサポートしています。近いうちにさらに機能を追加する予定です。ただし、より複雑な `.soql` ファイルを開いて SOQL ビルダー内でクエリを実行することはできますが、テキストエディタを使って更新する必要があります。
+- 項目を選択する際、一度に 1 つしか選択 (クリック) できません。
+- [Run Query \(クエリの実行\)] をクリックする度に、[SOQL Query Results \(SOQL クエリの結果\)] タブが表示されます。結果を特定のクエリステートメントと関連付ける方法はありません。SOQL ビルダーのエディタには、最新の更新情報が反映されます。
 
-**Next:**
+**次**
 
-- Save the `.soql` (text) file to avoid losing your updates.
-- Save the query results output to a `.csv` or `.json` file.
+- `.soql` (テキスト) ファイルを保存して、更新が失われることを避ける。
+- クエリ結果の出力を `.csv` または `.json` ファイルとして保存する。
 
-## View Your Query in Both SOQL Builder and the Text Editor
+## SOQL ビルダーとテキストエディタの両方でクエリを表示する
 
-Split your view to see your query in both SOQL Builder and the text editor.
+ビューを分割して、SOQL ビルダーとテキストエディタの両方でクエリを確認します。
 
-1. Right-click the tab, then select one of the Split options.
-1. Right-click on the new tab, select **Reopen Editor With**, then select **Text Editor**.
+1. タブを右クリックし、任意の分割オプションを選択します。
+1. 新しいタブを右クリックし、**Reopen Editor With** を選択後、**Text Editor** を選択します。
 
-![Split your screen to see both SOQL Builder and Text Editor](./images/soql-builder-split-panels.gif)
+![画面を分割しSOQL ビルダーとテキストエディタの両方を確認する](./images/soql-builder-split-panels.gif)
 
-## Save Query Results
+## クエリ結果を保存する
 
-Click one of the Save icons to save the query results as a `.csv` or `.json` file in the location of your choice. To avoid deploying these files to your org or adding them in source control, remember to include any paths to saved files in the `.gitignore` file.
+保存アイコンをクリックして、クエリの結果を `.csv` または `.json` ファイルとして任意の場所に保存します。これらのファイルが自分の組織にデプロイされたり、ソースコントロールに追加されたりするのを防ぐために、保存したファイルのパスを `.gitignore` ファイルに含めることを忘れないでください。
 
-## Switch Between SOQL Builder and Text Editor
+## SOQL ビルダーとテキストエディタを切り替える
 
-You can easily toggle between viewing your SOQL statements in SOQL Builder and the text editor.
+SOQL 文を表示しながら、SOQL ビルダーとテキストエディタを簡単に切り替えることができます。
 
-![Click the Switch Between SOQL Builder and Text Editor icon to toggle views](./images/soql-toggle.png)
+![SOQL ビルダーとテキストエディタの切り替えアイコンをクリックしてビューを切り替える](./images/soql-toggle.png)
 
-**Beta Limitations:**
+## 既知の問題
 
-- You can’t select the file name or where the query results file is saved. However, you can move it afterward.
-- If you click the **Save .csv** or **Save .json** button again, the previous file is overwritten. To avoid overwriting the file, save it to a different file name or move it to a different location.
+### デフォルトの組織への認証が期限切れとなった場合に SOQL ビルダーを使用できない
 
-## Known Issues
+**内容:** デフォルトの組織の認証トークンが期限切れになるか、デフォルトのスクラッチ組織が期限切れになった場合、SOQL ビルダーが使用できない。
 
-### Can’t Use SOQL Builder If Authentication to Default Org Has Expired
-
-**Description:** If the authentication token has expired for your default org, or your default scratch org has expired, SOQL Builder isn’t usable.
-
-**Workaround:** Authorize a default org, then reopen the file in SOQL Builder. If that doesn’t work, restart VS Code.
+**回避策:** デフォルトの組織を認証し、SOQL ビルダーを開き直します。うまくいかない場合は、VS Code を再起動します。
