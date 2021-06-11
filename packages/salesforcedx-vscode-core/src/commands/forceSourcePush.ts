@@ -16,7 +16,6 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
 
