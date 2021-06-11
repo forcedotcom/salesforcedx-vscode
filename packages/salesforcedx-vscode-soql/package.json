@@ -11,7 +11,6 @@
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
   "version": "51.17.0",
-  "preview": true,
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -37,7 +36,7 @@
     "@salesforce/core": "2.23.2",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
-    "@salesforce/soql-language-server": "0.7.0",
+    "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3",
     "jsforce": "^1.10.0"
   },
