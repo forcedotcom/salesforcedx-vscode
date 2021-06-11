@@ -7,11 +7,11 @@
 
 import {
   ComponentSet,
+  FileProperties,
   MetadataApiRetrieve,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
-  FileProperties,
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
