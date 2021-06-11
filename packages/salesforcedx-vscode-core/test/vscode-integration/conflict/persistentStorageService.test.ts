@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { FileProperties } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, DeployResult, FileProperties, registry, SourceComponent} from '@salesforce/source-deploy-retrieve';
+import { MetadataApiDeployStatus, RequestStatus} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
-import { join } from 'path';
+import { basename, dirname, join} from 'path';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { MockContext } from '../telemetry/MockContext';
 
@@ -38,6 +39,42 @@ describe('Persistent Storage Service', () => {
       type: 'CustomObject'
     }
   ];
+  const deployPropsOne = {
+    name: 'One',
+    fullName: 'One',
+    type: registry.types.apexclass,
+    content: join('project', 'classes', 'One.cls'),
+    xml: join('project', 'classes', 'Two.cls-meta.xml')
+  };
+  const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne,
+    [{
+      dirPath: dirname(deployPropsOne.content),
+      children: [basename(deployPropsOne.content), basename(deployPropsOne.xml)]
+    }
+  ]);
+  const deployPropsTwo = {
+    name: 'Two',
+    fullName: 'Two',
+    type: registry.types.customobject,
+    content: join('project', 'classes', 'Two.cls'),
+    xml: join('project', 'classes', 'Two.cls-meta.xml')
+  };
+  const deployComponentTwo = SourceComponent.createVirtualComponent(deployPropsTwo,
+    [{
+      dirPath: dirname(deployPropsTwo.content),
+      children: [basename(deployPropsTwo.content), basename(deployPropsTwo.xml)]
+    }
+  ]);
+  const mockDeployResult = new DeployResult(
+    {
+      status: RequestStatus.Succeeded,
+      lastModifiedDate: 'Yesterday'
+    } as MetadataApiDeployStatus,
+    new ComponentSet([
+      deployComponentOne,
+      deployComponentTwo
+    ])
+  );
 
   beforeEach(() => {
     const mockContext = new MockContext(false);
@@ -48,6 +85,17 @@ describe('Persistent Storage Service', () => {
     const cache = PersistentStorageService.getInstance();
     cache.setPropertiesForFilesRetrieve(props);
     expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
+    cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
+    cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
+  });
+
+  it('Should set and get ConflictFileProperties in Memento cache for Deploy', () => {
+    const cache = PersistentStorageService.getInstance();
+    cache.setPropertiesForFilesDeploy(mockDeployResult.components.getSourceComponents(), mockDeployResult.response);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
     expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
     cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
     cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
