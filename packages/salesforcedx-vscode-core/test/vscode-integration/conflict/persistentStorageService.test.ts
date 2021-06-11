@@ -52,7 +52,7 @@ describe('Persistent Storage Service', () => {
     cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
     cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
     expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
   });
 
 });
