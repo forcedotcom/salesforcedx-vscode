@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { FileProperties } from '@salesforce/source-deploy-retrieve';
+import {
+  ComponentSet,
+  FileProperties
+} from '@salesforce/source-deploy-retrieve';
+import { MetadataApiDeployStatus} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import {
   ExtensionContext,
   Memento
@@ -35,22 +39,37 @@ export class PersistentStorageService {
     return PersistentStorageService.instance;
   }
 
-  public getPropertiesForFile(fileName: string): ConflictFileProperties | undefined {
-    return this.storage.get<ConflictFileProperties>(fileName);
+  public getPropertiesForFile(key: string): ConflictFileProperties | undefined {
+    return this.storage.get<ConflictFileProperties>(key);
   }
 
-  public setPropertiesForFile(fileName: string, value: ConflictFileProperties | undefined) {
-    this.storage.update(fileName, value);
+  public setPropertiesForFile(key: string, conflictFileProperties: ConflictFileProperties | undefined) {
+    this.storage.update(key, conflictFileProperties);
   }
 
-  public setPropertiesForFiles(fileProperties: FileProperties | FileProperties[]) {
+  public setPropertiesForFilesRetrieve(fileProperties: FileProperties | FileProperties[]) {
     const fileArray = Array.isArray(fileProperties) ? fileProperties : [fileProperties];
     for (const fileProperty of fileArray) {
       this.setPropertiesForFile(
-        fileProperty.fileName,
+        this.makeKey(fileProperty.type, fileProperty.fullName),
         {
           lastModifiedDate: fileProperty.lastModifiedDate
         });
     }
+  }
+
+  public setPropertiesForFilesDeploy(components: ComponentSet, status: MetadataApiDeployStatus) {
+    const sourceComponents = components.getSourceComponents();
+    for (const comp of sourceComponents) {
+      this.setPropertiesForFile(
+        this.makeKey(comp.type.name, comp.fullName),
+        {
+          lastModifiedDate: status.lastModifiedDate
+        });
+    }
+  }
+
+  public makeKey(type: string, fullName: string): string {
+    return `${type}#${fullName}`;
   }
 }
