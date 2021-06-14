@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RunFunction } from '@salesforce/functions-core';
+import { runFunction } from '@salesforce/functions-core';
 
 import * as fs from 'fs';
 import { run } from 'mocha';
@@ -46,7 +46,7 @@ describe('Force Function Invoke', () => {
     } = {};
     beforeEach(() => {
       sandbox = createSandbox();
-      runFunctionLibraryStub = sandbox.stub(RunFunction.prototype, 'execute');
+      runFunctionLibraryStub = sandbox.stub(runFunction);
       runFunctionLibraryStub.returns(Promise.resolve(true));
       functionInvokeSpy = sandbox.spy(ForceFunctionInvoke.prototype, 'run');
       notificationServiceStubs.showWarningMessageStub = sandbox.stub(

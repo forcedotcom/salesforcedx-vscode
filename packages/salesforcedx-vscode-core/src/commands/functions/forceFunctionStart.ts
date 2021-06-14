@@ -6,7 +6,7 @@
  */
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
@@ -27,11 +27,10 @@ import {
   FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
 
-import { StartFunction } from '@salesforce/functions-core';
+import { getBenny } from '@salesforce/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { OUTPUT_CHANNEL } from '../../channels';
-import { streamFunctionCommandOutput } from './functionsCoreHelpers';
-
+import { getProjectDescriptor } from '@salesforce/functions-core';
 /**
  * Error types when running SFDX: Start Function
  * This is also used as the telemetry log name.
@@ -85,14 +84,7 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
       return false;
     }
 
-    const commandName = nls.localize('force_function_start_text');
-
-    const startFunction = new StartFunction();
-    const execution = startFunction.execute({
-      verbose: true,
-      path: functionDirPath
-    });
-    streamFunctionCommandOutput(commandName, startFunction);
+    const benny = await getBenny();
 
     OrgAuthInfo.getDefaultUsernameOrAlias(false)
       .then(defaultUsernameorAlias => {
@@ -114,20 +106,28 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
         debugType: 'node',
         terminate: () => {
-          return new Promise(resolve => resolve(startFunction.cancel()));
+          return new Promise(resolve => resolve(benny.cancel()));
         }
       }
     );
 
-    startFunction.on('log', data => {
-      const matches = String(data).match(FUNCTION_RUNTIME_DETECTION_PATTERN);
-      if (matches && matches.length > 1) {
-        FunctionService.instance.updateFunction(functionDirPath, matches[1]);
+    const writeMsg = (msg: { text: string; timestamp: string }) => {
+      const outputMsg = msg.text;
+
+      if (outputMsg) {
+        channelService.appendLine(outputMsg);
+
+        const matches = String(outputMsg).match(
+          FUNCTION_RUNTIME_DETECTION_PATTERN
+        );
+        if (matches && matches.length > 1) {
+          FunctionService.instance.updateFunction(functionDirPath, matches[1]);
+        }
       }
-    });
-    // Allows for showing custom notifications
-    // and sending custom telemtry data for predefined errors
-    startFunction.on('error', (error: string) => {
+    };
+
+    const handleError = (error: any) => {
+      registeredStartedFunctionDisposable.dispose();
       let unexpectedError = true;
       (Object.keys(
         forceFunctionStartErrorInfo
@@ -136,10 +136,11 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
           cliMessage,
           errorNotificationMessage
         } = forceFunctionStartErrorInfo[errorType];
-        if (error.includes(cliMessage)) {
-          telemetryService.sendException(errorType, errorNotificationMessage);
-          notificationService.showErrorMessage(errorNotificationMessage);
+        if (error.text.includes(cliMessage)) {
           unexpectedError = false;
+          const e = new Error(errorNotificationMessage);
+          e.name = errorType;
+          throw e;
         }
       });
 
@@ -147,23 +148,55 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
         const errorNotificationMessage = nls.localize(
           'force_function_start_unexpected_error'
         );
-        telemetryService.sendException(
-          'force_function_start_unexpected_error',
-          errorNotificationMessage
-        );
-        notificationService.showErrorMessage(errorNotificationMessage);
+        const e = new Error(errorNotificationMessage);
+        e.name = 'force_function_start_unexpected_error';
+        throw e;
+      }
+    };
+
+    benny.on('pack', writeMsg);
+    benny.on('container', writeMsg);
+
+    benny.on('log', (msg: any) => {
+      if (msg.level === 'debug') return;
+      if (msg.level === 'error') {
+        handleError(msg);
       }
 
-      channelService.showChannelOutput();
-      registeredStartedFunctionDisposable.dispose();
+      if (msg.text) {
+        writeMsg(msg);
+      }
+
+      // evergreen:benny:message {"type":"log","timestamp":"2021-05-10T10:00:27.953248-05:00","level":"info","fields":{"debugPort":"9229","localImageName":"jvm-fn-init","network":"","port":"8080"}} +21ms
+      if (msg.fields && msg.fields.localImageName) {
+        channelService.appendLine(`'Running on port' :${msg.fields.port}`);
+        channelService.appendLine(
+          `'Debugger running on port' :${msg.fields.debugPort}`
+        );
+      }
     });
+    // Allows for showing custom notifications
+    // and sending custom telemtry data for predefined errors
+    benny.on('error', handleError);
 
     token?.onCancellationRequested(() => {
-      startFunction.cancel();
+      benny.cancel();
       registeredStartedFunctionDisposable.dispose();
     });
 
-    return await execution;
+    channelService.appendLine('Parsing project.toml');
+    const descriptor = await getProjectDescriptor(
+      path.resolve(functionDirPath, 'project.toml')
+    );
+    const functionName = descriptor.com.salesforce.id;
+    channelService.appendLine(`Building ${functionName}`);
+    await benny.build(functionName, {
+      verbose: true,
+      path: functionDirPath
+    });
+    channelService.appendLine(`Starting ${functionName}`);
+    benny.run(functionName, {});
+    return true;
   }
 }
 
