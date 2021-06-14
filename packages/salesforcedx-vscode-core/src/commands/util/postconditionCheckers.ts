@@ -10,8 +10,10 @@ import {
   LocalComponent,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { FileProperties, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { existsSync } from 'fs';
-import { join, normalize } from 'path';
+import { join, normalize, relative } from 'path';
+import { of } from 'rxjs/observable/of';
 import { channelService } from '../../channels';
 import {
   ConflictDetectionConfig,
@@ -21,6 +23,7 @@ import {
   MetadataCacheResult,
   MetadataCacheService
 } from '../../conflict';
+import { ComponentDiffer } from '../../conflict/componentDiffer';
 import { PersistentStorageService } from '../../conflict/persistentStorageService';
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
@@ -288,6 +291,12 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
   }
 }
 
+type ComponentConflictData = {
+  cacheComponent: SourceComponent,
+  projectComponent: SourceComponent,
+  fileProperties: FileProperties
+};
+
 export class CacheConflictChecker implements PostconditionChecker<string> {
 
   private isManifest: boolean;
@@ -318,7 +327,6 @@ export class CacheConflictChecker implements PostconditionChecker<string> {
       if (!result) {
         return inputs;
       }
-      const conflicts = this.determineConflicts(result);
       const localRoot = join(
         result.project.baseDirectory,
         result.project.commonRoot
@@ -327,37 +335,75 @@ export class CacheConflictChecker implements PostconditionChecker<string> {
         result.cache.baseDirectory,
         result.cache.commonRoot
       );
+      const info = this.conglomerateInfo(result);
+      const conflicts = this.determineConflicts(info, localRoot, remoteRoot);
       const results = {
         different: conflicts,
         localRoot,
         remoteRoot,
-        scannedLocal: 0,
-        scannedRemote: 0
-      }
+        scannedLocal: 0,  // does not apply to new system but is built in to output
+        scannedRemote: 0  // does not apply to new system but is built in to output
+      };
       return await this.handleConflicts(inputs.data, username, results);
     }
     return { type: 'CANCEL' };
   }
 
-  private determineConflicts(result: MetadataCacheResult): Set<string> {
+  private conglomerateInfo(result: MetadataCacheResult): ComponentConflictData[] {
+    const info: ComponentConflictData[] = [];
+
+    const projectIndex = new Map<string, SourceComponent>();
+    for (const comp of result.project.components) {
+      projectIndex.set(this.makeKey(comp.type.name, comp.fullName), comp);
+    }
+
+    const cacheIndex = new Map<string, SourceComponent>();
+    for (const comp of result.cache.components) {
+      cacheIndex.set(this.makeKey(comp.type.name, comp.fullName), comp);
+    }
+
+    const fileIndex = new Map<string, FileProperties>();
+    for (const fileProperty of result.properties) {
+      fileIndex.set(this.makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
+    }
+
+    fileIndex.forEach((fileProperties, key) => {
+      const cacheComponent = cacheIndex.get(key);
+      const projectComponent = projectIndex.get(key);
+      if (cacheComponent && projectComponent) {
+        info.push({cacheComponent, projectComponent, fileProperties});
+      }
+    });
+
+    return info;
+  }
+
+  private makeKey(type: string, fullName: string): string {
+    return `${type}#${fullName}`;
+  }
+
+  private determineConflicts(data: ComponentConflictData[], projectRoot: string, cacheRoot: string): Set<string> {
     const cache = PersistentStorageService.getInstance();
+    const componentDiffer = new ComponentDiffer();
     const conflicts: Set<string> = new Set<string>();
-    result.cache.components.forEach(component => {
+    data.forEach(component => {
       let lastModifiedInOrg;
       let lastModifiedInCache;
 
-      result.properties.forEach(fileProperty => {
-        if (component.fullName === fileProperty.fullName && component.type.name === fileProperty.type) {
-          lastModifiedInOrg = fileProperty.lastModifiedDate;
-          lastModifiedInCache = cache.getPropertiesForFile(fileProperty.fileName)?.lastModifiedDate;
-          if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-            conflicts.add(component.fullName + (component.type.suffix ? '.' + component.type.suffix : ''));
+      lastModifiedInOrg = component.fileProperties.lastModifiedDate;
+      lastModifiedInCache = cache.getPropertiesForFile(component.fileProperties.fileName)?.lastModifiedDate;
+      if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
+        const differences = componentDiffer.diffComponents(component.projectComponent, component.cacheComponent);
+        differences.forEach(difference => {
+          const cachePathRelative = relative(cacheRoot, difference.cachePath);
+          const projectPathRelative = relative(projectRoot, difference.projectPath);
+          if (cachePathRelative === projectPathRelative) {
+            conflicts.add(cachePathRelative);
           }
-        }
-      });
+        });
+      }
 
     });
-    console.log('');
     return conflicts;
   }
 

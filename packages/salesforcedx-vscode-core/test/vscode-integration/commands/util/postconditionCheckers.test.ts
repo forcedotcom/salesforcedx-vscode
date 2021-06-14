@@ -459,7 +459,7 @@ describe('Postcondition Checkers', () => {
       let conflictViewStub: SinonStub;
       let appendLineStub: SinonStub;
       let channelOutput: string[] = [];
-  
+
       beforeEach(() => {
         env = createSandbox();
         channelOutput = [];
@@ -470,36 +470,36 @@ describe('Postcondition Checkers', () => {
         appendLineStub = env.stub(channelService, 'appendLine');
         appendLineStub.callsFake(line => channelOutput.push(line));
       });
-  
+
       afterEach(() => env.restore());
-  
+
       const emptyMessages: ConflictDetectionMessages = {
         warningMessageKey: '',
         commandHint: i => i
       };
-  
+
       const retrieveMessages: ConflictDetectionMessages = {
         warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
         commandHint: i => i
       };
-  
+
       const validInput: ContinueResponse<string> = {
         type: 'CONTINUE',
         data: 'package.xml'
       };
-  
+
       it('Should return CancelResponse if input passed in is CancelResponse', async () => {
         const postChecker = new CacheConflictChecker(false, emptyMessages);
         const response = await postChecker.check({ type: 'CANCEL' });
         expect(response.type).to.equal('CANCEL');
       });
-  
+
       it('Should return ContinueResponse unchanged if input is ContinueResponse & conflict detection is disabled', async () => {
         const postChecker = new CacheConflictChecker(false, emptyMessages);
 
         settingsStub.returns(false);
         const response = await postChecker.check(validInput);
-  
+
         expect(response.type).to.equal('CONTINUE');
         if (response.type === 'CONTINUE') {
           expect(response.data).to.equal('package.xml');
@@ -507,15 +507,15 @@ describe('Postcondition Checkers', () => {
           expect.fail('Response should be of type ContinueResponse');
         }
       });
-  
+
       it('Should return CancelResponse when a username is not defined.', async () => {
         const postChecker = new CacheConflictChecker(false, emptyMessages);
         settingsStub.returns(true);
-  
+
         const response = await postChecker.check(validInput);
         expect(response.type).to.equal('CANCEL');
       });
-  
+
       it('Should return ContinueResponse when no conflicts are detected', async () => {
         const postChecker = new CacheConflictChecker(false, emptyMessages);
         const response = await postChecker.handleConflicts(
@@ -523,14 +523,14 @@ describe('Postcondition Checkers', () => {
           'admin@example.com',
           { different: new Set<string>() } as DirectoryDiffResults
         );
-  
+
         expect(response.type).to.equal('CONTINUE');
         expect((response as ContinueResponse<string>).data).to.equal(
           'manifest.xml'
         );
         expect(appendLineStub.notCalled).to.equal(true);
       });
-  
+
       it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
         const postChecker = new CacheConflictChecker(false, retrieveMessages);
         const results = {
@@ -542,19 +542,19 @@ describe('Postcondition Checkers', () => {
           scannedRemote: 6
         } as DirectoryDiffResults;
         modalStub.returns('Cancel');
-  
+
         const response = await postChecker.handleConflicts(
           'package.xml',
           'admin@example.com',
           results
         );
         expect(response.type).to.equal('CANCEL');
-  
+
         expect(modalStub.firstCall.args.slice(1)).to.eql([
           nls.localize('conflict_detect_override'),
           nls.localize('conflict_detect_show_conflicts')
         ]);
-  
+
         expect(channelOutput).to.include.members([
           nls.localize('conflict_detect_conflict_header', 2, 6, 4),
           normalize(
@@ -565,49 +565,49 @@ describe('Postcondition Checkers', () => {
           ),
           nls.localize('conflict_detect_command_hint', 'package.xml')
         ]);
-  
+
         expect(conflictViewStub.calledOnce).to.equal(true);
       });
-  
+
       it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
         const postChecker = new CacheConflictChecker(false, retrieveMessages);
         const results = {
           different: new Set<string>('MyClass.cls')
         } as DirectoryDiffResults;
         modalStub.returns(nls.localize('conflict_detect_override'));
-  
+
         const response = await postChecker.handleConflicts(
           'manifest.xml',
           'admin@example.com',
           results
         );
         expect(response.type).to.equal('CONTINUE');
-  
+
         expect(modalStub.firstCall.args.slice(1)).to.eql([
           nls.localize('conflict_detect_override'),
           nls.localize('conflict_detect_show_conflicts')
         ]);
       });
-  
+
       it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
         const postChecker = new CacheConflictChecker(false, retrieveMessages);
         const results = {
           different: new Set<string>('MyClass.cls')
         } as DirectoryDiffResults;
         modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
-  
+
         const response = await postChecker.handleConflicts(
           'manifest.xml',
           'admin@example.com',
           results
         );
         expect(response.type).to.equal('CANCEL');
-  
+
         expect(modalStub.firstCall.args.slice(1)).to.eql([
           nls.localize('conflict_detect_override'),
           nls.localize('conflict_detect_show_conflicts')
         ]);
-  
+
         expect(conflictViewStub.calledOnce).to.equal(true);
       });
     });
