@@ -81,7 +81,11 @@ export class DeployQueue {
         }
         const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
         if (orgType === OrgType.SourceTracked) {
-          vscode.commands.executeCommand('sfdx.force.source.push');
+          const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
+            ? '.force'
+            : '';
+          const command = `sfdx.force.source.push${forceCommand}`;
+          vscode.commands.executeCommand(command);
         } else {
           vscode.commands.executeCommand(
             'sfdx.force.source.deploy.multiple.source.paths',

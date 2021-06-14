@@ -1,34 +1,34 @@
 ---
-title: Performance Enhancements
-lang: en
+title: パフォーマンスの改善
+lang: ja
 ---
 
-The Apex and Deploy/Retrieve commands are in the process of moving to a new architecture. We moved these commands to independent Typescript libraries and CLI plugins as part of our larger effort to break up the salesforce-alm plugin. [You can read more about that in this blog post](https://developer.salesforce.com/blogs/2021/02/open-sourcing-salesforce-cli-update-feb-2021.html). There’s many great benefits to this effort and one of the best is better performance. For single file deploys and retrieves, you'll likely notice a significant performance gain when using the latest architecture.
+Apex や、デプロイ/取得コマンドは、新しいアーキテクチャに移行しています。salesforce-alm プラグインを細分化するための大きな取り組みの一環として、これらのコマンドを独立した Typescript ライブラリと CLI プラグインに移行しました。[詳しくはこちらのブログ記事を参照してください](https://developer.salesforce.com/blogs/2021/02/open-sourcing-salesforce-cli-update-feb-2021.html)。この取り組みには多くの利点がありますが、その中でも特に優れているのがパフォーマンスの向上です。単一ファイルのデプロイや取得では、最新のアーキテクチャを使用することで、パフォーマンスが大幅に向上していることに気づくでしょう。
 
-## Execution Process and Status
+## 実行プロセスとステータス
 
-This architecture change is done through a phased approach. For both the Apex library and Deploy/Retrieve library, we are rolling out the changes through these phases:
+このアーキテクチャ変更は、段階的なアプローチで行われます。 Apex ライブラリ、デプロイ/取得ライブラリともに、以下のフェーズで変更を実施しています。
 
-1. Library created and completed.
-2. Available to try it in VS Code - We provide a VS Code setting so you can opt in and try it out.
-3. On by default in VS Code - The VS code setting default is defaulted to True to enable the library. If you previously opted in and then opted out, you'll have to manually opt back in to use the feature. We'll change the default after the commands have been available and used for months.
-4. CLI updated to use the library. The VS Code setting is then retired. Both the CLI and VS Code extensions are using the library.
+1. 新しいライブラリを作成し、完了する。
+2. VS Code で試用可能 - VS Code の設定を提供しているため、オプトインして試用することができます。
+3. VS Code でデフォルトでオン - VS Code の設定で、新しいライブラリの有効化をデフォルトで True にします。以前オプトインした後にオプトアウトした場合、この機能を使用するには手動でオプトインし直す必要があります。コマンドが利用可能になり、数ヶ月間使用された後、デフォルトを変更する予定です。
+4. CLI が新しいライブラリを使用するように更新します。 VS Code の設定は廃止されます。CLI と VS Code の拡張機能の両方が新しいライブラリを使用しています。
 
-|                         | Library complete | Available to try in VS Code | On by default in VS Code | CLI Updated |
-| ----------------------- | :--------------: | :-------------------------: | :----------------------: | :---------: |
-| Apex Library            |        ✔️        |             ✔️              |            ✔️            |     ✔️      |
-| Deploy Retrieve Library |        ✔️        |             ✔️              |            ✔️            |             |
+|                          | ライブラリの完成 | VS Code で<br>試用可能 | VS Code で<br>デフォルトで On | CLI の更新 |
+| ------------------------ | :--------------: | :--------------------: | :---------------------------: | :--------: |
+| Apex ライブラリ          |        ✔️        |           ✔️           |              ✔️               |     ✔️     |
+| デプロイ/取得 ライブラリ |        ✔️        |           ✔️           |              ✔️               |            |
 
-## Setup
+## 設定
 
-The Apex library has been fully implemented, but the Deploy/Retrieve library has a corresponding VS Code setting. Access the Deploy/Retrieve setting by selecting Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS). Setting to false means that VS Code uses the CLI to execute those commands.
+Apex ライブラリは完全に実装されていますが、デプロイ/取得のライブラリには対応する VS Code の設定があります。デプロイ/取得の設定にアクセスするには、**[File \(ファイル\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (Windows or Linux) または **[Code \(コード\)]** > **[Preferences \(基本設定\)]** > **[Settings \(設定\)]** (macOS) を選択します。false に設定すると、VS Code は CLI を使用してそれらのコマンドを実行します。
 
-Within settings, you will see the following:
+設定の中に、以下があります。
 
 1. _Experimental: Deploy Retrieve_
 
-Known gaps:
+既知のギャップは以下の通りです。
 
-- If you're using [CLI Plug-In Hooks](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm), they are not available when using the library from VS Code. Uncheck the settings above to use the CLI directly for those commands.
+- [CLI プラグインのフック](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_plugins.meta/sfdx_cli_plugins/cli_plugins_customize_hooks.htm)を使用している場合、VS Code からライブラリを使用するとそれらは利用できません。上記の設定のチェックを外して、それらのコマンドについては直接 CLI を使用してください。
 
-If you spot other gaps or have feedback, please [open a GitHub issue](https://github.com/forcedotcom/salesforcedx-vscode/issues/new/choose).
+他にもギャップを発見したり、フィードバックがある場合は、[GitHub で Issue を登録](https://github.com/forcedotcom/salesforcedx-vscode/issues/new/choose)してください。
