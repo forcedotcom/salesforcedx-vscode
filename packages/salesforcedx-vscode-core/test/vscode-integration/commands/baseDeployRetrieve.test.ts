@@ -492,7 +492,7 @@ describe('Base Deploy Retrieve Commands', () => {
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
           .returns({ start: this.startStub });
-        this.cacheStub = sb.stub(PersistentStorageService.getInstance(), 'setPropertiesForFiles');
+        this.cacheStub = sb.stub(PersistentStorageService.getInstance(), 'setPropertiesForFilesRetrieve');
       }
 
       protected async getComponents(
