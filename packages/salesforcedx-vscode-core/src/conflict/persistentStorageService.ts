@@ -47,29 +47,29 @@ export class PersistentStorageService {
     this.storage.update(key, conflictFileProperties);
   }
 
-  public setPropertiesForFilesRetrieve(fileProperties: FileProperties | FileProperties[]) {
+  public setPropertiesForFilesRetrieve(org: string, project: string, fileProperties: FileProperties | FileProperties[]) {
     const fileArray = Array.isArray(fileProperties) ? fileProperties : [fileProperties];
     for (const fileProperty of fileArray) {
       this.setPropertiesForFile(
-        this.makeKey(fileProperty.type, fileProperty.fullName),
+        this.makeKey(org, project, fileProperty.type, fileProperty.fullName),
         {
           lastModifiedDate: fileProperty.lastModifiedDate
         });
     }
   }
 
-  public setPropertiesForFilesDeploy(components: ComponentSet, status: MetadataApiDeployStatus) {
+  public setPropertiesForFilesDeploy(org: string, project: string, components: ComponentSet, status: MetadataApiDeployStatus) {
     const sourceComponents = components.getSourceComponents();
     for (const comp of sourceComponents) {
       this.setPropertiesForFile(
-        this.makeKey(comp.type.name, comp.fullName),
+        this.makeKey(org, project, comp.type.name, comp.fullName),
         {
           lastModifiedDate: status.lastModifiedDate
         });
     }
   }
 
-  public makeKey(type: string, fullName: string): string {
-    return `${type}#${fullName}`;
+  public makeKey(org: string, project: string, type: string, fullName: string): string {
+    return `${org}#${project}#${type}#${fullName}`;
   }
 }
