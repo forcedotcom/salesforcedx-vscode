@@ -20,7 +20,7 @@ import {
   OverwriteComponentPrompt,
   PathStrategyFactory
 } from '../../../../src/commands/util';
-import { CacheConflictChecker } from '../../../../src/commands/util/postconditionCheckers';
+import { TimestampConflictChecker } from '../../../../src/commands/util/postconditionCheckers';
 import {
   conflictDetector,
   conflictView,
@@ -489,13 +489,13 @@ describe('Postcondition Checkers', () => {
       };
 
       it('Should return CancelResponse if input passed in is CancelResponse', async () => {
-        const postChecker = new CacheConflictChecker(false, emptyMessages);
+        const postChecker = new TimestampConflictChecker(false, emptyMessages);
         const response = await postChecker.check({ type: 'CANCEL' });
         expect(response.type).to.equal('CANCEL');
       });
 
       it('Should return ContinueResponse unchanged if input is ContinueResponse & conflict detection is disabled', async () => {
-        const postChecker = new CacheConflictChecker(false, emptyMessages);
+        const postChecker = new TimestampConflictChecker(false, emptyMessages);
 
         settingsStub.returns(false);
         const response = await postChecker.check(validInput);
@@ -509,7 +509,7 @@ describe('Postcondition Checkers', () => {
       });
 
       it('Should return CancelResponse when a username is not defined.', async () => {
-        const postChecker = new CacheConflictChecker(false, emptyMessages);
+        const postChecker = new TimestampConflictChecker(false, emptyMessages);
         settingsStub.returns(true);
 
         const response = await postChecker.check(validInput);
@@ -517,7 +517,7 @@ describe('Postcondition Checkers', () => {
       });
 
       it('Should return ContinueResponse when no conflicts are detected', async () => {
-        const postChecker = new CacheConflictChecker(false, emptyMessages);
+        const postChecker = new TimestampConflictChecker(false, emptyMessages);
         const response = await postChecker.handleConflicts(
           'manifest.xml',
           'admin@example.com',
@@ -532,7 +532,7 @@ describe('Postcondition Checkers', () => {
       });
 
       it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
-        const postChecker = new CacheConflictChecker(false, retrieveMessages);
+        const postChecker = new TimestampConflictChecker(false, retrieveMessages);
         const results = {
           different: new Set<string>([
             'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
@@ -570,7 +570,7 @@ describe('Postcondition Checkers', () => {
       });
 
       it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
-        const postChecker = new CacheConflictChecker(false, retrieveMessages);
+        const postChecker = new TimestampConflictChecker(false, retrieveMessages);
         const results = {
           different: new Set<string>('MyClass.cls')
         } as DirectoryDiffResults;
@@ -590,7 +590,7 @@ describe('Postcondition Checkers', () => {
       });
 
       it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
-        const postChecker = new CacheConflictChecker(false, retrieveMessages);
+        const postChecker = new TimestampConflictChecker(false, retrieveMessages);
         const results = {
           different: new Set<string>('MyClass.cls')
         } as DirectoryDiffResults;

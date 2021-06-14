@@ -43,6 +43,12 @@ export interface MetadataCacheResult {
   properties: FileProperties[];
 }
 
+export interface CorrelatedComponent {
+  cacheComponent: SourceComponent;
+  projectComponent: SourceComponent;
+  fileProperties: FileProperties;
+}
+
 export class MetadataCacheService {
   private static CACHE_FOLDER = ['.sfdx', 'diff'];
   private static PROPERTIES_FOLDER = ['prop'];
@@ -242,6 +248,44 @@ export class MetadataCacheService {
       return compDir.substring(baseDir.length + path.sep.length);
     }
     return '';
+  }
+
+  /**
+   * Groups the information in a MetadataCacheResult by component
+   * @param result A MetadataCacheResult
+   * @returns An array with one entry per retrieved component, with all corresponding information about the component included
+   */
+  public static correlateResults(result: MetadataCacheResult): CorrelatedComponent[] {
+    const components: CorrelatedComponent[] = [];
+
+    const projectIndex = new Map<string, SourceComponent>();
+    for (const comp of result.project.components) {
+      projectIndex.set(MetadataCacheService.makeKey(comp.type.name, comp.fullName), comp);
+    }
+
+    const cacheIndex = new Map<string, SourceComponent>();
+    for (const comp of result.cache.components) {
+      cacheIndex.set(MetadataCacheService.makeKey(comp.type.name, comp.fullName), comp);
+    }
+
+    const fileIndex = new Map<string, FileProperties>();
+    for (const fileProperty of result.properties) {
+      fileIndex.set(MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
+    }
+
+    fileIndex.forEach((fileProperties, key) => {
+      const cacheComponent = cacheIndex.get(key);
+      const projectComponent = projectIndex.get(key);
+      if (cacheComponent && projectComponent) {
+        components.push({cacheComponent, projectComponent, fileProperties});
+      }
+    });
+
+    return components;
+  }
+
+  private static makeKey(type: string, fullName: string): string {
+    return `${type}#${fullName}`;
   }
 
   public getCachePath(): string {

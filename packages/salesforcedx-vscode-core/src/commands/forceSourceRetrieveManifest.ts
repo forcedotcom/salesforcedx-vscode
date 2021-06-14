@@ -14,9 +14,9 @@ import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
-  CacheConflictChecker,
   ConflictDetectionChecker,
-  ConflictDetectionMessages
+  ConflictDetectionMessages,
+  TimestampConflictChecker
 } from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -107,7 +107,7 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibrarySourceRetrieveManifestExecutor()
       : new ForceSourceRetrieveManifestExecutor(),
-    new CacheConflictChecker(true, messages)
+    new TimestampConflictChecker(true, messages)
   );
   await commandlet.run();
 }
