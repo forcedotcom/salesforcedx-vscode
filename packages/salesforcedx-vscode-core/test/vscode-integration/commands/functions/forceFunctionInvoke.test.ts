@@ -30,6 +30,8 @@ import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 
+import * as library from '@salesforce/functions-core';
+
 describe('Force Function Invoke', () => {
   describe('Debug Invoke', () => {
     let sandbox: SinonSandbox;
@@ -46,7 +48,7 @@ describe('Force Function Invoke', () => {
     } = {};
     beforeEach(() => {
       sandbox = createSandbox();
-      runFunctionLibraryStub = sandbox.stub(runFunction);
+      runFunctionLibraryStub = sandbox.stub(library, 'runFunction');
       runFunctionLibraryStub.returns(Promise.resolve(true));
       functionInvokeSpy = sandbox.spy(ForceFunctionInvoke.prototype, 'run');
       notificationServiceStubs.showWarningMessageStub = sandbox.stub(
@@ -90,7 +92,7 @@ describe('Force Function Invoke', () => {
       assert.calledOnce(runFunctionLibraryStub);
       assert.calledWith(runFunctionLibraryStub, {
         url: 'http://localhost:8080',
-        payload: `@${srcUri.fsPath}`,
+        payload: `@'${srcUri.fsPath}'`,
         targetusername: defaultUsername
       });
     });
