@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OutputEvent, StartFunction } from '@salesforce/functions-core';
+import { Benny, getFunctionsBinary } from '@salesforce/functions-core';
+import * as library from '@salesforce/functions-core';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { EventEmitter } from 'events';
 import * as path from 'path';
@@ -26,7 +27,9 @@ import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 describe('Force Function Start', () => {
   describe('execute', () => {
     let sandbox: SinonSandbox;
-    let startFunctionLibraryStub: SinonStub;
+    const functionsBinaryStub: {
+      [key: string]: SinonStub;
+    } = {};
     let emitter: EventEmitter;
     const channelServiceStubs: {
       [key: string]: SinonStub;
@@ -46,11 +49,19 @@ describe('Force Function Start', () => {
     let getDefaultUsernameOrAliasStub: SinonStub;
     beforeEach(() => {
       sandbox = createSandbox();
-      startFunctionLibraryStub = sandbox.stub(
-        StartFunction.prototype,
-        'execute'
+      functionsBinaryStub.run = sandbox.stub();
+      functionsBinaryStub.run.returns(Promise.resolve(true));
+      functionsBinaryStub.build = sandbox.stub();
+      functionsBinaryStub.build.returns(Promise.resolve(true));
+      functionsBinaryStub.on = sandbox.stub();
+      emitter = new EventEmitter();
+      functionsBinaryStub.on.callsFake(
+        (event: string | symbol, listener: (...args: any[]) => void) => {
+          emitter.on(event, listener);
+        }
       );
-      startFunctionLibraryStub.returns(Promise.resolve(true));
+      sandbox.stub(library, 'getFunctionsBinary').returns(functionsBinaryStub);
+
       channelServiceStubs.streamCommandOutputStub = sandbox.stub(
         channelService,
         'streamCommandOutput'
@@ -111,15 +122,6 @@ describe('Force Function Start', () => {
       getDefaultUsernameOrAliasStub.returns(
         Promise.resolve('test@example.com')
       );
-
-      emitter = new EventEmitter();
-      sandbox
-        .stub(StartFunction.prototype, 'on')
-        .callsFake(
-          (event: OutputEvent | symbol, listener: (...args: any[]) => void) => {
-            return emitter.on(event, listener);
-          }
-        );
     });
 
     afterEach(() => {
@@ -132,8 +134,8 @@ describe('Force Function Start', () => {
       );
 
       await forceFunctionStart(srcUri);
-
-      assert.calledOnce(startFunctionLibraryStub);
+      assert.calledOnce(functionsBinaryStub.build);
+      assert.calledOnce(functionsBinaryStub.run);
     });
 
     it('Should start function from file', async () => {
@@ -148,7 +150,8 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      assert.calledOnce(startFunctionLibraryStub);
+      assert.calledOnce(functionsBinaryStub.build);
+      assert.calledOnce(functionsBinaryStub.run);
     });
 
     it('Should start function from active text editor if sourceUri not specified', async () => {
@@ -170,7 +173,8 @@ describe('Force Function Start', () => {
       });
       await forceFunctionStart();
 
-      assert.calledOnce(startFunctionLibraryStub);
+      assert.calledOnce(functionsBinaryStub.build);
+      assert.calledOnce(functionsBinaryStub.run);
     });
 
     it('Should show warning and log telemetry if sourceUri not specified and not actively editing a function file', async () => {
@@ -193,7 +197,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart();
 
-      assert.notCalled(startFunctionLibraryStub);
+      assert.notCalled(functionsBinaryStub.build);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
       assert.calledWith(
         notificationServiceStubs.showWarningMessageStub,
@@ -213,7 +217,7 @@ describe('Force Function Start', () => {
       );
       await forceFunctionStart(srcUri);
 
-      assert.notCalled(startFunctionLibraryStub);
+      assert.notCalled(functionsBinaryStub.build);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
       assert.calledWith(
         notificationServiceStubs.showWarningMessageStub,
@@ -243,7 +247,6 @@ describe('Force Function Start', () => {
       const mockStartTime = [1234, 5678];
       hrtimeStub.returns(mockStartTime);
 
-      startFunctionLibraryStub.returns(true);
       await forceFunctionStart(srcUri);
 
       assert.calledOnce(logMetricStub);
@@ -255,10 +258,10 @@ describe('Force Function Start', () => {
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
       await forceFunctionStart(srcUri);
-      emitter.emit(
-        'error',
-        'Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?'
-      );
+      emitter.emit('error', {
+        text:
+          'Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?'
+      });
 
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
@@ -284,7 +287,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      emitter.emit('error', '');
+      emitter.emit('error', { text: '' });
 
       assert.calledOnce(telemetryServiceStubs.sendExceptionStub);
       assert.calledWith(
@@ -340,7 +343,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      emitter.emit('log', 'heroku/nodejs-engine');
+      emitter.emit('log', { text: 'heroku/nodejs-engine' });
       assert.notCalled(functionServiceStub);
     });
 
@@ -357,7 +360,7 @@ describe('Force Function Start', () => {
 
       await forceFunctionStart(srcUri);
 
-      emitter.emit('log', ' heroku/jvm-function-invoker@latest');
+      emitter.emit('log', { text: ' heroku/jvm-function-invoker@latest' });
       assert.calledOnce(functionServiceStub);
       assert.calledWith(functionServiceStub, srcUri.fsPath, 'jvm');
     });
@@ -374,7 +377,7 @@ describe('Force Function Start', () => {
       hrtimeStub.returns([1234, 5678]);
 
       await forceFunctionStart(srcUri);
-      emitter.emit('log', 'heroku/nodejs-function-invoker@2.1.1');
+      emitter.emit('log', { text: 'heroku/nodejs-function-invoker@2.1.1' });
       assert.calledOnce(functionServiceStub);
       assert.calledWith(functionServiceStub, srcUri.fsPath, 'nodejs');
     });

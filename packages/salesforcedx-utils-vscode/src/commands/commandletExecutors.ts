@@ -211,7 +211,6 @@ export abstract class LibraryCommandletExecutor<T>
       );
     } catch (e) {
       telemetryService.sendException(e.name, e.message);
-      notificationService.showErrorMessage(e.message);
       notificationService.showFailedExecution(this.executionName);
       channelService.appendLine(e.message);
       channelService.showChannelOutput();

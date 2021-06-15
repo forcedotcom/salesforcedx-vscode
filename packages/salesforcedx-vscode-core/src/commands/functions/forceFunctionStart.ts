@@ -27,7 +27,7 @@ import {
   FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
 
-import { getBenny } from '@salesforce/functions-core';
+import { getFunctionsBinary } from '@salesforce/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { getProjectDescriptor } from '@salesforce/functions-core';
@@ -84,7 +84,8 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
       return false;
     }
 
-    const benny = await getBenny();
+    const functionsBinary = await getFunctionsBinary();
+    channelService.showChannelOutput();
 
     OrgAuthInfo.getDefaultUsernameOrAlias(false)
       .then(defaultUsernameorAlias => {
@@ -106,7 +107,7 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
         debugType: 'node',
         terminate: () => {
-          return new Promise(resolve => resolve(benny.cancel()));
+          return new Promise(resolve => resolve(functionsBinary.cancel()));
         }
       }
     );
@@ -136,11 +137,11 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
           cliMessage,
           errorNotificationMessage
         } = forceFunctionStartErrorInfo[errorType];
-        if (error.text.includes(cliMessage)) {
+        if (error.text?.includes(cliMessage)) {
           unexpectedError = false;
-          const e = new Error(errorNotificationMessage);
-          e.name = errorType;
-          throw e;
+          telemetryService.sendException(errorType, errorNotificationMessage);
+          notificationService.showErrorMessage(errorNotificationMessage);
+          channelService.appendLine(errorNotificationMessage);
         }
       });
 
@@ -148,16 +149,20 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
         const errorNotificationMessage = nls.localize(
           'force_function_start_unexpected_error'
         );
-        const e = new Error(errorNotificationMessage);
-        e.name = 'force_function_start_unexpected_error';
-        throw e;
+        telemetryService.sendException(
+          'force_function_start_unexpected_error',
+          errorNotificationMessage
+        );
+        notificationService.showErrorMessage(errorNotificationMessage);
+        channelService.appendLine(errorNotificationMessage);
       }
+      channelService.showChannelOutput();
     };
 
-    benny.on('pack', writeMsg);
-    benny.on('container', writeMsg);
+    functionsBinary.on('pack', writeMsg);
+    functionsBinary.on('container', writeMsg);
 
-    benny.on('log', (msg: any) => {
+    functionsBinary.on('log', (msg: any) => {
       if (msg.level === 'debug') return;
       if (msg.level === 'error') {
         handleError(msg);
@@ -177,25 +182,25 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
     });
     // Allows for showing custom notifications
     // and sending custom telemtry data for predefined errors
-    benny.on('error', handleError);
+    functionsBinary.on('error', handleError);
 
     token?.onCancellationRequested(() => {
-      benny.cancel();
+      functionsBinary.cancel();
       registeredStartedFunctionDisposable.dispose();
     });
 
     channelService.appendLine('Parsing project.toml');
     const descriptor = await getProjectDescriptor(
-      path.resolve(functionDirPath, 'project.toml')
+      path.join(functionDirPath, 'project.toml')
     );
     const functionName = descriptor.com.salesforce.id;
     channelService.appendLine(`Building ${functionName}`);
-    await benny.build(functionName, {
+    await functionsBinary.build(functionName, {
       verbose: true,
       path: functionDirPath
     });
     channelService.appendLine(`Starting ${functionName}`);
-    benny.run(functionName, {});
+    functionsBinary.run(functionName, {});
     return true;
   }
 }

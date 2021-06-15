@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { StartFunction } from '@salesforce/functions-core';
+import * as library from '@salesforce/functions-core';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import Sinon = require('sinon');
 import { Uri } from 'vscode';
 import { channelService } from '../../../../src/channels';
 import { forceFunctionStart } from '../../../../src/commands/functions/forceFunctionStart';
@@ -18,10 +19,9 @@ import { getRootWorkspacePath } from '../../../../src/util';
 
 describe('Force Function Stop', () => {
   let sandbox: SinonSandbox;
-  const startFunctionLibraryStub: {
+  const functionsBinaryStub: {
     [key: string]: SinonStub;
   } = {};
-
   const channelServiceStubs: {
     [key: string]: SinonStub;
   } = {};
@@ -34,16 +34,8 @@ describe('Force Function Stop', () => {
   let hrtimeStub: SinonStub;
   beforeEach(() => {
     sandbox = createSandbox();
-
-    startFunctionLibraryStub.executeStub = sandbox.stub(
-      StartFunction.prototype,
-      'execute'
-    );
-    startFunctionLibraryStub.executeStub.returns(true);
-    startFunctionLibraryStub.cancelStub = sandbox.stub(
-      StartFunction.prototype,
-      'cancel'
-    );
+    functionsBinaryStub.cancel = sandbox.stub();
+    sandbox.stub(library, 'getFunctionsBinary').returns(functionsBinaryStub);
     channelServiceStubs.appendLineStub = sandbox.stub(
       channelService,
       'appendLine'
@@ -81,8 +73,8 @@ describe('Force Function Stop', () => {
     hrtimeStub.returns(mockStartTime);
     await forceFunctionStop();
 
-    assert.calledOnce(startFunctionLibraryStub.cancelStub);
-    assert.calledOnce(channelServiceStubs.appendLineStub);
+    assert.calledOnce(functionsBinaryStub.cancel);
+    assert.called(channelServiceStubs.appendLineStub);
     assert.calledWith(
       channelServiceStubs.appendLineStub,
       nls.localize('force_function_stop_in_progress')
@@ -92,7 +84,7 @@ describe('Force Function Stop', () => {
       notificationServiceStubs.showSuccessfulExecutionStub,
       nls.localize('force_function_stop_text')
     );
-    assert.calledTwice(telemetryServiceStubs.sendCommandEventStub);
+    assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
     assert.calledWith(
       telemetryServiceStubs.sendCommandEventStub,
       'force_function_stop',
