@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.16.0",
+  "version": "51.18.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,8 +26,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "2.23.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "51.16.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.16.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "51.18.0",
+    "@salesforce/salesforcedx-utils-vscode": "51.18.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "2.1.5",
     "@salesforce/templates": "51.5.0",
@@ -39,7 +39,7 @@
     "shelljs": "0.8.3"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.16.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "51.18.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -291,6 +291,10 @@
         },
         {
           "command": "sfdx.force.auth.dev.hub",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.auth.accessToken",
           "when": "sfdx:project_opened"
         },
         {
@@ -555,6 +559,10 @@
       {
         "command": "sfdx.force.auth.web.login",
         "title": "%force_auth_web_login_authorize_org_text%"
+      },
+      {
+        "command": "sfdx.force.auth.accessToken",
+        "title": "%force_auth_access_token_authorize_org_text%"
       },
       {
         "command": "sfdx.force.auth.logout.all",
@@ -837,6 +845,11 @@
       "type": "object",
       "title": "%feature_previews_title%",
       "properties": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": {
+          "type": "boolean",
+          "default": false,
+          "description": "%override_conflicts_on_push_description%"
+        },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",
           "default": true,

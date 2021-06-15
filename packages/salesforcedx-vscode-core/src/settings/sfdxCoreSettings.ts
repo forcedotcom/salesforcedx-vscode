@@ -11,6 +11,7 @@ import {
   CONFLICT_DETECTION_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
+  PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
   SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
@@ -56,6 +57,10 @@ export class SfdxCoreSettings {
 
   public getPushOrDeployOnSaveEnabled(): boolean {
     return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
+  }
+
+  public getPushOrDeployOnSaveOverrideConflicts(): boolean {
+    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS, false);
   }
 
   public getRetrieveTestCodeCoverage(): boolean {
