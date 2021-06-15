@@ -12,7 +12,7 @@ import * as path from 'path';
 import * as shell from 'shelljs';
 import * as sinon from 'sinon';
 import {
-  PersistentStorageService,
+  PersistentStorageService
 } from '../../../src/conflict';
 import { ComponentDiff, ComponentDiffer } from '../../../src/conflict/componentDiffer';
 import {
@@ -51,7 +51,6 @@ describe('Timestamp Conflict Detector Execution', () => {
   let executorSpy: sinon.SinonSpy;
   let differStub: sinon.SinonStub;
   let cacheStub: sinon.SinonStub;
-  let sendCommandEventStub: sinon.SinonStub;
 
   beforeEach(() => {
     differStub = sinon.stub(ComponentDiffer.prototype, 'diffComponents');
@@ -73,8 +72,8 @@ describe('Timestamp Conflict Detector Execution', () => {
     const username = 'admin@ut-sandbox.org';
 
     const cacheResults = {
-      cache: { 
-        baseDirectory: path.normalize('/a/b'), 
+      cache: {
+        baseDirectory: path.normalize('/a/b'),
         commonRoot: 'c',
         components: [{
           fullName: 'HandlerCostCenter',

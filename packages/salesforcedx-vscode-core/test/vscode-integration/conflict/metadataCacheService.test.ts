@@ -304,8 +304,8 @@ describe('Metadata Cache', () => {
 
   describe('Static Methods', () => {
     const cacheResults = {
-      cache: { 
-        baseDirectory: path.normalize('/a/b'), 
+      cache: {
+        baseDirectory: path.normalize('/a/b'),
         commonRoot: 'c',
         components: [{
           fullName: 'HandlerCostCenter',
@@ -347,7 +347,7 @@ describe('Metadata Cache', () => {
         type: 'ApexClass'
       }] as FileProperties[]
     } as MetadataCacheResult;
-    
+
     it('Should correlate results correctly', () => {
       const components = MetadataCacheService.correlateResults(cacheResults);
 
@@ -391,5 +391,5 @@ describe('Metadata Cache', () => {
         }
       }]);
     });
-  })
+  });
 });
