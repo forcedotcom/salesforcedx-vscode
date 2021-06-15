@@ -56,7 +56,7 @@ export class ComponentDiffer {
     return diffs;
   }
 
-  private filesDiffer(projectPath: string, cachePath: string): boolean {
+  public filesDiffer(projectPath: string, cachePath: string): boolean {
     const bufferOne = fs.readFileSync(projectPath);
     const bufferTwo = fs.readFileSync(cachePath);
     return !bufferOne.equals(bufferTwo);
