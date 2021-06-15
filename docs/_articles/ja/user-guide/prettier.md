@@ -14,8 +14,12 @@ lang: ja
 Prettier Apex プラグインをインストールするには、以下の手順に従います。
 
 1. プロジェクトディレクトリのトップレベルに移動します。
+
 2. プロジェクトに `package.json` ファイルが含まれているか確認してください。もし含まれていなければ、`npm init` を実行し、デフォルトのオプションをすべて受け入れます。
-3. `npm install -save-dev -save-exact prettier prettier-plugin-apex` を実行します。
+
+3. 以下を実行します。
+
+`npm install -save-dev -save-exact prettier prettier-plugin-apex`
 
 プロジェクトのルートに設定ファイル `.prettierrc` を作成する必要があります。Prettier のフォーマットオプションについて詳しく知りたい場合は、[他の設定オプション](https://prettier.io/docs/en/options.html)を参照してください。
 

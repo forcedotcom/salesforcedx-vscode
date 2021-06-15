@@ -17,7 +17,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
 
@@ -33,6 +32,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       )
       .withArg('force:source:pull')
       .withLogName('force_source_pull_default_scratch_org');
+
     if (this.flag === '--forceoverwrite') {
       builder
         .withArg(this.flag)
