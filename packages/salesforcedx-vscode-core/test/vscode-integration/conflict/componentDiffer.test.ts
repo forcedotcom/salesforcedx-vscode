@@ -76,5 +76,5 @@ describe('Component Differ', () => {
     expect(walkContetStub.callCount).to.equal(2);
     expect(filesDifferStub.callCount).to.equal(3);
     expect(results).to.deep.equal([]);
-  })
+  });
 });
