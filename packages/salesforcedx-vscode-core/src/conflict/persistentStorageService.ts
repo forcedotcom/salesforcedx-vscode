@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getRootWorkspaceSfdxPath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   ComponentSet,
   FileProperties
@@ -12,12 +12,10 @@ import {
 import { MetadataApiDeployStatus} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import {
   ExtensionContext,
-  Memento,
-  workspace
+  Memento
 } from 'vscode';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { hasRootWorkspace } from '../util';
 
 interface ConflictFileProperties {
   lastModifiedDate: string;
@@ -75,7 +73,7 @@ export class PersistentStorageService {
 
   public makeKey(type: string, fullName: string): string {
     const orgUserName = workspaceContext.username;
-    const projectPath = getRootWorkspaceSfdxPath();
+    const projectPath = getRootWorkspacePath();
     return `${orgUserName}#${projectPath}#${type}#${fullName}`;
   }
 }
