@@ -50,13 +50,13 @@ export class ConflictView {
     remoteLabel: string,
     reveal: boolean,
     diffResults?: DirectoryDiffResults,
-    differences?: boolean
+    diffsOnly: boolean = false
   ) {
-    this.diffsOnly = differences || false;
+    this.diffsOnly = diffsOnly;
     const conflicts = diffResults
       ? this.createConflictEntries(diffResults, remoteLabel)
       : [];
-    const emptyLabel = differences
+    const emptyLabel = diffsOnly
       ? nls.localize('conflict_detect_no_differences')
       : nls.localize('conflict_detect_no_conflicts');
     this.dataProvider.reset(title, conflicts, emptyLabel);
