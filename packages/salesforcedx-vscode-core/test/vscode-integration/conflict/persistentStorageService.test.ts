@@ -13,8 +13,6 @@ import { PersistentStorageService } from '../../../src/conflict/persistentStorag
 import { MockContext } from '../telemetry/MockContext';
 
 describe('Persistent Storage Service', () => {
-  const PROJECT_NAME = 'sfdx-simple';
-  const ORG_NAME = 'test-org';
   const props: FileProperties[] = [
     {
       id: '1',
@@ -85,24 +83,24 @@ describe('Persistent Storage Service', () => {
 
   it('Should store and retrieve file properties in Memento cache', () => {
     const cache = PersistentStorageService.getInstance();
-    cache.setPropertiesForFilesRetrieve(ORG_NAME, PROJECT_NAME, props);
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    cache.setPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'ApexClass', 'One'), undefined);
-    cache.setPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'CustomObject', 'Two'), undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'ApexClass', 'One'))).to.equal(undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'CustomObject', 'Two'))).to.equal(undefined);
+    cache.setPropertiesForFilesRetrieve(props);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
+    cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
+    cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
   });
 
   it('Should set and get ConflictFileProperties in Memento cache for Deploy', () => {
     const cache = PersistentStorageService.getInstance();
-    cache.setPropertiesForFilesDeploy(ORG_NAME, PROJECT_NAME, mockDeployResult.components, mockDeployResult.response);
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    cache.setPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'ApexClass', 'One'), undefined);
-    cache.setPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'CustomObject', 'Two'), undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'ApexClass', 'One'))).to.equal(undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey(ORG_NAME, PROJECT_NAME, 'CustomObject', 'Two'))).to.equal(undefined);
+    cache.setPropertiesForFilesDeploy(mockDeployResult.components, mockDeployResult.response);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
+    cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
+    cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
+    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
   });
 
 });

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { getRootWorkspaceSfdxPath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   ComponentSet,
   FileProperties
@@ -11,9 +12,12 @@ import {
 import { MetadataApiDeployStatus} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import {
   ExtensionContext,
-  Memento
+  Memento,
+  workspace
 } from 'vscode';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import { hasRootWorkspace } from '../util';
 
 interface ConflictFileProperties {
   lastModifiedDate: string;
@@ -47,29 +51,31 @@ export class PersistentStorageService {
     this.storage.update(key, conflictFileProperties);
   }
 
-  public setPropertiesForFilesRetrieve(org: string, project: string, fileProperties: FileProperties | FileProperties[]) {
+  public setPropertiesForFilesRetrieve(fileProperties: FileProperties | FileProperties[]) {
     const fileArray = Array.isArray(fileProperties) ? fileProperties : [fileProperties];
     for (const fileProperty of fileArray) {
       this.setPropertiesForFile(
-        this.makeKey(org, project, fileProperty.type, fileProperty.fullName),
+        this.makeKey(fileProperty.type, fileProperty.fullName),
         {
           lastModifiedDate: fileProperty.lastModifiedDate
         });
     }
   }
 
-  public setPropertiesForFilesDeploy(org: string, project: string, components: ComponentSet, status: MetadataApiDeployStatus) {
+  public setPropertiesForFilesDeploy(components: ComponentSet, status: MetadataApiDeployStatus) {
     const sourceComponents = components.getSourceComponents();
     for (const comp of sourceComponents) {
       this.setPropertiesForFile(
-        this.makeKey(org, project, comp.type.name, comp.fullName),
+        this.makeKey(comp.type.name, comp.fullName),
         {
           lastModifiedDate: status.lastModifiedDate
         });
     }
   }
 
-  public makeKey(org: string, project: string, type: string, fullName: string): string {
-    return `${org}#${project}#${type}#${fullName}`;
+  public makeKey(type: string, fullName: string): string {
+    const orgUserName = workspaceContext.username;
+    const projectPath = getRootWorkspaceSfdxPath();
+    return `${orgUserName}#${projectPath}#${type}#${fullName}`;
   }
 }
