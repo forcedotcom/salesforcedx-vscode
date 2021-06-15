@@ -10,7 +10,6 @@ import {
   LocalComponent,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { FileProperties, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { existsSync } from 'fs';
 import { join, normalize } from 'path';
 import { channelService } from '../../channels';
