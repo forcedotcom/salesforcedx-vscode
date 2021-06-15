@@ -10,6 +10,7 @@ import { ConflictFile, ConflictGroupNode, ConflictNode } from './conflictNode';
 export class ConflictOutlineProvider
   implements vscode.TreeDataProvider<ConflictNode> {
   private root: ConflictGroupNode | null;
+  private emptyLabel?: string;
 
   private internalOnDidChangeTreeData: vscode.EventEmitter<
     ConflictNode | undefined
@@ -30,7 +31,12 @@ export class ConflictOutlineProvider
     this.internalOnDidChangeTreeData.fire(node);
   }
 
-  public reset(rootLabel: string, conflicts: ConflictFile[]) {
+  public reset(
+    rootLabel: string,
+    conflicts: ConflictFile[],
+    emptyLabel?: string
+  ) {
+    this.emptyLabel = emptyLabel;
     this.root = this.createConflictRoot(rootLabel, conflicts);
   }
 
@@ -66,7 +72,7 @@ export class ConflictOutlineProvider
     rootLabel: string,
     conflicts: ConflictFile[]
   ): ConflictGroupNode {
-    const orgRoot = new ConflictGroupNode(rootLabel);
+    const orgRoot = new ConflictGroupNode(rootLabel, this.emptyLabel);
     orgRoot.id = 'ROOT-NODE';
     orgRoot.addChildren(conflicts);
     return orgRoot;
