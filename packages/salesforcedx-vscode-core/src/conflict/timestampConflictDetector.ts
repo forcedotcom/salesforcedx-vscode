@@ -1,19 +1,24 @@
+/*
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { join, relative } from 'path';
+import { nls } from '../messages';
 import {
   DirectoryDiffResults,
   MetadataCacheResult,
   MetadataCacheService,
   PersistentStorageService
-} from '.';
+} from './';
 import { ComponentDiffer } from './componentDiffer';
 import { CorrelatedComponent } from './metadataCacheService';
-import { ConflictDetectionMessages } from '../commands/util/postconditionCheckers';
-import { nls } from '../messages';
 
 export class TimestampConflictDetector {
   private differ: ComponentDiffer;
   private diffs: DirectoryDiffResults;
-  private messages: ConflictDetectionMessages;
   private static EMPTY_DIFFS = {
     localRoot: '',
     remoteRoot: '',
@@ -22,8 +27,7 @@ export class TimestampConflictDetector {
     scannedRemote: 0
   };
 
-  constructor(messages: ConflictDetectionMessages) {
-    this.messages = messages;
+  constructor() {
     this.differ = new ComponentDiffer();
     this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
   }
@@ -44,17 +48,16 @@ export class TimestampConflictDetector {
     data: CorrelatedComponent[]
   ) {
     const cache = PersistentStorageService.getInstance();
-    const componentDiffer = new ComponentDiffer();
     const conflicts: Set<string> = new Set<string>();
     data.forEach(component => {
       let lastModifiedInOrg;
       let lastModifiedInCache;
 
       lastModifiedInOrg = component.fileProperties.lastModifiedDate;
-      const key = cache.makeKey(component.fileProperties.type, component.fileProperties.fileName);
+      const key = cache.makeKey(component.fileProperties.type, component.fileProperties.fullName);
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-        const differences = componentDiffer.diffComponents(component.projectComponent, component.cacheComponent);
+        const differences = this.differ.diffComponents(component.projectComponent, component.cacheComponent);
         differences.forEach(difference => {
           const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
           const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);

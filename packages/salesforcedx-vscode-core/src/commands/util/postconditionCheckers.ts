@@ -317,8 +317,8 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       const componentPath = inputs.data;
       const cacheService = new MetadataCacheService(username);
       const result = await cacheService.loadCache(componentPath, getRootWorkspacePath(), this.isManifest);
-      const conflictDetector = new TimestampConflictDetector(this.messages);
-      const diffs = conflictDetector.createDiffs(result);
+      const detector = new TimestampConflictDetector();
+      const diffs = detector.createDiffs(result);
       return await this.handleConflicts(inputs.data, username, diffs);
     }
     return { type: 'CANCEL' };
