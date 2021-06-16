@@ -493,7 +493,7 @@ describe('Base Deploy Retrieve Commands', () => {
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
           .returns({ start: this.startStub });
-        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFiles');
+        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesRetrieve');
       }
 
       protected async getComponents(
@@ -538,20 +538,21 @@ describe('Base Deploy Retrieve Commands', () => {
         {
           status: RequestStatus.Succeeded,
           fileProperties: [
-            {fileName: 'a.cls', lastModifiedDate: 'Today'},
-            {fileName: 'b.cls', lastModifiedDate: 'Yesterday'}
+            {fullName: 'one', type: 'ApexClass', lastModifiedDate: 'Today'},
+            {fullName: 'two', type: 'CustomObject', lastModifiedDate: 'Yesterday'}
           ]
         } as MetadataApiRetrieveStatus,
         new ComponentSet()
       );
+      const cache = PersistentStorageService.getInstance();
       executor.startStub.resolves(mockRetrieveResult);
 
       await executor.run({data: {}, type: 'CONTINUE' });
 
       expect(executor.cacheSpy.callCount).to.equal(1);
       expect(executor.cacheSpy.args[0][0].length).to.equal(2);
-      expect(PersistentStorageService.getInstance().getPropertiesForFile('a.cls')?.lastModifiedDate).to.equal('Today');
-      expect(PersistentStorageService.getInstance().getPropertiesForFile('b.cls')?.lastModifiedDate).to.equal('Yesterday');
+      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'one'))?.lastModifiedDate).to.equal('Today');
+      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'two'))?.lastModifiedDate).to.equal('Yesterday');
     });
 
     it('should not store any properties in metadata cache on failed retrieve', async () => {
