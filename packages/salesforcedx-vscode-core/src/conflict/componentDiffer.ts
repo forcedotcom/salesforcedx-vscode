@@ -30,7 +30,6 @@ export class ComponentDiffer {
       projectPaths.push(projectComponent.xml);
     }
     for (const file of projectPaths) {
-      // NOTE: not sure this holds for static resources
       const key = path.basename(file);
       projectIndex.set(key, file);
     }
@@ -41,7 +40,6 @@ export class ComponentDiffer {
       cachePaths.push(cacheComponent.xml);
     }
     for (const file of cachePaths) {
-      // NOTE: not sure this holds for static resources
       const key = path.basename(file);
       cacheIndex.set(key, file);
     }

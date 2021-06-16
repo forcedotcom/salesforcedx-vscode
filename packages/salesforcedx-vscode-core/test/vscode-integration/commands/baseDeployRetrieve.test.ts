@@ -26,7 +26,6 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { Test } from 'mocha';
 import { basename, dirname, join, sep } from 'path';
 import { createSandbox, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
@@ -37,13 +36,11 @@ import {
   DeployRetrieveExecutor,
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
-import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
-import { MockContext } from '../telemetry/MockContext';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -483,7 +480,6 @@ describe('Base Deploy Retrieve Commands', () => {
       public components: ComponentSet;
       public startStub: SinonStub;
       public retrieveStub: SinonStub;
-      public cacheStub: SinonStub;
 
       constructor(toRetrieve = new ComponentSet()) {
         super('test', 'testlog');
@@ -492,7 +488,6 @@ describe('Base Deploy Retrieve Commands', () => {
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
           .returns({ start: this.startStub });
-        this.cacheStub = sb.stub(PersistentStorageService.getInstance(), 'setPropertiesForFilesRetrieve');
       }
 
       protected async getComponents(
@@ -506,8 +501,6 @@ describe('Base Deploy Retrieve Commands', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         packageDir
       ]);
-      const mockContext = new MockContext(false);
-      PersistentStorageService.initialize(mockContext);
     });
 
     it('should call retrieve on component set', async () => {
@@ -529,31 +522,6 @@ describe('Base Deploy Retrieve Commands', () => {
       await executor.run({ data: {}, type: 'CONTINUE' });
 
       expect(operationSpy.calledOnce).to.equal(true);
-    });
-
-    it('should call cache property setter on successful retrieve', async () => {
-      const executor = new TestRetrieve();
-      const mockRetrieveResult = new RetrieveResult(
-        {
-          status: RequestStatus.Succeeded
-        } as MetadataApiRetrieveStatus,
-        new ComponentSet()
-      );
-      executor.startStub.resolves(mockRetrieveResult);
-
-      await executor.run({data: {}, type: 'CONTINUE' });
-
-      expect(executor.cacheStub.callCount).to.equal(1);
-    });
-
-    it('should not call cache property setter on failed retrieve', async () => {
-      const executor = new TestRetrieve();
-      const mockRetrieveResult = undefined;
-      executor.startStub.resolves(mockRetrieveResult);
-
-      await executor.run({data: {}, type: 'CONTINUE' });
-
-      expect(executor.cacheStub.callCount).to.equal(0);
     });
 
     describe('Result Output', () => {
