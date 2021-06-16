@@ -42,6 +42,10 @@ export const messages = {
 
   force_auth_web_login_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
   force_auth_web_login_authorize_org_text: 'SFDX: Authorize an Org',
+  force_auth_access_token_authorize_org_text:
+    'SFDX: Authorize an Org using Session ID',
+  force_auth_access_token_login_bad_oauth_token_message:
+    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
 
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
@@ -56,6 +60,11 @@ export const messages = {
     'Enter an org alias or use the default alias',
   parameter_gatherer_enter_custom_url:
     'Enter a custom login URL or use the default URL',
+  parameter_gatherer_enter_instance_url: 'Enter Instance URL',
+  parameter_gatherer_enter_session_id: 'Enter Session ID',
+  parameter_gatherer_enter_session_id_placeholder: 'Session ID',
+  parameter_gatherer_enter_session_id_diagnostic_message:
+    'Enter a valid Session ID',
   parameter_gatherer_enter_scratch_org_def_files:
     'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
   parameter_gatherer_enter_scratch_org_expiration_days:
@@ -144,7 +153,7 @@ export const messages = {
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
-    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://github.com/forcedotcom/evergreen-docs/blob/master/Getting%20Started%20Guide/Evergreen%20Getting%20Started%20Guide.md#installing-the-salesforce-functions-sfdx-plugin).',
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://dev.beta.developer.salesforce.com/docs/platform/functions/guide/vs-intro.html#prerequisites).',
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
   force_function_start_unexpected_error:
@@ -533,6 +542,8 @@ export const messages = {
   conflict_detect_execution_name: 'Conflict Detection',
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
+  conflict_detect_initialization_error:
+    'Unexpected error initiliazing metadata cache',
   conflict_detect_empty_results:
     'Conflict Detection failed to retrieve org file state',
   conflict_detect_conflicts_during_deploy:
