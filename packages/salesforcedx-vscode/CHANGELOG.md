@@ -1,3 +1,11 @@
+# 52.1.0 - June 16, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Make input prompt persistent ([PR #3331](https://github.com/forcedotcom/salesforcedx-vscode/pull/3331))
+
 # 51.17.0 - June 10, 2021
 
 ## Added
