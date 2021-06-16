@@ -4,8 +4,6 @@
 
 #### salesforcedx-vscode-core
 
-- Set cache key to type and fullName ([PR #3314](https://github.com/forcedotcom/salesforcedx-vscode/pull/3314))
-
 - Setting to always force push on save ([PR #3144](https://github.com/forcedotcom/salesforcedx-vscode/pull/3144))
 
 - Auth with token ([PR #3268](https://github.com/forcedotcom/salesforcedx-vscode/pull/3268))
