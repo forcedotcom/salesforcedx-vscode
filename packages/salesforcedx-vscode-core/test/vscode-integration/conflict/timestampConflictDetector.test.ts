@@ -69,8 +69,6 @@ describe('Timestamp Conflict Detector Execution', () => {
   });
 
   it('Should report differences', async () => {
-    const username = 'admin@ut-sandbox.org';
-
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
@@ -114,6 +112,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     const results = await executor.createDiffs(cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
+    expect(cacheStub.callCount).to.equal(1);
 
     expect(differStub.callCount).to.equal(1);
     expect(differStub.getCall(0).args).to.eql([
@@ -138,8 +137,178 @@ describe('Timestamp Conflict Detector Execution', () => {
     );
   });
 
+  it('Should not report differences if the component is only local', async () => {
+    const cacheResults = {
+      cache: {
+        baseDirectory: path.normalize('/a/b'),
+        commonRoot: 'c',
+        components: [] as SourceComponent[]
+      },
+      project: {
+        baseDirectory: path.normalize('/d'),
+        commonRoot: path.normalize('e/f'),
+        components: [{
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      properties: [{
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass'
+      }] as FileProperties[]
+    } as MetadataCacheResult;
+
+    const results = await executor.createDiffs(cacheResults);
+
+    expect(executorSpy.callCount).to.equal(1);
+    expect(cacheStub.callCount).to.equal(0);
+    expect(differStub.callCount).to.equal(0);
+    expect(results.different).to.eql(new Set<string>());
+  });
+
+  it('Should not report differences if the component is only remote', async () => {
+    const cacheResults = {
+      cache: {
+        baseDirectory: path.normalize('/a/b'),
+        commonRoot: 'c',
+        components: [{
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      project: {
+        baseDirectory: path.normalize('/d'),
+        commonRoot: path.normalize('e/f'),
+        components: [] as SourceComponent[]
+      },
+      properties: [{
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass'
+      }] as FileProperties[]
+    } as MetadataCacheResult;
+
+    const results = await executor.createDiffs(cacheResults);
+
+    expect(executorSpy.callCount).to.equal(1);
+    expect(cacheStub.callCount).to.equal(0);
+    expect(differStub.callCount).to.equal(0);
+    expect(results.different).to.eql(new Set<string>());
+  });
+
+  it('Should not report differences if the timestamps match', async () => {
+    const cacheResults = {
+      cache: {
+        baseDirectory: path.normalize('/a/b'),
+        commonRoot: 'c',
+        components: [{
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      project: {
+        baseDirectory: path.normalize('/d'),
+        commonRoot: path.normalize('e/f'),
+        components: [{
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      properties: [{
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass'
+      }] as FileProperties[]
+    } as MetadataCacheResult;
+
+    const storageResult = {
+      lastModifiedDate: 'Today'
+    };
+
+    cacheStub.returns(storageResult);
+
+    const results = await executor.createDiffs(cacheResults);
+
+    expect(executorSpy.callCount).to.equal(1);
+    expect(cacheStub.callCount).to.equal(1);
+    expect(differStub.callCount).to.equal(0);
+    expect(results.different).to.eql(new Set<string>());
+  });
+
+  it('Should not report differences if the files match', async () => {
+    const cacheResults = {
+      cache: {
+        baseDirectory: path.normalize('/a/b'),
+        commonRoot: 'c',
+        components: [{
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      project: {
+        baseDirectory: path.normalize('/d'),
+        commonRoot: path.normalize('e/f'),
+        components: [{
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      properties: [{
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass'
+      }] as FileProperties[]
+    } as MetadataCacheResult;
+
+    const diffResults = [] as ComponentDiff[];
+
+    const storageResult = {
+      lastModifiedDate: 'Yesteday'
+    };
+
+    differStub.returns(diffResults);
+    cacheStub.returns(storageResult);
+
+    const results = await executor.createDiffs(cacheResults);
+
+    expect(executorSpy.callCount).to.equal(1);
+    expect(cacheStub.callCount).to.equal(1);
+
+    expect(differStub.callCount).to.equal(1);
+    expect(differStub.getCall(0).args).to.eql([
+      {
+        fullName: 'HandlerCostCenter',
+        type: {
+          name: 'ApexClass'
+        }
+      },
+      {
+        fullName: 'HandlerCostCenter',
+        type: {
+          name: 'ApexClass'
+        }
+      },
+      path.normalize('/d/e/f'),
+      path.normalize('/a/b/c')
+    ]);
+
+    expect(results.different).to.eql(new Set<string>());
+  });
+
   it('Should report an error during conflict detection', async () => {
-    const username = 'admin@ut-sandbox.org';
     const cacheResults = undefined;
 
     try {
