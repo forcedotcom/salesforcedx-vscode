@@ -77,14 +77,16 @@ describe('Auth Parameter Gatherer', () => {
         inputStub,
         match({
           prompt: nls.localize('parameter_gatherer_enter_instance_url'),
-          placeHolder: INSTANCE_URL_PLACEHOLDER
+          placeHolder: INSTANCE_URL_PLACEHOLDER,
+          ignoreFocusOut: true
         })
       );
       assert.calledWith(
         inputStub,
         match({
           prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-          placeHolder: DEFAULT_ALIAS
+          placeHolder: DEFAULT_ALIAS,
+          ignoreFocusOut: true
         })
       );
       assert.calledWith(
@@ -93,7 +95,8 @@ describe('Auth Parameter Gatherer', () => {
           prompt: nls.localize('parameter_gatherer_enter_session_id'),
           placeHolder: nls.localize(
             'parameter_gatherer_enter_session_id_placeholder'
-          )
+          ),
+          ignoreFocusOut: true
         })
       );
     });
