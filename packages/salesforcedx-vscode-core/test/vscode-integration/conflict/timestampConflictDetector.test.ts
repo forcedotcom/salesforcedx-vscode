@@ -129,8 +129,8 @@ describe('Timestamp Conflict Detector Execution', () => {
           name: 'ApexClass'
         }
       },
-      path.normalize('d/e/f'),
-      path.normalize('a/b/c')
+      path.normalize('/d/e/f'),
+      path.normalize('/a/b/c')
     ]);
 
     expect(results.different).to.have.all.keys(
