@@ -1,10 +1,26 @@
 # 52.1.0 - June 16, 2021
 
-## Fixed
+## Added
 
 #### salesforcedx-vscode-core
 
-- Make input prompt persistent ([PR #3331](https://github.com/forcedotcom/salesforcedx-vscode/pull/3331))
+- Set cache key to type and fullName ([PR #3314](https://github.com/forcedotcom/salesforcedx-vscode/pull/3314))
+
+- Setting to always force push on save ([PR #3144](https://github.com/forcedotcom/salesforcedx-vscode/pull/3144))
+
+- Auth with token ([PR #3268](https://github.com/forcedotcom/salesforcedx-vscode/pull/3268))
+
+## Fixed
+
+#### docs
+
+- Update japanese translation ([PR #3205](https://github.com/forcedotcom/salesforcedx-vscode/pull/3205))
+
+#### salesforcedx-vscode-core
+
+- Import FileProperties from the top level ([PR #3302](https://github.com/forcedotcom/salesforcedx-vscode/pull/3302))
+
+- Use correct message for file diffs ([PR #3304](https://github.com/forcedotcom/salesforcedx-vscode/pull/3304))
 
 # 51.17.0 - June 10, 2021
 
