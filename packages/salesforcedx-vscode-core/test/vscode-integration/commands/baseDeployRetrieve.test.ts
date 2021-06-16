@@ -11,18 +11,18 @@ import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
+  ComponentStatus,
   DeployResult,
   FileProperties,
   MetadataApiDeploy,
   MetadataApiRetrieve,
+  MetadataApiRetrieveStatus,
   registry,
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import {
-  ComponentStatus,
   MetadataApiDeployStatus,
-  MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { fail } from 'assert';
