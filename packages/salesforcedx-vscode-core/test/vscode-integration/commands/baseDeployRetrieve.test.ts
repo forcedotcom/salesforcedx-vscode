@@ -361,9 +361,9 @@ describe('Base Deploy Retrieve Commands', () => {
       const fileResponses: any[] = [];
       sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
       executor.startStub.resolves(mockDeployResult);
+      const success = await executor.run({ data: {}, type: 'CONTINUE' });
 
-      await executor.run({data: {}, type: 'CONTINUE' });
-
+      expect(success).to.equal(false);
       expect(executor.cacheSpy.callCount).to.equal(1);
       expect(executor.cacheSpy.args[0][0].components.size).to.equal(0);
     });
