@@ -154,7 +154,8 @@ export async function diffFolder(cache: MetadataCacheResult, username: string) {
     nls.localize('force_source_diff_folder_title', username),
     username,
     true,
-    diffs
+    diffs,
+    true
   );
 }
 
