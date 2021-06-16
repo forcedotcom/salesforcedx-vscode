@@ -87,7 +87,7 @@ export async function forceFunctionDebugInvoke(sourceUri: Uri) {
     new FilePathGatherer(sourceUri),
     new ForceFunctionInvoke(true)
   );
-  await await commandlet.run();
+  await commandlet.run();
 
   await FunctionService.instance.stopDebuggingFunction(localRoot);
 }
