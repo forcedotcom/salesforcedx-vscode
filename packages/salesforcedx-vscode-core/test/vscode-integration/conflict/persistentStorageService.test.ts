@@ -81,7 +81,7 @@ describe('Persistent Storage Service', () => {
     PersistentStorageService.initialize(mockContext);
   });
 
-  it('Should store and retrieve file properties in Memento cache', () => {
+  it('Should store and retrieve file properties in Memento cache for Retrieve', () => {
     const cache = PersistentStorageService.getInstance();
     cache.setPropertiesForFilesRetrieve(props);
     expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Tomorrow'});
