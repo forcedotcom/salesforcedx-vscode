@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { runFunction } from '@salesforce/functions-core';
+import { runFunction } from '@heroku/functions-core';
 
 import * as fs from 'fs';
 import { run } from 'mocha';
@@ -30,7 +30,7 @@ import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 
-import * as library from '@salesforce/functions-core';
+import * as library from '@heroku/functions-core';
 
 describe('Force Function Invoke', () => {
   describe('Debug Invoke', () => {

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Benny, getFunctionsBinary } from '@salesforce/functions-core';
-import * as library from '@salesforce/functions-core';
+import { Benny, getFunctionsBinary } from '@heroku/functions-core';
+import * as library from '@heroku/functions-core';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { EventEmitter } from 'events';
 import * as path from 'path';

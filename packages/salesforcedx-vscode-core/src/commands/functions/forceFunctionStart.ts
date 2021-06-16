@@ -27,10 +27,10 @@ import {
   FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
 
-import { getFunctionsBinary } from '@salesforce/functions-core';
+import { getFunctionsBinary } from '@heroku/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { OUTPUT_CHANNEL } from '../../channels';
-import { getProjectDescriptor } from '@salesforce/functions-core';
+import { getProjectDescriptor } from '@heroku/functions-core';
 /**
  * Error types when running SFDX: Start Function
  * This is also used as the telemetry log name.
