@@ -452,7 +452,7 @@ describe('Postcondition Checkers', () => {
     });
   });
 
-  describe('CacheConflictChecker', () => {
+  describe('TimestampConflictChecker', () => {
       let modalStub: SinonStub;
       let settingsStub: SinonStub;
       let detectorStub: SinonStub;
@@ -494,7 +494,7 @@ describe('Postcondition Checkers', () => {
         expect(response.type).to.equal('CANCEL');
       });
 
-      it('Should return ContinueResponse unchanged if input is ContinueResponse & conflict detection is disabled', async () => {
+      it('Should return ContinueResponse unchanged if input is ContinueResponse and conflict detection is disabled', async () => {
         const postChecker = new TimestampConflictChecker(false, emptyMessages);
 
         settingsStub.returns(false);
