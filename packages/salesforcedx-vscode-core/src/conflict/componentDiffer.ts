@@ -20,7 +20,9 @@ export class ComponentDiffer {
 
   public diffComponents(
     projectComponent: SourceComponent,
-    cacheComponent: SourceComponent
+    cacheComponent: SourceComponent,
+    projectRoot: string,
+    cacheRoot: string
   ): ComponentDiff[] {
     const diffs: ComponentDiff[] = [];
 
@@ -30,7 +32,7 @@ export class ComponentDiffer {
       projectPaths.push(projectComponent.xml);
     }
     for (const file of projectPaths) {
-      const key = path.basename(file);
+      const key = path.relative(projectRoot, file);
       projectIndex.set(key, file);
     }
 
@@ -40,7 +42,7 @@ export class ComponentDiffer {
       cachePaths.push(cacheComponent.xml);
     }
     for (const file of cachePaths) {
-      const key = path.basename(file);
+      const key = path.relative(cacheRoot, file);
       cacheIndex.set(key, file);
     }
 

@@ -46,20 +46,20 @@ describe('Component Differ', () => {
   });
 
   it('Should return all file paths that differ', () => {
-    walkContetStub.returns([path.join('sample', 'path', 'AccountController.cls'), path.join('another', 'path')]);
+    walkContetStub.returns([path.join('base', 'sample', 'path', 'AccountController.cls'), path.join('base', 'another', 'path')]);
     filesDifferStub.returns(true);
 
-    const results = differ.diffComponents(sampleComponent, sampleComponent);
+    const results = differ.diffComponents(sampleComponent, sampleComponent, 'base', 'base');
 
     expect(walkContetStub.callCount).to.equal(2);
     expect(filesDifferStub.callCount).to.equal(3);
     expect(results).to.have.deep.members([{
-      projectPath: path.join('sample', 'path', 'AccountController.cls'),
-      cachePath: path.join('sample', 'path', 'AccountController.cls')
+      projectPath: path.join('base', 'sample', 'path', 'AccountController.cls'),
+      cachePath: path.join('base', 'sample', 'path', 'AccountController.cls')
     },
     {
-      projectPath: path.join('another', 'path'),
-      cachePath: path.join('another', 'path')
+      projectPath: path.join('base', 'another', 'path'),
+      cachePath: path.join('base', 'another', 'path')
     },
     {
       projectPath: 'AccountController.cls-meta.xml',
@@ -68,10 +68,10 @@ describe('Component Differ', () => {
   });
 
   it('Should return nothing if there are no differences', () => {
-    walkContetStub.returns([path.join('sample', 'path', 'AccountController.cls'), path.join('another', 'path')]);
+    walkContetStub.returns([path.join('base', 'sample', 'path', 'AccountController.cls'), path.join('base', 'another', 'path')]);
     filesDifferStub.returns(false);
 
-    const results = differ.diffComponents(sampleComponent, sampleComponent);
+    const results = differ.diffComponents(sampleComponent, sampleComponent, 'base', 'base');
 
     expect(walkContetStub.callCount).to.equal(2);
     expect(filesDifferStub.callCount).to.equal(3);
