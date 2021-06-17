@@ -278,8 +278,8 @@ export class MetadataCacheService {
       const projectComponent = projectIndex.get(key);
       if (cacheComponent && projectComponent) {
         components.push({
-          cacheComponent, 
-          projectComponent, 
+          cacheComponent,
+          projectComponent,
           lastModifiedDate: fileProperties.lastModifiedDate
         });
       }
