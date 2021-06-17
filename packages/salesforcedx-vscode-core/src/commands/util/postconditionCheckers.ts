@@ -369,7 +369,6 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
             this.messages.commandHint(componentPath)
           )
         );
-        channelService.showChannelOutput();
 
         const doReveal =
           choice === nls.localize('conflict_detect_show_conflicts');
