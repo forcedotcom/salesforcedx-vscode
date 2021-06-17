@@ -8,13 +8,14 @@
 import { expect } from 'chai';
 import * as cp from 'child_process';
 import * as path from 'path';
-import { match, SinonStub, stub } from 'sinon';
+import { assert, match, mock, SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import { ForceFunctionCreateExecutor } from '../../../../src/commands/templates/forceFunctionCreate';
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from '../../../../src/commands/templates/metadataTypeConstants';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
+import { telemetryService } from '../../../../src/telemetry';
 import * as rootWorkspace from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
@@ -122,6 +123,17 @@ describe('Force Function Create', () => {
         notificationServiceStub,
         nls.localize('force_function_install_mvn_dependencies_error', errorText)
       );
+    });
+
+    it('Log metric should add additional language property for telemetry', async () => {
+      const telemetryServiceStub = stub(telemetryService, 'sendCommandEvent');
+
+      const funcCreate = new ForceFunctionCreateExecutor();
+      funcCreate.metadata = FUNCTION_TYPE_JAVA;
+      funcCreate.build(functionInfoJava);
+      funcCreate.logMetric('test_log_name', [1234, 5678], {});
+      sinon.assert.calledOnce(telemetryServiceStub);
+      expect(telemetryServiceStub.firstCall.args).to.deep.equal(['test_log_name', [1234, 5678], {language: 'java'}, undefined]);
     });
 
     afterEach(() => {
