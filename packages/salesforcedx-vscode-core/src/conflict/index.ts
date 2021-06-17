@@ -29,6 +29,7 @@ export {
   MetadataCacheService,
   MetadataContext
 } from './metadataCacheService';
+export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
 export const conflictDetector = ConflictDetector.getInstance();
 
