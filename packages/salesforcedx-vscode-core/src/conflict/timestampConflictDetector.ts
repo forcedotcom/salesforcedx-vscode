@@ -54,8 +54,8 @@ export class TimestampConflictDetector {
       let lastModifiedInOrg;
       let lastModifiedInCache;
 
-      lastModifiedInOrg = component.fileProperties.lastModifiedDate;
-      const key = cache.makeKey(component.fileProperties.type, component.fileProperties.fullName);
+      lastModifiedInOrg = component.lastModifiedDate;
+      const key = cache.makeKey(component.cacheComponent.type.name, component.cacheComponent.fullName);
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
         const differences = this.differ.diffComponents(component.projectComponent, component.cacheComponent, this.diffs.localRoot, this.diffs.remoteRoot);

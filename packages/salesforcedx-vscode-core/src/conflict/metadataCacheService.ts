@@ -46,7 +46,7 @@ export interface MetadataCacheResult {
 export interface CorrelatedComponent {
   cacheComponent: SourceComponent;
   projectComponent: SourceComponent;
-  fileProperties: FileProperties;
+  lastModifiedDate: string;
 }
 
 export class MetadataCacheService {
@@ -277,7 +277,11 @@ export class MetadataCacheService {
       const cacheComponent = cacheIndex.get(key);
       const projectComponent = projectIndex.get(key);
       if (cacheComponent && projectComponent) {
-        components.push({cacheComponent, projectComponent, fileProperties});
+        components.push({
+          cacheComponent, 
+          projectComponent, 
+          lastModifiedDate: fileProperties.lastModifiedDate
+        });
       }
     });
 

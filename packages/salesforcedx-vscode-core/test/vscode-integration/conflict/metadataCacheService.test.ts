@@ -365,11 +365,7 @@ describe('Metadata Cache', () => {
             name: 'ApexClass'
           }
         },
-        fileProperties: {
-          fullName: 'AccountController',
-          lastModifiedDate: 'Yesterday',
-          type: 'ApexClass'
-        }
+        lastModifiedDate: 'Yesterday'
       },
       {
         cacheComponent: {
@@ -384,11 +380,7 @@ describe('Metadata Cache', () => {
             name: 'ApexClass'
           }
         },
-        fileProperties: {
-          fullName: 'HandlerCostCenter',
-          lastModifiedDate: 'Today',
-          type: 'ApexClass'
-        }
+        lastModifiedDate: 'Today'
       }]);
     });
   });
