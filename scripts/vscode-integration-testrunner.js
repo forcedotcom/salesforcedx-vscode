@@ -34,6 +34,7 @@ async function runIntegrationTests({
       CODE_LOGS || path.join(process.cwd(), '..', '..', 'vscode-crash-logs');
     const launchArgs = _testWorkspace && [
       _testWorkspace,
+      '--disable-extensions',
       '--crash-reporter-directory',
       _vscodeLogDir
     ];
