@@ -112,7 +112,8 @@ export class FunctionService {
 
   /**
    * Returns the debugType of the first of the startedExecutions as a way to determine the language
-   * of all running executions, assuming that all running function languages are the same.
+   * of all running executions.
+   * Current options: 'node', 'java'
    */
   public getFunctionLanguage() {
     const functionIterator = this.startedExecutions.values();

@@ -72,7 +72,7 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
             );
             reject(err);
           }
-          resolve(void 0);
+          resolve();
         });
       });
     } else {
@@ -89,7 +89,7 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
             );
             reject(err);
           }
-          resolve(void 0);
+          resolve();
         });
       });
     }
@@ -102,7 +102,12 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
     measurements?: Measurements
   ) {
     if (properties) {
-      properties.language = this.getFileExtension().replace('.', '');
+      const fileExtension = this.getFileExtension().replace('.', '');
+      if (fileExtension === 'js') {
+        properties.language = 'node';
+      } else if (fileExtension === 'java') {
+        properties.language = 'java';
+      }
     }
     super.logMetric(logName, hrstart, properties, measurements);
   }
