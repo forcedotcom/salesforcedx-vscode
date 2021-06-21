@@ -14,7 +14,7 @@ import * as sinon from 'sinon';
 import {
   PersistentStorageService
 } from '../../../src/conflict';
-import { ComponentDiff, ComponentDiffer } from '../../../src/conflict/componentDiffer';
+import { ComponentDiff, diffComponents } from '../../../src/conflict/componentDiffer';
 import {
   MetadataCacheResult
 } from '../../../src/conflict/metadataCacheService';
@@ -53,7 +53,7 @@ describe('Timestamp Conflict Detector Execution', () => {
   let cacheStub: sinon.SinonStub;
 
   beforeEach(() => {
-    differStub = sinon.stub(ComponentDiffer.prototype, 'diffComponents');
+    differStub = sinon.stub('diffComponents');
     executor = new TimestampConflictDetector();
     executorSpy = sinon.spy(executor, 'createDiffs');
     cacheStub = sinon.stub(PersistentStorageService.prototype, 'getPropertiesForFile');

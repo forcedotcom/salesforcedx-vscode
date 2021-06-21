@@ -13,11 +13,10 @@ import {
   MetadataCacheService,
   PersistentStorageService
 } from './';
-import { ComponentDiffer } from './componentDiffer';
+import { diffComponents } from './componentDiffer';
 import { CorrelatedComponent } from './metadataCacheService';
 
 export class TimestampConflictDetector {
-  private differ: ComponentDiffer;
   private diffs: DirectoryDiffResults;
   // Probably want a UI update to remove scannedLocal and scannedRemote
   private static EMPTY_DIFFS = {
@@ -29,7 +28,6 @@ export class TimestampConflictDetector {
   };
 
   constructor() {
-    this.differ = new ComponentDiffer();
     this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
   }
 
@@ -58,7 +56,7 @@ export class TimestampConflictDetector {
       const key = cache.makeKey(component.cacheComponent.type.name, component.cacheComponent.fullName);
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-        const differences = this.differ.diffComponents(component.projectComponent, component.cacheComponent, this.diffs.localRoot, this.diffs.remoteRoot);
+        const differences = diffComponents(component.projectComponent, component.cacheComponent, this.diffs.localRoot, this.diffs.remoteRoot);
         differences.forEach(difference => {
           const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
           const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
