@@ -25,10 +25,10 @@ describe('Component Differ', () => {
   const noDiffPathTwo = path.join(dir, 'two', 'HandlerCostCenter.cls');
   const xmlPathOne = path.join(dir, 'one', 'AccountController.cls-meta.xml');
   const xmlPathTwo = path.join(dir, 'two', 'AccountController.cls-meta.xml');
-  if(!fs.existsSync(path.join(dir, 'one'))) {
+  if (!fs.existsSync(path.join(dir, 'one'))) {
     fs.mkdirSync(path.join(dir, 'one'), {recursive: true});
   }
-  if(!fs.existsSync(path.join(dir, 'two'))) {
+  if (!fs.existsSync(path.join(dir, 'two'))) {
     fs.mkdirSync(path.join(dir, 'two'), {recursive: true});
   }
 
@@ -42,7 +42,7 @@ describe('Component Differ', () => {
     xml: xmlPathTwo,
     walkContent: () => [] as string[]
   } as SourceComponent;
-  
+
   fs.writeFileSync(diffPathOne, 'abc');
   fs.writeFileSync(diffPathTwo, 'def');
   fs.writeFileSync(noDiffPathOne, 'xyz');
