@@ -9,7 +9,8 @@ import {
   ComponentSet,
   FileProperties,
   MetadataApiRetrieve,
-  RetrieveResult
+  RetrieveResult,
+  SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import {
   MetadataApiRetrieveStatus,
@@ -300,4 +301,87 @@ describe('Metadata Cache', () => {
     const results = new RetrieveResult(response, cacheComps);
     return results;
   }
+
+  describe('Static Methods', () => {
+    const cacheResults = {
+      cache: {
+        baseDirectory: path.normalize('/a/b'),
+        commonRoot: 'c',
+        components: [{
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        },
+        {
+          fullName: 'AccountController',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      project: {
+        baseDirectory: path.normalize('/d'),
+        commonRoot: path.normalize('e/f'),
+        components: [{
+          fullName: 'AccountController',
+          type: {
+            name: 'ApexClass'
+          }
+        },
+        {
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        }] as SourceComponent[]
+      },
+      properties: [{
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass'
+      },
+      {
+        fullName: 'AccountController',
+        lastModifiedDate: 'Yesterday',
+        type: 'ApexClass'
+      }] as FileProperties[]
+    } as MetadataCacheResult;
+
+    it('Should correlate results correctly', () => {
+      const components = MetadataCacheService.correlateResults(cacheResults);
+
+      expect(components.length).to.equal(2);
+      expect(components).to.have.deep.members([{
+        cacheComponent: {
+          fullName: 'AccountController',
+          type: {
+            name: 'ApexClass'
+          }
+        },
+        projectComponent: {
+          fullName: 'AccountController',
+          type: {
+            name: 'ApexClass'
+          }
+        },
+        lastModifiedDate: 'Yesterday'
+      },
+      {
+        cacheComponent: {
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        },
+        projectComponent: {
+          fullName: 'HandlerCostCenter',
+          type: {
+            name: 'ApexClass'
+          }
+        },
+        lastModifiedDate: 'Today'
+      }]);
+    });
+  });
 });
