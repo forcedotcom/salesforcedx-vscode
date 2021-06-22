@@ -243,6 +243,8 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
+      const mockContext = new MockContext(false);
+      PersistentStorageService.initialize(mockContext);
     });
 
     class TestDeploy extends DeployExecutor<{}> {
@@ -251,6 +253,7 @@ describe('Base Deploy Retrieve Commands', () => {
       public startStub: SinonStub;
       public deployStub: SinonStub;
       public cancellationStub = sb.stub();
+      public cacheSpy: SinonSpy;
 
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
@@ -259,6 +262,7 @@ describe('Base Deploy Retrieve Commands', () => {
         this.deployStub = sb
           .stub(this.components, 'deploy')
           .returns({ start: this.startStub });
+        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesDeploy');
       }
 
       protected async getComponents(
@@ -293,6 +297,75 @@ describe('Base Deploy Retrieve Commands', () => {
         usernameOrConnection: mockConnection
       });
       expect(executor.startStub.calledOnce).to.equal(true);
+    });
+
+    it('should store properties in metadata cache on successful deploy', async () => {
+      const executor = new TestDeploy();
+      const deployPropsOne = {
+        name: 'One',
+        fullName: 'One',
+        type: registry.types.apexclass,
+        content: join('project', 'classes', 'One.cls'),
+        xml: join('project', 'classes', 'One.cls-meta.xml')
+      };
+      const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne,
+        [{
+          dirPath: dirname(deployPropsOne.content),
+          children: [basename(deployPropsOne.content), basename(deployPropsOne.xml)]
+        }
+      ]);
+      const deployPropsTwo = {
+        name: 'Two',
+        fullName: 'Two',
+        type: registry.types.customobject,
+        content: join('project', 'classes', 'Two.cls'),
+        xml: join('project', 'classes', 'Two.cls-meta.xml')
+      };
+      const deployComponentTwo = SourceComponent.createVirtualComponent(deployPropsTwo,
+        [{
+          dirPath: dirname(deployPropsTwo.content),
+          children: [basename(deployPropsTwo.content), basename(deployPropsTwo.xml)]
+        }
+      ]);
+      const mockDeployResult = new DeployResult(
+        {
+          status: RequestStatus.Succeeded,
+          lastModifiedDate: 'Yesterday'
+        } as MetadataApiDeployStatus,
+        new ComponentSet([
+          deployComponentOne,
+          deployComponentTwo
+        ])
+      );
+      const fileResponses: any[] = [];
+      const cache = PersistentStorageService.getInstance();
+      sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
+      executor.startStub.resolves(mockDeployResult);
+
+      await executor.run({data: {}, type: 'CONTINUE' });
+
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].components.size).to.equal(2);
+      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))?.lastModifiedDate).to.equal('Yesterday');
+      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))?.lastModifiedDate).to.equal('Yesterday');
+    });
+
+    it('should not store any properties in metadata cache on failed deploy', async () => {
+      const executor = new TestDeploy();
+      const mockDeployResult = new DeployResult(
+        {
+          status: RequestStatus.Failed
+        } as MetadataApiDeployStatus,
+        new ComponentSet()
+      );
+      const fileResponses: any[] = [];
+      sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
+      executor.startStub.resolves(mockDeployResult);
+      const success = await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(success).to.equal(false);
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].components.size).to.equal(0);
     });
 
     describe('Result Output', () => {
