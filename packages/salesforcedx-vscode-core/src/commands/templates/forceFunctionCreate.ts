@@ -102,10 +102,10 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
     measurements?: Measurements
   ) {
     if (properties) {
-      const fileExtension = this.getFileExtension().replace('.', '');
-      if (fileExtension === 'js') {
+      const fileExtension = this.getFileExtension();
+      if (fileExtension === '.js') {
         properties.language = 'node';
-      } else if (fileExtension === 'java') {
+      } else if (fileExtension === '.java') {
         properties.language = 'java';
       }
     }

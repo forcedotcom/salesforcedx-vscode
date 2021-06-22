@@ -59,7 +59,7 @@ describe('Force Function Create', () => {
 
   describe('Pull Dependencies', () => {
     let execStub: SinonStub;
-    let sandbox: SinonSandbox;
+    const sandbox = createSandbox();
     let notificationServiceStub: SinonStub;
     let telemetryServiceStub: SinonStub;
     let withProgressStub: SinonStub;
@@ -68,7 +68,6 @@ describe('Force Function Create', () => {
     let rootWorkspacePathStub: SinonStub;
 
     beforeEach(() => {
-      sandbox = createSandbox();
       execStub = sandbox.stub(cp, 'exec');
       notificationServiceStub = sandbox.stub(notificationService, 'showWarningMessage');
       rootWorkspacePathStub = sandbox.stub(rootWorkspace, 'getRootWorkspacePath');
@@ -128,7 +127,7 @@ describe('Force Function Create', () => {
       );
     });
 
-    it('Log metric should add additional language property for telemetry for java function', async () => {
+    it('Should log additional language property when creating a java function', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
       funcCreate.metadata = FUNCTION_TYPE_JAVA;
       funcCreate.build(functionInfoJava);
@@ -137,7 +136,7 @@ describe('Force Function Create', () => {
       expect(telemetryServiceStub.firstCall.args).to.deep.equal(['log_java', [1234, 5678], {language: 'java'}, undefined]);
     });
 
-    it('Log metric should add additional language property for telemetry for js function', async () => {
+    it('Should log additional language property when creating a js function', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
       funcCreate.metadata = FUNCTION_TYPE_JS;
       funcCreate.build(functionInfoJS);
