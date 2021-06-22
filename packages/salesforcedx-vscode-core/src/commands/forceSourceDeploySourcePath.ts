@@ -23,6 +23,7 @@ import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { TimestampConflictChecker } from './util/postconditionCheckers';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -111,7 +112,11 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor(),
-    new SourcePathChecker()
+    // new SourcePathChecker()
+    new TimestampConflictChecker(false, {
+      warningMessageKey: 'test placeholder',
+      commandHint: (input: string) => 'test placeholder'
+    })
   );
   await commandlet.run();
 }
@@ -125,7 +130,11 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
       : new MultipleSourcePathsGatherer(uris),
     useBeta
       ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor()
+      : new ForceSourceDeploySourcePathExecutor(),
+    new TimestampConflictChecker(false, {
+      warningMessageKey: 'test placeholder',
+      commandHint: (input: string) => 'test placeholder'
+    })
   );
   await commandlet.run();
 }
