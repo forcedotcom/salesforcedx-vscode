@@ -18,7 +18,6 @@ import { CorrelatedComponent } from './metadataCacheService';
 
 export class TimestampConflictDetector {
   private diffs: DirectoryDiffResults;
-  // Probably want a UI update to remove scannedLocal and scannedRemote
   private static EMPTY_DIFFS = {
     localRoot: '',
     remoteRoot: '',
