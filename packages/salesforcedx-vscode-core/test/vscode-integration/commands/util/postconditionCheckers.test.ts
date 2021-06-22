@@ -26,6 +26,7 @@ import {
   conflictView,
   DirectoryDiffResults
 } from '../../../../src/conflict';
+import { TimestampFileProperties } from '../../../../src/conflict/directoryDiffer';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
@@ -361,7 +362,7 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.handleConflicts(
         'manifest.xml',
         'admin@example.com',
-        { different: new Set<string>() } as DirectoryDiffResults
+        { different: new Set<TimestampFileProperties>() } as DirectoryDiffResults
       );
 
       expect(response.type).to.equal('CONTINUE');
@@ -374,10 +375,13 @@ describe('Postcondition Checkers', () => {
     it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
       const postChecker = new ConflictDetectionChecker(retrieveMessages);
       const results = {
-        different: new Set<string>([
-          'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
-          'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-        ]),
+        different: new Set<TimestampFileProperties>([
+          {
+            path: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+          },
+          {
+            path: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
+          }]),
         scannedLocal: 4,
         scannedRemote: 6
       } as DirectoryDiffResults;
@@ -412,7 +416,10 @@ describe('Postcondition Checkers', () => {
     it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
       const postChecker = new ConflictDetectionChecker(retrieveMessages);
       const results = {
-        different: new Set<string>('MyClass.cls')
+        different: new Set<TimestampFileProperties>([
+          {
+            path: 'MyClass.cls'
+          }])
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_override'));
 
@@ -432,7 +439,10 @@ describe('Postcondition Checkers', () => {
     it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
       const postChecker = new ConflictDetectionChecker(retrieveMessages);
       const results = {
-        different: new Set<string>('MyClass.cls')
+        different: new Set<TimestampFileProperties>([
+          {
+            path: 'MyClass.cls'
+          }])
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
 
@@ -521,7 +531,7 @@ describe('Postcondition Checkers', () => {
         const response = await postChecker.handleConflicts(
           'manifest.xml',
           'admin@example.com',
-          { different: new Set<string>() } as DirectoryDiffResults
+          { different: new Set<TimestampFileProperties>() } as DirectoryDiffResults
         );
 
         expect(response.type).to.equal('CONTINUE');
@@ -534,10 +544,17 @@ describe('Postcondition Checkers', () => {
       it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
         const postChecker = new TimestampConflictChecker(false, retrieveMessages);
         const results = {
-          different: new Set<string>([
-            'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
-            'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-          ]),
+          different: new Set<TimestampFileProperties>([
+            {
+              path: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
+              localLastModifiedDate: 'Yesterday',
+              remoteLastModifiedDate: 'Today'
+            },
+            {
+              path: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
+              localLastModifiedDate: 'Yesterday',
+              remoteLastModifiedDate: 'Today'
+            }]),
           scannedLocal: 4,
           scannedRemote: 6
         } as DirectoryDiffResults;
@@ -572,7 +589,12 @@ describe('Postcondition Checkers', () => {
       it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
         const postChecker = new TimestampConflictChecker(false, retrieveMessages);
         const results = {
-          different: new Set<string>('MyClass.cls')
+          different: new Set<TimestampFileProperties>([
+            {
+              path: 'MyClass.cls',
+              localLastModifiedDate: 'Yesterday',
+              remoteLastModifiedDate: 'Today'
+            }])
         } as DirectoryDiffResults;
         modalStub.returns(nls.localize('conflict_detect_override'));
 
@@ -592,7 +614,12 @@ describe('Postcondition Checkers', () => {
       it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
         const postChecker = new TimestampConflictChecker(false, retrieveMessages);
         const results = {
-          different: new Set<string>('MyClass.cls')
+          different: new Set<TimestampFileProperties>([
+            {
+              path: 'MyClass.cls',
+              localLastModifiedDate: 'Yesterday',
+              remoteLastModifiedDate: 'Today'
+            }])
         } as DirectoryDiffResults;
         modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
 

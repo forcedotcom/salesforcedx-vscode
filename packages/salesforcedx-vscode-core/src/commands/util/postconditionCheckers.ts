@@ -246,7 +246,7 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(normalize(file));
+        channelService.appendLine(normalize(file.path));
       });
       channelService.showChannelOutput();
 
@@ -346,7 +346,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(normalize(file));
+        channelService.appendLine(normalize(file.path));
       });
       channelService.showChannelOutput();
 

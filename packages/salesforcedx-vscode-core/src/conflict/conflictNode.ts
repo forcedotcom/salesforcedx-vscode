@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -13,6 +14,18 @@ export type ConflictFile = {
   relPath: string;
   localPath: string;
   remotePath: string;
+  localLastModifiedDate: string | undefined;
+  remoteLastModifiedDate: string | undefined;
+};
+
+export const fileIconPath = {
+  light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'go-to-file.svg'),
+  dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'go-to-file.svg')
+};
+
+export const calendarIconPath = {
+  light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'calendar.svg'),
+  dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'calendar.svg')
 };
 
 export class ConflictNode extends vscode.TreeItem {
@@ -28,6 +41,10 @@ export class ConflictNode extends vscode.TreeItem {
     super(label, collapsibleState);
     this._children = [];
     this._parent = parent;
+  }
+
+  public addChildConflictNode(conflictNode: ConflictNode) {
+    this._children.push(conflictNode);
   }
 
   get conflict() {
@@ -49,8 +66,30 @@ export class ConflictNode extends vscode.TreeItem {
 
 export class ConflictFileNode extends ConflictNode {
   constructor(conflict: ConflictFile, parent: ConflictNode) {
-    super(conflict.fileName, vscode.TreeItemCollapsibleState.None, parent);
+    let collapsibleState: vscode.TreeItemCollapsibleState;
+    if (conflict.remoteLastModifiedDate || conflict.localLastModifiedDate) {
+      collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+    } else {
+      collapsibleState = vscode.TreeItemCollapsibleState.None;
+    }
+    super(conflict.fileName, collapsibleState, parent);
     this._conflict = conflict;
+    this.iconPath = fileIconPath;
+
+    if (conflict.remoteLastModifiedDate) {
+      const remoteLastModifiedDateNode = new ConflictNode(`Remote LastModifiedDate: ${new Date(conflict.remoteLastModifiedDate).toLocaleString()}`,
+                                                          vscode.TreeItemCollapsibleState.None,
+                                                          this);
+      remoteLastModifiedDateNode.iconPath = calendarIconPath;
+      this.addChildConflictNode(remoteLastModifiedDateNode);
+    }
+    if (conflict.localLastModifiedDate) {
+      const localLastModifiedDateNode = new ConflictNode(`Local LastModifiedDate: ${new Date(conflict.localLastModifiedDate).toLocaleString()}`,
+                                                          vscode.TreeItemCollapsibleState.None,
+                                                          this);
+      localLastModifiedDateNode.iconPath = calendarIconPath;
+      this.addChildConflictNode(localLastModifiedDateNode);
+    }
   }
 
   public attachCommands() {
