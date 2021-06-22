@@ -18,16 +18,6 @@ export type ConflictFile = {
   remoteLastModifiedDate: string | undefined;
 };
 
-export const fileIconPath = {
-  light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'go-to-file.svg'),
-  dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'go-to-file.svg')
-};
-
-export const calendarIconPath = {
-  light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'calendar.svg'),
-  dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'calendar.svg')
-};
-
 export class ConflictNode extends vscode.TreeItem {
   private _children: ConflictNode[];
   private _parent: ConflictNode | undefined;
@@ -36,11 +26,13 @@ export class ConflictNode extends vscode.TreeItem {
   constructor(
     label: string,
     collapsibleState: vscode.TreeItemCollapsibleState,
-    parent?: ConflictNode
+    parent?: ConflictNode,
+    description?: string | boolean
   ) {
     super(label, collapsibleState);
     this._children = [];
     this._parent = parent;
+    this.description = description;
   }
 
   public addChildConflictNode(conflictNode: ConflictNode) {
@@ -74,20 +66,22 @@ export class ConflictFileNode extends ConflictNode {
     }
     super(conflict.fileName, collapsibleState, parent);
     this._conflict = conflict;
-    this.iconPath = fileIconPath;
+    this.iconPath = new vscode.ThemeIcon('go-to-file');
 
     if (conflict.remoteLastModifiedDate) {
-      const remoteLastModifiedDateNode = new ConflictNode(`Remote LastModifiedDate: ${new Date(conflict.remoteLastModifiedDate).toLocaleString()}`,
+      const remoteLastModifiedDateNode = new ConflictNode(`${new Date(conflict.remoteLastModifiedDate).toLocaleString()}`,
                                                           vscode.TreeItemCollapsibleState.None,
-                                                          this);
-      remoteLastModifiedDateNode.iconPath = calendarIconPath;
+                                                          this,
+                                                          'Remote LastModifiedDate');
+      remoteLastModifiedDateNode.iconPath = new vscode.ThemeIcon('calendar');
       this.addChildConflictNode(remoteLastModifiedDateNode);
     }
     if (conflict.localLastModifiedDate) {
-      const localLastModifiedDateNode = new ConflictNode(`Local LastModifiedDate: ${new Date(conflict.localLastModifiedDate).toLocaleString()}`,
+      const localLastModifiedDateNode = new ConflictNode(`${new Date(conflict.localLastModifiedDate).toLocaleString()}`,
                                                           vscode.TreeItemCollapsibleState.None,
-                                                          this);
-      localLastModifiedDateNode.iconPath = calendarIconPath;
+                                                          this,
+                                                          'Local LastModifiedDate');
+      localLastModifiedDateNode.iconPath = new vscode.ThemeIcon('calendar');
       this.addChildConflictNode(localLastModifiedDateNode);
     }
   }
