@@ -14,10 +14,8 @@ import * as sinon from 'sinon';
 import {
   PersistentStorageService
 } from '../../../src/conflict';
-import { ComponentDiff, diffComponents } from '../../../src/conflict/componentDiffer';
-import {
-  MetadataCacheResult
-} from '../../../src/conflict/metadataCacheService';
+import * as differ from '../../../src/conflict/componentDiffer';
+import { MetadataCacheResult } from '../../../src/conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
 import { nls } from '../../../src/messages';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
@@ -53,7 +51,7 @@ describe('Timestamp Conflict Detector Execution', () => {
   let cacheStub: sinon.SinonStub;
 
   beforeEach(() => {
-    differStub = sinon.stub('diffComponents');
+    differStub = sinon.stub(differ, 'diffComponents');
     executor = new TimestampConflictDetector();
     executorSpy = sinon.spy(executor, 'createDiffs');
     cacheStub = sinon.stub(PersistentStorageService.prototype, 'getPropertiesForFile');
@@ -100,7 +98,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     const diffResults = [{
       projectPath: '/d/e/f/classes/HandlerCostCenter.cls',
       cachePath: '/a/b/c/classes/HandlerCostCenter.cls'
-    }] as ComponentDiff[];
+    }] as differ.ComponentDiff[];
 
     const storageResult = {
       lastModifiedDate: 'Yesteday'
@@ -273,7 +271,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       }] as FileProperties[]
     } as MetadataCacheResult;
 
-    const diffResults = [] as ComponentDiff[];
+    const diffResults = [] as differ.ComponentDiff[];
 
     const storageResult = {
       lastModifiedDate: 'Yesteday'
