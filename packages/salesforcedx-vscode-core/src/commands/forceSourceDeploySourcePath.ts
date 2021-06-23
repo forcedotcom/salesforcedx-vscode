@@ -112,11 +112,7 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor(),
-    // new SourcePathChecker()
-    new TimestampConflictChecker(false, {
-      warningMessageKey: 'test placeholder',
-      commandHint: (input: string) => 'test placeholder'
-    })
+    new SourcePathChecker()
   );
   await commandlet.run();
 }
@@ -130,11 +126,7 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
       : new MultipleSourcePathsGatherer(uris),
     useBeta
       ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor(),
-    new TimestampConflictChecker(false, {
-      warningMessageKey: 'test placeholder',
-      commandHint: (input: string) => 'test placeholder'
-    })
+      : new ForceSourceDeploySourcePathExecutor()
   );
   await commandlet.run();
 }
