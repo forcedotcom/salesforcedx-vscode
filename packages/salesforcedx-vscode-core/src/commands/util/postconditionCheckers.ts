@@ -43,7 +43,7 @@ export class CompositePostconditionChecker<T> implements PostconditionChecker<T>
       for (const postchecker of this.postcheckers) {
         const input = await postchecker.check(inputs);
         if (input.type === 'CONTINUE') {
-          Object.keys(input.data).map(
+          Object.keys(input.data).forEach(
             key => (aggregatedData[key] = input.data[key])
           );
         } else {
