@@ -52,14 +52,20 @@ export class ConflictNode extends vscode.TreeItem {
 
   get tooltip() {
     if (this._conflict) {
-      let tooptipMessage: string = '';
+      let tooltipMessage: string = '';
       if (this._conflict.remoteLastModifiedDate) {
-        tooptipMessage += `Org LastModifiedDate: ${new Date(this._conflict.remoteLastModifiedDate).toLocaleString()} \n`;
+        tooltipMessage += nls.localize(
+          'conflict_detect_remote_last_modified_date',
+          `${new Date(this._conflict.remoteLastModifiedDate).toLocaleString()}`
+        );
       }
       if (this._conflict.localLastModifiedDate) {
-        tooptipMessage += `Local LastModifiedDate: ${new Date(this._conflict.localLastModifiedDate).toLocaleString()}`;
+        tooltipMessage += nls.localize(
+          'conflict_detect_local_last_modified_date',
+          `${new Date(this._conflict.localLastModifiedDate).toLocaleString()}`
+        );
       }
-      return tooptipMessage;
+      return tooltipMessage;
     } else {
       return this.label;
     }
