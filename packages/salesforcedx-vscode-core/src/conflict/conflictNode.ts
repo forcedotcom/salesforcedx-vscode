@@ -66,7 +66,7 @@ export class ConflictFileNode extends ConflictNode {
     }
     super(conflict.fileName, collapsibleState, parent);
     this._conflict = conflict;
-    this.iconPath = new vscode.ThemeIcon('go-to-file');
+    this.iconPath = vscode.ThemeIcon.File;
 
     if (conflict.remoteLastModifiedDate) {
       const remoteLastModifiedDateNode = new ConflictNode(`${new Date(conflict.remoteLastModifiedDate).toLocaleString()}`,
