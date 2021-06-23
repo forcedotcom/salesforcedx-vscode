@@ -130,6 +130,12 @@ describe('Force Function Invoke', () => {
     });
 
     it('Should stop debugging and log telemetry when invoke finishes', async () => {
+      const FUNCTION_LANGUAGE = 'node';
+      functionServiceStubs.getFunctionLanguage = sandbox.stub(
+          FunctionService.prototype,
+          'getFunctionLanguage'
+      );
+      functionServiceStubs.getFunctionLanguage.returns(FUNCTION_LANGUAGE);
       const srcUri = Uri.file(
         path.join(
           getRootWorkspacePath(),
@@ -154,7 +160,8 @@ describe('Force Function Invoke', () => {
           assert.calledWith(
             telemetryServiceStubs.sendCommandEventStub,
             'force_function_debug_invoke',
-            match.array
+            match.array,
+            { language: FUNCTION_LANGUAGE }
           );
           resolve();
         });
