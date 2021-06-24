@@ -554,6 +554,8 @@ export const messages = {
   conflict_detect_show_conflicts: 'Show Conflicts',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_conflict_header_timestamp:
+    'Conflicts:\n    Found %s file(s) in conflict:\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
   conflict_detect_no_default_username: 'No default username for this project',

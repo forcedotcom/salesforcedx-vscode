@@ -12,8 +12,8 @@ export interface DirectoryDiffResults {
   different: Set<string>;
   localRoot: string;
   remoteRoot: string;
-  scannedLocal: number;
-  scannedRemote: number;
+  scannedLocal?: number;
+  scannedRemote?: number;
 }
 
 export interface DirectoryDiffer {

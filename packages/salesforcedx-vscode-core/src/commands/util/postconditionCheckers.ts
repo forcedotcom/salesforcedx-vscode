@@ -339,10 +339,8 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     } else {
       channelService.appendLine(
         nls.localize(
-          'conflict_detect_conflict_header',
-          results.different.size,
-          results.scannedRemote,
-          results.scannedLocal
+          'conflict_detect_conflict_header_timestamp',
+          results.different.size
         )
       );
       results.different.forEach(file => {
