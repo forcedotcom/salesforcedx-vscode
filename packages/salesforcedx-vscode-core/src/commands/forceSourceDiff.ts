@@ -7,12 +7,13 @@
 
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import * as conflictDetectionService from '../conflict/conflictDetectionService';
 import {
+  diffFolder,
+  diffOneFile,
   MetadataCacheExecutor,
   MetadataCacheResult,
   PathType
-} from '../conflict/metadataCacheService';
+} from '../conflict';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -95,13 +96,13 @@ export async function handleCacheResults(
 ): Promise<void> {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
-      await conflictDetectionService.diffOneFile(
+      await diffOneFile(
         cache.selectedPath,
         cache.cache.components[0],
         username
       );
     } else if (cache.selectedType === PathType.Folder) {
-      await conflictDetectionService.diffFolder(cache, username);
+      await diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('force_source_diff_components_not_in_org');
