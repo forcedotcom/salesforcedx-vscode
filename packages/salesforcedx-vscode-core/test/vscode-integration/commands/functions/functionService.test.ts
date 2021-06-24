@@ -203,6 +203,7 @@ describe('Function Service', () => {
 
       service.updateFunction('Foo', 'Java');
       expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
+      expect(service.getFunctionLanguage()).to.equal('java');
     });
 
     it('Should update debugType of a Java JVM function', () => {
@@ -217,6 +218,7 @@ describe('Function Service', () => {
 
       service.updateFunction('Foo', 'jvm');
       expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
+      expect(service.getFunctionLanguage()).to.equal('java');
     });
 
     it('Should update debugType of a Node function', () => {
@@ -231,6 +233,7 @@ describe('Function Service', () => {
 
       service.updateFunction('Bar', 'Node.js');
       expect(service.getStartedFunction('Bar')?.debugType).to.equal('node');
+      expect(service.getFunctionLanguage()).to.equal('node');
     });
 
     it('Should not update debugType of an unknown function', () => {
@@ -248,12 +251,14 @@ describe('Function Service', () => {
       expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
         'unknown'
       );
+      expect(service.getFunctionLanguage()).to.equal('unknown');
 
       // wrong function, right type
       service.updateFunction('Foo', 'Java');
       expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
         'unknown'
       );
+      expect(service.getFunctionLanguage()).to.equal('unknown');
     });
   });
 });

@@ -14,6 +14,7 @@ import {
   ForceFunctionStartExecutor
 } from '../../../../src/commands/functions/forceFunctionStart';
 import { forceFunctionStop } from '../../../../src/commands/functions/forceFunctionStop';
+import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
@@ -30,6 +31,9 @@ describe('Force Function Stop', () => {
     [key: string]: SinonStub;
   } = {};
   const telemetryServiceStubs: {
+    [key: string]: SinonStub;
+  } = {};
+  const functionServiceStubs: {
     [key: string]: SinonStub;
   } = {};
   let hrtimeStub: SinonStub;
@@ -67,6 +71,12 @@ describe('Force Function Stop', () => {
   });
 
   it('Should stop function, show notification and send telemetry', async () => {
+    const FUNCTION_LANGUAGE = 'node';
+    functionServiceStubs.getFunctionLanguage = sandbox.stub(
+      FunctionService.prototype,
+      'getFunctionLanguage'
+    );
+    functionServiceStubs.getFunctionLanguage.returns(FUNCTION_LANGUAGE);
     const srcUri = Uri.file(
       path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
     );
@@ -91,11 +101,12 @@ describe('Force Function Stop', () => {
       notificationServiceStubs.showSuccessfulExecutionStub,
       nls.localize('force_function_stop_text')
     );
-    assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
+    assert.calledTwice(telemetryServiceStubs.sendCommandEventStub);
     assert.calledWith(
       telemetryServiceStubs.sendCommandEventStub,
       'force_function_stop',
-      mockStartTime
+      mockStartTime,
+      { language: FUNCTION_LANGUAGE }
     );
   });
 

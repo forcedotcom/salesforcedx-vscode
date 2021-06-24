@@ -328,6 +328,7 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       const retrieveResponse: Partial<MetadataApiRetrieveStatus> = {
+        fileProperties: [],
         status: RequestStatus.Succeeded
       };
       startStub.resolves(

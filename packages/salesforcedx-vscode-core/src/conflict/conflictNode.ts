@@ -64,15 +64,18 @@ export class ConflictFileNode extends ConflictNode {
 }
 
 export class ConflictGroupNode extends ConflictNode {
-  constructor(label: string) {
+  private emptyLabel?: string;
+
+  constructor(label: string, emptyLabel?: string) {
     super(label, vscode.TreeItemCollapsibleState.Expanded);
+    this.emptyLabel = emptyLabel;
   }
 
   public addChildren(conflicts: ConflictFile[]) {
     if (conflicts.length === 0) {
       this.children.push(
         new ConflictNode(
-          nls.localize('conflict_detect_no_conflicts'),
+          this.emptyLabel || '',
           vscode.TreeItemCollapsibleState.None
         )
       );

@@ -6,6 +6,10 @@
  */
 
 import {
+  Measurements,
+  Properties
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
@@ -21,6 +25,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
+import { telemetryService } from '../../telemetry';
 import {
   CompositeParametersGatherer,
   SfdxCommandlet,
@@ -31,6 +36,7 @@ import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';
+const LOG_NAME = 'force_function_create';
 export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
 
   public build(data: FunctionInfo): Command {
@@ -46,7 +52,7 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       .withArg('generate:function')
       .withFlag('--name', data.fileName)
       .withFlag('--language', data.language)
-      .withLogName('force_create_function')
+      .withLogName(LOG_NAME)
       .build();
   }
 
@@ -88,6 +94,24 @@ export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
       });
     }
   }
+
+  public logMetric(
+    logName: string | undefined,
+    hrstart: [number, number],
+    properties?: Properties,
+    measurements?: Measurements
+  ) {
+    if (properties) {
+      const fileExtension = this.getFileExtension();
+      if (fileExtension === '.js') {
+        properties.language = 'node';
+      } else if (fileExtension === '.java') {
+        properties.language = 'java';
+      }
+    }
+    super.logMetric(logName, hrstart, properties, measurements);
+  }
+
 }
 
 export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {

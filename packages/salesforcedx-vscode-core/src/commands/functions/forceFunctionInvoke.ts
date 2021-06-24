@@ -71,7 +71,8 @@ export async function forceFunctionDebugInvoke(sourceUri: Uri) {
       await FunctionService.instance.stopDebuggingFunction(localRoot);
       telemetryService.sendCommandEvent(
         'force_function_debug_invoke',
-        startTime
+        startTime,
+        { language: FunctionService.instance.getFunctionLanguage() }
       );
     });
   }

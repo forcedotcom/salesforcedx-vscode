@@ -31,6 +31,7 @@ import { join } from 'path';
 import * as vscode from 'vscode';
 import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { workspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
@@ -141,6 +142,10 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
+            result.components,
+            result.response
+        );
 
         const success = result.response.status === RequestStatus.Succeeded;
 
@@ -231,6 +236,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
+      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
     }
   }
 

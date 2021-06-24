@@ -565,6 +565,7 @@ export const messages = {
   conflict_detect_root_title: 'Org Differences',
   conflict_detect_view_root: '%s : %s file difference(s)',
   conflict_detect_no_conflicts: 'No conflicts',
+  conflict_detect_no_differences: 'No differences',
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'Compare Files',
 

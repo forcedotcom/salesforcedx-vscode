@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
+
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
@@ -33,6 +34,8 @@ import {
   FUNCTION_DEFAULT_PORT,
   FUNCTION_RUNTIME_DETECTION_PATTERN
 } from './types/constants';
+
+const LOG_NAME = 'force_function_start';
 
 /**
  * Error types when running SFDX: Start Function
@@ -72,7 +75,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
       .withDescription(nls.localize('force_function_start_text'))
       .withArg('run:function:start')
       .withArg('--verbose')
-      .withLogName('force_function_start')
+      .withLogName(LOG_NAME)
       .build();
   }
 
@@ -101,7 +104,11 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
 
     cancellationToken.onCancellationRequested(async () => {
       await execution.killExecution('SIGTERM');
-      this.logMetric('force_function_start_cancelled', startTime);
+      this.logMetric(
+          'force_function_start_cancelled',
+          startTime,
+          { language: FunctionService.instance.getFunctionLanguage() }
+      );
     });
 
     OrgAuthInfo.getDefaultUsernameOrAlias(false)
@@ -154,7 +161,11 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
         notificationService
           .showSuccessfulExecution(executionName)
           .catch(() => {});
-        this.logMetric(execution.command.logName, startTime);
+        this.logMetric(
+            execution.command.logName,
+            startTime,
+            { language: FunctionService.instance.getFunctionLanguage() }
+        );
       }
     });
 
@@ -228,6 +239,7 @@ export class ForceFunctionStartExecutor extends SfdxCommandletExecutor<string> {
  * @param sourceUri
  */
 export async function forceFunctionStart(sourceUri?: Uri) {
+  const startTime = process.hrtime();
   if (!sourceUri) {
     // Try to start function from current active editor, if running SFDX: start function from command palette
     sourceUri = window.activeTextEditor?.document.uri!;
@@ -250,4 +262,10 @@ export async function forceFunctionStart(sourceUri?: Uri) {
     new ForceFunctionStartExecutor()
   );
   await commandlet.run();
+
+  telemetryService.sendCommandEvent(
+    LOG_NAME,
+    startTime,
+    { language: FunctionService.instance.getFunctionLanguage() }
+  );
 }
