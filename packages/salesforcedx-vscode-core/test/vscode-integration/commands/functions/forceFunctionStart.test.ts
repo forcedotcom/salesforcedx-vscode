@@ -289,7 +289,7 @@ describe('Force Function Start', () => {
 
       mockExecution.stdoutSubject.next('Debugger running on port');
       assert.calledOnce(logMetricStub);
-      assert.calledWith(logMetricStub, 'force_function_start', mockStartTime);
+      assert.calledWith(logMetricStub, 'force_function_start', mockStartTime, { language: 'node' });
     });
 
     it('Should show error message and send telemetry if plugin is not installed', async () => {
@@ -463,7 +463,8 @@ describe('Force Function Start', () => {
           assert.calledWith(
             logMetricStub,
             'force_function_start_cancelled',
-            mockStartTime
+            mockStartTime,
+            { language: 'node' }
           );
           resolve();
         });
