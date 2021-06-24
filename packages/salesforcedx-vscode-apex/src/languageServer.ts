@@ -52,7 +52,8 @@ async function createServer(
       uberJar,
       '-Ddebug.internal.errors=true',
       `-Ddebug.semantic.errors=${enableSemanticErrors}`,
-      `-Ddebug.completion.statistics=${enableCompletionStatistics}`
+      `-Ddebug.completion.statistics=${enableCompletionStatistics}`,
+      '-Dlwc.typegeneration.disabled=true'
     ];
 
     if (jvmMaxHeap) {
