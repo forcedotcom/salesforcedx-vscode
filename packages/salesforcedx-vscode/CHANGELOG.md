@@ -1,3 +1,15 @@
+# 52.2.0 - June 24, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Save fileproperties after deploy ([PR #3334](https://github.com/forcedotcom/salesforcedx-vscode/pull/3334))
+
+- Cache FileProperties after a retrieve ([PR #3298](https://github.com/forcedotcom/salesforcedx-vscode/pull/3298))
+
+- Add org/project prefix to cache key ([PR #3325](https://github.com/forcedotcom/salesforcedx-vscode/pull/3325))
+
 # 52.1.0 - June 16, 2021
 
 ## Added
