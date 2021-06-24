@@ -11,7 +11,8 @@ import * as vscode from 'vscode';
 import {
   Executable,
   LanguageClient,
-  LanguageClientOptions
+  LanguageClientOptions,
+  RevealOutputChannelOn
 } from 'vscode-languageclient';
 import { LSP_ERR } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
@@ -165,6 +166,7 @@ export function buildClientOptions(): LanguageClientOptions {
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
     },
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
