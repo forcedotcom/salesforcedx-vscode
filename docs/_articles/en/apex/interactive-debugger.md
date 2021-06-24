@@ -90,7 +90,7 @@ Add filters to the `"Launch Apex Debugger"` configuration:
     "name": "Launch Apex Debugger",
     "type": "apex",
     "request": "launch",
-    "sfdxProject": "${workspaceRoot}"
+    "sfdxProject": "${workspaceRoot}",
     "userIdFilter": [],
     "requestTypeFilter": [],
     "entryPointFilter": ""
