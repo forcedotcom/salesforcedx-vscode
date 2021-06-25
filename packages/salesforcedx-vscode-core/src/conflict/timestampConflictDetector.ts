@@ -21,9 +21,7 @@ export class TimestampConflictDetector {
   private static EMPTY_DIFFS = {
     localRoot: '',
     remoteRoot: '',
-    different: new Set<string>(),
-    scannedLocal: 0,
-    scannedRemote: 0
+    different: new Set<string>()
   };
 
   constructor() {
