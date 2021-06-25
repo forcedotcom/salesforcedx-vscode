@@ -250,7 +250,9 @@ describe('Force Function Start', () => {
       await forceFunctionStart(srcUri);
 
       assert.calledOnce(logMetricStub);
-      assert.calledWith(logMetricStub, 'force_function_start', mockStartTime);
+      assert.calledWith(logMetricStub, 'force_function_start', mockStartTime, {
+        language: 'node'
+      });
     });
 
     it('Should show error message and send telemetry if docker is not installed or started', async () => {

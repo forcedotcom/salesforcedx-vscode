@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   ComponentSet,
   FileProperties
@@ -13,6 +14,7 @@ import {
   ExtensionContext,
   Memento
 } from 'vscode';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
 interface ConflictFileProperties {
@@ -70,6 +72,8 @@ export class PersistentStorageService {
   }
 
   public makeKey(type: string, fullName: string): string {
-    return `${type}#${fullName}`;
+    const orgUserName = workspaceContext.username;
+    const projectPath = getRootWorkspacePath();
+    return `${orgUserName}#${projectPath}#${type}#${fullName}`;
   }
 }

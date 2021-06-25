@@ -11,6 +11,8 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService, ProgressNotification } from '../../notifications';
+
+import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import {
@@ -31,6 +33,9 @@ import { getFunctionsBinary } from '@heroku/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { getProjectDescriptor } from '@heroku/functions-core';
+
+const LOG_NAME = 'force_function_start';
+
 /**
  * Error types when running SFDX: Start Function
  * This is also used as the telemetry log name.
@@ -57,7 +62,7 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
   constructor() {
     super(
       nls.localize('force_function_start_text'),
-      'force_function_start',
+      LOG_NAME,
       OUTPUT_CHANNEL,
       true
     );
@@ -110,6 +115,11 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
           return new Promise(resolve => resolve(functionsBinary.cancel()));
         }
       }
+    );
+
+    this.telemetry.addProperty(
+      'language',
+      FunctionService.instance.getFunctionLanguage()
     );
 
     const writeMsg = (msg: { text: string; timestamp: string }) => {
@@ -210,6 +220,7 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
  * @param sourceUri
  */
 export async function forceFunctionStart(sourceUri?: Uri) {
+  const startTime = process.hrtime();
   if (!sourceUri) {
     // Try to start function from current active editor, if running SFDX: start function from command palette
     sourceUri = window.activeTextEditor?.document.uri!;

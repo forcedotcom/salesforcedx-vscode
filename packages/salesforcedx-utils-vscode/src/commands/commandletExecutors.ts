@@ -126,7 +126,6 @@ export abstract class LibraryCommandletExecutor<T>
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected readonly telemetry = new TelemetryBuilder();
-
   /**
    * @param name Name visible to user while executing.
    * @param logName Name for logging purposes such as telemetry.
@@ -136,7 +135,8 @@ export abstract class LibraryCommandletExecutor<T>
     executionName: string,
     logName: string,
     outputChannel: vscode.OutputChannel,
-    cancellable: boolean = false
+    cancellable: boolean = false,
+    extraTelemtryProperties: Properties = {}
   ) {
     this.executionName = executionName;
     this.logName = logName;
@@ -167,7 +167,6 @@ export abstract class LibraryCommandletExecutor<T>
     channelService.showCommandWithTimestamp(
       `${nls.localize('channel_starting_message')}${this.executionName}\n`
     );
-
     try {
       const success = await vscode.window.withProgress(
         {
@@ -179,6 +178,13 @@ export abstract class LibraryCommandletExecutor<T>
           token.onCancellationRequested(() => {
             this.cancelled = true;
             notificationService.showCanceledExecution(this.executionName);
+
+            telemetryService.sendCommandEvent(
+              `${this.logName}_cancelled`,
+              startTime,
+              properties,
+              measurements
+            );
           });
           return this.run(response, progress, token);
         }

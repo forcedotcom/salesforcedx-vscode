@@ -17,8 +17,10 @@ import {
   ConflictDetectionConfig,
   conflictDetector,
   conflictView,
-  DirectoryDiffResults
+  DirectoryDiffResults,
+  MetadataCacheService
 } from '../../conflict';
+import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
@@ -282,5 +284,102 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
       }
     }
     return { type: 'CONTINUE', data: manifest };
+  }
+}
+
+export class TimestampConflictChecker implements PostconditionChecker<string> {
+
+  private isManifest: boolean;
+  private messages: ConflictDetectionMessages;
+
+  constructor(isManifest: boolean, messages: ConflictDetectionMessages) {
+    this.messages = messages;
+    this.isManifest = isManifest;
+  }
+
+  public async check(
+    inputs: ContinueResponse<string> | CancelResponse
+  ): Promise<ContinueResponse<string> | CancelResponse> {
+    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
+      return inputs;
+    }
+
+    if (inputs.type === 'CONTINUE') {
+      const { username } = workspaceContext;
+      if (!username) {
+        return {
+          type: 'CANCEL',
+          msg: nls.localize('conflict_detect_no_default_username')
+        };
+      }
+
+      const componentPath = inputs.data;
+      const cacheService = new MetadataCacheService(username);
+      const result = await cacheService.loadCache(componentPath, getRootWorkspacePath(), this.isManifest);
+      const detector = new TimestampConflictDetector();
+      const diffs = detector.createDiffs(result);
+      return await this.handleConflicts(inputs.data, username, diffs);
+    }
+    return { type: 'CANCEL' };
+  }
+
+  public async handleConflicts(
+    componentPath: string,
+    usernameOrAlias: string,
+    results: DirectoryDiffResults
+  ): Promise<ContinueResponse<string> | CancelResponse> {
+    const conflictTitle = nls.localize(
+      'conflict_detect_view_root',
+      usernameOrAlias,
+      results.different.size
+    );
+
+    if (results.different.size === 0) {
+      conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
+    } else {
+      channelService.appendLine(
+        nls.localize(
+          'conflict_detect_conflict_header_timestamp',
+          results.different.size
+        )
+      );
+      results.different.forEach(file => {
+        channelService.appendLine(normalize(file));
+      });
+      channelService.showChannelOutput();
+
+      const choice = await notificationService.showWarningModal(
+        nls.localize(this.messages.warningMessageKey),
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
+      );
+
+      if (choice === nls.localize('conflict_detect_override')) {
+        conflictView.visualizeDifferences(
+          conflictTitle,
+          usernameOrAlias,
+          false
+        );
+      } else {
+        channelService.appendLine(
+          nls.localize(
+            'conflict_detect_command_hint',
+            this.messages.commandHint(componentPath)
+          )
+        );
+
+        const doReveal =
+          choice === nls.localize('conflict_detect_show_conflicts');
+        conflictView.visualizeDifferences(
+          conflictTitle,
+          usernameOrAlias,
+          doReveal,
+          results
+        );
+
+        return { type: 'CANCEL' };
+      }
+    }
+    return { type: 'CONTINUE', data: componentPath };
   }
 }
