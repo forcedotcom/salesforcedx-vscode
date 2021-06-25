@@ -135,8 +135,7 @@ export abstract class LibraryCommandletExecutor<T>
     executionName: string,
     logName: string,
     outputChannel: vscode.OutputChannel,
-    cancellable: boolean = false,
-    extraTelemtryProperties: Properties = {}
+    cancellable: boolean = false
   ) {
     this.executionName = executionName;
     this.logName = logName;
