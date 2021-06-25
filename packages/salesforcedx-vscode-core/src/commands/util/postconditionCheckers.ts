@@ -32,6 +32,35 @@ import { PathStrategyFactory } from './sourcePathStrategies';
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
+export class CompositePostconditionChecker<T> implements PostconditionChecker<T> {
+  private readonly postcheckers: Array<PostconditionChecker<any>>;
+  public constructor(...postcheckers: Array<PostconditionChecker<any>>) {
+    this.postcheckers = postcheckers;
+  }
+  public async check(inputs: CancelResponse | ContinueResponse<T>): Promise<CancelResponse | ContinueResponse<T>> {
+    if (inputs.type === 'CONTINUE') {
+      const aggregatedData: any = {};
+      for (const postchecker of this.postcheckers) {
+        const input = await postchecker.check(inputs);
+        if (input.type === 'CONTINUE') {
+          Object.keys(input.data).forEach(
+            key => (aggregatedData[key] = input.data[key])
+          );
+        } else {
+          return {
+            type: 'CANCEL'
+          };
+        }
+      }
+      return {
+        type: 'CONTINUE',
+        data: aggregatedData
+      };
+    }
+    return inputs;
+  }
+}
+
 export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(
     inputs: ContinueResponse<any> | CancelResponse
