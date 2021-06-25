@@ -251,7 +251,8 @@ describe('Force Function Start', () => {
 
       assert.calledOnce(logMetricStub);
       assert.calledWith(logMetricStub, 'force_function_start', mockStartTime, {
-        language: 'node'
+        language: 'node',
+        success: 'true'
       });
     });
 

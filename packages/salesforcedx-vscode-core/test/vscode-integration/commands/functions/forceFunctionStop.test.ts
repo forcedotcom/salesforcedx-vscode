@@ -94,7 +94,7 @@ describe('Force Function Stop', () => {
       notificationServiceStubs.showSuccessfulExecutionStub,
       nls.localize('force_function_stop_text')
     );
-    assert.calledTwice(telemetryServiceStubs.sendCommandEventStub);
+    assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
     assert.calledWith(
       telemetryServiceStubs.sendCommandEventStub,
       'force_function_stop',

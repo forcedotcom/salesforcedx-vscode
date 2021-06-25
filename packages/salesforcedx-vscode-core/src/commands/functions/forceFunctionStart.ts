@@ -60,12 +60,8 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
   string
 > {
   constructor() {
-    super(
-      nls.localize('force_function_start_text'),
-      LOG_NAME,
-      OUTPUT_CHANNEL,
-      true
-    );
+    super(nls.localize('force_function_start_text'), LOG_NAME, OUTPUT_CHANNEL);
+    this.cancellable = true;
   }
   public async run(
     response: ContinueResponse<string>,

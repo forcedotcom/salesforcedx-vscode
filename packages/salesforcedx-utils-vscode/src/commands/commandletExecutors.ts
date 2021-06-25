@@ -134,13 +134,11 @@ export abstract class LibraryCommandletExecutor<T>
   constructor(
     executionName: string,
     logName: string,
-    outputChannel: vscode.OutputChannel,
-    cancellable: boolean = false
+    outputChannel: vscode.OutputChannel
   ) {
     this.executionName = executionName;
     this.logName = logName;
     this.outputChannel = outputChannel;
-    this.cancellable = cancellable;
   }
 
   /**
