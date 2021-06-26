@@ -126,6 +126,7 @@ export abstract class LibraryCommandletExecutor<T>
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected readonly telemetry = new TelemetryBuilder();
+
   /**
    * @param name Name visible to user while executing.
    * @param logName Name for logging purposes such as telemetry.
@@ -164,6 +165,7 @@ export abstract class LibraryCommandletExecutor<T>
     channelService.showCommandWithTimestamp(
       `${nls.localize('channel_starting_message')}${this.executionName}\n`
     );
+
     try {
       const success = await vscode.window.withProgress(
         {
