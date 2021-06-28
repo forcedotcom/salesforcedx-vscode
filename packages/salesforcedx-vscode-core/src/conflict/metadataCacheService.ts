@@ -110,7 +110,8 @@ export class MetadataCacheService {
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,
-            resolveSourcePaths: packageDirs
+            resolveSourcePaths: packageDirs,
+            forceAddWildcards: true
           })
         : ComponentSet.fromSource(this.componentPath);
       return this.sourceComponents;
@@ -202,7 +203,7 @@ export class MetadataCacheService {
     baseDir: string
   ): string {
     if (comps.length === 0) {
-      return baseDir;
+      return '';
     }
     if (comps.length === 1) {
       return this.getRelativePath(comps[0], baseDir);
