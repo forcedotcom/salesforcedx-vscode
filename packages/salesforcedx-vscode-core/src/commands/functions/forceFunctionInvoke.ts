@@ -31,12 +31,10 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
       debug ? 'force_function_debug_invoke' : 'force_function_invoke',
       OUTPUT_CHANNEL
     );
-    if (debug) {
-      this.telemetry.addProperty(
-        'language',
-        FunctionService.instance.getFunctionLanguage()
-      );
-    }
+    this.telemetry.addProperty(
+      'language',
+      FunctionService.instance.getFunctionLanguage()
+    );
   }
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
