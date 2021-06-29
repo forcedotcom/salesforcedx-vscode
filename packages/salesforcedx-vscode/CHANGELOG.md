@@ -2,31 +2,23 @@
 
 ## Added
 
-#### salesforcedx-sobjects-faux-generator
-
-- Incorporate Apex Language Server updates ([PR #3347](https://github.com/forcedotcom/salesforcedx-vscode/pull/3347))
-
 #### salesforcedx-vscode-apex
 
-- Incorporate Apex Language Server updates ([PR #3347](https://github.com/forcedotcom/salesforcedx-vscode/pull/3347))
+- Add "Debug Test" code lens to Apex test methods and classes ([PR #3347](https://github.com/forcedotcom/salesforcedx-vscode/pull/3347))
 
 #### salesforcedx-vscode-core
 
 - Adds language data to telemetry for functions ([PR #3338](https://github.com/forcedotcom/salesforcedx-vscode/pull/3338))
 
-- New conflict detection mechanism ([PR #3332](https://github.com/forcedotcom/salesforcedx-vscode/pull/3332))
-
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- Stops the language service output panel from stealing focus ([PR #3356](https://github.com/forcedotcom/salesforcedx-vscode/pull/3356))
+- Stops the language server output panel from stealing focus ([PR #3356](https://github.com/forcedotcom/salesforcedx-vscode/pull/3356), [Issue #1429](https://github.com/forcedotcom/salesforcedx-vscode/issues/1429))
 
 #### salesforcedx-vscode-core
 
-- Conflict detection not working on new project ([PR #3358](https://github.com/forcedotcom/salesforcedx-vscode/pull/3358))
-
-- Remove scannedRemote and scannedLocal ([PR #3351](https://github.com/forcedotcom/salesforcedx-vscode/pull/3351))
+- Conflict detection not working in a brand new project ([PR #3358](https://github.com/forcedotcom/salesforcedx-vscode/pull/3358), [Issue #3294](https://github.com/forcedotcom/salesforcedx-vscode/issues/3294))
 
 # 52.2.0 - June 24, 2021
 
