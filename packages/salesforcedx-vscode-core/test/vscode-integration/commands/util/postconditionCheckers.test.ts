@@ -671,9 +671,7 @@ describe('Postcondition Checkers', () => {
           different: new Set<string>([
             'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
             'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-          ]),
-          scannedLocal: 4,
-          scannedRemote: 6
+          ])
         } as DirectoryDiffResults;
         modalStub.returns('Cancel');
 
@@ -690,7 +688,7 @@ describe('Postcondition Checkers', () => {
         ]);
 
         expect(channelOutput).to.include.members([
-          nls.localize('conflict_detect_conflict_header', 2, 6, 4),
+          nls.localize('conflict_detect_conflict_header_timestamp', 2),
           normalize(
             'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
           ),
