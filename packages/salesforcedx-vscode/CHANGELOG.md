@@ -1,3 +1,33 @@
+# 52.3.0 - June 30, 2021
+
+## Added
+
+#### salesforcedx-sobjects-faux-generator
+
+- Incorporate Apex Language Server updates ([PR #3347](https://github.com/forcedotcom/salesforcedx-vscode/pull/3347))
+
+#### salesforcedx-vscode-apex
+
+- Incorporate Apex Language Server updates ([PR #3347](https://github.com/forcedotcom/salesforcedx-vscode/pull/3347))
+
+#### salesforcedx-vscode-core
+
+- Adds language data to telemetry for functions ([PR #3338](https://github.com/forcedotcom/salesforcedx-vscode/pull/3338))
+
+- New conflict detection mechanism ([PR #3332](https://github.com/forcedotcom/salesforcedx-vscode/pull/3332))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Stops the language service output panel from stealing focus ([PR #3356](https://github.com/forcedotcom/salesforcedx-vscode/pull/3356))
+
+#### salesforcedx-vscode-core
+
+- Conflict detection not working on new project ([PR #3358](https://github.com/forcedotcom/salesforcedx-vscode/pull/3358))
+
+- Remove scannedRemote and scannedLocal ([PR #3351](https://github.com/forcedotcom/salesforcedx-vscode/pull/3351))
+
 # 52.2.0 - June 24, 2021
 
 ## Added
