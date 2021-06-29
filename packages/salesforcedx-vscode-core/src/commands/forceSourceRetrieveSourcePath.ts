@@ -28,6 +28,11 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import {
+  CompositePostconditionChecker,
+  ConflictDetectionMessages,
+  TimestampConflictChecker
+} from './util/postconditionCheckers';
 
 export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
   string
@@ -114,13 +119,27 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     }
   }
 
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:retrieve')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryRetrieveSourcePathExecutor()
       : new ForceSourceRetrieveSourcePathExecutor(),
-    new SourcePathChecker()
+    new CompositePostconditionChecker(
+      new SourcePathChecker(),
+      new TimestampConflictChecker(false, messages)
+    )
   );
   await commandlet.run();
 }
