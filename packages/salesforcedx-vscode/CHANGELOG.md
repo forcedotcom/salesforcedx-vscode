@@ -34,7 +34,7 @@
 
 #### salesforcedx-vscode-core
 
-- Setting to always force push on save ([PR #3144](https://github.com/forcedotcom/salesforcedx-vscode/pull/3144))
+- Setting to always force push on save ([PR #3144](https://github.com/forcedotcom/salesforcedx-vscode/pull/3144)) - Contribution by [@lukecotter](https://github.com/lukecotter)
 
 - Auth with token ([PR #3268](https://github.com/forcedotcom/salesforcedx-vscode/pull/3268))
 
@@ -42,7 +42,7 @@
 
 #### docs
 
-- Update japanese translation ([PR #3205](https://github.com/forcedotcom/salesforcedx-vscode/pull/3205))
+- Update japanese translation ([PR #3205](https://github.com/forcedotcom/salesforcedx-vscode/pull/3205)) - Contribution by [@shunkosa](https://github.com/shunkosa)
 
 #### salesforcedx-vscode-core
 
