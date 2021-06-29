@@ -33,50 +33,49 @@ import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 import * as library from '@heroku/functions-core';
 
 describe('Force Function Invoke', () => {
+  let sandbox: SinonSandbox;
+  let runFunctionLibraryStub: SinonStub;
+  let functionInvokeSpy: SinonSpy;
+  const notificationServiceStubs: {
+    [key: string]: SinonStub;
+  } = {};
+  const telemetryServiceStubs: {
+    [key: string]: SinonStub;
+  } = {};
+  const functionServiceStubs: {
+    [key: string]: SinonStub;
+  } = {};
+  beforeEach(() => {
+    sandbox = createSandbox();
+    runFunctionLibraryStub = sandbox.stub(library, 'runFunction');
+    runFunctionLibraryStub.returns(Promise.resolve(true));
+    functionInvokeSpy = sandbox.spy(ForceFunctionInvoke.prototype, 'run');
+    notificationServiceStubs.showWarningMessageStub = sandbox.stub(
+      notificationService,
+      'showWarningMessage'
+    );
+    telemetryServiceStubs.sendCommandEventStub = sandbox.stub(
+      telemetryService,
+      'sendCommandEvent'
+    );
+    telemetryServiceStubs.sendExceptionStub = sandbox.stub(
+      telemetryService,
+      'sendException'
+    );
+    functionServiceStubs.debugFunctionStub = sandbox.stub(
+      FunctionService.prototype,
+      'debugFunction'
+    );
+    functionServiceStubs.stopDebuggingFunctionStub = sandbox.stub(
+      FunctionService.prototype,
+      'stopDebuggingFunction'
+    );
+  });
+  afterEach(() => {
+    sandbox.restore();
+  });
   describe('Debug Invoke', () => {
-    let sandbox: SinonSandbox;
-    let runFunctionLibraryStub: SinonStub;
-    let functionInvokeSpy: SinonSpy;
-    const notificationServiceStubs: {
-      [key: string]: SinonStub;
-    } = {};
-    const telemetryServiceStubs: {
-      [key: string]: SinonStub;
-    } = {};
-    const functionServiceStubs: {
-      [key: string]: SinonStub;
-    } = {};
-    beforeEach(() => {
-      sandbox = createSandbox();
-      runFunctionLibraryStub = sandbox.stub(library, 'runFunction');
-      runFunctionLibraryStub.returns(Promise.resolve(true));
-      functionInvokeSpy = sandbox.spy(ForceFunctionInvoke.prototype, 'run');
-      notificationServiceStubs.showWarningMessageStub = sandbox.stub(
-        notificationService,
-        'showWarningMessage'
-      );
-      telemetryServiceStubs.sendCommandEventStub = sandbox.stub(
-        telemetryService,
-        'sendCommandEvent'
-      );
-      telemetryServiceStubs.sendExceptionStub = sandbox.stub(
-        telemetryService,
-        'sendException'
-      );
-      functionServiceStubs.debugFunctionStub = sandbox.stub(
-        FunctionService.prototype,
-        'debugFunction'
-      );
-      functionServiceStubs.stopDebuggingFunctionStub = sandbox.stub(
-        FunctionService.prototype,
-        'stopDebuggingFunction'
-      );
-    });
-    afterEach(() => {
-      sandbox.restore();
-    });
-
-    it('Should call library with proper args and log telemetry ', async () => {
+    it('Should call library with proper args and log telemetry', async () => {
       const srcUri = Uri.file(
         path.join(
           getRootWorkspacePath(),
@@ -84,7 +83,7 @@ describe('Force Function Invoke', () => {
         )
       );
 
-      await forceFunctionInvoke(srcUri);
+      await forceFunctionDebugInvoke(srcUri);
       const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(
         false
       );
@@ -168,6 +167,43 @@ describe('Force Function Invoke', () => {
           resolve();
         });
       });
+    });
+  });
+  describe('Regular Invoke', () => {
+    it('Should call library with proper args and log telemetry', async () => {
+      const FUNCTION_LANGUAGE = 'node';
+      functionServiceStubs.getFunctionLanguage = sandbox.stub(
+        FunctionService.prototype,
+        'getFunctionLanguage'
+      );
+      functionServiceStubs.getFunctionLanguage.returns(FUNCTION_LANGUAGE);
+
+      const srcUri = Uri.file(
+        path.join(
+          getRootWorkspacePath(),
+          'functions/demoJavaScriptFunction/payload.json'
+        )
+      );
+
+      await forceFunctionInvoke(srcUri);
+      const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(
+        false
+      );
+
+      assert.calledOnce(runFunctionLibraryStub);
+      assert.calledWith(runFunctionLibraryStub, {
+        url: 'http://localhost:8080',
+        payload: `@'${srcUri.fsPath}'`,
+        targetusername: defaultUsername
+      });
+
+      assert.calledOnce(telemetryServiceStubs.sendCommandEventStub);
+      assert.calledWith(
+        telemetryServiceStubs.sendCommandEventStub,
+        'force_function_invoke',
+        match.array,
+        { language: FUNCTION_LANGUAGE, success: 'true' }
+      );
     });
   });
 });
