@@ -22,9 +22,7 @@ export class TimestampConflictDetector {
   private static EMPTY_DIFFS = {
     localRoot: '',
     remoteRoot: '',
-    different: new Set<TimestampFileProperties>(),
-    scannedLocal: 0,
-    scannedRemote: 0
+    different: new Set<TimestampFileProperties>()
   };
 
   constructor() {

@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  CancelResponse,
   ContinueResponse,
-  LocalComponent
+  LocalComponent,
+  PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -14,13 +16,18 @@ import { join, normalize } from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../../src/channels';
 import {
+  CommandletExecutor,
   ConflictDetectionChecker,
   ConflictDetectionMessages,
   EmptyPostChecker,
   OverwriteComponentPrompt,
-  PathStrategyFactory
+  PathStrategyFactory,
+  SfdxCommandlet
 } from '../../../../src/commands/util';
-import { TimestampConflictChecker } from '../../../../src/commands/util/postconditionCheckers';
+import {
+  CompositePostconditionChecker,
+  TimestampConflictChecker
+} from '../../../../src/commands/util/postconditionCheckers';
 import {
   conflictDetector,
   conflictView,
@@ -32,7 +39,6 @@ import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath, MetadataDictionary } from '../../../../src/util';
-
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
@@ -41,7 +47,6 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.check({ type: 'CANCEL' });
       expect(response.type).to.equal('CANCEL');
     });
-
     it('Should return ContinueResponse unchanged if input passed in is ContinueResponse', async () => {
       const postChecker = new EmptyPostChecker();
       const input: ContinueResponse<string> = {
@@ -55,6 +60,135 @@ describe('Postcondition Checkers', () => {
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
+    });
+  });
+
+  describe('CompositePostconditionChecker', () => {
+    it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+      const postChecker = new CompositePostconditionChecker(
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            throw new Error('This should not be called');
+          }
+        })()
+      );
+      const response = await postChecker.check({ type: 'CANCEL' });
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should proceed to next checker if previous checker in composite checker is ContinueResponse', async () => {
+      const compositePostconditionChecker = new CompositePostconditionChecker(
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })(),
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })()
+      );
+
+      const response = await compositePostconditionChecker.check({ type: 'CONTINUE', data: {} });
+      expect(response.type).to.equal('CONTINUE');
+    });
+
+    it('Should not proceed to next checker if previous checker in composite checker is CancelResponse', async () => {
+      const compositePostconditionChecker = new CompositePostconditionChecker(
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CANCEL' };
+          }
+        })(),
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            throw new Error('This should not be called');
+          }
+        })()
+      );
+
+      await compositePostconditionChecker.check({ type: 'CONTINUE', data: {} });
+    });
+
+    // tslint:disable:no-unused-expression
+    it('Should call executor if composite checker is ContinueResponse', async () => {
+      let executed = false;
+      const commandlet = new SfdxCommandlet(
+        new (class {
+          public check(): boolean {
+            return true;
+          }
+        })(),
+        new (class {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })(),
+        new (class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
+            executed = true;
+          }
+        })(),
+        new CompositePostconditionChecker<{}>(
+          new (class implements PostconditionChecker<{}> {
+            public async check(): Promise<
+              CancelResponse | ContinueResponse<{}>
+            > {
+              return { type: 'CONTINUE', data: {} };
+            }
+          })()
+        )
+      );
+
+      await commandlet.run();
+
+      expect(executed).to.be.true;
+    });
+
+    it('Should not call executor if composite checker is CancelResponse', async () => {
+      const commandlet = new SfdxCommandlet(
+        new (class {
+          public check(): boolean {
+            return true;
+          }
+        })(),
+        new (class {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })(),
+        new (class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
+            throw new Error('This should not be called');
+          }
+        })(),
+        new CompositePostconditionChecker<{}>(
+          new (class implements PostconditionChecker<{}> {
+            public async check(): Promise<
+              CancelResponse | ContinueResponse<{}>
+            > {
+              return { type: 'CANCEL' };
+            }
+          })()
+        )
+      );
+
+      await commandlet.run();
     });
   });
 
@@ -554,9 +688,7 @@ describe('Postcondition Checkers', () => {
               path: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
               localLastModifiedDate: 'Yesterday',
               remoteLastModifiedDate: 'Today'
-            }]),
-          scannedLocal: 4,
-          scannedRemote: 6
+            }])
         } as DirectoryDiffResults;
         modalStub.returns('Cancel');
 
@@ -573,7 +705,7 @@ describe('Postcondition Checkers', () => {
         ]);
 
         expect(channelOutput).to.include.members([
-          nls.localize('conflict_detect_conflict_header', 2, 6, 4),
+          nls.localize('conflict_detect_conflict_header_timestamp', 2),
           normalize(
             'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
           ),

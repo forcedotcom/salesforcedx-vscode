@@ -18,8 +18,8 @@ export interface DirectoryDiffResults {
   different: Set<TimestampFileProperties>;
   localRoot: string;
   remoteRoot: string;
-  scannedLocal: number;
-  scannedRemote: number;
+  scannedLocal?: number;
+  scannedRemote?: number;
 }
 
 export interface DirectoryDiffer {
