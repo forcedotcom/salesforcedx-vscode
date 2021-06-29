@@ -24,7 +24,7 @@ import { TimestampConflictDetector } from '../../conflict/timestampConflictDetec
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { sfdxCoreSettings } from '../../settings';
+import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import { PathStrategyFactory } from './sourcePathStrategies';
@@ -421,6 +421,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
           results
         );
 
+        await DeployQueue.get().unlock();
         return { type: 'CANCEL' };
       }
     }

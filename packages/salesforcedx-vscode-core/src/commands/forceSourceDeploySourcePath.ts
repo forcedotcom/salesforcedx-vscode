@@ -23,6 +23,11 @@ import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  CompositePostconditionChecker,
+  ConflictDetectionMessages,
+  TimestampConflictChecker
+} from './util/postconditionCheckers';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -105,19 +110,44 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
       return;
     }
   }
+
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:deploy')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor(),
-    new SourcePathChecker()
+    new CompositePostconditionChecker(
+      new SourcePathChecker(),
+      new TimestampConflictChecker(false, messages)
+    )
   );
   await commandlet.run();
 }
 
 export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   const useBeta = sfdxCoreSettings.getBetaDeployRetrieve();
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:deploy')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     useBeta
@@ -125,7 +155,8 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
       : new MultipleSourcePathsGatherer(uris),
     useBeta
       ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor()
+      : new ForceSourceDeploySourcePathExecutor(),
+    new TimestampConflictChecker(false, messages)
   );
   await commandlet.run();
 }

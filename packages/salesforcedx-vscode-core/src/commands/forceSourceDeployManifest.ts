@@ -14,8 +14,8 @@ import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
-  ConflictDetectionChecker,
-  ConflictDetectionMessages
+  ConflictDetectionMessages,
+  TimestampConflictChecker
 } from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -99,7 +99,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibrarySourceDeployManifestExecutor()
       : new ForceSourceDeployManifestExecutor(),
-    new ConflictDetectionChecker(messages)
+    new TimestampConflictChecker(true, messages)
   );
   await commandlet.run();
 }
