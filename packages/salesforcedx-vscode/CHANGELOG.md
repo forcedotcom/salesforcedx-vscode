@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Adds language data to telemetry for functions ([PR #3338](https://github.com/forcedotcom/salesforcedx-vscode/pull/3338))
+- Add language data to telemetry for functions ([PR #3338](https://github.com/forcedotcom/salesforcedx-vscode/pull/3338))
 
 ## Fixed
 
