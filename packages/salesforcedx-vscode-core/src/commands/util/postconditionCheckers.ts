@@ -340,11 +340,6 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
     if (inputs.type === 'CONTINUE') {
       channelService.showChannelOutput();
-      channelService.showCommandWithTimestamp(
-        `${nls.localize('channel_starting_message')}${nls.localize(
-          'conflict_detect_execution_name'
-        )}\n`
-      );
 
       const { username } = workspaceContext;
       if (!username) {
@@ -354,8 +349,6 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         };
       }
 
-      const componentPath = inputs.data;
-      const cacheService = new MetadataCacheService(username);
       const detector = new TimestampConflictDetector();
 
       const cacheExecutor = new MetadataCacheExecutor(
@@ -372,20 +365,6 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       );
       await commandlet.run();
 
-
-      // const result = await cacheService.loadCache(
-      //   componentPath,
-      //   getRootWorkspacePath(),
-      //   this.isManifest
-      // );
-      // const detector = new TimestampConflictDetector();
-      // const diffs = detector.createDiffs(result);
-
-      channelService.showCommandWithTimestamp(
-        `${nls.localize('channel_end')} ${nls.localize(
-          'conflict_detect_execution_name'
-        )}\n`
-      );
       return await this.handleConflicts(inputs.data, username, detector.getDiffs());
     }
     return { type: 'CANCEL' };

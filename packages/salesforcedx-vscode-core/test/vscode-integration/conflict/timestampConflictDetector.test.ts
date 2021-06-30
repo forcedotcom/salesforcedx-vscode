@@ -107,7 +107,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     differStub.returns(diffResults);
     cacheStub.returns(storageResult);
 
-    const results = await executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs('', cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(1);
@@ -130,7 +130,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       path.normalize('/a/b/c')
     ]);
 
-    expect(results.different).to.have.all.keys(
+    expect(executor.getDiffs().different).to.have.all.keys(
       path.normalize('classes/HandlerCostCenter.cls')
     );
   });
@@ -159,12 +159,12 @@ describe('Timestamp Conflict Detector Execution', () => {
       }] as FileProperties[]
     } as MetadataCacheResult;
 
-    const results = await executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs('', cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(0);
     expect(differStub.callCount).to.equal(0);
-    expect(results.different).to.eql(new Set<string>());
+    expect(executor.getDiffs().different).to.eql(new Set<string>());
   });
 
   it('Should not report differences if the component is only remote', async () => {
@@ -191,12 +191,12 @@ describe('Timestamp Conflict Detector Execution', () => {
       }] as FileProperties[]
     } as MetadataCacheResult;
 
-    const results = await executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs('', cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(0);
     expect(differStub.callCount).to.equal(0);
-    expect(results.different).to.eql(new Set<string>());
+    expect(executor.getDiffs().different).to.eql(new Set<string>());
   });
 
   it('Should not report differences if the timestamps match', async () => {
@@ -234,12 +234,12 @@ describe('Timestamp Conflict Detector Execution', () => {
 
     cacheStub.returns(storageResult);
 
-    const results = await executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs('', cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(1);
     expect(differStub.callCount).to.equal(0);
-    expect(results.different).to.eql(new Set<string>());
+    expect(executor.getDiffs().different).to.eql(new Set<string>());
   });
 
   it('Should not report differences if the files match', async () => {
@@ -280,7 +280,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     differStub.returns(diffResults);
     cacheStub.returns(storageResult);
 
-    const results = await executor.createDiffs(cacheResults);
+    const results = await executor.createDiffs('', cacheResults);
 
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(1);
@@ -303,14 +303,14 @@ describe('Timestamp Conflict Detector Execution', () => {
       path.normalize('/a/b/c')
     ]);
 
-    expect(results.different).to.eql(new Set<string>());
+    expect(executor.getDiffs().different).to.eql(new Set<string>());
   });
 
   it('Should report an error during conflict detection', async () => {
     const cacheResults = undefined;
 
     try {
-      await executor.createDiffs(cacheResults);
+      await executor.createDiffs('', cacheResults);
       fail('Failed to raise an exception during conflict detection');
     } catch (err) {
       expect(err.message).to.equal(
