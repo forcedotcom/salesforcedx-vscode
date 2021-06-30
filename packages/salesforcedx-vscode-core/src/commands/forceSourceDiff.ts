@@ -7,12 +7,12 @@
 
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import * as differ from '../conflict/directoryDiffer';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
   PathType
 } from '../conflict';
+import * as differ from '../conflict/directoryDiffer';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
