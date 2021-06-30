@@ -16,6 +16,7 @@ import { join, normalize } from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../../src/channels';
 import {
+  CommandletExecutor,
   ConflictDetectionMessages,
   EmptyPostChecker,
   OverwriteComponentPrompt,
