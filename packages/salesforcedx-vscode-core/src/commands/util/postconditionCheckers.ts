@@ -22,13 +22,42 @@ import { TimestampConflictDetector } from '../../conflict/timestampConflictDetec
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { sfdxCoreSettings } from '../../settings';
+import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath, MetadataDictionary } from '../../util';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
+
+export class CompositePostconditionChecker<T> implements PostconditionChecker<T> {
+  private readonly postcheckers: Array<PostconditionChecker<any>>;
+  public constructor(...postcheckers: Array<PostconditionChecker<any>>) {
+    this.postcheckers = postcheckers;
+  }
+  public async check(inputs: CancelResponse | ContinueResponse<T>): Promise<CancelResponse | ContinueResponse<T>> {
+    if (inputs.type === 'CONTINUE') {
+      const aggregatedData: any = {};
+      for (const postchecker of this.postcheckers) {
+        const input = await postchecker.check(inputs);
+        if (input.type === 'CONTINUE') {
+          Object.keys(input.data).forEach(
+            key => (aggregatedData[key] = input.data[key])
+          );
+        } else {
+          return {
+            type: 'CANCEL'
+          };
+        }
+      }
+      return {
+        type: 'CONTINUE',
+        data: aggregatedData
+      };
+    }
+    return inputs;
+  }
+}
 
 export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(
@@ -188,7 +217,6 @@ export interface ConflictDetectionMessages {
 }
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {
-
   private isManifest: boolean;
   private messages: ConflictDetectionMessages;
 
@@ -205,6 +233,13 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     }
 
     if (inputs.type === 'CONTINUE') {
+      channelService.showChannelOutput();
+      channelService.showCommandWithTimestamp(
+        `${nls.localize('channel_starting_message')}${nls.localize(
+          'conflict_detect_execution_name'
+        )}\n`
+      );
+
       const { username } = workspaceContext;
       if (!username) {
         return {
@@ -215,9 +250,19 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
       const componentPath = inputs.data;
       const cacheService = new MetadataCacheService(username);
-      const result = await cacheService.loadCache(componentPath, getRootWorkspacePath(), this.isManifest);
+      const result = await cacheService.loadCache(
+        componentPath,
+        getRootWorkspacePath(),
+        this.isManifest
+      );
       const detector = new TimestampConflictDetector();
       const diffs = detector.createDiffs(result);
+
+      channelService.showCommandWithTimestamp(
+        `${nls.localize('channel_end')} ${nls.localize(
+          'conflict_detect_execution_name'
+        )}\n`
+      );
       return await this.handleConflicts(inputs.data, username, diffs);
     }
     return { type: 'CANCEL' };
@@ -239,16 +284,13 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
     } else {
       channelService.appendLine(
         nls.localize(
-          'conflict_detect_conflict_header',
-          results.different.size,
-          results.scannedRemote,
-          results.scannedLocal
+          'conflict_detect_conflict_header_timestamp',
+          results.different.size
         )
       );
       results.different.forEach(file => {
         channelService.appendLine(normalize(file));
       });
-      channelService.showChannelOutput();
 
       const choice = await notificationService.showWarningModal(
         nls.localize(this.messages.warningMessageKey),
@@ -279,6 +321,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
           results
         );
 
+        await DeployQueue.get().unlock();
         return { type: 'CANCEL' };
       }
     }

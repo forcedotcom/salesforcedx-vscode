@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  CancelResponse,
   ContinueResponse,
-  LocalComponent
+  LocalComponent,
+  PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -17,19 +19,19 @@ import {
   ConflictDetectionMessages,
   EmptyPostChecker,
   OverwriteComponentPrompt,
-  PathStrategyFactory
+  PathStrategyFactory,
+  SfdxCommandlet
 } from '../../../../src/commands/util';
-import { TimestampConflictChecker } from '../../../../src/commands/util/postconditionCheckers';
 import {
-  conflictView,
-  DirectoryDiffResults
-} from '../../../../src/conflict';
+  CompositePostconditionChecker,
+  TimestampConflictChecker
+} from '../../../../src/commands/util/postconditionCheckers';
+import { conflictView, DirectoryDiffResults } from '../../../../src/conflict';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath, MetadataDictionary } from '../../../../src/util';
-
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
@@ -38,7 +40,6 @@ describe('Postcondition Checkers', () => {
       const response = await postChecker.check({ type: 'CANCEL' });
       expect(response.type).to.equal('CANCEL');
     });
-
     it('Should return ContinueResponse unchanged if input passed in is ContinueResponse', async () => {
       const postChecker = new EmptyPostChecker();
       const input: ContinueResponse<string> = {
@@ -52,6 +53,128 @@ describe('Postcondition Checkers', () => {
       } else {
         expect.fail('Response should be of type ContinueResponse');
       }
+    });
+  });
+
+  describe('CompositePostconditionChecker', () => {
+    it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+      const postChecker = new CompositePostconditionChecker(
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<CancelResponse | ContinueResponse<{}>> {
+            throw new Error('This should not be called');
+          }
+        })()
+      );
+      const response = await postChecker.check({ type: 'CANCEL' });
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should proceed to next checker if previous checker in composite checker is ContinueResponse', async () => {
+      const compositePostconditionChecker = new CompositePostconditionChecker(
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<CancelResponse | ContinueResponse<{}>> {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })(),
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<CancelResponse | ContinueResponse<{}>> {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })()
+      );
+
+      const response = await compositePostconditionChecker.check({
+        type: 'CONTINUE',
+        data: {}
+      });
+      expect(response.type).to.equal('CONTINUE');
+    });
+
+    it('Should not proceed to next checker if previous checker in composite checker is CancelResponse', async () => {
+      const compositePostconditionChecker = new CompositePostconditionChecker(
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<CancelResponse | ContinueResponse<{}>> {
+            return { type: 'CANCEL' };
+          }
+        })(),
+        new (class implements PostconditionChecker<{}> {
+          public async check(): Promise<CancelResponse | ContinueResponse<{}>> {
+            throw new Error('This should not be called');
+          }
+        })()
+      );
+
+      await compositePostconditionChecker.check({ type: 'CONTINUE', data: {} });
+    });
+
+    // tslint:disable:no-unused-expression
+    it('Should call executor if composite checker is ContinueResponse', async () => {
+      let executed = false;
+      const commandlet = new SfdxCommandlet(
+        new (class {
+          public check(): boolean {
+            return true;
+          }
+        })(),
+        new (class {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })(),
+        new (class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
+            executed = true;
+          }
+        })(),
+        new CompositePostconditionChecker<{}>(
+          new (class implements PostconditionChecker<{}> {
+            public async check(): Promise<
+              CancelResponse | ContinueResponse<{}>
+            > {
+              return { type: 'CONTINUE', data: {} };
+            }
+          })()
+        )
+      );
+
+      await commandlet.run();
+
+      expect(executed).to.be.true;
+    });
+
+    it('Should not call executor if composite checker is CancelResponse', async () => {
+      const commandlet = new SfdxCommandlet(
+        new (class {
+          public check(): boolean {
+            return true;
+          }
+        })(),
+        new (class {
+          public async gather(): Promise<
+            CancelResponse | ContinueResponse<{}>
+          > {
+            return { type: 'CONTINUE', data: {} };
+          }
+        })(),
+        new (class implements CommandletExecutor<{}> {
+          public execute(response: ContinueResponse<{}>): void {
+            throw new Error('This should not be called');
+          }
+        })(),
+        new CompositePostconditionChecker<{}>(
+          new (class implements PostconditionChecker<{}> {
+            public async check(): Promise<
+              CancelResponse | ContinueResponse<{}>
+            > {
+              return { type: 'CANCEL' };
+            }
+          })()
+        )
+      );
+
+      await commandlet.run();
     });
   });
 
@@ -291,160 +414,158 @@ describe('Postcondition Checkers', () => {
   });
 
   describe('TimestampConflictChecker', () => {
-      let modalStub: SinonStub;
-      let settingsStub: SinonStub;
-      let conflictViewStub: SinonStub;
-      let appendLineStub: SinonStub;
-      let channelOutput: string[] = [];
+    let modalStub: SinonStub;
+    let settingsStub: SinonStub;
+    let conflictViewStub: SinonStub;
+    let appendLineStub: SinonStub;
+    let channelOutput: string[] = [];
 
-      beforeEach(() => {
-        env = createSandbox();
-        channelOutput = [];
-        modalStub = env.stub(notificationService, 'showWarningModal');
-        settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
-        conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
-        appendLineStub = env.stub(channelService, 'appendLine');
-        appendLineStub.callsFake(line => channelOutput.push(line));
-      });
-
-      afterEach(() => env.restore());
-
-      const emptyMessages: ConflictDetectionMessages = {
-        warningMessageKey: '',
-        commandHint: i => i
-      };
-
-      const retrieveMessages: ConflictDetectionMessages = {
-        warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
-        commandHint: i => i
-      };
-
-      const validInput: ContinueResponse<string> = {
-        type: 'CONTINUE',
-        data: 'package.xml'
-      };
-
-      it('Should return CancelResponse if input passed in is CancelResponse', async () => {
-        const postChecker = new TimestampConflictChecker(false, emptyMessages);
-        const response = await postChecker.check({ type: 'CANCEL' });
-        expect(response.type).to.equal('CANCEL');
-      });
-
-      it('Should return ContinueResponse unchanged if input is ContinueResponse and conflict detection is disabled', async () => {
-        const postChecker = new TimestampConflictChecker(false, emptyMessages);
-
-        settingsStub.returns(false);
-        const response = await postChecker.check(validInput);
-
-        expect(response.type).to.equal('CONTINUE');
-        if (response.type === 'CONTINUE') {
-          expect(response.data).to.equal('package.xml');
-        } else {
-          expect.fail('Response should be of type ContinueResponse');
-        }
-      });
-
-      it('Should return CancelResponse when a username is not defined.', async () => {
-        const postChecker = new TimestampConflictChecker(false, emptyMessages);
-        settingsStub.returns(true);
-
-        const response = await postChecker.check(validInput);
-        expect(response.type).to.equal('CANCEL');
-      });
-
-      it('Should return ContinueResponse when no conflicts are detected', async () => {
-        const postChecker = new TimestampConflictChecker(false, emptyMessages);
-        const response = await postChecker.handleConflicts(
-          'manifest.xml',
-          'admin@example.com',
-          { different: new Set<string>() } as DirectoryDiffResults
-        );
-
-        expect(response.type).to.equal('CONTINUE');
-        expect((response as ContinueResponse<string>).data).to.equal(
-          'manifest.xml'
-        );
-        expect(appendLineStub.notCalled).to.equal(true);
-      });
-
-      it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
-        const postChecker = new TimestampConflictChecker(false, retrieveMessages);
-        const results = {
-          different: new Set<string>([
-            'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
-            'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-          ]),
-          scannedLocal: 4,
-          scannedRemote: 6
-        } as DirectoryDiffResults;
-        modalStub.returns('Cancel');
-
-        const response = await postChecker.handleConflicts(
-          'package.xml',
-          'admin@example.com',
-          results
-        );
-        expect(response.type).to.equal('CANCEL');
-
-        expect(modalStub.firstCall.args.slice(1)).to.eql([
-          nls.localize('conflict_detect_override'),
-          nls.localize('conflict_detect_show_conflicts')
-        ]);
-
-        expect(channelOutput).to.include.members([
-          nls.localize('conflict_detect_conflict_header', 2, 6, 4),
-          normalize(
-            'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
-          ),
-          normalize(
-            'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-          ),
-          nls.localize('conflict_detect_command_hint', 'package.xml')
-        ]);
-
-        expect(conflictViewStub.calledOnce).to.equal(true);
-      });
-
-      it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
-        const postChecker = new TimestampConflictChecker(false, retrieveMessages);
-        const results = {
-          different: new Set<string>('MyClass.cls')
-        } as DirectoryDiffResults;
-        modalStub.returns(nls.localize('conflict_detect_override'));
-
-        const response = await postChecker.handleConflicts(
-          'manifest.xml',
-          'admin@example.com',
-          results
-        );
-        expect(response.type).to.equal('CONTINUE');
-
-        expect(modalStub.firstCall.args.slice(1)).to.eql([
-          nls.localize('conflict_detect_override'),
-          nls.localize('conflict_detect_show_conflicts')
-        ]);
-      });
-
-      it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
-        const postChecker = new TimestampConflictChecker(false, retrieveMessages);
-        const results = {
-          different: new Set<string>('MyClass.cls')
-        } as DirectoryDiffResults;
-        modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
-
-        const response = await postChecker.handleConflicts(
-          'manifest.xml',
-          'admin@example.com',
-          results
-        );
-        expect(response.type).to.equal('CANCEL');
-
-        expect(modalStub.firstCall.args.slice(1)).to.eql([
-          nls.localize('conflict_detect_override'),
-          nls.localize('conflict_detect_show_conflicts')
-        ]);
-
-        expect(conflictViewStub.calledOnce).to.equal(true);
-      });
+    beforeEach(() => {
+      env = createSandbox();
+      channelOutput = [];
+      modalStub = env.stub(notificationService, 'showWarningModal');
+      settingsStub = env.stub(sfdxCoreSettings, 'getConflictDetectionEnabled');
+      conflictViewStub = env.stub(conflictView, 'visualizeDifferences');
+      appendLineStub = env.stub(channelService, 'appendLine');
+      appendLineStub.callsFake(line => channelOutput.push(line));
     });
+
+    afterEach(() => env.restore());
+
+    const emptyMessages: ConflictDetectionMessages = {
+      warningMessageKey: '',
+      commandHint: i => i
+    };
+
+    const retrieveMessages: ConflictDetectionMessages = {
+      warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
+      commandHint: i => i
+    };
+
+    const validInput: ContinueResponse<string> = {
+      type: 'CONTINUE',
+      data: 'package.xml'
+    };
+
+    it('Should return CancelResponse if input passed in is CancelResponse', async () => {
+      const postChecker = new TimestampConflictChecker(false, emptyMessages);
+      const response = await postChecker.check({ type: 'CANCEL' });
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return ContinueResponse unchanged if input is ContinueResponse and conflict detection is disabled', async () => {
+      const postChecker = new TimestampConflictChecker(false, emptyMessages);
+
+      settingsStub.returns(false);
+      const response = await postChecker.check(validInput);
+
+      expect(response.type).to.equal('CONTINUE');
+      if (response.type === 'CONTINUE') {
+        expect(response.data).to.equal('package.xml');
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return CancelResponse when a username is not defined.', async () => {
+      const postChecker = new TimestampConflictChecker(false, emptyMessages);
+      settingsStub.returns(true);
+
+      const response = await postChecker.check(validInput);
+      expect(response.type).to.equal('CANCEL');
+    });
+
+    it('Should return ContinueResponse when no conflicts are detected', async () => {
+      const postChecker = new TimestampConflictChecker(false, emptyMessages);
+      const response = await postChecker.handleConflicts(
+        'manifest.xml',
+        'admin@example.com',
+        { different: new Set<string>() } as DirectoryDiffResults
+      );
+
+      expect(response.type).to.equal('CONTINUE');
+      expect((response as ContinueResponse<string>).data).to.equal(
+        'manifest.xml'
+      );
+      expect(appendLineStub.notCalled).to.equal(true);
+    });
+
+    it('Should post a warning and return CancelResponse when conflicts are detected and cancelled', async () => {
+      const postChecker = new TimestampConflictChecker(false, retrieveMessages);
+      const results = {
+        different: new Set<string>([
+          'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
+          'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
+        ])
+      } as DirectoryDiffResults;
+      modalStub.returns('Cancel');
+
+      const response = await postChecker.handleConflicts(
+        'package.xml',
+        'admin@example.com',
+        results
+      );
+      expect(response.type).to.equal('CANCEL');
+
+      expect(modalStub.firstCall.args.slice(1)).to.eql([
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
+      ]);
+
+      expect(channelOutput).to.include.members([
+        nls.localize('conflict_detect_conflict_header_timestamp', 2),
+        normalize(
+          'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+        ),
+        normalize(
+          'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
+        ),
+        nls.localize('conflict_detect_command_hint', 'package.xml')
+      ]);
+
+      expect(conflictViewStub.calledOnce).to.equal(true);
+    });
+
+    it('Should post a warning and return ContinueResponse when conflicts are detected and overwritten', async () => {
+      const postChecker = new TimestampConflictChecker(false, retrieveMessages);
+      const results = {
+        different: new Set<string>('MyClass.cls')
+      } as DirectoryDiffResults;
+      modalStub.returns(nls.localize('conflict_detect_override'));
+
+      const response = await postChecker.handleConflicts(
+        'manifest.xml',
+        'admin@example.com',
+        results
+      );
+      expect(response.type).to.equal('CONTINUE');
+
+      expect(modalStub.firstCall.args.slice(1)).to.eql([
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
+      ]);
+    });
+
+    it('Should post a warning and return CancelResponse when conflicts are detected and conflicts are shown', async () => {
+      const postChecker = new TimestampConflictChecker(false, retrieveMessages);
+      const results = {
+        different: new Set<string>('MyClass.cls')
+      } as DirectoryDiffResults;
+      modalStub.returns(nls.localize('conflict_detect_show_conflicts'));
+
+      const response = await postChecker.handleConflicts(
+        'manifest.xml',
+        'admin@example.com',
+        results
+      );
+      expect(response.type).to.equal('CANCEL');
+
+      expect(modalStub.firstCall.args.slice(1)).to.eql([
+        nls.localize('conflict_detect_override'),
+        nls.localize('conflict_detect_show_conflicts')
+      ]);
+
+      expect(conflictViewStub.calledOnce).to.equal(true);
+    });
+  });
 });
