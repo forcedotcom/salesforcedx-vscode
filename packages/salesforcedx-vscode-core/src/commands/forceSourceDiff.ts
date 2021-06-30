@@ -7,9 +7,8 @@
 
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import * as differ from '../conflict/directoryDiffer';
 import {
-  diffFolder,
-  diffOneFile,
   MetadataCacheExecutor,
   MetadataCacheResult,
   PathType
@@ -96,13 +95,13 @@ export async function handleCacheResults(
 ): Promise<void> {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
-      await diffOneFile(
+      await differ.diffOneFile(
         cache.selectedPath,
         cache.cache.components[0],
         username
       );
     } else if (cache.selectedType === PathType.Folder) {
-      await diffFolder(cache, username);
+      await differ.diffFolder(cache, username);
     }
   } else {
     const message = nls.localize('force_source_diff_components_not_in_org');
