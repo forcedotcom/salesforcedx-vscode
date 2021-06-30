@@ -128,10 +128,18 @@ export class ApexTestOutlineProvider
   ) {
     const testRunIdFile = path.join(apexTestPath, 'test-run-id.txt');
     const testRunId = readFileSync(testRunIdFile);
-    const testResultFilePath = path.join(
-      apexTestPath,
-      `test-result-${testRunId}.json`
-    );
+    let testResultFilePath;
+    if ( testRunId.toString() === '' ) {
+      testResultFilePath = path.join(
+        apexTestPath,
+        `test-result.json`
+      );
+    } else {
+      testResultFilePath = path.join(
+        apexTestPath,
+        `test-result-${testRunId}.json`
+      );
+    }
     if (testResultFile === testResultFilePath) {
       await this.refresh();
       this.updateTestResults(testResultFile);

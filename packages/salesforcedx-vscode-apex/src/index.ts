@@ -56,6 +56,10 @@ export async function activate(context: vscode.ExtensionContext) {
       testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
     );
 
+    testResultFileWatcher.onDidChange(uri =>
+      testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
+    );
+
     context.subscriptions.push(testResultFileWatcher);
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));

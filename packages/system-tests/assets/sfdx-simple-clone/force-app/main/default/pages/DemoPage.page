@@ -1,0 +1,46 @@
+<apex:page standardController="Contact" extensions="DemoController">
+  <!-- Page Header -->
+  <apex:sectionHeader title="Contact Edit" subtitle="New SFDX Demo Member" />
+  <apex:image value="http://bit.ly/17iLknp" styleClass="logo" />
+
+  <!-- Begin Form -->
+  <apex:form >
+    <apex:pageBlock title="Rules of SFDX Demo" mode="edit">
+      <!-- SFDX99 Rules -->
+      <apex:outputPanel styleClass="rules">
+        <p>The 1st rule of SFDX Demo is: You do not talk about SFDX Demo.</p>
+        <p>The 2nd rule of SFDX Demo is: You do not talk about SFDX Demo.</p>
+        <p>The 3rd rule of SFDX Demo is: You do not talk about SFDX Demo.</p>
+      </apex:outputPanel>
+
+      <!-- Fields -->
+      <apex:pageBlockSection columns="3" showHeader="true" title="Membership Status">
+        <apex:inputField styleClass="firstName" value="{!contact.FirstName}" required="true" />
+        <apex:inputField styleClass="lastName" value="{!contact.LastName}"  required="true" />
+      </apex:pageBlockSection>
+
+      <!-- Button Section -->
+      <apex:pageBlockButtons location="bottom">
+        <apex:commandButton value="Add SFDX Demo Member" action="{!save}" />
+      </apex:pageBlockButtons>
+    </apex:pageBlock>
+  </apex:form>
+
+  <!-- CSS -->
+  <style>
+    .logo {
+      float: right;
+      width: 60px;
+      margin: -65px 20px 0 0;
+    }
+    .rules {
+      color: red;
+      font-size: 18px;
+      font-family: Courier;
+      margin: 10px 30px 30px 30px;
+      float: left;
+      line-height: 10px;
+      width: 100%;
+    }
+  </style>
+</apex:page>
