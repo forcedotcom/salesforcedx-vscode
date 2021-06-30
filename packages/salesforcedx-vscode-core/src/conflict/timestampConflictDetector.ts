@@ -28,16 +28,20 @@ export class TimestampConflictDetector {
     this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
   }
 
-  public createDiffs(
+  public getDiffs(): DirectoryDiffResults {
+    return this.diffs;
+  }
+
+  public async createDiffs(
+    username: string,
     result?: MetadataCacheResult
-  ): DirectoryDiffResults {
+  ): Promise<void> {
     if (!result) {
       throw new Error(nls.localize('conflict_detect_empty_results'));
     }
     this.createRootPaths(result);
     const components = MetadataCacheService.correlateResults(result);
     this.determineConflicts(components);
-    return this.diffs;
   }
 
   private determineConflicts(

@@ -14,10 +14,16 @@ import { existsSync } from 'fs';
 import { join, normalize } from 'path';
 import { channelService } from '../../channels';
 import {
+  SfdxCommandlet,
+  SfdxWorkspaceChecker,
+  SimpleGatherer
+} from '../../commands/util';
+import {
   ConflictDetectionConfig,
   conflictDetector,
   conflictView,
   DirectoryDiffResults,
+  MetadataCacheExecutor,
   MetadataCacheService
 } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
@@ -350,20 +356,37 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
       const componentPath = inputs.data;
       const cacheService = new MetadataCacheService(username);
-      const result = await cacheService.loadCache(
-        componentPath,
-        getRootWorkspacePath(),
+      const detector = new TimestampConflictDetector();
+
+      const cacheExecutor = new MetadataCacheExecutor(
+        username,
+        nls.localize('conflict_detect_execution_name'),
+        'conflict_detect',
+        detector.createDiffs.bind(detector),
         this.isManifest
       );
-      const detector = new TimestampConflictDetector();
-      const diffs = detector.createDiffs(result);
+      const commandlet = new SfdxCommandlet<string>(
+        new SfdxWorkspaceChecker(),
+        new SimpleGatherer<string>(inputs.data),
+        cacheExecutor
+      );
+      await commandlet.run();
+
+
+      // const result = await cacheService.loadCache(
+      //   componentPath,
+      //   getRootWorkspacePath(),
+      //   this.isManifest
+      // );
+      // const detector = new TimestampConflictDetector();
+      // const diffs = detector.createDiffs(result);
 
       channelService.showCommandWithTimestamp(
         `${nls.localize('channel_end')} ${nls.localize(
           'conflict_detect_execution_name'
         )}\n`
       );
-      return await this.handleConflicts(inputs.data, username, diffs);
+      return await this.handleConflicts(inputs.data, username, detector.getDiffs());
     }
     return { type: 'CANCEL' };
   }
