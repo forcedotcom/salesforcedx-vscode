@@ -32,12 +32,15 @@ import { PathStrategyFactory } from './sourcePathStrategies';
 type OneOrMany = LocalComponent | LocalComponent[];
 type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;
 
-export class CompositePostconditionChecker<T> implements PostconditionChecker<T> {
+export class CompositePostconditionChecker<T>
+  implements PostconditionChecker<T> {
   private readonly postcheckers: Array<PostconditionChecker<any>>;
   public constructor(...postcheckers: Array<PostconditionChecker<any>>) {
     this.postcheckers = postcheckers;
   }
-  public async check(inputs: CancelResponse | ContinueResponse<T>): Promise<CancelResponse | ContinueResponse<T>> {
+  public async check(
+    inputs: CancelResponse | ContinueResponse<T>
+  ): Promise<CancelResponse | ContinueResponse<T>> {
     if (inputs.type === 'CONTINUE') {
       const aggregatedData: any = {};
       for (const postchecker of this.postcheckers) {
@@ -350,20 +353,31 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
       const componentPath = inputs.data;
       const cacheService = new MetadataCacheService(username);
-      const result = await cacheService.loadCache(
-        componentPath,
-        getRootWorkspacePath(),
-        this.isManifest
-      );
-      const detector = new TimestampConflictDetector();
-      const diffs = detector.createDiffs(result);
 
-      channelService.showCommandWithTimestamp(
-        `${nls.localize('channel_end')} ${nls.localize(
-          'conflict_detect_execution_name'
-        )}\n`
-      );
-      return await this.handleConflicts(inputs.data, username, diffs);
+      try {
+        const result = await cacheService.loadCache(
+          componentPath,
+          getRootWorkspacePath(),
+          this.isManifest
+        );
+        const detector = new TimestampConflictDetector();
+        const diffs = detector.createDiffs(result);
+
+        channelService.showCommandWithTimestamp(
+          `${nls.localize('channel_end')} ${nls.localize(
+            'conflict_detect_execution_name'
+          )}\n`
+        );
+        return await this.handleConflicts(inputs.data, username, diffs);
+      } catch (error) {
+        console.error(error);
+        const errorMsg = nls.localize(
+          'conflict_detect_error',
+          error.toString()
+        );
+        channelService.appendLine(errorMsg);
+        telemetryService.sendException('ConflictDetectionException', errorMsg);
+      }
     }
     return { type: 'CANCEL' };
   }

@@ -545,7 +545,7 @@ export const messages = {
   conflict_detect_initialization_error:
     'Unexpected error initiliazing metadata cache',
   conflict_detect_empty_results:
-    'Conflict Detection failed to retrieve org file state',
+    'Warning: no files retrieved during conflict detection',
   conflict_detect_conflicts_during_deploy:
     'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
   conflict_detect_conflicts_during_retrieve:
