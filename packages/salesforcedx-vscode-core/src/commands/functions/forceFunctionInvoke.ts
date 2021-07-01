@@ -42,7 +42,7 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
     try {
       channelService.appendLine(`POST ${url}`);
       const functionResponse = await runFunction({
-        url: url,
+        url,
         payload: `@'${response.data}'`,
         targetusername: defaultUsername
       });
