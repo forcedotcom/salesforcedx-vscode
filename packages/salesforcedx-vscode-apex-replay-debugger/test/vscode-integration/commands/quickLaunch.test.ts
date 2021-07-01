@@ -38,6 +38,7 @@ describe('Quick launch apex tests', () => {
   let logServiceStub: SinonStub;
   let launcherStub: SinonStub;
   let buildPayloadStub: SinonStub;
+  let writeResultFilesStub: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
@@ -58,6 +59,7 @@ describe('Quick launch apex tests', () => {
       .stub(TestService.prototype, 'runTestSynchronous')
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
+    writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
   });
 
   afterEach(() => {
@@ -112,6 +114,7 @@ describe('Quick launch apex tests', () => {
       undefined,
       'MyClass'
     ]);
+    expect(writeResultFilesStub.called).to.equal(true);
   });
 
   it('should debug a single test method', async () => {
@@ -163,6 +166,7 @@ describe('Quick launch apex tests', () => {
     const launcherArgs = launcherStub.getCall(0).args;
     expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
     expect(launcherArgs[1]).to.equal(false);
+    expect(writeResultFilesStub.called).to.equal(true);
   });
 
   it('should debug a single test method that fails', async () => {
@@ -212,6 +216,7 @@ describe('Quick launch apex tests', () => {
     expect(notificationArgs[0]).to.equal(
       "Cannot read property 'length' of undefined"
     );
+    expect(writeResultFilesStub.called).to.equal(true);
   });
 
   it('should display an error for a missing test', async () => {
@@ -255,6 +260,7 @@ describe('Quick launch apex tests', () => {
     expect(notificationArgs[0]).to.equal(
       nls.localize('debug_test_no_results_found')
     );
+    expect(writeResultFilesStub.called).to.equal(true);
   });
 
   it('should display an error for a missing log file', async () => {
@@ -298,5 +304,6 @@ describe('Quick launch apex tests', () => {
     expect(notificationArgs[0]).to.equal(
       nls.localize('debug_test_no_debug_log')
     );
+    expect(writeResultFilesStub.called).to.equal(true);
   });
 });
