@@ -377,6 +377,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         );
         channelService.appendLine(errorMsg);
         telemetryService.sendException('ConflictDetectionException', errorMsg);
+        await DeployQueue.get().unlock();
       }
     }
     return { type: 'CANCEL' };
