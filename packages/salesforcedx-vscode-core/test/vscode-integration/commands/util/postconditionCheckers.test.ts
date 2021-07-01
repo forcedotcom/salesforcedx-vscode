@@ -79,45 +79,45 @@ describe('Postcondition Checkers', () => {
 
     it('Should proceed to next checker if previous checker in composite checker is ContinueResponse', async () => {
       const compositePostconditionChecker = new CompositePostconditionChecker(
-        new (class implements PostconditionChecker<{}> {
+        new (class implements PostconditionChecker<string> {
           public async check(): Promise<
-            CancelResponse | ContinueResponse<{}>
+            CancelResponse | ContinueResponse<string>
           > {
-            return { type: 'CONTINUE', data: {} };
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
-        new (class implements PostconditionChecker<{}> {
+        new (class implements PostconditionChecker<string> {
           public async check(): Promise<
-            CancelResponse | ContinueResponse<{}>
+            CancelResponse | ContinueResponse<string>
           > {
-            return { type: 'CONTINUE', data: {} };
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })()
       );
 
-      const response = await compositePostconditionChecker.check({ type: 'CONTINUE', data: {} });
+      const response = await compositePostconditionChecker.check({ type: 'CONTINUE', data: 'package.xml' });
       expect(response.type).to.equal('CONTINUE');
     });
 
     it('Should not proceed to next checker if previous checker in composite checker is CancelResponse', async () => {
       const compositePostconditionChecker = new CompositePostconditionChecker(
-        new (class implements PostconditionChecker<{}> {
+        new (class implements PostconditionChecker<string> {
           public async check(): Promise<
-            CancelResponse | ContinueResponse<{}>
+            CancelResponse | ContinueResponse<string>
           > {
             return { type: 'CANCEL' };
           }
         })(),
-        new (class implements PostconditionChecker<{}> {
+        new (class implements PostconditionChecker<string> {
           public async check(): Promise<
-            CancelResponse | ContinueResponse<{}>
+            CancelResponse | ContinueResponse<string>
           > {
             throw new Error('This should not be called');
           }
         })()
       );
 
-      await compositePostconditionChecker.check({ type: 'CONTINUE', data: {} });
+      await compositePostconditionChecker.check({ type: 'CONTINUE', data: 'package.xml' });
     });
 
     // tslint:disable:no-unused-expression
@@ -131,22 +131,22 @@ describe('Postcondition Checkers', () => {
         })(),
         new (class {
           public async gather(): Promise<
-            CancelResponse | ContinueResponse<{}>
+            CancelResponse | ContinueResponse<string>
           > {
-            return { type: 'CONTINUE', data: {} };
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
-        new (class implements CommandletExecutor<{}> {
-          public execute(response: ContinueResponse<{}>): void {
+        new (class implements CommandletExecutor<string> {
+          public execute(response: ContinueResponse<string>): void {
             executed = true;
           }
         })(),
-        new CompositePostconditionChecker<{}>(
-          new (class implements PostconditionChecker<{}> {
+        new CompositePostconditionChecker<string>(
+          new (class implements PostconditionChecker<string> {
             public async check(): Promise<
-              CancelResponse | ContinueResponse<{}>
+              CancelResponse | ContinueResponse<string>
             > {
-              return { type: 'CONTINUE', data: {} };
+              return { type: 'CONTINUE', data: 'package.xml' };
             }
           })()
         )
@@ -168,7 +168,7 @@ describe('Postcondition Checkers', () => {
           public async gather(): Promise<
             CancelResponse | ContinueResponse<{}>
           > {
-            return { type: 'CONTINUE', data: {} };
+            return { type: 'CONTINUE', data: 'package.xml' };
           }
         })(),
         new (class implements CommandletExecutor<{}> {
