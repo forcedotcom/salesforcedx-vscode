@@ -85,7 +85,7 @@ export class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
-      const result: TestResult = await testService.runTestSynchronous(payload);
+      const result: TestResult = await testService.runTestSynchronous(payload, true);
       if (workspace && workspace.workspaceFolders) {
         const apexTestResultsPath = getTestResultsFolder(
           getRootWorkspacePath(),
