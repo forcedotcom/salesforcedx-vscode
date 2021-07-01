@@ -12,6 +12,9 @@ import { createSandbox } from 'sinon';
 import { Uri } from 'vscode';
 import * as vscode from 'vscode';
 import {
+  RevealOutputChannelOn
+} from 'vscode-languageclient';
+import {
   buildClientOptions,
   code2ProtocolConverter
 } from '../../src/languageServer';
@@ -91,6 +94,24 @@ describe('Apex Language Server Client', () => {
       expect(clientOptions.initializationOptions).not.to.be.undefined;
       expect(clientOptions.initializationOptions.enableEmbeddedSoqlCompletion)
         .to.be.false;
+    });
+  });
+
+  describe('Should not actively disturb user while running in the background', () => {
+    const sandbox = createSandbox();
+
+    beforeEach(() => {});
+    afterEach(() => sandbox.restore());
+
+    it('should never reveal output channel', () => {
+      sandbox
+        .stub(vscode.extensions, 'getExtension')
+        .withArgs('salesforce.salesforcedx-vscode-soql')
+        .returns({});
+
+      const clientOptions = buildClientOptions();
+
+      expect(clientOptions.revealOutputChannelOn).to.equal(RevealOutputChannelOn.Never);
     });
   });
 });
