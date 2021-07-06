@@ -571,7 +571,7 @@ export const messages = {
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'Compare Files',
   conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
-  conflict_detect_local_last_modified_date: 'Local last modified date: %s',
+  conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_components_not_in_org:
