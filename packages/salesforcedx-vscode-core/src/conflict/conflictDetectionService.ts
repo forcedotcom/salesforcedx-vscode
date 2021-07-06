@@ -21,7 +21,8 @@ import { telemetryService } from '../telemetry';
 import {
   CommonDirDirectoryDiffer,
   DirectoryDiffer,
-  DirectoryDiffResults
+  DirectoryDiffResults,
+  TimestampFileProperties
 } from './directoryDiffer';
 import {
   MetadataCacheCallback,
@@ -42,7 +43,7 @@ export class ConflictDetector {
   private static EMPTY_DIFFS = {
     localRoot: '',
     remoteRoot: '',
-    different: new Set<string>(),
+    different: new Set<TimestampFileProperties>(),
     scannedLocal: 0,
     scannedRemote: 0
   };

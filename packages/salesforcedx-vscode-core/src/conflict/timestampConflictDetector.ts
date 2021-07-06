@@ -14,6 +14,7 @@ import {
   PersistentStorageService
 } from './';
 import { diffComponents } from './componentDiffer';
+import { TimestampFileProperties } from './directoryDiffer';
 import { CorrelatedComponent } from './metadataCacheService';
 
 export class TimestampConflictDetector {
@@ -21,7 +22,7 @@ export class TimestampConflictDetector {
   private static EMPTY_DIFFS = {
     localRoot: '',
     remoteRoot: '',
-    different: new Set<string>()
+    different: new Set<TimestampFileProperties>()
   };
 
   constructor() {
@@ -44,10 +45,10 @@ export class TimestampConflictDetector {
     data: CorrelatedComponent[]
   ) {
     const cache = PersistentStorageService.getInstance();
-    const conflicts: Set<string> = new Set<string>();
+    const conflicts: Set<TimestampFileProperties> = new Set<TimestampFileProperties>();
     data.forEach(component => {
-      let lastModifiedInOrg;
-      let lastModifiedInCache;
+      let lastModifiedInOrg: string | undefined;
+      let lastModifiedInCache: string | undefined;
 
       lastModifiedInOrg = component.lastModifiedDate;
       const key = cache.makeKey(component.cacheComponent.type.name, component.cacheComponent.fullName);
@@ -58,7 +59,11 @@ export class TimestampConflictDetector {
           const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
           const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
           if (cachePathRelative === projectPathRelative) {
-            conflicts.add(cachePathRelative);
+            conflicts.add({
+              path: cachePathRelative,
+              localLastModifiedDate: lastModifiedInCache,
+              remoteLastModifiedDate: lastModifiedInOrg
+            });
           }
         });
       }
