@@ -10,7 +10,6 @@ import { nls } from '../messages';
 export type ConflictFile = {
   remoteLabel: string;
   fileName: string;
-  // relPath: string;
   localRelPath: string;
   remoteRelPath: string;
   localPath: string;

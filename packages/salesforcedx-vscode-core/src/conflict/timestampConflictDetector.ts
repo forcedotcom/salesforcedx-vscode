@@ -56,15 +56,9 @@ export class TimestampConflictDetector {
         const differences = diffComponents(component.projectComponent, component.cacheComponent, this.diffs.localRoot, this.diffs.remoteRoot);
         differences.forEach(difference => {
           if (basename(difference.cachePath) === basename(difference.projectPath)) {
-            conflicts.add(relative(this.diffs.localRoot, difference.projectPath));
+            const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
+            conflicts.add(projectPathRelative);
           }
-          // const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
-          // const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
-          // const shortenedProjectPathRelative = basename(projectPathRelative);
-          // if (cachePathRelative === projectPathRelative || cachePathRelative === shortenedProjectPathRelative ) {
-          //   // conflicts.add(cachePathRelative);
-          //   conflicts.add(projectPathRelative);
-          // }
         });
       }
 

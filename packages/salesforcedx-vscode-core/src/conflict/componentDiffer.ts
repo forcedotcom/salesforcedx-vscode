@@ -36,7 +36,6 @@ export function diffComponents(
     projectPaths.push(projectComponent.xml);
   }
   for (const file of projectPaths) {
-    // const key = path.relative(projectRoot, file);
     const key = path.basename(file);
     projectIndex.set(key, file);
   }
@@ -47,7 +46,6 @@ export function diffComponents(
     cachePaths.push(cacheComponent.xml);
   }
   for (const file of cachePaths) {
-    // const key = path.relative(cacheRoot, file);
     const key = path.basename(file);
     cacheIndex.set(key, file);
   }
