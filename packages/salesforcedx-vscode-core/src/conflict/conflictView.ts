@@ -77,9 +77,9 @@ export class ConflictView {
     diffResults.different.forEach(p => {
       conflicts.push({
         remoteLabel,
-        localRelPath: p,
-        remoteRelPath: path.basename(p),
-        fileName: path.basename(p),
+        localRelPath: p.path,
+        remoteRelPath: path.basename(p.path),
+        fileName: path.basename(p.path),
         localPath: diffResults.localRoot,
         remotePath: diffResults.remoteRoot,
         localLastModifiedDate: p.localLastModifiedDate,

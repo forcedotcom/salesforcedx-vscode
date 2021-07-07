@@ -58,7 +58,11 @@ export class TimestampConflictDetector {
         differences.forEach(difference => {
           if (basename(difference.cachePath) === basename(difference.projectPath)) {
             const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
-            conflicts.add(projectPathRelative);
+            conflicts.add({
+              path: projectPathRelative,
+              localLastModifiedDate: lastModifiedInCache,
+              remoteLastModifiedDate: lastModifiedInOrg
+            });
           }
         });
       }
