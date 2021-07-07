@@ -81,7 +81,9 @@ export class ConflictView {
         remoteRelPath: path.basename(p),
         fileName: path.basename(p),
         localPath: diffResults.localRoot,
-        remotePath: diffResults.remoteRoot
+        remotePath: diffResults.remoteRoot,
+        localLastModifiedDate: p.localLastModifiedDate,
+        remoteLastModifiedDate: p.remoteLastModifiedDate
       } as ConflictFile);
     });
 
