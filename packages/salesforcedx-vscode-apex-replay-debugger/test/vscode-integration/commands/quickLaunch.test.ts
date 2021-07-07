@@ -16,6 +16,7 @@ import { expect } from 'chai';
 import { write } from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import * as vscode from 'vscode';
 import * as launcher from '../../../src/commands/launchFromLogFile';
 import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { TraceFlags } from '../../../src/commands/traceFlags';
@@ -40,9 +41,16 @@ describe('Quick launch apex tests', () => {
   let launcherStub: SinonStub;
   let buildPayloadStub: SinonStub;
   let writeResultFilesStub: SinonStub;
+  let settingStub: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
+    settingStub = sb.stub();
+    sb.stub(vscode.workspace, 'getConfiguration')
+      .withArgs('salesforcedx-vscode-core')
+      .returns({
+        get: settingStub
+    });
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -68,6 +76,7 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug an entire test class', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass' }],
       testLevel: 'RunSpecifiedTests'
@@ -126,6 +135,7 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug a single test method', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -185,6 +195,7 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug a single test method that fails', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -238,6 +249,7 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should display an error for a missing test', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -287,6 +299,7 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should display an error for a missing log file', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
