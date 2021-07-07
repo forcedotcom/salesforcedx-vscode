@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { join, relative } from 'path';
+import { basename, join, relative } from 'path';
 import { nls } from '../messages';
 import {
   DirectoryDiffResults,
@@ -55,11 +55,16 @@ export class TimestampConflictDetector {
       if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
         const differences = diffComponents(component.projectComponent, component.cacheComponent, this.diffs.localRoot, this.diffs.remoteRoot);
         differences.forEach(difference => {
-          const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
-          const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
-          if (cachePathRelative === projectPathRelative) {
-            conflicts.add(cachePathRelative);
+          if (basename(difference.cachePath) === basename(difference.projectPath)) {
+            conflicts.add(relative(this.diffs.localRoot, difference.projectPath));
           }
+          // const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
+          // const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
+          // const shortenedProjectPathRelative = basename(projectPathRelative);
+          // if (cachePathRelative === projectPathRelative || cachePathRelative === shortenedProjectPathRelative ) {
+          //   // conflicts.add(cachePathRelative);
+          //   conflicts.add(projectPathRelative);
+          // }
         });
       }
 

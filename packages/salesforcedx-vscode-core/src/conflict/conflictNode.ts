@@ -10,7 +10,9 @@ import { nls } from '../messages';
 export type ConflictFile = {
   remoteLabel: string;
   fileName: string;
-  relPath: string;
+  // relPath: string;
+  localRelPath: string;
+  remoteRelPath: string;
   localPath: string;
   remotePath: string;
 };
@@ -43,7 +45,7 @@ export class ConflictNode extends vscode.TreeItem {
   }
 
   get tooltip() {
-    return this._conflict ? this._conflict.relPath : this.label;
+    return this._conflict ? this._conflict.localRelPath : this.label;
   }
 }
 
