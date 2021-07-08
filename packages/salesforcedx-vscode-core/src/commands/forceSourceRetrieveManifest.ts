@@ -13,10 +13,6 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  ConflictDetectionMessages,
-  TimestampConflictChecker
-} from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -89,24 +85,12 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
     }
   }
 
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:retrieve')
-        .withFlag('--manifest', input)
-        .build()
-        .toString();
-    }
-  };
-
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibrarySourceRetrieveManifestExecutor()
-      : new ForceSourceRetrieveManifestExecutor(),
-    new TimestampConflictChecker(true, messages)
+      : new ForceSourceRetrieveManifestExecutor()
   );
   await commandlet.run();
 }

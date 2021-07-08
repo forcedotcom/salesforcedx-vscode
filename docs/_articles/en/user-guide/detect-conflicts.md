@@ -22,7 +22,7 @@ Because the conflict detection feature is in beta, you must enable the feature:
 
 You can also enter conflict detection in the search box to find the feature and then enable it.
 
-Once enabled, conflict detection is available on all commands that deploy and retrieve source.
+Once enabled, conflict detection is available on all commands that deploy source.
 
 ![Prompt for conflict detection](./images/DetectConflict_prompt.png)
 
