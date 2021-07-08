@@ -2,21 +2,9 @@
 
 ## Added
 
-#### docs
-
-- Enable conflict detection on retrieve ([PR #3348](https://github.com/forcedotcom/salesforcedx-vscode/pull/3348))
-
 #### salesforcedx-vscode-core
 
-- Conflict detection enable deploy ([PR #3357](https://github.com/forcedotcom/salesforcedx-vscode/pull/3357))
-
-- Enable conflict detection on retrieve ([PR #3348](https://github.com/forcedotcom/salesforcedx-vscode/pull/3348))
-
-## Fixed
-
-#### salesforcedx-vscode-core
-
-- Correct response from CompositePostChecker ([PR #3378](https://github.com/forcedotcom/salesforcedx-vscode/pull/3378))
+- Enable conflict detection for all deploy commands ([PR #3357](https://github.com/forcedotcom/salesforcedx-vscode/pull/3357))
 
 # 52.3.0 - June 30, 2021
 
