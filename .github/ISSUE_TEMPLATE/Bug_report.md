@@ -1,6 +1,10 @@
 ---
 name: Bug report
 about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 <!--
@@ -32,7 +36,7 @@ _Describe what actually happened instead_.
 
 _Feel free to attach a screenshot_.
 
-**VS Code Version**:
+**Salesforce Extension Version in VS Code**:
 
 **SFDX CLI Version**:
 
