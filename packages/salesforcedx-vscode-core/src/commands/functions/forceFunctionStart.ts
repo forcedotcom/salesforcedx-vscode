@@ -30,9 +30,9 @@ import {
 } from './types/constants';
 
 import { getFunctionsBinary } from '@heroku/functions-core';
+import { getProjectDescriptor } from '@heroku/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { OUTPUT_CHANNEL } from '../../channels';
-import { getProjectDescriptor } from '@heroku/functions-core';
 
 const LOG_NAME = 'force_function_start';
 
@@ -206,7 +206,7 @@ export class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
       path: functionDirPath
     });
     channelService.appendLine(`Starting ${functionName}`);
-    functionsBinary.run(functionName, {});
+    functionsBinary.run(functionName, {}).catch(err => console.log(err));
     return true;
   }
 }
