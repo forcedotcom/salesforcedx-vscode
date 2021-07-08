@@ -3,7 +3,7 @@ title: Detect Conflicts on Deploy
 lang: en
 ---
 
-When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the Org. The conflict detection feature is available for any Org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs.
+When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the Org. The conflict detection feature is available for any org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs.
 
 A conflict occurs when the metadata file in the org was last modified more recently than the last successful deployment or retrieval of this file to your local project.
 If conflicts are detected in your project manifest or files, you can cancel the deploy operation and view the differences between your local files and default org.
