@@ -1,3 +1,9 @@
+# 52.1.0 - June 16, 2021
+
+## Fixed
+
+- Clear SOQL syntax errors from Problems panel when file is closed or deleted
+
 # 50.17.0 - February 11, 2021
 
 ## Added
