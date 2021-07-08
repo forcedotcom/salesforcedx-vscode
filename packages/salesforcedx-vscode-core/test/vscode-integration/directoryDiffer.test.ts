@@ -87,7 +87,14 @@ describe('Directory Differ', () => {
     const differ = new CommonDirDirectoryDiffer();
     const results = differ.diff(dirOne, dirTwo);
 
-    expect(results.different).to.have.keys([cls1ToChange, layoutToChange]);
+    expect(results.different).to.eql(new Set([
+      {
+        path: cls1ToChange
+      },
+      {
+        path: layoutToChange
+      }
+    ]));
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'
@@ -121,9 +128,11 @@ describe('Directory Differ', () => {
     shell.cp(source, target);
     const results = differ.diff(dirOne, dirTwo);
 
-    expect(results.different).to.have.keys([
-      path.join('staticresources', 'leaflet', 'images', 'marker-icon.png')
-    ]);
+    expect(results.different).to.eql(new Set([
+      {
+        path: path.join('staticresources', 'leaflet', 'images', 'marker-icon.png')
+      }
+    ]));
     expect(
       results.scannedLocal,
       'incorrect number of files scanned in dirOne'

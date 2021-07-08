@@ -41,21 +41,13 @@ export class CompositePostconditionChecker<T> implements PostconditionChecker<T>
     if (inputs.type === 'CONTINUE') {
       const aggregatedData: any = {};
       for (const postchecker of this.postcheckers) {
-        const input = await postchecker.check(inputs);
-        if (input.type === 'CONTINUE') {
-          Object.keys(input.data).forEach(
-            key => (aggregatedData[key] = input.data[key])
-          );
-        } else {
+        inputs = await postchecker.check(inputs);
+        if (inputs.type !== 'CONTINUE') {
           return {
             type: 'CANCEL'
           };
         }
       }
-      return {
-        type: 'CONTINUE',
-        data: aggregatedData
-      };
     }
     return inputs;
   }
@@ -275,7 +267,7 @@ export class ConflictDetectionChecker implements PostconditionChecker<string> {
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(normalize(file));
+        channelService.appendLine(normalize(file.path));
       });
       channelService.showChannelOutput();
 
@@ -389,7 +381,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(normalize(file));
+        channelService.appendLine(normalize(file.path));
       });
 
       const choice = await notificationService.showWarningModal(
