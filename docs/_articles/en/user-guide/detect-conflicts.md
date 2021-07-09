@@ -2,17 +2,20 @@
 title: Detect Conflicts on Deploy
 lang: en
 ---
+## Overview
 
 When you deploy source to your default org, the operation could detect conflicts on deploy to help you avoid accidentally overwriting others’ changes in the Org. The conflict detection feature is available for any org that is not using source tracking, which is most non-scratch orgs such as sandboxes or dev orgs.
 
 A conflict occurs when the metadata file in the org was last modified more recently than the last successful deployment or retrieval of this file to your local project.
 If conflicts are detected in your project manifest or files, you can cancel the deploy operation and view the differences between your local files and default org.
 
-To view the files that caused conflicts, click the Org Differences icon () in the Activity Bar or the **Show Conflicts** prompt from the dialog. The Org Differences: Conflicts view opens in the side bar and displays the list of files with conflicts. To inspect conflicts, click a file to open the diff editor and compare the remote file (to the left) with the local file (on the right). To edit a file, hover over the file name and click the open file icon.
+To view the files that caused conflicts, click the Org Differences icon ({% octicon issue-opened %}) in the Activity Bar or the **Show Conflicts** prompt from the dialog. The Org Differences: Conflicts view opens in the side bar and displays the list of files with conflicts. To inspect conflicts, click a file to open the diff editor and compare the remote file (to the left) with the local file (on the right). To edit a file, hover over the file name and click the open file icon.
 
 You can also view the resource files with conflicts and the CLI command to overwrite the conflicts in the Output panel.
 
 If conflicts aren’t detected, the deploy operation is completed.
+
+## How it Works
 
 You must enable the conflict detection feature to use it:
 
