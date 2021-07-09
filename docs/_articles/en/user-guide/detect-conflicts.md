@@ -21,7 +21,7 @@ You must enable the conflict detection feature to use it:
 
 You can also enter conflict detection in the search box to find the feature and then enable it.
 
-We have enabled conflict detection for all Deploy commands executed from VS Code. All files that exist both in the org and in the local environment are checked for conflicts; files that don’t exist in both aren’t checked. If conflicts are detected on deploy, you can choose to view them or override them to continue the deploy operation:
+When enabled, conflict detection will check for potential conflicts for all Deploy commands executed from VS Code. Changes based on last sync date are compared for all files that exist both in the org and in the local project; files that don’t exist in both are not considered in conflict. If conflicts are detected on deploy, you can choose to view them or override them to continue the deploy operation:
 
 ![Prompt for conflict detection](../../../images/DetectConflict_prompt.png)
 
