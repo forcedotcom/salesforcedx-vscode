@@ -13,8 +13,10 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/s
 import * as utils from '@salesforce/salesforcedx-utils-vscode/out/src/index';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import { write } from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import * as vscode from 'vscode';
 import * as launcher from '../../../src/commands/launchFromLogFile';
 import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { TraceFlags } from '../../../src/commands/traceFlags';
@@ -38,9 +40,17 @@ describe('Quick launch apex tests', () => {
   let logServiceStub: SinonStub;
   let launcherStub: SinonStub;
   let buildPayloadStub: SinonStub;
+  let writeResultFilesStub: SinonStub;
+  let settingStub: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
+    settingStub = sb.stub();
+    sb.stub(vscode.workspace, 'getConfiguration')
+      .withArgs('salesforcedx-vscode-core')
+      .returns({
+        get: settingStub
+    });
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -58,6 +68,7 @@ describe('Quick launch apex tests', () => {
       .stub(TestService.prototype, 'runTestSynchronous')
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
+    writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
   });
 
   afterEach(() => {
@@ -65,6 +76,7 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug an entire test class', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass' }],
       testLevel: 'RunSpecifiedTests'
@@ -112,9 +124,18 @@ describe('Quick launch apex tests', () => {
       undefined,
       'MyClass'
     ]);
+    expect(writeResultFilesStub.called).to.equal(true);
+    const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
+    expect(writeResultFilesArgs[0]).to.eql({
+      tests: [{
+        apexLogId: APEX_LOG_ID
+      }]
+    });
+    expect(writeResultFilesArgs[2]).to.equal(true);
   });
 
   it('should debug a single test method', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -163,9 +184,18 @@ describe('Quick launch apex tests', () => {
     const launcherArgs = launcherStub.getCall(0).args;
     expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
     expect(launcherArgs[1]).to.equal(false);
+    expect(writeResultFilesStub.called).to.equal(true);
+    const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
+    expect(writeResultFilesArgs[0]).to.eql({
+      tests: [{
+        apexLogId: APEX_LOG_ID
+      }]
+    });
+    expect(writeResultFilesArgs[2]).to.equal(true);
   });
 
   it('should debug a single test method that fails', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -212,9 +242,14 @@ describe('Quick launch apex tests', () => {
     expect(notificationArgs[0]).to.equal(
       "Cannot read property 'length' of undefined"
     );
+    expect(writeResultFilesStub.called).to.equal(true);
+    const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
+    expect(writeResultFilesArgs[0]).to.eql({});
+    expect(writeResultFilesArgs[2]).to.equal(true);
   });
 
   it('should display an error for a missing test', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -255,9 +290,16 @@ describe('Quick launch apex tests', () => {
     expect(notificationArgs[0]).to.equal(
       nls.localize('debug_test_no_results_found')
     );
+    expect(writeResultFilesStub.called).to.equal(true);
+    const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
+    expect(writeResultFilesArgs[0]).to.eql({
+      tests: []
+    });
+    expect(writeResultFilesArgs[2]).to.equal(true);
   });
 
   it('should display an error for a missing log file', async () => {
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -298,5 +340,11 @@ describe('Quick launch apex tests', () => {
     expect(notificationArgs[0]).to.equal(
       nls.localize('debug_test_no_debug_log')
     );
+    expect(writeResultFilesStub.called).to.equal(true);
+    const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
+    expect(writeResultFilesArgs[0]).to.eql({
+      tests: [{}]
+    });
+    expect(writeResultFilesArgs[2]).to.equal(true);
   });
 });

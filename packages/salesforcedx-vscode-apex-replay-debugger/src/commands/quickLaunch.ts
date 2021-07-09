@@ -7,19 +7,26 @@
 import {
   ApexTestResultData,
   LogService,
+  ResultFormat,
   TestLevel,
   TestResult,
   TestService
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  getLogDirPath,
+  getRootWorkspacePath,
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode/out/src/index';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
+import { workspace } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
 import { TraceFlags } from './traceFlags';
 interface TestRunResult {
@@ -78,7 +85,18 @@ export class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
-      const result: TestResult = await testService.runTestSynchronous(payload);
+      const result: TestResult = await testService.runTestSynchronous(payload, true);
+      if (workspace && workspace.workspaceFolders) {
+        const apexTestResultsPath = getTestResultsFolder(
+          getRootWorkspacePath(),
+          'apex'
+        );
+        await testService.writeResultFiles(
+          result,
+          { dirPath: apexTestResultsPath, resultFormats: [ResultFormat.json] },
+          retrieveTestCodeCoverage()
+        );
+      }
       const tests: ApexTestResultData[] = result.tests;
       if (tests.length === 0) {
         return {
