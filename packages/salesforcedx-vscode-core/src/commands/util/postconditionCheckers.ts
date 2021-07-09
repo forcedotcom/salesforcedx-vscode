@@ -386,8 +386,8 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
 
       const choice = await notificationService.showWarningModal(
         nls.localize(this.messages.warningMessageKey),
-        nls.localize('conflict_detect_override'),
-        nls.localize('conflict_detect_show_conflicts')
+        nls.localize('conflict_detect_show_conflicts'),
+        nls.localize('conflict_detect_override')
       );
 
       if (choice === nls.localize('conflict_detect_override')) {
