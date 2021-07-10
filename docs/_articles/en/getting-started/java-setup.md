@@ -43,11 +43,21 @@ Windows:
 }
 ```
 
-Linux (Pop! OS 20.04, installation via aptitude):
+### Linux
+
+Pop! OS 20.04 (installation via aptitude):
 
 ```json
 {
   "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-11-openjdk-amd64"
+}
+```
+
+Arch Linux (installation via AUR using package `jdk11-adoptopenjdk`):
+
+```json
+{
+  "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-11-adoptopenjdk",
 }
 ```
 
