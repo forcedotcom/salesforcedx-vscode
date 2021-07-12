@@ -23,6 +23,7 @@ import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { workspace } from 'vscode';
+import { sfdxCreateCheckpoints } from '../breakpoints';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -48,6 +49,11 @@ export class QuickLaunch {
     const connection = await workspaceContext.getConnection();
     const flags = new TraceFlags(connection);
     if (!(await flags.ensureTraceFlags())) {
+      return false;
+    }
+
+    const createCheckpointsResult = await sfdxCreateCheckpoints();
+    if (!createCheckpointsResult) {
       return false;
     }
 
