@@ -770,13 +770,13 @@ function setTypeRefsForEnabledCheckpoints(): boolean {
 // 3. Remove any existing checkpoints
 // 4. Create the new checkpoints
 let creatingCheckpoints = false;
-export async function sfdxCreateCheckpoints() {
+export async function sfdxCreateCheckpoints(): Promise<boolean> {
   // In-spite of waiting for the lock, we still want subsequent calls to immediately return
   // from this if checkpoints are already being created instead of stacking them up.
   if (!creatingCheckpoints) {
     creatingCheckpoints = true;
   } else {
-    return;
+    return false;
   }
   let updateError = false;
   // The status message isn't changing, call to localize it once and use the localized string in the
@@ -808,7 +808,6 @@ export async function sfdxCreateCheckpoints() {
           const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
           if (!orgInfoRetrieved) {
             updateError = true;
-            return;
           }
 
           writeToDebuggerOutputWindow(
@@ -821,13 +820,11 @@ export async function sfdxCreateCheckpoints() {
           // If we didn't get the source line information that'll be reported at that time, just return
           if (!sourceLineInfoRetrieved) {
             updateError = true;
-            return;
           }
 
           // There can be a max of five active checkpoints
           if (!checkpointService.hasFiveOrLessActiveCheckpoints(true)) {
             updateError = true;
-            return;
           }
 
           writeToDebuggerOutputWindow(
@@ -839,7 +836,6 @@ export async function sfdxCreateCheckpoints() {
           // For the active checkpoints set the typeRefs using the source/line info
           if (!setTypeRefsForEnabledCheckpoints()) {
             updateError = true;
-            return;
           }
 
           writeToDebuggerOutputWindow(
@@ -852,7 +848,6 @@ export async function sfdxCreateCheckpoints() {
           const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
           if (!allRemoved) {
             updateError = true;
-            return;
           }
 
           writeToDebuggerOutputWindow(
@@ -900,6 +895,11 @@ export async function sfdxCreateCheckpoints() {
     }
     telemetryService.sendCheckpointEvent(errorMsg);
     creatingCheckpoints = false;
+  }
+  if (updateError) {
+    return false;
+  } else {
+    return true;
   }
 }
 

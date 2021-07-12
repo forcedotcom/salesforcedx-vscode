@@ -17,7 +17,7 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/s
 import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode/out/src/index';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
-import { CheckpointNode, checkpointService, sfdxCreateCheckpoints } from '../breakpoints/checkpointService';
+import { sfdxCreateCheckpoints } from '../breakpoints';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -45,7 +45,10 @@ export class QuickLaunch {
       return false;
     }
 
-    await sfdxCreateCheckpoints();
+    const createCheckpointsResult = await sfdxCreateCheckpoints();
+    if (!createCheckpointsResult) {
+      return false;
+    }
 
     const testResult = await this.runSingleTest(
       connection,

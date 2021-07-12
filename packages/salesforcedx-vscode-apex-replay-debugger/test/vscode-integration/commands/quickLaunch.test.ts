@@ -15,6 +15,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import * as breakpoints from '../../../src/breakpoints';
 import * as launcher from '../../../src/commands/launchFromLogFile';
 import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { TraceFlags } from '../../../src/commands/traceFlags';
@@ -38,6 +39,7 @@ describe('Quick launch apex tests', () => {
   let logServiceStub: SinonStub;
   let launcherStub: SinonStub;
   let buildPayloadStub: SinonStub;
+  let createCheckpointStub: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
@@ -65,6 +67,9 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug an entire test class', async () => {
+    createCheckpointStub = sb
+      .stub(breakpoints, 'sfdxCreateCheckpoints')
+      .resolves(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass' }],
       testLevel: 'RunSpecifiedTests'
@@ -84,6 +89,7 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -115,6 +121,9 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug a single test method', async () => {
+    createCheckpointStub = sb
+      .stub(breakpoints, 'sfdxCreateCheckpoints')
+      .resolves(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -134,6 +143,7 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
@@ -166,6 +176,9 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug a single test method that fails', async () => {
+    createCheckpointStub = sb
+      .stub(breakpoints, 'sfdxCreateCheckpoints')
+      .resolves(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -186,6 +199,7 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
@@ -215,6 +229,9 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should display an error for a missing test', async () => {
+    createCheckpointStub = sb
+      .stub(breakpoints, 'sfdxCreateCheckpoints')
+      .resolves(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -232,6 +249,7 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
@@ -258,6 +276,9 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should display an error for a missing log file', async () => {
+    createCheckpointStub = sb
+      .stub(breakpoints, 'sfdxCreateCheckpoints')
+      .resolves(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
       testLevel: 'RunSpecifiedTests'
@@ -275,6 +296,7 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
