@@ -880,11 +880,6 @@
           "default": true,
           "description": "%experimental_deploy_retrieve_description%"
         },
-        "salesforcedx-vscode-core.experimental.supportFunctions": {
-          "type": "boolean",
-          "default": false,
-          "description": "%experimental_support_functions%"
-        },
         "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
           "type": "boolean",
           "default": false,
