@@ -808,6 +808,7 @@ export async function sfdxCreateCheckpoints(): Promise<boolean> {
           const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
           if (!orgInfoRetrieved) {
             updateError = true;
+            return false;
           }
 
           writeToDebuggerOutputWindow(
@@ -820,11 +821,13 @@ export async function sfdxCreateCheckpoints(): Promise<boolean> {
           // If we didn't get the source line information that'll be reported at that time, just return
           if (!sourceLineInfoRetrieved) {
             updateError = true;
+            return false;
           }
 
           // There can be a max of five active checkpoints
           if (!checkpointService.hasFiveOrLessActiveCheckpoints(true)) {
             updateError = true;
+            return false;
           }
 
           writeToDebuggerOutputWindow(
@@ -836,6 +839,7 @@ export async function sfdxCreateCheckpoints(): Promise<boolean> {
           // For the active checkpoints set the typeRefs using the source/line info
           if (!setTypeRefsForEnabledCheckpoints()) {
             updateError = true;
+            return false;
           }
 
           writeToDebuggerOutputWindow(
@@ -848,6 +852,7 @@ export async function sfdxCreateCheckpoints(): Promise<boolean> {
           const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
           if (!allRemoved) {
             updateError = true;
+            return false;
           }
 
           writeToDebuggerOutputWindow(
