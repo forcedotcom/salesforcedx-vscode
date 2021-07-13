@@ -24,7 +24,6 @@ import {
   conflictView,
   DirectoryDiffResults,
   MetadataCacheExecutor,
-  MetadataCacheService
 } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { workspaceContext } from '../../context';
