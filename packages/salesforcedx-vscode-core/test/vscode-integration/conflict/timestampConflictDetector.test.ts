@@ -17,6 +17,7 @@ import * as sinon from 'sinon';
 import { channelService } from '../../../src/channels';
 import { PersistentStorageService } from '../../../src/conflict';
 import * as differ from '../../../src/conflict/componentDiffer';
+import { TimestampFileProperties } from '../../../src/conflict/directoryDiffer';
 import { MetadataCacheResult } from '../../../src/conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
 import { nls } from '../../../src/messages';
@@ -146,9 +147,11 @@ describe('Timestamp Conflict Detector Execution', () => {
       path.normalize('/a/b/c')
     ]);
 
-    expect(results.different).to.have.all.keys(
-      path.normalize('classes/HandlerCostCenter.cls')
-    );
+    expect(results.different).to.eql(new Set([{
+      path: path.normalize('classes/HandlerCostCenter.cls'),
+      localLastModifiedDate: 'Yesteday',
+      remoteLastModifiedDate: 'Today'
+    }]));
   });
 
   it('Should not report differences if the component is only local', async () => {
@@ -184,7 +187,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(0);
     expect(differStub.callCount).to.equal(0);
-    expect(results.different).to.eql(new Set<string>());
+    expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
   it('Should not report differences if the component is only remote', async () => {
@@ -220,7 +223,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(0);
     expect(differStub.callCount).to.equal(0);
-    expect(results.different).to.eql(new Set<string>());
+    expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
   it('Should not report differences if the timestamps match', async () => {
@@ -269,7 +272,7 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(executorSpy.callCount).to.equal(1);
     expect(cacheStub.callCount).to.equal(1);
     expect(differStub.callCount).to.equal(0);
-    expect(results.different).to.eql(new Set<string>());
+    expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
   it('Should not report differences if the files match', async () => {
@@ -339,7 +342,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       path.normalize('/a/b/c')
     ]);
 
-    expect(results.different).to.eql(new Set<string>());
+    expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
   it('Should send a warning for an undefined retrieve result', async () => {

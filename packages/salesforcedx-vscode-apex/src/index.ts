@@ -55,6 +55,9 @@ export async function activate(context: vscode.ExtensionContext) {
     testResultFileWatcher.onDidCreate(uri =>
       testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
     );
+    testResultFileWatcher.onDidChange(uri =>
+      testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
+    );
 
     context.subscriptions.push(testResultFileWatcher);
   } else {
