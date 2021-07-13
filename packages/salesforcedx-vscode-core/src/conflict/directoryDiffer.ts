@@ -16,8 +16,14 @@ import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { MetadataCacheResult } from './metadataCacheService';
 
+export interface TimestampFileProperties {
+  path: string;
+  localLastModifiedDate?: string | undefined;
+  remoteLastModifiedDate?: string | undefined;
+}
+
 export interface DirectoryDiffResults {
-  different: Set<string>;
+  different: Set<TimestampFileProperties>;
   localRoot: string;
   remoteRoot: string;
   scannedLocal?: number;
@@ -42,7 +48,7 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
     remoteSourcePath: string
   ): DirectoryDiffResults {
     const localSet = this.listFiles(localSourcePath);
-    const different = new Set<string>();
+    const different = new Set<TimestampFileProperties>();
 
     // process remote files to generate differences
     let scannedRemote = 0;
@@ -52,7 +58,9 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
         const file1 = path.join(localSourcePath, stats.relPath);
         const file2 = path.join(remoteSourcePath, stats.relPath);
         if (this.filesDiffer(file1, file2)) {
-          different.add(stats.relPath);
+          different.add({
+            path: stats.relPath
+          });
         }
       }
     });

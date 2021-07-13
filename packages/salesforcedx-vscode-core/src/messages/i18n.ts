@@ -547,11 +547,11 @@ export const messages = {
   conflict_detect_empty_results:
     'Conflict Detection failed to retrieve org file state',
   conflict_detect_conflicts_during_deploy:
-    'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
+    'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
     'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
-  conflict_detect_override: 'Override Conflicts',
-  conflict_detect_show_conflicts: 'Show Conflicts',
+  conflict_detect_override: 'Override Conflicts and Deploy',
+  conflict_detect_show_conflicts: 'View Conflicts and Cancel Deploy',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
   conflict_detect_conflict_header_timestamp:
@@ -570,6 +570,8 @@ export const messages = {
   conflict_detect_no_differences: 'No differences',
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'Compare Files',
+  conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
+  conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_components_not_in_org:

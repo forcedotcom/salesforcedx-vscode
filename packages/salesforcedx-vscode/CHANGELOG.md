@@ -1,3 +1,33 @@
+# 52.4.0 - July 8, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable conflict detection for all deploy commands ([PR #3357](https://github.com/forcedotcom/salesforcedx-vscode/pull/3357))
+
+# 52.3.0 - June 30, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add "Debug Test" code lens to Apex test methods and classes ([PR #3347](https://github.com/forcedotcom/salesforcedx-vscode/pull/3347))
+
+#### salesforcedx-vscode-core
+
+- Add language data to telemetry for functions ([PR #3338](https://github.com/forcedotcom/salesforcedx-vscode/pull/3338))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Stop the language server output panel from stealing focus ([PR #3356](https://github.com/forcedotcom/salesforcedx-vscode/pull/3356), [Issue #1429](https://github.com/forcedotcom/salesforcedx-vscode/issues/1429))
+
+#### salesforcedx-vscode-core
+
+- Conflict detection not working in a brand new project ([PR #3358](https://github.com/forcedotcom/salesforcedx-vscode/pull/3358), [Issue #3294](https://github.com/forcedotcom/salesforcedx-vscode/issues/3294))
+
 # 52.2.0 - June 24, 2021
 
 ## Added
@@ -12,7 +42,7 @@
 
 #### salesforcedx-vscode-core
 
-- Setting to always force push on save ([PR #3144](https://github.com/forcedotcom/salesforcedx-vscode/pull/3144))
+- Setting to always force push on save ([PR #3144](https://github.com/forcedotcom/salesforcedx-vscode/pull/3144)) - Contribution by [@lukecotter](https://github.com/lukecotter)
 
 - Auth with token ([PR #3268](https://github.com/forcedotcom/salesforcedx-vscode/pull/3268))
 
@@ -20,7 +50,7 @@
 
 #### docs
 
-- Update japanese translation ([PR #3205](https://github.com/forcedotcom/salesforcedx-vscode/pull/3205))
+- Update japanese translation ([PR #3205](https://github.com/forcedotcom/salesforcedx-vscode/pull/3205)) - Contribution by [@shunkosa](https://github.com/shunkosa)
 
 #### salesforcedx-vscode-core
 
