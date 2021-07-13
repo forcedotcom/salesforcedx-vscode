@@ -1,3 +1,35 @@
+# 52.5.0 - July 13, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Update test sidebar icon coloring with test results and add test coverage ([PR #3381](https://github.com/forcedotcom/salesforcedx-vscode/pull/3381))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Update test sidebar icon coloring with test results and add test coverage ([PR #3381](https://github.com/forcedotcom/salesforcedx-vscode/pull/3381))
+
+#### salesforcedx-vscode-core
+
+- Conflict detection update modal ([PR #3394](https://github.com/forcedotcom/salesforcedx-vscode/pull/3394))
+
+- Conflict detection UI enhancement ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
+
+## Fixed
+
+#### docs
+
+- Doc Update for Conflict Detection ([PR #3396](https://github.com/forcedotcom/salesforcedx-vscode/pull/3396))
+
+- Disable retrieve conflict detection ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
+
+#### salesforcedx-vscode-core
+
+- Remove setting to enable function @W-9311863 ([PR #3409](https://github.com/forcedotcom/salesforcedx-vscode/pull/3409))
+
+- Disable retrieve conflict detection ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
+
 # 52.4.0 - July 8, 2021
 
 ## Added
