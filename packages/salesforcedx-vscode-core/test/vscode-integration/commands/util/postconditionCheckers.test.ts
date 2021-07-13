@@ -28,7 +28,6 @@ import {
   TimestampConflictChecker
 } from '../../../../src/commands/util/postconditionCheckers';
 import {
-  conflictDetector,
   conflictView,
   DirectoryDiffResults
 } from '../../../../src/conflict';
