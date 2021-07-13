@@ -32,7 +32,6 @@ export class TimestampConflictDetector {
 
   public createDiffs(result?: MetadataCacheResult): DirectoryDiffResults {
     if (!result) {
-      channelService.appendLine(nls.localize('conflict_detect_empty_results'));
       return TimestampConflictDetector.EMPTY_DIFFS;
     }
     this.createRootPaths(result);

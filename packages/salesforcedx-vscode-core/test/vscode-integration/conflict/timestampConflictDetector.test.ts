@@ -345,15 +345,12 @@ describe('Timestamp Conflict Detector Execution', () => {
     expect(results.different).to.eql(new Set<TimestampFileProperties>());
   });
 
-  it('Should send a warning for an undefined retrieve result', async () => {
+  it('Should return empty diffs for an undefined retrieve result', async () => {
     const cacheResults = undefined;
 
     const diffs = await executor.createDiffs(cacheResults);
 
-    expect(channelServiceStub.callCount).to.equal(1);
-    expect(channelServiceStub.args[0][0]).to.equal(
-      nls.localize('conflict_detect_empty_results')
-    );
+    expect(channelServiceStub.callCount).to.equal(0);
     expect(executorSpy.callCount).to.equal(1);
     expect(differStub.callCount).to.equal(0);
     expect(diffs.different).to.eql(new Set<string>());

@@ -544,8 +544,6 @@ export const messages = {
     'An error was encountered during conflict detection. %s',
   conflict_detect_initialization_error:
     'Unexpected error initiliazing metadata cache',
-  conflict_detect_empty_results:
-    'Warning: no files retrieved during conflict detection',
   conflict_detect_conflicts_during_deploy:
     'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
