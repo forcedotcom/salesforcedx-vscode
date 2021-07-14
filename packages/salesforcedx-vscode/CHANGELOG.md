@@ -18,7 +18,7 @@
 
 - Update docs for conflict detection ([PR #3396](https://github.com/forcedotcom/salesforcedx-vscode/pull/3396))
 
-- Disable retrieve conflict detection ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
+- Disable conflict detection on `SFDX: Retrieve **` commands ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
 
 #### salesforcedx-vscode-core
 
