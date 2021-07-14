@@ -6,6 +6,7 @@
  */
 
 import { join, relative } from 'path';
+import { channelService } from '../channels';
 import { nls } from '../messages';
 import {
   DirectoryDiffResults,
@@ -29,11 +30,9 @@ export class TimestampConflictDetector {
     this.diffs = Object.assign({}, TimestampConflictDetector.EMPTY_DIFFS);
   }
 
-  public createDiffs(
-    result?: MetadataCacheResult
-  ): DirectoryDiffResults {
+  public createDiffs(result?: MetadataCacheResult): DirectoryDiffResults {
     if (!result) {
-      throw new Error(nls.localize('conflict_detect_empty_results'));
+      return TimestampConflictDetector.EMPTY_DIFFS;
     }
     this.createRootPaths(result);
     const components = MetadataCacheService.correlateResults(result);
@@ -41,9 +40,7 @@ export class TimestampConflictDetector {
     return this.diffs;
   }
 
-  private determineConflicts(
-    data: CorrelatedComponent[]
-  ) {
+  private determineConflicts(data: CorrelatedComponent[]) {
     const cache = PersistentStorageService.getInstance();
     const conflicts: Set<TimestampFileProperties> = new Set<TimestampFileProperties>();
     data.forEach(component => {
@@ -51,13 +48,27 @@ export class TimestampConflictDetector {
       let lastModifiedInCache: string | undefined;
 
       lastModifiedInOrg = component.lastModifiedDate;
-      const key = cache.makeKey(component.cacheComponent.type.name, component.cacheComponent.fullName);
+      const key = cache.makeKey(
+        component.cacheComponent.type.name,
+        component.cacheComponent.fullName
+      );
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-        const differences = diffComponents(component.projectComponent, component.cacheComponent, this.diffs.localRoot, this.diffs.remoteRoot);
+        const differences = diffComponents(
+          component.projectComponent,
+          component.cacheComponent,
+          this.diffs.localRoot,
+          this.diffs.remoteRoot
+        );
         differences.forEach(difference => {
-          const cachePathRelative = relative(this.diffs.remoteRoot, difference.cachePath);
-          const projectPathRelative = relative(this.diffs.localRoot, difference.projectPath);
+          const cachePathRelative = relative(
+            this.diffs.remoteRoot,
+            difference.cachePath
+          );
+          const projectPathRelative = relative(
+            this.diffs.localRoot,
+            difference.projectPath
+          );
           if (cachePathRelative === projectPathRelative) {
             conflicts.add({
               path: cachePathRelative,
@@ -67,14 +78,11 @@ export class TimestampConflictDetector {
           }
         });
       }
-
     });
     this.diffs.different = conflicts;
   }
 
-  private createRootPaths(
-    result: MetadataCacheResult
-  ) {
+  private createRootPaths(result: MetadataCacheResult) {
     this.diffs.localRoot = join(
       result.project.baseDirectory,
       result.project.commonRoot
