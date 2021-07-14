@@ -10,7 +10,7 @@
 
 - Conflict detection update modal ([PR #3394](https://github.com/forcedotcom/salesforcedx-vscode/pull/3394))
 
-- Conflict detection UI enhancement ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
+- Enhance hovertip text for conflict detection ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
 
 ## Fixed
 
