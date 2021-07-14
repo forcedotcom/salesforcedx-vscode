@@ -18,13 +18,9 @@
 
 - Update docs for conflict detection ([PR #3396](https://github.com/forcedotcom/salesforcedx-vscode/pull/3396))
 
-- Disable conflict detection on `SFDX: Retrieve **` commands ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
-
 #### salesforcedx-vscode-core
 
 - Remove setting to enable function [PR #3409](https://github.com/forcedotcom/salesforcedx-vscode/pull/3409))
-
-- Disable conflict detection on `SFDX: Retrieve **` commands ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
 
 # 52.4.0 - July 8, 2021
 
