@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex-replay-debugger
 
-- Update test sidebar icon coloring with test results and add test coverage ([PR #3381](https://github.com/forcedotcom/salesforcedx-vscode/pull/3381))
+- Update test sidebar icons and add test coverage for easy button replay debugger ([PR #3381](https://github.com/forcedotcom/salesforcedx-vscode/pull/3381))
 
 #### salesforcedx-vscode-core
 
