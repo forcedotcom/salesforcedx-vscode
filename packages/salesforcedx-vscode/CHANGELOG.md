@@ -22,7 +22,7 @@
 
 #### salesforcedx-vscode-core
 
-- Remove setting to enable function @W-9311863 ([PR #3409](https://github.com/forcedotcom/salesforcedx-vscode/pull/3409))
+- Remove setting to enable function [PR #3409](https://github.com/forcedotcom/salesforcedx-vscode/pull/3409))
 
 - Disable retrieve conflict detection ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
 
