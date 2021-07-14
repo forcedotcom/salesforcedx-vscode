@@ -24,7 +24,7 @@
 
 - Remove setting to enable function [PR #3409](https://github.com/forcedotcom/salesforcedx-vscode/pull/3409))
 
-- Disable retrieve conflict detection ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
+- Disable conflict detection on `SFDX: Retrieve **` commands ([PR #3382](https://github.com/forcedotcom/salesforcedx-vscode/pull/3382))
 
 # 52.4.0 - July 8, 2021
 
