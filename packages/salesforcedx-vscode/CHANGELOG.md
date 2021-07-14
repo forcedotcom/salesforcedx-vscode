@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Conflict detection update modal ([PR #3394](https://github.com/forcedotcom/salesforcedx-vscode/pull/3394))
+- Update text on Conflict detection modal window ([PR #3394](https://github.com/forcedotcom/salesforcedx-vscode/pull/3394))
 
 - Enhance hovertip text for conflict detection ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
 
