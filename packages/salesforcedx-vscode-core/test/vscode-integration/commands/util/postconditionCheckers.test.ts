@@ -523,8 +523,8 @@ describe('Postcondition Checkers', () => {
       expect(response.type).to.equal('CANCEL');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([
-        nls.localize('conflict_detect_override'),
-        nls.localize('conflict_detect_show_conflicts')
+        nls.localize('conflict_detect_show_conflicts'),
+        nls.localize('conflict_detect_override')
       ]);
 
       expect(channelOutput).to.include.members([
@@ -559,8 +559,8 @@ describe('Postcondition Checkers', () => {
       expect(response.type).to.equal('CONTINUE');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([
-        nls.localize('conflict_detect_override'),
-        nls.localize('conflict_detect_show_conflicts')
+        nls.localize('conflict_detect_show_conflicts'),
+        nls.localize('conflict_detect_override')
       ]);
     });
 
@@ -582,8 +582,8 @@ describe('Postcondition Checkers', () => {
       expect(response.type).to.equal('CANCEL');
 
       expect(modalStub.firstCall.args.slice(1)).to.eql([
-        nls.localize('conflict_detect_override'),
-        nls.localize('conflict_detect_show_conflicts')
+        nls.localize('conflict_detect_show_conflicts'),
+        nls.localize('conflict_detect_override')
       ]);
 
       expect(conflictViewStub.calledOnce).to.equal(true);
