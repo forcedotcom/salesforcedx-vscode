@@ -10,7 +10,7 @@
 
 - Update text on Conflict detection modal window ([PR #3394](https://github.com/forcedotcom/salesforcedx-vscode/pull/3394))
 
-- Enhance hovertip text for conflict detection ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
+- Enhance hovertip text for conflict detection to show last modified date information ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
 
 ## Fixed
 
