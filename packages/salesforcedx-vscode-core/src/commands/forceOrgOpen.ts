@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, isSFDXContainerMode } from '../util';
@@ -30,9 +31,13 @@ import {
 
 export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    const scb: SfdxCommandBuilder = new SfdxCommandBuilder().withArg('force:org:open');
+    const pathParam = getPathParameter();
+    if (pathParam) {
+      scb.withArg(pathParam);
+    }
+    return scb
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
-      .withArg('force:org:open')
       .withLogName('force_org_open_default_scratch_org')
       .withArg('--urlonly')
       .withJson()
@@ -103,9 +108,13 @@ export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
 export class ForceOrgOpenExecutor extends SfdxCommandletExecutor<{}> {
   protected showChannelOutput = false;
   public build(data: {}): Command {
-    return new SfdxCommandBuilder()
+    const scb: SfdxCommandBuilder = new SfdxCommandBuilder().withArg('force:org:open');
+    const pathParam = getPathParameter();
+    if (pathParam) {
+      scb.withArg(pathParam);
+    }
+    return scb
       .withDescription(nls.localize('force_org_open_default_scratch_org_text'))
-      .withArg('force:org:open')
       .withLogName('force_org_open_default_scratch_org')
       .build();
   }
@@ -115,6 +124,10 @@ export function getExecutor(): SfdxCommandletExecutor<{}> {
   return isSFDXContainerMode()
     ? new ForceOrgOpenContainerExecutor()
     : new ForceOrgOpenExecutor();
+}
+
+function getPathParameter(): string {
+  return sfdxCoreSettings.getLandingPageUrl() !== '' ? '-p ' + sfdxCoreSettings.getLandingPageUrl() : '';
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
