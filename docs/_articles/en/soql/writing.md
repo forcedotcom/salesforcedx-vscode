@@ -17,7 +17,6 @@ VS Code supports writing SOQL in both Apex files and standalone `.soql` files. W
 
 VS Code supports code completions for SOQL `.soql` files (and will eventually support code completion in Apex files). To use this feature, you must refresh the SObject definitions so that the SOQL language server can provide code completion suggestions. Run `SFDX: Refresh SObject Definitions` from the Command Palette.
 
-- To see code completion suggestions, press Ctrl+space when you’re working in a `.soql` file.
 - To navigate between the suggestions, use the arrow keys.
 - To auto-complete from the suggestion, press Enter.
 
