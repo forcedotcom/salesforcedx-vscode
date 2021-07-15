@@ -11,23 +11,25 @@ import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   ComponentSet,
+  ComponentStatus,
   DeployResult,
+  FileProperties,
   MetadataApiDeploy,
   MetadataApiRetrieve,
+  MetadataApiRetrieveStatus,
   registry,
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
 import {
-  ComponentStatus,
   MetadataApiDeployStatus,
-  MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
+import { Test } from 'mocha';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonStub, spy } from 'sinon';
+import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
@@ -36,11 +38,13 @@ import {
   DeployRetrieveExecutor,
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
+import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
+import { MockContext } from '../telemetry/MockContext';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -239,6 +243,8 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
+      const mockContext = new MockContext(false);
+      PersistentStorageService.initialize(mockContext);
     });
 
     class TestDeploy extends DeployExecutor<{}> {
@@ -247,6 +253,7 @@ describe('Base Deploy Retrieve Commands', () => {
       public startStub: SinonStub;
       public deployStub: SinonStub;
       public cancellationStub = sb.stub();
+      public cacheSpy: SinonSpy;
 
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
@@ -255,6 +262,7 @@ describe('Base Deploy Retrieve Commands', () => {
         this.deployStub = sb
           .stub(this.components, 'deploy')
           .returns({ start: this.startStub });
+        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesDeploy');
       }
 
       protected async getComponents(
@@ -289,6 +297,75 @@ describe('Base Deploy Retrieve Commands', () => {
         usernameOrConnection: mockConnection
       });
       expect(executor.startStub.calledOnce).to.equal(true);
+    });
+
+    it('should store properties in metadata cache on successful deploy', async () => {
+      const executor = new TestDeploy();
+      const deployPropsOne = {
+        name: 'One',
+        fullName: 'One',
+        type: registry.types.apexclass,
+        content: join('project', 'classes', 'One.cls'),
+        xml: join('project', 'classes', 'One.cls-meta.xml')
+      };
+      const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne,
+        [{
+          dirPath: dirname(deployPropsOne.content),
+          children: [basename(deployPropsOne.content), basename(deployPropsOne.xml)]
+        }
+      ]);
+      const deployPropsTwo = {
+        name: 'Two',
+        fullName: 'Two',
+        type: registry.types.customobject,
+        content: join('project', 'classes', 'Two.cls'),
+        xml: join('project', 'classes', 'Two.cls-meta.xml')
+      };
+      const deployComponentTwo = SourceComponent.createVirtualComponent(deployPropsTwo,
+        [{
+          dirPath: dirname(deployPropsTwo.content),
+          children: [basename(deployPropsTwo.content), basename(deployPropsTwo.xml)]
+        }
+      ]);
+      const mockDeployResult = new DeployResult(
+        {
+          status: RequestStatus.Succeeded,
+          lastModifiedDate: 'Yesterday'
+        } as MetadataApiDeployStatus,
+        new ComponentSet([
+          deployComponentOne,
+          deployComponentTwo
+        ])
+      );
+      const fileResponses: any[] = [];
+      const cache = PersistentStorageService.getInstance();
+      sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
+      executor.startStub.resolves(mockDeployResult);
+
+      await executor.run({data: {}, type: 'CONTINUE' });
+
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].components.size).to.equal(2);
+      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))?.lastModifiedDate).to.equal('Yesterday');
+      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))?.lastModifiedDate).to.equal('Yesterday');
+    });
+
+    it('should not store any properties in metadata cache on failed deploy', async () => {
+      const executor = new TestDeploy();
+      const mockDeployResult = new DeployResult(
+        {
+          status: RequestStatus.Failed
+        } as MetadataApiDeployStatus,
+        new ComponentSet()
+      );
+      const fileResponses: any[] = [];
+      sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
+      executor.startStub.resolves(mockDeployResult);
+      const success = await executor.run({ data: {}, type: 'CONTINUE' });
+
+      expect(success).to.equal(false);
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].components.size).to.equal(0);
     });
 
     describe('Result Output', () => {
@@ -480,6 +557,7 @@ describe('Base Deploy Retrieve Commands', () => {
       public components: ComponentSet;
       public startStub: SinonStub;
       public retrieveStub: SinonStub;
+      public cacheSpy: SinonSpy;
 
       constructor(toRetrieve = new ComponentSet()) {
         super('test', 'testlog');
@@ -488,6 +566,7 @@ describe('Base Deploy Retrieve Commands', () => {
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
           .returns({ start: this.startStub });
+        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesRetrieve');
       }
 
       protected async getComponents(
@@ -501,6 +580,8 @@ describe('Base Deploy Retrieve Commands', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         packageDir
       ]);
+      const mockContext = new MockContext(false);
+      PersistentStorageService.initialize(mockContext);
     });
 
     it('should call retrieve on component set', async () => {
@@ -524,6 +605,46 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(operationSpy.calledOnce).to.equal(true);
     });
 
+    it('should store properties in metadata cache on successful retrieve', async () => {
+      const executor = new TestRetrieve();
+      const mockRetrieveResult = new RetrieveResult(
+        {
+          status: RequestStatus.Succeeded,
+          fileProperties: [
+            {fullName: 'one', type: 'ApexClass', lastModifiedDate: 'Today'},
+            {fullName: 'two', type: 'CustomObject', lastModifiedDate: 'Yesterday'}
+          ]
+        } as MetadataApiRetrieveStatus,
+        new ComponentSet()
+      );
+      const cache = PersistentStorageService.getInstance();
+      executor.startStub.resolves(mockRetrieveResult);
+
+      await executor.run({data: {}, type: 'CONTINUE' });
+
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].length).to.equal(2);
+      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'one'))?.lastModifiedDate).to.equal('Today');
+      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'two'))?.lastModifiedDate).to.equal('Yesterday');
+    });
+
+    it('should not store any properties in metadata cache on failed retrieve', async () => {
+      const executor = new TestRetrieve();
+      const mockRetrieveResult = new RetrieveResult(
+        {
+          status: RequestStatus.Failed,
+          fileProperties: [] as FileProperties[]
+        } as MetadataApiRetrieveStatus,
+        new ComponentSet()
+      );
+      executor.startStub.resolves(mockRetrieveResult);
+
+      await executor.run({data: {}, type: 'CONTINUE' });
+
+      expect(executor.cacheSpy.callCount).to.equal(1);
+      expect(executor.cacheSpy.args[0][0].length).to.equal(0);
+    });
+
     describe('Result Output', () => {
       let appendLineStub: SinonStub;
 
@@ -535,7 +656,8 @@ describe('Base Deploy Retrieve Commands', () => {
         const executor = new TestRetrieve();
         const mockRetrieveResult = new RetrieveResult(
           {
-            status: RequestStatus.Succeeded
+            status: RequestStatus.Succeeded,
+            fileProperties: [] as FileProperties[]
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );
@@ -588,7 +710,8 @@ describe('Base Deploy Retrieve Commands', () => {
         const executor = new TestRetrieve();
         const mockRetrieveResult = new RetrieveResult(
           {
-            status: RequestStatus.Failed
+            status: RequestStatus.Failed,
+            fileProperties: [] as FileProperties[]
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );

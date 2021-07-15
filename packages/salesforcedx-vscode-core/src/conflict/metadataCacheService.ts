@@ -40,6 +40,13 @@ export interface MetadataCacheResult {
   cachePropPath?: string;
   cache: MetadataContext;
   project: MetadataContext;
+  properties: FileProperties[];
+}
+
+export interface CorrelatedComponent {
+  cacheComponent: SourceComponent;
+  projectComponent: SourceComponent;
+  lastModifiedDate: string;
 }
 
 export class MetadataCacheService {
@@ -103,7 +110,8 @@ export class MetadataCacheService {
       this.sourceComponents = this.isManifest
         ? await ComponentSet.fromManifest({
             manifestPath: this.componentPath,
-            resolveSourcePaths: packageDirs
+            resolveSourcePaths: packageDirs,
+            forceAddWildcards: true
           })
         : ComponentSet.fromSource(this.componentPath);
       return this.sourceComponents;
@@ -171,7 +179,8 @@ export class MetadataCacheService {
           baseDirectory: this.projectPath,
           commonRoot: projCommon,
           components: sourceComps
-        }
+        },
+        properties
       };
     }
   }
@@ -194,7 +203,7 @@ export class MetadataCacheService {
     baseDir: string
   ): string {
     if (comps.length === 0) {
-      return baseDir;
+      return '';
     }
     if (comps.length === 1) {
       return this.getRelativePath(comps[0], baseDir);
@@ -240,6 +249,48 @@ export class MetadataCacheService {
       return compDir.substring(baseDir.length + path.sep.length);
     }
     return '';
+  }
+
+  /**
+   * Groups the information in a MetadataCacheResult by component
+   * @param result A MetadataCacheResult
+   * @returns An array with one entry per retrieved component, with all corresponding information about the component included
+   */
+  public static correlateResults(result: MetadataCacheResult): CorrelatedComponent[] {
+    const components: CorrelatedComponent[] = [];
+
+    const projectIndex = new Map<string, SourceComponent>();
+    for (const comp of result.project.components) {
+      projectIndex.set(MetadataCacheService.makeKey(comp.type.name, comp.fullName), comp);
+    }
+
+    const cacheIndex = new Map<string, SourceComponent>();
+    for (const comp of result.cache.components) {
+      cacheIndex.set(MetadataCacheService.makeKey(comp.type.name, comp.fullName), comp);
+    }
+
+    const fileIndex = new Map<string, FileProperties>();
+    for (const fileProperty of result.properties) {
+      fileIndex.set(MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
+    }
+
+    fileIndex.forEach((fileProperties, key) => {
+      const cacheComponent = cacheIndex.get(key);
+      const projectComponent = projectIndex.get(key);
+      if (cacheComponent && projectComponent) {
+        components.push({
+          cacheComponent,
+          projectComponent,
+          lastModifiedDate: fileProperties.lastModifiedDate
+        });
+      }
+    });
+
+    return components;
+  }
+
+  private static makeKey(type: string, fullName: string): string {
+    return `${type}#${fullName}`;
   }
 
   public getCachePath(): string {

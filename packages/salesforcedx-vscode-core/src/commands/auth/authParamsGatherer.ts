@@ -35,7 +35,8 @@ async function inputInstanceUrl() {
   const instanceUrlInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
     placeHolder: INSTANCE_URL_PLACEHOLDER,
-    validateInput: AuthParamsGatherer.validateUrl
+    validateInput: AuthParamsGatherer.validateUrl,
+    ignoreFocusOut: true
   };
   const instanceUrl = await vscode.window.showInputBox(instanceUrlInputOptions);
   return instanceUrl;
@@ -44,7 +45,8 @@ async function inputInstanceUrl() {
 async function inputAlias() {
   const aliasInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-    placeHolder: DEFAULT_ALIAS
+    placeHolder: DEFAULT_ALIAS,
+    ignoreFocusOut: true
   } as vscode.InputBoxOptions;
   const alias = await vscode.window.showInputBox(aliasInputOptions);
   return alias;
@@ -58,6 +60,7 @@ async function inputAccessToken() {
       'parameter_gatherer_enter_session_id_placeholder'
     ),
     password: true,
+    ignoreFocusOut: true,
     validateInput: text => {
       return text && text.length > 0
         ? null

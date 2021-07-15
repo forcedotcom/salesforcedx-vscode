@@ -11,7 +11,8 @@ import * as vscode from 'vscode';
 import {
   Executable,
   LanguageClient,
-  LanguageClientOptions
+  LanguageClientOptions,
+  RevealOutputChannelOn
 } from 'vscode-languageclient';
 import { LSP_ERR } from './constants';
 import { soqlMiddleware } from './embeddedSoql';
@@ -52,7 +53,8 @@ async function createServer(
       uberJar,
       '-Ddebug.internal.errors=true',
       `-Ddebug.semantic.errors=${enableSemanticErrors}`,
-      `-Ddebug.completion.statistics=${enableCompletionStatistics}`
+      `-Ddebug.completion.statistics=${enableCompletionStatistics}`,
+      '-Dlwc.typegeneration.disabled=true'
     ];
 
     if (jvmMaxHeap) {
@@ -165,6 +167,7 @@ export function buildClientOptions(): LanguageClientOptions {
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
     },
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter
