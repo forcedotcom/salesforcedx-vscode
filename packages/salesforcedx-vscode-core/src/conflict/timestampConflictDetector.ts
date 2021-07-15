@@ -67,13 +67,12 @@ export class TimestampConflictDetector {
             this.diffs.localRoot,
             difference.projectPath
           );
-          if (cachePathRelative === projectPathRelative) {
-            conflicts.add({
-              path: projectPathRelative,
-              localLastModifiedDate: lastModifiedInCache,
-              remoteLastModifiedDate: lastModifiedInOrg
-            });
-          }
+          conflicts.add({
+            localRelPath: projectPathRelative,
+            remoteRelPath: cachePathRelative,
+            localLastModifiedDate: lastModifiedInCache,
+            remoteLastModifiedDate: lastModifiedInOrg
+          });
         });
       }
     });
