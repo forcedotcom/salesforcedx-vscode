@@ -33,7 +33,7 @@ To create developing against non-source-tracked orgs:
 
 ![Create project](./images/create-project-with-manifest.png)
 
-1. In the Side Bar of the code editor, click Org Picker. This opens the Command Palette and you can select the command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
+1. In the code editor's status bar, click Org Picker to open the Command Palette. Select the command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
 
 If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows No Default Org Set.
 
@@ -151,10 +151,10 @@ To start developing with this model:
    If you want to work on an existing project, choose **File** > **Open** and navigate to the project directory. Before you open an existing project in VS Code, make sure that your project has a `sfdx-project.json` file and that metadata is in source format.
    - For information on the project structure, see Project Setup (https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_workspace_setup.htm) in the _Salesforce DX Developer Guide_.
    - You can work with source-tracked orgs only if your metadata is in source format. See Source Format (./en/user-guide/source-format).
-1. In the Side Bar of the code editor, click Org Picker and this opens the Command Palette.
+1. In the code editor's status bar, click Org Picker to open the Command Palette.
 1. Run **SFDX: Authorize an Org**. If you don’t have a Dev Hub, see [Enable Dev Hub in Your Org](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_enable_devhub.htm) in the _Salesforce DX Setup Guide_.
 1. Click Org Picker and run **SFDX: Create a Default Scratch Org** to create and set a scratch org as your default org for development.
-1. Select the scratch org shape, enter an alias, and enter the duration when the scratch org expires. The Org Picker now shows the alias provided for the scratch org. You can click the browser icon ({% octicon browser %}) in the Side Bar to open the default org you are working against.
+2. Select the scratch org shape, enter an alias, and enter the duration when the scratch org expires. The Org Picker now shows the alias provided for the scratch org. You can click the browser icon ({% octicon browser %}) in the status bar to open the default org you are working against.
    To change the default org you’re developing against, click the Org Picker and select a different org. Or, open the Command Palette and run **SFDX: Authorize an Org** or **SFDX: Create a Default Scratch Org**.
 
 ### Push and Pull Source
