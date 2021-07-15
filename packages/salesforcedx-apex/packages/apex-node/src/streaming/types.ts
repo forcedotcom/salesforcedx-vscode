@@ -25,4 +25,16 @@ export type StreamMessage = {
   id?: string;
   data?: TestResultMessage;
   error?: string;
+  advice: {
+    reconnect: string;
+    interval: number;
+    timeout: number;
+  };
 };
+
+export const enum StreamingErrors {
+  ERROR_AUTH_INVALID = '401::Authentication invalid',
+  ERROR_UNKNOWN_CLIENT_ID = '403::Unknown client'
+}
+
+export const RetreiveResultsInterval = 60 * 1000;

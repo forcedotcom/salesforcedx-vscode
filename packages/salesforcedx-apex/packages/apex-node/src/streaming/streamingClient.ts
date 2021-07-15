@@ -7,7 +7,12 @@
 
 import { Client as FayeClient } from 'faye';
 import { Connection } from '@salesforce/core';
-import { StreamMessage, TestResultMessage } from './types';
+import {
+  RetreiveResultsInterval,
+  StreamMessage,
+  StreamingErrors,
+  TestResultMessage
+} from './types';
 import { Progress } from '../common';
 import { nls } from '../i18n';
 import { refreshAuth } from '../utils';
@@ -25,7 +30,7 @@ export interface AsyncTestRun {
   queueItem: ApexTestQueueItem;
 }
 
-class Deferred<T> {
+export class Deferred<T> {
   public promise: Promise<T>;
   public resolve: Function;
   constructor() {
@@ -85,19 +90,40 @@ export class StreamingClient {
     });
 
     this.client.addExtension({
-      incoming: (
+      incoming: async (
         message: StreamMessage,
         callback: (message: StreamMessage) => void
       ) => {
         if (message && message.error) {
+          // throw errors on handshake errors
           if (message.channel === '/meta/handshake') {
-            this.client.disconnect();
+            this.disconnect();
             throw new Error(
               nls.localize('streamingHandshakeFail', message.error)
             );
           }
 
-          this.client.disconnect();
+          // refresh auth on 401 errors
+          if (message.error === StreamingErrors.ERROR_AUTH_INVALID) {
+            await this.init();
+            callback(message);
+            return;
+          }
+
+          // call faye callback on handshake advice
+          if (message.advice && message.advice.reconnect === 'handshake') {
+            callback(message);
+            return;
+          }
+
+          // call faye callback on 403 unknown client errors
+          if (message.error === StreamingErrors.ERROR_UNKNOWN_CLIENT_ID) {
+            callback(message);
+            return;
+          }
+
+          // default: disconnect and throw error
+          this.disconnect();
           throw new Error(message.error);
         }
         callback(message);
@@ -128,13 +154,17 @@ export class StreamingClient {
 
   public disconnect(): void {
     this.client.disconnect();
+    this.hasDisconnected = true;
   }
+
+  public hasDisconnected = false;
 
   public async subscribe(
     action?: () => Promise<string>,
     testRunId?: string
   ): Promise<AsyncTestRun> {
     return new Promise((subscriptionResolve, subscriptionReject) => {
+      let intervalId: NodeJS.Timeout;
       try {
         this.client.subscribe(
           TEST_RESULT_CHANNEL,
@@ -142,7 +172,8 @@ export class StreamingClient {
             const result = await this.handler(message);
 
             if (result) {
-              this.client.disconnect();
+              this.disconnect();
+              clearInterval(intervalId);
               subscriptionResolve({
                 runId: this.subscribedTestRunId,
                 queueItem: result
@@ -156,9 +187,24 @@ export class StreamingClient {
             .then(id => {
               this.subscribedTestRunId = id;
               this.subscribedTestRunIdDeferred.resolve(id);
+
+              if (!this.hasDisconnected) {
+                intervalId = setInterval(async () => {
+                  const result = await this.getCompletedTestRun(id);
+                  if (result) {
+                    this.disconnect();
+                    clearInterval(intervalId);
+                    subscriptionResolve({
+                      runId: this.subscribedTestRunId,
+                      queueItem: result
+                    });
+                  }
+                }, RetreiveResultsInterval);
+              }
             })
             .catch(e => {
-              this.client.disconnect();
+              this.disconnect();
+              clearInterval(intervalId);
               subscriptionReject(e);
             });
         } else {
@@ -166,7 +212,8 @@ export class StreamingClient {
           this.subscribedTestRunIdDeferred.resolve(testRunId);
         }
       } catch (e) {
-        this.client.disconnect();
+        this.disconnect();
+        clearInterval(intervalId);
         subscriptionReject(e);
       }
     });
