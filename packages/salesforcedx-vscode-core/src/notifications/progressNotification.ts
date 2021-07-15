@@ -23,7 +23,7 @@ export class ProgressNotification {
         cancellable: true
       },
       (progress, cancellationToken) => {
-        return new Promise(resolve => {
+        return new Promise<void>(resolve => {
           cancellationToken.onCancellationRequested(() => {
             token.cancel();
             return resolve();

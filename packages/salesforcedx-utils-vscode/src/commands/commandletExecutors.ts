@@ -177,6 +177,13 @@ export abstract class LibraryCommandletExecutor<T>
           token.onCancellationRequested(() => {
             this.cancelled = true;
             notificationService.showCanceledExecution(this.executionName);
+
+            telemetryService.sendCommandEvent(
+              `${this.logName}_cancelled`,
+              startTime,
+              properties,
+              measurements
+            );
           });
           return this.run(response, progress, token);
         }
