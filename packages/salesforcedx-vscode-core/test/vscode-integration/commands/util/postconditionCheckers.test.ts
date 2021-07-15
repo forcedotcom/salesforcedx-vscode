@@ -517,7 +517,9 @@ describe('Postcondition Checkers', () => {
           {
             localRelPath: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
             remoteRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
-          }])
+          }]),
+        scannedLocal: 4,
+        scannedRemote: 6
       } as DirectoryDiffResults;
       modalStub.returns('Cancel');
 
@@ -535,12 +537,8 @@ describe('Postcondition Checkers', () => {
 
       expect(channelOutput).to.include.members([
         nls.localize('conflict_detect_conflict_header', 2, 6, 4),
-        normalize(
-          'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
-        ),
-        normalize(
-          'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-        ),
+        'Broker__c.field-meta.xml',
+        'auraPropertySummaryController.js',
         nls.localize('conflict_detect_command_hint', 'package.xml')
       ]);
 
@@ -710,12 +708,8 @@ describe('Postcondition Checkers', () => {
 
         expect(channelOutput).to.include.members([
           nls.localize('conflict_detect_conflict_header_timestamp', 2),
-          normalize(
-            'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
-          ),
-          normalize(
-            'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-          ),
+          'Broker__c.field-meta.xml',
+          'auraPropertySummaryController.js',
           nls.localize('conflict_detect_command_hint', 'package.xml')
         ]);
 
