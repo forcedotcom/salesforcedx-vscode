@@ -63,7 +63,7 @@ describe('Component Differ', () => {
   it('Should return all file paths that differ', async () => {
     walkContentStubOne.returns([diffPathOne, noDiffPathOne]);
     walkContentStubTwo.returns([diffPathTwo, noDiffPathTwo]);
-    const results = diffComponents(sampleComponentOne, sampleComponentTwo, path.join(dir, 'one'), path.join(dir, 'two'));
+    const results = diffComponents(sampleComponentOne, sampleComponentTwo);
 
     expect(walkContentStubOne.callCount).to.equal(1);
     expect(walkContentStubTwo.callCount).to.equal(1);

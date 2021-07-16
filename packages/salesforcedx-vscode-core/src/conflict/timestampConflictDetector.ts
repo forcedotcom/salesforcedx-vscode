@@ -6,8 +6,6 @@
  */
 
 import { join, relative } from 'path';
-import { channelService } from '../channels';
-import { nls } from '../messages';
 import {
   DirectoryDiffResults,
   MetadataCacheResult,
@@ -54,12 +52,7 @@ export class TimestampConflictDetector {
       );
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
-        const differences = diffComponents(
-          component.projectComponent,
-          component.cacheComponent,
-          this.diffs.localRoot,
-          this.diffs.remoteRoot
-        );
+        const differences = diffComponents(component.projectComponent, component.cacheComponent);
         differences.forEach(difference => {
           const cachePathRelative = relative(
             this.diffs.remoteRoot,
@@ -69,13 +62,12 @@ export class TimestampConflictDetector {
             this.diffs.localRoot,
             difference.projectPath
           );
-          if (cachePathRelative === projectPathRelative) {
-            conflicts.add({
-              path: cachePathRelative,
-              localLastModifiedDate: lastModifiedInCache,
-              remoteLastModifiedDate: lastModifiedInOrg
-            });
-          }
+          conflicts.add({
+            localRelPath: projectPathRelative,
+            remoteRelPath: cachePathRelative,
+            localLastModifiedDate: lastModifiedInCache,
+            remoteLastModifiedDate: lastModifiedInOrg
+          });
         });
       }
     });
