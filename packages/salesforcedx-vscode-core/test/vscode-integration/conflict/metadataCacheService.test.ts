@@ -321,7 +321,7 @@ describe('Metadata Cache', () => {
       type: {
         name: 'CustomField'
       }
-    }
+    };
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
