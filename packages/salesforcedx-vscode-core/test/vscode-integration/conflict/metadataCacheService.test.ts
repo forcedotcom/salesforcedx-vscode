@@ -303,38 +303,35 @@ describe('Metadata Cache', () => {
   }
 
   describe('Static Methods', () => {
+    const compOne = {
+      fullName: 'HandlerCostCenter',
+      type: {
+        name: 'ApexClass'
+      }
+    };
+    const compTwo = {
+      fullName: 'Account',
+      type: {
+        name: 'CustomObject'
+      }
+    };
+    const childComp = {
+      fullName: 'AccountNumber',
+      parent: compTwo,
+      type: {
+        name: 'CustomField'
+      }
+    }
     const cacheResults = {
       cache: {
         baseDirectory: path.normalize('/a/b'),
         commonRoot: 'c',
-        components: [{
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        {
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        }] as SourceComponent[]
+        components: [compOne, compTwo, childComp] as SourceComponent[]
       },
       project: {
         baseDirectory: path.normalize('/d'),
         commonRoot: path.normalize('e/f'),
-        components: [{
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        {
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
-        }] as SourceComponent[]
+        components: [compTwo, childComp, compOne] as SourceComponent[]
       },
       properties: [{
         fullName: 'HandlerCostCenter',
@@ -342,9 +339,9 @@ describe('Metadata Cache', () => {
         type: 'ApexClass'
       },
       {
-        fullName: 'AccountController',
+        fullName: 'Account',
         lastModifiedDate: 'Yesterday',
-        type: 'ApexClass'
+        type: 'CustomObject'
       }] as FileProperties[]
     } as MetadataCacheResult;
 
@@ -353,34 +350,14 @@ describe('Metadata Cache', () => {
 
       expect(components.length).to.equal(2);
       expect(components).to.have.deep.members([{
-        cacheComponent: {
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        projectComponent: {
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        lastModifiedDate: 'Yesterday'
+        cacheComponent: compOne,
+        projectComponent: compOne,
+        lastModifiedDate: 'Today'
       },
       {
-        cacheComponent: {
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        projectComponent: {
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        lastModifiedDate: 'Today'
+        cacheComponent: compTwo,
+        projectComponent: compTwo,
+        lastModifiedDate: 'Yesterday'
       }]);
     });
   });
