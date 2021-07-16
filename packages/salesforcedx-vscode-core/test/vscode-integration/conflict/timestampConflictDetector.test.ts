@@ -142,9 +142,7 @@ describe('Timestamp Conflict Detector Execution', () => {
         type: {
           name: 'ApexClass'
         }
-      },
-      path.normalize('/d/e/f'),
-      path.normalize('/a/b/c')
+      }
     ]);
 
     expect(results.different).to.eql(new Set([{
@@ -338,9 +336,7 @@ describe('Timestamp Conflict Detector Execution', () => {
         type: {
           name: 'ApexClass'
         }
-      },
-      path.normalize('/d/e/f'),
-      path.normalize('/a/b/c')
+      }
     ]);
 
     expect(results.different).to.eql(new Set<TimestampFileProperties>());
