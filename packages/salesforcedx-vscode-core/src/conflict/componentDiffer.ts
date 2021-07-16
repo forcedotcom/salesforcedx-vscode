@@ -30,10 +30,10 @@ export function diffComponents(
 
   const projectIndex = new Map<string, string>();
   const projectPaths = projectComponent.walkContent();
-  const projectRoot = findRootDir(projectPaths);
   if (projectComponent.xml) {
     projectPaths.push(projectComponent.xml);
   }
+  const projectRoot = projectComponent.content ?? (projectComponent.xml ?? '');
   for (const file of projectPaths) {
     const key = path.relative(projectRoot, file);
     projectIndex.set(key, file);
@@ -41,10 +41,10 @@ export function diffComponents(
 
   const cacheIndex = new Map<string, string>();
   const cachePaths = cacheComponent.walkContent();
-  const cacheRoot = findRootDir(cachePaths);
   if (cacheComponent.xml) {
     cachePaths.push(cacheComponent.xml);
   }
+  const cacheRoot = cacheComponent.content ?? (cacheComponent.xml ?? '');
   for (const file of cachePaths) {
     const key = path.relative(cacheRoot, file);
     cacheIndex.set(key, file);
@@ -64,31 +64,4 @@ function filesDiffer(projectPath: string, cachePath: string): boolean {
   const bufferOne = fs.readFileSync(projectPath);
   const bufferTwo = fs.readFileSync(cachePath);
   return !bufferOne.equals(bufferTwo);
-}
-
-function findRootDir(paths: string[]): string {
-  if (paths.length === 0) {
-    return '';
-  }
-  if (paths.length === 1) {
-    return paths[0];
-  }
-
-  const baseline = paths[0];
-  let shortest = baseline.length;
-
-  for (let whichPath = 1; whichPath < paths.length; whichPath++) {
-    const sample = paths[whichPath];
-    shortest = Math.min(shortest, sample.length);
-
-    for (let comparePos = 0; comparePos < shortest; comparePos++) {
-      if (baseline[comparePos] !== sample[comparePos]) {
-        shortest = comparePos;
-        break;
-      }
-    }
-  }
-
-  const dir = baseline.substring(0, shortest);
-  return dir.endsWith(path.sep) ? dir.slice(0, -path.sep.length) : dir;
 }
