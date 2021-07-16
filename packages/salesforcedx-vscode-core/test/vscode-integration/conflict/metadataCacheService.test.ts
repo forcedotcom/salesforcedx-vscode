@@ -322,30 +322,32 @@ describe('Metadata Cache', () => {
         name: 'CustomField'
       }
     };
-    const cacheResults = {
-      cache: {
-        baseDirectory: path.normalize('/a/b'),
-        commonRoot: 'c',
-        components: [compOne, compTwo, childComp] as SourceComponent[]
-      },
-      project: {
-        baseDirectory: path.normalize('/d'),
-        commonRoot: path.normalize('e/f'),
-        components: [compTwo, childComp, compOne] as SourceComponent[]
-      },
-      properties: [{
-        fullName: 'HandlerCostCenter',
-        lastModifiedDate: 'Today',
-        type: 'ApexClass'
-      },
-      {
-        fullName: 'Account',
-        lastModifiedDate: 'Yesterday',
-        type: 'CustomObject'
-      }] as FileProperties[]
-    } as MetadataCacheResult;
+    const fileProperties = [{
+      fullName: 'HandlerCostCenter',
+      lastModifiedDate: 'Today',
+      type: 'ApexClass'
+    },
+    {
+      fullName: 'Account',
+      lastModifiedDate: 'Yesterday',
+      type: 'CustomObject'
+    }] as FileProperties[];
 
     it('Should correlate results correctly', () => {
+      const cacheResults = {
+        cache: {
+          baseDirectory: path.normalize('/a/b'),
+          commonRoot: 'c',
+          components: [compOne, compTwo, childComp] as SourceComponent[]
+        },
+        project: {
+          baseDirectory: path.normalize('/d'),
+          commonRoot: path.normalize('e/f'),
+          components: [compTwo, childComp, compOne] as SourceComponent[]
+        },
+        properties: fileProperties
+      } as MetadataCacheResult;
+
       const components = MetadataCacheService.correlateResults(cacheResults);
 
       expect(components.length).to.equal(2);
@@ -357,6 +359,36 @@ describe('Metadata Cache', () => {
       {
         cacheComponent: compTwo,
         projectComponent: compTwo,
+        lastModifiedDate: 'Yesterday'
+      }]);
+    });
+
+    it('Should correlate results for just a child component', () => {
+      const cacheResults = {
+        cache: {
+          baseDirectory: path.normalize('/a/b'),
+          commonRoot: 'c',
+          components: [compOne, childComp] as SourceComponent[]
+        },
+        project: {
+          baseDirectory: path.normalize('/d'),
+          commonRoot: path.normalize('e/f'),
+          components: [childComp, compOne] as SourceComponent[]
+        },
+        properties: fileProperties
+      } as MetadataCacheResult;
+      
+      const components = MetadataCacheService.correlateResults(cacheResults);
+
+      expect(components.length).to.equal(2);
+      expect(components).to.have.deep.members([{
+        cacheComponent: compOne,
+        projectComponent: compOne,
+        lastModifiedDate: 'Today'
+      },
+      {
+        cacheComponent: childComp,
+        projectComponent: childComp,
         lastModifiedDate: 'Yesterday'
       }]);
     });
