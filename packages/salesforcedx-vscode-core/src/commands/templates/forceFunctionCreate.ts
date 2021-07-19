@@ -42,11 +42,7 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
   any
 > {
   constructor() {
-    super(
-      nls.localize('force_function_create_text'),
-      'force_function_create',
-      OUTPUT_CHANNEL
-    );
+    super(nls.localize('force_function_create_text'), LOG_NAME, OUTPUT_CHANNEL);
   }
   public async run(response: ContinueResponse<FunctionInfo>): Promise<boolean> {
     const { fileName, language } = response.data;
