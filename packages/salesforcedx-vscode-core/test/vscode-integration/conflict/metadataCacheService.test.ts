@@ -377,7 +377,7 @@ describe('Metadata Cache', () => {
         },
         properties: fileProperties
       } as MetadataCacheResult;
-      
+
       const components = MetadataCacheService.correlateResults(cacheResults);
 
       expect(components.length).to.equal(2);
