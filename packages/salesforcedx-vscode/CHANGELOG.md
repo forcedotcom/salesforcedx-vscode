@@ -1,3 +1,35 @@
+# 52.5.0 - July 14, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Update test sidebar icons and add test coverage for easy button replay debugger ([PR #3381](https://github.com/forcedotcom/salesforcedx-vscode/pull/3381))
+
+#### salesforcedx-vscode-core
+
+- Update text on Conflict detection modal window ([PR #3394](https://github.com/forcedotcom/salesforcedx-vscode/pull/3394))
+
+- Enhance hovertip text for conflict detection to show last modified date information ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
+
+## Fixed
+
+#### docs
+
+- Update docs for conflict detection ([PR #3396](https://github.com/forcedotcom/salesforcedx-vscode/pull/3396))
+
+#### salesforcedx-vscode-core
+
+- Remove setting to enable function [PR #3409](https://github.com/forcedotcom/salesforcedx-vscode/pull/3409))
+
+# 52.4.0 - July 8, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable conflict detection for all deploy commands ([PR #3357](https://github.com/forcedotcom/salesforcedx-vscode/pull/3357))
+
 # 52.3.0 - June 30, 2021
 
 ## Added
