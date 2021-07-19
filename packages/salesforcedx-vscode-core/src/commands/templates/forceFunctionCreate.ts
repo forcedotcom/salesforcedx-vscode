@@ -77,7 +77,6 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
       `Created ${language} function ${fileName} in ${functionPath}.`
     );
     if (welcomeText) channelService.appendLine(welcomeText);
-    channelService.showChannelOutput();
 
     const outputFile = metadata!.pathStrategy.getPathToSource(
       functionPath,
