@@ -213,6 +213,7 @@ export const messages = {
   demo_mode_prompt:
     'デモモードまたは共有マシンで、ビジネスまたは本番組織を認証することは推奨されません。認証を続ける場合、組織を使用した後、必ず "SFDX: すべての認証済み組織からログアウト" を実行してください。',
   force_auth_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
+  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_editor_title_message: 'マニフェストエディタ',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
@@ -232,6 +233,11 @@ export const messages = {
   auth_custom_label: 'カスタム',
   auth_custom_detail: 'カスタムログイン URL を入力',
   auth_invalid_url: 'URL は http:// か https:// で始める必要があります。',
+  auth_logout_scratch_prompt:
+    'Default org %s is a scratch org. If you continue you may not be able to login again. Continue logout?',
+  auth_logout_scratch_logout: 'Logout',
+  auth_logout_scratch_dont_logout: "Don't Logout",
+  auth_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織に接続できませんでした。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_no_package_directories_found_on_setup_text:

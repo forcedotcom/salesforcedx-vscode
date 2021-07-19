@@ -192,3 +192,28 @@ export class AccessTokenParamsGatherer
     };
   }
 }
+
+export class ScratchOrgLogoutParamsGatherer
+  implements ParametersGatherer<string> {
+  public constructor(public readonly username: string) {}
+
+  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
+    const prompt = nls.localize('auth_logout_scratch_prompt', this.username);
+    const logoutResponse = nls.localize('auth_logout_scratch_logout');
+    const dontLogoutResponse = nls.localize('auth_logout_scratch_dont_logout');
+
+    const confirm = await vscode.window.showInformationMessage(
+      prompt,
+      { modal: true },
+      ...[logoutResponse, dontLogoutResponse]
+    );
+    if (confirm !== logoutResponse) {
+      return { type: 'CANCEL' };
+    }
+
+    return {
+      type: 'CONTINUE',
+      data: this.username
+    };
+  }
+}
