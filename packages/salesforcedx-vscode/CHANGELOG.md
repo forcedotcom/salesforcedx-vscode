@@ -1,3 +1,27 @@
+# 52.6.0 - July 20, 2021
+
+## Added
+
+#### salesforcedx-vscode
+
+- Include SOQL in extension pack ([PR #3400](https://github.com/forcedotcom/salesforcedx-vscode/pull/3400))
+
+#### salesforcedx-vscode-core
+
+- Update conflict detection setting ([PR #3416](https://github.com/forcedotcom/salesforcedx-vscode/pull/3416))
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Correct LWC typing generation for new projects ([PR #3418](https://github.com/forcedotcom/salesforcedx-vscode/pull/3418))
+
+#### salesforcedx-vscode-core
+
+- Pr/3282 Use @heroku/functions-core library implementation of 'Start Function' and 'Run Function' ([PR #3399](https://github.com/forcedotcom/salesforcedx-vscode/pull/3399))
+
+- Retrieve nothing should not error ([PR #3376](https://github.com/forcedotcom/salesforcedx-vscode/pull/3376))
+
 # 52.5.0 - July 14, 2021
 
 ## Added
