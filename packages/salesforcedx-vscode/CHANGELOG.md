@@ -18,7 +18,7 @@
 
 #### salesforcedx-vscode-core
 
-- Pr/3282 Use @heroku/functions-core library implementation of 'Start Function' and 'Run Function' ([PR #3399](https://github.com/forcedotcom/salesforcedx-vscode/pull/3399))
+- Performance improvements for  `SFDX: Start Function`, `Invoke` and `Debug Invoke` commands ([PR #3399](https://github.com/forcedotcom/salesforcedx-vscode/pull/3399))
 
 - Retrieve nothing should not error ([PR #3376](https://github.com/forcedotcom/salesforcedx-vscode/pull/3376))
 
