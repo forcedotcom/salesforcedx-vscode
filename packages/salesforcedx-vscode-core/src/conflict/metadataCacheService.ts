@@ -267,56 +267,10 @@ export class MetadataCacheService {
     const components: CorrelatedComponent[] = [];
 
     const projectIndex = new Map<string, RecomposedComponent>();
-    for (const comp of result.project.components) {
-      const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
-      if (comp.parent) {
-        const parentKey = MetadataCacheService.makeKey(comp.parent.type.name, comp.parent.fullName);
-        const parentEntry = projectIndex.get(parentKey);
-        if (parentEntry) {
-          parentEntry.children.set(key, comp);
-        } else {
-          projectIndex.set(parentKey, {
-            children: new Map<string, SourceComponent>().set(key, comp)
-          });
-        }
-      } else {
-        const entry = projectIndex.get(key);
-        if (entry) {
-          entry.component = comp;
-        } else {
-          projectIndex.set(key, {
-            component: comp,
-            children: new Map<string, SourceComponent>()
-          });
-        }
-      }
-    }
+    this.pairParentsAndChildren(projectIndex, result.project.components);
 
     const cacheIndex = new Map<string, RecomposedComponent>();
-    for (const comp of result.cache.components) {
-      const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
-      if (comp.parent) {
-        const parentKey = MetadataCacheService.makeKey(comp.parent.type.name, comp.parent.fullName);
-        const parentEntry = cacheIndex.get(parentKey);
-        if (parentEntry) {
-          parentEntry.children.set(key, comp);
-        } else {
-          cacheIndex.set(parentKey, {
-            children: new Map<string, SourceComponent>().set(key, comp)
-          });
-        }
-      } else {
-        const entry = cacheIndex.get(key);
-        if (entry) {
-          entry.component = comp;
-        } else {
-          cacheIndex.set(key, {
-            component: comp,
-            children: new Map<string, SourceComponent>()
-          });
-        }
-      }
-    }
+    this.pairParentsAndChildren(cacheIndex, result.cache.components);
 
     const fileIndex = new Map<string, FileProperties>();
     for (const fileProperty of result.properties) {
@@ -349,6 +303,43 @@ export class MetadataCacheService {
     });
 
     return components;
+  }
+
+  /**
+   * Creates a map in which parent components and their children are stored together
+   * @param index The map which is mutated by this function
+   * @param components The parent and/or child components to add to the map
+   */
+  private static pairParentsAndChildren(index: Map<string, RecomposedComponent>, components: SourceComponent[]) {
+    for (const comp of components) {
+      const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
+      // If the component has a parent it is assumed to be a child
+      if (comp.parent) {
+        const parentKey = MetadataCacheService.makeKey(comp.parent.type.name, comp.parent.fullName);
+        const parentEntry = index.get(parentKey);
+        if (parentEntry) {
+          // Add the child component if we have an entry for the parent
+          parentEntry.children.set(key, comp);
+        } else {
+          // Create a new entry that does not have a parent yet
+          index.set(parentKey, {
+            children: new Map<string, SourceComponent>().set(key, comp)
+          });
+        }
+      } else {
+        const entry = index.get(key);
+        if (entry) {
+          // Add this parent to an existing entry without overwriting the children
+          entry.component = comp;
+        } else {
+          // Create a new entry with just the parent
+          index.set(key, {
+            component: comp,
+            children: new Map<string, SourceComponent>()
+          });
+        }
+      }
+    }
   }
 
   private static makeKey(type: string, fullName: string): string {
