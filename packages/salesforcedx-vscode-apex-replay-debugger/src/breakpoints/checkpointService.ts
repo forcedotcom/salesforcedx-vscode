@@ -182,7 +182,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       writeToDebuggerOutputWindow(
         errorMessage,
         true,
-        VSCodeWindowTypeEnum.Error
+        VSCodeWindowTypeEnum.Warning
       );
     }
     return oneOrMore;
