@@ -194,15 +194,13 @@ describe('Force Auth Logout Default', () => {
     expect(messageArgs).to.deep.equal([
       nls.localize('auth_logout_scratch_prompt', username),
       { modal: true },
-      nls.localize('auth_logout_scratch_logout'),
-      nls.localize('auth_logout_scratch_dont_logout')
+      nls.localize('auth_logout_scratch_logout')
     ]);
   });
 
   it('Should allow logout for a scratch org', async () => {
     let removedUsername;
     const logoutResponse = nls.localize('auth_logout_scratch_logout');
-    const dontLogoutResponse = nls.localize('auth_logout_scratch_dont_logout');
 
     getUsernameStub.resolves(username);
     aliasesStub.resolves(undefined);
@@ -233,42 +231,8 @@ describe('Force Auth Logout Default', () => {
     expect(messageArgs).to.deep.equal([
       nls.localize('auth_logout_scratch_prompt', username),
       { modal: true },
-      logoutResponse,
-      dontLogoutResponse
+      logoutResponse
     ]);
     expect(removedUsername, 'should have removed username').to.equal(username);
-  });
-
-  it("Should allow don't logout for a scratch org", async () => {
-    const logoutResponse = nls.localize('auth_logout_scratch_logout');
-    const dontLogoutResponse = nls.localize('auth_logout_scratch_dont_logout');
-
-    getUsernameStub.resolves(username);
-    aliasesStub.resolves(undefined);
-    scratchOrgStub.resolves(true);
-    notificationStub.resolves();
-    inputMessageStub.returns(dontLogoutResponse);
-    commandletStub.restore();
-
-    await forceAuthLogoutDefault();
-
-    expect(
-      sendExceptionStub.called,
-      'should not have reported an error'
-    ).to.equal(false);
-    expect(
-      notificationStub.called,
-      'should not have posted an error message'
-    ).to.equal(false);
-    expect(inputMessageStub.called, 'should have prompted a message').to.equal(
-      true
-    );
-    const messageArgs = inputMessageStub.getCall(0).args;
-    expect(messageArgs).to.deep.equal([
-      nls.localize('auth_logout_scratch_prompt', username),
-      { modal: true },
-      logoutResponse,
-      dontLogoutResponse
-    ]);
   });
 });

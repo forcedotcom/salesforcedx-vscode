@@ -271,9 +271,8 @@ export const messages = {
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
   auth_logout_scratch_prompt:
-    'Default org %s is a scratch org. If you continue you may not be able to login again. Continue logout?',
+    'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
   auth_logout_scratch_logout: 'Logout',
-  auth_logout_scratch_dont_logout: "Don't Logout",
   auth_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',

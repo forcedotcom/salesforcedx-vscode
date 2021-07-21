@@ -92,6 +92,8 @@ export async function forceAuthLogoutDefault() {
     telemetryService.sendException(error.name, error.message);
     notificationService.showErrorMessage('Logout failed to run');
   } else if (username) {
+    // confirm logout for scratch orgs due to special considerations:
+    // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
     const logoutCommandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       isScratch
