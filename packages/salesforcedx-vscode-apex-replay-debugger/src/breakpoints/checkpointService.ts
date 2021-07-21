@@ -167,6 +167,27 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     return fiveOrLess;
   }
 
+  public hasOneOrMoreActiveCheckpoints(displayError: boolean): boolean {
+    let numEnabledCheckpoints = 0;
+    for (const cpNode of this.getChildren() as CheckpointNode[]) {
+      if (cpNode.isCheckpointEnabled()) {
+        numEnabledCheckpoints++;
+      }
+    }
+    const oneOrMore = numEnabledCheckpoints > 0;
+    if (!oneOrMore && displayError) {
+      const errorMessage = nls.localize(
+        'no_enabled_checkpoints'
+      );
+      writeToDebuggerOutputWindow(
+        errorMessage,
+        true,
+        VSCodeWindowTypeEnum.Error
+      );
+    }
+    return oneOrMore;
+  }
+
   public createCheckpointNode(
     breakpointIdInput: string,
     enabledInput: boolean,

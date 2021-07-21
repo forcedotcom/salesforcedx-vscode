@@ -24,6 +24,7 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import * as path from 'path';
 import { workspace } from 'vscode';
 import { sfdxCreateCheckpoints } from '../breakpoints';
+import { checkpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -52,9 +53,12 @@ export class QuickLaunch {
       return false;
     }
 
-    const createCheckpointsResult = await sfdxCreateCheckpoints();
-    if (!createCheckpointsResult) {
-      return false;
+    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(true);
+    if (oneOrMoreCheckpoints) {
+      const createCheckpointsResult = await sfdxCreateCheckpoints();
+      if (!createCheckpointsResult) {
+        return false;
+      }
     }
 
     const testResult = await this.runSingleTest(
