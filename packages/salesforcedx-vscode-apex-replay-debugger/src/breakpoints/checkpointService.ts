@@ -903,7 +903,7 @@ export async function sfdxCreateCheckpoints(): Promise<boolean> {
   }
   if (updateError) {
     return false;
-  } 
+  }
   return true;
 }
 
