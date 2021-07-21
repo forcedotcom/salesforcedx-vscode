@@ -9,7 +9,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export interface TimestampFileProperties {
-  path: string;
+  localRelPath: string;
+  remoteRelPath: string;
   localLastModifiedDate?: string | undefined;
   remoteLastModifiedDate?: string | undefined;
 }
@@ -51,7 +52,8 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
         const file2 = path.join(remoteSourcePath, stats.relPath);
         if (this.filesDiffer(file1, file2)) {
           different.add({
-            path: stats.relPath
+            localRelPath: stats.relPath,
+            remoteRelPath: stats.relPath
           });
         }
       }
