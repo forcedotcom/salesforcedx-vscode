@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2021, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
 import { TestService } from '@salesforce/apex-node';
 import {
   LibraryCommandletExecutor,
@@ -20,7 +27,7 @@ import {
   TestType
 } from './forceApexTestRun';
 
-type ApexTestSuiteOptions = { suitename: string; tests: string[] };
+export type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
 async function listApexClassItems(): Promise<ApexTestQuickPickItem[]> {
   const apexClasses = await vscode.workspace.findFiles('**/*.cls');
