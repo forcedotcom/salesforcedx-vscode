@@ -6,8 +6,10 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
+import * as vscode from 'vscode';
 import {
   ApexTestQuickPickItem,
   TestType
@@ -19,13 +21,12 @@ import {
   TestSuiteSelector
 } from '../../../src/commands/forceApexTestSuite';
 import { workspaceContext } from '../../../src/context';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as vscode from 'vscode';
+
+const sb = createSandbox();
 
 describe('Test Suite Selector', async () => {
   let quickPickStub: sinon.SinonStub;
   let retrieveSuitesStub: sinon.SinonStub;
-  let sb = createSandbox();
 
   beforeEach(async () => {
     sb.stub(workspaceContext, 'getConnection');
@@ -75,7 +76,6 @@ describe('Test Suite Selector', async () => {
 describe('Test Suite Builder', async () => {
   let quickPickStub: sinon.SinonStub;
   let retrieveSuitesStub: sinon.SinonStub;
-  let sb = createSandbox();
 
   beforeEach(async () => {
     sb.stub(workspaceContext, 'getConnection');
@@ -126,7 +126,6 @@ describe('Test Suite Builder', async () => {
 
 describe('Test Suite Creator', async () => {
   let quickPickStub: sinon.SinonStub;
-  let sb = createSandbox();
 
   beforeEach(async () => {
     sb.stub(workspaceContext, 'getConnection');
