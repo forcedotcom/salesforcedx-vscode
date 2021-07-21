@@ -903,9 +903,8 @@ export async function sfdxCreateCheckpoints(): Promise<boolean> {
   }
   if (updateError) {
     return false;
-  } else {
-    return true;
-  }
+  } 
+  return true;
 }
 
 // A couple of important notes about this command's processing
