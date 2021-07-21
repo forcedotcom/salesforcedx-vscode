@@ -21,6 +21,7 @@ import { basename } from 'path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
+import { nls } from '../messages';
 import {
   ApexLibraryTestRunExecutor,
   ApexTestQuickPickItem,
@@ -154,7 +155,7 @@ export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<
 
   constructor() {
     super(
-      'SFDX: Build Apex Test Suite',
+      nls.localize('force_apex_test_suite_build_text'),
       'force_apex_test_suite_build_library',
       OUTPUT_CHANNEL
     );

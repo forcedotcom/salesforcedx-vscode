@@ -213,15 +213,15 @@
       },
       {
         "command": "sfdx.force.apex.test.suite.run",
-        "title": "SFDX: Run Apex Test Suite"
+        "title": "%force_apex_test_suite_run_text%"
       },
       {
         "command": "sfdx.force.apex.test.suite.create",
-        "title": "SFDX: Create Apex Test Suite"
+        "title": "%force_apex_test_suite_create_text%"
       },
       {
         "command": "sfdx.force.apex.test.suite.add",
-        "title": "SFDX: Add Tests to Apex Test Suite"
+        "title": "%force_apex_test_suite_build_text%"
       },
       {
         "command": "sfdx.force.test.view.run",
