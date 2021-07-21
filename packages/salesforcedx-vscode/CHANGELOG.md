@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Update conflict detection setting ([PR #3416](https://github.com/forcedotcom/salesforcedx-vscode/pull/3416))
+- Update conflict detection setting description ([PR #3416](https://github.com/forcedotcom/salesforcedx-vscode/pull/3416))
 
 ## Fixed
 
