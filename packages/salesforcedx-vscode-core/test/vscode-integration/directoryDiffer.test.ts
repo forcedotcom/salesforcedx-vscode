@@ -89,10 +89,12 @@ describe('Directory Differ', () => {
 
     expect(results.different).to.eql(new Set([
       {
-        path: cls1ToChange
+        localRelPath: cls1ToChange,
+        remoteRelPath: cls1ToChange
       },
       {
-        path: layoutToChange
+        localRelPath: layoutToChange,
+        remoteRelPath: layoutToChange
       }
     ]));
     expect(
@@ -130,7 +132,8 @@ describe('Directory Differ', () => {
 
     expect(results.different).to.eql(new Set([
       {
-        path: path.join('staticresources', 'leaflet', 'images', 'marker-icon.png')
+        localRelPath: path.join('staticresources', 'leaflet', 'images', 'marker-icon.png'),
+        remoteRelPath: path.join('staticresources', 'leaflet', 'images', 'marker-icon.png')
       }
     ]));
     expect(

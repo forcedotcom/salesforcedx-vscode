@@ -59,8 +59,8 @@ export function registerConflictView(): Disposable {
 }
 
 function conflictDiff(file: ConflictFile) {
-  const local = Uri.file(path.join(file.localPath, file.relPath));
-  const remote = Uri.file(path.join(file.remotePath, file.relPath));
+  const local = Uri.file(path.join(file.localPath, file.localRelPath));
+  const remote = Uri.file(path.join(file.remotePath, file.remoteRelPath));
 
   const title = nls.localize(
     'conflict_detect_diff_title',
@@ -74,7 +74,7 @@ function conflictDiff(file: ConflictFile) {
 function openResource(node: ConflictNode) {
   const file = node.conflict;
   if (file) {
-    const local = Uri.file(path.join(file.localPath, file.relPath));
+    const local = Uri.file(path.join(file.localPath, file.localRelPath));
     window.showTextDocument(local).then(() => { });
   }
 }
