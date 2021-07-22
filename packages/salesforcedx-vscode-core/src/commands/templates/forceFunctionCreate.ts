@@ -73,7 +73,7 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
       `Created ${language} function ${fileName} in ${functionPath}.`
     );
     if (welcomeText) channelService.appendLine(welcomeText);
-
+    channelService.showChannelOutput();
     const outputFile = metadata!.pathStrategy.getPathToSource(
       functionPath,
       fileName,
@@ -81,7 +81,7 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
     );
     const document = await vscode.workspace.openTextDocument(outputFile);
     vscode.window.showTextDocument(document);
-
+    channelService.appendLine('Installing dependencies...');
     if (language === LANGUAGE_JAVA) {
       return new Promise((resolve, reject) => {
         cp.exec('mvn install', { cwd: path.join(functionPath) }, err => {
