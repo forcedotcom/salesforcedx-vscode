@@ -6,7 +6,7 @@ lang: en
 ---
 
 ## Overview
-SOQL Builder is available as a part of the Salesforce Extension Pack. With SOQL Query Builder, anyone can visually build, run, and explore results from queries, taking out the guesswork from building SOQL queries. Build queries using clicks in a visual editor, then save and extend the queries using a text editor. You can instantly view query results, and then save the results to a `.csv` or `.json` file.
+SOQL Builder is available as a part of the Salesforce Extension Pack. With SOQL Builder, anyone can visually build, run, and explore results from queries, taking out the guesswork from building SOQL queries. Build queries using clicks in a visual editor, then save and extend the queries using a text editor. You can instantly view query results, and then save the results to a `.csv` or `.json` file.
 
 ## Using SOQL Builder
 Use SOQL Builder to build simple query statements that include:
