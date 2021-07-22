@@ -25,7 +25,7 @@ Use SOQL Builder to build simple query statements that include:
 
 
 ### Set Up
-- Make sure you are authenticated into your default org. You can’t use SOQL builder if authentication to default org has expired.
+- Make sure you are authenticated into your default org. You can’t use SOQL Builder if authentication to the default org has expired.
 - In VS Code, open a Salesforce DX project.
 - Authorize the org whose objects you want to query. 
 
