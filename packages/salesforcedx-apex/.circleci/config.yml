@@ -78,7 +78,7 @@ commands:
             PKG_VERSION=$(cat package.json | jq -r .version)
             MAX_TRIES=300
             TRIES=0
-            until (( $(npm dist-tag ls $PKG_NAME | grep -c $PKG_VERSION ) )) || (($TRIES >= $MAX_TRIES )); do
+            until (( $(curl -s 'https://registry.npmjs.org/'$PKG_NAME | jq '.["dist-tags"]["latest"]' | grep -c $PKG_VERSION ) )) || (($TRIES >= $MAX_TRIES )); do
                 printf '.'
                 sleep 1
                 TRIES=$((TRIES+1))
