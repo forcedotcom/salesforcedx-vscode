@@ -19,36 +19,37 @@ describe('Component Differ', () => {
   let walkContentStubTwo: Sinon.SinonStub;
 
   const dir = path.join(os.tmpdir(), 'component-diff-tests', `${new Date().getTime()}`);
-  const diffPathOne = path.join(dir, 'one', 'AccountController.cls');
-  const diffPathTwo = path.join(dir, 'two', 'AccountController.cls');
-  const noDiffPathOne = path.join(dir, 'one', 'HandlerCostCenter.cls');
-  const noDiffPathTwo = path.join(dir, 'two', 'HandlerCostCenter.cls');
-  const xmlPathOne = path.join(dir, 'one', 'AccountController.cls-meta.xml');
-  const xmlPathTwo = path.join(dir, 'two', 'AccountController.cls-meta.xml');
-  if (!fs.existsSync(path.join(dir, 'one'))) {
-    fs.mkdirSync(path.join(dir, 'one'), {recursive: true});
+  const diffPathLocal = path.join(dir, 'local', 'dirOne', 'AccountController.cls');
+  const diffPathRemote = path.join(dir, 'remote', 'AccountController.cls');
+  const noDiffPathLocal = path.join(dir, 'local', 'dirTwo', 'HandlerCostCenter.cls');
+  const noDiffPathRemote = path.join(dir, 'remote', 'HandlerCostCenter.cls');
+  const xmlPathLocal = path.join(dir, 'local', 'dirOne', 'AccountController.cls-meta.xml');
+  const xmlPathRemote = path.join(dir, 'remote', 'AccountController.cls-meta.xml');
+  if (!fs.existsSync(path.join(dir, 'local'))) {
+    fs.mkdirSync(path.join(dir, 'local', 'dirOne'), {recursive: true});
+    fs.mkdirSync(path.join(dir, 'local', 'dirTwo'));
   }
-  if (!fs.existsSync(path.join(dir, 'two'))) {
-    fs.mkdirSync(path.join(dir, 'two'), {recursive: true});
+  if (!fs.existsSync(path.join(dir, 'remote'))) {
+    fs.mkdirSync(path.join(dir, 'remote'), {recursive: true});
   }
 
   const sampleComponentOne = {
     fullName: 'AccountController',
-    xml: xmlPathOne,
+    xml: xmlPathLocal,
     walkContent: () => [] as string[]
   } as SourceComponent;
   const sampleComponentTwo = {
     fullName: 'AccountController',
-    xml: xmlPathTwo,
+    xml: xmlPathRemote,
     walkContent: () => [] as string[]
   } as SourceComponent;
 
-  fs.writeFileSync(diffPathOne, 'abc');
-  fs.writeFileSync(diffPathTwo, 'def');
-  fs.writeFileSync(noDiffPathOne, 'xyz');
-  fs.writeFileSync(noDiffPathTwo, 'xyz');
-  fs.writeFileSync(xmlPathOne, '123');
-  fs.writeFileSync(xmlPathTwo, '456');
+  fs.writeFileSync(diffPathLocal, 'abc');
+  fs.writeFileSync(diffPathRemote, 'def');
+  fs.writeFileSync(noDiffPathLocal, 'xyz');
+  fs.writeFileSync(noDiffPathRemote, 'xyz');
+  fs.writeFileSync(xmlPathLocal, '123');
+  fs.writeFileSync(xmlPathRemote, '456');
 
   beforeEach(() => {
     walkContentStubOne = sinon.stub(sampleComponentOne, 'walkContent');
@@ -61,19 +62,19 @@ describe('Component Differ', () => {
   });
 
   it('Should return all file paths that differ', async () => {
-    walkContentStubOne.returns([diffPathOne, noDiffPathOne]);
-    walkContentStubTwo.returns([diffPathTwo, noDiffPathTwo]);
-    const results = diffComponents(sampleComponentOne, sampleComponentTwo, path.join(dir, 'one'), path.join(dir, 'two'));
+    walkContentStubOne.returns([diffPathLocal, noDiffPathLocal]);
+    walkContentStubTwo.returns([diffPathRemote, noDiffPathRemote]);
+    const results = diffComponents(sampleComponentOne, sampleComponentTwo);
 
     expect(walkContentStubOne.callCount).to.equal(1);
     expect(walkContentStubTwo.callCount).to.equal(1);
     expect(results).to.have.deep.members([{
-      projectPath: diffPathOne,
-      cachePath: diffPathTwo
+      projectPath: diffPathLocal,
+      cachePath: diffPathRemote
     },
     {
-      projectPath: xmlPathOne,
-      cachePath: xmlPathTwo
+      projectPath: xmlPathLocal,
+      cachePath: xmlPathRemote
     }]);
   });
 });
