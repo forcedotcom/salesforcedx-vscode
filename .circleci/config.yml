@@ -84,6 +84,8 @@ commands:
             npm install
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
+          environment:
+            - NODE_ENV: 'production'
       - run:
           name: 'Compile'
           shell: bash.exe
