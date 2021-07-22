@@ -127,7 +127,7 @@ describe('Force Function Create', () => {
       assert.calledOnce(execStub);
       /**
        * If this test fails, check if the Java Functions path strategy has changed.
-       * Finding the root path for Java in runPostCommandTasks needs to be updated accordingly.
+       * Finding the root path for Java needs to be updated accordingly.
        */
       assert.calledWith(execStub, 'mvn install', {
         cwd: path.join(workingDir, 'functions', 'myFunc1')
