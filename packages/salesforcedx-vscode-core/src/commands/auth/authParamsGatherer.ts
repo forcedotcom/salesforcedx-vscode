@@ -195,10 +195,16 @@ export class AccessTokenParamsGatherer
 
 export class ScratchOrgLogoutParamsGatherer
   implements ParametersGatherer<string> {
-  public constructor(public readonly username: string) {}
+  public constructor(
+    public readonly username: string,
+    public readonly alias?: string
+  ) {}
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
-    const prompt = nls.localize('auth_logout_scratch_prompt', this.username);
+    const prompt = nls.localize(
+      'auth_logout_scratch_prompt',
+      this.alias || this.username
+    );
     const logoutResponse = nls.localize('auth_logout_scratch_logout');
 
     const confirm = await vscode.window.showInformationMessage(

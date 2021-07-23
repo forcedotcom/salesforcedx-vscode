@@ -87,7 +87,7 @@ export class AuthLogoutDefault extends LibraryCommandletExecutor<string> {
 }
 
 export async function forceAuthLogoutDefault() {
-  const { username, isScratch, error } = await resolveDefaultUsername();
+  const { username, isScratch, alias, error } = await resolveDefaultUsername();
   if (error) {
     telemetryService.sendException(error.name, error.message);
     notificationService.showErrorMessage('Logout failed to run');
@@ -97,7 +97,7 @@ export async function forceAuthLogoutDefault() {
     const logoutCommandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
       isScratch
-        ? new ScratchOrgLogoutParamsGatherer(username)
+        ? new ScratchOrgLogoutParamsGatherer(username, alias)
         : new SimpleGatherer<string>(username),
       new AuthLogoutDefault()
     );
@@ -118,11 +118,13 @@ async function removeUsername(username: string) {
 async function resolveDefaultUsername(): Promise<{
   username?: string;
   isScratch: boolean;
+  alias?: string;
   error?: Error;
 }> {
   const usernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
   if (usernameOrAlias) {
     const username = await OrgAuthInfo.getUsername(usernameOrAlias);
+    const alias = username !== usernameOrAlias ? usernameOrAlias : undefined;
     let isScratch = false;
 
     try {
@@ -130,7 +132,7 @@ async function resolveDefaultUsername(): Promise<{
     } catch (err) {
       return { error: err, isScratch: false };
     }
-    return { username, isScratch };
+    return { username, isScratch, alias };
   }
   return { isScratch: false };
 }
