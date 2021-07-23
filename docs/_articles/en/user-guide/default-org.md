@@ -9,4 +9,4 @@ To set or change the org that you’re developing against, in the VS Code footer
 
 To open your default org so that you can test your changes or use declarative tools, click the browser icon ({% octicon browser %}) in the footer. Or, open the command palette and run **SFDX: Open Default Org**.
 
-To log out of the default org run the **SDFX: Log Out from Default Org** command.
+To log out of the default org run **SDFX: Log Out from Default Org**.
