@@ -10,6 +10,8 @@
 
 - Update conflict detection setting description ([PR #3416](https://github.com/forcedotcom/salesforcedx-vscode/pull/3416))
 
+- Fix functions dependency issue preventing extensions from loading ([PR #3443](https://github.com/forcedotcom/salesforcedx-vscode/pull/3443))
+
 ## Fixed
 
 #### salesforcedx-sobjects-faux-generator
