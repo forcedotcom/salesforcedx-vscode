@@ -1,3 +1,29 @@
+# 52.6.0 - July 23, 2021
+
+## Added
+
+#### salesforcedx-vscode
+
+- Include SOQL in extension pack ([PR #3400](https://github.com/forcedotcom/salesforcedx-vscode/pull/3400))
+
+#### salesforcedx-vscode-core
+
+- Update conflict detection setting description ([PR #3416](https://github.com/forcedotcom/salesforcedx-vscode/pull/3416))
+
+- Fix functions dependency issue preventing extensions from loading ([PR #3443](https://github.com/forcedotcom/salesforcedx-vscode/pull/3443))
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Correct LWC typing generation for new projects ([PR #3418](https://github.com/forcedotcom/salesforcedx-vscode/pull/3418))
+
+#### salesforcedx-vscode-core
+
+- Performance improvements for  `SFDX: Start Function`, `Invoke` and `Debug Invoke` commands ([PR #3399](https://github.com/forcedotcom/salesforcedx-vscode/pull/3399))
+
+- Fix conflict detection error for empty results ([PR #3376](https://github.com/forcedotcom/salesforcedx-vscode/pull/3376))
+
 # 52.5.0 - July 14, 2021
 
 ## Added
