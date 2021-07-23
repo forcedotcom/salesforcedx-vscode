@@ -1,14 +1,14 @@
 {
   "name": "@salesforce/plugin-apex",
   "description": "Apex commands",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "author": "Salesforce",
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "dependencies": {
     "@oclif/command": "^1",
     "@oclif/config": "^1",
     "@oclif/errors": "^1",
-    "@salesforce/apex-node": "0.2.2",
+    "@salesforce/apex-node": "0.2.3",
     "@salesforce/command": "3.1.0",
     "@salesforce/core": "2.23.2",
     "chalk": "^4.1.0",
