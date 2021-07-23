@@ -15,6 +15,7 @@ import {
   forceAuthAccessToken,
   forceAuthDevHub,
   forceAuthLogoutAll,
+  forceAuthLogoutDefault,
   forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
@@ -79,8 +80,15 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './commands/util';
-import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_CONFIGURATION_NAME } from './constants';
+import {
+  PersistentStorageService,
+  registerConflictView,
+  setupConflictView
+} from './conflict';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  SFDX_CORE_CONFIGURATION_NAME
+} from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
@@ -114,6 +122,10 @@ function registerCommands(
   const forceAuthLogoutAllCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.all',
     forceAuthLogoutAll
+  );
+  const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
+    'sfdx.force.auth.logout.default',
+    forceAuthLogoutDefault
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
@@ -368,6 +380,7 @@ function registerCommands(
     forceAuthWebLoginCmd,
     forceAuthDevHubCmd,
     forceAuthLogoutAllCmd,
+    forceAuthLogoutDefaultCmd,
     forceDataSoqlQueryInputCmd,
     forceDataSoqlQuerySelectionCmd,
     forceDiffFile,
