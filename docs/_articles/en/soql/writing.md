@@ -15,13 +15,15 @@ VS Code supports writing SOQL in both Apex files and standalone `.soql` files. W
 
 ## Code Completions
 
-VS Code supports code completions for SOQL `.soql` files (and will eventually support code completion in Apex files). To use this feature, you must refresh the SObject definitions so that the SOQL language server can provide code completion suggestions. Run `SFDX: Refresh SObject Definitions` from the Command Palette.
+VS Code supports code completions for SOQL embedded in Apex files and `.soql` files. To use this feature, you must refresh the SObject definitions so that the SOQL language server can provide code completion suggestions. Run `SFDX: Refresh SObject Definitions` from the Command Palette.
 
-- To see code completion suggestions, press Ctrl+space when you’re working in a `.soql` file.
 - To navigate between the suggestions, use the arrow keys.
 - To auto-complete from the suggestion, press Enter.
 
 ![Animation showing code completion for a basic SOQL query](./images/soql-completion.gif)
+
+## Use SOQL Builder to Build and Run Queries
+Use SOQL Builder to build and run your SOQL queries. See [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder/#build-a-query). 
 
 ## Execute SOQL Text
 
