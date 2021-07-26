@@ -142,13 +142,12 @@ describe('Timestamp Conflict Detector Execution', () => {
         type: {
           name: 'ApexClass'
         }
-      },
-      path.normalize('/d/e/f'),
-      path.normalize('/a/b/c')
+      }
     ]);
 
     expect(results.different).to.eql(new Set([{
-      path: path.normalize('classes/HandlerCostCenter.cls'),
+      localRelPath: path.normalize('classes/HandlerCostCenter.cls'),
+      remoteRelPath: path.normalize('classes/HandlerCostCenter.cls'),
       localLastModifiedDate: 'Yesteday',
       remoteLastModifiedDate: 'Today'
     }]));
@@ -337,9 +336,7 @@ describe('Timestamp Conflict Detector Execution', () => {
         type: {
           name: 'ApexClass'
         }
-      },
-      path.normalize('/d/e/f'),
-      path.normalize('/a/b/c')
+      }
     ]);
 
     expect(results.different).to.eql(new Set<TimestampFileProperties>());

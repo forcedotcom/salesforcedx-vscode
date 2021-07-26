@@ -25,7 +25,7 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.0.3",
+    "@heroku/functions-core": "0.0.4",
     "@salesforce/core": "2.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "52.6.0",
     "@salesforce/salesforcedx-utils-vscode": "52.6.0",
@@ -308,6 +308,10 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.auth.logout.default",
+          "when": "sfdx:project_opened && sfdx:has_default_username"
+        },
+        {
           "command": "sfdx.force.org.create",
           "when": "sfdx:project_opened"
         },
@@ -569,6 +573,10 @@
       {
         "command": "sfdx.force.auth.logout.all",
         "title": "%force_auth_logout_all_text%"
+      },
+      {
+        "command": "sfdx.force.auth.logout.default",
+        "title": "%force_auth_logout_default_text%"
       },
       {
         "command": "sfdx.force.org.create",
