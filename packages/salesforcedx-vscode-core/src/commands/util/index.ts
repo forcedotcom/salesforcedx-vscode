@@ -24,7 +24,6 @@ export {
   SelectUsername
 } from './parameterGatherers';
 export {
-  ConflictDetectionChecker,
   ConflictDetectionMessages,
   EmptyPostChecker
 } from './postconditionCheckers';
