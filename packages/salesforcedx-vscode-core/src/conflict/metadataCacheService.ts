@@ -105,8 +105,8 @@ export class MetadataCacheService {
   ): Promise<MetadataCacheResult | undefined> {
     this.initialize(componentPath, projectPath, isManifest);
     const components = await this.getSourceComponents();
-    const operation = await this.createRetrieveOperation(components);
-    const results = await operation.start();
+    const metadataApiRetrieve = await this.createRetrieveOperation(components);
+    const results = await metadataApiRetrieve.pollStatus();
     return this.processResults(results);
   }
 
@@ -416,11 +416,11 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const operation = await this.cacheService.createRetrieveOperation(
+    const metadataApiRetrieve = await this.cacheService.createRetrieveOperation(
       components
     );
-    this.setupCancellation(operation, token);
-    return operation.start();
+    this.setupCancellation(metadataApiRetrieve, token);
+    return metadataApiRetrieve.pollStatus();
   }
 
   protected async postOperation(result: RetrieveResult | undefined) {

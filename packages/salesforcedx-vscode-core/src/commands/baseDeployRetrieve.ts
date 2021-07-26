@@ -123,13 +123,13 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const operation = components.deploy({
+    const metadataApiDeploy = await components.deploy({
       usernameOrConnection: await workspaceContext.getConnection()
     });
 
-    this.setupCancellation(operation, token);
+    this.setupCancellation(metadataApiDeploy, token);
 
-    return operation.start();
+    return metadataApiDeploy.pollStatus();
   }
 
   protected async postOperation(
@@ -218,15 +218,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const operation = components.retrieve({
+    const metadataApiRetrieve = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
       merge: true
     });
 
-    this.setupCancellation(operation, token);
+    this.setupCancellation(metadataApiRetrieve, token);
 
-    return operation.start();
+    return metadataApiRetrieve.pollStatus();
   }
 
   protected async postOperation(
