@@ -505,10 +505,12 @@ describe('Postcondition Checkers', () => {
       const results = {
         different: new Set<TimestampFileProperties>([
           {
-            path: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
+            localRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml',
+            remoteRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
           },
           {
-            path: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
+            localRelPath: 'main/default/aura/auraPropertySummary/auraPropertySummaryController.js',
+            remoteRelPath: 'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
           }]),
         scannedLocal: 4,
         scannedRemote: 6
@@ -529,12 +531,8 @@ describe('Postcondition Checkers', () => {
 
       expect(channelOutput).to.include.members([
         nls.localize('conflict_detect_conflict_header_timestamp', 2),
-        normalize(
-          'main/default/objects/Property__c/fields/Broker__c.field-meta.xml'
-        ),
-        normalize(
-          'main/default/aura/auraPropertySummary/auraPropertySummaryController.js'
-        ),
+        'Broker__c.field-meta.xml',
+        'auraPropertySummaryController.js',
         nls.localize('conflict_detect_command_hint', 'package.xml')
       ]);
 
@@ -546,7 +544,8 @@ describe('Postcondition Checkers', () => {
       const results = {
         different: new Set<TimestampFileProperties>([
           {
-            path: 'MyClass.cls'
+            localRelPath: 'MyClass.cls',
+            remoteRelPath: 'MyClass.cls'
           }])
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_override'));
@@ -569,7 +568,8 @@ describe('Postcondition Checkers', () => {
       const results = {
         different: new Set<TimestampFileProperties>([
           {
-            path: 'MyClass.cls'
+            localRelPath: 'MyClass.cls',
+            remoteRelPath: 'MyClass.cls'
           }])
       } as DirectoryDiffResults;
       modalStub.returns(nls.localize('conflict_detect_show_conflicts'));

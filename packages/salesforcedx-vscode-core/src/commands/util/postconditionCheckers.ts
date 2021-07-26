@@ -11,7 +11,7 @@ import {
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { existsSync } from 'fs';
-import { join, normalize } from 'path';
+import { basename, join, normalize } from 'path';
 import { channelService } from '../../channels';
 import {
   conflictView,
@@ -296,7 +296,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         )
       );
       results.different.forEach(file => {
-        channelService.appendLine(normalize(file.path));
+        channelService.appendLine(normalize(basename(file.localRelPath)));
       });
 
       const choice = await notificationService.showWarningModal(
