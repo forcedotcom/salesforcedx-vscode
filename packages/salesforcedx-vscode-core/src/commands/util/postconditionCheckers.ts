@@ -14,8 +14,6 @@ import { existsSync } from 'fs';
 import { basename, join, normalize } from 'path';
 import { channelService } from '../../channels';
 import {
-  ConflictDetectionConfig,
-  conflictDetector,
   conflictView,
   DirectoryDiffResults,
   MetadataCacheService
@@ -211,104 +209,6 @@ export class OverwriteComponentPrompt
 export interface ConflictDetectionMessages {
   warningMessageKey: string;
   commandHint: (input: string) => string;
-}
-
-export class ConflictDetectionChecker implements PostconditionChecker<string> {
-  private messages: ConflictDetectionMessages;
-
-  public constructor(messages: ConflictDetectionMessages) {
-    this.messages = messages;
-  }
-
-  public async check(
-    inputs: ContinueResponse<string> | CancelResponse
-  ): Promise<ContinueResponse<string> | CancelResponse> {
-    if (!sfdxCoreSettings.getConflictDetectionEnabled()) {
-      return inputs;
-    }
-
-    if (inputs.type === 'CONTINUE') {
-      const { username } = workspaceContext;
-      if (!username) {
-        return {
-          type: 'CANCEL',
-          msg: nls.localize('conflict_detect_no_default_username')
-        };
-      }
-
-      const manifest = inputs.data;
-      const config: ConflictDetectionConfig = {
-        username,
-        manifest
-      };
-      const results = await conflictDetector.checkForConflicts(config);
-      return this.handleConflicts(manifest, username, results);
-    }
-    return { type: 'CANCEL' };
-  }
-
-  public async handleConflicts(
-    manifest: string,
-    usernameOrAlias: string,
-    results: DirectoryDiffResults
-  ): Promise<ContinueResponse<string> | CancelResponse> {
-    const conflictTitle = nls.localize(
-      'conflict_detect_view_root',
-      usernameOrAlias,
-      results.different.size
-    );
-
-    if (results.different.size === 0) {
-      conflictView.visualizeDifferences(conflictTitle, usernameOrAlias, false);
-    } else {
-      channelService.appendLine(
-        nls.localize(
-          'conflict_detect_conflict_header',
-          results.different.size,
-          results.scannedRemote,
-          results.scannedLocal
-        )
-      );
-      results.different.forEach(file => {
-        channelService.appendLine(normalize(basename(file.localRelPath)));
-      });
-      channelService.showChannelOutput();
-
-      const choice = await notificationService.showWarningModal(
-        nls.localize(this.messages.warningMessageKey),
-        nls.localize('conflict_detect_override'),
-        nls.localize('conflict_detect_show_conflicts')
-      );
-
-      if (choice === nls.localize('conflict_detect_override')) {
-        conflictView.visualizeDifferences(
-          conflictTitle,
-          usernameOrAlias,
-          false
-        );
-      } else {
-        channelService.appendLine(
-          nls.localize(
-            'conflict_detect_command_hint',
-            this.messages.commandHint(manifest)
-          )
-        );
-        channelService.showChannelOutput();
-
-        const doReveal =
-          choice === nls.localize('conflict_detect_show_conflicts');
-        conflictView.visualizeDifferences(
-          conflictTitle,
-          usernameOrAlias,
-          doReveal,
-          results
-        );
-
-        return { type: 'CANCEL' };
-      }
-    }
-    return { type: 'CONTINUE', data: manifest };
-  }
 }
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {

@@ -5,8 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { conflictView } from '../conflict';
+import { nls } from '../messages';
+import { notificationService } from '../notifications';
+import { telemetryService } from '../telemetry';
+import { MetadataCacheResult } from './metadataCacheService';
 
 export interface TimestampFileProperties {
   localRelPath: string;
@@ -101,5 +109,73 @@ export class CommonDirDirectoryDiffer implements DirectoryDiffer {
         callback({ filename, subdir, relPath });
       }
     });
+  }
+}
+
+export async function diffFolder(cache: MetadataCacheResult, username: string) {
+  const localPath = path.join(
+    cache.project.baseDirectory,
+    cache.project.commonRoot
+  );
+  const remotePath = path.join(
+    cache.cache.baseDirectory,
+    cache.cache.commonRoot
+  );
+  const differ = new CommonDirDirectoryDiffer();
+  const diffs = differ.diff(localPath, remotePath);
+
+  conflictView.visualizeDifferences(
+    nls.localize('force_source_diff_folder_title', username),
+    username,
+    true,
+    diffs,
+    true
+  );
+}
+
+/**
+ * Perform file diff and execute VS Code diff comand to show in UI.
+ * It matches the correspondent file in compoennt.
+ * @param localFile local file
+ * @param remoteComponent remote source component
+ * @param defaultUsernameorAlias username/org info to show in diff
+ * @returns {Promise<void>}
+ */
+export async function diffOneFile(
+  localFile: string,
+  remoteComponent: SourceComponent,
+  defaultUsernameorAlias: string
+): Promise<void> {
+  const filePart = path.basename(localFile);
+
+  const remoteFilePaths = remoteComponent.walkContent();
+  if (remoteComponent.xml) {
+    remoteFilePaths.push(remoteComponent.xml);
+  }
+  for (const filePath of remoteFilePaths) {
+    if (filePath.endsWith(filePart)) {
+      const remoteUri = vscode.Uri.file(filePath);
+      const localUri = vscode.Uri.file(localFile);
+
+      try {
+        await vscode.commands.executeCommand(
+          'vscode.diff',
+          remoteUri,
+          localUri,
+          nls.localize(
+            'force_source_diff_title',
+            defaultUsernameorAlias,
+            filePart,
+            filePart
+          )
+        );
+      } catch (err) {
+        notificationService.showErrorMessage(err.message);
+        channelService.appendLine(err.message);
+        channelService.showChannelOutput();
+        telemetryService.sendException(err.name, err.message);
+      }
+      return;
+    }
   }
 }

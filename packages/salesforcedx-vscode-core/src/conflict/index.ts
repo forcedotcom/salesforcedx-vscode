@@ -8,17 +8,12 @@
 import * as path from 'path';
 import { commands, Disposable, ExtensionContext, Uri, window } from 'vscode';
 import { nls } from '../messages';
-import { ConflictDetector } from './conflictDetectionService';
 import { ConflictFile, ConflictNode } from './conflictNode';
 import { ConflictView } from './conflictView';
 export {
-  ConflictDetectionConfig,
-  ConflictDetector,
-  diffFolder,
-  diffOneFile
-} from './conflictDetectionService';
-export {
   CommonDirDirectoryDiffer,
+  diffFolder,
+  diffOneFile,
   DirectoryDiffer,
   DirectoryDiffResults
 } from './directoryDiffer';
@@ -27,11 +22,11 @@ export {
   MetadataCacheExecutor,
   MetadataCacheResult,
   MetadataCacheService,
-  MetadataContext
+  MetadataContext,
+  PathType
 } from './metadataCacheService';
 export { PersistentStorageService } from './persistentStorageService';
 export const conflictView = ConflictView.getInstance();
-export const conflictDetector = ConflictDetector.getInstance();
 
 export async function setupConflictView(
   extensionContext: ExtensionContext
