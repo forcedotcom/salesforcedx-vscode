@@ -100,8 +100,8 @@ export abstract class DeployRetrieveExecutor<
     token?: vscode.CancellationToken
   ) {
     if (token && operation) {
-      token.onCancellationRequested(() => {
-        operation.cancel();
+      token.onCancellationRequested(async () => {
+        await operation.cancel();
       });
     }
   }
@@ -123,13 +123,13 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const metadataApiDeploy = await components.deploy({
+    const operation = await components.deploy({
       usernameOrConnection: await workspaceContext.getConnection()
     });
 
-    this.setupCancellation(metadataApiDeploy, token);
+    this.setupCancellation(operation, token);
 
-    return metadataApiDeploy.pollStatus();
+    return operation.pollStatus();
   }
 
   protected async postOperation(
@@ -218,15 +218,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const metadataApiRetrieve = await components.retrieve({
+    const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
       merge: true
     });
 
-    this.setupCancellation(metadataApiRetrieve, token);
+    this.setupCancellation(operation, token);
 
-    return metadataApiRetrieve.pollStatus();
+    return operation.pollStatus();
   }
 
   protected async postOperation(

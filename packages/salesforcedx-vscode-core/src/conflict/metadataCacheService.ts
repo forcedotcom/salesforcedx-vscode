@@ -105,8 +105,8 @@ export class MetadataCacheService {
   ): Promise<MetadataCacheResult | undefined> {
     this.initialize(componentPath, projectPath, isManifest);
     const components = await this.getSourceComponents();
-    const metadataApiRetrieve = await this.createRetrieveOperation(components);
-    const results = await metadataApiRetrieve.pollStatus();
+    const operation = await this.createRetrieveOperation(components);
+    const results = await operation.pollStatus();
     return this.processResults(results);
   }
 
