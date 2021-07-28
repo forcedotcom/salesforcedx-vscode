@@ -16,7 +16,10 @@ import { expect } from 'chai';
 import { write } from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import Sinon = require('sinon');
 import * as vscode from 'vscode';
+import * as breakpoints from '../../../src/breakpoints';
+import { CheckpointService } from '../../../src/breakpoints/checkpointService';
 import * as launcher from '../../../src/commands/launchFromLogFile';
 import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
 import { TraceFlags } from '../../../src/commands/traceFlags';
@@ -40,8 +43,10 @@ describe('Quick launch apex tests', () => {
   let logServiceStub: SinonStub;
   let launcherStub: SinonStub;
   let buildPayloadStub: SinonStub;
+  let createCheckpointStub: SinonStub;
   let writeResultFilesStub: SinonStub;
   let settingStub: SinonStub;
+  let oneOrMoreActiveCheckpointsStub: SinonStub;
 
   beforeEach(async () => {
     sb = createSandbox();
@@ -69,6 +74,8 @@ describe('Quick launch apex tests', () => {
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
+    createCheckpointStub = sb.stub(breakpoints, 'sfdxCreateCheckpoints');
+    oneOrMoreActiveCheckpointsStub = sb.stub(CheckpointService.prototype, 'hasOneOrMoreActiveCheckpoints');
   });
 
   afterEach(() => {
@@ -76,6 +83,8 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug an entire test class', async () => {
+    oneOrMoreActiveCheckpointsStub.returns(true);
+    createCheckpointStub.resolves(true);
     settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass' }],
@@ -96,6 +105,7 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(testServiceStub.called).to.equal(true);
     const { args } = testServiceStub.getCall(0);
     expect(args[0]).to.eql({
@@ -134,7 +144,102 @@ describe('Quick launch apex tests', () => {
     expect(writeResultFilesArgs[2]).to.equal(true);
   });
 
+  it('should not upload checkpoints if there are no enabled checkpoints', async () => {
+    oneOrMoreActiveCheckpointsStub.returns(false);
+    createCheckpointStub.resolves(true);
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
+    buildPayloadStub.resolves({
+      tests: [{ className: 'MyClass' }],
+      testLevel: 'RunSpecifiedTests'
+    });
+    traceFlagsStub = sb
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
+      .returns(true);
+    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
+    launcherStub = sb.stub(launcher, 'launchFromLogFile');
+
+    const response: ContinueResponse<string[]> = {
+      type: 'CONTINUE',
+      data: ['MyClass']
+    };
+
+    await testDebuggerExec.execute(response);
+
+    expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(false);
+    expect(testServiceStub.called).to.equal(true);
+    const { args } = testServiceStub.getCall(0);
+    expect(args[0]).to.eql({
+      tests: [
+        {
+          className: 'MyClass'
+        }
+      ],
+      testLevel: 'RunSpecifiedTests'
+    });
+
+    expect(logServiceStub.called).to.equal(true);
+    const logArgs = logServiceStub.getCall(0).args;
+    expect(logArgs[0]).to.eql({
+      logId: APEX_LOG_ID,
+      outputDir: LOG_DIR
+    });
+
+    expect(launcherStub.called).to.equal(true);
+    const launcherArgs = launcherStub.getCall(0).args;
+    expect(launcherArgs[0]).to.equal(path.join('logs', 'abcd.log'));
+    expect(launcherArgs[1]).to.equal(false);
+    expect(buildPayloadStub.called).to.be.true;
+    expect(buildPayloadStub.args[0]).to.eql([
+      TestLevel.RunSpecifiedTests,
+      undefined,
+      'MyClass'
+    ]);
+    expect(writeResultFilesStub.called).to.equal(true);
+    const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
+    expect(writeResultFilesArgs[0]).to.eql({
+      tests: [{
+        apexLogId: APEX_LOG_ID
+      }]
+    });
+    expect(writeResultFilesArgs[2]).to.equal(true);
+  });
+
+  it('should immediately return if checkpoints uploading fails', async () => {
+    oneOrMoreActiveCheckpointsStub.returns(true);
+    createCheckpointStub.resolves(false);
+    settingStub.withArgs('retrieve-test-code-coverage').returns(true);
+    buildPayloadStub.resolves({
+      tests: [{ className: 'MyClass' }],
+      testLevel: 'RunSpecifiedTests'
+    });
+    traceFlagsStub = sb
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
+      .returns(true);
+    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
+    launcherStub = sb.stub(launcher, 'launchFromLogFile');
+
+    const response: ContinueResponse<string[]> = {
+      type: 'CONTINUE',
+      data: ['MyClass']
+    };
+
+    await testDebuggerExec.execute(response);
+
+    expect(traceFlagsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
+    expect(testServiceStub.called).to.equal(false);
+    expect(logServiceStub.called).to.equal(false);
+    expect(launcherStub.called).to.equal(false);
+    expect(buildPayloadStub.called).to.equal(false);
+    expect(writeResultFilesStub.called).to.equal(false);
+  });
+
   it('should debug a single test method', async () => {
+    oneOrMoreActiveCheckpointsStub.returns(true);
+    createCheckpointStub.resolves(true);
     settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
@@ -155,6 +260,8 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
@@ -195,6 +302,8 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should debug a single test method that fails', async () => {
+    oneOrMoreActiveCheckpointsStub.returns(true);
+    createCheckpointStub.resolves(true);
     settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
@@ -216,6 +325,8 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
@@ -249,6 +360,8 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should display an error for a missing test', async () => {
+    oneOrMoreActiveCheckpointsStub.returns(true);
+    createCheckpointStub.resolves(true);
     settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
@@ -267,6 +380,8 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
@@ -299,6 +414,8 @@ describe('Quick launch apex tests', () => {
   });
 
   it('should display an error for a missing log file', async () => {
+    oneOrMoreActiveCheckpointsStub.returns(true);
+    createCheckpointStub.resolves(true);
     settingStub.withArgs('retrieve-test-code-coverage').returns(true);
     buildPayloadStub.resolves({
       tests: [{ className: 'MyClass', testMethods: ['testSomeCode'] }],
@@ -317,6 +434,8 @@ describe('Quick launch apex tests', () => {
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
+    expect(oneOrMoreActiveCheckpointsStub.called).to.equal(true);
+    expect(createCheckpointStub.called).to.equal(true);
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       TestLevel.RunSpecifiedTests,
