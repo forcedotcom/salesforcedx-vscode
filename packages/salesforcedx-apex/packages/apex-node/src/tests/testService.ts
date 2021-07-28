@@ -16,7 +16,8 @@ import {
   TestLevel,
   TestItem,
   NamespaceInfo,
-  TestSuiteMembershipRecord
+  TestSuiteMembershipRecord,
+  TestRunIdResult
 } from './types';
 import { join } from 'path';
 import { CancellationToken, Progress } from '../common';
@@ -176,7 +177,7 @@ export class TestService {
     options: SyncTestConfiguration,
     codeCoverage = false,
     token?: CancellationToken
-  ): Promise<TestResult> {
+  ): Promise<TestResult | TestRunIdResult> {
     return await this.syncService.runTests(options, codeCoverage, token);
   }
 
@@ -190,12 +191,14 @@ export class TestService {
   public async runTestAsynchronous(
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
+    exitOnTestRunId = false,
     progress?: Progress<ApexTestProgressValue>,
     token?: CancellationToken
-  ): Promise<TestResult> {
+  ): Promise<TestResult | TestRunIdResult> {
     return await this.asyncService.runTests(
       options,
       codeCoverage,
+      exitOnTestRunId,
       progress,
       token
     );
@@ -227,19 +230,27 @@ export class TestService {
    * @returns list of result files created
    */
   public async writeResultFiles(
-    result: TestResult,
+    result: TestResult | TestRunIdResult,
     outputDirConfig: OutputDirConfig,
     codeCoverage = false
   ): Promise<string[]> {
     const { dirPath, resultFormats, fileInfos } = outputDirConfig;
     const fileMap: { path: string; content: string }[] = [];
+    const testRunId = result.hasOwnProperty('summary')
+      ? (result as TestResult).summary.testRunId
+      : (result as TestRunIdResult).testRunId;
 
     fileMap.push({
       path: join(dirPath, 'test-run-id.txt'),
-      content: result.summary.testRunId
+      content: testRunId
     });
 
     if (resultFormats) {
+      if (!result.hasOwnProperty('summary')) {
+        throw new Error(nls.localize('runIdFormatErr'));
+      }
+      result = result as TestResult;
+
       for (const format of resultFormats) {
         if (!(format in ResultFormat)) {
           throw new Error(nls.localize('resultFormatErr'));
@@ -250,9 +261,7 @@ export class TestService {
             fileMap.push({
               path: join(
                 dirPath,
-                result.summary.testRunId
-                  ? `test-result-${result.summary.testRunId}.json`
-                  : `test-result.json`
+                testRunId ? `test-result-${testRunId}.json` : `test-result.json`
               ),
               content: stringify(result)
             });
@@ -260,10 +269,7 @@ export class TestService {
           case ResultFormat.tap:
             const tapResult = new TapReporter().format(result);
             fileMap.push({
-              path: join(
-                dirPath,
-                `test-result-${result.summary.testRunId}-tap.txt`
-              ),
+              path: join(dirPath, `test-result-${testRunId}-tap.txt`),
               content: tapResult
             });
             break;
@@ -272,8 +278,8 @@ export class TestService {
             fileMap.push({
               path: join(
                 dirPath,
-                result.summary.testRunId
-                  ? `test-result-${result.summary.testRunId}-junit.xml`
+                testRunId
+                  ? `test-result-${testRunId}-junit.xml`
                   : `test-result-junit.xml`
               ),
               content: junitResult
@@ -284,14 +290,15 @@ export class TestService {
     }
 
     if (codeCoverage) {
+      if (!result.hasOwnProperty('summary')) {
+        throw new Error(nls.localize('covIdFormatErr'));
+      }
+      result = result as TestResult;
       const coverageRecords = result.tests.map(record => {
         return record.perClassCoverage;
       });
       fileMap.push({
-        path: join(
-          dirPath,
-          `test-result-${result.summary.testRunId}-codecoverage.json`
-        ),
+        path: join(dirPath, `test-result-${testRunId}-codecoverage.json`),
         content: stringify(coverageRecords)
       });
     }

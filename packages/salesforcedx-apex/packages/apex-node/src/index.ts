@@ -27,6 +27,7 @@ export {
   TestItem,
   TestLevel,
   TestResult,
-  TestService
+  TestService,
+  TestRunIdResult
 } from './tests';
 export { Row, Table } from './utils';

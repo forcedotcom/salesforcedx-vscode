@@ -12,7 +12,8 @@ import {
   HumanReporter,
   TestResult,
   TestLevel,
-  ApexTestRunResultStatus
+  ApexTestRunResultStatus,
+  TestRunIdResult
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
 import { Messages, SfdxError } from '@salesforce/core';
@@ -143,7 +144,7 @@ export default class Run extends SfdxCommand {
     // org is guaranteed by requiresUsername field
     const conn = this.org!.getConnection();
     const testService = new TestService(conn);
-    let result: TestResult;
+    let result: TestResult | TestRunIdResult;
 
     // NOTE: This is a *bug*. Synchronous test runs should throw an error when multiple test classes are specified
     // This was re-introduced due to https://github.com/forcedotcom/salesforcedx-vscode/issues/3154
@@ -154,11 +155,11 @@ export default class Run extends SfdxCommand {
         this.flags.tests,
         this.flags.classnames
       );
-      result = await testService.runTestSynchronous(
+      result = (await testService.runTestSynchronous(
         payload,
         this.flags.codecoverage,
         this.cancellationTokenSource.token
-      );
+      )) as TestResult;
     } else {
       const payload = await testService.buildAsyncPayload(
         testLevel,
@@ -167,12 +168,23 @@ export default class Run extends SfdxCommand {
         this.flags.suitenames
       );
       const reporter = undefined;
-      result = await testService.runTestAsynchronous(
-        payload,
-        this.flags.codecoverage,
-        reporter,
-        this.cancellationTokenSource.token
-      );
+      if (this.flags.resultformat !== undefined) {
+        result = await testService.runTestAsynchronous(
+          payload,
+          this.flags.codecoverage,
+          false,
+          reporter,
+          this.cancellationTokenSource.token
+        );
+      } else {
+        result = await testService.runTestAsynchronous(
+          payload,
+          this.flags.codecoverage,
+          true,
+          reporter,
+          this.cancellationTokenSource.token
+        );
+      }
     }
 
     if (this.cancellationTokenSource.token.isCancellationRequested) {
@@ -198,22 +210,26 @@ export default class Run extends SfdxCommand {
     }
 
     try {
-      if (result.summary.outcome === ApexTestRunResultStatus.Failed) {
+      if (
+        result.hasOwnProperty('summary') &&
+        (result as TestResult).summary.outcome ===
+          ApexTestRunResultStatus.Failed
+      ) {
         process.exitCode = FAILURE_EXIT_CODE;
       }
       switch (this.flags.resultformat) {
         case 'human':
           this.logHuman(
-            result,
+            result as TestResult,
             this.flags.detailedcoverage,
             this.flags.outputdir
           );
           break;
         case 'tap':
-          this.logTap(result);
+          this.logTap(result as TestResult);
           break;
         case 'junit':
-          this.logJUnit(result);
+          this.logJUnit(result as TestResult);
           break;
         case 'json':
           // when --json flag is specified, we should log CLI json format
@@ -227,15 +243,17 @@ export default class Run extends SfdxCommand {
         default:
           if (this.flags.synchronous) {
             this.logHuman(
-              result,
+              result as TestResult,
               this.flags.detailedcoverage,
               this.flags.outputdir
             );
           } else {
-            const id = result.summary.testRunId;
-            const username = result.summary.username;
+            const id = (result as TestRunIdResult).testRunId;
             this.ux.log(
-              messages.getMessage('runTestReportCommand', [id, username])
+              messages.getMessage('runTestReportCommand', [
+                id,
+                this.org!.getUsername()
+              ])
             );
           }
       }
@@ -322,10 +340,14 @@ export default class Run extends SfdxCommand {
     this.ux.log(reporter.format(result));
   }
 
-  private formatResultInJson(result: TestResult): CliJsonFormat {
+  private formatResultInJson(
+    result: TestResult | TestRunIdResult
+  ): CliJsonFormat | TestRunIdResult {
     try {
       const reporter = new JsonReporter();
-      return reporter.format(result);
+      return result.hasOwnProperty('summary')
+        ? reporter.format(result as TestResult)
+        : (result as TestRunIdResult);
     } catch (e) {
       this.ux.logJson(result);
       const msg = messages.getMessage('testResultProcessErr', [e]);

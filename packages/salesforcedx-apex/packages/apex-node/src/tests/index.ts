@@ -19,5 +19,6 @@ export {
   ResultFormat,
   TestItem,
   TestResult,
-  TestLevel
+  TestLevel,
+  TestRunIdResult
 } from './types';

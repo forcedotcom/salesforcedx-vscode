@@ -6,6 +6,7 @@
  */
 import {
   TestResult,
+  TestRunIdResult,
   OutputDirConfig,
   ResultFormat,
   HumanReporter,
@@ -25,8 +26,8 @@ import { CliJsonFormat } from './jsonReporter';
  * @returns Output directory configuration
  */
 export function buildOutputDirConfig(
-  result: TestResult,
-  jsonOutput: CliJsonFormat,
+  result: TestResult | TestRunIdResult,
+  jsonOutput: CliJsonFormat | TestRunIdResult,
   outputDir: string,
   resultFormat: ResultFormat | undefined,
   detailedCoverage: boolean,
@@ -36,53 +37,62 @@ export function buildOutputDirConfig(
     dirPath: outputDir
   };
 
-  if (typeof resultFormat !== 'undefined' || synchronous) {
-    outputDirConfig.fileInfos = [
-      {
-        filename: result.summary.testRunId
-          ? `test-result-${result.summary.testRunId}.json`
-          : `test-result.json`,
-        content: jsonOutput
-      },
-      ...(jsonOutput.coverage
-        ? [
-            {
-              filename: `test-result-codecoverage.json`,
-              content: jsonOutput.coverage.coverage
-            }
-          ]
-        : [])
-    ];
-    outputDirConfig.resultFormats = [ResultFormat.junit];
+  if (result.hasOwnProperty('summary')) {
+    result = result as TestResult;
+    jsonOutput = jsonOutput as CliJsonFormat;
+
+    if (typeof resultFormat !== 'undefined' || synchronous) {
+      outputDirConfig.fileInfos = [
+        {
+          filename: result.summary.testRunId
+            ? `test-result-${result.summary.testRunId}.json`
+            : `test-result.json`,
+          content: jsonOutput
+        },
+        ...(jsonOutput.coverage
+          ? [
+              {
+                filename: `test-result-codecoverage.json`,
+                content: jsonOutput.coverage?.coverage
+              }
+            ]
+          : [])
+      ];
+      outputDirConfig.resultFormats = [ResultFormat.junit];
+    }
+
+    if (typeof resultFormat === 'undefined' && synchronous) {
+      resultFormat = ResultFormat.human;
+    }
+
+    switch (resultFormat) {
+      case 'tap':
+        const tapResult = new TapReporter().format(result);
+        outputDirConfig.fileInfos?.push({
+          filename: `test-result.txt`,
+          content: tapResult
+        });
+        outputDirConfig.resultFormats?.push(ResultFormat.tap);
+        break;
+      case 'junit':
+        const junitResult = new JUnitReporter().format(result);
+        outputDirConfig.fileInfos?.push({
+          filename: `test-result.xml`,
+          content: junitResult
+        });
+        break;
+      case 'human':
+        const humanResult = new HumanReporter().format(
+          result,
+          detailedCoverage
+        );
+        outputDirConfig.fileInfos?.push({
+          filename: `test-result.txt`,
+          content: humanResult
+        });
+        break;
+    }
   }
 
-  if (typeof resultFormat === 'undefined' && synchronous) {
-    resultFormat = ResultFormat.human;
-  }
-
-  switch (resultFormat) {
-    case 'tap':
-      const tapResult = new TapReporter().format(result);
-      outputDirConfig.fileInfos?.push({
-        filename: `test-result.txt`,
-        content: tapResult
-      });
-      outputDirConfig.resultFormats?.push(ResultFormat.tap);
-      break;
-    case 'junit':
-      const junitResult = new JUnitReporter().format(result);
-      outputDirConfig.fileInfos?.push({
-        filename: `test-result.xml`,
-        content: junitResult
-      });
-      break;
-    case 'human':
-      const humanResult = new HumanReporter().format(result, detailedCoverage);
-      outputDirConfig.fileInfos?.push({
-        filename: `test-result.txt`,
-        content: humanResult
-      });
-      break;
-  }
   return outputDirConfig;
 }

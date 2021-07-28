@@ -19,7 +19,8 @@ import {
   ApexCodeCoverageAggregate,
   ApexCodeCoverage,
   ResultFormat,
-  OutputDirConfig
+  OutputDirConfig,
+  TestResult
 } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import {
@@ -87,7 +88,9 @@ describe('Run Apex tests synchronously', () => {
   it('should run a successful test', async () => {
     toolingRequestStub.withArgs(testRequest).returns(syncTestResultSimple);
     const testSrv = new TestService(mockConnection);
-    const testResult = await testSrv.runTestSynchronous(requestOptions);
+    const testResult = (await testSrv.runTestSynchronous(
+      requestOptions
+    )) as TestResult;
     expect(testResult).to.be.a('object');
     expect(toolingRequestStub.calledOnce).to.equal(true);
     expect(testResult.summary).to.be.a('object');
@@ -126,7 +129,9 @@ describe('Run Apex tests synchronously', () => {
       .withArgs(testRequest)
       .returns(syncTestResultWithFailures);
     const testSrv = new TestService(mockConnection);
-    const testResult = await testSrv.runTestSynchronous(requestOptions);
+    const testResult = (await testSrv.runTestSynchronous(
+      requestOptions
+    )) as TestResult;
     expect(testResult).to.be.a('object');
     expect(toolingRequestStub.calledOnce).to.equal(true);
     expect(testResult.summary).to.be.a('object');
@@ -198,7 +203,10 @@ describe('Run Apex tests synchronously', () => {
     } as ApexCodeCoverageAggregate);
 
     const testSrv = new TestService(mockConnection);
-    const testResult = await testSrv.runTestSynchronous(requestOptions, true);
+    const testResult = (await testSrv.runTestSynchronous(
+      requestOptions,
+      true
+    )) as TestResult;
     expect(testResult).to.be.a('object');
     expect(toolingRequestStub.calledOnce).to.equal(true);
     expect(testResult.summary).to.be.a('object');

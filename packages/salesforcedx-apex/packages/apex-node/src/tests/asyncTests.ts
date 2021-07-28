@@ -24,7 +24,8 @@ import {
   ApexTestRunResultStatus,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
-  TestResult
+  TestResult,
+  TestRunIdResult
 } from './types';
 import { addIdToQuery, calculatePercentage, isValidTestRunID } from './utils';
 import * as util from 'util';
@@ -44,15 +45,17 @@ export class AsyncTests {
    * Asynchronous Test Runs
    * @param options test options
    * @param codeCoverage should report code coverage
+   * @param exitOnTestRunId should not wait for test run to complete, return test run id immediately
    * @param progress progress reporter
    * @param token cancellation token
    */
   public async runTests(
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
+    exitOnTestRunId = false,
     progress?: Progress<ApexTestProgressValue>,
     token?: CancellationToken
-  ): Promise<TestResult> {
+  ): Promise<TestResult | TestRunIdResult> {
     try {
       const sClient = new StreamingClient(this.connection, progress);
       await sClient.init();
@@ -65,14 +68,17 @@ export class AsyncTests {
           sClient.disconnect();
         });
 
-      const asyncRunResult = await sClient.subscribe(
-        this.getTestRunRequestAction(options)
-      );
+      const testRunId = await this.getTestRunRequestAction(options)();
+
+      if (exitOnTestRunId) {
+        return { testRunId };
+      }
 
       if (token && token.isCancellationRequested) {
         return null;
       }
 
+      const asyncRunResult = await sClient.subscribe(undefined, testRunId);
       const testRunSummary = await this.checkRunStatus(asyncRunResult.runId);
       return await this.formatAsyncResults(
         asyncRunResult,

@@ -28,7 +28,8 @@ import {
   ApexCodeCoverageAggregate,
   ApexCodeCoverage,
   ApexTestQueueItemRecord,
-  ResultFormat
+  ResultFormat,
+  TestRunIdResult
 } from '../../src/tests/types';
 import { AsyncTestRun, StreamingClient } from '../../src/streaming';
 import { fail } from 'assert';
@@ -1064,6 +1065,46 @@ describe('Run Apex tests asynchronously', () => {
       expect(createStreamStub.callCount).to.eql(1);
     });
 
+    it('should throw an error if result format is specified with TestRunId result', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        resultFormats: [ResultFormat.tap]
+      };
+      const testSrv = new TestService(mockConnection);
+      try {
+        await testSrv.writeResultFiles(
+          { testRunId } as TestRunIdResult,
+          config,
+          false
+        );
+        assert.fail();
+      } catch (e) {
+        expect(e.message).to.equal(
+          'Cannot specify a result format with a TestRunId result'
+        );
+      }
+    });
+
+    it('should throw an error if code coverage is specified with TestRunId result', async () => {
+      const config = {
+        dirPath: 'path/to/directory',
+        resultFormats: [ResultFormat.tap]
+      };
+      const testSrv = new TestService(mockConnection);
+      try {
+        await testSrv.writeResultFiles(
+          { testRunId } as TestRunIdResult,
+          config,
+          true
+        );
+        assert.fail();
+      } catch (e) {
+        expect(e.message).to.equal(
+          'Cannot specify a result format with a TestRunId result'
+        );
+      }
+    });
+
     it('should create the json files if json result format is specified', async () => {
       const config = {
         dirPath: 'path/to/directory',
@@ -1246,13 +1287,17 @@ describe('Run Apex tests asynchronously', () => {
         }
       };
       toolingRequestStub.withArgs(testAsyncRequest).returns(testRunId);
+      const actionf: () => Promise<{ runId: string }> = () => {
+        return Promise.resolve({ runId: testRunId });
+      };
+
       sandboxStub
         .stub(StreamingClient.prototype, 'subscribe')
-        .callsFake(function(action: () => Promise<string>) {
+        .callsFake(function() {
           // eslint-disable-next-line
           const that = this;
           return new Promise(function() {
-            action().then(function(id) {
+            actionf().then(function(id) {
               that.subscribedTestRunId = id;
               that.subscribedTestRunIdDeferred.resolve(id);
             });
@@ -1272,6 +1317,7 @@ describe('Run Apex tests asynchronously', () => {
       testSrv.runTestAsynchronous(
         requestOptions,
         false,
+        undefined,
         undefined,
         cancellationTokenSource.token
       );

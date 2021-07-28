@@ -49,6 +49,10 @@ export type AsyncTestConfiguration = {
    */
   testLevel: TestLevel;
   skipCodeCoverage?: boolean;
+  /**
+   * Does not wait for test run to complete and returns the test run id immediately
+   */
+  exitOnTestRunId?: boolean;
 };
 
 export enum ResultFormat {
@@ -98,6 +102,10 @@ export type AsyncTestArrayConfiguration = {
    * Specifies which tests to run, default level is RunSpecifiedTests
    */
   testLevel: TestLevel;
+  /**
+   * Does not wait for test run to complete and returns the test run id immediately
+   */
+  exitOnTestRunId?: boolean;
 };
 
 export type SyncTestConfiguration = {
@@ -367,6 +375,10 @@ export type CodeCoverageResult = {
   percentage: string;
   coveredLines: number[];
   uncoveredLines: number[];
+};
+
+export type TestRunIdResult = {
+  testRunId: string;
 };
 
 export type TestResult = {

@@ -210,6 +210,20 @@ export class StreamingClient {
         } else {
           this.subscribedTestRunId = testRunId;
           this.subscribedTestRunIdDeferred.resolve(testRunId);
+
+          if (!this.hasDisconnected) {
+            intervalId = setInterval(async () => {
+              const result = await this.getCompletedTestRun(testRunId);
+              if (result) {
+                this.disconnect();
+                clearInterval(intervalId);
+                subscriptionResolve({
+                  runId: this.subscribedTestRunId,
+                  queueItem: result
+                });
+              }
+            }, RetreiveResultsInterval);
+          }
         }
       } catch (e) {
         this.disconnect();
