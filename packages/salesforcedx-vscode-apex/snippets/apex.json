@@ -210,7 +210,7 @@
     "constructor": {
         "prefix": "constructor",
         "body": [
-            "${1:|private,public,global|} ${2:${TM_FILENAME_BASE}}($3) {",
+            "${1|private,public,global|} ${2:${TM_FILENAME_BASE}}($3) {",
             "\t${0:super();}",
             "}"
         ],
@@ -226,14 +226,14 @@
     "Field": {
         "prefix": "field",
         "body": [
-            "${1:|private,public,global|} ${2:String} ${3:name};"
+            "${1|private,public,global|} ${2:String} ${3:name};"
         ],
         "description": "Field"
     },
     "method": {
         "prefix": "method",
         "body": [
-            "${1:|private,public,global|} ${2:void} ${3:name}($4) {",
+            "${1|private,public,global|} ${2:void} ${3:name}($4) {",
             "\t$0",
             "}"
         ],
@@ -242,7 +242,7 @@
     "static method": {
         "prefix": "staticmethod",
         "body": [
-            "${1:|private,public,global|} static ${2:void} ${3:name}($4) {",
+            "${1|private,public,global|} static ${2:void} ${3:name}($4) {",
             "\t$0",
             "}"
         ],
