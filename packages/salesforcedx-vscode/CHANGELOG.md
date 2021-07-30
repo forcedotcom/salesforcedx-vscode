@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Introduce 3 Apex Test Suite commands ([PR #3435](https://github.com/forcedotcom/salesforcedx-vscode/pull/3435))
+- Introduce 3 new Apex Test Suite related commands to the command palette ([PR #3435](https://github.com/forcedotcom/salesforcedx-vscode/pull/3435))
 
 #### salesforcedx-vscode-core
 
@@ -16,15 +16,11 @@
 
 - Update default-org.md ([PR #3447](https://github.com/forcedotcom/salesforcedx-vscode/pull/3447))
 
-- SOQL Builder GA doc update ([PR #3422](https://github.com/forcedotcom/salesforcedx-vscode/pull/3422))
-
 #### salesforcedx-vscode-core
 
-- Support child components in correlateResults ([PR #3424](https://github.com/forcedotcom/salesforcedx-vscode/pull/3424))
+- Support additional metadata types with conflict detection ([PR #3424](https://github.com/forcedotcom/salesforcedx-vscode/pull/3424))
 
-- Bump up functions-core version ([PR #3439](https://github.com/forcedotcom/salesforcedx-vscode/pull/3439))
-
-- Conflict detection support deploy on save files under multiple directories ([PR #3393](https://github.com/forcedotcom/salesforcedx-vscode/pull/3393))
+- Support multiple directories on deploy on save with conflict detection ([PR #3393](https://github.com/forcedotcom/salesforcedx-vscode/pull/3393))
 
 # 52.6.0 - July 23, 2021
 
@@ -48,7 +44,7 @@
 
 #### salesforcedx-vscode-core
 
-- Performance improvements for  `SFDX: Start Function`, `Invoke` and `Debug Invoke` commands ([PR #3399](https://github.com/forcedotcom/salesforcedx-vscode/pull/3399))
+- Performance improvements for `SFDX: Start Function`, `Invoke` and `Debug Invoke` commands ([PR #3399](https://github.com/forcedotcom/salesforcedx-vscode/pull/3399))
 
 - Fix conflict detection error for empty results ([PR #3376](https://github.com/forcedotcom/salesforcedx-vscode/pull/3376))
 
