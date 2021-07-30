@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Introduce 3 new Apex Test Suite related commands to the command palette ([PR #3435](https://github.com/forcedotcom/salesforcedx-vscode/pull/3435))
+- Add commands `SFDX: Create Apex Test Suite`, `SFDX: Add Tests to Apex Test Suite`, and `SFDX: Run Apex Test Suite` ([PR #3435](https://github.com/forcedotcom/salesforcedx-vscode/pull/3435))
 
 #### salesforcedx-vscode-core
 
-- Add command to logout of default org ([PR #3428](https://github.com/forcedotcom/salesforcedx-vscode/pull/3428))
+- Add command `SFDX: Log Out from Default Org` ([PR #3428](https://github.com/forcedotcom/salesforcedx-vscode/pull/3428))
 
 ## Fixed
 
