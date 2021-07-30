@@ -44,6 +44,11 @@ import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
+import {
+  decomposed,
+  matchingContentFile,
+  mockRegistry
+} from '../mock/registry';
 import { MockContext } from '../telemetry/MockContext';
 
 const sb = createSandbox();
@@ -301,32 +306,8 @@ describe('Base Deploy Retrieve Commands', () => {
 
     it('should store properties in metadata cache on successful deploy', async () => {
       const executor = new TestDeploy();
-      const deployPropsOne = {
-        name: 'One',
-        fullName: 'One',
-        type: registry.types.apexclass,
-        content: join('project', 'classes', 'One.cls'),
-        xml: join('project', 'classes', 'One.cls-meta.xml')
-      };
-      const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne,
-        [{
-          dirPath: dirname(deployPropsOne.content),
-          children: [basename(deployPropsOne.content), basename(deployPropsOne.xml)]
-        }
-      ]);
-      const deployPropsTwo = {
-        name: 'Two',
-        fullName: 'Two',
-        type: registry.types.customobject,
-        content: join('project', 'classes', 'Two.cls'),
-        xml: join('project', 'classes', 'Two.cls-meta.xml')
-      };
-      const deployComponentTwo = SourceComponent.createVirtualComponent(deployPropsTwo,
-        [{
-          dirPath: dirname(deployPropsTwo.content),
-          children: [basename(deployPropsTwo.content), basename(deployPropsTwo.xml)]
-        }
-      ]);
+      const deployComponentOne = matchingContentFile.COMPONENT;
+      const deployComponentTwo = decomposed.DECOMPOSED_COMPONENT;
       const mockDeployResult = new DeployResult(
         {
           status: RequestStatus.Succeeded,
@@ -335,7 +316,7 @@ describe('Base Deploy Retrieve Commands', () => {
         new ComponentSet([
           deployComponentOne,
           deployComponentTwo
-        ])
+        ], mockRegistry)
       );
       const fileResponses: any[] = [];
       const cache = PersistentStorageService.getInstance();
@@ -346,8 +327,12 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(executor.cacheSpy.callCount).to.equal(1);
       expect(executor.cacheSpy.args[0][0].components.size).to.equal(2);
-      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))?.lastModifiedDate).to.equal('Yesterday');
-      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))?.lastModifiedDate).to.equal('Yesterday');
+      expect(cache.getPropertiesForFile(
+        cache.makeKey(deployComponentOne.type.name, deployComponentOne.name)
+        )?.lastModifiedDate).to.equal('Yesterday');
+      expect(cache.getPropertiesForFile(
+        cache.makeKey(deployComponentTwo.type.name, deployComponentTwo.name)
+        )?.lastModifiedDate).to.equal('Yesterday');
     });
 
     it('should not store any properties in metadata cache on failed deploy', async () => {
@@ -540,18 +525,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
   describe('RetrieveExecutor', () => {
     const packageDir = 'test-app';
-    const props = {
-      name: 'MyTrigger',
-      type: registry.types.apextrigger,
-      content: join('project', 'classes', 'MyTrigger.cls'),
-      xml: join('project', 'classes', 'MyTrigger.cls-meta.xml')
-    };
-    const component = SourceComponent.createVirtualComponent(props, [
-      {
-        dirPath: dirname(props.content),
-        children: [basename(props.content), basename(props.xml)]
-      }
-    ]);
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
@@ -585,10 +558,7 @@ describe('Base Deploy Retrieve Commands', () => {
     });
 
     it('should call retrieve on component set', async () => {
-      const components = new ComponentSet([
-        { fullName: 'MyClass', type: 'ApexClass' },
-        { fullName: 'MyTrigger', type: 'ApexTrigger' }
-      ]);
+      const components = new ComponentSet(matchingContentFile.COMPONENTS, mockRegistry);
       const executor = new TestRetrieve(components);
 
       await executor.run({ data: {}, type: 'CONTINUE' });

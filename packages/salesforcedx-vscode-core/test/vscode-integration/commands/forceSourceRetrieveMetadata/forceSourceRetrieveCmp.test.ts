@@ -15,18 +15,16 @@ import {
 import {
   ComponentSet,
   MetadataResolver,
-  registry,
-  RetrieveResult,
-  SourceComponent
+  RegistryAccess,
+  RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { LazyCollection } from '@salesforce/source-deploy-retrieve/lib/src/collections';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { createSandbox, mock, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import {
@@ -36,6 +34,7 @@ import {
 import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';
+import { matchingContentFile, mockRegistry, mockRegistryData } from '../../mock/registry';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -200,16 +199,13 @@ describe('Force Source Retrieve Component(s)', () => {
 
     it('should retrieve with given components', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor();
-      const testComponents = [
-        { fullName: 'MyClassA', type: 'ApexClass' },
-        { fullName: 'MyClassB', type: 'ApexClass' }
-      ];
-      const componentSet = new ComponentSet(testComponents);
+      const testComponents = matchingContentFile.COMPONENTS;
+      const componentSet = new ComponentSet(testComponents, mockRegistry);
       const response: ContinueResponse<LocalComponent[]> = {
         type: 'CONTINUE',
         data: testComponents.map(c => ({
           fileName: c.fullName,
-          type: c.type,
+          type: c.type.name,
           outputdir: 'out'
         }))
       };
@@ -236,31 +232,20 @@ describe('Force Source Retrieve Component(s)', () => {
     });
 
     it('should retrieve components and merge with local versions if present', async () => {
-      const type = registry.types.apexclass;
       const executor = new LibraryRetrieveSourcePathExecutor();
-      const testComponents = [
-        { fullName: 'MyClassA', type: 'ApexClass' },
-        { fullName: 'MyClassB', type: 'ApexClass' }
-      ];
+      const testComponents = matchingContentFile.COMPONENTS;
+      const componentSet = new ComponentSet([matchingContentFile.COMPONENTS[1]], mockRegistry);
       const response: ContinueResponse<LocalComponent[]> = {
         type: 'CONTINUE',
         data: testComponents.map(c => ({
           fileName: c.fullName,
-          type: c.type,
+          type: c.type.name,
           outputdir: 'out'
         }))
       };
 
-      sb.stub(ComponentSet, 'fromSource').returns(
-        new ComponentSet([
-          new SourceComponent({
-            name: 'MyClassB',
-            type,
-            content: path.join(type.directoryName, 'MyClassB.cls'),
-            xml: path.join(type.directoryName, 'MyClassB.cls-meta.xml')
-          })
-        ])
-      );
+      sb.stub(RegistryAccess.prototype, 'getTypeByName').returns(mockRegistryData.types.matchingcontentfile);
+      sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       await executor.run(response);
 
@@ -273,58 +258,9 @@ describe('Force Source Retrieve Component(s)', () => {
 
     it('should retrieve with given components and open them', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor(true);
-      const type = registry.types.apexclass;
-      const className = 'MyClass';
-      const className2 = 'MyClass';
-      const apexClassPathOne = path.join(
-        type.directoryName,
-        `${className}.cls`
-      );
-      const apexClassPathTwo = path.join(
-        type.directoryName,
-        `${className2}.cls`
-      );
-      const apexClassXmlPathOne = path.join(
-        type.directoryName,
-        `${apexClassPathOne}-meta.xml`
-      );
-      const apexClassXmlPathTwo = path.join(
-        type.directoryName,
-        `${className2}.cls-meta.xml`
-      );
-      const virtualTree = [
-        {
-          dirPath: 'classes',
-          children: [
-            `${className}.cls`,
-            `${className}.cls-meta.xml`,
-            `${className2}.cls`,
-            `${className2}.cls-meta.xml`
-          ]
-        }
-      ];
 
-      const testComponents = [
-        SourceComponent.createVirtualComponent(
-          {
-            name: className,
-            type: registry.types.apexclass,
-            xml: apexClassXmlPathOne,
-            content: apexClassPathOne
-          },
-          virtualTree
-        ),
-        SourceComponent.createVirtualComponent(
-          {
-            name: className,
-            type: registry.types.apexclass,
-            xml: apexClassXmlPathTwo,
-            content: apexClassPathTwo
-          },
-          virtualTree
-        )
-      ];
-      const componentSet = new ComponentSet(testComponents);
+      const testComponents = matchingContentFile.COMPONENTS;
+      const componentSet = new ComponentSet(testComponents, mockRegistry);
       sb.stub(ComponentSet, 'fromSource').returns(componentSet);
 
       const retrieveResponse: Partial<MetadataApiRetrieveStatus> = {
@@ -353,10 +289,10 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(openTextDocumentStub.callCount).to.equal(2);
 
       const openArg1 = openTextDocumentStub.firstCall.args[0];
-      expect(openArg1).to.equal(apexClassXmlPathOne);
+      expect(openArg1).to.equal(matchingContentFile.XML_PATHS[0]);
 
       const openArg2 = openTextDocumentStub.secondCall.args[0];
-      expect(openArg2).to.equal(apexClassPathOne);
+      expect(openArg2).to.equal(matchingContentFile.CONTENT_PATHS[0]);
     });
   });
 });
