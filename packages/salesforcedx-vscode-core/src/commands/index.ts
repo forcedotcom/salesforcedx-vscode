@@ -133,7 +133,11 @@ export {
   turnOffLogging,
   ForceStopApexDebugLoggingExecutor
 } from './forceStopApexDebugLogging';
-export { forceAuthLogoutAll, ForceAuthLogoutAll } from './auth/forceAuthLogout';
+export {
+  forceAuthLogoutAll,
+  ForceAuthLogoutAll,
+  forceAuthLogoutDefault
+} from './auth/forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet, ForceConfigSetExecutor } from './forceConfigSet';
