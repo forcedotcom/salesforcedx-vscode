@@ -24,6 +24,8 @@ import { FunctionService } from './functionService';
 import { runFunction } from '@heroku/functions-core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as fs from 'fs';
+
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   constructor(debug: boolean = false) {
     super(
@@ -39,11 +41,13 @@ export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
     const url = 'http://localhost:8080';
+    const data = fs.readFileSync(response.data, 'utf8');
     try {
       channelService.appendLine(`POST ${url}`);
+
       const functionResponse = await runFunction({
         url,
-        payload: `@'${response.data}'`,
+        payload: data,
         targetusername: defaultUsername
       });
       channelService.appendLine(

@@ -32,6 +32,11 @@ import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
 
+const demoPayload = {
+  id: 2345,
+  service: 'MyService'
+};
+
 describe('Force Function Invoke', () => {
   let sandbox: SinonSandbox;
   let runFunctionLibraryStub: SinonStub;
@@ -45,11 +50,14 @@ describe('Force Function Invoke', () => {
   const functionServiceStubs: {
     [key: string]: SinonStub;
   } = {};
+  let readFileSyncStub: SinonStub;
   beforeEach(() => {
     sandbox = createSandbox();
     runFunctionLibraryStub = sandbox.stub(library, 'runFunction');
     runFunctionLibraryStub.returns(Promise.resolve(true));
     functionInvokeSpy = sandbox.spy(ForceFunctionInvoke.prototype, 'run');
+    readFileSyncStub = sandbox.stub(fs, 'readFileSync');
+    readFileSyncStub.returns(demoPayload);
     notificationServiceStubs.showWarningMessageStub = sandbox.stub(
       notificationService,
       'showWarningMessage'
@@ -82,7 +90,6 @@ describe('Force Function Invoke', () => {
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
-
       await forceFunctionDebugInvoke(srcUri);
       const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(
         false
@@ -91,7 +98,7 @@ describe('Force Function Invoke', () => {
       assert.calledOnce(runFunctionLibraryStub);
       assert.calledWith(runFunctionLibraryStub, {
         url: 'http://localhost:8080',
-        payload: `@'${srcUri.fsPath}'`,
+        payload: demoPayload,
         targetusername: defaultUsername
       });
     });
@@ -184,7 +191,6 @@ describe('Force Function Invoke', () => {
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
-
       await forceFunctionInvoke(srcUri);
       const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(
         false
@@ -193,7 +199,7 @@ describe('Force Function Invoke', () => {
       assert.calledOnce(runFunctionLibraryStub);
       assert.calledWith(runFunctionLibraryStub, {
         url: 'http://localhost:8080',
-        payload: `@'${srcUri.fsPath}'`,
+        payload: demoPayload,
         targetusername: defaultUsername
       });
 
