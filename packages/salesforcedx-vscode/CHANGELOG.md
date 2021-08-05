@@ -1,3 +1,15 @@
+# 52.8.0 - August 4, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Support checkpoints for one-step replay debugger ([PR #3410](https://github.com/forcedotcom/salesforcedx-vscode/pull/3410))
+
+#### salesforcedx-vscode-core
+
+- Remove old conflict detection mechanism ([PR #3377](https://github.com/forcedotcom/salesforcedx-vscode/pull/3377))
+
 # 52.7.0 - July 30, 2021
 
 ## Added
