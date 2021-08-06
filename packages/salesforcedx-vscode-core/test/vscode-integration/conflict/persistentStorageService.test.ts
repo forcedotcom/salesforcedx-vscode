@@ -42,14 +42,12 @@ describe('Persistent Storage Service', () => {
       deployComponentTwo
     ], mockRegistry)
   );
+
+  const mockContext = new MockContext(false);
+  PersistentStorageService.initialize(mockContext);
   const cache = PersistentStorageService.getInstance();
   const keyOne = cache.makeKey(mockRegistryData.types.matchingcontentfile.name, deployComponentOne.name);
   const keyTwo = cache.makeKey(mockRegistryData.types.decomposed.name, deployComponentTwo.name);
-
-  beforeEach(() => {
-    const mockContext = new MockContext(false);
-    PersistentStorageService.initialize(mockContext);
-  });
 
   it('Should store and retrieve file properties in Memento cache for Retrieve', () => {
     cache.setPropertiesForFilesRetrieve(props);
