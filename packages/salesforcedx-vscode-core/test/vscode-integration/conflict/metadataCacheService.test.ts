@@ -30,6 +30,7 @@ import {
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 import sinon = require('sinon');
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { decomposed, matchingContentFile, mockRegistryData } from '../mock/registry';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
@@ -303,34 +304,18 @@ describe('Metadata Cache', () => {
   }
 
   describe('Static Methods', () => {
-    const compOne = {
-      fullName: 'HandlerCostCenter',
-      type: {
-        name: 'ApexClass'
-      }
-    };
-    const compTwo = {
-      fullName: 'Account',
-      type: {
-        name: 'CustomObject'
-      }
-    };
-    const childComp = {
-      fullName: 'AccountNumber',
-      parent: compTwo,
-      type: {
-        name: 'CustomField'
-      }
-    };
+    const compOne = matchingContentFile.COMPONENT;
+    const compTwo = decomposed.DECOMPOSED_COMPONENT;
+    const childComp = decomposed.DECOMPOSED_CHILD_COMPONENT_1;
     const fileProperties = [{
-      fullName: 'HandlerCostCenter',
-      lastModifiedDate: 'Today',
-      type: 'ApexClass'
+      fullName: 'a',
+      lastModifiedDate: 'Yesterday',
+      type: mockRegistryData.types.decomposed.name
     },
     {
-      fullName: 'Account',
-      lastModifiedDate: 'Yesterday',
-      type: 'CustomObject'
+      fullName: matchingContentFile.COMPONENT_NAMES[0],
+      lastModifiedDate: 'Today',
+      type: mockRegistryData.types.matchingcontentfile.name
     }] as FileProperties[];
 
     it('Should correlate results correctly', () => {

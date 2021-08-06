@@ -21,6 +21,7 @@ import { TimestampFileProperties } from '../../../src/conflict/directoryDiffer';
 import { MetadataCacheResult } from '../../../src/conflict/metadataCacheService';
 import { TimestampConflictDetector } from '../../../src/conflict/timestampConflictDetector';
 import { nls } from '../../../src/messages';
+import { bundle, decomposed, document, matchingContentFile, mixedContentInFolder, mockRegistryData } from '../mock/registry';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 
 describe('Timestamp Conflict Detector Execution', () => {
@@ -80,40 +81,26 @@ describe('Timestamp Conflict Detector Execution', () => {
       cache: {
         baseDirectory: path.normalize('/a/b'),
         commonRoot: 'c',
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [matchingContentFile.COMPONENTS[0]]
       },
       project: {
         baseDirectory: path.normalize('/d'),
         commonRoot: path.normalize('e/f'),
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [matchingContentFile.COMPONENTS[0]]
       },
       properties: [
         {
-          fullName: 'HandlerCostCenter',
+          fullName: matchingContentFile.COMPONENT_NAMES[0],
           lastModifiedDate: 'Today',
-          type: 'ApexClass'
+          type: mockRegistryData.types.matchingcontentfile.name
         }
       ] as FileProperties[]
     } as MetadataCacheResult;
 
     const diffResults = [
       {
-        projectPath: '/d/e/f/classes/HandlerCostCenter.cls',
-        cachePath: '/a/b/c/classes/HandlerCostCenter.cls'
+        projectPath: path.join('d', 'e', 'f', matchingContentFile.CONTENT_PATHS[0]),
+        cachePath: path.join('a', 'b', 'c', matchingContentFile.CONTENT_PATHS[0])
       }
     ] as differ.ComponentDiff[];
 
@@ -131,23 +118,13 @@ describe('Timestamp Conflict Detector Execution', () => {
 
     expect(differStub.callCount).to.equal(1);
     expect(differStub.getCall(0).args).to.eql([
-      {
-        fullName: 'HandlerCostCenter',
-        type: {
-          name: 'ApexClass'
-        }
-      },
-      {
-        fullName: 'HandlerCostCenter',
-        type: {
-          name: 'ApexClass'
-        }
-      }
+      matchingContentFile.COMPONENTS[0],
+      matchingContentFile.COMPONENTS[0]
     ]);
 
     expect(results.different).to.eql(new Set([{
-      localRelPath: path.normalize('classes/HandlerCostCenter.cls'),
-      remoteRelPath: path.normalize('classes/HandlerCostCenter.cls'),
+      localRelPath: matchingContentFile.CONTENT_PATHS[0],
+      remoteRelPath: matchingContentFile.CONTENT_PATHS[0],
       localLastModifiedDate: 'Yesteday',
       remoteLastModifiedDate: 'Today'
     }]));
@@ -163,20 +140,13 @@ describe('Timestamp Conflict Detector Execution', () => {
       project: {
         baseDirectory: path.normalize('/d'),
         commonRoot: path.normalize('e/f'),
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [decomposed.DECOMPOSED_COMPONENT]
       },
       properties: [
         {
-          fullName: 'HandlerCostCenter',
+          fullName: 'a',
           lastModifiedDate: 'Today',
-          type: 'ApexClass'
+          type: mockRegistryData.types.decomposed.name
         }
       ] as FileProperties[]
     } as MetadataCacheResult;
@@ -194,14 +164,7 @@ describe('Timestamp Conflict Detector Execution', () => {
       cache: {
         baseDirectory: path.normalize('/a/b'),
         commonRoot: 'c',
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [mixedContentInFolder.COMPONENTS[0]]
       },
       project: {
         baseDirectory: path.normalize('/d'),
@@ -210,9 +173,9 @@ describe('Timestamp Conflict Detector Execution', () => {
       },
       properties: [
         {
-          fullName: 'HandlerCostCenter',
+          fullName: mixedContentInFolder.COMPONENT_NAMES[0],
           lastModifiedDate: 'Today',
-          type: 'ApexClass'
+          type: mockRegistryData.types.mixedcontentinfolder.name
         }
       ] as FileProperties[]
     } as MetadataCacheResult;
@@ -230,32 +193,18 @@ describe('Timestamp Conflict Detector Execution', () => {
       cache: {
         baseDirectory: path.normalize('/a/b'),
         commonRoot: 'c',
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [bundle.COMPONENT]
       },
       project: {
         baseDirectory: path.normalize('/d'),
         commonRoot: path.normalize('e/f'),
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [bundle.COMPONENT]
       },
       properties: [
         {
-          fullName: 'HandlerCostCenter',
+          fullName: 'a',
           lastModifiedDate: 'Today',
-          type: 'ApexClass'
+          type: mockRegistryData.types.bundle.name
         }
       ] as FileProperties[]
     } as MetadataCacheResult;
@@ -279,32 +228,18 @@ describe('Timestamp Conflict Detector Execution', () => {
       cache: {
         baseDirectory: path.normalize('/a/b'),
         commonRoot: 'c',
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [document.COMPONENT]
       },
       project: {
         baseDirectory: path.normalize('/d'),
         commonRoot: path.normalize('e/f'),
-        components: [
-          {
-            fullName: 'HandlerCostCenter',
-            type: {
-              name: 'ApexClass'
-            }
-          }
-        ] as SourceComponent[]
+        components: [document.COMPONENT]
       },
       properties: [
         {
-          fullName: 'HandlerCostCenter',
+          fullName: document.COMPONENT.name,
           lastModifiedDate: 'Today',
-          type: 'ApexClass'
+          type: mockRegistryData.types.document.name
         }
       ] as FileProperties[]
     } as MetadataCacheResult;
@@ -325,18 +260,8 @@ describe('Timestamp Conflict Detector Execution', () => {
 
     expect(differStub.callCount).to.equal(1);
     expect(differStub.getCall(0).args).to.eql([
-      {
-        fullName: 'HandlerCostCenter',
-        type: {
-          name: 'ApexClass'
-        }
-      },
-      {
-        fullName: 'HandlerCostCenter',
-        type: {
-          name: 'ApexClass'
-        }
-      }
+      document.COMPONENT,
+      document.COMPONENT
     ]);
 
     expect(results.different).to.eql(new Set<TimestampFileProperties>());
