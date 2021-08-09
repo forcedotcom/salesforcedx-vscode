@@ -1,3 +1,149 @@
+# 52.8.0 - August 4, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Support checkpoints for one-step replay debugger ([PR #3410](https://github.com/forcedotcom/salesforcedx-vscode/pull/3410))
+
+#### salesforcedx-vscode-core
+
+- Remove old conflict detection mechanism ([PR #3377](https://github.com/forcedotcom/salesforcedx-vscode/pull/3377))
+
+# 52.7.0 - July 30, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add commands `SFDX: Create Apex Test Suite`, `SFDX: Add Tests to Apex Test Suite`, and `SFDX: Run Apex Test Suite` ([PR #3435](https://github.com/forcedotcom/salesforcedx-vscode/pull/3435))
+
+#### salesforcedx-vscode-core
+
+- Add command `SFDX: Log Out from Default Org` ([PR #3428](https://github.com/forcedotcom/salesforcedx-vscode/pull/3428))
+
+## Fixed
+
+#### docs
+
+- Update default-org.md ([PR #3447](https://github.com/forcedotcom/salesforcedx-vscode/pull/3447))
+
+#### salesforcedx-vscode-core
+
+- Support additional metadata types with conflict detection ([PR #3424](https://github.com/forcedotcom/salesforcedx-vscode/pull/3424))
+
+- Support multiple directories on deploy on save with conflict detection ([PR #3393](https://github.com/forcedotcom/salesforcedx-vscode/pull/3393))
+
+# 52.6.0 - July 23, 2021
+
+## Added
+
+#### salesforcedx-vscode
+
+- Include SOQL in extension pack ([PR #3400](https://github.com/forcedotcom/salesforcedx-vscode/pull/3400))
+
+#### salesforcedx-vscode-core
+
+- Update conflict detection setting description ([PR #3416](https://github.com/forcedotcom/salesforcedx-vscode/pull/3416))
+
+- Fix functions dependency issue preventing extensions from loading ([PR #3443](https://github.com/forcedotcom/salesforcedx-vscode/pull/3443))
+
+## Fixed
+
+#### salesforcedx-sobjects-faux-generator
+
+- Correct LWC typing generation for new projects ([PR #3418](https://github.com/forcedotcom/salesforcedx-vscode/pull/3418))
+
+#### salesforcedx-vscode-core
+
+- Performance improvements for `SFDX: Start Function`, `Invoke` and `Debug Invoke` commands ([PR #3399](https://github.com/forcedotcom/salesforcedx-vscode/pull/3399))
+
+- Fix conflict detection error for empty results ([PR #3376](https://github.com/forcedotcom/salesforcedx-vscode/pull/3376))
+
+# 52.5.0 - July 14, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Update test sidebar icons and add test coverage for easy button replay debugger ([PR #3381](https://github.com/forcedotcom/salesforcedx-vscode/pull/3381))
+
+#### salesforcedx-vscode-core
+
+- Update text on Conflict detection modal window ([PR #3394](https://github.com/forcedotcom/salesforcedx-vscode/pull/3394))
+
+- Enhance hovertip text for conflict detection to show last modified date information ([PR #3352](https://github.com/forcedotcom/salesforcedx-vscode/pull/3352))
+
+## Fixed
+
+#### docs
+
+- Update docs for conflict detection ([PR #3396](https://github.com/forcedotcom/salesforcedx-vscode/pull/3396))
+
+#### salesforcedx-vscode-core
+
+- Remove setting to enable function [PR #3409](https://github.com/forcedotcom/salesforcedx-vscode/pull/3409))
+
+# 52.4.0 - July 8, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Enable conflict detection for all deploy commands ([PR #3357](https://github.com/forcedotcom/salesforcedx-vscode/pull/3357))
+
+# 52.3.0 - June 30, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Add "Debug Test" code lens to Apex test methods and classes ([PR #3347](https://github.com/forcedotcom/salesforcedx-vscode/pull/3347))
+
+#### salesforcedx-vscode-core
+
+- Add language data to telemetry for functions ([PR #3338](https://github.com/forcedotcom/salesforcedx-vscode/pull/3338))
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Stop the language server output panel from stealing focus ([PR #3356](https://github.com/forcedotcom/salesforcedx-vscode/pull/3356), [Issue #1429](https://github.com/forcedotcom/salesforcedx-vscode/issues/1429))
+
+#### salesforcedx-vscode-core
+
+- Conflict detection not working in a brand new project ([PR #3358](https://github.com/forcedotcom/salesforcedx-vscode/pull/3358), [Issue #3294](https://github.com/forcedotcom/salesforcedx-vscode/issues/3294))
+
+# 52.2.0 - June 24, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Background enhancements to conflict detection caching ([PR #3334](https://github.com/forcedotcom/salesforcedx-vscode/pull/3334), [PR #3298](https://github.com/forcedotcom/salesforcedx-vscode/pull/3298), & [PR #3325](https://github.com/forcedotcom/salesforcedx-vscode/pull/3325))
+
+# 52.1.0 - June 16, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Setting to always force push on save ([PR #3144](https://github.com/forcedotcom/salesforcedx-vscode/pull/3144)) - Contribution by [@lukecotter](https://github.com/lukecotter)
+
+- Auth with token ([PR #3268](https://github.com/forcedotcom/salesforcedx-vscode/pull/3268))
+
+## Fixed
+
+#### docs
+
+- Update japanese translation ([PR #3205](https://github.com/forcedotcom/salesforcedx-vscode/pull/3205)) - Contribution by [@shunkosa](https://github.com/shunkosa)
+
+#### salesforcedx-vscode-core
+
+- Import FileProperties from the top level ([PR #3302](https://github.com/forcedotcom/salesforcedx-vscode/pull/3302))
+
+- Use correct message for file diffs ([PR #3304](https://github.com/forcedotcom/salesforcedx-vscode/pull/3304))
+
 # 51.17.0 - June 10, 2021
 
 ## Added

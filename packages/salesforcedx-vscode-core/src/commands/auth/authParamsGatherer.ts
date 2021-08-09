@@ -35,7 +35,8 @@ async function inputInstanceUrl() {
   const instanceUrlInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
     placeHolder: INSTANCE_URL_PLACEHOLDER,
-    validateInput: AuthParamsGatherer.validateUrl
+    validateInput: AuthParamsGatherer.validateUrl,
+    ignoreFocusOut: true
   };
   const instanceUrl = await vscode.window.showInputBox(instanceUrlInputOptions);
   return instanceUrl;
@@ -44,7 +45,8 @@ async function inputInstanceUrl() {
 async function inputAlias() {
   const aliasInputOptions = {
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-    placeHolder: DEFAULT_ALIAS
+    placeHolder: DEFAULT_ALIAS,
+    ignoreFocusOut: true
   } as vscode.InputBoxOptions;
   const alias = await vscode.window.showInputBox(aliasInputOptions);
   return alias;
@@ -58,6 +60,7 @@ async function inputAccessToken() {
       'parameter_gatherer_enter_session_id_placeholder'
     ),
     password: true,
+    ignoreFocusOut: true,
     validateInput: text => {
       return text && text.length > 0
         ? null
@@ -186,6 +189,36 @@ export class AccessTokenParamsGatherer
         alias: alias || DEFAULT_ALIAS,
         instanceUrl
       }
+    };
+  }
+}
+
+export class ScratchOrgLogoutParamsGatherer
+  implements ParametersGatherer<string> {
+  public constructor(
+    public readonly username: string,
+    public readonly alias?: string
+  ) {}
+
+  public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
+    const prompt = nls.localize(
+      'auth_logout_scratch_prompt',
+      this.alias || this.username
+    );
+    const logoutResponse = nls.localize('auth_logout_scratch_logout');
+
+    const confirm = await vscode.window.showInformationMessage(
+      prompt,
+      { modal: true },
+      ...[logoutResponse]
+    );
+    if (confirm !== logoutResponse) {
+      return { type: 'CANCEL' };
+    }
+
+    return {
+      type: 'CONTINUE',
+      data: this.username
     };
   }
 }

@@ -157,7 +157,7 @@ export const messages = {
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
   force_function_start_unexpected_error:
-    'SFDX: Start Function exited unexpectedly with code %s',
+    'SFDX: Start Function exited unexpectedly',
   force_function_invoke_text: 'SFDX: Invoke Function',
   force_function_invoke_tooltip: 'Invoke',
   force_function_debug_invoke_tooltip: 'Debug Invoke',
@@ -250,6 +250,7 @@ export const messages = {
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_editor_title_message: 'Manifest Editor',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
@@ -269,6 +270,10 @@ export const messages = {
   auth_custom_label: 'Custom',
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
+  auth_logout_scratch_prompt:
+    'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
+  auth_logout_scratch_logout: 'Logout',
+  auth_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_no_package_directories_found_on_setup_text:
@@ -544,16 +549,16 @@ export const messages = {
     'An error was encountered during conflict detection. %s',
   conflict_detect_initialization_error:
     'Unexpected error initiliazing metadata cache',
-  conflict_detect_empty_results:
-    'Conflict Detection failed to retrieve org file state',
   conflict_detect_conflicts_during_deploy:
-    'Conflicts are detected while deploying metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
+    'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
     'Conflicts are detected while retrieving metadata. Select Override Conflicts to proceed or Cancel to view the conflicts.',
-  conflict_detect_override: 'Override Conflicts',
-  conflict_detect_show_conflicts: 'Show Conflicts',
+  conflict_detect_override: 'Override Conflicts and Deploy',
+  conflict_detect_show_conflicts: 'View Conflicts and Cancel Deploy',
   conflict_detect_conflict_header:
     'Conflicts:\n    Found %s file(s) in conflict (scanned %s org files, %s local files):\n',
+  conflict_detect_conflict_header_timestamp:
+    'Conflicts:\n    Found %s file(s) in conflict:\n',
   conflict_detect_command_hint:
     '\nRun the following command to overwrite the conflicts:\n  %s',
   conflict_detect_no_default_username: 'No default username for this project',
@@ -565,8 +570,11 @@ export const messages = {
   conflict_detect_root_title: 'Org Differences',
   conflict_detect_view_root: '%s : %s file difference(s)',
   conflict_detect_no_conflicts: 'No conflicts',
+  conflict_detect_no_differences: 'No differences',
   conflict_detect_diff_title: '%s//%s ↔ local//%s',
   conflict_detect_diff_command_title: 'Compare Files',
+  conflict_detect_remote_last_modified_date: 'Org last modified date: %s \n',
+  conflict_detect_local_last_modified_date: 'Local last sync date: %s',
 
   force_source_diff_text: 'SFDX: Diff File Against Org',
   force_source_diff_components_not_in_org:
@@ -575,8 +583,6 @@ export const messages = {
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
   force_source_diff_folder_title: '%s - File Diffs',
-  force_source_diff_command_not_found:
-    'To run this command, first install the @salesforce/sfdx-diff plugin. For more info, see [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff).',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',

@@ -49,7 +49,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
 
     let mockConnection: Connection;
     let retrieveStub: SinonStub;
-    let startStub: SinonStub;
+    let pollStatusStub: SinonStub;
 
     const executor = new LibrarySourceRetrieveManifestExecutor();
 
@@ -79,9 +79,9 @@ describe('Force Source Retrieve with Manifest Option', () => {
           forceAddWildcards: true
         })
         .returns(mockComponents);
-      startStub = env.stub();
+      pollStatusStub = env.stub();
       retrieveStub = env.stub(mockComponents, 'retrieve').returns({
-        start: startStub
+        pollStatus: pollStatusStub
       });
     });
 
@@ -99,7 +99,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
         output: defaultPackagePath,
         merge: true
       });
-      expect(startStub.calledOnce).to.equal(true);
+      expect(pollStatusStub.calledOnce).to.equal(true);
     });
   });
 });

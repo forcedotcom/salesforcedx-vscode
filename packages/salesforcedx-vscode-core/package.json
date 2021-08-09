@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.17.0",
+  "version": "52.8.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,21 +25,23 @@
     "Other"
   ],
   "dependencies": {
+    "@heroku/functions-core": "0.0.7",
     "@salesforce/core": "2.23.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "51.17.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.17.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "52.8.0",
+    "@salesforce/salesforcedx-utils-vscode": "52.8.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "2.1.5",
-    "@salesforce/templates": "51.5.0",
+    "@salesforce/source-deploy-retrieve": "3.0.0",
+    "@salesforce/templates": "52.0.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.3"
+    "shelljs": "0.8.3",
+    "yeoman-generator": "^4.8.2"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.17.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "52.8.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -306,6 +308,10 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.auth.logout.default",
+          "when": "sfdx:project_opened && sfdx:has_default_username"
+        },
+        {
           "command": "sfdx.force.org.create",
           "when": "sfdx:project_opened"
         },
@@ -567,6 +573,10 @@
       {
         "command": "sfdx.force.auth.logout.all",
         "title": "%force_auth_logout_all_text%"
+      },
+      {
+        "command": "sfdx.force.auth.logout.default",
+        "title": "%force_auth_logout_default_text%"
       },
       {
         "command": "sfdx.force.org.create",
@@ -879,11 +889,6 @@
           "type": "boolean",
           "default": true,
           "description": "%experimental_deploy_retrieve_description%"
-        },
-        "salesforcedx-vscode-core.experimental.supportFunctions": {
-          "type": "boolean",
-          "default": false,
-          "description": "%experimental_support_functions%"
         },
         "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
           "type": "boolean",

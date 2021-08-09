@@ -14,7 +14,7 @@ import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
-import * as conflictDetectionService from '../../../src/conflict/conflictDetectionService';
+import * as differ from '../../../src/conflict/directoryDiffer';
 import {
   MetadataCacheResult,
   MetadataCacheService,
@@ -125,7 +125,8 @@ describe('Force Source Diff', () => {
           baseDirectory: path.join('/projects/trailheadapps/lwc-recipes'),
           commonRoot: path.join('force-app/main/default/classes'),
           components: []
-        }
+        },
+        properties: []
       };
       const remoteFsPath = path.join(
         mockResult.cache.baseDirectory,
@@ -193,8 +194,8 @@ describe('Force Source Diff', () => {
 
     beforeEach(() => {
       notificationStub = stub(notificationService, 'showErrorMessage');
-      diffOneFileStub = stub(conflictDetectionService, 'diffOneFile');
-      diffFolderStub = stub(conflictDetectionService, 'diffFolder');
+      diffOneFileStub = stub(differ, 'diffOneFile');
+      diffFolderStub = stub(differ, 'diffFolder');
     });
 
     afterEach(() => {
@@ -230,7 +231,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Individual,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffOneFileStub);
@@ -246,7 +248,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Folder,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffFolderStub);
