@@ -7,15 +7,19 @@ lang: en
 
 Whenever you save a local source file, you can enable immediate deployment of the changes to your default org. You might find this feature useful while trying various user interface and functional behavior or while trying to debug some behavior in an Apex class.
 
-To enable deploy on save, you can:
+To enable deploy on save:
 
 - Add `"salesforcedx-vscode-core.push-or-deploy-on-save.enabled": true` to the `.vscode/settings.json` file.
 - Or update Workspace settings:
   - Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-  - Under Salesforce Feature Previews, select `Push-or-deploy-on-save: Enabled`.
+  - Under Salesforce Feature Previews, select `Push-or-deploy-on-save: Enabled`
+  
+To trigger conflict detection on deploy on save:  
+  - also select  `Push-or-deploy-on-save: Override Conflicts On Push` 
+ 
+![Deploy on save feature](../../../images/deploy-on-save.png)
 
-![Deploy on save feature](./images/deploy-on-save.png)
-
+See [Detect Conflicts on Deploy](detect-conflicts.md) for more information on overriding conflicts.
 > We recommend that you enable deploy on save at a project level (Workspace settings) rather than globally on all Salesforce projects you work on (User settings). While working on large sandboxes, be mindful of enabling deploy on save to avoid inadvertently overwriting changes by other developers.
 
 ## How it Works
