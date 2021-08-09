@@ -46,7 +46,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
 
     let mockConnection: Connection;
     let deployStub: SinonStub;
-    let startStub: SinonStub;
+    let pollStatusStub: SinonStub;
 
     const executor = new LibrarySourceDeployManifestExecutor();
 
@@ -72,9 +72,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
           resolveSourcePaths: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
         })
         .returns(mockComponents);
-      startStub = env.stub();
+      pollStatusStub = env.stub();
       deployStub = env.stub(mockComponents, 'deploy').returns({
-        start: startStub
+        pollStatus: pollStatusStub
       });
     });
 
@@ -90,7 +90,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
-      expect(startStub.calledOnce).to.equal(true);
+      expect(pollStatusStub.calledOnce).to.equal(true);
     });
   });
 });
