@@ -1,3 +1,13 @@
+# 52.9.0 - August 10, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Pr/3429 use functions lib to create functions ([PR #3476](https://github.com/forcedotcom/salesforcedx-vscode/pull/3476))
+
+- Pr/3467 Invoke function using payload contents ([PR #3472](https://github.com/forcedotcom/salesforcedx-vscode/pull/3472))
+
 # 52.8.0 - August 4, 2021
 
 ## Added
