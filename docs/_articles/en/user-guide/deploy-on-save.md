@@ -22,7 +22,7 @@ To bypass checking for conflicts on push or deploy when you also have conflict d
 See [Detect Conflicts on Deploy](detect-conflicts.md) for more information on overriding conflicts.
 > We recommend that you enable deploy on save at a project level (Workspace settings) rather than globally on all Salesforce projects you work on (User settings). While working on large sandboxes, be mindful of enabling deploy on save to avoid inadvertently overwriting changes by other developers.
 
-## How it Works
+## How It Works
 
 When you enable deploy on save for your project:
 
