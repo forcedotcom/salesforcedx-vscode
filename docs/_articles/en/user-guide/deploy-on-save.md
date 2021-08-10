@@ -14,8 +14,8 @@ To enable both push and deploy on save:
   - Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
   - Under Salesforce Feature Previews, select `Push-or-deploy-on-save: Enabled`
   
-To trigger conflict detection on deploy on save:  
-  - also select  `Push-or-deploy-on-save: Override Conflicts On Push` 
+To bypass checking for conflicts on push or deploy when you also have conflict detection enabled:  
+  - Select  `Push-or-deploy-on-save: Override Conflicts On Push` 
  
 ![Deploy on save feature](../../../images/deploy-on-save.png)
 
