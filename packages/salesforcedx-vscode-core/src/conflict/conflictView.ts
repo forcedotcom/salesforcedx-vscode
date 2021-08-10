@@ -77,10 +77,13 @@ export class ConflictView {
     diffResults.different.forEach(p => {
       conflicts.push({
         remoteLabel,
-        relPath: p,
-        fileName: path.basename(p),
+        localRelPath: p.localRelPath,
+        remoteRelPath: p.remoteRelPath,
+        fileName: path.basename(p.localRelPath),
         localPath: diffResults.localRoot,
-        remotePath: diffResults.remoteRoot
+        remotePath: diffResults.remoteRoot,
+        localLastModifiedDate: p.localLastModifiedDate,
+        remoteLastModifiedDate: p.remoteLastModifiedDate
       } as ConflictFile);
     });
 

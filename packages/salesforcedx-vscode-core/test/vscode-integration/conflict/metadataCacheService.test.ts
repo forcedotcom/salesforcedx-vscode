@@ -88,8 +88,8 @@ describe('Metadata Cache', () => {
         components: new ComponentSet(),
         output: ''
       });
-      const startStub = sinon.stub(mockOperation, 'start');
-      startStub.callsFake(() => {});
+      const pollStatusStub = sinon.stub(mockOperation, 'pollStatus');
+      pollStatusStub.callsFake(() => {});
       operationStub.resolves(mockOperation);
       processStub.resolves(undefined);
 
@@ -97,7 +97,7 @@ describe('Metadata Cache', () => {
 
       expect(componentStub.callCount).to.equal(1);
       expect(operationStub.callCount).to.equal(1);
-      expect(startStub.callCount).to.equal(1);
+      expect(pollStatusStub.callCount).to.equal(1);
       expect(processStub.callCount).to.equal(1);
     });
   });
@@ -303,84 +303,93 @@ describe('Metadata Cache', () => {
   }
 
   describe('Static Methods', () => {
-    const cacheResults = {
-      cache: {
-        baseDirectory: path.normalize('/a/b'),
-        commonRoot: 'c',
-        components: [{
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        {
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        }] as SourceComponent[]
-      },
-      project: {
-        baseDirectory: path.normalize('/d'),
-        commonRoot: path.normalize('e/f'),
-        components: [{
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        {
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
-        }] as SourceComponent[]
-      },
-      properties: [{
-        fullName: 'HandlerCostCenter',
-        lastModifiedDate: 'Today',
-        type: 'ApexClass'
-      },
-      {
-        fullName: 'AccountController',
-        lastModifiedDate: 'Yesterday',
-        type: 'ApexClass'
-      }] as FileProperties[]
-    } as MetadataCacheResult;
+    const compOne = {
+      fullName: 'HandlerCostCenter',
+      type: {
+        name: 'ApexClass'
+      }
+    };
+    const compTwo = {
+      fullName: 'Account',
+      type: {
+        name: 'CustomObject'
+      }
+    };
+    const childComp = {
+      fullName: 'AccountNumber',
+      parent: compTwo,
+      type: {
+        name: 'CustomField'
+      }
+    };
+    const fileProperties = [{
+      fullName: 'HandlerCostCenter',
+      lastModifiedDate: 'Today',
+      type: 'ApexClass'
+    },
+    {
+      fullName: 'Account',
+      lastModifiedDate: 'Yesterday',
+      type: 'CustomObject'
+    }] as FileProperties[];
 
     it('Should correlate results correctly', () => {
+      const cacheResults = {
+        cache: {
+          baseDirectory: path.normalize('/a/b'),
+          commonRoot: 'c',
+          components: [compOne, compTwo, childComp] as SourceComponent[]
+        },
+        project: {
+          baseDirectory: path.normalize('/d'),
+          commonRoot: path.normalize('e/f'),
+          components: [compTwo, childComp, compOne] as SourceComponent[]
+        },
+        properties: fileProperties
+      } as MetadataCacheResult;
+
       const components = MetadataCacheService.correlateResults(cacheResults);
 
       expect(components.length).to.equal(2);
       expect(components).to.have.deep.members([{
-        cacheComponent: {
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        projectComponent: {
-          fullName: 'AccountController',
-          type: {
-            name: 'ApexClass'
-          }
-        },
-        lastModifiedDate: 'Yesterday'
+        cacheComponent: compOne,
+        projectComponent: compOne,
+        lastModifiedDate: 'Today'
       },
       {
-        cacheComponent: {
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
+        cacheComponent: compTwo,
+        projectComponent: compTwo,
+        lastModifiedDate: 'Yesterday'
+      }]);
+    });
+
+    it('Should correlate results for just a child component', () => {
+      const cacheResults = {
+        cache: {
+          baseDirectory: path.normalize('/a/b'),
+          commonRoot: 'c',
+          components: [compOne, childComp] as SourceComponent[]
         },
-        projectComponent: {
-          fullName: 'HandlerCostCenter',
-          type: {
-            name: 'ApexClass'
-          }
+        project: {
+          baseDirectory: path.normalize('/d'),
+          commonRoot: path.normalize('e/f'),
+          components: [childComp, compOne] as SourceComponent[]
         },
+        properties: fileProperties
+      } as MetadataCacheResult;
+
+      const components = MetadataCacheService.correlateResults(cacheResults);
+
+      expect(components.length).to.equal(2);
+      expect(components).to.have.deep.members([{
+        cacheComponent: compOne,
+        projectComponent: compOne,
         lastModifiedDate: 'Today'
+      },
+      {
+        cacheComponent: childComp,
+        projectComponent: childComp,
+        lastModifiedDate: 'Yesterday'
       }]);
     });
   });
