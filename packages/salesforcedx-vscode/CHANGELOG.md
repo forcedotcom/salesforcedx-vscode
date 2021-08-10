@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Pr/3429 use functions lib to create functions ([PR #3476](https://github.com/forcedotcom/salesforcedx-vscode/pull/3476))
+- Use functions library to create functions ([PR #3476](https://github.com/forcedotcom/salesforcedx-vscode/pull/3476))
 
 - Pr/3467 Invoke function using payload contents ([PR #3472](https://github.com/forcedotcom/salesforcedx-vscode/pull/3472))
 
