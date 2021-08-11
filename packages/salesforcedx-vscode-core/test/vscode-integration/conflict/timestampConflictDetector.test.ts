@@ -99,8 +99,8 @@ describe('Timestamp Conflict Detector Execution', () => {
 
     const diffResults = [
       {
-        projectPath: path.join('d', 'e', 'f', matchingContentFile.CONTENT_PATHS[0]),
-        cachePath: path.join('a', 'b', 'c', matchingContentFile.CONTENT_PATHS[0])
+        projectPath: '/d/e/f/path/to/matchingContentFiles/a.mcf',
+        cachePath: '/a/b/c/path/to/matchingContentFiles/a.mcf'
       }
     ] as differ.ComponentDiff[];
 
