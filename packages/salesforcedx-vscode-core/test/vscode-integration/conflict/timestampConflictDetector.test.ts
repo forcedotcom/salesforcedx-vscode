@@ -121,18 +121,12 @@ describe('Timestamp Conflict Detector Execution', () => {
       matchingContentFile.COMPONENTS[0],
       matchingContentFile.COMPONENTS[0]
     ]);
-    const expectedDifferent = new Set([{
+    expect(results.different).to.eql(new Set([{
       localRelPath: matchingContentFile.CONTENT_PATHS[0],
       remoteRelPath: matchingContentFile.CONTENT_PATHS[0],
       localLastModifiedDate: 'Yesteday',
       remoteLastModifiedDate: 'Today'
-    }]);
-    expect(results.different.size).to.eql(expectedDifferent.size);
-    expect([...results.different][0].localLastModifiedDate).to.eql('Yesteday');
-    expect([...results.different][0].remoteLastModifiedDate).to.eql('Today');
-    expect([...results.different][0].remoteRelPath).to.eql(matchingContentFile.CONTENT_PATHS[0]);
-    expect([...results.different][0].localRelPath).to.eql(matchingContentFile.CONTENT_PATHS[0]);
-    expect(results.different).to.eql(expectedDifferent);
+    }]));
   });
 
   it('Should not report differences if the component is only local', async () => {
