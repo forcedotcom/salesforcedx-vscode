@@ -72,13 +72,13 @@ commands:
       - npm-release-management/publish:
           use_tarfile: true
       - run:
-          name: Wait for version to become available on NPM
+          name: Wait for version to become available on NPM registry
           command: |
             PKG_NAME=$(cat package.json | jq -r .name)
             PKG_VERSION=$(cat package.json | jq -r .version)
             MAX_TRIES=30
             TRIES=0
-            until (($(npm view $PKG_NAME versions --json | jq "map(select(. == \"$PKG_VERSION\")) | length") > 0)) || (($TRIES >= $MAX_TRIES )); do
+            until (( $(curl -s 'https://registry.npmjs.org/'$PKG_NAME | jq '.["versions"]["'$PKG_VERSION'"]' | grep -c $PKG_VERSION ) )) || (($TRIES >= $MAX_TRIES )); do
                 printf '.'
                 sleep 1
                 TRIES=$((TRIES+1))
