@@ -106,7 +106,7 @@ export class MetadataCacheService {
     this.initialize(componentPath, projectPath, isManifest);
     const components = await this.getSourceComponents();
     const operation = await this.createRetrieveOperation(components);
-    const results = await operation.pollStatus();
+    const results = await operation.start();
     return this.processResults(results);
   }
 
@@ -420,7 +420,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
       components
     );
     this.setupCancellation(operation, token);
-    return operation.pollStatus();
+    return operation.start();
   }
 
   protected async postOperation(result: RetrieveResult | undefined) {
