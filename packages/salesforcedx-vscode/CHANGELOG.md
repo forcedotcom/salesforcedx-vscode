@@ -1,3 +1,15 @@
+# 52.9.1 - August 12, 2021
+
+## Fixed
+
+#### docs
+
+- Feat(header-footer): Updated default header and footer ([PR #3491](https://github.com/forcedotcom/salesforcedx-vscode/pull/3491))
+
+#### salesforcedx-vscode-core
+
+- Revert SDR to 2.1.5 ([PR #3497](https://github.com/forcedotcom/salesforcedx-vscode/pull/3497))
+
 # 52.9.0 - August 11, 2021
 
 ## Fixed
