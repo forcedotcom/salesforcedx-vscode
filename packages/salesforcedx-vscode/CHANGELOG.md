@@ -4,7 +4,7 @@
 
 #### docs
 
-- Feat(header-footer): Updated default header and footer ([PR #3491](https://github.com/forcedotcom/salesforcedx-vscode/pull/3491))
+- Updated docs website's default header and footer ([PR #3491](https://github.com/forcedotcom/salesforcedx-vscode/pull/3491))
 
 #### salesforcedx-vscode-core
 
@@ -19,6 +19,16 @@
 - Use functions library to create functions ([PR #3476](https://github.com/forcedotcom/salesforcedx-vscode/pull/3476))
 
 - Add support for invoking function using payload contents ([PR #3472](https://github.com/forcedotcom/salesforcedx-vscode/pull/3472))
+
+- Bump SDR to 3.0.0 ([PR #3497](https://github.com/forcedotcom/salesforcedx-vscode/pull/3451))
+
+#### salesforcedx-vscode-lwc
+
+- Update lightning language servers to 3.0.14 ([PR #3468](https://github.com/forcedotcom/salesforcedx-vscode/pull/3468))
+
+#### salesforcedx-vscode-lightning
+
+- Update lightning language servers to 3.0.14 ([PR #3468](https://github.com/forcedotcom/salesforcedx-vscode/pull/3468))
 
 # 52.8.0 - August 4, 2021
 
