@@ -250,7 +250,7 @@ describe('Base Deploy Retrieve Commands', () => {
     class TestDeploy extends DeployExecutor<{}> {
       public components: ComponentSet;
       public getComponentsStub = sb.stub().returns(new ComponentSet());
-      public pollStatusStub: SinonStub;
+      public startStub: SinonStub;
       public deployStub: SinonStub;
       public cancellationStub = sb.stub();
       public cacheSpy: SinonSpy;
@@ -258,10 +258,10 @@ describe('Base Deploy Retrieve Commands', () => {
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
         this.components = toDeploy;
-        this.pollStatusStub = sb.stub();
+        this.startStub = sb.stub();
         this.deployStub = sb
           .stub(this.components, 'deploy')
-          .returns({ pollStatus: this.pollStatusStub });
+          .returns({ start: this.startStub });
         this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesDeploy');
       }
 
@@ -296,7 +296,7 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(executor.deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
-      expect(executor.pollStatusStub.calledOnce).to.equal(true);
+      expect(executor.startStub.calledOnce).to.equal(true);
     });
 
     it('should store properties in metadata cache on successful deploy', async () => {
@@ -340,7 +340,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const fileResponses: any[] = [];
       const cache = PersistentStorageService.getInstance();
       sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
-      executor.pollStatusStub.resolves(mockDeployResult);
+      executor.startStub.resolves(mockDeployResult);
 
       await executor.run({data: {}, type: 'CONTINUE' });
 
@@ -360,7 +360,7 @@ describe('Base Deploy Retrieve Commands', () => {
       );
       const fileResponses: any[] = [];
       sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
-      executor.pollStatusStub.resolves(mockDeployResult);
+      executor.startStub.resolves(mockDeployResult);
       const success = await executor.run({ data: {}, type: 'CONTINUE' });
 
       expect(success).to.equal(false);
@@ -406,7 +406,7 @@ describe('Base Deploy Retrieve Commands', () => {
           new ComponentSet()
         );
         sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
-        executor.pollStatusStub.resolves(mockDeployResult);
+        executor.startStub.resolves(mockDeployResult);
 
         const formattedRows = fileResponses.map(r => ({
           fullName: r.fullName,
@@ -443,7 +443,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiDeployStatus,
           new ComponentSet()
         );
-        executor.pollStatusStub.resolves(mockDeployResult);
+        executor.startStub.resolves(mockDeployResult);
 
         const failedRows = fileResponses.map(r => ({
           fullName: r.fullName,
@@ -486,7 +486,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiDeployStatus,
           new ComponentSet()
         );
-        executor.pollStatusStub.resolves(mockDeployResult);
+        executor.startStub.resolves(mockDeployResult);
 
         const failedRows = fileResponses.map(r => ({
           fullName: r.fullName,
@@ -555,17 +555,17 @@ describe('Base Deploy Retrieve Commands', () => {
 
     class TestRetrieve extends RetrieveExecutor<{}> {
       public components: ComponentSet;
-      public pollStatusStub: SinonStub;
+      public startStub: SinonStub;
       public retrieveStub: SinonStub;
       public cacheSpy: SinonSpy;
 
       constructor(toRetrieve = new ComponentSet()) {
         super('test', 'testlog');
         this.components = toRetrieve;
-        this.pollStatusStub = sb.stub();
+        this.startStub = sb.stub();
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
-          .returns({ pollStatus: this.pollStatusStub });
+          .returns({ start: this.startStub });
         this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesRetrieve');
       }
 
@@ -618,7 +618,7 @@ describe('Base Deploy Retrieve Commands', () => {
         new ComponentSet()
       );
       const cache = PersistentStorageService.getInstance();
-      executor.pollStatusStub.resolves(mockRetrieveResult);
+      executor.startStub.resolves(mockRetrieveResult);
 
       await executor.run({data: {}, type: 'CONTINUE' });
 
@@ -637,7 +637,7 @@ describe('Base Deploy Retrieve Commands', () => {
         } as MetadataApiRetrieveStatus,
         new ComponentSet()
       );
-      executor.pollStatusStub.resolves(mockRetrieveResult);
+      executor.startStub.resolves(mockRetrieveResult);
 
       await executor.run({data: {}, type: 'CONTINUE' });
 
@@ -661,7 +661,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );
-        executor.pollStatusStub.resolves(mockRetrieveResult);
+        executor.startStub.resolves(mockRetrieveResult);
 
         const fileResponses = [
           {
@@ -715,7 +715,7 @@ describe('Base Deploy Retrieve Commands', () => {
           } as MetadataApiRetrieveStatus,
           new ComponentSet()
         );
-        executor.pollStatusStub.resolves(mockRetrieveResult);
+        executor.startStub.resolves(mockRetrieveResult);
 
         const fileResponses = [
           {

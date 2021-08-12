@@ -160,7 +160,7 @@ describe('Force Source Retrieve Component(s)', () => {
 
     let openTextDocumentStub: SinonStub;
     let showTextDocumentStub: SinonStub;
-    let pollStatusStub: SinonStub;
+    let startStub: SinonStub;
     let retrieveStub: SinonStub;
 
     beforeEach(async () => {
@@ -187,9 +187,9 @@ describe('Force Source Retrieve Component(s)', () => {
       sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       openTextDocumentStub = sb.stub(vscode.workspace, 'openTextDocument');
       showTextDocumentStub = sb.stub(vscode.window, 'showTextDocument');
-      pollStatusStub = sb.stub();
+      startStub = sb.stub();
       retrieveStub = sb.stub(ComponentSet.prototype, 'retrieve').returns({
-        pollStatus: pollStatusStub
+        start: startStub
       });
     });
 
@@ -331,7 +331,7 @@ describe('Force Source Retrieve Component(s)', () => {
         fileProperties: [],
         status: RequestStatus.Succeeded
       };
-      pollStatusStub.resolves(
+      startStub.resolves(
         new RetrieveResult(
           retrieveResponse as MetadataApiRetrieveStatus,
           componentSet

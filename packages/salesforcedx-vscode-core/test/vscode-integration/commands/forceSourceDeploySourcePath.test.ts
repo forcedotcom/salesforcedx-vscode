@@ -41,7 +41,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     let mockConnection: Connection;
 
     let resolveStub: SinonStub;
-    let pollStatusStub: SinonStub;
+    let startStub: SinonStub;
     let deployStub: SinonStub;
 
     beforeEach(async () => {
@@ -57,12 +57,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
       resolveStub = sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-      pollStatusStub = sb.stub().resolves(undefined);
+      startStub = sb.stub().resolves(undefined);
       deployStub = sb
         .stub(ComponentSet.prototype, 'deploy')
         .withArgs({ usernameOrConnection: mockConnection })
         .returns({
-          pollStatus: pollStatusStub
+          start: startStub
         });
     });
 
@@ -82,7 +82,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
-      expect(pollStatusStub.calledOnce).to.equal(true);
+      expect(startStub.calledOnce).to.equal(true);
     });
 
     it('should deploy with multiple paths', async () => {
@@ -99,7 +99,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
-      expect(pollStatusStub.calledOnce).to.equal(true);
+      expect(startStub.calledOnce).to.equal(true);
     });
   });
 });
