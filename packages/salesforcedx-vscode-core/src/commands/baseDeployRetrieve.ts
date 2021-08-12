@@ -100,8 +100,8 @@ export abstract class DeployRetrieveExecutor<
     token?: vscode.CancellationToken
   ) {
     if (token && operation) {
-      token.onCancellationRequested(async () => {
-        await operation.cancel();
+      token.onCancellationRequested(() => {
+        operation.cancel();
       });
     }
   }
@@ -123,13 +123,13 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const operation = await components.deploy({
+    const operation = components.deploy({
       usernameOrConnection: await workspaceContext.getConnection()
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.pollStatus();
+    return operation.start();
   }
 
   protected async postOperation(
@@ -218,7 +218,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const operation = await components.retrieve({
+    const operation = components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
       merge: true
@@ -226,7 +226,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     this.setupCancellation(operation, token);
 
-    return operation.pollStatus();
+    return operation.start();
   }
 
   protected async postOperation(
