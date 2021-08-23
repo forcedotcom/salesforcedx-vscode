@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "52.5.0",
+  "version": "52.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,10 +25,10 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.0.3",
+    "@heroku/functions-core": "0.0.7",
     "@salesforce/core": "2.23.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "52.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "52.5.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "52.10.0",
+    "@salesforce/salesforcedx-utils-vscode": "52.10.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "2.1.5",
     "@salesforce/templates": "52.0.0",
@@ -41,7 +41,7 @@
     "yeoman-generator": "^4.8.2"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "52.5.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "52.10.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -308,6 +308,10 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.auth.logout.default",
+          "when": "sfdx:project_opened && sfdx:has_default_username"
+        },
+        {
           "command": "sfdx.force.org.create",
           "when": "sfdx:project_opened"
         },
@@ -569,6 +573,10 @@
       {
         "command": "sfdx.force.auth.logout.all",
         "title": "%force_auth_logout_all_text%"
+      },
+      {
+        "command": "sfdx.force.auth.logout.default",
+        "title": "%force_auth_logout_default_text%"
       },
       {
         "command": "sfdx.force.org.create",
