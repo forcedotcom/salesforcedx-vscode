@@ -88,8 +88,8 @@ describe('Metadata Cache', () => {
         components: new ComponentSet(),
         output: ''
       });
-      const pollStatusStub = sinon.stub(mockOperation, 'pollStatus');
-      pollStatusStub.callsFake(() => {});
+      const startStub = sinon.stub(mockOperation, 'start');
+      startStub.callsFake(() => {});
       operationStub.resolves(mockOperation);
       processStub.resolves(undefined);
 
@@ -97,7 +97,7 @@ describe('Metadata Cache', () => {
 
       expect(componentStub.callCount).to.equal(1);
       expect(operationStub.callCount).to.equal(1);
-      expect(pollStatusStub.callCount).to.equal(1);
+      expect(startStub.callCount).to.equal(1);
       expect(processStub.callCount).to.equal(1);
     });
   });
