@@ -1,3 +1,11 @@
+# 52.11.0 - August 27, 2021
+
+## Fixed
+
+#### docs
+
+- Update sidebar.yml ([PR #3510](https://github.com/forcedotcom/salesforcedx-vscode/pull/3510))
+
 # 52.9.1 - August 12, 2021
 
 ## Fixed
