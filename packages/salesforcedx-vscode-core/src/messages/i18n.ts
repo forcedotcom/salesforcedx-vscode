@@ -548,7 +548,7 @@ export const messages = {
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
   conflict_detect_initialization_error:
-    'Unexpected error initiliazing metadata cache',
+    'Unexpected error initializing metadata cache',
   conflict_detect_conflicts_during_deploy:
     'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
