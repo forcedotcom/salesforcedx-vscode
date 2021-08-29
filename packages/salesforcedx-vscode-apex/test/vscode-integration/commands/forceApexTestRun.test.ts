@@ -167,7 +167,6 @@ describe('Apex Library Test Run Executor', async () => {
 
   it('should report progress', async () => {
     const apexLibExecutor = new ApexLibraryTestRunExecutor();
-    const exitEarly = false;
     runTestStub.callsFake(
       (payload, codecoverage, exitEarly, progressReporter, token) => {
         progressReporter.report({

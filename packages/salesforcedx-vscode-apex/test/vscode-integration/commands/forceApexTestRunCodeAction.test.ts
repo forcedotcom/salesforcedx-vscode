@@ -411,7 +411,6 @@ describe('Force Apex Test Run - Code Action', () => {
     });
 
     it('should report progress', async () => {
-      const exitEarly = false;
       buildPayloadStub.resolves({
         tests: [
           { className: 'testClass' },
