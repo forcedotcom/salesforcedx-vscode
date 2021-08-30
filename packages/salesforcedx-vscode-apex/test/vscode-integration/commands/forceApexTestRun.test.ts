@@ -67,7 +67,6 @@ describe('Apex Library Test Run Executor', async () => {
       progress,
       cancellationToken
     );
-
     expect(buildPayloadStub.called).to.be.true;
     expect(buildPayloadStub.args[0]).to.eql([
       'RunSpecifiedTests',
@@ -82,6 +81,7 @@ describe('Apex Library Test Run Executor', async () => {
         testLevel: TestLevel.RunSpecifiedTests
       },
       true,
+      false,
       match.any,
       cancellationToken
     );
@@ -115,6 +115,7 @@ describe('Apex Library Test Run Executor', async () => {
       runTestStub,
       { suiteNames: 'testSuite', testLevel: TestLevel.RunSpecifiedTests },
       true,
+      false,
       match.any,
       cancellationToken
     );
@@ -136,6 +137,7 @@ describe('Apex Library Test Run Executor', async () => {
       runTestStub,
       { testLevel: TestLevel.RunLocalTests },
       true,
+      false,
       match.any,
       cancellationToken
     );
@@ -157,6 +159,7 @@ describe('Apex Library Test Run Executor', async () => {
       runTestStub,
       { testLevel: TestLevel.RunAllTestsInOrg },
       true,
+      false,
       match.any,
       cancellationToken
     );
@@ -164,29 +167,31 @@ describe('Apex Library Test Run Executor', async () => {
 
   it('should report progress', async () => {
     const apexLibExecutor = new ApexLibraryTestRunExecutor();
-    runTestStub.callsFake((payload, codecoverage, progressReporter, token) => {
-      progressReporter.report({
-        type: 'StreamingClientProgress',
-        value: 'streamingTransportUp',
-        message: 'Listening for streaming state changes...'
-      });
-      progressReporter.report({
-        type: 'StreamingClientProgress',
-        value: 'streamingProcessingTestRun',
-        message: 'Processing test run 707500000000000001',
-        testRunId: '707500000000000001'
-      });
-      progressReporter.report({
-        type: 'FormatTestResultProgress',
-        value: 'retrievingTestRunSummary',
-        message: 'Retrieving test run summary record'
-      });
-      progressReporter.report({
-        type: 'FormatTestResultProgress',
-        value: 'queryingForAggregateCodeCoverage',
-        message: 'Querying for aggregate code coverage results'
-      });
-    });
+    runTestStub.callsFake(
+      (payload, codecoverage, exitEarly, progressReporter, token) => {
+        progressReporter.report({
+          type: 'StreamingClientProgress',
+          value: 'streamingTransportUp',
+          message: 'Listening for streaming state changes...'
+        });
+        progressReporter.report({
+          type: 'StreamingClientProgress',
+          value: 'streamingProcessingTestRun',
+          message: 'Processing test run 707500000000000001',
+          testRunId: '707500000000000001'
+        });
+        progressReporter.report({
+          type: 'FormatTestResultProgress',
+          value: 'retrievingTestRunSummary',
+          message: 'Retrieving test run summary record'
+        });
+        progressReporter.report({
+          type: 'FormatTestResultProgress',
+          value: 'queryingForAggregateCodeCoverage',
+          message: 'Querying for aggregate code coverage results'
+        });
+      }
+    );
 
     await apexLibExecutor.run(
       {

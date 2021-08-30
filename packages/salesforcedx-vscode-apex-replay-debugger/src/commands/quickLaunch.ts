@@ -53,7 +53,9 @@ export class QuickLaunch {
       return false;
     }
 
-    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(true);
+    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(
+      true
+    );
     if (oneOrMoreCheckpoints) {
       const createCheckpointsResult = await sfdxCreateCheckpoints();
       if (!createCheckpointsResult) {
@@ -95,7 +97,10 @@ export class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
-      const result: TestResult = await testService.runTestSynchronous(payload, true);
+      const result: TestResult = (await testService.runTestSynchronous(
+        payload,
+        true
+      )) as TestResult;
       if (workspace && workspace.workspaceFolders) {
         const apexTestResultsPath = getTestResultsFolder(
           getRootWorkspacePath(),
