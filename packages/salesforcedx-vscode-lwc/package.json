@@ -25,7 +25,7 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/core": "2.23.2",
+    "@salesforce/core": "2.25.1",
     "@salesforce/eslint-config-lwc": "0.3.0",
     "@salesforce/lightning-lsp-common": "3.0.14",
     "@salesforce/lwc-language-server": "3.0.14",
