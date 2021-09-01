@@ -305,6 +305,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         true,
+        false,
         match.any,
         cancellationToken
       );
@@ -341,6 +342,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         false,
+        false,
         match.any,
         cancellationToken
       );
@@ -371,6 +373,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         true,
+        false,
         match.any,
         cancellationToken
       );
@@ -401,6 +404,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         false,
+        false,
         match.any,
         cancellationToken
       );
@@ -422,7 +426,7 @@ describe('Force Apex Test Run - Code Action', () => {
         false
       );
       runTestStub.callsFake(
-        (payload, codecoverage, progressReporter, token) => {
+        (payload, codecoverage, exitEarly, progressReporter, token) => {
           progressReporter.report({
             type: 'StreamingClientProgress',
             value: 'streamingTransportUp',

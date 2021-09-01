@@ -145,7 +145,8 @@ describe('setupWorkspaceOrgType', () => {
     await setupWorkspaceOrgType(defaultUsername);
 
     expect(aliasesSpy.called).to.be.false;
-    expect(executeCommandStub.calledTwice).to.be.true;
+    expect(executeCommandStub.calledThrice).to.be.true;
+    expectSetHasDefaultUsername(false, executeCommandStub);
     expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
@@ -165,7 +166,8 @@ describe('setupWorkspaceOrgType', () => {
 
     await setupWorkspaceOrgType(defaultUsername);
 
-    expect(executeCommandStub.calledTwice).to.be.true;
+    expect(executeCommandStub.calledThrice).to.be.true;
+    expectSetHasDefaultUsername(true, executeCommandStub);
     expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
@@ -189,7 +191,8 @@ describe('setupWorkspaceOrgType', () => {
     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
       username: 'scratch@org.com'
     });
-    expect(executeCommandStub.calledTwice).to.be.true;
+    expect(executeCommandStub.calledThrice).to.be.true;
+    expectSetHasDefaultUsername(true, executeCommandStub);
     expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(false, executeCommandStub);
 
@@ -207,7 +210,8 @@ describe('setupWorkspaceOrgType', () => {
     const defaultUsername = 'sandbox@org.com';
     await setupWorkspaceOrgType(defaultUsername);
 
-    expect(executeCommandStub.calledTwice).to.be.true;
+    expect(executeCommandStub.calledThrice).to.be.true;
+    expectSetHasDefaultUsername(true, executeCommandStub);
     expectDefaultUsernameHasChangeTracking(false, executeCommandStub);
     expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
 
@@ -234,7 +238,8 @@ describe('setupWorkspaceOrgType', () => {
       await setupWorkspaceOrgType(username);
 
       expect(aliasesSpy.called).to.be.true;
-      expect(executeCommandStub.calledTwice).to.be.true;
+      expect(executeCommandStub.calledThrice).to.be.true;
+      expectSetHasDefaultUsername(true, executeCommandStub);
       expectDefaultUsernameHasChangeTracking(true, executeCommandStub);
       expectDefaultUsernameHasNoChangeTracking(true, executeCommandStub);
     } finally {
@@ -256,11 +261,22 @@ const getAliasesFetchStub = (returnValue: any) =>
 const getAuthInfoCreateStub = (returnValue: any) =>
   sinon.stub(AuthInfo, 'create').returns(Promise.resolve(returnValue));
 
+const expectSetHasDefaultUsername = (
+  hasUsername: boolean,
+  executeCommandStub: sinon.SinonStub
+) => {
+  expect(executeCommandStub.getCall(0).args).to.eql([
+    'setContext',
+    'sfdx:has_default_username',
+    hasUsername
+  ]);
+};
+
 const expectDefaultUsernameHasChangeTracking = (
   hasChangeTracking: boolean,
   executeCommandStub: sinon.SinonStub
 ) => {
-  expect(executeCommandStub.getCall(0).args).to.eql([
+  expect(executeCommandStub.getCall(1).args).to.eql([
     'setContext',
     'sfdx:default_username_has_change_tracking',
     hasChangeTracking
@@ -271,7 +287,7 @@ const expectDefaultUsernameHasNoChangeTracking = (
   hasNoChangeTracking: boolean,
   executeCommandStub: sinon.SinonStub
 ) => {
-  expect(executeCommandStub.getCall(1).args).to.eql([
+  expect(executeCommandStub.getCall(2).args).to.eql([
     'setContext',
     'sfdx:default_username_has_no_change_tracking',
     hasNoChangeTracking

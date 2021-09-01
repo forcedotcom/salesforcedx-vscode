@@ -12,6 +12,7 @@ import {
   Progress,
   ResultFormat,
   TestLevel,
+  TestResult,
   TestService
 } from '@salesforce/apex-node';
 import {
@@ -175,12 +176,13 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
         }
       }
     };
-    const result = await testService.runTestAsynchronous(
+    const result = (await testService.runTestAsynchronous(
       payload,
       codeCoverage,
+      false,
       progressReporter,
       token
-    );
+    )) as TestResult;
 
     if (token?.isCancellationRequested) {
       return false;

@@ -250,6 +250,7 @@ export const messages = {
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_editor_title_message: 'Manifest Editor',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
@@ -269,6 +270,10 @@ export const messages = {
   auth_custom_label: 'Custom',
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
+  auth_logout_scratch_prompt:
+    'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
+  auth_logout_scratch_logout: 'Logout',
+  auth_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_no_package_directories_found_on_setup_text:
@@ -543,7 +548,7 @@ export const messages = {
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
   conflict_detect_initialization_error:
-    'Unexpected error initiliazing metadata cache',
+    'Unexpected error initializing metadata cache',
   conflict_detect_conflicts_during_deploy:
     'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
@@ -578,8 +583,6 @@ export const messages = {
     'Diff for this metadata type is currently not supported',
   force_source_diff_title: '%s//%s ↔ local//%s',
   force_source_diff_folder_title: '%s - File Diffs',
-  force_source_diff_command_not_found:
-    'To run this command, first install the @salesforce/sfdx-diff plugin. For more info, see [https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/source-diff).',
   beta_tapi_mdcontainer_error: 'Unexpected error creating metadata container',
   beta_tapi_membertype_error: 'Unexpected error creating %s member',
   beta_tapi_car_error: 'Unexpected error creating container async request',

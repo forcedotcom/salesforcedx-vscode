@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Measurements,
-  Properties
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
@@ -22,96 +19,96 @@ import {
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { sfdxCoreSettings } from '../../settings';
-import { telemetryService } from '../../telemetry';
+import { MetadataDictionary, MetadataInfo } from '../../util';
 import {
   CompositeParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
-import { BaseTemplateCommand } from './baseTemplateCommand';
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
+
+import { generateFunction, Language } from '@heroku/functions-core';
+import { getRootWorkspacePath } from '../../util';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';
+const LANGUAGE_TYPESCRIPT = 'typescript';
+
 const LOG_NAME = 'force_function_create';
-export class ForceFunctionCreateExecutor extends BaseTemplateCommand {
-
-  public build(data: FunctionInfo): Command {
-    if (data.language === LANGUAGE_JAVASCRIPT) {
-      this.metadata = FUNCTION_TYPE_JS;
-      this.setFileExtension('js');
-    } else if (data.language === LANGUAGE_JAVA) {
-      this.metadata = FUNCTION_TYPE_JAVA;
-      this.setFileExtension('java');
-    }
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_function_create_text'))
-      .withArg('generate:function')
-      .withFlag('--name', data.fileName)
-      .withFlag('--language', data.language)
-      .withLogName(LOG_NAME)
-      .build();
+export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
+  any
+> {
+  constructor() {
+    super(nls.localize('force_function_create_text'), LOG_NAME, OUTPUT_CHANNEL);
   }
+  public async run(response: ContinueResponse<FunctionInfo>): Promise<boolean> {
+    const { fileName, language } = response.data;
+    let metadata: MetadataInfo | undefined;
+    switch (language) {
+      case LANGUAGE_JAVASCRIPT:
+        metadata = MetadataDictionary.getInfo(FUNCTION_TYPE_JS);
+        metadata!.suffix = '.js';
+        this.telemetry.addProperty('language', 'node');
+        break;
+      case LANGUAGE_TYPESCRIPT:
+        metadata = MetadataDictionary.getInfo(FUNCTION_TYPE_JS);
+        metadata!.suffix = '.ts';
+        this.telemetry.addProperty('language', 'node');
+        break;
+      case LANGUAGE_JAVA:
+        metadata = MetadataDictionary.getInfo(FUNCTION_TYPE_JAVA);
+        metadata!.suffix = '.java';
+        this.telemetry.addProperty('language', 'java');
+        break;
+    }
+    const { path: functionPath, welcomeText } = await generateFunction(
+      fileName,
+      language as Language,
+      getRootWorkspacePath()
+    );
+    channelService.appendLine(
+      `Created ${language} function ${fileName} in ${functionPath}.`
+    );
+    if (welcomeText) channelService.appendLine(welcomeText);
+    channelService.showChannelOutput();
+    const outputFile = metadata!.pathStrategy.getPathToSource(
+      functionPath,
+      fileName,
+      metadata!.suffix
+    );
+    const document = await vscode.workspace.openTextDocument(outputFile);
+    vscode.window.showTextDocument(document);
+    channelService.appendLine('Installing dependencies...');
 
-  public runPostCommandTasks(data: FunctionInfo) {
-    const language = data.language;
     if (language === LANGUAGE_JAVA) {
-      const pathToSource = this.getPathToSource(data.outputdir, data.fileName);
-      const targetDir = path.join(path.dirname(pathToSource), '..', '..', '..', '..', '..');
-      return new Promise((resolve, reject) => {
-        cp.exec('mvn install', { cwd: path.join(targetDir) }, err => {
-          if (err) {
-            notificationService.showWarningMessage(
-              nls.localize(
-                'force_function_install_mvn_dependencies_error',
-                err.message
-              )
-            );
-            reject(err);
-          }
-          resolve();
-        });
+      cp.exec('mvn install', { cwd: path.join(functionPath) }, err => {
+        if (err) {
+          notificationService.showWarningMessage(
+            nls.localize(
+              'force_function_install_mvn_dependencies_error',
+              err.message
+            )
+          );
+        }
       });
     } else {
-      return new Promise((resolve, reject) => {
-        const pathToSource = this.getPathToSource(data.outputdir, data.fileName);
-        const targetDir = path.dirname(pathToSource);
-        cp.exec('npm install', { cwd: targetDir }, err => {
-          if (err) {
-            notificationService.showWarningMessage(
-              nls.localize(
-                'force_function_install_npm_dependencies_error',
-                err.message
-              )
-            );
-            reject(err);
-          }
-          resolve();
-        });
+      cp.exec('npm install', { cwd: functionPath }, err => {
+        if (err) {
+          notificationService.showWarningMessage(
+            nls.localize(
+              'force_function_install_npm_dependencies_error',
+              err.message
+            )
+          );
+        }
       });
     }
-  }
 
-  public logMetric(
-    logName: string | undefined,
-    hrstart: [number, number],
-    properties?: Properties,
-    measurements?: Measurements
-  ) {
-    if (properties) {
-      const fileExtension = this.getFileExtension();
-      if (fileExtension === '.js') {
-        properties.language = 'node';
-      } else if (fileExtension === '.java') {
-        properties.language = 'java';
-      }
-    }
-    super.logMetric(logName, hrstart, properties, measurements);
+    return true;
   }
-
 }
 
 export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
@@ -127,7 +124,7 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     }
 
     const language = await vscode.window.showQuickPick(
-      [LANGUAGE_JAVA, LANGUAGE_JAVASCRIPT],
+      [LANGUAGE_JAVA, LANGUAGE_JAVASCRIPT, LANGUAGE_TYPESCRIPT],
       {
         placeHolder: nls.localize('force_function_enter_language')
       }
@@ -137,14 +134,11 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
       return { type: 'CANCEL' };
     }
 
-    // In order to reuse code used by other templates that have outputdir
-    // and extends DirFileNameSelection, we are passing an empty outputdir
     return {
       type: 'CONTINUE',
       data: {
         fileName: name,
-        language,
-        outputdir: ''
+        language
       }
     };
   }
