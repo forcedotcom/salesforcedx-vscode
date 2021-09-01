@@ -1,3 +1,11 @@
+# 52.12.0 - September 1, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Fix issue of missing choice dropdown in VSCode ([PR #3492](https://github.com/forcedotcom/salesforcedx-vscode/pull/3492))
+
 # 52.11.0 - August 26, 2021
 
 ## Fixed
