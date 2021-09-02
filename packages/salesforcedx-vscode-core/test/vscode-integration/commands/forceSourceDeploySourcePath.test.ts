@@ -7,19 +7,19 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import { ComponentSet, MetadataResolver } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   ForceSourceDeploySourcePathExecutor,
   LibraryDeploySourcePathExecutor
 } from '../../../src/commands';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { getRootWorkspacePath } from '../../../src/util';
 import { SfdxProjectConfig } from '../../../src/sfdxProject';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
