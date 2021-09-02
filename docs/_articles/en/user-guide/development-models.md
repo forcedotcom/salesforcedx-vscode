@@ -33,7 +33,7 @@ To create developing against non-source-tracked orgs:
 
 ![Create project](./images/create-project-with-manifest.png)
 
-1. In the code editor's status bar, click Org Picker to open the Command Palette. Select the command to authorize an org, Dev Hub, or create a scratch org; Or you can select from the list of authorized orgs.
+1. In the code editor's status bar, click Org Picker to open the Command Palette. You can select from the list of authorized orgs, or you can choose to authorize a new org.
 
 If this is the first time you are creating a project in VS Code and haven’t authorized an org, the display text for the Org Picker shows No Default Org Set.
 
