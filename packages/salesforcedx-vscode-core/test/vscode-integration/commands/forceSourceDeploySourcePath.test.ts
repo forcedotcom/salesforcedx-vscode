@@ -11,12 +11,15 @@ import { ComponentSet, MetadataResolver } from '@salesforce/source-deploy-retrie
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   ForceSourceDeploySourcePathExecutor,
   LibraryDeploySourcePathExecutor
 } from '../../../src/commands';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
+import { getRootWorkspacePath } from '../../../src/util';
+import { SfdxProjectConfig } from '../../../src/sfdxProject';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -64,6 +67,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns({
           pollStatus: pollStatusStub
         });
+      sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
     });
 
     afterEach(() => {
@@ -100,6 +104,17 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         usernameOrConnection: mockConnection
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
+    });
+
+    it('componentSet should have sourceApiVersion set', async () => {
+      const executor = new LibraryDeploySourcePathExecutor();
+      const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
+      const continueResponse = {
+        type: 'CONTINUE',
+        data
+      } as ContinueResponse<string>;
+      const componentSet = executor.getComponents(continueResponse);
+      expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
   });
 });
