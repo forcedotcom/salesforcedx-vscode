@@ -311,7 +311,7 @@
           "default": false,
           "description": "%apex_semantic_errors_description%"
         },
-        "salesforcedx-vscode-apex.enable-completion-statistics": {
+        "salesforcedx-vscode-apex.advanced.enable-completion-statistics": {
           "type": "boolean",
           "default": false,
           "description": "%apex_code_completion_stats_description%"
