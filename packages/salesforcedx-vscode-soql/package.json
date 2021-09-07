@@ -76,6 +76,9 @@
     "webpack": "4.30.0",
     "webpack-cli": "3.3.5"
   },
+  "overrides": {
+    "monaco-page-objects": "1.5.1"
+  },
   "scripts": {
     "build": "npm run compile",
     "compile": "tsc -p ./ && webpack",
