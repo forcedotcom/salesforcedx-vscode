@@ -28,7 +28,7 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
@@ -70,6 +70,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
         defaultPackage
       );
+      sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
       pollStatusStub = sb.stub();
     });
 
@@ -104,6 +105,17 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         merge: true
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
+    });
+
+    it('componentSet has sourceApiVersion set', async () => {
+      const executor = new LibraryRetrieveSourcePathExecutor();
+      const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
+      const continueResponse = {
+        type: 'CONTINUE',
+        data
+      } as ContinueResponse<string>;
+      const componentSet = executor.getComponents(continueResponse);
+      expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
   });
 });

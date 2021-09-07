@@ -18,6 +18,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
@@ -55,11 +56,14 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
     );
   }
 
-  protected async getComponents(
+  public async getComponents(
     response: ContinueResponse<string | string[]>
   ): Promise<ComponentSet> {
+    const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
     const paths = typeof response.data === 'string' ? [response.data] : response.data;
-    return ComponentSet.fromSource(paths);
+    const componentSet = ComponentSet.fromSource(paths);
+    componentSet.sourceApiVersion = sourceApiVersion;
+    return componentSet;
   }
 }
 

@@ -19,7 +19,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
-import { SfdxPackageDirectories } from '../sfdxProject';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
@@ -52,10 +52,13 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
     );
   }
 
-  protected async getComponents(
+  public async getComponents(
     response: ContinueResponse<string>
   ): Promise<ComponentSet> {
-    return ComponentSet.fromSource(response.data);
+    const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
+    const componentSet = ComponentSet.fromSource(response.data);
+    componentSet.sourceApiVersion = sourceApiVersion;
+    return componentSet;
   }
 }
 
