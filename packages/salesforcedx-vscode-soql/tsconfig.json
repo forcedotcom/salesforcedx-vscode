@@ -11,7 +11,8 @@
     "rootDir": ".",
     "outDir": "out",
     "preserveConstEnums": true,
-    "strict": true
+    "strict": true,
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules",
