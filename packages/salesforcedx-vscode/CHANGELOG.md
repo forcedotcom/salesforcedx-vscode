@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- Typo in salesforcedx-vscode-core/src/messages/i18n.ts ([PR #3525](https://github.com/forcedotcom/salesforcedx-vscode/pull/3525))
+- Typo in salesforcedx-vscode-core/src/messages/i18n.ts ([PR #3525](https://github.com/forcedotcom/salesforcedx-vscode/pull/3525)) - Contribution by [@RitamAgrawal](https://github.com/RitamAgrawal)
 
 # 52.12.0 - September 1, 2021
 
