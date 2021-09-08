@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
@@ -19,6 +20,7 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
+  registry,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
@@ -29,6 +31,7 @@ import { join } from 'path';
 import * as vscode from 'vscode';
 import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
 import { workspaceContext } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
@@ -62,6 +65,16 @@ export abstract class DeployRetrieveExecutor<
     try {
       const components = await this.getComponents(response);
 
+      // concrete classes may have purposefully changed the api version.
+      // if there's an indication they didn't, check the SFDX configuration to see
+      // if there is an overridden api version.
+      if (components.apiVersion === registry.apiVersion) {
+        const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
+          | string
+          | undefined;
+        components.apiVersion = apiVersion ?? components.apiVersion;
+      }
+
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
         JSON.stringify(createComponentCount(components))
@@ -87,8 +100,8 @@ export abstract class DeployRetrieveExecutor<
     token?: vscode.CancellationToken
   ) {
     if (token && operation) {
-      token.onCancellationRequested(() => {
-        operation.cancel();
+      token.onCancellationRequested(async () => {
+        await operation.cancel();
       });
     }
   }
@@ -110,13 +123,13 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
-    const operation = components.deploy({
+    const operation = await components.deploy({
       usernameOrConnection: await workspaceContext.getConnection()
     });
 
     this.setupCancellation(operation, token);
 
-    return operation.start();
+    return operation.pollStatus();
   }
 
   protected async postOperation(
@@ -129,6 +142,10 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
         const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
         const output = this.createOutput(result, relativePackageDirs);
         channelService.appendLine(output);
+        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(
+            result.components,
+            result.response
+        );
 
         const success = result.response.status === RequestStatus.Succeeded;
 
@@ -201,7 +218,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       (await SfdxPackageDirectories.getDefaultPackageDir()) ?? ''
     );
 
-    const operation = components.retrieve({
+    const operation = await components.retrieve({
       usernameOrConnection: connection,
       output: defaultOutput,
       merge: true
@@ -209,7 +226,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
 
     this.setupCancellation(operation, token);
 
-    return operation.start();
+    return operation.pollStatus();
   }
 
   protected async postOperation(
@@ -219,6 +236,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
+      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
     }
   }
 

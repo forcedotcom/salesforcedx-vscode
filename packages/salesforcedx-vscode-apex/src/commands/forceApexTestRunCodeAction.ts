@@ -85,12 +85,13 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
         }
       }
     };
-    const result = await testService.runTestAsynchronous(
+    const result = (await testService.runTestAsynchronous(
       payload,
       this.codeCoverage,
+      false,
       progressReporter,
       token
-    );
+    )) as TestResult;
 
     if (token?.isCancellationRequested) {
       return false;
@@ -123,7 +124,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
             fullName: test.apexClass.name,
             type: 'ApexClass'
           })
-          .next().value as SourceComponent;
+          .first() as SourceComponent;
         const componentPath = testClassCmp.content;
 
         const vscDiagnostic: vscode.Diagnostic = {

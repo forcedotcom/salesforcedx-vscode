@@ -260,10 +260,10 @@ describe('Force Apex Test Run - Code Action', () => {
       sb.stub(ComponentSet, 'fromSource').returns({
         getSourceComponents: () => {
           return {
-            next: () => {
-              return { value: { content: componentPath } };
+            first: () => {
+              return { content: componentPath };
             }
-          } as IterableIterator<{ content: string }>;
+          };
         }
       });
       sb.stub(ApexLibraryTestRunExecutor.diagnostics, 'set');
@@ -305,6 +305,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         true,
+        false,
         match.any,
         cancellationToken
       );
@@ -341,6 +342,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         false,
+        false,
         match.any,
         cancellationToken
       );
@@ -371,6 +373,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         true,
+        false,
         match.any,
         cancellationToken
       );
@@ -401,6 +404,7 @@ describe('Force Apex Test Run - Code Action', () => {
           testLevel: TestLevel.RunSpecifiedTests
         },
         false,
+        false,
         match.any,
         cancellationToken
       );
@@ -422,7 +426,7 @@ describe('Force Apex Test Run - Code Action', () => {
         false
       );
       runTestStub.callsFake(
-        (payload, codecoverage, progressReporter, token) => {
+        (payload, codecoverage, exitEarly, progressReporter, token) => {
           progressReporter.report({
             type: 'StreamingClientProgress',
             value: 'streamingTransportUp',
@@ -527,10 +531,10 @@ describe('Force Apex Test Run - Code Action', () => {
       componentPathStub = sb.stub(ComponentSet, 'fromSource').returns({
         getSourceComponents: () => {
           return {
-            next: () => {
-              return { value: { content: componentPath } };
+            first: () => {
+              return { content: componentPath };
             }
-          } as IterableIterator<{ content: string }>;
+          };
         }
       });
       setDiagnosticStub = sb.stub(
@@ -585,10 +589,10 @@ describe('Force Apex Test Run - Code Action', () => {
       componentPathStub.returns({
         getSourceComponents: () => {
           return {
-            next: () => {
-              return { value: { content: undefined } };
+            first: () => {
+              return { content: undefined };
             }
-          } as IterableIterator<{ content: string }>;
+          };
         }
       });
       await executor.run();

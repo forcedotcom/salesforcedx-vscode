@@ -18,11 +18,17 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import {
+  CompositePostconditionChecker,
+  ConflictDetectionMessages,
+  TimestampConflictChecker
+} from './util/postconditionCheckers';
 
 export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
   public build(sourcePath: string): Command {
@@ -50,11 +56,14 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
     );
   }
 
-  protected async getComponents(
+  public async getComponents(
     response: ContinueResponse<string | string[]>
   ): Promise<ComponentSet> {
+    const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
     const paths = typeof response.data === 'string' ? [response.data] : response.data;
-    return ComponentSet.fromSource(paths);
+    const componentSet = ComponentSet.fromSource(paths);
+    componentSet.sourceApiVersion = sourceApiVersion;
+    return componentSet;
   }
 }
 
@@ -105,19 +114,44 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
       return;
     }
   }
+
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:deploy')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
     sfdxCoreSettings.getBetaDeployRetrieve()
       ? new LibraryDeploySourcePathExecutor()
       : new ForceSourceDeploySourcePathExecutor(),
-    new SourcePathChecker()
+    new CompositePostconditionChecker(
+      new SourcePathChecker(),
+      new TimestampConflictChecker(false, messages)
+    )
   );
   await commandlet.run();
 }
 
 export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   const useBeta = sfdxCoreSettings.getBetaDeployRetrieve();
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:deploy')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     useBeta
@@ -125,7 +159,8 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
       : new MultipleSourcePathsGatherer(uris),
     useBeta
       ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor()
+      : new ForceSourceDeploySourcePathExecutor(),
+    new TimestampConflictChecker(false, messages)
   );
   await commandlet.run();
 }

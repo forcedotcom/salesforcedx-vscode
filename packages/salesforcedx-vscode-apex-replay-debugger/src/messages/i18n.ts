@@ -21,6 +21,8 @@ export const messages = {
     'Apex language server could not provide information about valid breakpoints.',
   up_to_five_checkpoints:
     'You have %s of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
+  no_enabled_checkpoints:
+    'You don\'t have any checkpoints enabled. Enable a checkpoint and try again.',
   checkpoints_can_only_be_on_valid_apex_source:
     'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%s',
   local_source_is_out_of_sync_with_the_server:

@@ -9,8 +9,8 @@ export {
   BatchRequest,
   BatchResponse,
   ChildRelationship,
-  Field,
-  SObject
+  SObject,
+  SObjectField
 } from './describe';
 export {
   FieldDeclaration,

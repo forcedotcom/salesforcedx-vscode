@@ -6,33 +6,64 @@
  */
 
 /**
- * Executes sfdx evergreen:function:invoke http://localhost:8080 --payload=@functions/MyFunction/payload.json
+ * Executes sfdx run:function --url http://localhost:8080 --payload=@functions/MyFunction/payload.json
  */
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { Uri } from 'vscode';
+import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
+import { OrgAuthInfo } from '../../util';
 import {
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 import { FunctionService } from './functionService';
 
-export class ForceFunctionInvoke extends SfdxCommandletExecutor<string> {
-  public build(payloadUri: string): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_function_invoke_text'))
-      .withArg('evergreen:function:invoke')
-      .withArg('http://localhost:8080')
-      .withFlag('--payload', `@${payloadUri}`)
-      .withLogName('force_function_invoke')
-      .build();
+import { runFunction } from '@heroku/functions-core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as fs from 'fs';
+
+export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
+  constructor(debug: boolean = false) {
+    super(
+      nls.localize('force_function_invoke_text'),
+      debug ? 'force_function_debug_invoke' : 'force_function_invoke',
+      OUTPUT_CHANNEL
+    );
+    this.telemetry.addProperty(
+      'language',
+      FunctionService.instance.getFunctionLanguage()
+    );
+  }
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
+    const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+    const url = 'http://localhost:8080';
+    const data = fs.readFileSync(response.data, 'utf8');
+    try {
+      channelService.appendLine(`POST ${url}`);
+
+      const functionResponse = await runFunction({
+        url,
+        payload: data,
+        targetusername: defaultUsername
+      });
+      channelService.appendLine(
+        JSON.stringify(functionResponse.data, undefined, 4)
+      );
+    } catch (error) {
+      channelService.appendLine(error);
+      if (error.response) {
+        channelService.appendLine(error.response);
+        channelService.appendLine(
+          JSON.stringify(error.response.data, undefined, 4)
+        );
+      }
+      return false;
+    }
+    return true;
   }
 }
 
@@ -62,17 +93,9 @@ export async function forceFunctionDebugInvoke(sourceUri: Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    new ForceFunctionInvoke()
+    new ForceFunctionInvoke(true)
   );
   await commandlet.run();
 
-  if (commandlet.onDidFinishExecution) {
-    commandlet.onDidFinishExecution(async startTime => {
-      await FunctionService.instance.stopDebuggingFunction(localRoot);
-      telemetryService.sendCommandEvent(
-        'force_function_debug_invoke',
-        startTime
-      );
-    });
-  }
+  await FunctionService.instance.stopDebuggingFunction(localRoot);
 }

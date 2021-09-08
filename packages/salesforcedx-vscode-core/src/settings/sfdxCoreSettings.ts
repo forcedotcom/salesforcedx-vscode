@@ -9,10 +9,9 @@ import * as vscode from 'vscode';
 import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
-  FUNCTIONS_ENABLED,
-  FUNCTIONS_INSTALL_DEPENDENCIES,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
+  PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
   SALESFORCE_LANDING_PAGE,
   SALESFORCE_LANDING_PAGE_CUSTOM_VALUE,
@@ -81,6 +80,10 @@ export class SfdxCoreSettings {
     return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_ENABLED, false);
   }
 
+  public getPushOrDeployOnSaveOverrideConflicts(): boolean {
+    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS, false);
+  }
+
   public getRetrieveTestCodeCoverage(): boolean {
     return this.getConfigValue(RETRIEVE_TEST_CODE_COVERAGE, false);
   }
@@ -95,14 +98,6 @@ export class SfdxCoreSettings {
 
   public getBetaDeployRetrieve(): boolean {
     return this.getConfigValue(BETA_DEPLOY_RETRIEVE, false);
-  }
-
-  public getFunctionsEnabled(): boolean {
-    return this.getConfigValue(FUNCTIONS_ENABLED, false);
-  }
-
-  public getFunctionsPullDependencies(): boolean {
-    return this.getConfigValue(FUNCTIONS_INSTALL_DEPENDENCIES, true);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

@@ -17,5 +17,9 @@
   "force_apex_test_last_method_run_text": "SFDX: Re-Run Last Run Apex Test Method",
   "force_apex_test_class_run_text": "SFDX: Run Apex Test Class",
   "force_apex_test_method_run_text": "SFDX: Run Apex Test Method",
-  "force_apex_test_run_text": "SFDX: Run Apex Tests"
+  "force_apex_test_run_text": "SFDX: Run Apex Tests",
+  "force_apex_test_suite_run_text": "SFDX: Run Apex Test Suite",
+  "force_apex_test_suite_create_text": "SFDX: Create Apex Test Suite",
+  "force_apex_test_suite_build_text": "SFDX: Add Tests to Apex Test Suite",
+  "apex_code_completion_stats_description": "Allow Apex Language Server to collect telemetry on code completion usage"
 }

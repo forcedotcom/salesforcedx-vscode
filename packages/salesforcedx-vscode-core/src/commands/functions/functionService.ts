@@ -22,7 +22,7 @@ interface Terminable {
  */
 export interface FunctionExecution extends Terminable {
   /**
-   * root dir where function.toml is located
+   * root dir where project.toml is located
    */
   rootDir: string;
   /**
@@ -33,6 +33,10 @@ export interface FunctionExecution extends Terminable {
    * Debug port
    */
   debugPort: number;
+  /**
+   * Type of debug (node, java)
+   */
+  debugType: string;
   /**
    * Active debug session attached
    */
@@ -49,8 +53,8 @@ export class FunctionService {
   }
 
   /**
-   * Locate the directory that has function.toml.
-   * If sourceFsPath is the function folder that has function.toml, or a subdirectory
+   * Locate the directory that has project.toml.
+   * If sourceFsPath is the function folder that has project.toml, or a subdirectory
    * or file within that folder, this method returns the function folder by recursively looking up.
    * Otherwise, it returns undefined.
    * @param sourceFsPath path to start function from
@@ -62,7 +66,7 @@ export class FunctionService {
     const { root } = path.parse(sourceFsPath);
     const rootWorkspacePath = getRootWorkspacePath();
     while (current !== rootWorkspacePath && current !== root) {
-      const tomlPath = path.join(current, 'function.toml');
+      const tomlPath = path.join(current, 'project.toml');
       if (fs.existsSync(tomlPath)) {
         return current;
       }
@@ -90,8 +94,34 @@ export class FunctionService {
     };
   }
 
+  public updateFunction(rootDir: string, debugType: string): void {
+    const functionExecution = this.getStartedFunction(rootDir);
+    if (functionExecution) {
+      const type = debugType.toLowerCase();
+      if (type.startsWith('node')) {
+        functionExecution.debugType = 'node';
+      } else if (type.startsWith('java') || type.startsWith('jvm')) {
+        functionExecution.debugType = 'java';
+      }
+    }
+  }
+
   public isFunctionStarted() {
     return this.startedExecutions.size > 0;
+  }
+
+  /**
+   * Returns the debugType of the first of the startedExecutions as a way to determine the language
+   * of all running executions.
+   * Current options: 'node', 'java'
+   */
+  public getFunctionLanguage() {
+    const functionIterator = this.startedExecutions.values();
+    if (functionIterator) {
+      const firstFoundLanguage = functionIterator.next().value?.debugType;
+      return firstFoundLanguage;
+    }
+    return undefined;
   }
 
   /**
@@ -118,9 +148,9 @@ export class FunctionService {
   public async debugFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
-      const { debugPort } = functionExecution;
+      const { debugPort, debugType } = functionExecution;
       const debugConfiguration: vscode.DebugConfiguration = {
-        type: 'node',
+        type: debugType,
         request: 'attach',
         name: 'Debug Invoke', // This name doesn't surface in UI
         resolveSourceMapLocations: ['**', '!**/node_modules/**'],
@@ -128,6 +158,7 @@ export class FunctionService {
         internalConsoleOptions: 'openOnSessionStart',
         localRoot: rootDir,
         remoteRoot: '/workspace',
+        hostName: '127.0.0.1',
         port: debugPort
       };
       if (!functionExecution.debugSession) {
@@ -147,10 +178,7 @@ export class FunctionService {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const { debugSession } = functionExecution;
-      await debugSession?.customRequest('disconnect');
-      // When we update VS Code engine to 1.49 we should use stopDebugging
-      // https://code.visualstudio.com/updates/v1_49
-      // await vscode.debug.stopDebugging(debugSession);
+      await vscode.debug.stopDebugging(debugSession);
     }
   }
 

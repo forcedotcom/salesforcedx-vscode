@@ -1,72 +1,72 @@
 ---
-title: Supported and Unsupported Modules, Components, and Features
+title: サポート対象とサポート対象外のモジュール、コンポーネント、機能
 lang: ja
 ---
 
-You can use most components, `@salesforce` modules, and framework features in Local Development. There are a few differences to be aware of, which are detailed below. If you don’t see a module or component listed, you can expect it to work the same as in your org.
+ローカル開発では、ほとんどのコンポーネント、`@salesforce` モジュール、フレームワークの機能を使用することができます。若干の相違点がありますので注意してください。以下にその詳細を示します。モジュールやコンポーネントが一覧にない場合は、それが組織と同じように動作することを期待できます。
 
-## Supported Modules
+## サポートされるモジュール
 
-We support these modules.
+次のモジュールがサポートされています。
 
 **@salesforce/apex**
-: Exposes Apex methods. Use this module to invoke Apex methods. Apex requests are proxied to your scratch org.
+Apex メソッドを公開します。このモジュールは Apex メソッドの呼び出しに使用します。Apex リクエストは、プロキシ経由でスクラッチ組織に送られます。
 
 **@salesforce/label**
-: Exposes labels in your Salesforce org. The local development server resolves labels from the SFDX project file `force-app/main/default/labels/CustomLabels.labels-meta.xml`. The Local Development server displays a placeholder for labels that it can't find or that you didn't sync to your local filesystem. The placeholder follows this format: `{unknown label:labelName}`.
+Salesforce 組織の表示ラベルを公開します。ローカル開発サーバは SFDX プロジェクトのファイル `(force-app/main/default/labels/CustomLabels.labels-meta.xml)` から表示ラベルを解決します。ローカル開発サーバは、見つからなかった表示ラベルや、ローカルファイルシステムと同期されていない表示ラベルの場所にはプレースホルダを表示します。プレースホルダの書式は `{unknown label:labelName}` です。
 
 **@salesforce/resourceUrl**
-: Exposes static resources in your Salesforce org. Static resources are copied and served from the DX project location on your filesystem, `force-app/main/default/staticresources`, to the server.
+Salesforce 組織の静的リソースを公開します。静的リソースはファイルシステム上の SFDX プロジェクトの場所 `(force-app/main/default/staticresources)` にコピーされ、そこからローカル開発サーバに提供されます。
 
 **@salesforce/schema**
-: Exposes Salesforce schema metadata. Use this module to import references to Salesforce objects and fields. This module behaves the same as it does in a production org.
+Salesforce のスキーマメタデータを公開します。このモジュールを使用して Salesforce のオブジェクトや項目への参照をインポートします。このモジュールは、本番組織の場合と同じ動作をします。
 
-## Partially Supported Modules
+## 部分的にサポート対象のモジュール
 
-These modules work with the Local Development server, but behave differently than they do in a production org.
+以下のモジュールはローカル開発サーバと連携して動作しますが、本番組織とは動作が少し異なります。
 
 **@salesforce/i18n**
-: The locale is set to en-US. All imports from `@salesforce/i18n` are hardcoded to return values that are similar to what you would see in the en-US locale in a production org.
+ロケールは `en-US` に設定されます。`salesforce/i18n` からのすべてのインポートは、本番組織の `en-US` ロケールで表示されるものと同様の値を返すようにハードコードされています。
 
 **@salesforce/user**
-: The value of `@salesforce/user/Id` is always undefined. The value of `@salesforce/user/isGuest` is always `true`.
+`@salesforce/user/Id` の値は常に `undefined` になります。`@salesforce/user/isGuest` の値は常に `true` になります。
 
 **lightning/empApi**
-: Module appears in the preview, but it's not possible to interact with it.
+モジュールはプレビューに表示されますが、使用することはできません。
 
 **lightning/platformShowToastEvent**
-: Nothing happens when you do an action that would usually result in a toast notification.
+通常のようにトーストの通知が来るような操作を行っても、何も起こりません。
 
-## Unsupported Modules
+## サポート対象外のモジュール
 
-This behavior occurs if you try to preview any components that use these unsupported modules.
+以下のサポート対象外のモジュールを使用しているコンポーネントをプレビューしようとすると、記載の動作が発生します。
 
 **@salesforce/apexContinuation**
-: An error message on the Local Development page.
+ローカル開発のページでエラーメッセージが表示されます。
 
 **@salesforce/navigation**
-: Module appears in the preview, but it's not possible to interact with it.
+モジュールをプレビューに表示することはできますが、使用することはできません。
 
 **lightning/messageService**
-: An error message on the Local Development page.
+ローカル開発のページでエラーメッセージが表示されます。
 
-## Unsupported Components
+## サポート対象外のコンポーネント
 
-The server throws an error or you can't interact with it.
+以下のコンポーネントを使用しようとすると、ローカル開発サーバは、エラーを返します。
 
 **lightning-file-upload**
-: Component appears in the preview, but it's not possible to interact with it.
+コンポーネントをプレビューに表示することはできますが、使用することはできません。
 
-## Unsupported Features
+## サポート対象外の機能
 
-- Lightning Pages
+- Lightning ページ
 - Lightning Locker
-- Salesforce Standard Design Tokens and Custom Tokens in CSS files
+- Salesforce の標準デザイントークンおよび、CSS ファイルのカスタムトークン
 
-## Components Use Default Attribute Values
+## コンポーネントはデフォルトの属性値を使用
 
-The server renders components using their default attribute values. You can’t specify or change an attribute value. For example, let's say you're writing a clock component. To view the component, the clock must know your time zone, which requires setting a timezone attribute. We recommend setting a default timezone in the code. If you can't specify a default value, create a wrapper component that creates the clock and sets the proper attributes. To prevent confusion, make sure to give your wrapper component a name that clarifies that it’s for testing purposes only.
+ローカル開発サーバでは、コンポーネントにデフォルト属性値を使用させます。属性値を指定または変更することはできません。たとえば、クロックコンポーネントを作成しているとします。コンポーネントを表示するには、クロックはユーザのタイムゾーンを知っている必要があるため、`timezone` 属性の設定が必要です。この場合は、コードでデフォルトの `timezone` を設定しておくことをお勧めします。デフォルト値を指定できない場合は、クロックを作成して適切な属性を設定するラッパーコンポーネントを作成してください。混乱を避けるため、ラッパーコンポーネントには、テストのみを目的としていることがわかるような名前を付けてください。
 
-## SLDS Version
+## SLDS バージョン
 
-SLDS CSS and icons are included with the Local Development plug-in, and are automatically included on every page. If you notice that some SLDS classes render differently in preview than they do on your Salesforce org, they are likely running different versions. The version of SLDS in the plug-in doesn’t sync with the version in your org.
+SLDS の CSS とアイコンはローカル開発プラグインに含まれており、自動的にすべてのページに表示されます。ローカル開発で一部の SLDS クラスが Salesforce 組織とは違って表示される場合は、異なるバージョンが実行されている可能性があります。ベータリリースでは、SLDS のバージョンは変更できません。ローカル開発プラグインの SLDS バージョンは、組織のバージョンとは同期されません。

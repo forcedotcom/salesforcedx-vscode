@@ -85,6 +85,8 @@
       "type": "shell",
       "args": [
         "${input:verboseOutput}",
+        "-t",
+        "${input:date}",
         "-i",
         "${input:packagesToIgnore}",
         "-o",
@@ -132,6 +134,11 @@
       "id": "circleCiId",
       "type": "promptString",
       "description": "CircleCi Token"
+    },
+    {
+      "id": "date",
+      "type": "promptString",
+      "description": "Date of release (ex April 3, 2021). Leave blank to use today's date."
     },
     {
       "id": "packagesToIgnore",
