@@ -1,4 +1,4 @@
-# 52.13.0 - September 7, 2021
+# 52.13.0 - September 8, 2021
 
 ## Fixed
 
