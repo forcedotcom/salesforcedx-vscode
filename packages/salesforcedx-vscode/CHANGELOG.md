@@ -4,7 +4,7 @@
 
 #### docs
 
-- Incorrect Org Picker location ([PR #3423](https://github.com/forcedotcom/salesforcedx-vscode/pull/3423))
+- Fixes doc bug that has incorrect location of the Org Picker. ([PR #3423](https://github.com/forcedotcom/salesforcedx-vscode/pull/3423))
 
 #### salesforcedx-vscode-core
 
