@@ -1,3 +1,15 @@
+# 52.13.0 - September 8, 2021
+
+## Fixed
+
+#### docs
+
+- Fixes doc bug that has incorrect location of the Org Picker. ([PR #3423](https://github.com/forcedotcom/salesforcedx-vscode/pull/3423))
+
+#### salesforcedx-vscode-core
+
+- Typo in salesforcedx-vscode-core/src/messages/i18n.ts ([PR #3525](https://github.com/forcedotcom/salesforcedx-vscode/pull/3525)) - Contribution by [@RitamAgrawal](https://github.com/RitamAgrawal)
+
 # 52.12.0 - September 1, 2021
 
 ## Fixed
