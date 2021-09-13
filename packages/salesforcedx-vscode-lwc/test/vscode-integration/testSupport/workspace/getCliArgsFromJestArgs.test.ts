@@ -47,6 +47,13 @@ describe('getCliArgsFromJestArgs Unit Tests', () => {
     expect(cliArgs).to.eql(expectedCliArgs);
   });
 
+  it('Should return Cli args for debug mode if preview JavaScript debugger setting is not available', () => {
+    mockPreviewJavaScriptDebugger(undefined);
+    const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
+    const expectedCliArgs = ['--', ...mockJestArgs];
+    expect(cliArgs).to.eql(expectedCliArgs);
+  });
+
   it('Should return Cli args for debug mode if using preview JavaScript debugger', () => {
     mockPreviewJavaScriptDebugger(true);
     const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
