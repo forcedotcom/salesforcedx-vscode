@@ -7,125 +7,193 @@
 
 import { expect } from 'chai';
 import * as cp from 'child_process';
-import { match, SinonStub, stub } from 'sinon';
-import * as sinon from 'sinon';
+import * as path from 'path';
+import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { ForceFunctionCreateExecutor } from '../../../../src/commands/templates/forceFunctionCreate';
+import {
+  forceFunctionCreate,
+  ForceFunctionCreateExecutor,
+  FunctionInfoGatherer
+} from '../../../../src/commands/templates/forceFunctionCreate';
+import {
+  FUNCTION_TYPE_JAVA,
+  FUNCTION_TYPE_JS
+} from '../../../../src/commands/templates/metadataTypeConstants';
+import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import { telemetryService } from '../../../../src/telemetry';
+import * as rootWorkspace from '../../../../src/util';
 
+import * as library from '@heroku/functions-core';
+import sinon = require('sinon');
 // tslint:disable:no-unused-expression
 describe('Force Function Create', () => {
-  describe('Creation', () => {
-    it('Should build apex function create command for javascript', async () => {
-      const funcCreate = new ForceFunctionCreateExecutor();
-      const fileName = 'myFunc1';
-      const funcCreateCmd = funcCreate.build({
-        fileName,
-        language: 'javascript',
-        outputdir: ''
-      });
-
-      expect(funcCreateCmd.toCommand()).to.equal(
-        'sfdx evergreen:function:create myFunc1 --language javascript'
-      );
-      expect(funcCreateCmd.description).to.equal(
-        nls.localize('force_function_create_text')
-      );
-      expect(funcCreate.getFileExtension()).to.equal('.js');
+  let execStub: SinonStub;
+  const sandbox = createSandbox();
+  let notificationServiceStub: SinonStub;
+  let telemetryServiceStub: SinonStub;
+  let withProgressStub: SinonStub;
+  let openTextDocumentStub: SinonStub;
+  let showTextDocumentStub: SinonStub;
+  let gatherStub: SinonStub;
+  const functionInfoJS = {
+    type: 'CONTINUE' as 'CONTINUE',
+    data: {
+      fileName: 'myFunc1',
+      language: 'javascript'
+    }
+  };
+  const functionInfoJava = {
+    type: 'CONTINUE' as 'CONTINUE',
+    data: {
+      fileName: 'myFunc1',
+      language: 'java'
+    }
+  };
+  let rootWorkspacePathStub: SinonStub;
+  let generateFunctionStub: SinonStub;
+  const workingDir = 'some/dir';
+  beforeEach(() => {
+    execStub = sandbox.stub(cp, 'exec');
+    notificationServiceStub = sandbox.stub(
+      notificationService,
+      'showWarningMessage'
+    );
+    rootWorkspacePathStub = sandbox.stub(rootWorkspace, 'getRootWorkspacePath');
+    rootWorkspacePathStub.returns(workingDir);
+    telemetryServiceStub = sandbox.stub(telemetryService, 'sendCommandEvent');
+    withProgressStub = sandbox.stub(vscode.window, 'withProgress');
+    withProgressStub.callsFake((options, task) => {
+      task();
     });
 
-    it('Should build apex function create command for typescript', async () => {
-      const funcCreate = new ForceFunctionCreateExecutor();
-      const fileName = 'myFunc2';
-      const funcCreateCmd = funcCreate.build({
-        fileName,
-        language: 'typescript',
-        outputdir: ''
-      });
+    openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
+    openTextDocumentStub.resolves();
 
-      expect(funcCreateCmd.toCommand()).to.equal(
-        'sfdx evergreen:function:create myFunc2 --language typescript'
-      );
-      expect(funcCreateCmd.description).to.equal(
-        nls.localize('force_function_create_text')
-      );
-      expect(funcCreate.getFileExtension()).to.equal('.ts');
-    });
+    showTextDocumentStub = sandbox.stub(vscode.window, 'showTextDocument');
+    showTextDocumentStub.resolves();
+
+    generateFunctionStub = sandbox.stub(library, 'generateFunction');
+    generateFunctionStub.returns(
+      Promise.resolve({
+        path: path.join(workingDir, 'functions', 'myFunc1')
+      })
+    );
+
+    gatherStub = sandbox.stub(FunctionInfoGatherer.prototype, 'gather');
+    sandbox.stub(SfdxWorkspaceChecker.prototype, 'check').returns(true);
   });
 
-  describe('Pull Dependencies', () => {
-    let execStub: SinonStub;
-    let settings: SinonStub;
-    let notificationServiceStub: SinonStub;
-    let withProgressStub: SinonStub;
-
-    beforeEach(() => {
-      execStub = stub(cp, 'exec');
-      settings = stub(
-        SfdxCoreSettings.prototype,
-        'getFunctionsPullDependencies'
+  afterEach(() => {
+    sandbox.restore();
+  });
+  describe('Generate function', () => {
+    it('Should call generate function with proper args for javascript', async () => {
+      const funcCreate = new ForceFunctionCreateExecutor();
+      execStub.yields();
+      await funcCreate.run(functionInfoJS);
+      assert.calledOnce(generateFunctionStub);
+      assert.calledWith(
+        generateFunctionStub,
+        'myFunc1',
+        'javascript',
+        workingDir
       );
-      notificationServiceStub = stub(notificationService, 'showWarningMessage');
-      withProgressStub = stub(vscode.window, 'withProgress');
-      withProgressStub.callsFake((options, task) => {
-        task();
+    });
+    it('Should call generate function with proper args for java', async () => {
+      const funcCreate = new ForceFunctionCreateExecutor();
+      execStub.yields();
+      await funcCreate.run(functionInfoJava);
+      assert.calledOnce(generateFunctionStub);
+      assert.calledWith(generateFunctionStub, 'myFunc1', 'java', workingDir);
+    });
+  });
+  describe('Pull dependencies', () => {
+    it('Should pull dependencies for javascript', async () => {
+      execStub.yields();
+      const funcCreate = new ForceFunctionCreateExecutor();
+      await funcCreate.run(functionInfoJS);
+      assert.calledOnce(execStub);
+      assert.calledWith(execStub, 'npm install', {
+        cwd: path.join(workingDir, 'functions', 'myFunc1')
       });
     });
 
-    it('Should pull dependencies when settings on', async () => {
+    it('Should pull dependencies for java', async () => {
+      execStub.yields();
       const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(true);
-      funcCreate.runPostCommandTasks('some/dir');
-      sinon.assert.calledOnce(execStub);
-      sinon.assert.calledWith(execStub, 'npm install', { cwd: 'some/dir' });
+      await funcCreate.run(functionInfoJava);
+      assert.calledOnce(execStub);
+      /**
+       * If this test fails, check if the Java Functions path strategy has changed.
+       * Finding the root path for Java needs to be updated accordingly.
+       */
+      assert.calledWith(execStub, 'mvn install', {
+        cwd: path.join(workingDir, 'functions', 'myFunc1')
+      });
     });
 
-    it('Should show install dependencies progress', async () => {
+    it('Should call notification service when errored for javascript', async () => {
       const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(true);
-      funcCreate.runPostCommandTasks('some/dir');
-      sinon.assert.calledOnce(withProgressStub);
-      sinon.assert.calledWith(
-        withProgressStub,
-        {
-          location: vscode.ProgressLocation.Window,
-          title: nls.localize(
-            'force_function_install_npm_dependencies_progress'
-          ),
-          cancellable: true
-        },
-        match.any
-      );
-    });
-
-    it('Should not pull dependencies when settings off', async () => {
-      const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(false);
-      funcCreate.runPostCommandTasks('some/dir');
-      sinon.assert.notCalled(execStub);
-    });
-
-    it('Should call notification service when errored', async () => {
-      const funcCreate = new ForceFunctionCreateExecutor();
-      settings.returns(true);
       const errorText = 'custom error text';
       execStub.yields(new Error(errorText));
-      funcCreate.runPostCommandTasks('some/dir');
-      sinon.assert.calledOnce(execStub);
-      sinon.assert.calledWith(execStub, 'npm install', { cwd: 'some/dir' });
-      sinon.assert.calledWith(
+      try {
+        await funcCreate.run(functionInfoJS);
+      } catch {}
+      assert.calledOnce(execStub);
+      assert.calledWith(execStub, 'npm install', {
+        cwd: path.join(workingDir, 'functions', 'myFunc1')
+      });
+      assert.calledWith(
         notificationServiceStub,
         nls.localize('force_function_install_npm_dependencies_error', errorText)
       );
     });
 
-    afterEach(() => {
-      execStub.restore();
-      settings.restore();
-      notificationServiceStub.restore();
-      withProgressStub.restore();
+    it('Should call notification service when errored for java', async () => {
+      const funcCreate = new ForceFunctionCreateExecutor();
+      const errorText = 'custom error text';
+      execStub.yields(new Error(errorText));
+      try {
+        await funcCreate.run(functionInfoJava);
+      } catch {}
+      assert.calledOnce(execStub);
+      assert.calledWith(execStub, 'mvn install', {
+        cwd: path.join(workingDir, 'functions', 'myFunc1')
+      });
+      assert.calledWith(
+        notificationServiceStub,
+        nls.localize('force_function_install_mvn_dependencies_error', errorText)
+      );
     });
+  });
+
+  it('Should log additional language property when creating a java function', async () => {
+    execStub.yields();
+    gatherStub.resolves(functionInfoJava);
+    await forceFunctionCreate();
+    assert.calledOnce(telemetryServiceStub);
+    assert.calledWith(
+      telemetryServiceStub,
+      'force_function_create',
+      sinon.match.any,
+      sinon.match.has('language', 'java'),
+      sinon.match.any
+    );
+  });
+
+  it('Should log additional language property when creating a js function', async () => {
+    execStub.yields();
+    gatherStub.resolves(functionInfoJS);
+    await forceFunctionCreate();
+    assert.calledOnce(telemetryServiceStub);
+    assert.calledWith(
+      telemetryServiceStub,
+      'force_function_create',
+      sinon.match.any,
+      sinon.match.has('language', 'node'),
+      sinon.match.any
+    );
   });
 });

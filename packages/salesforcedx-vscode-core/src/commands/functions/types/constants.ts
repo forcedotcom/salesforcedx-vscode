@@ -13,7 +13,7 @@ export const FUNCTION_DEFAULT_PORT = 8080;
 /**
  * Default debug port of a locally running function
  */
-export const FUNCTION_DEFAULT_DEBUG_PORT = 9222;
+export const FUNCTION_DEFAULT_DEBUG_PORT = 9229;
 
 /**
  * Functions Payload pattern
@@ -26,3 +26,10 @@ export const FUNCTION_PAYLOAD_DOCUMENT_SELECTOR = {
   language: 'json',
   pattern: FUNCTION_PAYLOAD_PATTERN
 };
+
+/**
+ * Pattern to capture a function runtime language
+ */
+export const FUNCTION_RUNTIME_DETECTION_PATTERN: RegExp = new RegExp(
+  '.*heroku/(.*)-function-invoker.*'
+);
