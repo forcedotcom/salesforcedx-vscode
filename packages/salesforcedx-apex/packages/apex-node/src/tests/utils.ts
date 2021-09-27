@@ -36,10 +36,6 @@ export function stringify(jsonObj: object): string {
   return JSON.stringify(jsonObj, null, 2);
 }
 
-export function addIdToQuery(formattedIds: string, id: string): string {
-  return formattedIds.length === 0 ? id : `${formattedIds}','${id}`;
-}
-
 export async function queryNamespaces(
   connection: Connection
 ): Promise<NamespaceInfo[]> {

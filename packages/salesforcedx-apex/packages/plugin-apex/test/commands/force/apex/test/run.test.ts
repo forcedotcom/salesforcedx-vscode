@@ -125,10 +125,9 @@ describe('force:apex:test:run', () => {
     .it('should handle a tap format parsing error', ctx => {
       expect(ctx.stdout).to.contain('{\n  "tests": []\n}\n');
       expect(ctx.stderr).to.contain(
-        messages.getMessage('testResultProcessErr', [
-          "TypeError: Cannot read property 'testRunId' of undefined"
-        ])
+        messages.getMessage('testResultProcessErr', ['TypeError: '])
       );
+      expect(ctx.stderr).to.contain('testRunId');
     });
 
   test
@@ -176,10 +175,9 @@ describe('force:apex:test:run', () => {
     .it('should handle a junit format parsing error', ctx => {
       expect(ctx.stdout).to.contain('{\n  "tests": []\n}\n');
       expect(ctx.stderr).to.contain(
-        messages.getMessage('testResultProcessErr', [
-          "TypeError: Cannot read property 'testStartTime' of undefined"
-        ])
+        messages.getMessage('testResultProcessErr', ['TypeError: '])
       );
+      expect(ctx.stderr).to.contain('testStartTime');
     });
 
   test
@@ -1208,4 +1206,83 @@ describe('force:apex:test:run', () => {
     .it('should set exit code as 0 for passing run', () => {
       expect(process.exitCode).to.eql(0);
     });
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stdout()
+    .command(['force:apex:test:run', '--tests', 'MyApexTests', '--wait', '20'])
+    .it(
+      'should return human-readable results when the wait argument is passed',
+      ctx => {
+        const result = ctx.stdout;
+        expect(result).to.not.be.empty;
+        expect(result).to.contain('Test Summary');
+        expect(result).to.contain('Test Results');
+        expect(result).to.not.contain('to retrieve test results');
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests',
+      '--wait',
+      '20',
+      '--resultformat',
+      'json'
+    ])
+    .it(
+      'should return JSON result when the wait argument is passed and the resultformat is JSON',
+      ctx => {
+        const result = ctx.stdout;
+        expect(result).to.not.be.empty;
+        expect(result).to.not.contain('to retrieve test results');
+
+        const obj = JSON.parse(result);
+        expect(obj).to.exist;
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stdout()
+    .command([
+      'force:apex:test:run',
+      '--tests',
+      'MyApexTests',
+      '--wait',
+      '20',
+      '--json'
+    ])
+    .it(
+      'should return successful JSON result when the wait argument is passed and the output format is set to JSON',
+      ctx => {
+        const result = ctx.stdout;
+        expect(result).to.not.be.empty;
+        expect(result).to.not.contain('to retrieve test results');
+
+        const obj = JSON.parse(result);
+        expect(obj).to.exist;
+
+        expect(result).to.contain('"Outcome": "Pass"');
+      }
+    );
 });

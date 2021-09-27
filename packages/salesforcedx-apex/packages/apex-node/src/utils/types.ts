@@ -14,6 +14,14 @@ enum logLevel {
   fatal = 'fatal'
 }
 
+export const xmlCharMap: { [index: string]: string } = {
+  '<': '&lt;',
+  '>': '&gt;',
+  '&': '&amp;',
+  '"': '&quot;',
+  "'": '&apos;'
+};
+
 export type CommonOptions = {
   json?: boolean;
   loglevel?: logLevel;
@@ -30,3 +38,31 @@ export type ApexDiagnostic = {
 
 export type QueryResult<T = QueryRecord> = { records: T[] };
 export type QueryRecord = { Id: string };
+export type QueryRecords = {
+  totalSize: number;
+  records: IdRecord[];
+};
+
+export type DebugLevelRecord = {
+  ApexCode: string;
+  VisualForce: string;
+};
+
+export type TraceFlagRecord = {
+  Id: string;
+  LogType: string;
+  DebugLevelId: string;
+  StartDate: Date | undefined;
+  ExpirationDate: Date | undefined;
+  DebugLevel: DebugLevelRecord;
+};
+
+export type DataRecordResult = {
+  id?: string;
+  errors?: string[];
+  success: boolean;
+};
+
+export type IdRecord = {
+  Id: string;
+};

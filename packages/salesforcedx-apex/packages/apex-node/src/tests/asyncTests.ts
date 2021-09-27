@@ -27,9 +27,9 @@ import {
   TestResult,
   TestRunIdResult
 } from './types';
-import { addIdToQuery, calculatePercentage, isValidTestRunID } from './utils';
+import { calculatePercentage, isValidTestRunID } from './utils';
 import * as util from 'util';
-import { QUERY_CHAR_LIMIT } from './constants';
+import { QUERY_RECORD_LIMIT } from './constants';
 import { CodeCoverage } from './codeCoverage';
 
 export class AsyncTests {
@@ -295,23 +295,18 @@ export class AsyncTests {
     apexTestResultQuery += 'FROM ApexTestResult WHERE QueueItemId IN (%s)';
 
     const apexResultIds = testQueueResult.records.map(record => record.Id);
-    let formattedIds = '';
-    const queries = [];
 
     // iterate thru ids, create query with id, & compare query length to char limit
-    for (const id of apexResultIds) {
-      const newIds = addIdToQuery(formattedIds, id);
-      const query = util.format(apexTestResultQuery, `'${newIds}'`);
-
-      if (query.length > QUERY_CHAR_LIMIT) {
-        queries.push(util.format(apexTestResultQuery, `'${formattedIds}'`));
-        formattedIds = '';
-      }
-      formattedIds = addIdToQuery(formattedIds, id);
-    }
-
-    if (formattedIds.length > 0) {
-      queries.push(util.format(apexTestResultQuery, `'${formattedIds}'`));
+    const queries: string[] = [];
+    for (let i = 0; i < apexResultIds.length; i += QUERY_RECORD_LIMIT) {
+      const recordSet: string[] = apexResultIds
+        .slice(i, i + QUERY_RECORD_LIMIT)
+        .map(id => `'${id}'`);
+      const query: string = util.format(
+        apexTestResultQuery,
+        recordSet.join(',')
+      );
+      queries.push(query);
     }
 
     const queryPromises = queries.map(query => {

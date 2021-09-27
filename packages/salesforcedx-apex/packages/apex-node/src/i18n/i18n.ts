@@ -80,6 +80,11 @@ export const messages = {
   missingTestClassErr: 'Apex class %s does not exist in the org',
   testSuiteMsg: 'Apex test class %s already exists in Apex test suite %s',
   classSuiteMsg: `Added Apex class %s to your Apex test suite %s`,
+  error_no_default_username:
+    'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+  trace_flags_unknown_user: 'Unknown user',
+  trace_flags_failed_to_create_debug_level: 'Failed to create a debug level',
+  trace_flags_failed_to_find_debug_level: 'Debug Level not found for %s',
   runIdFormatErr: 'Cannot specify a result format with a TestRunId result',
   covIdFormatErr: 'Cannot specify code coverage with a TestRunId result'
 };

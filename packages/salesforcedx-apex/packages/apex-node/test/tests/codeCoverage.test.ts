@@ -13,8 +13,11 @@ import { CodeCoverage } from '../../src/tests/codeCoverage';
 import {
   ApexCodeCoverageAggregate,
   ApexOrgWideCoverage,
-  ApexCodeCoverage
+  ApexCodeCoverage,
+  ApexCodeCoverageRecord,
+  ApexCodeCoverageAggregateRecord
 } from '../../src/tests/types';
+import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -320,5 +323,145 @@ describe('Get code coverage results', () => {
     );
 
     expect(perClassCoverageMap.size).to.equal(0);
+  });
+
+  it('should split the PerClassCodeCoverage queue into chunks of 500 records', async () => {
+    const queryStart =
+      'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN ';
+    const queryStartSeparatorCount = queryStart.split(',').length - 1;
+    const recordCount = 1400;
+
+    const records: ApexCodeCoverageRecord[] = [];
+    for (let i = 0; i < recordCount; i++) {
+      const record = {
+        ApexClassOrTrigger: {
+          Id: `01p30000000DRIQAA4-${i}`,
+          Name: `apexClassName-${i}`
+        },
+        ApexTestClassId: `01p30000000DRIQAA4-${i}`,
+        NumLinesCovered: 100,
+        NumLinesUncovered: 0,
+        TestMethodName: `testMethodName-${i}`
+      };
+      records.push(record);
+    }
+
+    toolingAutoQueryStub.onFirstCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: records.splice(0, QUERY_RECORD_LIMIT)
+    });
+
+    toolingAutoQueryStub.onSecondCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: records.splice(QUERY_RECORD_LIMIT, 2 * QUERY_RECORD_LIMIT)
+    });
+
+    toolingAutoQueryStub.onThirdCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: records.splice(2 * QUERY_RECORD_LIMIT, recordCount)
+    });
+
+    const apexTestClassSet: Set<string> = new Set<string>();
+    for (let i = 0; i < recordCount; i++) {
+      apexTestClassSet.add(`01p30000000DRIQAA4-${i}`);
+    }
+
+    const codeCoverage = new CodeCoverage(mockConnection);
+    await codeCoverage.getPerClassCodeCoverage(apexTestClassSet);
+
+    expect(toolingAutoQueryStub.args.length).to.equal(3);
+
+    const idCountOfFirstCall =
+      toolingAutoQueryStub.getCall(0).args[0].split(',').length -
+      queryStartSeparatorCount;
+    expect(idCountOfFirstCall).to.equal(QUERY_RECORD_LIMIT);
+
+    const idCountOfSecondCall =
+      toolingAutoQueryStub.getCall(1).args[0].split(',').length -
+      queryStartSeparatorCount;
+    expect(idCountOfSecondCall).to.equal(QUERY_RECORD_LIMIT);
+
+    const idCountOfThirdCall =
+      toolingAutoQueryStub.getCall(2).args[0].split(',').length -
+      queryStartSeparatorCount;
+    expect(idCountOfThirdCall).to.equal(400);
+
+    expect(
+      idCountOfFirstCall + idCountOfSecondCall + idCountOfThirdCall
+    ).to.equal(recordCount);
+  });
+
+  it('should split the AggregateCodeCoverage queue into chunks of 500 records', async () => {
+    const queryStart =
+      'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate WHERE ApexClassorTriggerId IN ';
+    const queryStartSeparatorCount = queryStart.split(',').length - 1;
+    const recordCount = 1300;
+
+    const records: ApexCodeCoverageAggregateRecord[] = [];
+    for (let i = 0; i < recordCount; i++) {
+      const record = {
+        NumLinesCovered: 0,
+        NumLinesUncovered: 0,
+        ApexClassOrTrigger: {
+          Id: '',
+          Name: ''
+        },
+        Coverage: {
+          coveredLines: [1, 2, 3],
+          uncoveredLines: [4, 5, 6]
+        }
+      };
+      records.push(record);
+    }
+
+    toolingAutoQueryStub.onFirstCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: records.splice(0, QUERY_RECORD_LIMIT)
+    });
+
+    toolingAutoQueryStub.onSecondCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: records.splice(QUERY_RECORD_LIMIT, 2 * QUERY_RECORD_LIMIT)
+    });
+
+    toolingAutoQueryStub.onThirdCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: records.splice(2 * QUERY_RECORD_LIMIT, recordCount)
+    });
+
+    const apexTestClassSet: Set<string> = new Set<string>();
+    for (let i = 0; i < recordCount; i++) {
+      apexTestClassSet.add(`01p30000000DRIQAA4-${i}`);
+    }
+
+    const codeCoverage = new CodeCoverage(mockConnection);
+    await codeCoverage.getAggregateCodeCoverage(apexTestClassSet);
+
+    expect(toolingAutoQueryStub.args.length).to.equal(3);
+
+    const idCountOfFirstCall =
+      toolingAutoQueryStub.getCall(0).args[0].split(',').length -
+      queryStartSeparatorCount;
+    expect(idCountOfFirstCall).to.equal(QUERY_RECORD_LIMIT);
+
+    const idCountOfSecondCall =
+      toolingAutoQueryStub.getCall(1).args[0].split(',').length -
+      queryStartSeparatorCount;
+    expect(idCountOfSecondCall).to.equal(QUERY_RECORD_LIMIT);
+
+    const idCountOfThirdCall =
+      toolingAutoQueryStub.getCall(2).args[0].split(',').length -
+      queryStartSeparatorCount;
+    expect(idCountOfThirdCall).to.equal(300);
+
+    expect(
+      idCountOfFirstCall + idCountOfSecondCall + idCountOfThirdCall
+    ).to.equal(recordCount);
   });
 });

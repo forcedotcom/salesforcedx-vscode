@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export const MILLISECONDS_PER_MINUTE = 60000;
+
 export function getCurrentTime(): number {
   return new Date().getTime();
 }

@@ -280,10 +280,13 @@ describe('Apex Log Service Tests', () => {
   describe('getLogRecords', async () => {
     it('should return log records given a specific number of logs', async () => {
       const numberOfLogs = 2;
-      let query = 'Select Id, Application, DurationMilliseconds, Location, ';
-      query +=
-        'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime DESC ';
-      query += `LIMIT ${numberOfLogs}`;
+      let apexLogQuery = `
+        SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUser.Name,
+          Operation, Request, StartTime, Status
+        FROM ApexLog
+        ORDER BY StartTime DESC
+      `;
+      apexLogQuery += ` LIMIT ${numberOfLogs}`;
       const queryStub = sandboxStub
         .stub(mockConnection.tooling, 'query')
         //@ts-ignore
@@ -292,13 +295,17 @@ describe('Apex Log Service Tests', () => {
       const logService = new LogService(mockConnection);
       const records = await logService.getLogRecords(numberOfLogs);
       expect(records).to.deep.equal(logRecords);
-      expect(queryStub.calledWith(query)).to.be.true;
+      expect(records.length).to.equal(numberOfLogs);
+      expect(queryStub.calledWith(apexLogQuery)).to.be.true;
     });
 
     it('should return all log records', async () => {
-      let query = 'Select Id, Application, DurationMilliseconds, Location, ';
-      query +=
-        'LogLength, LogUser.Name, Operation, Request, StartTime, Status from ApexLog Order By StartTime DESC';
+      const apexLogQuery = `
+        SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUser.Name,
+          Operation, Request, StartTime, Status
+        FROM ApexLog
+        ORDER BY StartTime DESC
+      `;
       const queryStub = sandboxStub
         .stub(mockConnection.tooling, 'query')
         //@ts-ignore
@@ -307,7 +314,7 @@ describe('Apex Log Service Tests', () => {
       const logService = new LogService(mockConnection);
       const records = await logService.getLogRecords();
       expect(records).to.deep.equal(logRecords);
-      expect(queryStub.calledWith(query)).to.be.true;
+      expect(queryStub.calledWith(apexLogQuery)).to.be.true;
     });
   });
 });

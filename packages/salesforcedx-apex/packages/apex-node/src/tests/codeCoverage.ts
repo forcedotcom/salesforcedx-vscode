@@ -15,6 +15,7 @@ import {
 } from './types';
 import * as util from 'util';
 import { calculatePercentage } from './utils';
+import { QUERY_RECORD_LIMIT } from './constants';
 
 export class CodeCoverage {
   public readonly connection: Connection;
@@ -51,34 +52,40 @@ export class CodeCoverage {
       return new Map();
     }
 
-    const perClassCodeCovResuls = await this.queryPerClassCodeCov(
+    const perClassCodeCovResults = await this.queryPerClassCodeCov(
       apexTestClassSet
     );
 
     const perClassCoverageMap = new Map<string, PerClassCoverage[]>();
-    perClassCodeCovResuls.records.forEach(item => {
-      const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
-      const percentage = calculatePercentage(item.NumLinesCovered, totalLines);
 
-      const value = {
-        apexClassOrTriggerName: item.ApexClassOrTrigger.Name,
-        apexClassOrTriggerId: item.ApexClassOrTrigger.Id,
-        apexTestClassId: item.ApexTestClassId,
-        apexTestMethodName: item.TestMethodName,
-        numLinesCovered: item.NumLinesCovered,
-        numLinesUncovered: item.NumLinesUncovered,
-        percentage,
-        ...(item.Coverage ? { coverage: item.Coverage } : {})
-      };
-      const key = `${item.ApexTestClassId}-${item.TestMethodName}`;
-      if (perClassCoverageMap.get(key)) {
-        perClassCoverageMap.get(key).push(value);
-      } else {
-        perClassCoverageMap.set(
-          `${item.ApexTestClassId}-${item.TestMethodName}`,
-          [value]
+    perClassCodeCovResults.forEach(chunk => {
+      chunk.records.forEach(item => {
+        const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
+        const percentage = calculatePercentage(
+          item.NumLinesCovered,
+          totalLines
         );
-      }
+
+        const value = {
+          apexClassOrTriggerName: item.ApexClassOrTrigger.Name,
+          apexClassOrTriggerId: item.ApexClassOrTrigger.Id,
+          apexTestClassId: item.ApexTestClassId,
+          apexTestMethodName: item.TestMethodName,
+          numLinesCovered: item.NumLinesCovered,
+          numLinesUncovered: item.NumLinesUncovered,
+          percentage,
+          ...(item.Coverage ? { coverage: item.Coverage } : {})
+        };
+        const key = `${item.ApexTestClassId}-${item.TestMethodName}`;
+        if (perClassCoverageMap.get(key)) {
+          perClassCoverageMap.get(key).push(value);
+        } else {
+          perClassCoverageMap.set(
+            `${item.ApexTestClassId}-${item.TestMethodName}`,
+            [value]
+          );
+        }
+      });
     });
 
     return perClassCoverageMap;
@@ -86,19 +93,10 @@ export class CodeCoverage {
 
   private async queryPerClassCodeCov(
     apexTestClassSet: Set<string>
-  ): Promise<ApexCodeCoverage> {
-    let str = '';
-    apexTestClassSet.forEach(elem => {
-      str += `'${elem}',`;
-    });
-    str = str.slice(0, -1);
-
+  ): Promise<ApexCodeCoverage[]> {
     const perClassCodeCovQuery =
       'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
-    const perClassCodeCovResuls = (await this.connection.tooling.autoFetchQuery(
-      util.format(perClassCodeCovQuery, `${str}`)
-    )) as ApexCodeCoverage;
-    return perClassCodeCovResuls;
+    return this.fetchResults(apexTestClassSet, perClassCodeCovQuery);
   }
 
   /**
@@ -117,37 +115,46 @@ export class CodeCoverage {
       return { codeCoverageResults: [], totalLines: 0, coveredLines: 0 };
     }
 
-    const codeCoverageResuls = await this.queryAggregateCodeCov(apexClassIdSet);
+    const codeCoverageAggregates = await this.queryAggregateCodeCov(
+      apexClassIdSet
+    );
 
     let totalLinesCovered = 0;
     let totalLinesUncovered = 0;
-    const codeCoverageResults: CodeCoverageResult[] = codeCoverageResuls.records.map(
-      item => {
-        totalLinesCovered += item.NumLinesCovered;
-        totalLinesUncovered += item.NumLinesUncovered;
-        const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
-        const percentage = calculatePercentage(
-          item.NumLinesCovered,
-          totalLines
-        );
 
-        return {
-          apexId: item.ApexClassOrTrigger.Id,
-          name: item.ApexClassOrTrigger.Name,
-          type: item.ApexClassOrTrigger.Id.startsWith('01p')
-            ? 'ApexClass'
-            : 'ApexTrigger',
-          numLinesCovered: item.NumLinesCovered,
-          numLinesUncovered: item.NumLinesUncovered,
-          percentage,
-          coveredLines: item.Coverage.coveredLines,
-          uncoveredLines: item.Coverage.uncoveredLines
-        };
-      }
-    );
+    const totalCodeCoverageResults: CodeCoverageResult[] = [];
+
+    codeCoverageAggregates.forEach(chunk => {
+      const codeCoverageResults: CodeCoverageResult[] = chunk.records.map(
+        item => {
+          totalLinesCovered += item.NumLinesCovered;
+          totalLinesUncovered += item.NumLinesUncovered;
+          const totalLines = item.NumLinesCovered + item.NumLinesUncovered;
+          const percentage = calculatePercentage(
+            item.NumLinesCovered,
+            totalLines
+          );
+
+          return {
+            apexId: item.ApexClassOrTrigger.Id,
+            name: item.ApexClassOrTrigger.Name,
+            type: item.ApexClassOrTrigger.Id.startsWith('01p')
+              ? 'ApexClass'
+              : 'ApexTrigger',
+            numLinesCovered: item.NumLinesCovered,
+            numLinesUncovered: item.NumLinesUncovered,
+            percentage,
+            coveredLines: item.Coverage.coveredLines,
+            uncoveredLines: item.Coverage.uncoveredLines
+          };
+        }
+      );
+
+      totalCodeCoverageResults.push(...codeCoverageResults);
+    });
 
     return {
-      codeCoverageResults,
+      codeCoverageResults: totalCodeCoverageResults,
       totalLines: totalLinesCovered + totalLinesUncovered,
       coveredLines: totalLinesCovered
     };
@@ -155,18 +162,36 @@ export class CodeCoverage {
 
   private async queryAggregateCodeCov(
     apexClassIdSet: Set<string>
-  ): Promise<ApexCodeCoverageAggregate> {
-    let str = '';
-    apexClassIdSet.forEach(elem => {
-      str += `'${elem}',`;
-    });
-    str = str.slice(0, -1);
-
+  ): Promise<ApexCodeCoverageAggregate[]> {
     const codeCoverageQuery =
       'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate WHERE ApexClassorTriggerId IN (%s)';
-    const codeCoverageResuls = (await this.connection.tooling.autoFetchQuery(
-      util.format(codeCoverageQuery, `${str}`)
-    )) as ApexCodeCoverageAggregate;
-    return codeCoverageResuls;
+    return this.fetchResults(apexClassIdSet, codeCoverageQuery);
+  }
+
+  private async fetchResults<
+    T extends ApexCodeCoverage | ApexCodeCoverageAggregate
+  >(idSet: Set<string>, selectQuery: string): Promise<T[]> {
+    const queries = this.createQueries(selectQuery, idSet);
+
+    const queryPromises = queries.map(query => {
+      return this.connection.tooling.autoFetchQuery(query) as Promise<T>;
+    });
+
+    return await Promise.all(queryPromises);
+  }
+
+  private createQueries(selectQuery: string, idSet: Set<string>): string[] {
+    const idArray = [...idSet];
+    const queries: string[] = [];
+    for (let i = 0; i < idArray.length; i += QUERY_RECORD_LIMIT) {
+      const recordSet: string[] = idArray
+        .slice(i, i + QUERY_RECORD_LIMIT)
+        .map(id => `'${id}'`);
+
+      const query: string = util.format(selectQuery, recordSet.join(','));
+      queries.push(query);
+    }
+
+    return queries;
   }
 }
