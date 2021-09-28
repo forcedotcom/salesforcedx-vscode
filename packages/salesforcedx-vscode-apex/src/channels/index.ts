@@ -12,3 +12,5 @@ export const OUTPUT_CHANNEL = vscode.window.createOutputChannel(
   nls.localize('channel_name')
 );
 export const channelService = new ChannelService(OUTPUT_CHANNEL);
+// TODO:
+// Remove this line.
