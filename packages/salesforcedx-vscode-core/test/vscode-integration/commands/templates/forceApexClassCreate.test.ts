@@ -20,9 +20,6 @@ import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
 
-const TEST_CUSTOM_TEMPLATES_REPO =
-  'https://github.com/forcedotcom/salesforcedx-templates/tree/develop/packages/templates/test/custom-templates';
-
 // tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
   let showInputBoxStub: SinonStub;
@@ -146,62 +143,4 @@ describe('Force Apex Class Create', () => {
       errorMessage
     );
   });
-
-  it('Should create Apex Class with custom templates', async () => {
-    // arrange
-    getConfigValue.returns(TEST_CUSTOM_TEMPLATES_REPO);
-    const outputPath = 'force-app/main/default/classes';
-    const apexClassPath = path.join(
-      getRootWorkspacePath(),
-      outputPath,
-      'TestApexClass.cls'
-    );
-    const apexClassMetaPath = path.join(
-      getRootWorkspacePath(),
-      outputPath,
-      'TestApexClass.cls-meta.xml'
-    );
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
-    assert.noFile([apexClassPath, apexClassMetaPath]);
-    showInputBoxStub.returns('TestApexClass');
-    quickPickStub.returns(outputPath);
-
-    // act
-    await forceApexClassCreate();
-
-    // assert
-    const defaultApiVersion = TemplateService.getDefaultApiVersion();
-    assert.file([apexClassPath, apexClassMetaPath]);
-    assert.fileContent(
-      apexClassPath,
-      'public with sharing class CustomTestApexClass'
-    );
-    assert.fileContent(
-      apexClassMetaPath,
-      `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${defaultApiVersion}</apiVersion>
-    <status>Inactive</status>
-</ApexClass>`
-    );
-    sinon.assert.calledOnce(openTextDocumentStub);
-    sinon.assert.calledWith(openTextDocumentStub, apexClassPath);
-
-    sinon.assert.calledOnce(sendCommandEventStub);
-    sinon.assert.calledWith(
-      sendCommandEventStub,
-      'force_apex_class_create',
-      sinon.match.array,
-      {
-        dirType: 'defaultDir',
-        commandExecutor: 'library',
-        isUsingCustomOrgMetadataTemplates: 'true'
-      }
-    );
-
-    // clean up
-    shell.rm('-f', apexClassPath);
-    shell.rm('-f', apexClassMetaPath);
-  }).timeout(20000);
 });
