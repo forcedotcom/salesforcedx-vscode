@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Update apex jar ([PR #3529](https://github.com/forcedotcom/salesforcedx-vscode/pull/3529))
+- Improve performance for Apex Indexer startup and updates the faux classes for the built-in standard Apex library ([PR #3529](https://github.com/forcedotcom/salesforcedx-vscode/pull/3529))
 
 ## Fixed
 
