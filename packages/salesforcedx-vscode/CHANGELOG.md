@@ -14,7 +14,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- Fix debug code lens for vscode 1.60+ ([PR #3545](https://github.com/forcedotcom/salesforcedx-vscode/pull/3545))
+- Fix debug code lens for VS Code 1.60+ ([PR #3545](https://github.com/forcedotcom/salesforcedx-vscode/pull/3545))
 
 #### salesforcedx-vscode-apex-replay-debugger
 
