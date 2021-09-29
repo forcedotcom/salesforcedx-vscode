@@ -1,3 +1,25 @@
+# 52.14.0 - September 29, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Update apex jar @W-9470741 @W-9266046 ([PR #3529](https://github.com/forcedotcom/salesforcedx-vscode/pull/3529))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Set sourceApiVersion for sourcepath based deploy and retrieve ([PR #3528](https://github.com/forcedotcom/salesforcedx-vscode/pull/3528))
+
+#### salesforcedx-vscode-lwc
+
+- Fix debug code lens for vscode 1.60+ ([PR #3545](https://github.com/forcedotcom/salesforcedx-vscode/pull/3545))
+
+#### salesforcedx-vscode-soql
+
+- Xyc/fix soql build ([PR #3534](https://github.com/forcedotcom/salesforcedx-vscode/pull/3534))
+
 # 52.13.0 - September 8, 2021
 
 ## Fixed
