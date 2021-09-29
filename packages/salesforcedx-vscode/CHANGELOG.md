@@ -1,3 +1,5 @@
+# 52.16.0 - September 29, 2021
+
 # 52.13.0 - September 8, 2021
 
 ## Fixed
