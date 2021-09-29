@@ -111,7 +111,8 @@ describe('Force Apex Class Create', () => {
       sinon.match.array,
       {
         dirType: 'defaultDir',
-        commandExecutor: 'library'
+        commandExecutor: 'library',
+        isUsingCustomOrgMetadataTemplates: 'false'
       }
     );
 
