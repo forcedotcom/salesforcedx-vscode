@@ -253,7 +253,6 @@ describe('Base Deploy Retrieve Commands', () => {
       public pollStatusStub: SinonStub;
       public deployStub: SinonStub;
       public cancellationStub = sb.stub();
-      public cacheSpy: SinonSpy;
 
       constructor(toDeploy = new ComponentSet()) {
         super('test', 'testlog');
@@ -262,7 +261,6 @@ describe('Base Deploy Retrieve Commands', () => {
         this.deployStub = sb
           .stub(this.components, 'deploy')
           .returns({ pollStatus: this.pollStatusStub });
-        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesDeploy');
       }
 
       protected async getComponents(
@@ -344,8 +342,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
       await executor.run({data: {}, type: 'CONTINUE' });
 
-      expect(executor.cacheSpy.callCount).to.equal(1);
-      expect(executor.cacheSpy.args[0][0].components.size).to.equal(2);
       expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))?.lastModifiedDate).to.equal('Yesterday');
       expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))?.lastModifiedDate).to.equal('Yesterday');
     });
@@ -364,8 +360,6 @@ describe('Base Deploy Retrieve Commands', () => {
       const success = await executor.run({ data: {}, type: 'CONTINUE' });
 
       expect(success).to.equal(false);
-      expect(executor.cacheSpy.callCount).to.equal(1);
-      expect(executor.cacheSpy.args[0][0].components.size).to.equal(0);
     });
 
     describe('Result Output', () => {
