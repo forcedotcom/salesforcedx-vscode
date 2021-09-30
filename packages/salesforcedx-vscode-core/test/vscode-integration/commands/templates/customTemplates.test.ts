@@ -29,7 +29,6 @@ const NON_EXISTENT_LOCAL_PATH = 'this-folder-does-not-exist';
 const NON_EXISTENT_REPO =
   'https://github.com/forcedotcom/this-repo-does-not-exist';
 
-// tslint:disable:no-unused-expression
 describe('Custom Templates Create', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
