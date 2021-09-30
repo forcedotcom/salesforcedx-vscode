@@ -297,55 +297,6 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(executor.pollStatusStub.calledOnce).to.equal(true);
     });
 
-    it('should store properties in metadata cache on successful deploy', async () => {
-      const executor = new TestDeploy();
-      const deployPropsOne = {
-        name: 'One',
-        fullName: 'One',
-        type: registry.types.apexclass,
-        content: join('project', 'classes', 'One.cls'),
-        xml: join('project', 'classes', 'One.cls-meta.xml')
-      };
-      const deployComponentOne = SourceComponent.createVirtualComponent(deployPropsOne,
-        [{
-          dirPath: dirname(deployPropsOne.content),
-          children: [basename(deployPropsOne.content), basename(deployPropsOne.xml)]
-        }
-      ]);
-      const deployPropsTwo = {
-        name: 'Two',
-        fullName: 'Two',
-        type: registry.types.customobject,
-        content: join('project', 'classes', 'Two.cls'),
-        xml: join('project', 'classes', 'Two.cls-meta.xml')
-      };
-      const deployComponentTwo = SourceComponent.createVirtualComponent(deployPropsTwo,
-        [{
-          dirPath: dirname(deployPropsTwo.content),
-          children: [basename(deployPropsTwo.content), basename(deployPropsTwo.xml)]
-        }
-      ]);
-      const mockDeployResult = new DeployResult(
-        {
-          status: RequestStatus.Succeeded,
-          lastModifiedDate: 'Yesterday'
-        } as MetadataApiDeployStatus,
-        new ComponentSet([
-          deployComponentOne,
-          deployComponentTwo
-        ])
-      );
-      const fileResponses: any[] = [];
-      const cache = PersistentStorageService.getInstance();
-      sb.stub(mockDeployResult, 'getFileResponses').returns(fileResponses);
-      executor.pollStatusStub.resolves(mockDeployResult);
-
-      await executor.run({data: {}, type: 'CONTINUE' });
-
-      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))?.lastModifiedDate).to.equal('Yesterday');
-      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))?.lastModifiedDate).to.equal('Yesterday');
-    });
-
     it('should not store any properties in metadata cache on failed deploy', async () => {
       const executor = new TestDeploy();
       const mockDeployResult = new DeployResult(
