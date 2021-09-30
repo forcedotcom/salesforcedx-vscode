@@ -1,3 +1,29 @@
+# 52.16.0 - September 29, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Improve performance for Apex Indexer startup and updates the faux classes for the built-in standard Apex library ([PR #3529](https://github.com/forcedotcom/salesforcedx-vscode/pull/3529))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Set sourceApiVersion for sourcepath based deploy and retrieve ([PR #3528](https://github.com/forcedotcom/salesforcedx-vscode/pull/3528))
+
+#### salesforcedx-vscode-lwc
+
+- Fix debug code lens for VS Code 1.60+ ([PR #3545](https://github.com/forcedotcom/salesforcedx-vscode/pull/3545))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Fix trace flag update error ([PR #3550](https://github.com/forcedotcom/salesforcedx-vscode/pull/3550))
+
+#### salesforcedx-vscode-soql
+
+- Skip checking types in libs ([PR #3534](https://github.com/forcedotcom/salesforcedx-vscode/pull/3534))
+
 # 52.13.0 - September 8, 2021
 
 ## Fixed
