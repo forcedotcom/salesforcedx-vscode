@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Config } from '@salesforce/core';
 import {
   TemplateOptions,
   TemplateService,
@@ -22,6 +23,7 @@ import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
+  ConfigUtil,
   getRootWorkspacePath,
   hasRootWorkspace,
   MetadataDictionary,
@@ -128,7 +130,26 @@ export abstract class LibraryBaseTemplateCommand<T>
   ) {
     const cwd = getRootWorkspacePath();
     const templateService = TemplateService.getInstance(cwd);
-    return await templateService.create(templateType, templateOptions);
+    let customOrgMetadataTemplates;
+
+    const configValue = await ConfigUtil.getConfigValue(
+      Config.CUSTOM_ORG_METADATA_TEMPLATES
+    );
+    if (configValue === undefined) {
+      customOrgMetadataTemplates = undefined;
+    } else {
+      customOrgMetadataTemplates = String(configValue);
+    }
+
+    this.telemetryProperties.isUsingCustomOrgMetadataTemplates = String(
+      customOrgMetadataTemplates !== undefined
+    );
+
+    return await templateService.create(
+      templateType,
+      templateOptions,
+      customOrgMetadataTemplates
+    );
   }
 
   protected async openCreatedTemplateInVSCode(
