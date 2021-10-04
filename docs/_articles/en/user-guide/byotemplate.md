@@ -35,7 +35,7 @@ See GitHub documentation for instructions on how to clone repos.
 "customOrgMetadataTemplates": ""https://github.com/mygithubacct/salesforcedx-templates""
 }
 ```
-**Note:** You can also use CLI to set this parameter. See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information.
+**Note:** You can also use the CLI to set this parameter. See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information.
 
 ## Create a Apex Class with Custom Code
 1. Clone the sample GitHub repo.
