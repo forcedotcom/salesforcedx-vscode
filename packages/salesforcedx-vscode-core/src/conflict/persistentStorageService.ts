@@ -60,17 +60,6 @@ export class PersistentStorageService {
     }
   }
 
-  public setPropertiesForFilesDeploy(components: ComponentSet, status: MetadataApiDeployStatus) {
-    const sourceComponents = components.getSourceComponents();
-    for (const comp of sourceComponents) {
-      this.setPropertiesForFile(
-        this.makeKey(comp.type.name, comp.fullName),
-        {
-          lastModifiedDate: status.lastModifiedDate
-        });
-    }
-  }
-
   public makeKey(type: string, fullName: string): string {
     const orgUserName = workspaceContext.username;
     const projectPath = getRootWorkspacePath();

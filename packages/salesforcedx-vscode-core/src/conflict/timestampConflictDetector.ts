@@ -38,10 +38,10 @@ export class TimestampConflictDetector {
     return this.diffs;
   }
 
-  private determineConflicts(data: CorrelatedComponent[]) {
+  private determineConflicts(components: CorrelatedComponent[]) {
     const cache = PersistentStorageService.getInstance();
     const conflicts: Set<TimestampFileProperties> = new Set<TimestampFileProperties>();
-    data.forEach(component => {
+    components.forEach(component => {
       let lastModifiedInOrg: string | undefined;
       let lastModifiedInCache: string | undefined;
 
@@ -53,22 +53,24 @@ export class TimestampConflictDetector {
       lastModifiedInCache = cache.getPropertiesForFile(key)?.lastModifiedDate;
       if (!lastModifiedInCache || lastModifiedInOrg !== lastModifiedInCache) {
         const differences = diffComponents(component.projectComponent, component.cacheComponent);
-        differences.forEach(difference => {
-          const cachePathRelative = relative(
-            this.diffs.remoteRoot,
-            difference.cachePath
-          );
-          const projectPathRelative = relative(
-            this.diffs.localRoot,
-            difference.projectPath
-          );
-          conflicts.add({
-            localRelPath: projectPathRelative,
-            remoteRelPath: cachePathRelative,
-            localLastModifiedDate: lastModifiedInCache,
-            remoteLastModifiedDate: lastModifiedInOrg
+        if (differences) {
+          differences.forEach(difference => {
+            const cachePathRelative = relative(
+              this.diffs.remoteRoot,
+              difference.cachePath
+            );
+            const projectPathRelative = relative(
+              this.diffs.localRoot,
+              difference.projectPath
+            );
+            conflicts.add({
+              localRelPath: projectPathRelative,
+              remoteRelPath: cachePathRelative,
+              localLastModifiedDate: lastModifiedInCache,
+              remoteLastModifiedDate: lastModifiedInOrg
+            });
           });
-        });
+        }
       }
     });
     this.diffs.different = conflicts;
