@@ -1,5 +1,5 @@
 ---
-title: Custom Templates
+title: Custom Code Templates
 lang: en
 ---
 
