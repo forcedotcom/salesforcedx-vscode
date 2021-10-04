@@ -8,7 +8,7 @@ Want your own code to appear in source files when you create a metadata object s
 
 Templates are essentially folders with files that contain your custom code. This [git repo](https://github.com/forcedotcom/salesforcedx-templates/tree/develop/packages/templates/src/templates) contains a collection of official Salesforce templates for metadata components. Simply clone this repo, keeping the same folder structure, then update relevant template files with your code. Remove the files that you don’t wish to override.
 
-**Note:** Only updates made to the files listed here show up in source files in VS Code. There’s no such restriction when you use CLI to specify templates for metadata objects.
+**Note:** Only updates made to the files listed here show up in source files in VS Code. There’s no such restriction when you use the CLI to specify templates for metadata objects.
 
 | Template Folder        | Default Template Files           |
 | ------------- |:-------------:|
