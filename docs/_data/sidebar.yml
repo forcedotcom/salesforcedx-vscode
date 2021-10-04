@@ -69,6 +69,10 @@
         ja: リモートコンテナ
       url: /user-guide/remote-development
     - title:
+        en: Custom Templates
+        ja: カスタムテンプレート
+      url: /user-guide/byotemplate
+    - title:
         en: Demo Mode
         ja: デモモード
       url: /user-guide/demo-mode
