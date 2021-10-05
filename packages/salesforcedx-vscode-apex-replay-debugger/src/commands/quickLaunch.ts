@@ -23,6 +23,8 @@ import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { workspace } from 'vscode';
+import { sfdxCreateCheckpoints } from '../breakpoints';
+import { checkpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -49,6 +51,16 @@ export class QuickLaunch {
     const flags = new TraceFlags(connection);
     if (!(await flags.ensureTraceFlags())) {
       return false;
+    }
+
+    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(
+      true
+    );
+    if (oneOrMoreCheckpoints) {
+      const createCheckpointsResult = await sfdxCreateCheckpoints();
+      if (!createCheckpointsResult) {
+        return false;
+      }
     }
 
     const testResult = await this.runSingleTest(
@@ -85,7 +97,10 @@ export class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
-      const result: TestResult = await testService.runTestSynchronous(payload, true);
+      const result: TestResult = (await testService.runTestSynchronous(
+        payload,
+        true
+      )) as TestResult;
       if (workspace && workspace.workspaceFolders) {
         const apexTestResultsPath = getTestResultsFolder(
           getRootWorkspacePath(),

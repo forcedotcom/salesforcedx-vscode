@@ -58,7 +58,6 @@ describe('Persistent Storage Service', () => {
     expect(cache.getPropertiesForFile(keyOne)).to.equal(undefined);
     expect(cache.getPropertiesForFile(keyTwo)).to.equal(undefined);
   });
-
   it('Should set and get ConflictFileProperties in Memento cache for Deploy', () => {
     cache.setPropertiesForFilesDeploy(mockDeployResult.components, mockDeployResult.response);
     expect(cache.getPropertiesForFile(keyOne)).to.deep.equal({lastModifiedDate: 'Yesterday'});
@@ -68,5 +67,4 @@ describe('Persistent Storage Service', () => {
     expect(cache.getPropertiesForFile(keyOne)).to.equal(undefined);
     expect(cache.getPropertiesForFile(keyTwo)).to.equal(undefined);
   });
-
 });

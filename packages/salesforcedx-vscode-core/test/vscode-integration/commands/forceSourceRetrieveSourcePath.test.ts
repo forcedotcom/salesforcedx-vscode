@@ -28,7 +28,7 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
@@ -52,7 +52,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
   describe('Library Executor', () => {
     let mockConnection: Connection;
     let retrieveStub: SinonStub;
-    let startStub: SinonStub;
+    let pollStatusStub: SinonStub;
 
     const defaultPackage = 'test-app';
 
@@ -70,7 +70,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
         defaultPackage
       );
-      startStub = sb.stub();
+      sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
+      pollStatusStub = sb.stub();
     });
 
     afterEach(() => {
@@ -93,7 +94,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         .returns(toRetrieve);
       retrieveStub = sb
         .stub(toRetrieve, 'retrieve')
-        .returns({ start: startStub });
+        .returns({ pollStatus: pollStatusStub });
 
       await executor.run({ data: fsPath, type: 'CONTINUE' });
 
@@ -103,7 +104,18 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         output: path.join(getRootWorkspacePath(), defaultPackage),
         merge: true
       });
-      expect(startStub.calledOnce).to.equal(true);
+      expect(pollStatusStub.calledOnce).to.equal(true);
+    });
+
+    it('componentSet has sourceApiVersion set', async () => {
+      const executor = new LibraryRetrieveSourcePathExecutor();
+      const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
+      const continueResponse = {
+        type: 'CONTINUE',
+        data
+      } as ContinueResponse<string>;
+      const componentSet = executor.getComponents(continueResponse);
+      expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
   });
 });

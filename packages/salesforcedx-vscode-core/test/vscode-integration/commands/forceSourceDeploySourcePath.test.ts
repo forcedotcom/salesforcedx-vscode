@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import { ComponentSet, MetadataResolver } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -17,6 +18,8 @@ import {
 } from '../../../src/commands';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
+import { SfdxProjectConfig } from '../../../src/sfdxProject';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -41,7 +44,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     let mockConnection: Connection;
 
     let resolveStub: SinonStub;
-    let startStub: SinonStub;
+    let pollStatusStub: SinonStub;
     let deployStub: SinonStub;
 
     beforeEach(async () => {
@@ -57,13 +60,14 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
       resolveStub = sb.stub(MetadataResolver.prototype, 'getComponentsFromPath').returns([]);
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-      startStub = sb.stub().resolves(undefined);
+      pollStatusStub = sb.stub().resolves(undefined);
       deployStub = sb
         .stub(ComponentSet.prototype, 'deploy')
         .withArgs({ usernameOrConnection: mockConnection })
         .returns({
-          start: startStub
+          pollStatus: pollStatusStub
         });
+      sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
     });
 
     afterEach(() => {
@@ -82,7 +86,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
-      expect(startStub.calledOnce).to.equal(true);
+      expect(pollStatusStub.calledOnce).to.equal(true);
     });
 
     it('should deploy with multiple paths', async () => {
@@ -99,7 +103,18 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
       });
-      expect(startStub.calledOnce).to.equal(true);
+      expect(pollStatusStub.calledOnce).to.equal(true);
+    });
+
+    it('componentSet should have sourceApiVersion set', async () => {
+      const executor = new LibraryDeploySourcePathExecutor();
+      const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
+      const continueResponse = {
+        type: 'CONTINUE',
+        data
+      } as ContinueResponse<string>;
+      const componentSet = executor.getComponents(continueResponse);
+      expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
   });
 });
