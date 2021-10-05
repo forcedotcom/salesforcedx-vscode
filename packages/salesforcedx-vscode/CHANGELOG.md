@@ -1,3 +1,21 @@
+# 52.17.0 - October 5, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Custom templates for vscode ([PR #3563](https://github.com/forcedotcom/salesforcedx-vscode/pull/3563))
+
+## Fixed
+
+#### docs
+
+- New Topic BYO Template ([PR #3565](https://github.com/forcedotcom/salesforcedx-vscode/pull/3565))
+
+#### salesforcedx-vscode-core
+
+- Detect-conflict-at-sync-doesnt-work ([PR #3556](https://github.com/forcedotcom/salesforcedx-vscode/pull/3556))
+
 # 52.16.0 - September 29, 2021
 
 ## Added
