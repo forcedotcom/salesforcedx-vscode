@@ -120,9 +120,7 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibraryRetrieveSourcePathExecutor()
-      : new ForceSourceRetrieveSourcePathExecutor(),
+    new LibraryRetrieveSourcePathExecutor(),
     new SourcePathChecker()
   );
   await commandlet.run();

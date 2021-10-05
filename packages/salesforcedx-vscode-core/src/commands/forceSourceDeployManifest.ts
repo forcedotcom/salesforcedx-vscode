@@ -96,9 +96,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(manifestUri),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibrarySourceDeployManifestExecutor()
-      : new ForceSourceDeployManifestExecutor(),
+    new LibrarySourceDeployManifestExecutor(),
     new TimestampConflictChecker(true, messages)
   );
   await commandlet.run();

@@ -129,9 +129,7 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(sourceUri),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor(),
+    new LibraryDeploySourcePathExecutor(),
     new CompositePostconditionChecker(
       new SourcePathChecker(),
       new TimestampConflictChecker(false, messages)
@@ -141,7 +139,7 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
 }
 
 export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
-  const useBeta = sfdxCoreSettings.getBetaDeployRetrieve();
+  const useBeta: boolean = true;
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
     commandHint: input => {
@@ -157,9 +155,7 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
     useBeta
       ? new LibraryPathsGatherer(uris)
       : new MultipleSourcePathsGatherer(uris),
-    useBeta
-      ? new LibraryDeploySourcePathExecutor()
-      : new ForceSourceDeploySourcePathExecutor(),
+    new LibraryDeploySourcePathExecutor(),
     new TimestampConflictChecker(false, messages)
   );
   await commandlet.run();

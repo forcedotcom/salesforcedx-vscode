@@ -228,9 +228,7 @@ export async function forceSourceRetrieveCmp(
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new RetrieveComponentOutputGatherer(retrieveDescriber),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibraryRetrieveSourcePathExecutor(openAfterRetrieve)
-      : new ForceSourceRetrieveExecutor(retrieveDescriber, openAfterRetrieve),
+    new LibraryRetrieveSourcePathExecutor(openAfterRetrieve),
     new OverwriteComponentPrompt()
   );
   await commandlet.run();
