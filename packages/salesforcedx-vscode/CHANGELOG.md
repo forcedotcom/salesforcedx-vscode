@@ -4,17 +4,17 @@
 
 #### salesforcedx-vscode-core
 
-- Custom templates for vscode ([PR #3563](https://github.com/forcedotcom/salesforcedx-vscode/pull/3563))
+- Support custom templates in VS Code ([PR #3563](https://github.com/forcedotcom/salesforcedx-vscode/pull/3563))
 
 ## Fixed
 
 #### docs
 
-- New Topic BYO Template ([PR #3565](https://github.com/forcedotcom/salesforcedx-vscode/pull/3565))
+- Documentation for custom templates in VS Code ([PR #3565](https://github.com/forcedotcom/salesforcedx-vscode/pull/3565))
 
 #### salesforcedx-vscode-core
 
-- Detect-conflict-at-sync-doesnt-work ([PR #3556](https://github.com/forcedotcom/salesforcedx-vscode/pull/3556))
+- Fix a conflict detection bug when components are deployed multiple time ([PR #3556](https://github.com/forcedotcom/salesforcedx-vscode/pull/3556))
 
 # 52.16.0 - September 29, 2021
 
