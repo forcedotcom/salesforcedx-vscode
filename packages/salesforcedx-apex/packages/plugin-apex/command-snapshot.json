@@ -46,6 +46,18 @@
         ]
     },
     {
+        "command": "force:apex:log:tail",
+        "plugin": "@salesforce/plugin-apex",
+        "flags": [
+            "apiversion",
+            "color",
+            "debuglevel",
+            "json",
+            "loglevel",
+            "skiptraceflag"
+        ]
+    },
+    {
         "command": "force:apex:test:report",
         "plugin": "@salesforce/plugin-apex",
         "flags": [

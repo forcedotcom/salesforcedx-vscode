@@ -86,5 +86,8 @@ export const messages = {
   trace_flags_failed_to_create_debug_level: 'Failed to create a debug level',
   trace_flags_failed_to_find_debug_level: 'Debug Level not found for %s',
   runIdFormatErr: 'Cannot specify a result format with a TestRunId result',
-  covIdFormatErr: 'Cannot specify code coverage with a TestRunId result'
+  covIdFormatErr: 'Cannot specify code coverage with a TestRunId result',
+  startHandshake: 'Attempting StreamingClient handshake',
+  finishHandshake: 'Finished StreamingClient handshake',
+  subscribeStarted: 'Subscribing to ApexLog events'
 };

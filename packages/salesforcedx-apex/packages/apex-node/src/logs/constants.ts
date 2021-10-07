@@ -10,3 +10,4 @@ export const LOG_TYPE = 'DEVELOPER_LOG';
 export const MAX_NUM_LOGS = 25;
 export const LOG_TIMER_LENGTH_MINUTES = 30;
 export const LISTENER_ABORTED_ERROR_NAME = 'streamListenerAborted';
+export const STREAMING_LOG_TOPIC = '/systemTopic/Logging';

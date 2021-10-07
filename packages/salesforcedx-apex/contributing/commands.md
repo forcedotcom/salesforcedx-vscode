@@ -51,9 +51,7 @@ EXAMPLES
 <br /><br />
 
 ### `sfdx force:apex:log:list`
-
 display a list of IDs and general information about debug logs
-
 ```
 USAGE
   $ sfdx force:apex:log:list [-u <string>] [--apiversion <string>] [--json] [--loglevel 
@@ -83,6 +81,48 @@ EXAMPLES
   $ sfdx force:apex:log:list -u me@my.org
 ```
 *See code: [force/apex/log/list.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/develop/packages/plugin-apex/src/commands/force/apex/log/list.ts)*
+<br /><br />
+
+### `sfdx force:apex:log:tail`
+ensures logging is active and returns the logs to the running user
+
+```
+USAGE
+  $ sfdx force:apex:log:list [-u <string>] [--apiversion <string>] [--json] [--loglevel
+  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL] [-c] [-d <string>] [-s]
+
+OPTIONS
+  -u, --targetusername=targetusername
+      username or alias for the target org; overrides default target org
+
+  --apiversion=apiversion
+      override the api version used for api requests made by this command
+
+  --json
+      format output as JSON
+
+  --loglevel=(trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL)
+      [default: warn] logging level for this command invocation
+
+  -c, --color
+      colorize noteworthy log lines
+
+  -d, --debuglevel=debuglevel
+      debug level for trace flag
+
+  -s, --skiptraceflag
+      skip trace flag setup
+
+DESCRIPTION
+  Activates debug logging and displays logs in the terminal. You can also pipe the logs to a file.
+  To exit logging early, type Ctrl+C into the terminal.
+
+EXAMPLES
+  $ sfdx force:apex:log:tail
+  $ sfdx force:apex:log:tail --debuglevel MyDebugLevel
+  $ sfdx force:apex:log:tail -c -s
+```
+*See code: [force/apex/log/tail.ts](https://github.com/forcedotcom/salesforcedx-apex/blob/develop/packages/plugin-apex/src/commands/force/apex/log/tail.ts)*
 <br /><br />
 
 ### `sfdx force:apex:execute`

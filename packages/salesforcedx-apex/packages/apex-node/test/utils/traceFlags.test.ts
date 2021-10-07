@@ -95,7 +95,7 @@ describe('Trace Flags', () => {
     updateArgs = toolingUpdateStub.getCall(1).args;
     expect(updateArgs[0]).to.equal('TraceFlag');
     expect(updateArgs[1].Id).to.equal('1234');
-    expect(updateArgs[1].StartDate).to.equal('');
+    expect(updateArgs[1].StartDate).to.not.equal('');
     const expDate = new Date(updateArgs[1].ExpirationDate);
     expect(expDate.getTime() - currDate).to.be.greaterThan(60000 * 29);
 
@@ -173,7 +173,7 @@ describe('Trace Flags', () => {
     expect(createArgs[1].tracedentityid).to.equal(USER_ID);
     expect(createArgs[1].logtype).to.equal('DEVELOPER_LOG');
     expect(createArgs[1].debuglevelid).to.equal('aBcDeF');
-    expect(createArgs[1].StartDate).to.equal('');
+    expect(createArgs[1].StartDate).to.not.equal('');
     const expDate = new Date(createArgs[1].ExpirationDate);
     expect(expDate.getTime() - currDate).to.be.greaterThan(60000 * 29);
   });

@@ -14,9 +14,10 @@ import {
 import { Duration } from '@salesforce/kit';
 import { AnyJson } from '@salesforce/ts-types';
 import {
-  MAX_NUM_LOGS,
   LOG_TIMER_LENGTH_MINUTES,
-  LISTENER_ABORTED_ERROR_NAME
+  LISTENER_ABORTED_ERROR_NAME,
+  MAX_NUM_LOGS,
+  STREAMING_LOG_TOPIC
 } from './constants';
 import {
   ApexLogGetOptions,
@@ -32,8 +33,6 @@ import { TraceFlags } from '../utils/traceFlags';
 type StreamingLogMessage = {
   sobject: { Id: string };
 };
-
-const STREAMING_LOG_TOPIC = '/systemTopic/Logging';
 
 export class LogService {
   public readonly connection: Connection;
@@ -122,6 +121,17 @@ export class LogService {
   public async tail(org: Org, tailer?: (log: string) => void): Promise<void> {
     this.logger = await Logger.child('apexLogApi', { tag: 'tail' });
     this.logTailer = tailer;
+    const stream = await this.createStreamingClient(org);
+
+    this.logger.debug(nls.localize('startHandshake'));
+    await stream.handshake();
+    this.logger.debug(nls.localize('finishHandshake'));
+    await stream.subscribe(async () => {
+      this.logger.debug(nls.localize('subscribeStarted'));
+    });
+  }
+
+  public async createStreamingClient(org: Org): Promise<StreamingClient> {
     const options = new StreamingClient.DefaultOptions(
       org,
       STREAMING_LOG_TOPIC,
@@ -129,18 +139,10 @@ export class LogService {
     );
     options.setSubscribeTimeout(Duration.minutes(LOG_TIMER_LENGTH_MINUTES));
 
-    const stream = await StreamingClient.create(options);
-
-    this.logger.debug('Attempting StreamingClient handshake');
-    await stream.handshake();
-    this.logger.debug('Finished StreamingClient handshake');
-
-    await stream.subscribe(async () => {
-      this.logger.debug('Subscribing to ApexLog events');
-    });
+    return await StreamingClient.create(options);
   }
 
-  private async logCallback(message: StreamingLogMessage): Promise<void> {
+  public async logCallback(message: StreamingLogMessage): Promise<void> {
     if (message.sobject && message.sobject.Id) {
       const log = await this.getLogById(message.sobject.Id);
       if (log && this.logTailer) {
