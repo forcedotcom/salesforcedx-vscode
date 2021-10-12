@@ -115,7 +115,7 @@
         ja: 作成
       url: /aura/writing
 - title:
-    en: Salesforce Functions (beta)
+    en: Salesforce Functions
     ja: Salesforce の機能
   baseUrl: /functions/
   children:
