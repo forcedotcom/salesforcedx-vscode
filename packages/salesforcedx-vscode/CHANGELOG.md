@@ -1,10 +1,10 @@
-# 52.18.0 - October 12, 2021
+# 52.18.0 - October 13, 2021
 
 ## Fixed
 
 #### salesforcedx-vscode-apex
 
-- Update lsp - namespace autocomplete fix,telemetry,soql lib deletion ([PR #3568](https://github.com/forcedotcom/salesforcedx-vscode/pull/3568))
+- Fix to suggest correct autocompletes in projects with namespace, telemetry and deletion of SOQL library. ([PR #3568](https://github.com/forcedotcom/salesforcedx-vscode/pull/3568))
 
 # 52.17.0 - October 8, 2021
 
