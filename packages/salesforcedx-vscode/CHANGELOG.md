@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Fix to suggest correct autocompletes in projects with namespace, telemetry and deletion of SOQL library. ([PR #3568](https://github.com/forcedotcom/salesforcedx-vscode/pull/3568))
+- Changes in Apex Language Server to suggest correct autocompletes in projects with namespace, additional telemetry and deletion of SOQL library. ([PR #3568](https://github.com/forcedotcom/salesforcedx-vscode/pull/3568))
 
 # 52.17.0 - October 8, 2021
 
