@@ -1,3 +1,11 @@
+# 53.0.0 - October 13, 2021
+
+## Fixed
+
+#### docs
+
+- Sonal/fn beta tag ([PR #3583](https://github.com/forcedotcom/salesforcedx-vscode/pull/3583))
+
 # 52.17.0 - October 8, 2021
 
 ## Added
