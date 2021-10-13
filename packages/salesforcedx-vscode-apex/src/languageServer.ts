@@ -6,6 +6,7 @@
  */
 
 import * as fs from 'fs';
+import { homedir } from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -31,7 +32,7 @@ async function createServer(
   context: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    deleteDbIfExists();
+    setupDB(context);
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
     const javaExecutable = path.resolve(
@@ -88,7 +89,7 @@ async function createServer(
   }
 }
 
-function deleteDbIfExists(): void {
+function setupDB(context: vscode.ExtensionContext): void {
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
@@ -101,6 +102,22 @@ function deleteDbIfExists(): void {
     );
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
+    }
+
+    const extVersion = require(context.asAbsolutePath('./package.json'))
+      .version;
+    const systemDb = path.join(
+      homedir(),
+      '.vscode',
+      'extensions',
+      `salesforce.salesforcedx-vscode-apex-${extVersion}`,
+      'resources',
+      'apex.db'
+    );
+    if (fs.existsSync(systemDb)) {
+      fs.copyFile(systemDb, dbPath, err => {
+        throw err;
+      });
     }
   }
 }
