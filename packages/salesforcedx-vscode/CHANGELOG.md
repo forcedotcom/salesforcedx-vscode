@@ -1,3 +1,15 @@
+# 53.0.0 - October 13, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Changes in Apex Language Server to suggest correct autocompletes in projects with namespace, additional telemetry and deletion of SOQL library. ([PR #3568](https://github.com/forcedotcom/salesforcedx-vscode/pull/3568))
+
+#### docs
+
+- Removes Salesforce Functions Beta tag. ([PR #3583](https://github.com/forcedotcom/salesforcedx-vscode/pull/3583))
+
 # 52.17.0 - October 8, 2021
 
 ## Added
