@@ -106,6 +106,8 @@ function setupDB(context: vscode.ExtensionContext): void {
 
     const extVersion = require(context.asAbsolutePath('./package.json'))
       .version;
+    const yo = path.join(__dirname, '');
+    console.log('THIS BE DIRNAME' + yo);
     const systemDb = path.join(
       homedir(),
       '.vscode',
