@@ -30,22 +30,6 @@ import {
   TimestampConflictChecker
 } from './util/postconditionCheckers';
 
-export class ForceSourceDeploySourcePathExecutor extends BaseDeployExecutor {
-  public build(sourcePath: string): Command {
-    const commandBuilder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_deploy_text'))
-      .withArg('force:source:deploy')
-      .withLogName('force_source_deploy_with_sourcepath')
-      .withFlag('--sourcepath', sourcePath)
-      .withJson();
-    return commandBuilder.build();
-  }
-
-  protected getDeployType() {
-    return DeployType.Deploy;
-  }
-}
-
 export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   string | string[]
 > {
@@ -64,20 +48,6 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
     const componentSet = ComponentSet.fromSource(paths);
     componentSet.sourceApiVersion = sourceApiVersion;
     return componentSet;
-  }
-}
-
-export class MultipleSourcePathsGatherer implements ParametersGatherer<string> {
-  private uris: vscode.Uri[];
-  public constructor(uris: vscode.Uri[]) {
-    this.uris = uris;
-  }
-  public async gather(): Promise<ContinueResponse<string>> {
-    const sourcePaths = this.uris.map(uri => uri.fsPath).join(',');
-    return {
-      type: 'CONTINUE',
-      data: sourcePaths
-    };
   }
 }
 
@@ -139,7 +109,6 @@ export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
 }
 
 export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
-  const useBeta: boolean = true;
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
     commandHint: input => {
@@ -152,9 +121,7 @@ export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
   };
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
-    useBeta
-      ? new LibraryPathsGatherer(uris)
-      : new MultipleSourcePathsGatherer(uris),
+    new LibraryPathsGatherer(uris),
     new LibraryDeploySourcePathExecutor(),
     new TimestampConflictChecker(false, messages)
   );

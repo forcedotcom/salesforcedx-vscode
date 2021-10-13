@@ -29,19 +29,6 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
-  string
-> {
-  public build(sourcePath: string): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_retrieve_text'))
-      .withArg('force:source:retrieve')
-      .withFlag('--sourcepath', sourcePath)
-      .withLogName('force_source_retrieve_with_sourcepath')
-      .build();
-  }
-}
-
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string
 > {

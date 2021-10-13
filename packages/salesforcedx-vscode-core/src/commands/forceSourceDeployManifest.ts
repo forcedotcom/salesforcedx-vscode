@@ -27,22 +27,6 @@ import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
-export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
-  public build(manifestPath: string): Command {
-    const commandBuilder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_deploy_text'))
-      .withArg('force:source:deploy')
-      .withLogName('force_source_deploy_with_manifest')
-      .withFlag('--manifest', manifestPath)
-      .withJson();
-    return commandBuilder.build();
-  }
-
-  protected getDeployType() {
-    return DeployType.Deploy;
-  }
-}
-
 export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
   string
 > {

@@ -27,19 +27,6 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
-  string
-> {
-  public build(manifestPath: string): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_retrieve_text'))
-      .withArg('force:source:retrieve')
-      .withFlag('--manifest', manifestPath)
-      .withLogName('force_source_retrieve_with_manifest')
-      .build();
-  }
-}
-
 export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
   string
 > {
