@@ -32,7 +32,7 @@ async function createServer(
   context: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    setupDB(context);
+    setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
     const javaExecutable = path.resolve(
@@ -89,7 +89,7 @@ async function createServer(
   }
 }
 
-function setupDB(context: vscode.ExtensionContext): void {
+function setupDB(): void {
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
@@ -104,21 +104,10 @@ function setupDB(context: vscode.ExtensionContext): void {
       fs.unlinkSync(dbPath);
     }
 
-    const extVersion = require(context.asAbsolutePath('./package.json'))
-      .version;
-    const yo = path.join(__dirname, '');
-    console.log('THIS BE DIRNAME' + yo);
-    const systemDb = path.join(
-      homedir(),
-      '.vscode',
-      'extensions',
-      `salesforce.salesforcedx-vscode-apex-${extVersion}`,
-      'resources',
-      'apex.db'
-    );
+    const systemDb = path.join(__dirname, '..', 'resources', 'apex.db');
     if (fs.existsSync(systemDb)) {
       fs.copyFile(systemDb, dbPath, err => {
-        throw err;
+        console.log(err);
       });
     }
   }
