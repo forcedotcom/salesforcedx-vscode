@@ -117,7 +117,7 @@ describe('Apex Language Server Client', () => {
     });
   });
 
-  describe('', () => {
+  describe('Setup Apex DB', () => {
     const sandbox = createSandbox();
     let existsStub: SinonStub;
     let unlinkStub: SinonStub;
