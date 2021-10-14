@@ -31,7 +31,7 @@ async function createServer(
   context: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    setupDB();
+    await setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
     const javaExecutable = path.resolve(
