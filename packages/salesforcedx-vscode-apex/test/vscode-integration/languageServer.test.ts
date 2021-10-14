@@ -152,18 +152,21 @@ describe('Apex Language Server Client', () => {
       expect(unlinkStub.notCalled).to.be.true;
     });
 
-    it('should check if system db exists', async () => {
-      setupDB();
-
-      expect(existsStub.calledTwice).to.be.true;
-      expect(unlinkStub.calledOnce).to.be.true;
-    });
-
     it('should copy system db to apex db location if system db exists', async () => {
       setupDB();
 
       expect(existsStub.calledTwice).to.be.true;
       expect(copyStub.calledOnce).to.be.true;
+    });
+
+    it('should do nothing if system db does not exist', async () => {
+      existsStub.onFirstCall().returns(true);
+      existsStub.onSecondCall().returns(false);
+      setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+      expect(unlinkStub.calledOnce).to.be.true;
+      expect(copyStub.notCalled).to.be.true;
     });
   });
 });
