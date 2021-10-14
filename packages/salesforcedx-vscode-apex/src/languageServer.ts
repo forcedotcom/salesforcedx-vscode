@@ -88,7 +88,7 @@ async function createServer(
   }
 }
 
-function setupDB(): void {
+async function setupDB(): Promise<void> {
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
@@ -103,11 +103,9 @@ function setupDB(): void {
       fs.unlinkSync(dbPath);
     }
 
-    const systemDb = path.join(__dirname, '..', 'resources', 'apex.db');
+    const systemDb = path.join(__dirname, '..', '..', 'resources', 'apex.db');
     if (fs.existsSync(systemDb)) {
-      fs.copyFile(systemDb, dbPath, err => {
-        console.log(err);
-      });
+      await fs.promises.copyFile(systemDb, dbPath);
     }
   }
 }
