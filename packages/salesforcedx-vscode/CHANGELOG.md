@@ -1,3 +1,59 @@
+# 53.0.0 - October 13, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- Changes in Apex Language Server to suggest correct autocompletes in projects with namespace, additional telemetry and deletion of SOQL library. ([PR #3568](https://github.com/forcedotcom/salesforcedx-vscode/pull/3568))
+
+#### docs
+
+- Removes Salesforce Functions Beta tag. ([PR #3583](https://github.com/forcedotcom/salesforcedx-vscode/pull/3583))
+
+# 52.17.0 - October 8, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Support custom templates in VS Code ([PR #3563](https://github.com/forcedotcom/salesforcedx-vscode/pull/3563))
+
+## Fixed
+
+#### docs
+
+- Documentation for custom templates in VS Code ([PR #3565](https://github.com/forcedotcom/salesforcedx-vscode/pull/3565))
+
+#### salesforcedx-vscode-core
+
+- Fix a conflict detection bug when components are deployed multiple time ([PR #3556](https://github.com/forcedotcom/salesforcedx-vscode/pull/3556))
+
+# 52.16.0 - September 29, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Improve performance for Apex Indexer startup and updates the faux classes for the built-in standard Apex library ([PR #3529](https://github.com/forcedotcom/salesforcedx-vscode/pull/3529))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Set sourceApiVersion for sourcepath based deploy and retrieve ([PR #3528](https://github.com/forcedotcom/salesforcedx-vscode/pull/3528))
+
+#### salesforcedx-vscode-lwc
+
+- Fix debug code lens for VS Code 1.60+ ([PR #3545](https://github.com/forcedotcom/salesforcedx-vscode/pull/3545))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Fix trace flag update error ([PR #3550](https://github.com/forcedotcom/salesforcedx-vscode/pull/3550))
+
+#### salesforcedx-vscode-soql
+
+- Skip checking types in libs ([PR #3534](https://github.com/forcedotcom/salesforcedx-vscode/pull/3534))
+
 # 52.13.0 - September 8, 2021
 
 ## Fixed
