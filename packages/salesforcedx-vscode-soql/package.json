@@ -80,7 +80,7 @@
     "build": "npm run compile",
     "compile": "tsc -p ./ && webpack",
     "lint": "eslint -c .eslintrc.json --ext .ts ./src",
-    "lint:fix": "eslint -c .eslintrc.json --ext .ts ./src --fix",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
