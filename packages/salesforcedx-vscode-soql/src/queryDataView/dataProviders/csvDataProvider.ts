@@ -28,9 +28,12 @@ export class CsvDataProvider implements DataProvider {
     return `${this.documentName}.${this.fileExtension}`;
   }
 
-  protected toTable(query: string, data: JsonMap[]): Papa.UnparseObject {
-    const columnData = new SelectAnalyzer(query).getColumnData();
+  protected toTable(
+    query: string,
 
+    data: JsonMap[]
+  ): Papa.UnparseObject<string[]> {
+    const columnData = new SelectAnalyzer(query).getColumnData();
     const fields: string[] = [];
     const colDataQ = [columnData];
     while (colDataQ.length > 0) {
