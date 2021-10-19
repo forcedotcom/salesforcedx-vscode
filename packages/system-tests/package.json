@@ -38,6 +38,7 @@
   "scripts": {
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf .vscode-test && shx rm -rf node_modules && shx rm -rf out",
     "pretest": "npm run compile && node ../../scripts/download-vscode-for-system-tests",
