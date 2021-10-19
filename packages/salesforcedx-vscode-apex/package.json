@@ -61,6 +61,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
