@@ -6,7 +6,7 @@ View outlines of Apex classes and triggers, see code-completion suggestions, and
 
 ## Documentation
 
-For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://forcedotcom.github.io/salesforcedx-vscode) documentation site.
+For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.
 
 ## Bugs and Feedback
 
