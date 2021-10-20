@@ -13,7 +13,6 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import {
-  ForceSourceDeploySourcePathExecutor,
   LibraryDeploySourcePathExecutor
 } from '../../../src/commands';
 import { workspaceContext } from '../../../src/context';
@@ -25,21 +24,6 @@ const sb = createSandbox();
 const $$ = testSetup();
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
-  describe('CLI Executor', () => {
-    it('Should build the source deploy command for', () => {
-      const sourcePath = path.join('path', 'to', 'sourceFile');
-      const sourceDeploy = new ForceSourceDeploySourcePathExecutor();
-      const sourceDeployCommand = sourceDeploy.build(sourcePath);
-
-      expect(sourceDeployCommand.toCommand()).to.equal(
-        `sfdx force:source:deploy --sourcepath ${sourcePath} --json --loglevel fatal`
-      );
-      expect(sourceDeployCommand.description).to.equal(
-        nls.localize('force_source_deploy_text')
-      );
-    });
-  });
-
   describe('Library Executor', () => {
     let mockConnection: Connection;
 

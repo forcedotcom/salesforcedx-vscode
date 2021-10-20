@@ -29,19 +29,6 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-export class ForceSourceRetrieveSourcePathExecutor extends SfdxCommandletExecutor<
-  string
-> {
-  public build(sourcePath: string): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_retrieve_text'))
-      .withArg('force:source:retrieve')
-      .withFlag('--sourcepath', sourcePath)
-      .withLogName('force_source_retrieve_with_sourcepath')
-      .build();
-  }
-}
-
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string
 > {
@@ -120,9 +107,7 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibraryRetrieveSourcePathExecutor()
-      : new ForceSourceRetrieveSourcePathExecutor(),
+    new LibraryRetrieveSourcePathExecutor(),
     new SourcePathChecker()
   );
   await commandlet.run();

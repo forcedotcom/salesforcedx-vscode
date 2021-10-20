@@ -46,26 +46,22 @@ export {
   ManifestChecker
 } from './forceSourceDelete';
 export {
-  forceSourceDeployManifest,
-  ForceSourceDeployManifestExecutor
+  forceSourceDeployManifest
 } from './forceSourceDeployManifest';
 export {
   forceSourceDeployMultipleSourcePaths,
   forceSourceDeploySourcePath,
-  ForceSourceDeploySourcePathExecutor,
   LibraryDeploySourcePathExecutor
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
   forceSourceRetrieveSourcePath,
-  ForceSourceRetrieveSourcePathExecutor,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
 export {
-  forceSourceRetrieveManifest,
-  ForceSourceRetrieveManifestExecutor
+  forceSourceRetrieveManifest
 } from './forceSourceRetrieveManifest';
 export {
   forceSourceStatus,

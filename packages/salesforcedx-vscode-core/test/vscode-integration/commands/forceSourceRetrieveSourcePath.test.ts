@@ -21,7 +21,6 @@ import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { channelService } from '../../../src/channels';
 import {
-  ForceSourceRetrieveSourcePathExecutor,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from '../../../src/commands';
@@ -35,20 +34,6 @@ const sb = createSandbox();
 const $$ = testSetup();
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
-  describe('CLI Executor', () => {
-    it('Should build the source retrieve command', () => {
-      const sourcePath = path.join('path', 'to', 'sourceFile');
-      const sourceRetrieve = new ForceSourceRetrieveSourcePathExecutor();
-      const sourceRetrieveCommand = sourceRetrieve.build(sourcePath);
-      expect(sourceRetrieveCommand.toCommand()).to.equal(
-        `sfdx force:source:retrieve --sourcepath ${sourcePath}`
-      );
-      expect(sourceRetrieveCommand.description).to.equal(
-        nls.localize('force_source_retrieve_text')
-      );
-    });
-  });
-
   describe('Library Executor', () => {
     let mockConnection: Connection;
     let retrieveStub: SinonStub;
