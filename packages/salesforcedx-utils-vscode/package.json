@@ -3,7 +3,7 @@
   "displayName": "SFDX Utilities for VS Code",
   "description": "Provides utilities to interface the SFDX libraries with VS Code",
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "53.0.0",
+  "version": "53.0.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
@@ -45,6 +45,7 @@
   "scripts": {
     "compile": "tsc -p ./ && webpack",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit",
