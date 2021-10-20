@@ -399,7 +399,7 @@ function writeAdditionalInfo() {
   console.log('\nNext Steps:');
   console.log('  1) Remove entries that are not customer facing.');
   console.log(
-    '  2) Add documentation links: [Doc Title](https://forcedotcom.github.io/salesforcedx-vscode/articles/doc-link-here)'
+    '  2) Add documentation links: [Doc Title](https://developer.salesforce.com/tools/vscode)'
   );
   console.log(
     '  3) Add external contributors: Contribution by [@contributor](https://github.com/contributor)'

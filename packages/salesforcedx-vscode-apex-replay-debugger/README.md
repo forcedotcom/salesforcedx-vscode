@@ -6,7 +6,7 @@ Apex Replay Debugger simulates a live debugging session using a debug log that i
 
 ## Documentation
 
-For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://forcedotcom.github.io/salesforcedx-vscode) documentation site.
+For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.
 
 ## Bugs and Feedback
 
