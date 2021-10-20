@@ -75,10 +75,6 @@ export class SfdxCoreSettings {
     return this.getConfigValue(CONFLICT_DETECTION_ENABLED, false);
   }
 
-  public getBetaDeployRetrieve(): boolean {
-    return this.getConfigValue(BETA_DEPLOY_RETRIEVE, false);
-  }
-
   private getConfigValue<T>(key: string, defaultValue: T): T {
     return this.getConfiguration().get<T>(key, defaultValue);
   }
