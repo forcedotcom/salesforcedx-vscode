@@ -1,6 +1,6 @@
 # Apex for Visual Studio Code
 
-View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. This extension is powered by the [Apex Language Server](https://forcedotcom.github.io/salesforcedx-vscode/articles/apex/writing).
+View outlines of Apex classes and triggers, see code-completion suggestions, and find syntactic errors in your code. This extension is powered by the [Apex Language Server](https://developer.salesforce.com/tools/vscode/en/apex/language-server).
 
 **DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
 
