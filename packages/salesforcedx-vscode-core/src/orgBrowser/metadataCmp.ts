@@ -84,6 +84,18 @@ export class ComponentUtils {
     }
   }
 
+  public buildCustomObjectFieldsList(
+    metadataType: string,
+    componentsFile?: string,
+    componentsPath?: string
+  ): string[] {
+    return [
+      'One',
+      'Two',
+      'Three'
+    ];
+  }
+
   public async loadComponents(
     defaultOrg: string,
     metadataType: string,
@@ -97,7 +109,13 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
-    if (forceRefresh || !fs.existsSync(componentsPath)) {
+    if(metadataType === 'CustomObject' && folder) {
+      componentsList = this.buildCustomObjectFieldsList(
+        metadataType,
+        undefined,
+        componentsPath
+      );
+    } else if (forceRefresh || !fs.existsSync(componentsPath)) {
       const result = await forceListMetadata(
         metadataType,
         defaultOrg,
