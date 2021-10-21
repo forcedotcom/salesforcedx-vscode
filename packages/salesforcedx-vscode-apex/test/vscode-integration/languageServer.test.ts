@@ -8,15 +8,15 @@
 // tslint:disable:no-unused-expression
 
 import { expect } from 'chai';
-import { createSandbox } from 'sinon';
-import { Uri } from 'vscode';
+import * as fs from 'fs';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  RevealOutputChannelOn
-} from 'vscode-languageclient';
+import { Uri } from 'vscode';
+import { RevealOutputChannelOn } from 'vscode-languageclient';
 import {
   buildClientOptions,
-  code2ProtocolConverter
+  code2ProtocolConverter,
+  setupDB
 } from '../../src/languageServer';
 
 describe('Apex Language Server Client', () => {
@@ -111,7 +111,62 @@ describe('Apex Language Server Client', () => {
 
       const clientOptions = buildClientOptions();
 
-      expect(clientOptions.revealOutputChannelOn).to.equal(RevealOutputChannelOn.Never);
+      expect(clientOptions.revealOutputChannelOn).to.equal(
+        RevealOutputChannelOn.Never
+      );
+    });
+  });
+
+  describe('Setup Apex DB', () => {
+    const sandbox = createSandbox();
+    let existsStub: SinonStub;
+    let unlinkStub: SinonStub;
+    let copyStub: SinonStub;
+
+    beforeEach(() => {
+      existsStub = sandbox.stub(fs, 'existsSync').returns(true);
+      unlinkStub = sandbox.stub(fs, 'unlinkSync');
+      copyStub = sandbox.stub(fs, 'copyFileSync');
+    });
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    it('should check if apex db and system db exist', async () => {
+      setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+    });
+
+    it('should delete apex db if it exists', async () => {
+      setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+    });
+
+    it('should do nothing if apex db does not exist', async () => {
+      existsStub.onFirstCall().returns(false);
+      setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+      expect(unlinkStub.notCalled).to.be.true;
+    });
+
+    it('should copy system db to apex db location if system db exists', async () => {
+      setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+      expect(copyStub.calledOnce).to.be.true;
+    });
+
+    it('should do nothing if system db does not exist', async () => {
+      existsStub.onFirstCall().returns(true);
+      existsStub.onSecondCall().returns(false);
+      setupDB();
+
+      expect(existsStub.calledTwice).to.be.true;
+      expect(unlinkStub.calledOnce).to.be.true;
+      expect(copyStub.notCalled).to.be.true;
     });
   });
 });

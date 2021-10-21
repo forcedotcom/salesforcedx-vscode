@@ -10,7 +10,6 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
-import { ForceSourceRetrieveManifestExecutor } from '../../../src/commands';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
@@ -21,20 +20,6 @@ const env = createSandbox();
 const $$ = testSetup();
 
 describe('Force Source Retrieve with Manifest Option', () => {
-  describe('CLI Executor', () => {
-    it('Should build the source retrieve command', () => {
-      const manifestPath = path.join('path', 'to', 'manifest', 'package.xml');
-      const sourceRetrieve = new ForceSourceRetrieveManifestExecutor();
-      const sourceRetrieveCommand = sourceRetrieve.build(manifestPath);
-      expect(sourceRetrieveCommand.toCommand()).to.equal(
-        `sfdx force:source:retrieve --manifest ${manifestPath}`
-      );
-      expect(sourceRetrieveCommand.description).to.equal(
-        nls.localize('force_source_retrieve_text')
-      );
-    });
-  });
-
   describe('Library Executor', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
