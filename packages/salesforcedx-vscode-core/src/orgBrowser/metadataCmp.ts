@@ -109,7 +109,7 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
-    if(metadataType === 'CustomObject' && folder) {
+    if (metadataType === 'CustomObject' && folder) {
       componentsList = this.buildCustomObjectFieldsList(
         metadataType,
         undefined,

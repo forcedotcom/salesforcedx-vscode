@@ -112,7 +112,7 @@ export class TypeUtils {
   }
 
   public getFolderForType(metadataType: string): string {
-    switch(metadataType) {
+    switch (metadataType) {
       case 'EmailTemplate':
         return 'Email';
       case 'CustomObject':
