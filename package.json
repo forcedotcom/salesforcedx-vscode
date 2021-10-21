@@ -26,6 +26,7 @@
     "webpack": "4.30.0",
     "webpack-cli": "3.3.5"
   },
+  "name": "salesforcedx-vscode",
   "scripts": {
     "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",

@@ -135,7 +135,7 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run: npm install
+      - run: npm ci
       - run: npm --version
       - run: node --version
 
