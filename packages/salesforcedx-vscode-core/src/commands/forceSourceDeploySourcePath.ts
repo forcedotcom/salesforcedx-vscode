@@ -65,7 +65,15 @@ export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
   }
 }
 
-export async function forceSourceDeploySourcePath(sourceUri: vscode.Uri) {
+export async function forceSourceDeploySourcePath(
+  sourceUri: vscode.Uri,
+  uris: vscode.Uri[]
+) {
+  if (uris && uris.length > 1) {
+    await forceSourceDeployMultipleSourcePaths(uris);
+    return;
+  }
+
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
