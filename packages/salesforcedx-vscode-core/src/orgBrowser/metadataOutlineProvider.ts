@@ -24,8 +24,12 @@ export class MetadataOutlineProvider
   private defaultOrg: string | undefined;
   private toRefresh: boolean = false;
 
-  private internalOnDidChangeTreeData: vscode.EventEmitter<BrowserNode | undefined> = new vscode.EventEmitter<BrowserNode | undefined>();
-  public readonly onDidChangeTreeData: vscode.Event<BrowserNode | undefined> = this.internalOnDidChangeTreeData.event;
+  private internalOnDidChangeTreeData: vscode.EventEmitter<
+    BrowserNode | undefined
+  > = new vscode.EventEmitter<BrowserNode | undefined>();
+  public readonly onDidChangeTreeData: vscode.Event<
+    BrowserNode | undefined
+  > = this.internalOnDidChangeTreeData.event;
 
   constructor(defaultOrg: string | undefined) {
     this.defaultOrg = defaultOrg;
@@ -81,10 +85,9 @@ export class MetadataOutlineProvider
       case NodeType.Folder:
       case NodeType.MetadataType:
         let nodeType = NodeType.MetadataComponent;
-        if(TypeUtils.FOLDER_TYPES.has(element.fullName)) {
+        if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        }
-        else if(element.type === NodeType.Folder && element.fullName) {
+        } else if (element.type === NodeType.Folder && element.fullName) {
           nodeType = NodeType.MetadataField;
         }
 

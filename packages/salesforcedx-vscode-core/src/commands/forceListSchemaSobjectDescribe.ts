@@ -25,66 +25,26 @@ import * as fs from 'fs';
 import { SfdxCommandletExecutor } from '../commands/util';
 import { getRootWorkspacePath } from '../util';
 
-export class ForceListSchemaSobjectDescribeExecutor extends SfdxCommandletExecutor<string> {
+export class ForceListSchemaSobjectDescribeExecutor extends SfdxCommandletExecutor<
+  string
+> {
   private objectName: string;
   private defaultUsernameOrAlias: string;
-  //private folder: string;
 
-  public constructor(
-    objectName: string,
-    defaultUsernameOrAlias: string,
-    //folder: string
-  ) {
+  public constructor(objectName: string, defaultUsernameOrAlias: string) {
     super();
     this.objectName = objectName;
     this.defaultUsernameOrAlias = defaultUsernameOrAlias;
-    //this.folder = folder;
   }
 
   public build(data: {}): Command {
-    // sfdx force:mdapi:listmetadata -m CustomObject -u test1-org --json —loglevel fatal
-    // sfdx force:schema:sobject:describe -s MyCustomObject__c -u test1-org --json —loglevel fatal
-
-    // debugger;
-
-    // const builder = new SfdxCommandBuilder()
-    //   .withArg('force:mdapi:listmetadata')
-    //   .withFlag('-m', this.objectName)
-    //   .withFlag('-u', this.defaultUsernameOrAlias)
-    //   .withLogName('force_mdapi_listmetadata')
-    //   .withJson();
-
-    // //if (this.folder) {
-    //   //builder.withFlag('--folder', this.folder);
-    // //}
-
-    // const command = builder.build();
-    // // sfdx force:mdapi:listmetadata -m CustomObject -u test1-org --json --loglevel fatal'
-
-    // debugger;
-
-
-
     const builder = new SfdxCommandBuilder()
       .withArg('force:schema:sobject:describe')
       .withFlag('-s', this.objectName)
-      // .withFlag('-s', 'MyCustomObject__c')
       .withFlag('-u', this.defaultUsernameOrAlias)
-      //.withLogName('force_mdapi_listmetadata')
       .withJson();
 
-    //if (this.folder) {
-      //builder2.withFlag('--folder', this.folder);
-    //}
-
     const command = builder.build();
-    // sfdx force:schema:sobject:describe -s MyCustomObject__c -u test1-org --json --loglevel fatal'
-
-
-    // debugger;
-
-
-
     return command;
   }
 
@@ -104,13 +64,11 @@ export class ForceListSchemaSobjectDescribeExecutor extends SfdxCommandletExecut
 export async function forceListSchemaSobjectDescribe(
   objectName: string,
   defaultUsernameOrAlias: string,
-  outputPath: string,
-  //folder: string
+  outputPath: string
 ): Promise<string> {
   const forceListSchemaSobjectDescribeExecutor = new ForceListSchemaSobjectDescribeExecutor(
     objectName,
-    defaultUsernameOrAlias,
-    //folder
+    defaultUsernameOrAlias
   );
   const execution = forceListSchemaSobjectDescribeExecutor.execute();
   const cmdOutput = new CommandOutput();
