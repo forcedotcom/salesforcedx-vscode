@@ -7,7 +7,7 @@
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
-import { forceListMetadata } from '../commands';
+import { forceListMetadata, forceListSchemaSobjectDescribe } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -84,17 +84,33 @@ export class ComponentUtils {
     }
   }
 
-  public buildCustomObjectFieldsList(
-    metadataType: string,
-    componentsFile?: string,
-    componentsPath?: string
-  ): string[] {
-    // TODO: This will be implemented as we progress through the epic.
-    return [
-      'One',
-      'Two',
-      'Three'
-    ];
+  public async buildCustomObjectFieldsList(
+    objectName: string,
+    defaultUsernameOrAlias: string,
+    outputPath: string
+  ): Promise<string[]> {
+    const result = await forceListSchemaSobjectDescribe(
+      objectName,
+      defaultUsernameOrAlias,
+      outputPath
+    );
+
+    const jsonResult = JSON.parse(result);
+    const fields = jsonResult.result.fields.map((field: { type: string; relationshipName?: string; name: string; length?: number; }) => {
+      switch (field.type) {
+        case 'string':
+        case 'email':
+          return `${field.name} (${field.type}(${field.length}))`;
+
+        case 'reference':
+          return `${field.relationshipName} (reference)`;
+
+        default:
+          return `${field.name} (${field.type})`;
+      }
+    });
+
+    return fields;
   }
 
   public async loadComponents(
@@ -111,9 +127,9 @@ export class ComponentUtils {
 
     let componentsList: string[];
     if (metadataType === 'CustomObject' && folder) {
-      componentsList = this.buildCustomObjectFieldsList(
-        metadataType,
-        undefined,
+      componentsList = await this.buildCustomObjectFieldsList(
+        folder,
+        defaultOrg,
         componentsPath
       );
     } else if (forceRefresh || !fs.existsSync(componentsPath)) {

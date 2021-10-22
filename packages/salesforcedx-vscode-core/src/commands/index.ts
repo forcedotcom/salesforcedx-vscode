@@ -145,6 +145,10 @@ export {
   forceListMetadata,
   ForceListMetadataExecutor
 } from './forceListMetadata';
+export {
+  forceListSchemaSobjectDescribe,
+  ForceListSchemaSobjectDescribeExecutor
+} from './forceListSchemaSobjectDescribe';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,

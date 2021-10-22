@@ -143,12 +143,12 @@ describe('load org browser tree outline', () => {
       {
         label: 'cmpNode1',
         fullName: 'cmpNode1',
-        type: NodeType.MetadataCmp
+        type: NodeType.MetadataComponent
       },
       {
         label: 'cmpNode2',
         fullName: 'cmpNode2',
-        type: NodeType.MetadataCmp
+        type: NodeType.MetadataComponent
       }
     ];
     const getCmpsStub = stub(
@@ -209,19 +209,19 @@ describe('load org browser tree outline', () => {
     const folder1 = [
       {
         label: 'Sample_Template',
-        type: NodeType.MetadataCmp,
+        type: NodeType.MetadataComponent,
         fullName: 'SampleFolder/Sample_Template'
       },
       {
         label: 'Sample_Template2',
-        type: NodeType.MetadataCmp,
+        type: NodeType.MetadataComponent,
         fullName: 'SampleFolder/Sample_Template2'
       }
     ];
     const folder2 = [
       {
         label: 'Main',
-        type: NodeType.MetadataCmp,
+        type: NodeType.MetadataComponent,
         fullName: 'SampleFolder2/Main'
       }
     ];
