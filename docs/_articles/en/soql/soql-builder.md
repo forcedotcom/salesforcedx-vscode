@@ -1,6 +1,4 @@
 ---
-
----
 title: SOQL Builder
 lang: en
 ---
