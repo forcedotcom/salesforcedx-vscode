@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-apex
 
-- Bundle extensions with apex.db ([PR #3585](https://github.com/forcedotcom/salesforcedx-vscode/pull/3585))
+- Bundle extensions with apex.db to optimize LSP performance ([PR #3585](https://github.com/forcedotcom/salesforcedx-vscode/pull/3585))
 
 ## Fixed
 
