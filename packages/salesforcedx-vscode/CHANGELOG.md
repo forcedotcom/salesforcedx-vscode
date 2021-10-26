@@ -1,3 +1,33 @@
+# 53.1.0 - October 28, 2021
+
+## Added
+
+#### docs
+
+- Append or prepend site title with SEO meta data ([PR #3546](https://github.com/forcedotcom/salesforcedx-vscode/pull/3546))
+
+#### salesforcedx-vscode-apex
+
+- Bundle extensions with apex.db ([PR #3585](https://github.com/forcedotcom/salesforcedx-vscode/pull/3585))
+
+## Fixed
+
+#### docs
+
+- Removed extra line in file ([PR #3614](https://github.com/forcedotcom/salesforcedx-vscode/pull/3614))
+
+- Sonal/del perf enhance ([PR #3593](https://github.com/forcedotcom/salesforcedx-vscode/pull/3593))
+
+#### salesforcedx-vscode-core
+
+- Set first alias when config default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581))
+
+- Sonal/fix doc links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
+
+- Ra/remove the deploy/retrieve experimental setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
+
+- Ra/fix soql compilation and add a new lint script ([PR #3598](https://github.com/forcedotcom/salesforcedx-vscode/pull/3598))
+
 # 53.0.0 - October 13, 2021
 
 ## Fixed
