@@ -14,7 +14,7 @@
 
 #### docs
 
-- Removed extra line in file ([PR #3614](https://github.com/forcedotcom/salesforcedx-vscode/pull/3614))
+- Removed extra line in documentation ([PR #3614](https://github.com/forcedotcom/salesforcedx-vscode/pull/3614))
 
 - Update performance enhancements documentation ([PR #3593](https://github.com/forcedotcom/salesforcedx-vscode/pull/3593))
 
