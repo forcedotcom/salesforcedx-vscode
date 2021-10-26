@@ -24,7 +24,7 @@
 
 - Sonal/fix doc links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
 
-- Ra/remove the deploy/retrieve experimental setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
+- Remove the Experimental: Deploy Retrieve performance enhancements user setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
 
 - Ra/fix soql compilation and add a new lint script ([PR #3598](https://github.com/forcedotcom/salesforcedx-vscode/pull/3598))
 
