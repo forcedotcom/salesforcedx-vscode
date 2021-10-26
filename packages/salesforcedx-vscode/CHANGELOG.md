@@ -26,7 +26,7 @@
 
 - Remove the Experimental: Deploy Retrieve performance enhancements user setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
 
-- Ra/fix soql compilation and add a new lint script ([PR #3598](https://github.com/forcedotcom/salesforcedx-vscode/pull/3598))
+- Under-the-hood fixes 
 
 # 53.0.0 - October 13, 2021
 
