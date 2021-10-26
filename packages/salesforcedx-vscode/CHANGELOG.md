@@ -16,7 +16,7 @@
 
 - Removed extra line in file ([PR #3614](https://github.com/forcedotcom/salesforcedx-vscode/pull/3614))
 
-- Sonal/del perf enhance ([PR #3593](https://github.com/forcedotcom/salesforcedx-vscode/pull/3593))
+- Update performance enhancements documentation ([PR #3593](https://github.com/forcedotcom/salesforcedx-vscode/pull/3593))
 
 #### salesforcedx-vscode-core
 
