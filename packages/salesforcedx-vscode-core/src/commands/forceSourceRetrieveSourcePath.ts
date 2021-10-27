@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  PostconditionChecker
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   CancelResponse,
   ContinueResponse
@@ -18,19 +19,23 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  LibraryPathsGatherer
 } from './util';
 
+import {
+  ConflictDetectionMessages,
+  TimestampConflictChecker
+} from './util/postconditionCheckers';
+
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
-  string
+  string | string[]
 > {
   constructor() {
     super(
@@ -40,10 +45,11 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   }
 
   public async getComponents(
-    response: ContinueResponse<string>
+    response: ContinueResponse<string | string[]>
   ): Promise<ComponentSet> {
     const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
-    const componentSet = ComponentSet.fromSource(response.data);
+    const paths = typeof response.data === 'string' ? [response.data] : response.data;
+    const componentSet = ComponentSet.fromSource(paths);
     componentSet.sourceApiVersion = sourceApiVersion;
     return componentSet;
   }
@@ -84,7 +90,15 @@ export class SourcePathChecker implements PostconditionChecker<string> {
   }
 }
 
-export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
+export async function forceSourceRetrieveSourcePath(
+  explorerPath: vscode.Uri,
+  uris: vscode.Uri[]
+) {
+  if (uris && uris.length > 1) {
+    await forceSourceRetrieveMultipleSourcePaths(uris);
+    return;
+  }
+
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -110,5 +124,26 @@ export async function forceSourceRetrieveSourcePath(explorerPath: vscode.Uri) {
     new LibraryRetrieveSourcePathExecutor(),
     new SourcePathChecker()
   );
+  await commandlet.run();
+}
+
+export async function forceSourceRetrieveMultipleSourcePaths(uris: vscode.Uri[]) {
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:retrieve')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new LibraryPathsGatherer(uris),
+    new LibraryRetrieveSourcePathExecutor(),
+    new TimestampConflictChecker(false, messages)
+  );
+
   await commandlet.run();
 }

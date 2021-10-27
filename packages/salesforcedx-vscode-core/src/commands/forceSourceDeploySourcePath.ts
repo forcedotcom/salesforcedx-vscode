@@ -23,7 +23,7 @@ import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker, LibraryPathsGatherer } from './util';
 import {
   CompositePostconditionChecker,
   ConflictDetectionMessages,
@@ -48,20 +48,6 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
     const componentSet = ComponentSet.fromSource(paths);
     componentSet.sourceApiVersion = sourceApiVersion;
     return componentSet;
-  }
-}
-
-export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
-  private uris: vscode.Uri[];
-  public constructor(uris: vscode.Uri[]) {
-    this.uris = uris;
-  }
-  public async gather(): Promise<ContinueResponse<string[]>> {
-    const sourcePaths = this.uris.map(uri => uri.fsPath);
-    return {
-      type: 'CONTINUE',
-      data: sourcePaths
-    };
   }
 }
 
