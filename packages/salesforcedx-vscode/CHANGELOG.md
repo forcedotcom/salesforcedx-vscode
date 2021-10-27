@@ -20,7 +20,7 @@
 
 #### salesforcedx-vscode-core
 
-- Set first alias when config default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581))
+- Set first alias when configuring default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581)) - Contribution by @DanielCalle 
 
 - Sonal/fix doc links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
 
