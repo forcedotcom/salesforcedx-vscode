@@ -23,7 +23,12 @@ import { telemetryService } from '../telemetry';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker, LibraryPathsGatherer } from './util';
+import {
+  FilePathGatherer,
+  LibraryPathsGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from './util';
 import {
   CompositePostconditionChecker,
   ConflictDetectionMessages,
