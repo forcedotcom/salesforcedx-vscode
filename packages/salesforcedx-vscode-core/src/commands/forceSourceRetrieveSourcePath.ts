@@ -24,9 +24,9 @@ import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
+  LibraryPathsGatherer,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  LibraryPathsGatherer
+  SfdxWorkspaceChecker
 } from './util';
 
 import {
