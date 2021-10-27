@@ -96,19 +96,25 @@ export class ComponentUtils {
     );
 
     const jsonResult = JSON.parse(result);
-    const fields = jsonResult.result.fields.map((field: { type: string; relationshipName?: string; name: string; length?: number; }) => {
-      switch (field.type) {
-        case 'string':
-        case 'email':
-          return `${field.name} (${field.type}(${field.length}))`;
-
-        case 'reference':
-          return `${field.relationshipName} (reference)`;
-
-        default:
-          return `${field.name} (${field.type})`;
+    const fields = jsonResult.result.fields.map(
+      (field: {
+        type: string;
+        relationshipName?: string;
+        name: string;
+        length?: number;
+      }) => {
+        switch (field.type) {
+          case 'string':
+          case 'textarea':
+          case 'email':
+            return `${field.name} (${field.type}(${field.length}))`;
+          case 'reference':
+            return `${field.relationshipName} (reference)`;
+          default:
+            return `${field.name} (${field.type})`;
+        }
       }
-    });
+    );
 
     return fields;
   }
