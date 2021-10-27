@@ -22,7 +22,7 @@
 
 - Set first alias when configuring default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581)) - Contribution by @DanielCalle 
 
-- Sonal/fix doc links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
+- Fix broken documentation links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
 
 - Remove the Experimental: Deploy Retrieve performance enhancements user setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
 
