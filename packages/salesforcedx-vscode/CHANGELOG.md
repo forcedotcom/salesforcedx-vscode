@@ -1,3 +1,33 @@
+# 53.1.0 - October 28, 2021
+
+## Added
+
+#### docs
+
+- Append or prepend site title with SEO meta data ([PR #3546](https://github.com/forcedotcom/salesforcedx-vscode/pull/3546))
+
+#### salesforcedx-vscode-apex
+
+- Bundle extensions with apex.db to optimize LSP performance ([PR #3585](https://github.com/forcedotcom/salesforcedx-vscode/pull/3585))
+
+## Fixed
+
+#### docs
+
+- Removed extra line in documentation ([PR #3614](https://github.com/forcedotcom/salesforcedx-vscode/pull/3614))
+
+- Update performance enhancements documentation ([PR #3593](https://github.com/forcedotcom/salesforcedx-vscode/pull/3593))
+
+#### salesforcedx-vscode-core
+
+- Set first alias when configuring default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581)) - Contribution by @DanielCalle 
+
+- Fix broken documentation links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
+
+- Remove the Experimental: Deploy Retrieve performance enhancements user setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
+
+- Under-the-hood fixes 
+
 # 53.0.0 - October 13, 2021
 
 ## Fixed
