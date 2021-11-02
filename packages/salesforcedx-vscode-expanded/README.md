@@ -24,7 +24,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 
 ## Documentation
 
-For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://forcedotcom.github.io/salesforcedx-vscode) documentation site.
+For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.
 
 ## Open Source
 
