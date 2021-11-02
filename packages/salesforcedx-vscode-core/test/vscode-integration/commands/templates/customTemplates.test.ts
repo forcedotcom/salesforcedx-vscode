@@ -24,7 +24,7 @@ import { telemetryService } from '../../../../src/telemetry';
 import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
 
 const TEST_CUSTOM_TEMPLATES_REPO =
-  'https://github.com/forcedotcom/salesforcedx-templates/tree/develop/packages/templates/test/custom-templates';
+  'https://github.com/forcedotcom/salesforcedx-templates/tree/main/packages/templates/test/custom-templates';
 const NON_EXISTENT_LOCAL_PATH = 'this-folder-does-not-exist';
 const NON_EXISTENT_REPO =
   'https://github.com/forcedotcom/this-repo-does-not-exist';
