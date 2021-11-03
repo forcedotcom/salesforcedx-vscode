@@ -287,7 +287,7 @@ describe('load metadata component data', () => {
             relationshipName: undefined,
             name: 'Age__c',
             length: undefined
-          },
+          }
         ]
       }
     });
@@ -295,7 +295,7 @@ describe('load metadata component data', () => {
       'Name__c (string(50))',
       'Email__c (email(100))',
       'Notes__c (textarea(500))',
-      'Age__c (number)',
+      'Age__c (number)'
     ];
     buildCustomObjectFieldsListStub.returns(formattedFields);
 
