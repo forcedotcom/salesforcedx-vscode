@@ -167,12 +167,16 @@ export function buildClientOptions(): LanguageClientOptions {
 
   return {
     // Register the server for Apex documents
-    documentSelector: [{ language: 'apex', scheme: 'file' }],
+    documentSelector: [
+      { language: 'apex', scheme: 'file' },
+      { language: 'apex-anon', scheme: 'file' }
+    ],
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [
         vscode.workspace.createFileSystemWatcher('**/*.cls'), // Apex classes
         vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
+        vscode.workspace.createFileSystemWatcher('**/*.apex'), // Apex anonymous scripts
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
     },
