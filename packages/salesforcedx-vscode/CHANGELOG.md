@@ -1,3 +1,11 @@
+# 53.2.0 - November 4, 2021
+
+## Fixed
+
+#### docs
+
+- Update byotemplate.md ([PR #3628](https://github.com/forcedotcom/salesforcedx-vscode/pull/3628))
+
 # 53.1.0 - October 28, 2021
 
 ## Added
