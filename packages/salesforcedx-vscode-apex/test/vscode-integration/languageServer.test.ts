@@ -169,4 +169,23 @@ describe('Apex Language Server Client', () => {
       expect(copyStub.notCalled).to.be.true;
     });
   });
+
+  describe('Anonymous Apex Support', () => {
+    const sandbox = createSandbox();
+
+    beforeEach(() => {});
+    afterEach(() => sandbox.restore());
+
+    it('should enable document selector for anon-apex', () => {
+      const clientOptions = buildClientOptions();
+
+      expect(clientOptions.documentSelector).not.to.be.undefined;
+      expect(clientOptions.documentSelector).to.deep.include.members([
+        {
+          language: 'apex-anon',
+          scheme: 'file'
+        }
+      ]);
+    });
+  });
 });
