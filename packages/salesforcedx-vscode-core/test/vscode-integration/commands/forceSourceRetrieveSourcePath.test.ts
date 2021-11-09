@@ -19,6 +19,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
   LibraryRetrieveSourcePathExecutor,
@@ -29,6 +30,8 @@ import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
+import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
+
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -74,14 +77,18 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           xml: fsPath
         })
       ]);
+
       sb.stub(ComponentSet, 'fromSource')
-        .withArgs(fsPath)
+        .withArgs([fsPath])
         .returns(toRetrieve);
       retrieveStub = sb
         .stub(toRetrieve, 'retrieve')
         .returns({ pollStatus: pollStatusStub });
 
-      await executor.run({ data: fsPath, type: 'CONTINUE' });
+      await executor.run({
+        type: 'CONTINUE',
+        data: [fsPath]
+      });
 
       expect(retrieveStub.calledOnce).to.equal(true);
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
@@ -97,10 +104,84 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
       const continueResponse = {
         type: 'CONTINUE',
-        data
-      } as ContinueResponse<string>;
+        data: [data]
+      } as ContinueResponse<string[]>;
       const componentSet = executor.getComponents(continueResponse);
       expect((await componentSet).sourceApiVersion).to.equal('11.0');
+    });
+
+    it('verifies forceSourceRetrieveMultipleSourcePaths() is called when multiple files are retrieved', async () => {
+      const forceSourceRetrieveMultipleSourcePathsStub = sb.stub(
+        forceSourceRetrieveSourcePath,
+        'forceSourceRetrieveMultipleSourcePaths'
+      );
+
+      const uris = [
+        vscode.Uri.file('/path/to/Class1.cls'),
+        vscode.Uri.file('/path/to/Class2.cls')
+      ];
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(
+        uris[0],
+        uris
+      );
+
+      expect(forceSourceRetrieveMultipleSourcePathsStub.callCount).to.equal(1);
+      expect(
+        forceSourceRetrieveMultipleSourcePathsStub.firstCall.args[0]
+      ).to.equal(uris);
+    });
+
+    it('verifies forceSourceRetrieveSingleSourcePath() is not called when multiple files are retrieved', async () => {
+      const forceSourceRetrieveMultipleSourcePathsStub = sb.stub(
+        forceSourceRetrieveSourcePath,
+        'forceSourceRetrieveMultipleSourcePaths'
+      );
+      const forceSourceRetrieveSingleSourcePathSpy = sb.spy(
+        forceSourceRetrieveSourcePath,
+        'forceSourceRetrieveSingleSourcePath'
+      );
+
+      const uris = [
+        vscode.Uri.file('/path/to/Class1.cls'),
+        vscode.Uri.file('/path/to/Class2.cls')
+      ];
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(
+        uris[0],
+        uris
+      );
+
+      expect(forceSourceRetrieveSingleSourcePathSpy.called).to.equal(false);
+    });
+
+    it('verifies forceSourceRetrieveSingleSourcePath() is called when a single file is retrieved', async () => {
+      const forceSourceRetrieveSingleSourcePathStub = sb.stub(
+        forceSourceRetrieveSourcePath,
+        'forceSourceRetrieveSingleSourcePath'
+      );
+
+      const uri = vscode.Uri.file('/path/to/Class.cls');
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [uri]);
+
+      expect(forceSourceRetrieveSingleSourcePathStub.callCount).to.equal(1);
+      expect(forceSourceRetrieveSingleSourcePathStub.firstCall.args[0]).to.equal(
+        uri
+      );
+    });
+
+    it('verifies forceSourceRetrieveMultipleSourcePaths() is not called when a single file is retrieved', async () => {
+      const forceSourceRetrieveSingleSourcePathStub = sb.stub(
+        forceSourceRetrieveSourcePath,
+        'forceSourceRetrieveSingleSourcePath'
+      );
+      const forceSourceRetrieveMultipleSourcePathsSpy = sb.spy(
+        forceSourceRetrieveSourcePath,
+        'forceSourceRetrieveMultipleSourcePaths'
+      );
+
+      const uri = vscode.Uri.file('/path/to/Class.cls');
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [uri]);
+
+      expect(forceSourceRetrieveMultipleSourcePathsSpy.called).to.equal(false);
     });
   });
 });

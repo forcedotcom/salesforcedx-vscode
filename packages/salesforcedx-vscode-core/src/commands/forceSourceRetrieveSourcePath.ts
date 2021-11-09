@@ -45,7 +45,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   }
 
   public async getComponents(
-    response: ContinueResponse<string | string[]>
+    response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
     const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
     const paths = typeof response.data === 'string' ? [response.data] : response.data;
@@ -90,15 +90,42 @@ export class SourcePathChecker implements PostconditionChecker<string> {
   }
 }
 
-export async function forceSourceRetrieveSourcePath(
+export const forceSourceRetrieveSourcePath = async (
   explorerPath: vscode.Uri,
   uris: vscode.Uri[]
-) {
+) => {
+  // In the case that only one file is retrieved,
+  // uris contains a single path - the same as explorerPath
+  // and isn't undefined.
   if (uris && uris.length > 1) {
     await forceSourceRetrieveMultipleSourcePaths(uris);
-    return;
+  } else {
+    await forceSourceRetrieveSingleSourcePath(explorerPath);
   }
+};
 
+export const forceSourceRetrieveMultipleSourcePaths = async (uris: vscode.Uri[]) => {
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:retrieve')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new LibraryPathsGatherer(uris),
+    new LibraryRetrieveSourcePathExecutor(),
+    new TimestampConflictChecker(false, messages)
+  );
+
+  await commandlet.run();
+};
+
+export const forceSourceRetrieveSingleSourcePath = async (explorerPath: vscode.Uri) => {
   if (!explorerPath) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -125,25 +152,4 @@ export async function forceSourceRetrieveSourcePath(
     new SourcePathChecker()
   );
   await commandlet.run();
-}
-
-export async function forceSourceRetrieveMultipleSourcePaths(uris: vscode.Uri[]) {
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:retrieve')
-        .withFlag('--sourcepath', input)
-        .build()
-        .toString();
-    }
-  };
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new LibraryPathsGatherer(uris),
-    new LibraryRetrieveSourcePathExecutor(),
-    new TimestampConflictChecker(false, messages)
-  );
-
-  await commandlet.run();
-}
+};
