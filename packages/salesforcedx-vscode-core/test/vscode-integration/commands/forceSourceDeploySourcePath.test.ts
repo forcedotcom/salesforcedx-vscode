@@ -12,7 +12,7 @@ import { ComponentSet, MetadataResolver } from '@salesforce/source-deploy-retrie
 import { expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { SinonStub, createSandbox } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import {
   LibraryDeploySourcePathExecutor
 } from '../../../src/commands';

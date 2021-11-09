@@ -109,7 +109,7 @@ export const forceSourceDeploySingleSourcePath = async (sourceUri: vscode.Uri) =
       channelService.showChannelOutput();
       return;
     }
-  };
+  }
 
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
@@ -132,4 +132,4 @@ export const forceSourceDeploySingleSourcePath = async (sourceUri: vscode.Uri) =
     )
   );
   await commandlet.run();
-}
+};
