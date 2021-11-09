@@ -8,7 +8,7 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  ContinueResponse,
+  ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
@@ -70,8 +70,8 @@ export const forceSourceDeployMultipleSourcePaths = async (uris: vscode.Uri[]) =
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
     commandHint: inputs => {
-      let commands: string[] = [];
-      (inputs as unknown as string[]).forEach((input) => {
+      const commands: string[] = [];
+      (inputs as unknown as string[]).forEach(input => {
         commands.push(
           new SfdxCommandBuilder()
             .withArg('force:source:deploy')
