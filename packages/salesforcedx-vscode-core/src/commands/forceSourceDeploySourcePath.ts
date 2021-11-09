@@ -5,22 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ContinueResponse,
-  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
 import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
@@ -73,12 +69,20 @@ export const forceSourceDeploySourcePath = async (
 export const forceSourceDeployMultipleSourcePaths = async (uris: vscode.Uri[]) => {
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:deploy')
-        .withFlag('--sourcepath', input)
-        .build()
-        .toString();
+    commandHint: inputs => {
+      let commands: string[] = [];
+      (inputs as unknown as string[]).forEach((input) => {
+        commands.push(
+          new SfdxCommandBuilder()
+            .withArg('force:source:deploy')
+            .withFlag('--sourcepath', input)
+            .build()
+            .toString()
+        );
+      });
+      const hints = commands.join('\n  ');
+
+      return hints;
     }
   };
 
