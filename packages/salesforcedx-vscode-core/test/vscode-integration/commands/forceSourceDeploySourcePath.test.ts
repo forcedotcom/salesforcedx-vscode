@@ -14,8 +14,8 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { createSandbox, SinonStub } from 'sinon';
+import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import { workspaceContext } from '../../../src/context';
