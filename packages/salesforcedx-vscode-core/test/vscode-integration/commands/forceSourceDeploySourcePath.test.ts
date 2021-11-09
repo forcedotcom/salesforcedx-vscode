@@ -12,7 +12,7 @@ import { ComponentSet, MetadataResolver } from '@salesforce/source-deploy-retrie
 import { expect } from 'chai';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub, createSandbox } from 'sinon';
 import {
   LibraryDeploySourcePathExecutor
 } from '../../../src/commands';
@@ -119,7 +119,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
     it('verifies forceSourceDeploySingleSourcePath() is not called when multiple files are deployed', async () => {
       const forceSourceDeployMultipleSourcePathsStub = sb.stub(forceSourceDeploySourcePath, 'forceSourceDeployMultipleSourcePaths');
-      const forceSourceDeploySingleSourcePathSpy = sb.spy(forceSourceDeploySourcePath, 'forceSourceDeploySingleSourcePath')
+      const forceSourceDeploySingleSourcePathSpy = sb.spy(forceSourceDeploySourcePath, 'forceSourceDeploySingleSourcePath');
 
       const uris = [
         vscode.Uri.file('/path/to/Class1.cls'),
@@ -142,7 +142,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
     it('verifies forceSourceDeployMultipleSourcePaths() is not called when a single file is deployed', async () => {
       const forceSourceDeploySingleSourcePathStub = sb.stub(forceSourceDeploySourcePath, 'forceSourceDeploySingleSourcePath');
-      const forceSourceDeployMultipleSourcePathsSpy = sb.spy(forceSourceDeploySourcePath, 'forceSourceDeployMultipleSourcePaths')
+      const forceSourceDeployMultipleSourcePathsSpy = sb.spy(forceSourceDeploySourcePath, 'forceSourceDeployMultipleSourcePaths');
 
       const uri = vscode.Uri.file('/path/to/Class.cls');
       await forceSourceDeploySourcePath.forceSourceDeploySourcePath(uri, [uri]);

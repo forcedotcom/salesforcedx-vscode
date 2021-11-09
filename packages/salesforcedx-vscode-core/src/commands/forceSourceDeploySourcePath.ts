@@ -68,7 +68,7 @@ export const forceSourceDeploySourcePath = async (
   } else {
     await forceSourceDeploySingleSourcePath(sourceUri);
   }
-}
+};
 
 export const forceSourceDeployMultipleSourcePaths = async (uris: vscode.Uri[]) => {
   const messages: ConflictDetectionMessages = {
@@ -89,7 +89,7 @@ export const forceSourceDeployMultipleSourcePaths = async (uris: vscode.Uri[]) =
     new TimestampConflictChecker(false, messages)
   );
   await commandlet.run();
-}
+};
 
 export const forceSourceDeploySingleSourcePath = async (sourceUri: vscode.Uri) => {
   if (!sourceUri) {
@@ -109,7 +109,7 @@ export const forceSourceDeploySingleSourcePath = async (sourceUri: vscode.Uri) =
       channelService.showChannelOutput();
       return;
     }
-  }
+  };
 
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
