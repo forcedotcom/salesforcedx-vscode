@@ -28,12 +28,10 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import {
-  SfdxPackageDirectories,
-  SfdxProjectConfig
-} from '../../../src/sfdxProject';
-import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
+
+import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -103,10 +101,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
 
     it('componentSet has sourceApiVersion set', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor();
-      const data = path.join(
-        getRootWorkspacePath(),
-        'force-app/main/default/classes/'
-      );
+      const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
       const continueResponse = {
         type: 'CONTINUE',
         data: [data]
@@ -165,14 +160,12 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
 
       const uri = vscode.Uri.file('/path/to/Class.cls');
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [
-        uri
-      ]);
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [uri]);
 
       expect(forceSourceRetrieveSingleSourcePathStub.callCount).to.equal(1);
-      expect(
-        forceSourceRetrieveSingleSourcePathStub.firstCall.args[0]
-      ).to.equal(uri);
+      expect(forceSourceRetrieveSingleSourcePathStub.firstCall.args[0]).to.equal(
+        uri
+      );
     });
 
     it('verifies forceSourceRetrieveMultipleSourcePaths() is not called when a single file is retrieved', async () => {
@@ -186,9 +179,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
 
       const uri = vscode.Uri.file('/path/to/Class.cls');
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [
-        uri
-      ]);
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [uri]);
 
       expect(forceSourceRetrieveMultipleSourcePathsSpy.called).to.equal(false);
     });
