@@ -46,7 +46,7 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   }
 
   public async getComponents(
-    response: ContinueResponse<string | string[]>
+    response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
     const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
     const paths = typeof response.data === 'string' ? [response.data] : response.data;
@@ -56,15 +56,42 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   }
 }
 
-export async function forceSourceDeploySourcePath(
+export const forceSourceDeploySourcePath = async (
   sourceUri: vscode.Uri,
   uris: vscode.Uri[]
-) {
+) => {
+  // In the case that only one file is deployed,
+  // uris contains a single path - the same as sourceUri
+  // and isn't undefined.
   if (uris && uris.length > 1) {
     await forceSourceDeployMultipleSourcePaths(uris);
-    return;
+  } else {
+    await forceSourceDeploySingleSourcePath(sourceUri);
   }
+}
 
+export const forceSourceDeployMultipleSourcePaths = async (uris: vscode.Uri[]) => {
+  const messages: ConflictDetectionMessages = {
+    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
+    commandHint: input => {
+      return new SfdxCommandBuilder()
+        .withArg('force:source:deploy')
+        .withFlag('--sourcepath', input)
+        .build()
+        .toString();
+    }
+  };
+
+  const commandlet = new SfdxCommandlet<string | string[]>(
+    new SfdxWorkspaceChecker(),
+    new LibraryPathsGatherer(uris),
+    new LibraryDeploySourcePathExecutor(),
+    new TimestampConflictChecker(false, messages)
+  );
+  await commandlet.run();
+}
+
+export const forceSourceDeploySingleSourcePath = async (sourceUri: vscode.Uri) => {
   if (!sourceUri) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.languageId !== 'forcesourcemanifest') {
@@ -103,26 +130,6 @@ export async function forceSourceDeploySourcePath(
       new SourcePathChecker(),
       new TimestampConflictChecker(false, messages)
     )
-  );
-  await commandlet.run();
-}
-
-export async function forceSourceDeployMultipleSourcePaths(uris: vscode.Uri[]) {
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:deploy')
-        .withFlag('--sourcepath', input)
-        .build()
-        .toString();
-    }
-  };
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new LibraryPathsGatherer(uris),
-    new LibraryDeploySourcePathExecutor(),
-    new TimestampConflictChecker(false, messages)
   );
   await commandlet.run();
 }
