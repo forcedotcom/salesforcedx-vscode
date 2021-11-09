@@ -55,7 +55,7 @@ Org Development model doesn’t automatically track changes to your org, so be s
 
 ![Retrieve source from org](./images/retrieve-source-from-org.png)
 
-You can retrieve source for a manifest, a source file, a directory, or a folder:
+You can retrieve source for a manifest, source files, directories, or folders:
 
 - Manifest
   - In VS Code explorer or editor, right-click a manifest file and select **SFDX: Retrieve Source in Manifest from Org**.
@@ -95,13 +95,13 @@ When you deploy the code changes, the local version of the source files overwrit
 
 ![Deploy source to org](./images/deploy-source-to-org.png)
 
-You can deploy source of a manifest, a source file, a directory, or a folder:
+You can deploy source of a manifest, source files, directories, or folders:
 
 - Manifest
   - In VS Code explorer or editor, right-click a manifest file and select **SFDX: Deploy Source in Manifest in Org**.
   - With a manifest file open in the editor, open the Command Palette and run **SFDX: Deploy Source in Manifest in Org**.
 - Source File or Directory
-- In VS Code explorer, right-click a source file or a directory and select **SFDX: Deploy Source to Org**.
+- In VS Code explorer, right-click single or multi-selected source files or directories and select **SFDX: Deploy Source to Org**.
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
 - With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
 
@@ -125,15 +125,17 @@ Org Browser displays the available metadata types and their corresponding compon
 
 ### Retrieve Source
 
-You can retrieve a component or multiple components to your local project from the default org. To do so, click the retrieve button next to the component or the metadata type.
+You can retrieve a component or multiple components to your local project from the default org:
+- In the org browser, click the retrieve button next to the component or the metadata type.
+- In VS Code explorer, right-click single or multi-selected source files or directories and select **SFDX: Retrieve Source from Org**.
 
 You can also refresh metadata at org level, for a type, for folders in a type, and for components in a folder by clicking the refresh icon. Before refreshing the metadata, you can compare the differences between your local project and the metadata in your org. See [Source Diff](./en/user-guide/source-diff).
 
 ### Deploy Source
 
-After you have made the code changes you can deploy source for a source file, a directory, or a folder.
+After you have made the code changes you can deploy the source files or directories.
 
-- In VS Code explorer, right-click a source file or a directory and select **SFDX: Deploy Source to Org**.
+- In VS Code explorer, right-click single or multi-selected source files or directories and select  **SFDX: Deploy Source to Org**.
 - With a source file open in the editor, right-click in the editing pane and select **SFDX: Deploy This Source File to Org**.
 - With a source file open in the editor, open the command palette and run **SFDX: Deploy This Source File to Org**.
 
