@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode-core
 
-- Fixed unnecessary SDR errors ([PR #3631](https://github.com/forcedotcom/salesforcedx-vscode/pull/3631))
+- Under-the-hood fixes ([PR #3631](https://github.com/forcedotcom/salesforcedx-vscode/pull/3631))
 
 #### salesforcedx-vscode-lightning
 
