@@ -126,7 +126,7 @@ Org Browser displays the available metadata types and their corresponding compon
 ### Retrieve Source
 
 You can retrieve a component or multiple components to your local project from the default org:
-- In the org browser, click the retrieve button next to the component or the metadata type.
+- In Org Browser, click the retrieve button next to the component or the metadata type.
 - In VS Code explorer, right-click single or multi-selected source files or directories and select **SFDX: Retrieve Source from Org**.
 
 You can also refresh metadata at org level, for a type, for folders in a type, and for components in a folder by clicking the refresh icon. Before refreshing the metadata, you can compare the differences between your local project and the metadata in your org. See [Source Diff](./en/user-guide/source-diff).
