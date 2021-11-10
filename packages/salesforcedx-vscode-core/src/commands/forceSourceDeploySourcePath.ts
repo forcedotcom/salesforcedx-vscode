@@ -12,21 +12,15 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { SfdxProjectConfig } from '../sfdxProject';
-import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
-import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
-  FilePathGatherer,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
 import {
-  CompositePostconditionChecker,
   ConflictDetectionMessages,
   TimestampConflictChecker
 } from './util/postconditionCheckers';
@@ -52,26 +46,29 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   }
 }
 
-export const forceSourceDeploySourcePath = async (
+export const forceSourceDeploySourcePaths = async (
   sourceUri: vscode.Uri,
   uris: vscode.Uri[]
 ) => {
-  // In the case that only one file is deployed,
-  // uris contains a single path - the same as sourceUri
-  // and isn't undefined.
-  if (uris && uris.length > 1) {
-    await forceSourceDeployMultipleSourcePaths(uris);
-  } else {
-    await forceSourceDeploySingleSourcePath(sourceUri);
+  // When a single file is selected and "Deploy Source from Org" is executed,
+  // sourceUri is passed, and the uris array contains a single element, the same
+  // path as sourceUri.
+  //
+  // When multiple files are selected and "Deploy Source from Org" is executed,
+  // sourceUri is passed, and is the path to the first selected file, and the uris
+  // array contains an array of all paths that were selected.
+  //
+  // When editing a file and "Deploy This Source from Org" is executed,
+  // sourceUri is passed, but uris is undefined.
+  if (!uris || uris.length < 1) {
+    uris.push(sourceUri);
   }
-};
 
-export const forceSourceDeployMultipleSourcePaths = async (uris: vscode.Uri[]) => {
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_deploy',
     commandHint: inputs => {
       const commands: string[] = [];
-      (inputs as unknown as string[]).forEach(input => {
+      (inputs as string[]).forEach(input => {
         commands.push(
           new SfdxCommandBuilder()
             .withArg('force:source:deploy')
@@ -92,48 +89,6 @@ export const forceSourceDeployMultipleSourcePaths = async (uris: vscode.Uri[]) =
     new LibraryDeploySourcePathExecutor(),
     new TimestampConflictChecker(false, messages)
   );
-  await commandlet.run();
-};
 
-export const forceSourceDeploySingleSourcePath = async (sourceUri: vscode.Uri) => {
-  if (!sourceUri) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-      sourceUri = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize(
-        'force_source_deploy_select_file_or_directory'
-      );
-      telemetryService.sendException(
-        'force_source_deploy_with_sourcepath',
-        errorMessage
-      );
-      notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-      return;
-    }
-  }
-
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_deploy',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:deploy')
-        .withFlag('--sourcepath', input)
-        .build()
-        .toString();
-    }
-  };
-
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new FilePathGatherer(sourceUri),
-    new LibraryDeploySourcePathExecutor(),
-    new CompositePostconditionChecker(
-      new SourcePathChecker(),
-      new TimestampConflictChecker(false, messages)
-    )
-  );
   await commandlet.run();
 };

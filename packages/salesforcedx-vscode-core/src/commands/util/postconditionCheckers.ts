@@ -208,7 +208,7 @@ export class OverwriteComponentPrompt
 
 export interface ConflictDetectionMessages {
   warningMessageKey: string;
-  commandHint: (input: string) => string;
+  commandHint: (input: string | string[]) => string;
 }
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {
@@ -304,6 +304,9 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         nls.localize('conflict_detect_show_conflicts'),
         nls.localize('conflict_detect_override')
       );
+
+      // jab
+      // debugger;
 
       if (choice === nls.localize('conflict_detect_override')) {
         conflictView.visualizeDifferences(

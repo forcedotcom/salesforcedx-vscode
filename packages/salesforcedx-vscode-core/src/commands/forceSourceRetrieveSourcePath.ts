@@ -8,27 +8,18 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
-  PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import {
-  CancelResponse,
   ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
-import { telemetryService } from '../telemetry';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
-  FilePathGatherer,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-
 import {
   ConflictDetectionMessages,
   TimestampConflictChecker
@@ -55,66 +46,43 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   }
 }
 
-export class SourcePathChecker implements PostconditionChecker<string> {
-  public async check(
-    inputs: ContinueResponse<string> | CancelResponse
-  ): Promise<ContinueResponse<string> | CancelResponse> {
-    if (inputs.type === 'CONTINUE') {
-      const sourcePath = inputs.data;
-      try {
-        const isInSfdxPackageDirectory = await SfdxPackageDirectories.isInPackageDirectory(
-          sourcePath
-        );
-        if (isInSfdxPackageDirectory) {
-          return inputs;
-        }
-      } catch (error) {
-        telemetryService.sendException(
-          'force_source_retrieve_with_sourcepath',
-          `Error while parsing package directories. ${error.message}`
-        );
-      }
-
-      const errorMessage = nls.localize(
-        'error_source_path_not_in_package_directory_text'
-      );
-      telemetryService.sendException(
-        'force_source_retrieve_with_sourcepath',
-        errorMessage
-      );
-      notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-    }
-    return { type: 'CANCEL' };
-  }
-}
-
-export const forceSourceRetrieveSourcePath = async (
-  explorerPath: vscode.Uri,
+export const forceSourceRetrieveSourcePaths = async (
+  sourceUri: vscode.Uri,
   uris: vscode.Uri[]
 ) => {
-  // In the case that only one file is retrieved,
-  // uris contains a single path - the same as explorerPath
-  // and isn't undefined.
-  if (uris && uris.length > 1) {
-    await forceSourceRetrieveMultipleSourcePaths(uris);
-  } else {
-    await forceSourceRetrieveSingleSourcePath(explorerPath);
+  // When a single file is selected and "Retrieve Source from Org" is executed,
+  // sourceUri is passed, and the uris array contains a single element, the same
+  // path as sourceUri.
+  //
+  // When multiple files are selected and "Retrieve Source from Org" is executed,
+  // sourceUri is passed, and is the path to the first selected file, and the uris
+  // array contains an array of all paths that were selected.
+  //
+  // When editing a file and "Retrieve This Source from Org" is executed,
+  // sourceUri is passed, but uris is undefined.
+  if (!uris || uris.length < 1) {
+    uris.push(sourceUri);
   }
-};
 
-export const forceSourceRetrieveMultipleSourcePaths = async (uris: vscode.Uri[]) => {
   const messages: ConflictDetectionMessages = {
     warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:retrieve')
-        .withFlag('--sourcepath', input)
-        .build()
-        .toString();
+    commandHint: inputs => {
+      const commands: string[] = [];
+      (inputs as string[]).forEach(input => {
+        commands.push(
+          new SfdxCommandBuilder()
+            .withArg('force:source:retrieve')
+            .withFlag('--sourcepath', input)
+            .build()
+            .toString()
+        );
+      });
+      const hints = commands.join('\n  ');
+
+      return hints;
     }
   };
+
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
@@ -122,34 +90,5 @@ export const forceSourceRetrieveMultipleSourcePaths = async (uris: vscode.Uri[])
     new TimestampConflictChecker(false, messages)
   );
 
-  await commandlet.run();
-};
-
-export const forceSourceRetrieveSingleSourcePath = async (explorerPath: vscode.Uri) => {
-  if (!explorerPath) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor && editor.document.languageId !== 'forcesourcemanifest') {
-      explorerPath = editor.document.uri;
-    } else {
-      const errorMessage = nls.localize(
-        'force_source_retrieve_select_file_or_directory'
-      );
-      telemetryService.sendException(
-        'force_source_retrieve_with_sourcepath',
-        errorMessage
-      );
-      notificationService.showErrorMessage(errorMessage);
-      channelService.appendLine(errorMessage);
-      channelService.showChannelOutput();
-      return;
-    }
-  }
-
-  const commandlet = new SfdxCommandlet(
-    new SfdxWorkspaceChecker(),
-    new FilePathGatherer(explorerPath),
-    new LibraryRetrieveSourcePathExecutor(),
-    new SourcePathChecker()
-  );
   await commandlet.run();
 };
