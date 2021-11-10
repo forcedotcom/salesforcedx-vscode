@@ -1,6 +1,6 @@
 ---
 title: Custom Code Templates
-lang: en
+lang: ja
 ---
 
 ## Overview
