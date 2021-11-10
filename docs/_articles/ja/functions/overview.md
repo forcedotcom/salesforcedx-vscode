@@ -1,6 +1,6 @@
 ---
 title: Overview
-lang: en
+lang: ja
 ---
 ## Salesforce Functions
 Use the Salesforce Functions features in VS Code to build event-driven, elastically scalable apps and experiences. You can create and test functions against sample payloads locally in VS Code.
