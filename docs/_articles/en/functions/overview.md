@@ -28,4 +28,4 @@ A sample `payload.json` file that can invoke a function:
 Stop a function by running `SFDX: Stop Function`, which simply kills the local process.
 
 ### Resources
-For more information see [Developing Salesforce Functions using VSCode](https://dev.beta.developer.salesforce.com/docs/platform/functions/guide/vs-intro.html#prerequisites). 
+For more information see [Quick Start: Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/quick-start.html). 
