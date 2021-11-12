@@ -305,9 +305,6 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         nls.localize('conflict_detect_override')
       );
 
-      // jab
-      // debugger;
-
       if (choice === nls.localize('conflict_detect_override')) {
         conflictView.visualizeDifferences(
           conflictTitle,
