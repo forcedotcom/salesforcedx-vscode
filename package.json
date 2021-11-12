@@ -28,8 +28,8 @@
   },
   "name": "salesforcedx-vscode",
   "scripts": {
-    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
-    "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
+    "postinstall": "lerna run --parallel genPackagelock && lerna bootstrap && node scripts/reformat-with-prettier",
+    "bootstrap": "lerna bootstrap && node scripts/reformat-with-prettier",
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",

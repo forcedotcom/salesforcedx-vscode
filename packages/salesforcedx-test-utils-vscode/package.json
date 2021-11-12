@@ -42,6 +42,7 @@
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out"
+    "clean": "shx rm -rf node_modules && shx rm -rf out",
+    "genPackagelock": "npm i --package-lock-only"
   }
 }
