@@ -26,7 +26,7 @@ import {
 } from './util/postconditionCheckers';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
-  string | string[]
+  string[]
 > {
   constructor() {
     super(

@@ -26,7 +26,7 @@ import {
 } from './util/postconditionCheckers';
 
 export class LibraryDeploySourcePathExecutor extends DeployExecutor<
-  string | string[]
+  string[]
 > {
   constructor() {
     super(
