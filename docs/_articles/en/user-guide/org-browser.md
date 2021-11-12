@@ -25,7 +25,11 @@ When you open the Org Browser, all the metadata for the default org is saved in 
 
 ## Listing and Refreshing Metadata
 
-The Org Browser lists all the metadata types **(4)** in your default org. To view the components **(5)**, expand the metadata type. When you expand metadata types with folders such as Reports, Dashboards, Documents, and EmailTemplates, all the available folders are displayed. You can view the components in a folder by expanding it.
+The Org Browser lists all the metadata types **(4)** in your default org. To view the components **(5)**, expand the metadata type. When you expand metadata types with folders such as Reports, Dashboards, Documents, and EmailTemplates, all the available folders are displayed. You can view the components in a folder by expanding it. Expand the Custom Object metadata type to view fields and their type information. Additional information is displayed for following field types:
+-  strings: string(length)
+-  textareas: textarea(length)
+-  emails: email(length)
+-  lookups: lookup(reference)
 
 You can refresh metadata at org level, for a type, for folders in a type, and for components in a folder. Click refresh icon next to:
 
