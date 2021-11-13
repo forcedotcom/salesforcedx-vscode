@@ -8,7 +8,6 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import {
-  CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
@@ -18,16 +17,13 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { channelService } from '../../../src/channels';
 import {
-  LibraryRetrieveSourcePathExecutor,
+  LibraryRetrieveSourcePathExecutor
  } from '../../../src/commands';
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 import { workspaceContext } from '../../../src/context';
-import { nls } from '../../../src/messages';
-import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
