@@ -8,7 +8,6 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import {
-  CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
@@ -28,7 +27,8 @@ import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
-import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers'
+
+import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -122,9 +122,9 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         vscode.Uri.file(filePath2),
         vscode.Uri.file(filePath3)
       ];
-      const filePaths = uris.map((uri) => {
+      const filePaths = uris.map(uri => {
         return uri.fsPath;
-      })
+      });
       const timestampConflictCheckerCheckStub = sb.stub(
         TimestampConflictChecker.prototype, 'check').returns({
         type: 'CONTINUE',
@@ -141,15 +141,14 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
-
     it('validates the condition of when a single file is deployed', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
       const uris = [
         vscode.Uri.file(filePath1)
       ];
-      const filePaths = uris.map((uri) => {
+      const filePaths = uris.map(uri => {
         return uri.fsPath;
-      })
+      });
       const timestampConflictCheckerCheckStub = sb.stub(
         TimestampConflictChecker.prototype, 'check').returns({
         type: 'CONTINUE',
@@ -169,11 +168,11 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
     it('validates the condition of when editing single file and "Deploy This Source from Org" is executed', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
       const uris = [
-        vscode.Uri.file(filePath1),
+        vscode.Uri.file(filePath1)
       ];
-      const filePaths = uris.map((uri) => {
+      const filePaths = uris.map(uri => {
         return uri.fsPath;
-      })
+      });
       const timestampConflictCheckerCheckStub = sb.stub(
         TimestampConflictChecker.prototype, 'check').returns({
         type: 'CONTINUE',

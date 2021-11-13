@@ -21,7 +21,8 @@ import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceD
 import { workspaceContext } from '../../../src/context';
 import { SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
-import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers'
+
+import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -137,9 +138,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         vscode.Uri.file(filePath2),
         vscode.Uri.file(filePath3)
       ];
-      const filePaths = uris.map((uri) => {
+      const filePaths = uris.map(uri => {
         return uri.fsPath;
-      })
+      });
       const timestampConflictCheckerCheckStub = sb.stub(
         TimestampConflictChecker.prototype, 'check').returns({
         type: 'CONTINUE',
@@ -161,9 +162,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const uris = [
         vscode.Uri.file(filePath1)
       ];
-      const filePaths = uris.map((uri) => {
+      const filePaths = uris.map(uri => {
         return uri.fsPath;
-      })
+      });
       const timestampConflictCheckerCheckStub = sb.stub(
         TimestampConflictChecker.prototype, 'check').returns({
         type: 'CONTINUE',
@@ -183,11 +184,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     it('validates the condition of when editing single file and "Deploy This Source from Org" is executed', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
       const uris = [
-        vscode.Uri.file(filePath1),
+        vscode.Uri.file(filePath1)
       ];
-      const filePaths = uris.map((uri) => {
+      const filePaths = uris.map(uri => {
         return uri.fsPath;
-      })
+      });
       const timestampConflictCheckerCheckStub = sb.stub(
         TimestampConflictChecker.prototype, 'check').returns({
         type: 'CONTINUE',
