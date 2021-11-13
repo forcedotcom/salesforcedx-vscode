@@ -21,6 +21,7 @@ import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceD
 import { workspaceContext } from '../../../src/context';
 import { SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
+import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers'
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -39,16 +40,21 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         contents: await testData.getConfig()
       });
 
+      const authInfo = await AuthInfo.create({
+        username: testData.username
+      });
+
       mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
+        authInfo
       });
 
       getComponentsFromPathStub = sb
         .stub(MetadataResolver.prototype, 'getComponentsFromPath')
         .returns([]);
+
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      sb.stub(workspaceContext, 'username').get(() => testData.username);
+
       pollStatusStub = sb.stub().resolves(undefined);
       deployStub = sb
         .stub(ComponentSet.prototype, 'deploy')
@@ -84,17 +90,23 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
     it('should deploy with multiple paths', async () => {
       const executor = new LibraryDeploySourcePathExecutor();
-      const filePath1 = path.join('classes', 'MyClass.cls');
-      const filePath2 = path.join('lwc', 'myBundle', 'myBundle');
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const filePath2 = path.join('classes', 'MyClass2.cls');
+      const filePath3 = path.join('lwc', 'myBundle', 'myBundle');
 
       await executor.run({
         type: 'CONTINUE',
-        data: [filePath1, filePath2]
+        data: [
+          filePath1,
+          filePath2,
+          filePath3
+        ]
       });
 
-      expect(getComponentsFromPathStub.calledTwice).to.equal(true);
+      expect(getComponentsFromPathStub.calledThrice).to.equal(true);
       expect(getComponentsFromPathStub.firstCall.args[0]).to.equal(filePath1);
       expect(getComponentsFromPathStub.secondCall.args[0]).to.equal(filePath2);
+      expect(getComponentsFromPathStub.thirdCall.args[0]).to.equal(filePath3);
       expect(deployStub.calledOnce).to.equal(true);
       expect(deployStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection
@@ -116,80 +128,80 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
 
-    /*
-    it('verifies forceSourceDeployMultipleSourcePaths() is called when multiple files are deployed', async () => {
-      const forceSourceDeployMultipleSourcePathsStub = sb.stub(
-        forceSourceDeploySourcePath,
-        'forceSourceDeployMultipleSourcePaths'
-      );
-
+    it('validates the condition of when multiple files are deployed', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const filePath2 = path.join('classes', 'MyClass2.cls');
+      const filePath3 = path.join('lwc', 'myBundle', 'myBundle');
       const uris = [
-        vscode.Uri.file('/path/to/Class1.cls'),
-        vscode.Uri.file('/path/to/Class2.cls')
+        vscode.Uri.file(filePath1),
+        vscode.Uri.file(filePath2),
+        vscode.Uri.file(filePath3)
       ];
+      const filePaths = uris.map((uri) => {
+        return uri.fsPath;
+      })
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
         uris
       );
 
-      expect(forceSourceDeployMultipleSourcePathsStub.callCount).to.equal(1);
-      expect(
-        forceSourceDeployMultipleSourcePathsStub.firstCall.args[0]
-      ).to.equal(uris);
+      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
-    it('verifies forceSourceDeploySingleSourcePath() is not called when multiple files are deployed', async () => {
-      const forceSourceDeployMultipleSourcePathsStub = sb.stub(
-        forceSourceDeploySourcePath,
-        'forceSourceDeployMultipleSourcePaths'
-      );
-      const forceSourceDeploySingleSourcePathSpy = sb.spy(
-        forceSourceDeploySourcePath,
-        'forceSourceDeploySingleSourcePath'
-      );
-
+    it('validates the condition of when a single file is deployed', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
       const uris = [
-        vscode.Uri.file('/path/to/Class1.cls'),
-        vscode.Uri.file('/path/to/Class2.cls')
+        vscode.Uri.file(filePath1)
       ];
+      const filePaths = uris.map((uri) => {
+        return uri.fsPath;
+      })
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
         uris
       );
 
-      expect(forceSourceDeploySingleSourcePathSpy.called).to.equal(false);
+      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
-    it('verifies forceSourceDeploySingleSourcePath() is called when a single file is deployed', async () => {
-      const forceSourceDeploySingleSourcePathStub = sb.stub(
-        forceSourceDeploySourcePath,
-        'forceSourceDeploySingleSourcePath'
+    it('validates the condition of when editing single file and "Deploy This Source from Org" is executed', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const uris = [
+        vscode.Uri.file(filePath1),
+      ];
+      const filePaths = uris.map((uri) => {
+        return uri.fsPath;
+      })
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
+        uris[0],
+        undefined
       );
 
-      const uri = vscode.Uri.file('/path/to/Class.cls');
-      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(uri, [uri]);
-
-      expect(forceSourceDeploySingleSourcePathStub.callCount).to.equal(1);
-      expect(forceSourceDeploySingleSourcePathStub.firstCall.args[0]).to.equal(
-        uri
-      );
+      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
-
-    it('verifies forceSourceDeployMultipleSourcePaths() is not called when a single file is deployed', async () => {
-      const forceSourceDeploySingleSourcePathStub = sb.stub(
-        forceSourceDeploySourcePath,
-        'forceSourceDeploySingleSourcePath'
-      );
-      const forceSourceDeployMultipleSourcePathsSpy = sb.spy(
-        forceSourceDeploySourcePath,
-        'forceSourceDeployMultipleSourcePaths'
-      );
-
-      const uri = vscode.Uri.file('/path/to/Class.cls');
-      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(uri, [uri]);
-
-      expect(forceSourceDeployMultipleSourcePathsSpy.called).to.equal(false);
-    });
-    */
   });
 });

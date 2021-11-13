@@ -48,7 +48,7 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
 
 export const forceSourceRetrieveSourcePaths = async (
   sourceUri: vscode.Uri,
-  uris: vscode.Uri[]
+  uris: vscode.Uri[] | undefined
 ) => {
   // When a single file is selected and "Retrieve Source from Org" is executed,
   // sourceUri is passed, and the uris array contains a single element, the same
@@ -61,6 +61,7 @@ export const forceSourceRetrieveSourcePaths = async (
   // When editing a file and "Retrieve This Source from Org" is executed,
   // sourceUri is passed, but uris is undefined.
   if (!uris || uris.length < 1) {
+    uris = [];
     uris.push(sourceUri);
   }
 

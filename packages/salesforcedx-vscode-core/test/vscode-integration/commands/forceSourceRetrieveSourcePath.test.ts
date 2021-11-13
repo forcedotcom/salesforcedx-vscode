@@ -21,16 +21,14 @@ import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import {
-  LibraryRetrieveSourcePathExecutor
-} from '../../../src/commands';
+import { LibraryRetrieveSourcePathExecutor } from '../../../src/commands';
+import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
-
-import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
+import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers'
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -48,12 +46,18 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
+
+      const authInfo = await AuthInfo.create({
+        username: testData.username
       });
+
+      mockConnection = await Connection.create({
+        authInfo
+      });
+
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      sb.stub(workspaceContext, 'username').get(() => testData.username);
+
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
         defaultPackage
       );
@@ -109,81 +113,82 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
 
-    /*
-    it('verifies forceSourceRetrieveMultipleSourcePaths() is called when multiple files are retrieved', async () => {
-      const forceSourceRetrieveMultipleSourcePathsStub = sb.stub(
-        forceSourceRetrieveSourcePaths,
-        'forceSourceRetrieveMultipleSourcePaths'
-      );
-
+    it('validates the condition of when multiple files are retrieved', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const filePath2 = path.join('classes', 'MyClass2.cls');
+      const filePath3 = path.join('lwc', 'myBundle', 'myBundle');
       const uris = [
-        vscode.Uri.file('/path/to/Class1.cls'),
-        vscode.Uri.file('/path/to/Class2.cls')
+        vscode.Uri.file(filePath1),
+        vscode.Uri.file(filePath2),
+        vscode.Uri.file(filePath3)
       ];
+      const filePaths = uris.map((uri) => {
+        return uri.fsPath;
+      })
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
         uris
       );
 
-      expect(forceSourceRetrieveMultipleSourcePathsStub.callCount).to.equal(1);
-      expect(
-        forceSourceRetrieveMultipleSourcePathsStub.firstCall.args[0]
-      ).to.equal(uris);
+      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
-    it('verifies forceSourceRetrieveSingleSourcePath() is not called when multiple files are retrieved', async () => {
-      const forceSourceRetrieveMultipleSourcePathsStub = sb.stub(
-        forceSourceRetrieveSourcePath,
-        'forceSourceRetrieveMultipleSourcePaths'
-      );
-      const forceSourceRetrieveSingleSourcePathSpy = sb.spy(
-        forceSourceRetrieveSourcePath,
-        'forceSourceRetrieveSingleSourcePath'
-      );
 
+    it('validates the condition of when a single file is deployed', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
       const uris = [
-        vscode.Uri.file('/path/to/Class1.cls'),
-        vscode.Uri.file('/path/to/Class2.cls')
+        vscode.Uri.file(filePath1)
       ];
+      const filePaths = uris.map((uri) => {
+        return uri.fsPath;
+      })
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
         uris
       );
 
-      expect(forceSourceRetrieveSingleSourcePathSpy.called).to.equal(false);
+      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
-    it('verifies forceSourceRetrieveSingleSourcePath() is called when a single file is retrieved', async () => {
-      const forceSourceRetrieveSingleSourcePathStub = sb.stub(
-        forceSourceRetrieveSourcePath,
-        'forceSourceRetrieveSingleSourcePath'
+    it('validates the condition of when editing single file and "Deploy This Source from Org" is executed', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const uris = [
+        vscode.Uri.file(filePath1),
+      ];
+      const filePaths = uris.map((uri) => {
+        return uri.fsPath;
+      })
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
+        uris[0],
+        undefined
       );
 
-      const uri = vscode.Uri.file('/path/to/Class.cls');
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [uri]);
-
-      expect(forceSourceRetrieveSingleSourcePathStub.callCount).to.equal(1);
-      expect(forceSourceRetrieveSingleSourcePathStub.firstCall.args[0]).to.equal(
-        uri
-      );
+      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
-
-    it('verifies forceSourceRetrieveMultipleSourcePaths() is not called when a single file is retrieved', async () => {
-      const forceSourceRetrieveSingleSourcePathStub = sb.stub(
-        forceSourceRetrieveSourcePath,
-        'forceSourceRetrieveSingleSourcePath'
-      );
-      const forceSourceRetrieveMultipleSourcePathsSpy = sb.spy(
-        forceSourceRetrieveSourcePath,
-        'forceSourceRetrieveMultipleSourcePaths'
-      );
-
-      const uri = vscode.Uri.file('/path/to/Class.cls');
-      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePath(uri, [uri]);
-
-      expect(forceSourceRetrieveMultipleSourcePathsSpy.called).to.equal(false);
-    });
-    */
   });
 });
 
