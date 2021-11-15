@@ -89,14 +89,14 @@ export class ComponentUtils {
     defaultUsernameOrAlias: string,
     outputPath: string
   ): Promise<string[]> {
-    const result = await forceListSchemaSobjectDescribe(
+    const jsonResult = await forceListSchemaSobjectDescribe(
       objectName,
       defaultUsernameOrAlias,
       outputPath
     );
 
-    const jsonResult = JSON.parse(result);
-    const fields = jsonResult.result.fields.map(
+    const result = JSON.parse(jsonResult);
+    const fields = result.result.fields.map(
       (field: {
         type: string;
         relationshipName?: string;

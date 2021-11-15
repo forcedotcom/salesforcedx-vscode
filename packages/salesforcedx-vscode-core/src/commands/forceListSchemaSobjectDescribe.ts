@@ -5,14 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// *
-// *
-// *
-// TODO: OrgBrowser: this file uses sfdx and should be replaced with SDR
-// This file is only temporary and is here to be able to demo the functionality.
-// *
-// *
-// *
+// TODO: OrgBrowser: this file uses sfdx and should be replaced with the code in
+// PR https://github.com/forcedotcom/salesforcedx-vscode/pull/3645
+// and this file will be deleted once PR 3645 is merged in.
 
 import {
   CliCommandExecution,
