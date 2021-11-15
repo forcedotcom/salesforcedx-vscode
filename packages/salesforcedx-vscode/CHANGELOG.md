@@ -1,3 +1,63 @@
+# 53.3.0 - November 10, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Code completion for anonymous apex ([PR #3617](https://github.com/forcedotcom/salesforcedx-vscode/pull/3617))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Under-the-hood fixes ([PR #3631](https://github.com/forcedotcom/salesforcedx-vscode/pull/3631))
+
+#### salesforcedx-vscode-lightning
+
+- Update lightning-language-server to latest version ([PR #3633](https://github.com/forcedotcom/salesforcedx-vscode/pull/3633))
+
+#### salesforcedx-vscode-lwc
+
+- Update lightning-language-server to latest version ([PR #3633](https://github.com/forcedotcom/salesforcedx-vscode/pull/3633))
+
+# 53.2.0 - November 4, 2021
+
+## Fixed
+
+#### docs
+
+- Update byotemplate.md ([PR #3628](https://github.com/forcedotcom/salesforcedx-vscode/pull/3628))
+
+# 53.1.0 - October 28, 2021
+
+## Added
+
+#### docs
+
+- Append or prepend site title with SEO meta data ([PR #3546](https://github.com/forcedotcom/salesforcedx-vscode/pull/3546))
+
+#### salesforcedx-vscode-apex
+
+- Bundle extensions with apex.db to optimize LSP performance ([PR #3585](https://github.com/forcedotcom/salesforcedx-vscode/pull/3585))
+
+## Fixed
+
+#### docs
+
+- Removed extra line in documentation ([PR #3614](https://github.com/forcedotcom/salesforcedx-vscode/pull/3614))
+
+- Update performance enhancements documentation ([PR #3593](https://github.com/forcedotcom/salesforcedx-vscode/pull/3593))
+
+#### salesforcedx-vscode-core
+
+- Set first alias when configuring default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581)) - Contribution by @DanielCalle 
+
+- Fix broken documentation links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
+
+- Remove the Experimental: Deploy Retrieve performance enhancements user setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
+
+- Under-the-hood fixes 
+
 # 53.0.0 - October 13, 2021
 
 ## Fixed
