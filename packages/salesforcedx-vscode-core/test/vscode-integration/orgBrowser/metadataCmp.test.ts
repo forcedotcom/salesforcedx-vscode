@@ -261,41 +261,12 @@ describe('load metadata component data', () => {
   });
 
   it('should validate that buildCustomObjectFieldsList() returns correctly formatted fields', async () => {
-    const fieldData = JSON.stringify({
-      result: {
-        fields: [
-          {
-            type: 'string',
-            relationshipName: undefined,
-            name: 'Name__c',
-            length: 50
-          },
-          {
-            type: 'email',
-            relationshipName: undefined,
-            name: 'Email__c',
-            length: 100
-          },
-          {
-            type: 'textarea',
-            relationshipName: undefined,
-            name: 'Notes__c',
-            length: 500
-          },
-          {
-            type: 'number',
-            relationshipName: undefined,
-            name: 'Age__c',
-            length: undefined
-          }
-        ]
-      }
-    });
     const formattedFields = [
       'Name__c (string(50))',
       'Email__c (email(100))',
       'Notes__c (textarea(500))',
-      'Age__c (number)'
+      'Age__c (number)',
+      'Parent (reference)'
     ];
     buildCustomObjectFieldsListStub.returns(formattedFields);
 
