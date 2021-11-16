@@ -13,7 +13,6 @@ import {
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { ExceptionData } from 'applicationinsights/out/Declarations/Contracts';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -27,7 +26,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 import {
-  ConflictDetectionMessages,
+  ConflictDetectionMessages
 } from './util/postconditionCheckers';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
@@ -64,12 +63,11 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
           );
 
           if (!isInSfdxPackageDirectory) {
-            //return inputs;
             throw nls.localize(
               'error_source_path_not_in_package_directory_text'
             );
           }
-        };
+        }
 
         return inputs;
       } catch (error) {
@@ -132,7 +130,7 @@ export const forceSourceRetrieveSourcePaths = async (
     }
   };
 
-  const commandlet = new SfdxCommandlet(
+  const commandlet = new SfdxCommandlet<string[]>(
     new SfdxWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
     new LibraryRetrieveSourcePathExecutor(),

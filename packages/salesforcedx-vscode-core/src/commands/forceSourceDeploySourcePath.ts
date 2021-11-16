@@ -84,7 +84,7 @@ export const forceSourceDeploySourcePaths = async (
     }
   };
 
-  const commandlet = new SfdxCommandlet<string | string[]>(
+  const commandlet = new SfdxCommandlet<string[]>(
     new SfdxWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
     new LibraryDeploySourcePathExecutor(),

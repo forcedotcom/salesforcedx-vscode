@@ -19,20 +19,18 @@ import {
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { channelService } from '../../../src/channels';
 import * as vscode from 'vscode';
+import { channelService } from '../../../src/channels';
 import {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
- } from '../../../src/commands';
+} from '../../../src/commands';
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
-
-import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -129,8 +127,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
         type: 'CONTINUE',
         data: filePaths
       });
@@ -140,9 +138,9 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         uris
       );
 
-      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify([filePaths]));
+      expect(sourcePathCheckerCheckStub.called).to.equal(true);
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
     it('validates the condition of when a single file is deployed', async () => {
@@ -153,8 +151,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
         type: 'CONTINUE',
         data: filePaths
       });
@@ -164,8 +162,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         uris
       );
 
-      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(sourcePathCheckerCheckStub.called).to.equal(true);
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
@@ -177,8 +175,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
         type: 'CONTINUE',
         data: filePaths
       });
@@ -188,8 +186,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         undefined
       );
 
-      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      expect(sourcePathCheckerCheckStub.called).to.equal(true);
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
   });
@@ -225,9 +223,9 @@ describe('SourcePathChecker', () => {
       data: [ sourcePath ]
     })) as ContinueResponse<string[]>;
 
-    expect(isInPackageDirectoryStub.getCall(0).args[0]).to.equal([sourcePath]);
+    expect(isInPackageDirectoryStub.getCall(0).args[0]).to.equal(sourcePath);
     expect(continueResponse.type).to.equal('CONTINUE');
-    expect(continueResponse.data).to.equal([sourcePath]);
+    expect(continueResponse.data[0]).to.equal(sourcePath);
 
     isInPackageDirectoryStub.restore();
   });

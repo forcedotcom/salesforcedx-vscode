@@ -153,7 +153,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       );
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
@@ -177,7 +177,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       );
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
@@ -201,7 +201,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       );
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string>;
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
   });

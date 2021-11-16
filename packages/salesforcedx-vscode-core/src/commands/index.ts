@@ -56,7 +56,8 @@ export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
   forceSourceRetrieveSourcePaths,
-  LibraryRetrieveSourcePathExecutor
+  LibraryRetrieveSourcePathExecutor,
+  SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
 export {
   forceSourceRetrieveManifest
