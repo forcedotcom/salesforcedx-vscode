@@ -285,7 +285,7 @@ describe('load org browser tree outline', () => {
       new BrowserNode('Asset', NodeType.Folder, 'Asset', undefined),
       new BrowserNode('Book__c', NodeType.Folder, 'Book__c', undefined),
       new BrowserNode('Campaign', NodeType.Folder, 'Campaign', undefined),
-      new BrowserNode('Customer Case', NodeType.Folder, 'Customer Case', undefined),
+      new BrowserNode('Customer Case', NodeType.Folder, 'Customer Case', undefined)
     ];
     const customObjectNames = [
       'Account',
