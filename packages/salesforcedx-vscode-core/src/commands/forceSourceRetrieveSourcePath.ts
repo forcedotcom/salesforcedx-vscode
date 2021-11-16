@@ -7,13 +7,19 @@
 import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
+  CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { ExceptionData } from 'applicationinsights/out/Declarations/Contracts';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { nls } from '../messages';
-import { SfdxProjectConfig } from '../sfdxProject';
+import { notificationService } from '../notifications';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
+import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   LibraryPathsGatherer,
@@ -22,7 +28,6 @@ import {
 } from './util';
 import {
   ConflictDetectionMessages,
-  TimestampConflictChecker
 } from './util/postconditionCheckers';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
@@ -43,6 +48,49 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
     const componentSet = ComponentSet.fromSource(paths);
     componentSet.sourceApiVersion = sourceApiVersion;
     return componentSet;
+  }
+}
+
+export class SourcePathChecker implements PostconditionChecker<string[]> {
+  public async check(
+    inputs: ContinueResponse<string[]> | CancelResponse
+  ): Promise<ContinueResponse<string[]> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      const sourcePaths = inputs.data;
+      try {
+        for (const sourcePath of sourcePaths) {
+          const isInSfdxPackageDirectory = await SfdxPackageDirectories.isInPackageDirectory(
+            sourcePath
+          );
+
+          if (!isInSfdxPackageDirectory) {
+            //return inputs;
+            throw nls.localize(
+              'error_source_path_not_in_package_directory_text'
+            );
+          }
+        };
+
+        return inputs;
+      } catch (error) {
+        telemetryService.sendException(
+          'force_source_retrieve_with_sourcepath',
+          `Error while parsing package directories. ${error.message}`
+        );
+      }
+
+      const errorMessage = nls.localize(
+        'error_source_path_not_in_package_directory_text'
+      );
+      telemetryService.sendException(
+        'force_source_retrieve_with_sourcepath',
+        errorMessage
+      );
+      notificationService.showErrorMessage(errorMessage);
+      channelService.appendLine(errorMessage);
+      channelService.showChannelOutput();
+    }
+    return { type: 'CANCEL' };
   }
 }
 
@@ -88,7 +136,7 @@ export const forceSourceRetrieveSourcePaths = async (
     new SfdxWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
     new LibraryRetrieveSourcePathExecutor(),
-    new TimestampConflictChecker(false, messages)
+    new SourcePathChecker()
   );
 
   await commandlet.run();
