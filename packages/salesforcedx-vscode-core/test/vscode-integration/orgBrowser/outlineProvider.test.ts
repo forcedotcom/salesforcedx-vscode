@@ -208,38 +208,39 @@ describe('load org browser tree outline', () => {
   it('should display folders and components that live in them when a folder type node is selected', async () => {
     const folder1 = [
       {
+        fullName: 'SampleFolder/Sample_Template',
         label: 'Sample_Template',
-        type: NodeType.MetadataComponent,
-        fullName: 'SampleFolder/Sample_Template'
+        type: NodeType.MetadataField
       },
       {
+        fullName: 'SampleFolder/Sample_Template2',
         label: 'Sample_Template2',
-        type: NodeType.MetadataComponent,
-        fullName: 'SampleFolder/Sample_Template2'
+        type: NodeType.MetadataField
       }
     ];
     const folder2 = [
       {
+        fullName: 'SampleFolder2/Main',
         label: 'Main',
-        type: NodeType.MetadataComponent,
-        fullName: 'SampleFolder2/Main'
+        type: NodeType.MetadataField
       }
     ];
     const folders = [
       {
+        fullName: 'SampleFolder',
         label: 'SampleFolder',
-        type: NodeType.Folder,
-        fullName: 'SampleFolder'
+        type: NodeType.Folder
       },
       {
+        fullName: 'SampleFolder2',
         label: 'SampleFolder2',
-        type: NodeType.Folder,
-        fullName: 'SampleFolder2'
+        type: NodeType.Folder
       }
     ];
+
     const loadCmpStub = stub(ComponentUtils.prototype, 'loadComponents');
     loadCmpStub
-      .withArgs(username, 'EmailFolder') // Also testing EmailTemplate queries EmailFolder
+      .withArgs(username, 'EmailFolder')
       .returns(folders.map(n => n.fullName));
     loadCmpStub
       .withArgs(username, 'EmailTemplate', folders[0].fullName)
@@ -263,10 +264,13 @@ describe('load org browser tree outline', () => {
       undefined,
       metadataObject
     );
+
     const f = await metadataProvider.getChildren(testNode);
     compareNodes(f, folders);
+
     const f1 = await metadataProvider.getChildren(f[0]);
     compareNodes(f1, folder1);
+
     const f2 = await metadataProvider.getChildren(f[1]);
     compareNodes(f2, folder2);
 

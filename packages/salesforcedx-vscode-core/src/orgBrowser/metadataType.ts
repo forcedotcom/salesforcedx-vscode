@@ -116,7 +116,7 @@ export class TypeUtils {
       case 'CustomObject':
         return metadataType;
       case 'EmailTemplate':
-        return 'Email';
+        return 'EmailFolder';
       default:
         return `${metadataType}Folder`;
     }
