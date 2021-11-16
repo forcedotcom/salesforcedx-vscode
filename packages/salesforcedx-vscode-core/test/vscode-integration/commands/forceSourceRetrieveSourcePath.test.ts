@@ -115,7 +115,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       expect((await componentSet).sourceApiVersion).to.equal('11.0');
     });
 
-    it('validates the condition of when multiple files are retrieved', async () => {
+    it('should retrieve multiple files', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
       const filePath2 = path.join('classes', 'MyClass2.cls');
       const filePath3 = path.join('lwc', 'myBundle', 'myBundle');
@@ -143,7 +143,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
-    it('validates the condition of when a single file is deployed', async () => {
+    it('should retrieve a single file', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
       const uris = [
         vscode.Uri.file(filePath1)
@@ -167,7 +167,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
 
-    it('validates the condition of when editing single file and "Deploy This Source from Org" is executed', async () => {
+    it('should retrieve when editing a single file and "Retrieve This Source from Org" is executed', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
       const uris = [
         vscode.Uri.file(filePath1)
