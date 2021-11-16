@@ -277,6 +277,80 @@ describe('load org browser tree outline', () => {
     loadCmpStub.restore();
   });
 
+  it('should display fields when a custom object node is selected', async () => {
+    const loadComponentsStub = stub(ComponentUtils.prototype, 'loadComponents');
+
+    const customObjectBrowserNodes = [
+      new BrowserNode('Account', NodeType.Folder, 'Account', undefined),
+      new BrowserNode('Asset', NodeType.Folder, 'Asset', undefined),
+      new BrowserNode('Book__c', NodeType.Folder, 'Book__c', undefined),
+      new BrowserNode('Campaign', NodeType.Folder, 'Campaign', undefined),
+      new BrowserNode('Customer Case', NodeType.Folder, 'Customer Case', undefined),
+    ];
+    const customObjectNames = [
+      'Account',
+      'Asset',
+      'Book__c',
+      'Campaign',
+      'Customer Case'
+    ];
+    loadComponentsStub
+      .withArgs(username, 'CustomObject', undefined, false)
+      .returns(Promise.resolve(customObjectNames));
+
+    const bookFieldBrowserNodes = [
+      new BrowserNode('Id (id)', NodeType.MetadataField, 'Id (id)', undefined),
+      new BrowserNode('Owner (reference)', NodeType.MetadataField, 'Owner (reference)', undefined),
+      new BrowserNode('IsDeleted (boolean)', NodeType.MetadataField, 'IsDeleted (boolean)', undefined),
+      new BrowserNode('Name (string(80))', NodeType.MetadataField, 'Name (string(80))', undefined),
+      new BrowserNode('CreatedDate (datetime)', NodeType.MetadataField, 'CreatedDate (datetime)', undefined),
+      new BrowserNode('CreatedBy (reference)', NodeType.MetadataField, 'CreatedBy (reference)', undefined),
+      new BrowserNode('LastModifiedDate (datetime)', NodeType.MetadataField, 'LastModifiedDate (datetime)', undefined),
+      new BrowserNode('LastModifiedBy (reference)', NodeType.MetadataField, 'LastModifiedBy (reference)', undefined),
+      new BrowserNode('SystemModstamp (datetime)', NodeType.MetadataField, 'SystemModstamp (datetime)', undefined),
+      new BrowserNode('Price__c (currency)', NodeType.MetadataField, 'Price__c (currency)', undefined)
+    ];
+    const bookFieldNames = [
+      'Id (id)',
+      'Owner (reference)',
+      'IsDeleted (boolean)',
+      'Name (string(80))',
+      'CreatedDate (datetime)',
+      'CreatedBy (reference)',
+      'LastModifiedDate (datetime)',
+      'LastModifiedBy (reference)',
+      'SystemModstamp (datetime)',
+      'Price__c (currency)'
+    ];
+    loadComponentsStub
+      .withArgs(username, 'CustomObject', 'Book__c', false)
+      .returns(Promise.resolve(bookFieldNames));
+
+    const customObjectMetadataObject = {
+      directoryName: 'objects',
+      inFolder: false,
+      label: 'Custom Objects',
+      metaFile: false,
+      suffix: 'object',
+      xmlName: 'CustomObject'
+    };
+
+    const customObjectNode = new BrowserNode(
+      'Custom Objects',
+      NodeType.MetadataType,
+      'CustomObject',
+      customObjectMetadataObject
+    );
+
+    const customObjects = await metadataProvider.getChildren(customObjectNode);
+    compareNodes(customObjects, customObjectBrowserNodes);
+
+    const fields = await metadataProvider.getChildren(customObjects[2]);
+    compareNodes(fields, bookFieldBrowserNodes);
+
+    loadComponentsStub.restore();
+  });
+
   it('should call loadComponents with force refresh', async () => {
     const loadCmpStub = stub(
       ComponentUtils.prototype,
