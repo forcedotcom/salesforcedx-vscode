@@ -1,3 +1,23 @@
+# 53.4.0 - November 17, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Additional anonymous apex features ([PR #3650](https://github.com/forcedotcom/salesforcedx-vscode/pull/3650))
+
+## Fixed
+
+#### docs
+
+- Org Browser + Multi Select Files ([PR #3639](https://github.com/forcedotcom/salesforcedx-vscode/pull/3639))
+
+- Added New Articles for Japanese ([PR #3640](https://github.com/forcedotcom/salesforcedx-vscode/pull/3640))
+
+#### salesforcedx-vscode-core
+
+- Added ability to deploy and retrieve multiple files ([PR #3621](https://github.com/forcedotcom/salesforcedx-vscode/pull/3621))
+
 # 53.3.0 - November 10, 2021
 
 ## Added
