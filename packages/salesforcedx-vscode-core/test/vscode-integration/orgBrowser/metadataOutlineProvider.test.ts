@@ -143,12 +143,12 @@ describe('load org browser tree outline', () => {
       {
         label: 'cmpNode1',
         fullName: 'cmpNode1',
-        type: NodeType.MetadataCmp
+        type: NodeType.MetadataComponent
       },
       {
         label: 'cmpNode2',
         fullName: 'cmpNode2',
-        type: NodeType.MetadataCmp
+        type: NodeType.MetadataComponent
       }
     ];
     const getCmpsStub = stub(
@@ -208,38 +208,39 @@ describe('load org browser tree outline', () => {
   it('should display folders and components that live in them when a folder type node is selected', async () => {
     const folder1 = [
       {
+        fullName: 'SampleFolder/Sample_Template',
         label: 'Sample_Template',
-        type: NodeType.MetadataCmp,
-        fullName: 'SampleFolder/Sample_Template'
+        type: NodeType.MetadataField
       },
       {
+        fullName: 'SampleFolder/Sample_Template2',
         label: 'Sample_Template2',
-        type: NodeType.MetadataCmp,
-        fullName: 'SampleFolder/Sample_Template2'
+        type: NodeType.MetadataField
       }
     ];
     const folder2 = [
       {
+        fullName: 'SampleFolder2/Main',
         label: 'Main',
-        type: NodeType.MetadataCmp,
-        fullName: 'SampleFolder2/Main'
+        type: NodeType.MetadataField
       }
     ];
     const folders = [
       {
+        fullName: 'SampleFolder',
         label: 'SampleFolder',
-        type: NodeType.Folder,
-        fullName: 'SampleFolder'
+        type: NodeType.Folder
       },
       {
+        fullName: 'SampleFolder2',
         label: 'SampleFolder2',
-        type: NodeType.Folder,
-        fullName: 'SampleFolder2'
+        type: NodeType.Folder
       }
     ];
+
     const loadCmpStub = stub(ComponentUtils.prototype, 'loadComponents');
     loadCmpStub
-      .withArgs(username, 'EmailFolder') // Also testing EmailTemplate queries EmailFolder
+      .withArgs(username, 'EmailFolder')
       .returns(folders.map(n => n.fullName));
     loadCmpStub
       .withArgs(username, 'EmailTemplate', folders[0].fullName)
@@ -263,14 +264,91 @@ describe('load org browser tree outline', () => {
       undefined,
       metadataObject
     );
+
     const f = await metadataProvider.getChildren(testNode);
     compareNodes(f, folders);
+
     const f1 = await metadataProvider.getChildren(f[0]);
     compareNodes(f1, folder1);
+
     const f2 = await metadataProvider.getChildren(f[1]);
     compareNodes(f2, folder2);
 
     loadCmpStub.restore();
+  });
+
+  it('should display fields when a custom object node is selected', async () => {
+    const loadComponentsStub = stub(ComponentUtils.prototype, 'loadComponents');
+
+    const customObjectBrowserNodes = [
+      new BrowserNode('Account', NodeType.Folder, 'Account', undefined),
+      new BrowserNode('Asset', NodeType.Folder, 'Asset', undefined),
+      new BrowserNode('Book__c', NodeType.Folder, 'Book__c', undefined),
+      new BrowserNode('Campaign', NodeType.Folder, 'Campaign', undefined),
+      new BrowserNode('Customer Case', NodeType.Folder, 'Customer Case', undefined)
+    ];
+    const customObjectNames = [
+      'Account',
+      'Asset',
+      'Book__c',
+      'Campaign',
+      'Customer Case'
+    ];
+    loadComponentsStub
+      .withArgs(username, 'CustomObject', undefined, false)
+      .returns(Promise.resolve(customObjectNames));
+
+    const bookFieldBrowserNodes = [
+      new BrowserNode('Id (id)', NodeType.MetadataField, 'Id (id)', undefined),
+      new BrowserNode('Owner (reference)', NodeType.MetadataField, 'Owner (reference)', undefined),
+      new BrowserNode('IsDeleted (boolean)', NodeType.MetadataField, 'IsDeleted (boolean)', undefined),
+      new BrowserNode('Name (string(80))', NodeType.MetadataField, 'Name (string(80))', undefined),
+      new BrowserNode('CreatedDate (datetime)', NodeType.MetadataField, 'CreatedDate (datetime)', undefined),
+      new BrowserNode('CreatedBy (reference)', NodeType.MetadataField, 'CreatedBy (reference)', undefined),
+      new BrowserNode('LastModifiedDate (datetime)', NodeType.MetadataField, 'LastModifiedDate (datetime)', undefined),
+      new BrowserNode('LastModifiedBy (reference)', NodeType.MetadataField, 'LastModifiedBy (reference)', undefined),
+      new BrowserNode('SystemModstamp (datetime)', NodeType.MetadataField, 'SystemModstamp (datetime)', undefined),
+      new BrowserNode('Price__c (currency)', NodeType.MetadataField, 'Price__c (currency)', undefined)
+    ];
+    const bookFieldNames = [
+      'Id (id)',
+      'Owner (reference)',
+      'IsDeleted (boolean)',
+      'Name (string(80))',
+      'CreatedDate (datetime)',
+      'CreatedBy (reference)',
+      'LastModifiedDate (datetime)',
+      'LastModifiedBy (reference)',
+      'SystemModstamp (datetime)',
+      'Price__c (currency)'
+    ];
+    loadComponentsStub
+      .withArgs(username, 'CustomObject', 'Book__c', false)
+      .returns(Promise.resolve(bookFieldNames));
+
+    const customObjectMetadataObject = {
+      directoryName: 'objects',
+      inFolder: false,
+      label: 'Custom Objects',
+      metaFile: false,
+      suffix: 'object',
+      xmlName: 'CustomObject'
+    };
+
+    const customObjectNode = new BrowserNode(
+      'Custom Objects',
+      NodeType.MetadataType,
+      'CustomObject',
+      customObjectMetadataObject
+    );
+
+    const customObjects = await metadataProvider.getChildren(customObjectNode);
+    compareNodes(customObjects, customObjectBrowserNodes);
+
+    const fields = await metadataProvider.getChildren(customObjects[2]);
+    compareNodes(fields, bookFieldBrowserNodes);
+
+    loadComponentsStub.restore();
   });
 
   it('should call loadComponents with force refresh', async () => {
