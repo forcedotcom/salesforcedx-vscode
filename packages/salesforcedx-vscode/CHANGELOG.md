@@ -1,3 +1,33 @@
+# 53.3.0 - November 10, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Code completion for anonymous apex ([PR #3617](https://github.com/forcedotcom/salesforcedx-vscode/pull/3617))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Under-the-hood fixes ([PR #3631](https://github.com/forcedotcom/salesforcedx-vscode/pull/3631))
+
+#### salesforcedx-vscode-lightning
+
+- Update lightning-language-server to latest version ([PR #3633](https://github.com/forcedotcom/salesforcedx-vscode/pull/3633))
+
+#### salesforcedx-vscode-lwc
+
+- Update lightning-language-server to latest version ([PR #3633](https://github.com/forcedotcom/salesforcedx-vscode/pull/3633))
+
+# 53.2.0 - November 4, 2021
+
+## Fixed
+
+#### docs
+
+- Update byotemplate.md ([PR #3628](https://github.com/forcedotcom/salesforcedx-vscode/pull/3628))
+
 # 53.1.0 - October 28, 2021
 
 ## Added
