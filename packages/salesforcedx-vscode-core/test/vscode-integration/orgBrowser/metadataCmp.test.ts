@@ -187,6 +187,7 @@ describe('load metadata component data', () => {
   let getUsernameStub: SinonStub;
   let fileExistsStub: SinonStub;
   let buildComponentsStub: SinonStub;
+  let buildCustomObjectFieldsListStub: SinonStub;
   let execStub: SinonStub;
   let cmdOutputStub: SinonStub;
   let writeFileStub: SinonStub;
@@ -200,6 +201,7 @@ describe('load metadata component data', () => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
     fileExistsStub = stub(fs, 'existsSync');
     buildComponentsStub = stub(ComponentUtils.prototype, 'buildComponentsList');
+    buildCustomObjectFieldsListStub = stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList');
     execStub = stub(ForceListMetadataExecutor.prototype, 'execute');
     cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
     writeFileStub = stub(fs, 'writeFileSync');
@@ -213,6 +215,7 @@ describe('load metadata component data', () => {
     getUsernameStub.restore();
     fileExistsStub.restore();
     buildComponentsStub.restore();
+    buildCustomObjectFieldsListStub.restore();
     execStub.restore();
     cmdOutputStub.restore();
     writeFileStub.restore();
@@ -247,5 +250,27 @@ describe('load metadata component data', () => {
     fileExistsStub.returns(true);
     await cmpUtil.loadComponents(defaultOrg, metadataType, undefined, true);
     expect(cmdOutputStub.calledOnce).to.be.true;
+  });
+
+  it('should validate that buildCustomObjectFieldsList() is called', async () => {
+    buildCustomObjectFieldsListStub.returns('');
+
+    const components = await cmpUtil.loadComponents(defaultOrg, 'CustomObject', 'DemoCustomObject', undefined);
+    expect(buildCustomObjectFieldsListStub.called).to.equal(true);
+    expect(buildCustomObjectFieldsListStub.calledWith('DemoCustomObject', defaultOrg, filePath)).to.be.true;
+  });
+
+  it('should validate that buildCustomObjectFieldsList() returns correctly formatted fields', async () => {
+    const formattedFields = [
+      'Name__c (string(50))',
+      'Email__c (email(100))',
+      'Notes__c (textarea(500))',
+      'Age__c (number)',
+      'Parent (reference)'
+    ];
+    buildCustomObjectFieldsListStub.returns(formattedFields);
+
+    const components = await cmpUtil.loadComponents(defaultOrg, 'CustomObject', 'DemoCustomObject', undefined);
+    expect(JSON.stringify(components)).to.equal(JSON.stringify(formattedFields));
   });
 });

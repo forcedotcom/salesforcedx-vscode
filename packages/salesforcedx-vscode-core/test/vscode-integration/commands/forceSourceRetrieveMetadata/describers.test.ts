@@ -25,7 +25,7 @@ describe('Retrieve Metadata Describers', () => {
     xmlName: 'TestType',
     label: 'TestType'
   });
-  node.setComponents(['Test1', 'Test2', 'Test3'], NodeType.MetadataCmp);
+  node.setComponents(['Test1', 'Test2', 'Test3'], NodeType.MetadataComponent);
 
   beforeEach(() => {
     env = createSandbox();
@@ -58,7 +58,7 @@ describe('Retrieve Metadata Describers', () => {
 
     it('Should refresh the available components before gathering', async () => {
       refreshStub.callsFake(() => {
-        node.setComponents(['Test1'], NodeType.MetadataCmp);
+        node.setComponents(['Test1'], NodeType.MetadataComponent);
       });
       expect(await describer.gatherOutputLocations()).to.eql(
         generateComponents(1)
