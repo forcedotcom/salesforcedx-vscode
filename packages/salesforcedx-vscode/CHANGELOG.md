@@ -1,3 +1,23 @@
+# 53.4.0 - November 17, 2021
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add ability to deploy and retrieve multiple files ([PR #3621](https://github.com/forcedotcom/salesforcedx-vscode/pull/3621))
+
+#### salesforcedx-vscode-apex
+
+- Enabled Hover, Go to Definition, and References functionality in anonymous apex files ([PR #3650](https://github.com/forcedotcom/salesforcedx-vscode/pull/3650))
+
+## Fixed
+
+#### docs
+
+- Add multi-selecting files and folders in explorer for Source Deploy/Retrieve, and fields and field details for custom objects ([PR #3639](https://github.com/forcedotcom/salesforcedx-vscode/pull/3639))
+
+- Added New Articles for Japanese ([PR #3640](https://github.com/forcedotcom/salesforcedx-vscode/pull/3640))
+
 # 53.3.0 - November 10, 2021
 
 ## Added
@@ -50,13 +70,13 @@
 
 #### salesforcedx-vscode-core
 
-- Set first alias when configuring default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581)) - Contribution by @DanielCalle 
+- Set first alias when configuring default org ([PR #3581](https://github.com/forcedotcom/salesforcedx-vscode/pull/3581)) - Contribution by @DanielCalle
 
 - Fix broken documentation links ([PR #3605](https://github.com/forcedotcom/salesforcedx-vscode/pull/3605))
 
 - Remove the Experimental: Deploy Retrieve performance enhancements user setting ([PR #3580](https://github.com/forcedotcom/salesforcedx-vscode/pull/3580))
 
-- Under-the-hood fixes 
+- Under-the-hood fixes
 
 # 53.0.0 - October 13, 2021
 
