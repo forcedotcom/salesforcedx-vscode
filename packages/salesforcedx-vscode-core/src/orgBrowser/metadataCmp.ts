@@ -165,41 +165,84 @@ export class ComponentUtils {
 
     if (metadataType === 'CustomObject' && folder) {
       if (forceRefresh || !fs.existsSync(componentsPath)) {
-        const result = await this.listSObjectFields(
-          folder,
-          connection,
-          componentsPath
-        );
-        componentsList = this.buildCustomObjectFieldsList(
-          result,
-          componentsPath
-        );
+        componentsList = await this.fetchCustomObjectsFields(folder, connection, componentsPath);
       } else {
-        componentsList = this.buildCustomObjectFieldsList(
-          undefined,
-          componentsPath
-        );
+        componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
       }
-
-    } else if (forceRefresh || !fs.existsSync(componentsPath)) {
-      const result = await this.listMetadataTypes(
-        metadataType,
-        connection,
-        componentsPath
-      );
-
-      componentsList = this.buildComponentsList(
-        metadataType,
-        result,
-        undefined
-      );
     } else {
-      componentsList = this.buildComponentsList(
-        metadataType,
-        undefined,
-        componentsPath
-      );
+      if (forceRefresh || !fs.existsSync(componentsPath)) {
+        componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath);
+      } else {
+        componentsList = this.fetchExistingMetadataComponents(metadataType, componentsPath);
+      }
     }
     return componentsList;
+  }
+
+  /**
+   * Retrieves a list of all fields of the standard or custom object.
+   * @param folder name of the field
+   * @param connection instance of Connection
+   * @param componentsPath
+   * @returns list of name of fields of the standard or custom object
+   */
+  private async fetchCustomObjectsFields(folder: string, connection: Connection, componentsPath: string) {
+    const result = await this.listSObjectFields(
+      folder,
+      connection,
+      componentsPath
+    );
+    const fieldList = this.buildCustomObjectFieldsList(
+      result,
+      componentsPath
+    );
+    return fieldList;
+  }
+
+/**
+ * Builds list of components from existing json file at the componentsPath
+ * @param metadataType name of metadata type
+ * @param componentsPath
+ * @returns list of name of metadata components
+ */
+  private fetchExistingMetadataComponents(metadataType: string, componentsPath: string) {
+    return this.buildComponentsList(
+      metadataType,
+      undefined,
+      componentsPath
+    );
+  }
+
+/**
+ * Retrieves a list of metadata components
+ * @param metadataType name of metadata component
+ * @param connection instance of connection
+ * @param componentsPath
+ * @returns a list of name of metadata components
+ */
+  private async fetchMetadataComponents(metadataType: string, connection: Connection, componentsPath: string) {
+    const result = await this.listMetadataTypes(
+      metadataType,
+      connection,
+      componentsPath
+    );
+    const componentList = this.buildComponentsList(
+      metadataType,
+      result,
+      undefined
+    );
+    return componentList;
+  }
+
+  /**
+   * Builds a list of all fields of the standard or custom object from existing json file at the componentsPath
+   * @param componentsPath
+   * @returns a list of all fields of the standard or custom object
+   */
+  private fetchExistingCustomObjectsFields( componentsPath: string) {
+    return this.buildCustomObjectFieldsList(
+      undefined,
+      componentsPath
+    );
   }
 }
