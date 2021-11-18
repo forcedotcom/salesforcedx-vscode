@@ -58,11 +58,15 @@ export const forceSourceDeploySourcePaths = async (
   // sourceUri is passed, and is the path to the first selected file, and the uris
   // array contains an array of all paths that were selected.
   //
-  // When editing a file and "Deploy This Source from Org" is executed,
-  // sourceUri is passed, but uris is undefined.
   if (!uris || uris.length < 1) {
-    uris = [];
-    uris.push(sourceUri);
+    if (Array.isArray(sourceUri)) {
+      // When "Push-or-deploy-on-save" is enabled, the first parameter
+      // passed in (sourceUri) is actually an array and not a single URI.
+      uris = sourceUri;
+    } else {
+      uris = [];
+      uris.push(sourceUri);
+    }
   }
 
   const messages: ConflictDetectionMessages = {
