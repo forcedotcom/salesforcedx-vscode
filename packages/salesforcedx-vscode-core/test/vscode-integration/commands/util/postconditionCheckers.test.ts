@@ -444,12 +444,12 @@ describe('Postcondition Checkers', () => {
 
     const emptyMessages: ConflictDetectionMessages = {
       warningMessageKey: '',
-      commandHint: i => i as string
+      commandHint: i => i
     };
 
     const retrieveMessages: ConflictDetectionMessages = {
       warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
-      commandHint: i => i as string
+      commandHint: i => i
     };
 
     const validInput: ContinueResponse<string> = {

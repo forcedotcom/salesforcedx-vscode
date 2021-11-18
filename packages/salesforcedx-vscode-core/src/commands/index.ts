@@ -49,13 +49,14 @@ export {
   forceSourceDeployManifest
 } from './forceSourceDeployManifest';
 export {
-  forceSourceDeploySourcePaths,
+  forceSourceDeployMultipleSourcePaths,
+  forceSourceDeploySourcePath,
   LibraryDeploySourcePathExecutor
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
-  forceSourceRetrieveSourcePaths,
+  forceSourceRetrieveSourcePath,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';

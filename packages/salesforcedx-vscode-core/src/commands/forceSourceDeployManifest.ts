@@ -19,9 +19,11 @@ import {
 } from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
+import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
+import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
@@ -69,7 +71,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
     commandHint: input => {
       return new SfdxCommandBuilder()
         .withArg('force:source:deploy')
-        .withFlag('--manifest', input as string)
+        .withFlag('--manifest', input)
         .build()
         .toString();
     }
