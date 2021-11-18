@@ -107,14 +107,8 @@ export const forceSourceRetrieveSourcePaths = async (
   // When editing a file and "Retrieve This Source from Org" is executed,
   // sourceUri is passed, but uris is undefined.
   if (!uris || uris.length < 1) {
-    if (Array.isArray(sourceUri)) {
-      // When "Push-or-deploy-on-save" is enabled, the first parameter
-      // passed in (sourceUri) is actually an array and not a single URI.
-      uris = sourceUri;
-    } else {
-      uris = [];
-      uris.push(sourceUri);
-    }
+    uris = [];
+    uris.push(sourceUri);
   }
 
   const messages: ConflictDetectionMessages = {
