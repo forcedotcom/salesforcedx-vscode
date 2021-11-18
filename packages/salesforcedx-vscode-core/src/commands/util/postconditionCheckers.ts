@@ -208,7 +208,7 @@ export class OverwriteComponentPrompt
 
 export interface ConflictDetectionMessages {
   warningMessageKey: string;
-  commandHint: (input: string | string[]) => string;
+  commandHint: (input: string) => string;
 }
 
 export class TimestampConflictChecker implements PostconditionChecker<string> {
