@@ -8,6 +8,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -104,7 +105,7 @@ export class ComponentUtils {
           case 'string':
           case 'textarea':
           case 'email':
-            return `${field.name} (${field.type} (${field.length}))`;
+            return `${field.name} (${field.type}(${field.length}))`;
           case 'reference':
             return `${field.relationshipName} (reference)`;
           default:
@@ -159,11 +160,9 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: await OrgAuthInfo.getUsername(defaultOrg)
-      })
-    });
+
+    const connection = await workspaceContext.getConnection();
+
     if (metadataType === 'CustomObject' && folder) {
       if (forceRefresh || !fs.existsSync(componentsPath)) {
         const result = await this.listSObjectFields(

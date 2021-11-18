@@ -4,15 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AuthInfo, Connection } from '@salesforce/core';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { SinonStub, stub } from 'sinon';
+import { createSandbox, SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { ForceListMetadataExecutor } from '../../../src/commands';
+import { workspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+
+const sb = createSandbox();
+const $$ = testSetup();
 
 // tslint:disable:no-unused-expression
 describe('get metadata components path', () => {
@@ -183,46 +189,51 @@ describe('build metadata components list', () => {
 });
 
 describe('load metadata component data', () => {
+  let mockConnection: Connection;
+  let connectionStub: SinonStub;
+
   let readFileStub: SinonStub;
   let getUsernameStub: SinonStub;
   let fileExistsStub: SinonStub;
   let buildComponentsStub: SinonStub;
   let buildCustomObjectFieldsListStub: SinonStub;
-  let execStub: SinonStub;
-  let cmdOutputStub: SinonStub;
+  let listMetadataTypesStub: SinonStub;
   let writeFileStub: SinonStub;
   let getComponentsPathStub: SinonStub;
   const cmpUtil = new ComponentUtils();
   const defaultOrg = 'defaultOrg@test.com';
   const metadataType = 'ApexClass';
   const filePath = '/test/metadata/ApexClass.json';
-  beforeEach(() => {
-    readFileStub = stub(fs, 'readFileSync');
-    getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(undefined);
-    fileExistsStub = stub(fs, 'existsSync');
-    buildComponentsStub = stub(ComponentUtils.prototype, 'buildComponentsList');
-    buildCustomObjectFieldsListStub = stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList');
-    execStub = stub(ForceListMetadataExecutor.prototype, 'execute');
-    cmdOutputStub = stub(CommandOutput.prototype, 'getCmdResult');
-    writeFileStub = stub(fs, 'writeFileSync');
-    getComponentsPathStub = stub(
+
+  beforeEach(async () => {
+    const testData = new MockTestOrgData();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    readFileStub = sb.stub(fs, 'readFileSync');
+    getUsernameStub = sb.stub(OrgAuthInfo, 'getUsername').returns('test-username1@example.com');
+    fileExistsStub = sb.stub(fs, 'existsSync');
+    buildComponentsStub = sb.stub(ComponentUtils.prototype, 'buildComponentsList');
+    buildCustomObjectFieldsListStub = sb.stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList');
+    writeFileStub = sb.stub(fs, 'writeFileSync');
+    getComponentsPathStub = sb.stub(
       ComponentUtils.prototype,
       'getComponentsPath'
     ).returns(filePath);
-  });
-  afterEach(() => {
-    readFileStub.restore();
-    getUsernameStub.restore();
-    fileExistsStub.restore();
-    buildComponentsStub.restore();
-    buildCustomObjectFieldsListStub.restore();
-    execStub.restore();
-    cmdOutputStub.restore();
-    writeFileStub.restore();
-    getComponentsPathStub.restore();
+    connectionStub = sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+    listMetadataTypesStub = sb.stub(cmpUtil, 'listMetadataTypes');
   });
 
-  it('should load metadata components through cli command if file does not exist', async () => {
+  afterEach(() => {
+    sb.restore();
+  });
+
+  it('should load metadata components through jsforce library if file does not exist', async () => {
     fileExistsStub.returns(false);
     const fileData = JSON.stringify({
       status: 0,
@@ -231,9 +242,9 @@ describe('load metadata component data', () => {
         { fullName: 'fakeName1', type: 'ApexClass' }
       ]
     });
-    cmdOutputStub.returns(fileData);
+    listMetadataTypesStub.resolves(fileData);
     const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
-    expect(cmdOutputStub.called).to.equal(true);
+    expect(listMetadataTypesStub.called).to.equal(true);
     expect(buildComponentsStub.calledWith(metadataType, fileData, undefined)).to
       .be.true;
   });
@@ -241,23 +252,25 @@ describe('load metadata component data', () => {
   it('should load metadata components from file if file exists', async () => {
     fileExistsStub.returns(true);
     const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
-    expect(cmdOutputStub.called).to.equal(false);
+    expect(listMetadataTypesStub.called).to.equal(false);
     expect(buildComponentsStub.calledWith(metadataType, undefined, filePath)).to
       .be.true;
   });
 
-  it('should load components through cli if file exists and force is set to true', async () => {
+  it('should load components through jsforce if file exists and force is set to true', async () => {
     fileExistsStub.returns(true);
     await cmpUtil.loadComponents(defaultOrg, metadataType, undefined, true);
-    expect(cmdOutputStub.calledOnce).to.be.true;
+    expect(listMetadataTypesStub.calledOnce).to.be.true;
   });
 
-  it('should validate that buildCustomObjectFieldsList() is called', async () => {
+  it('should validate that buildCustomObjectFieldsList() is called when file exists', async () => {
+    fileExistsStub.returns(true);
     buildCustomObjectFieldsListStub.returns('');
 
     const components = await cmpUtil.loadComponents(defaultOrg, 'CustomObject', 'DemoCustomObject', undefined);
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
-    expect(buildCustomObjectFieldsListStub.calledWith('DemoCustomObject', defaultOrg, filePath)).to.be.true;
+    // expect(buildCustomObjectFieldsListStub.calledWith('DemoCustomObject', defaultOrg, filePath)).to.be.true;
+    expect(buildCustomObjectFieldsListStub.calledWith(undefined, filePath)).to.be.true;
   });
 
   it('should validate that buildCustomObjectFieldsList() returns correctly formatted fields', async () => {
