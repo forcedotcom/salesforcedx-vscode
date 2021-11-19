@@ -190,6 +190,33 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
+
+    it('should retrieve when using the command palette', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+
+      // When retrieving via the command palette,
+      // sourceUri is undefined, and uris is undefined as well,
+      // and the path is obtained from the active editor
+      // (and calling getUriFromActiveEditor())
+      const sourceUri = undefined;
+      const uris = undefined;
+
+      const filePaths = [ filePath1 ];
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      const getUriFromActiveEditorStub = sb.stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor').returns(filePath1);
+
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
+        sourceUri,
+        uris
+      );
+
+      expect(getUriFromActiveEditorStub.called).to.equal(true);
+    });
   });
 });
 

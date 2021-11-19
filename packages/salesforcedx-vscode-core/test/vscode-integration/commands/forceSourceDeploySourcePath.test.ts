@@ -204,5 +204,61 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
       expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
     });
+
+    it('should deploy when using the command palette', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+
+      // When deploying via the command palette,
+      // sourceUri is undefined, and uris is undefined as well,
+      // and the path is obtained from the active editor
+      // (and calling getUriFromActiveEditor())
+      const sourceUri = undefined;
+      const uris = undefined;
+
+      const filePaths = [ filePath1 ];
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      const getUriFromActiveEditorStub = sb.stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor').returns(filePath1);
+
+      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
+        sourceUri,
+        uris
+      );
+
+      expect(getUriFromActiveEditorStub.called).to.equal(true);
+    });
+
+    it('should deploy when saving and the "salesforcedx-vscode-core.push-or-deploy-on-save" setting is on', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+
+      // When the push-or-deploy-on-save setting is on,
+      // sourceUri is an array, and uris is undefined.
+      const sourceUri: vscode.Uri[] = [
+        vscode.Uri.file(filePath1)
+      ];
+      const uris = undefined;
+
+      const filePaths = sourceUri.map(uri => {
+        return uri.fsPath;
+      });
+      const timestampConflictCheckerCheckStub = sb.stub(
+        TimestampConflictChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
+        sourceUri,
+        uris
+      );
+
+      expect(timestampConflictCheckerCheckStub.called).to.equal(true);
+      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+    });
   });
 });

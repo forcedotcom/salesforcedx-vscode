@@ -149,7 +149,7 @@ export const forceSourceRetrieveSourcePaths = async (
   await commandlet.run();
 };
 
-const getUriFromActiveEditor = (): vscode.Uri | undefined => {
+export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.document.languageId !== 'forcesourcemanifest') {
     return editor.document.uri;

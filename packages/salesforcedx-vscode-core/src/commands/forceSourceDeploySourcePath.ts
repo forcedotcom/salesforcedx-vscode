@@ -50,7 +50,7 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
 }
 
 export const forceSourceDeploySourcePaths = async (
-  sourceUri: vscode.Uri | undefined,
+  sourceUri: vscode.Uri | vscode.Uri[] |undefined,
   uris: vscode.Uri[] | undefined
 ) => {
   if (!sourceUri) {
@@ -112,7 +112,7 @@ export const forceSourceDeploySourcePaths = async (
   await commandlet.run();
 };
 
-const getUriFromActiveEditor = (): vscode.Uri | undefined => {
+export const getUriFromActiveEditor = (): vscode.Uri | undefined => {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.document.languageId !== 'forcesourcemanifest') {
     return editor.document.uri;
