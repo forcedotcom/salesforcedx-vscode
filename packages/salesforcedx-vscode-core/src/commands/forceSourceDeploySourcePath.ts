@@ -12,8 +12,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
 import { nls } from '../messages';
+import { notificationService } from '../notifications';
 import { SfdxProjectConfig } from '../sfdxProject';
+import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import {
   LibraryPathsGatherer,
@@ -47,9 +50,18 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
 }
 
 export const forceSourceDeploySourcePaths = async (
-  sourceUri: vscode.Uri,
+  sourceUri: vscode.Uri | undefined,
   uris: vscode.Uri[] | undefined
 ) => {
+  if (!sourceUri) {
+    // When the source is deployed via the command palette, both sourceUri and uris are
+    // each undefined, and sourceUri needs to be obtained from the active text editor.
+    sourceUri = getUriFromActiveEditor();
+    if (!sourceUri) {
+      return;
+    }
+  }
+
   // When a single file is selected and "Deploy Source from Org" is executed,
   // sourceUri is passed, and the uris array contains a single element, the same
   // path as sourceUri.
@@ -61,8 +73,14 @@ export const forceSourceDeploySourcePaths = async (
   // When editing a file and "Deploy This Source from Org" is executed,
   // sourceUri is passed, but uris is undefined.
   if (!uris || uris.length < 1) {
-    uris = [];
-    uris.push(sourceUri);
+    if (Array.isArray(sourceUri)) {
+      // When "Push-or-deploy-on-save" is enabled, the first parameter
+      // passed in (sourceUri) is actually an array and not a single URI.
+      uris = sourceUri;
+    } else {
+      uris = [];
+      uris.push(sourceUri);
+    }
   }
 
   const messages: ConflictDetectionMessages = {
@@ -92,4 +110,24 @@ export const forceSourceDeploySourcePaths = async (
   );
 
   await commandlet.run();
+};
+
+const getUriFromActiveEditor = (): vscode.Uri | undefined => {
+  const editor = vscode.window.activeTextEditor;
+  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
+    return editor.document.uri;
+  }
+
+  const errorMessage = nls.localize(
+    'force_source_deploy_select_file_or_directory'
+  );
+  telemetryService.sendException(
+    'force_source_deploy_with_sourcepath',
+    errorMessage
+  );
+  notificationService.showErrorMessage(errorMessage);
+  channelService.appendLine(errorMessage);
+  channelService.showChannelOutput();
+
+  return undefined;
 };

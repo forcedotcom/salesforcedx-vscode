@@ -93,9 +93,18 @@ export class SourcePathChecker implements PostconditionChecker<string[]> {
 }
 
 export const forceSourceRetrieveSourcePaths = async (
-  sourceUri: vscode.Uri,
+  sourceUri: vscode.Uri | undefined,
   uris: vscode.Uri[] | undefined
 ) => {
+  if (!sourceUri) {
+    // When the source is retrieved via the command palette, both sourceUri and uris are
+    // each undefined, and sourceUri needs to be obtained from the active text editor.
+    sourceUri = getUriFromActiveEditor();
+    if (!sourceUri) {
+      return;
+    }
+  }
+
   // When a single file is selected and "Retrieve Source from Org" is executed,
   // sourceUri is passed, and the uris array contains a single element, the same
   // path as sourceUri.
@@ -138,4 +147,24 @@ export const forceSourceRetrieveSourcePaths = async (
   );
 
   await commandlet.run();
+};
+
+const getUriFromActiveEditor = (): vscode.Uri | undefined => {
+  const editor = vscode.window.activeTextEditor;
+  if (editor && editor.document.languageId !== 'forcesourcemanifest') {
+    return editor.document.uri;
+  }
+
+  const errorMessage = nls.localize(
+    'force_source_retrieve_select_file_or_directory'
+  );
+  telemetryService.sendException(
+    'force_source_retrieve_with_sourcepath',
+    errorMessage
+  );
+  notificationService.showErrorMessage(errorMessage);
+  channelService.appendLine(errorMessage);
+  channelService.showChannelOutput();
+
+  return undefined;
 };
