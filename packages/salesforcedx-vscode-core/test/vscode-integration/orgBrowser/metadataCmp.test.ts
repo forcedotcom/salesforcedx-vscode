@@ -270,7 +270,7 @@ describe('load metadata component data', () => {
     const components = await cmpUtil.loadComponents(defaultOrg, 'CustomObject', 'DemoCustomObject', undefined);
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
     // expect(buildCustomObjectFieldsListStub.calledWith('DemoCustomObject', defaultOrg, filePath)).to.be.true;
-    expect(buildCustomObjectFieldsListStub.calledWith(undefined, filePath)).to.be.true;
+    expect(buildCustomObjectFieldsListStub.calledWith('DemoCustomObject', undefined, filePath)).to.be.true;
   });
 
   it('should validate that buildCustomObjectFieldsList() returns correctly formatted fields', async () => {
@@ -312,7 +312,155 @@ describe('load metadata component data', () => {
     ];
     buildCustomObjectFieldsListStub.returns(formattedFields);
 
-    const components = await cmpUtil.loadComponents(defaultOrg, 'CustomObject', 'DemoCustomObject', undefined);
+    const components = await cmpUtil.loadComponents(defaultOrg, 'CustomObject', 'DemoCustomObject');
     expect(JSON.stringify(components)).to.equal(JSON.stringify(formattedFields));
+  });
+});
+
+describe('load custom object field list', () => {
+  let mockConnection: Connection;
+  let connectionStub: SinonStub;
+  let fileExistsStub: SinonStub;
+  let fetchCustomObjectsFieldsStub: SinonStub;
+  let fetchExistingCustomObjectsFieldsStub: SinonStub;
+  const cmpUtil = new ComponentUtils();
+  const defaultOrg = 'defaultOrg@test.com';
+  const metadataType = 'CustomObject';
+  const folder = 'DemoCustomObject';
+  const filePath = '/test/metadata/CustomObject_DemoCustomObject.json';
+  const fieldsList = [
+    'Name__c (string(50))',
+    'Email__c (email(100))',
+    'Notes__c (textarea(500))',
+    'Age__c (number)'
+  ];
+
+  beforeEach(async () => {
+    const testData = new MockTestOrgData();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    fileExistsStub = sb.stub(fs, 'existsSync');
+    connectionStub = sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+    fetchCustomObjectsFieldsStub = sb.stub(ComponentUtils.prototype, 'fetchCustomObjectsFields').resolves(fieldsList);
+    fetchExistingCustomObjectsFieldsStub = sb.stub(ComponentUtils.prototype, 'fetchExistingCustomObjectsFields').resolves(fieldsList);
+  });
+
+  afterEach(() => {
+    sb.restore();
+  });
+
+  it('should load fields of a standard or custom object if file does not exist', async () => {
+    fileExistsStub.returns(false);
+    fetchCustomObjectsFieldsStub.resolves(fieldsList);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataType, folder);
+    expect(fetchCustomObjectsFieldsStub.called).to.equal(true);
+  });
+
+  it('should load fields of a standard or custom object from file if file exists', async () => {
+    fileExistsStub.returns(true);
+    fetchExistingCustomObjectsFieldsStub.resolves(fieldsList);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataType, 'DemoCustomObject');
+    expect(fetchExistingCustomObjectsFieldsStub.called).to.equal(true);
+  });
+
+  it('should load fields of a standard or custom object if field json file exists and force is set to true', async () => {
+    fileExistsStub.returns(true);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataType, folder, true);
+    fetchCustomObjectsFieldsStub.resolves(fieldsList);
+    expect(fetchCustomObjectsFieldsStub.called).to.be.true;
+  });
+});
+
+describe('fetch fields of standard or custom object', () => {
+  let mockConnection: Connection;
+  let connectionStub: SinonStub;
+  let listSObjectFieldsStub: SinonStub;
+  let buildCustomObjectFieldsListStub: SinonStub;
+
+  const cmpUtil = new ComponentUtils();
+  const metadataType = 'CustomObject';
+  const folder = 'DemoCustomObject';
+  const filePath = '/test/metadata/CustomObject_DemoCustomObject.json';
+  const fieldData = JSON.stringify({
+    result: {
+      fields: [
+        {
+          type: 'string',
+          relationshipName: undefined,
+          name: 'Name__c',
+          length: 50
+        },
+        {
+          type: 'email',
+          relationshipName: undefined,
+          name: 'Email__c',
+          length: 100
+        },
+        {
+          type: 'textarea',
+          relationshipName: undefined,
+          name: 'Notes__c',
+          length: 500
+        },
+        {
+          type: 'number',
+          relationshipName: undefined,
+          name: 'Age__c',
+          length: undefined
+        }
+      ]
+    }
+  });
+
+  const fieldsList = [
+    'Name__c (string(50))',
+    'Email__c (email(100))',
+    'Notes__c (textarea(500))',
+    'Age__c (number)'
+  ];
+
+  beforeEach(async () => {
+    const testData = new MockTestOrgData();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    listSObjectFieldsStub = sb.stub(cmpUtil, 'listSObjectFields').resolves(fieldData);
+    buildCustomObjectFieldsListStub = sb.stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList').returns(fieldsList);
+
+    connectionStub = sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+  });
+
+  afterEach(() => {
+    sb.restore();
+  });
+
+  it('should validate that listSObjectFields() is called', async () => {
+    const fieldList = await cmpUtil.fetchCustomObjectsFields(folder, mockConnection, filePath);
+    expect(listSObjectFieldsStub.called).to.equal(true);
+    expect(listSObjectFieldsStub.calledWith(folder, mockConnection, filePath)).to.be.true;
+  });
+
+  it('should validate that buildCustomObjectFields() is called', async () => {
+    const fieldList = await cmpUtil.fetchCustomObjectsFields(folder, mockConnection, filePath);
+    expect(buildCustomObjectFieldsListStub.called).to.equal(true);
+    expect(buildCustomObjectFieldsListStub.calledWith(folder, fieldData, filePath)).to.be.true;
+  });
+
+  it('should validate that only buildCustomObjectFields() is called', async () => {
+    const fieldList = await cmpUtil.fetchExistingCustomObjectsFields(folder, filePath);
+    expect(buildCustomObjectFieldsListStub.called).to.equal(true);
+    expect(buildCustomObjectFieldsListStub.calledWith(folder, undefined, filePath)).to.be.true;
+    expect(listSObjectFieldsStub.called).to.equal(false);
   });
 });

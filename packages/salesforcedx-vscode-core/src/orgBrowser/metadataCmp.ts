@@ -86,6 +86,7 @@ export class ComponentUtils {
   }
 
   public buildCustomObjectFieldsList(
+    sObject: string,
     result?: string,
     componentsPath?: string
   ): string[] {
@@ -112,10 +113,12 @@ export class ComponentUtils {
             return `${field.name} (${field.type})`;
         }
       }
-    );
-
+      );
+      // TODO: change the property metadatacomponents and string 'Metadata Components quantity' to appropriate names
+      telemetryService.sendEventData('Metadata Components quantity', { sObject }, { metadataComponents: fields.length });
       return fields;
-    }catch (e) {
+    } catch (e) {
+      // TODO: change the string 'metadata_cmp_build_cmp_list' to appropriate names
       telemetryService.sendException('metadata_cmp_build_cmp_list', e.message);
       throw new Error(e);
     }
@@ -167,7 +170,7 @@ export class ComponentUtils {
       if (forceRefresh || !fs.existsSync(componentsPath)) {
         componentsList = await this.fetchCustomObjectsFields(folder, connection, componentsPath);
       } else {
-        componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
+        componentsList = this.fetchExistingCustomObjectsFields(folder, componentsPath);
       }
     } else {
       if (forceRefresh || !fs.existsSync(componentsPath)) {
@@ -186,13 +189,14 @@ export class ComponentUtils {
    * @param componentsPath
    * @returns list of name of fields of the standard or custom object
    */
-  private async fetchCustomObjectsFields(folder: string, connection: Connection, componentsPath: string) {
+  public async fetchCustomObjectsFields(folder: string, connection: Connection, componentsPath: string) {
     const result = await this.listSObjectFields(
       folder,
       connection,
       componentsPath
     );
     const fieldList = this.buildCustomObjectFieldsList(
+      folder,
       result,
       componentsPath
     );
@@ -239,8 +243,9 @@ export class ComponentUtils {
    * @param componentsPath
    * @returns a list of all fields of the standard or custom object
    */
-  private fetchExistingCustomObjectsFields( componentsPath: string) {
+  public fetchExistingCustomObjectsFields( folder: string, componentsPath: string) {
     return this.buildCustomObjectFieldsList(
+      folder,
       undefined,
       componentsPath
     );
