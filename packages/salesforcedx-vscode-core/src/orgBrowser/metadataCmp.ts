@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { AuthInfo, Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
-import { forceListMetadata, forceListSchemaSobjectDescribe } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -84,30 +84,27 @@ export class ComponentUtils {
     }
   }
 
-  public async buildCustomObjectFieldsList(
-    objectName: string,
-    defaultUsernameOrAlias: string,
-    outputPath: string
-  ): Promise<string[]> {
-    const jsonResult = await forceListSchemaSobjectDescribe(
-      objectName,
-      defaultUsernameOrAlias,
-      outputPath
-    );
-
-    const result = JSON.parse(jsonResult);
-    const fields = result.result.fields.map(
+  public buildCustomObjectFieldsList(
+    result?: string,
+    componentsPath?: string
+  ): string[] {
+    try {
+      if (isNullOrUndefined(result)) {
+        result = fs.readFileSync(componentsPath!, 'utf8');
+      }
+      const jsonResult = JSON.parse(result);
+      const fields = jsonResult.result.map(
       (field: {
+        name: string;
         type: string;
         relationshipName?: string;
-        name: string;
         length?: number;
       }) => {
         switch (field.type) {
           case 'string':
           case 'textarea':
           case 'email':
-            return `${field.name} (${field.type}(${field.length}))`;
+            return `${field.name} (${field.type} (${field.length}))`;
           case 'reference':
             return `${field.relationshipName} (reference)`;
           default:
@@ -116,7 +113,37 @@ export class ComponentUtils {
       }
     );
 
-    return fields;
+      return fields;
+    }catch (e) {
+      telemetryService.sendException('metadata_cmp_build_cmp_list', e.message);
+      throw new Error(e);
+    }
+  }
+
+  public async listMetadataTypes(
+    metadataType: string,
+    connection: Connection,
+    componentsPath: string
+  ): Promise<string> {
+    const metadataQuery = {type: metadataType};
+    const metadataFileProperties = await connection.metadata.list(metadataQuery);
+    const result = {status: 0, result: metadataFileProperties};
+    const jsonResult = JSON.stringify(result);
+    fs.writeFileSync(componentsPath, jsonResult);
+    return jsonResult;
+  }
+
+  public async listSObjectFields(
+    sObjectName: string,
+    connection: Connection,
+    componentsPath: string
+  ): Promise<string> {
+    const describeSObjectFields = await connection.describe(sObjectName);
+    const describeSObjectFieldsList = describeSObjectFields.fields;
+    const result = {status: 0, result: describeSObjectFieldsList};
+    const jsonResult = JSON.stringify(result);
+    fs.writeFileSync(componentsPath, jsonResult);
+    return jsonResult;
   }
 
   public async loadComponents(
@@ -132,19 +159,36 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
+    const connection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: await OrgAuthInfo.getUsername(defaultOrg)
+      })
+    });
     if (metadataType === 'CustomObject' && folder) {
-      componentsList = await this.buildCustomObjectFieldsList(
-        folder,
-        defaultOrg,
+      if (forceRefresh || !fs.existsSync(componentsPath)) {
+        const result = await this.listSObjectFields(
+          folder,
+          connection,
+          componentsPath
+        );
+        componentsList = this.buildCustomObjectFieldsList(
+          result,
+          componentsPath
+        );
+      } else {
+        componentsList = this.buildCustomObjectFieldsList(
+          undefined,
+          componentsPath
+        );
+      }
+
+    } else if (forceRefresh || !fs.existsSync(componentsPath)) {
+      const result = await this.listMetadataTypes(
+        metadataType,
+        connection,
         componentsPath
       );
-    } else if (forceRefresh || !fs.existsSync(componentsPath)) {
-      const result = await forceListMetadata(
-        metadataType,
-        defaultOrg,
-        componentsPath,
-        folder
-      );
+
       componentsList = this.buildComponentsList(
         metadataType,
         result,
