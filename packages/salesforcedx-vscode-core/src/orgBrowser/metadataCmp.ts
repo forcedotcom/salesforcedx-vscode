@@ -7,7 +7,7 @@
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
-import { forceListMetadata } from '../commands';
+import { forceListMetadata, forceListSchemaSobjectDescribe } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -84,6 +84,41 @@ export class ComponentUtils {
     }
   }
 
+  public async buildCustomObjectFieldsList(
+    objectName: string,
+    defaultUsernameOrAlias: string,
+    outputPath: string
+  ): Promise<string[]> {
+    const jsonResult = await forceListSchemaSobjectDescribe(
+      objectName,
+      defaultUsernameOrAlias,
+      outputPath
+    );
+
+    const result = JSON.parse(jsonResult);
+    const fields = result.result.fields.map(
+      (field: {
+        type: string;
+        relationshipName?: string;
+        name: string;
+        length?: number;
+      }) => {
+        switch (field.type) {
+          case 'string':
+          case 'textarea':
+          case 'email':
+            return `${field.name} (${field.type}(${field.length}))`;
+          case 'reference':
+            return `${field.relationshipName} (reference)`;
+          default:
+            return `${field.name} (${field.type})`;
+        }
+      }
+    );
+
+    return fields;
+  }
+
   public async loadComponents(
     defaultOrg: string,
     metadataType: string,
@@ -97,7 +132,13 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
-    if (forceRefresh || !fs.existsSync(componentsPath)) {
+    if (metadataType === 'CustomObject' && folder) {
+      componentsList = await this.buildCustomObjectFieldsList(
+        folder,
+        defaultOrg,
+        componentsPath
+      );
+    } else if (forceRefresh || !fs.existsSync(componentsPath)) {
       const result = await forceListMetadata(
         metadataType,
         defaultOrg,

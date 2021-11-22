@@ -91,16 +91,4 @@ describe('Persistent Storage Service', () => {
     expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
     expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
   });
-
-  it('Should set and get ConflictFileProperties in Memento cache for Deploy', () => {
-    const cache = PersistentStorageService.getInstance();
-    cache.setPropertiesForFilesDeploy(mockDeployResult.components, mockDeployResult.response);
-    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
-    cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
-  });
-
 });

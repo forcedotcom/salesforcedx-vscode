@@ -45,10 +45,6 @@
         ja: ソースの差分
       url: /user-guide/source-diff
     - title:
-        en: Performance Enhancements
-        ja: パフォーマンスの改善
-      url: /user-guide/perf-enhancements
-    - title:
         en: Prettier Code Formatter
         ja: Prettier コードフォーマッタ
       url: /user-guide/prettier
@@ -68,6 +64,10 @@
         en: Remote Development
         ja: リモートコンテナ
       url: /user-guide/remote-development
+    - title:
+        en: Custom Templates
+        ja: カスタムテンプレート
+      url: /user-guide/byotemplate
     - title:
         en: Demo Mode
         ja: デモモード
@@ -111,7 +111,7 @@
         ja: 作成
       url: /aura/writing
 - title:
-    en: Salesforce Functions (beta)
+    en: Salesforce Functions
     ja: Salesforce の機能
   baseUrl: /functions/
   children:

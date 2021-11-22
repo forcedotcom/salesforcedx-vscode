@@ -26,6 +26,7 @@
     "webpack": "4.30.0",
     "webpack-cli": "3.3.5"
   },
+  "name": "salesforcedx-vscode",
   "scripts": {
     "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
@@ -36,6 +37,7 @@
     "reinstall": "rm -f package-lock.json && npm run clean && npm install",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
+    "lint:fix": "lerna run lint:fix",
     "publish": "node scripts/publish-circleci.js",
     "build-change-log": "node scripts/change-log-generator.js",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test --if-present",

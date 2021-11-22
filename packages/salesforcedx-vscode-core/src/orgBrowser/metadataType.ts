@@ -24,10 +24,11 @@ export type MetadataObject = {
 };
 export class TypeUtils {
   public static readonly FOLDER_TYPES = new Set([
-    'EmailTemplate',
-    'Report',
+    'CustomObject',
     'Dashboard',
-    'Document'
+    'Document',
+    'EmailTemplate',
+    'Report'
   ]);
 
   public static readonly UNSUPPORTED_TYPES = new Set([
@@ -111,6 +112,13 @@ export class TypeUtils {
   }
 
   public getFolderForType(metadataType: string): string {
-    return `${metadataType === 'EmailTemplate' ? 'Email' : metadataType}Folder`;
+    switch (metadataType) {
+      case 'CustomObject':
+        return metadataType;
+      case 'EmailTemplate':
+        return 'EmailFolder';
+      default:
+        return `${metadataType}Folder`;
+    }
   }
 }
