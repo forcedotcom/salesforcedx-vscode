@@ -18,11 +18,10 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
-import { workspaceContext } from '../../../src/context';
-import { SfdxProjectConfig } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
-
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
+import { workspaceContext } from '../../../src/context';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -141,11 +140,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const timestampConflictCheckerCheckStub = sb
+        .stub(TimestampConflictChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const isInPackageDirectoryStub = sb
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .returns(true);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -165,11 +168,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const timestampConflictCheckerCheckStub = sb
+        .stub(TimestampConflictChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const isInPackageDirectoryStub = sb
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .returns(true);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -189,11 +196,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const timestampConflictCheckerCheckStub = sb
+        .stub(TimestampConflictChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const isInPackageDirectoryStub = sb
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .returns(true);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -216,13 +227,19 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const uris = undefined;
 
       const filePaths = [ filePath1 ];
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const timestampConflictCheckerCheckStub = sb
+        .stub(TimestampConflictChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const isInPackageDirectoryStub = sb
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .returns(true);
 
-      const getUriFromActiveEditorStub = sb.stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor').returns(filePath1);
+      const getUriFromActiveEditorStub = sb
+        .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
+        .returns(filePath1);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         sourceUri,
@@ -245,11 +262,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const filePaths = sourceUri.map(uri => {
         return uri.fsPath;
       });
-      const timestampConflictCheckerCheckStub = sb.stub(
-        TimestampConflictChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const timestampConflictCheckerCheckStub = sb
+        .stub(TimestampConflictChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const isInPackageDirectoryStub = sb
+        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+        .returns(true);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         sourceUri,

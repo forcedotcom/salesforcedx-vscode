@@ -18,12 +18,14 @@ import { notificationService } from '../notifications';
 import { SfdxProjectConfig } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
+import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
 import {
+  CompositePostconditionChecker,
   ConflictDetectionMessages,
   TimestampConflictChecker
 } from './util/postconditionCheckers';
@@ -106,7 +108,10 @@ export const forceSourceDeploySourcePaths = async (
     new SfdxWorkspaceChecker(),
     new LibraryPathsGatherer(uris),
     new LibraryDeploySourcePathExecutor(),
-    new TimestampConflictChecker(false, messages)
+    new CompositePostconditionChecker(
+      new SourcePathChecker(),
+      new TimestampConflictChecker(false, messages)
+    )
   );
 
   await commandlet.run();
