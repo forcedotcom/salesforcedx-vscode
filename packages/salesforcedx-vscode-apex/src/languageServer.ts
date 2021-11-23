@@ -60,6 +60,11 @@ async function createServer(
     if (jvmMaxHeap) {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
+    telemetryService.sendEventData(
+      'JVM Max Heap',
+      undefined,
+      { maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0 }
+    );
 
     if (DEBUG) {
       args.push(
