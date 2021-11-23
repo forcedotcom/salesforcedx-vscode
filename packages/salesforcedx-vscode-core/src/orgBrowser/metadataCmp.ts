@@ -161,27 +161,21 @@ export class ComponentUtils {
     );
 
     let componentsList: string[];
-
     const connection = await workspaceContext.getConnection();
 
     if (metadataType === 'CustomObject' && sObject) {
-
       if (forceRefresh || !fs.existsSync(componentsPath)) {
         componentsList = await this.fetchCustomObjectsFields(sObject, connection, componentsPath);
       } else {
         componentsList = this.fetchExistingCustomObjectsFields(sObject, componentsPath);
       }
-
     } else {
-
       if (forceRefresh || !fs.existsSync(componentsPath)) {
         componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath);
       } else {
         componentsList = this.fetchExistingMetadataComponents(metadataType, componentsPath);
       }
-
     }
-
     return componentsList;
   }
 
@@ -209,12 +203,12 @@ export class ComponentUtils {
     return fieldList;
   }
 
-/**
- * Builds list of components from existing json file at the componentsPath
- * @param metadataType name of metadata type
- * @param componentsPath
- * @returns list of name of metadata components
- */
+  /**
+   * Builds list of components from existing json file at the componentsPath
+   * @param metadataType name of metadata type
+   * @param componentsPath
+   * @returns list of name of metadata components
+   */
   public fetchExistingMetadataComponents(metadataType: string, componentsPath: string) {
     return this.buildComponentsList(
       metadataType,
@@ -223,13 +217,13 @@ export class ComponentUtils {
     );
   }
 
-/**
- * Retrieves a list of metadata components
- * @param metadataType name of metadata component
- * @param connection instance of connection
- * @param componentsPath
- * @returns a list of name of metadata components
- */
+  /**
+   * Retrieves a list of metadata components
+   * @param metadataType name of metadata component
+   * @param connection instance of connection
+   * @param componentsPath
+   * @returns a list of name of metadata components
+   */
   public async fetchMetadataComponents(metadataType: string, connection: Connection, componentsPath: string) {
     const result = await this.listMetadataTypes(
       metadataType,
