@@ -40,3 +40,4 @@ export {
   EmptyPreChecker
 } from './preconditionCheckers';
 export { createComponentCount, formatException } from './betaDeployRetrieve';
+export { LibraryPathsGatherer } from './libraryPathsGatherer';
