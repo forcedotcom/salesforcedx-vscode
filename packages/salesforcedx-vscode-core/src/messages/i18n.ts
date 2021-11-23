@@ -153,7 +153,7 @@ export const messages = {
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
-    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://dev.beta.developer.salesforce.com/docs/platform/functions/guide/vs-intro.html#prerequisites).',
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/set-up.html).',
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
   force_function_start_unexpected_error:
