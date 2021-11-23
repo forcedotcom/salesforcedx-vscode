@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -96,23 +96,23 @@ export class ComponentUtils {
       }
       const jsonResult = JSON.parse(result);
       const fields = jsonResult.result.map(
-      (field: {
-        name: string;
-        type: string;
-        relationshipName?: string;
-        length?: number;
-      }) => {
-        switch (field.type) {
-          case 'string':
-          case 'textarea':
-          case 'email':
-            return `${field.name} (${field.type}(${field.length}))`;
-          case 'reference':
-            return `${field.relationshipName} (reference)`;
-          default:
-            return `${field.name} (${field.type})`;
+        (field: {
+          name: string;
+          type: string;
+          relationshipName?: string;
+          length?: number;
+        }) => {
+          switch (field.type) {
+            case 'string':
+            case 'textarea':
+            case 'email':
+              return `${field.name} (${field.type}(${field.length}))`;
+            case 'reference':
+              return `${field.relationshipName} (reference)`;
+            default:
+              return `${field.name} (${field.type})`;
+          }
         }
-      }
       );
       telemetryService.sendEventData('CustomObjects Fields quantity', { sObject }, { fields: fields.length });
       return fields;
@@ -186,7 +186,6 @@ export class ComponentUtils {
    * @param componentsPath
    * @returns list of name of fields of the standard or custom object
    */
-
   public async fetchCustomObjectsFields(sObject: string, connection: Connection, componentsPath: string) {
     const result = await this.listSObjectFields(
       sObject,

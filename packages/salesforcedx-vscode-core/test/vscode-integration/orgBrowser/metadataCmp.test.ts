@@ -239,14 +239,14 @@ describe('load metadata components and custom objects fields list', () => {
   let getComponentsPathStub: SinonStub;
   let getUsernameStub: SinonStub;
   let fileExistsStub: SinonStub;
-  let buildComponentsStub: SinonStub;
+  let buildComponentsListStub: SinonStub;
   let buildCustomObjectFieldsListStub: SinonStub;
   let listMetadataTypesStub: SinonStub;
   let listSObjectFieldsStub: SinonStub;
   const cmpUtil = new ComponentUtils();
   const defaultOrg = 'defaultOrg@test.com';
   const metadataType = 'ApexClass';
-  const metadatTypeCustomObject = 'CustomObject';
+  const metadataTypeCustomObject = 'CustomObject';
   const sObjectName = 'DemoCustomObject';
   const filePath = '/test/metadata/ApexClass.json';
   const fileData = JSON.stringify({
@@ -271,7 +271,7 @@ describe('load metadata components and custom objects fields list', () => {
     connectionStub = sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
     getUsernameStub = sb.stub(OrgAuthInfo, 'getUsername').returns('test-username1@example.com');
     fileExistsStub = sb.stub(fs, 'existsSync');
-    buildComponentsStub = sb.stub(ComponentUtils.prototype, 'buildComponentsList');
+    buildComponentsListStub = sb.stub(ComponentUtils.prototype, 'buildComponentsList');
     buildCustomObjectFieldsListStub = sb.stub(ComponentUtils.prototype, 'buildCustomObjectFieldsList');
     listMetadataTypesStub = sb.stub(cmpUtil, 'listMetadataTypes').resolves(fileData);
     listSObjectFieldsStub = sb.stub(cmpUtil, 'listSObjectFields').resolves(mockFieldData);
@@ -286,8 +286,8 @@ describe('load metadata components and custom objects fields list', () => {
     const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
     expect(listMetadataTypesStub.calledOnce).to.equal(true);
     expect(listMetadataTypesStub.calledWith(metadataType, mockConnection, filePath)).to.be.true;
-    expect(buildComponentsStub.calledOnce).to.be.true;
-    expect(buildComponentsStub.calledWith(metadataType, fileData, undefined)).to
+    expect(buildComponentsListStub.calledOnce).to.be.true;
+    expect(buildComponentsListStub.calledWith(metadataType, fileData, undefined)).to
       .be.true;
   });
 
@@ -295,7 +295,7 @@ describe('load metadata components and custom objects fields list', () => {
     fileExistsStub.returns(true);
     const components = await cmpUtil.loadComponents(defaultOrg, metadataType);
     expect(listMetadataTypesStub.called).to.equal(false);
-    expect(buildComponentsStub.calledWith(metadataType, undefined, filePath)).to.be.true;
+    expect(buildComponentsListStub.calledWith(metadataType, undefined, filePath)).to.be.true;
   });
 
   it('should load metadata components through sfdx-core library if forceRefresh is set to true and file exists', async () => {
@@ -303,14 +303,14 @@ describe('load metadata components and custom objects fields list', () => {
     await cmpUtil.loadComponents(defaultOrg, metadataType, undefined, true);
     expect(listMetadataTypesStub.calledOnce).to.be.true;
     expect(listMetadataTypesStub.calledWith(metadataType, mockConnection, filePath)).to.be.true;
-    expect(buildComponentsStub.calledOnce).to.be.true;
-    expect(buildComponentsStub.calledWith(metadataType, fileData, undefined)).to.be.true;
+    expect(buildComponentsListStub.calledOnce).to.be.true;
+    expect(buildComponentsListStub.calledWith(metadataType, fileData, undefined)).to.be.true;
   });
 
   it('should load sobject fields list through sfdx-core if file does not exist', async () => {
     fileExistsStub.returns(false);
     buildCustomObjectFieldsListStub.returns('');
-    const components = await cmpUtil.loadComponents(defaultOrg, metadatTypeCustomObject, sObjectName, undefined);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, undefined);
     expect(listSObjectFieldsStub.called).to.equal(true);
     expect(listSObjectFieldsStub.calledWith(sObjectName, mockConnection, filePath)).to.be.true;
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
@@ -320,7 +320,7 @@ describe('load metadata components and custom objects fields list', () => {
   it('should load sobject fields list from json file if the file exists', async () => {
     fileExistsStub.returns(true);
     buildCustomObjectFieldsListStub.returns('');
-    const components = await cmpUtil.loadComponents(defaultOrg, metadatTypeCustomObject, sObjectName, undefined);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, undefined);
     expect(listSObjectFieldsStub.called).to.equal(false);
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
     expect(buildCustomObjectFieldsListStub.calledWith(sObjectName, undefined, filePath)).to.be.true;
@@ -329,7 +329,7 @@ describe('load metadata components and custom objects fields list', () => {
   it('should load sobject fields list through sfdx-core if forceRefresh is set to true and file exists', async () => {
     fileExistsStub.returns(true);
     buildCustomObjectFieldsListStub.returns('');
-    const components = await cmpUtil.loadComponents(defaultOrg, metadatTypeCustomObject, sObjectName, true);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName, true);
     expect(listSObjectFieldsStub.called).to.equal(true);
     expect(listSObjectFieldsStub.calledWith(sObjectName, mockConnection, filePath)).to.be.true;
     expect(buildCustomObjectFieldsListStub.called).to.equal(true);
@@ -337,10 +337,10 @@ describe('load metadata components and custom objects fields list', () => {
   });
 
   it('should validate that buildCustomObjectFieldsList() returns correctly formatted fields', async () => {
-    const fieldData = JSON.stringify(mockFieldData);
+    // const fieldData = JSON.stringify(mockFieldData);
     const formattedFields = expectedFieldList;
     buildCustomObjectFieldsListStub.returns(formattedFields);
-    const components = await cmpUtil.loadComponents(defaultOrg, metadatTypeCustomObject, sObjectName);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName);
     expect(JSON.stringify(components)).to.equal(JSON.stringify(formattedFields));
   });
 });
