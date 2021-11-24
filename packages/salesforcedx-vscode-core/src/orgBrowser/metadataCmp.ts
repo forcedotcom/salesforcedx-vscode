@@ -86,43 +86,36 @@ export class ComponentUtils {
   }
 
   public buildCustomObjectFieldsList(
-    sObject: string,
     result?: string,
     componentsPath?: string
   ): string[] {
-    try {
-      if (isNullOrUndefined(result)) {
-        result = fs.readFileSync(componentsPath!, 'utf8');
-      }
-      const jsonResult = JSON.parse(result);
-      const fields = jsonResult.result.map(
-        (field: {
-          name: string;
-          type: string;
-          relationshipName?: string;
-          length?: number;
-        }) => {
-          switch (field.type) {
-            case 'string':
-            case 'textarea':
-            case 'email':
-              return `${field.name} (${field.type}(${field.length}))`;
-            case 'reference':
-              return `${field.relationshipName} (reference)`;
-            default:
-              return `${field.name} (${field.type})`;
-          }
-        }
-      );
-      telemetryService.sendEventData('CustomObjects Fields quantity', { sObject }, { fields: fields.length });
-      return fields;
-    } catch (e) {
-      telemetryService.sendException('metadata_cmp_build_custom_objects_fields_list', e.message);
-      throw new Error(e);
+    if (isNullOrUndefined(result)) {
+      result = fs.readFileSync(componentsPath!, 'utf8');
     }
+    const jsonResult = JSON.parse(result);
+    const fields = jsonResult.result.map(
+      (field: {
+        name: string;
+        type: string;
+        relationshipName?: string;
+        length?: number;
+      }) => {
+        switch (field.type) {
+          case 'string':
+          case 'textarea':
+          case 'email':
+            return `${field.name} (${field.type}(${field.length}))`;
+          case 'reference':
+            return `${field.relationshipName} (reference)`;
+          default:
+            return `${field.name} (${field.type})`;
+        }
+      }
+    );
+    return fields;
   }
 
-  public async listMetadataTypes(
+  public async fetchAndSaveMetadataComponentProperties(
     metadataType: string,
     connection: Connection,
     componentsPath: string
@@ -135,7 +128,7 @@ export class ComponentUtils {
     return jsonResult;
   }
 
-  public async listSObjectFields(
+  public async fetchAndSaveSObjectFieldsProperties(
     sObjectName: string,
     connection: Connection,
     componentsPath: string
@@ -187,14 +180,12 @@ export class ComponentUtils {
    * @returns list of name of fields of the standard or custom object
    */
   public async fetchCustomObjectsFields(sObject: string, connection: Connection, componentsPath: string) {
-    const result = await this.listSObjectFields(
+    const result = await this.fetchAndSaveSObjectFieldsProperties(
       sObject,
       connection,
       componentsPath
     );
-
     const fieldList = this.buildCustomObjectFieldsList(
-      sObject,
       result,
       componentsPath
     );
@@ -224,18 +215,16 @@ export class ComponentUtils {
    * @returns a list of name of metadata components
    */
   public async fetchMetadataComponents(metadataType: string, connection: Connection, componentsPath: string) {
-    const result = await this.listMetadataTypes(
+    const result = await this. fetchAndSaveMetadataComponentProperties(
       metadataType,
       connection,
       componentsPath
     );
-
     const componentList = this.buildComponentsList(
       metadataType,
       result,
       undefined
     );
-
     return componentList;
   }
 
@@ -246,7 +235,6 @@ export class ComponentUtils {
    */
   public fetchExistingCustomObjectsFields( sObject: string, componentsPath: string) {
     return this.buildCustomObjectFieldsList(
-      sObject,
       undefined,
       componentsPath
     );
