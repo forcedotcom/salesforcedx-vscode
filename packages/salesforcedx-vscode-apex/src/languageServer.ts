@@ -61,7 +61,7 @@ async function createServer(
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
     telemetryService.sendEventData(
-      'JVM Max Heap',
+      'apexLSPStartup',
       undefined,
       { maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0 }
     );
