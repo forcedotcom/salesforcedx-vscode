@@ -49,14 +49,13 @@ export {
   forceSourceDeployManifest
 } from './forceSourceDeployManifest';
 export {
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
+  forceSourceDeploySourcePaths,
   LibraryDeploySourcePathExecutor
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
-  forceSourceRetrieveSourcePath,
+  forceSourceRetrieveSourcePaths,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
@@ -145,10 +144,6 @@ export {
   forceListMetadata,
   ForceListMetadataExecutor
 } from './forceListMetadata';
-export {
-  forceListSchemaSobjectDescribe,
-  ForceListSchemaSobjectDescribeExecutor
-} from './forceListSchemaSobjectDescribe';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,
