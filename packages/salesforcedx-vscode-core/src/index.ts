@@ -48,15 +48,14 @@ import {
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
+  forceSourceDeploySourcePaths,
   forceSourceDiff,
   forceSourceFolderDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
-  forceSourceRetrieveSourcePath,
+  forceSourceRetrieveSourcePaths,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -145,7 +144,7 @@ function registerCommands(
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.in.manifest',
@@ -153,11 +152,11 @@ function registerCommands(
   );
   const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.multiple.source.paths',
-    forceSourceDeployMultipleSourcePaths
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.source.path',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -179,11 +178,11 @@ function registerCommands(
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.current.source.file',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.in.manifest',
