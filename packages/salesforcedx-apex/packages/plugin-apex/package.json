@@ -9,8 +9,8 @@
     "@oclif/config": "^1",
     "@oclif/errors": "^1",
     "@salesforce/apex-node": "0.3.0",
-    "@salesforce/command": "3.1.3",
-    "@salesforce/core": "2.28.0",
+    "@salesforce/command": "4.2.0",
+    "@salesforce/core": "2.31.0",
     "chalk": "^4.1.0",
     "tslib": "^1"
   },
@@ -35,10 +35,10 @@
     "shx": "0.2.2",
     "sinon": "^7.3.1",
     "ts-node": "^8.7.0",
-    "typescript": "3.7.5"
+    "typescript": "4.3.2"
   },
   "resolutions": {
-    "**/@salesforce/core": "2.28.0"
+    "**/@salesforce/core": "2.31.0"
   },
   "engines": {
     "node": ">=10.17.0"

@@ -127,7 +127,7 @@ describe('Streaming API Client', () => {
   it('should disconnect when subscribe action throws an error', async () => {
     const stubSubscribe = sandboxStub
       .stub(FayeClient.prototype, 'subscribe')
-      .returns(new Subscription());
+      .returns({});
     const stubDisconnect = sandboxStub.stub(FayeClient.prototype, 'disconnect');
     const streamClient = new StreamingClient(mockConnection);
 
