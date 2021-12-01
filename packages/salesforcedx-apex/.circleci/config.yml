@@ -136,10 +136,10 @@ jobs:
     <<: *node-test
     docker:
       - image: node:12
-  node-10:
+  node-14:
     <<: *node-test
     docker:
-      - image: node:10
+      - image: node:14
   cache:
     <<: *node-test
     steps:
@@ -230,7 +230,7 @@ workflows:
     jobs:
       - node-latest
       - node-12
-      - node-10
+      - node-14
       - cache:
           filters:
             tags:
@@ -248,7 +248,7 @@ workflows:
           color: '#0E1111'
       - node-latest
       - node-12
-      - node-10
+      - node-14
       - run-win-tests
       - hold: # Requires manual approval in Circle Ci
           type: approval
@@ -266,7 +266,7 @@ workflows:
               - run-win-tests
               - node-latest
               - node-12
-              - node-10
+              - node-14
               - hold
               - prepublish
       - publish-plugin-apex:
@@ -279,7 +279,7 @@ workflows:
               - run-win-tests
               - node-latest
               - node-12
-              - node-10
+              - node-14
               - hold
               - prepublish
               - publish-apex-node
