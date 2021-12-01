@@ -10,9 +10,7 @@
 
 - Retrieve field data for a custom object type ([PR #3661](https://github.com/forcedotcom/salesforcedx-vscode/pull/3661))
 
-- Fb/org browser multi select ([PR #3660](https://github.com/forcedotcom/salesforcedx-vscode/pull/3660))
-
-- Update i18n.ts ([PR #3665](https://github.com/forcedotcom/salesforcedx-vscode/pull/3665))
+- Ability to select and deploy multiple files ([PR #3660](https://github.com/forcedotcom/salesforcedx-vscode/pull/3660))
 
 # 53.4.0 - November 17, 2021
 
