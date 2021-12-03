@@ -147,16 +147,6 @@
       "description": "Date of release (ex April 3, 2021). Leave blank to use today's date."
     },
     {
-      "id": "jorjePath",
-      "type": "promptString",
-      "description": "The absolute path to the top-level directory of the apex-jorje repository"
-    },
-    {
-      "id": "jorjeKeystorePath",
-      "type": "promptString",
-      "description": "The absolute path to the sfdc.jks"
-    },
-    {
       "id": "needSigning",
       "type": "pickString",
       "description": "Are you publishing Jorje changes? (Need Signed Jar)",

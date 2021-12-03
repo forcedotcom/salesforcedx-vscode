@@ -150,7 +150,7 @@ module.exports = {
     if (!process.env['SFDC_KEYPASS']) {
       logger.error(`You must set environment 'SFDC_KEYPASS'. Refer to Quip docs for more info.`);
       logger.info(
-        `To set: Add 'export SFDC_KEYSTORE='PASS'' to your bash profile, where PASS is the passphrase for the keystore.`
+        `To set: Add 'export SFDC_KEYSTORE=PASS' to your bash profile, where PASS is the passphrase for the keystore.`
       );
       process.exit(-1);
     }
