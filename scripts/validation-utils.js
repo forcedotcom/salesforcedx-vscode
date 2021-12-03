@@ -126,5 +126,34 @@ module.exports = {
       );
       process.exit(-1);
     }
+  },
+
+  checkJorjeDirectory: () => {
+    if (!process.env['JORJE_DEV_DIR']) {
+      logger.error(`You must set environment variable 'JORJE_DEV_DIR'.`);
+      logger.info(
+        `To set: 'export JORJE_DEV_DIR=/path/to/apex-jorje', where the path is your local Jorje repository.`
+      );
+      process.exit(-1);
+    }
+    return process.env['JORJE_DEV_DIR'];
+  },
+
+  checkSigningAbility: () => {
+    if (!process.env['SFDC_KEYSTORE']) {
+      logger.error(`You must set environment variable 'SFDC_KEYSTORE'.`);
+      logger.info(
+        `To set: Add 'export SFDC_KEYSTORE=/path/to/sfdc.jks' to your bash profile, where the file is the saved keystore to sign the LSP jar.`
+      );
+      process.exit(-1);
+    }
+    if (!process.env['SFDC_KEYPASS']) {
+      logger.error(`You must set environment 'SFDC_KEYPASS'. Refer to Quip docs for more info.`);
+      logger.info(
+        `To set: Add 'export SFDC_KEYSTORE='PASS'' to your bash profile, where PASS is the passphrase for the keystore.`
+      );
+      process.exit(-1);
+    }
+    return {SFDC_KEYSTORE: process.env['SFDC_KEYSTORE'], SFDC_KEYPASS: process.env['SFDC_KEYPASS']};
   }
 };
