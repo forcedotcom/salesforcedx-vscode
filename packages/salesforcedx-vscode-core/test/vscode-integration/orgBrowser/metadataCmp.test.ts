@@ -507,7 +507,7 @@ describe('retrieve fields data of a sobject to write in a json file designated f
 
   it('should validate that fetchAndSaveSObjectFieldsProperties() returns the correctly formatted result file', async () => {
     const sObjectFields = await cmpUtil.fetchAndSaveSObjectFieldsProperties(sObjectName, mockConnection, filePath);
-    expect(sObjectFields).to.equal(JSON.stringify(expectedfetchAndSaveSObjectFieldsPropertiesResult));
+    expect(sObjectFields).to.equal(JSON.stringify(expectedfetchAndSaveSObjectFieldsPropertiesResult, null, 2));
     expect(JSON.parse(sObjectFields).result.length).to.equal(expectedfetchAndSaveSObjectFieldsPropertiesResult.result.length);
   });
 });
