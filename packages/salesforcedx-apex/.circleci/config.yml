@@ -60,7 +60,7 @@ commands:
             export RELEASE_TAG="$(node -pe "require('./lerna.json').version")"
             echo "export RELEASE_VERSION=$RELEASE_TAG" >> $BASH_ENV
             source $BASH_ENV
-            git commit -m "chore: updated version $RELEASE_TAG"
+            git commit -m "chore: updated version $RELEASE_TAG [ci skip]"
       - run: *build
       - run:
           name: Generate plugin manifest	
@@ -117,7 +117,7 @@ parameters:
     default: false
   publish-type:
     type: string
-    default: patch
+    default: minor
 
 jobs:
   node-latest: &node-test
@@ -226,8 +226,14 @@ workflows:
   version: 2.1
   
   commit-workflow:
-    unless: << pipeline.parameters.publish >>
     jobs:
+      - slack/approval-notification:
+          message: Pending Approval for Publish of Apex Plugin
+          channel: 'pdt_releases'
+          color: '#0E1111'
+          filters:
+            branches:
+              only: main
       - node-latest
       - node-12
       - node-14
@@ -236,32 +242,27 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              ignore: /.*/
-      - run-win-tests
-  
-  publish-workflow:
-    when: << pipeline.parameters.publish >>
-    jobs:
-      - slack/approval-notification:
-          message: Pending Approval for Publish of Apex Plugin
-          channel: 'pdt_releases'
-          color: '#0E1111'
-      - node-latest
-      - node-12
-      - node-14
+              ignore:
+                - main 
+                - /.*/
       - run-win-tests
       - hold: # Requires manual approval in Circle Ci
           type: approval
+          filters:
+            branches:
+              only: main
       - prepublish:
           context: pdt-publish-restricted-context
           requires:
               - hold
+          filters:
+            branches:
+              only: main
       - publish-apex-node:
           context: pdt-publish-restricted-context
           filters:
             branches:
-              only:
-                - main
+              only: main
           requires:
               - run-win-tests
               - node-latest
@@ -273,8 +274,7 @@ workflows:
           context: pdt-publish-restricted-context
           filters:
             branches:
-              only:
-                - main
+              only: main
           requires:
               - run-win-tests
               - node-latest
