@@ -4,6 +4,7 @@ const shell = require('shelljs');
 shell.set('-e');
 shell.set('+v');
 
+const fs = require('fs');
 const logger = require('./logger-util');
 
 const NODE_VERSION = '12.4.0';
@@ -129,31 +130,55 @@ module.exports = {
   },
 
   checkJorjeDirectory: () => {
-    if (!process.env['JORJE_DEV_DIR']) {
+    const JORJE_DEV_DIR = process.env['JORJE_DEV_DIR'];
+    if (!JORJE_DEV_DIR || !JORJE_DEV_DIR.includes('apex-jorje')) {
       logger.error(`You must set environment variable 'JORJE_DEV_DIR'.`);
       logger.info(
-        `To set: 'export JORJE_DEV_DIR=/path/to/apex-jorje', where the path is your local Jorje repository.`
+        `To set: Add 'export JORJE_DEV_DIR=/path/to/apex-jorje' to your bash profile, where the path is your local Jorje repository.`
       );
+      if (JORJE_DEV_DIR) {
+        logger.info(`Current value does not direct to apex-jorje: ${JORJE_DEV_DIR}`);
+      }
       process.exit(-1);
     }
-    return process.env['JORJE_DEV_DIR'];
+
+    try {
+      fs.statSync(JORJE_DEV_DIR).isDirectory();
+    } catch (error) {
+      logger.error(`Apex Jorje source repository not found.`);
+      logger.error(`Verify the path of the environment variable JORJE_DEV_DIR: ${JORJE_DEV_DIR}`);
+      process.exit();
+    }
+    return JORJE_DEV_DIR;
   },
 
   checkSigningAbility: () => {
-    if (!process.env['SFDC_KEYSTORE']) {
+    const KEYSTORE = process.env['SFDC_KEYSTORE'];
+    if (!KEYSTORE || !KEYSTORE.includes('.jks')) {
       logger.error(`You must set environment variable 'SFDC_KEYSTORE'.`);
       logger.info(
         `To set: Add 'export SFDC_KEYSTORE=/path/to/sfdc.jks' to your bash profile, where the file is the saved keystore to sign the LSP jar.`
       );
+      if (KEYSTORE) {
+        logger.info(`Current value does not point to a .jks file: ${KEYSTORE}`);
+      }
       process.exit(-1);
     }
+    try {
+      fs.statSync(KEYSTORE).isFile();
+    } catch (error) {
+      logger.error(`File ${KEYSTORE} not found. Verify the path of the SFDC_KEYSTORE environment variable`);
+      logger.info(`Verify the path of the SFDC_KEYSTORE environment variable`);
+      process.exit();
+    }
+
     if (!process.env['SFDC_KEYPASS']) {
-      logger.error(`You must set environment 'SFDC_KEYPASS'. Refer to Quip docs for more info.`);
+      logger.error(`You must set environment 'SFDC_KEYPASS'. Refer to LSP FAQ Quip doc for more info.`);
       logger.info(
         `To set: Add 'export SFDC_KEYSTORE=PASS' to your bash profile, where PASS is the passphrase for the keystore.`
       );
       process.exit(-1);
     }
-    return {SFDC_KEYSTORE: process.env['SFDC_KEYSTORE'], SFDC_KEYPASS: process.env['SFDC_KEYPASS']};
+    return {SFDC_KEYSTORE: KEYSTORE, SFDC_KEYPASS: process.env['SFDC_KEYPASS']};
   }
 };

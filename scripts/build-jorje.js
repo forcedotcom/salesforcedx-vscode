@@ -5,7 +5,8 @@
  * Assumptions:
  * 0. You have shelljs installed globally using `npm install -g shelljs`.
  * 1. You have a local Jorje repo, have saved the keystore to sign the Jar, and have 
- *    saved the paths for those + the keystore to your bash profile. Reset VS Code once set.
+ *    saved the paths for those + the keystore to your bash profile. 
+ *    *Hard* reset VS Code once set.
  * 
  * Ex:  export JORJE_DEV_DIR=~/Git-Repositories/apex-jorje
         export SFDC_KEYSTORE=~/KEYS/sfdc.jks
@@ -14,25 +15,22 @@
 
 const process = require('process');
 const shell = require('shelljs');
-const fs = require('fs');
 const util = require('util');
 const { checkJorjeDirectory, checkSigningAbility } = require('./validation-utils');
 const logger = require('./logger-util');
 
 //Input Variables
-const needSigning=process.argv[2];
+const needSigning = process.argv[2];
 
 //Messages
 const LOG_HEADER = '='.repeat(80);
 const SECTION_HEADER = '-'.repeat(80);
-const NO_JORJE_MSG = `Apex Jorje source repository not found, verify the path of the environment variable JORJE_DEV_DIR: %s. \n`;
-const NO_FILE_MSG = `File not found, verify the path of the environment variable %s: %s\n`;
 const BUILD_MSG = `Building and signing apex-jorje project\n  from: %s...\n`;
 const FIND_MSG = `Searching for artifacts\n     In: %s...\n`;
 const COPY_MSG = `Copying: %s\n     To: %s\n`;
 const COPY_ERR = `Failed to copy LSP jar: %s. Error: %s\n`;
 const SIGN_ERR = `Failed to sign jar: %s\n`;
-const SIGN_INFO = `Ignore the certificate signer expired errors. We are ok with these.`;
+const SIGN_INFO = `^^ Ignore the certificate signer expired errors. We are ok with these.`;
 
 //Directories
 const CURRENT_DIR=process.cwd();
@@ -44,21 +42,9 @@ const JORJE_DEST_PATH=`${JORJE_DEST_DIR}/apex-jorje-lsp.jar`;
 
 function verifyPaths() {
   console.log(LOG_HEADER);
-  try {
-    JORJE_DEV_DIR = checkJorjeDirectory();
-    fs.statSync(JORJE_DEV_DIR).isDirectory();
-  } catch (error) {
-    logger.error(util.format(NO_JORJE_MSG, JORJE_DEV_DIR));
-    process.exit();
-  }
-  if (needSigning) {
+  JORJE_DEV_DIR = checkJorjeDirectory();
+  if (needSigning === 'true') {
     ({SFDC_KEYSTORE, SFDC_KEYPASS} = checkSigningAbility());
-    try {
-      fs.statSync(SFDC_KEYSTORE).isFile();
-    } catch (error) {
-      logger.error(util.format(NO_FILE_MSG, 'SFDC Keystore', SFDC_KEYSTORE));
-      process.exit();
-    }
   }
 }
 
@@ -75,7 +61,7 @@ function buildLSP() {
 
 function getLSP() {
   console.log(util.format(FIND_MSG, JORJE_DEV_DIR));
-  const re = /apex-jorje-lsp-\d{3}\.\d*-SNAPSHOT\.jar$/
+  const re = /apex-jorje-lsp-\d{3}\.\d*-SNAPSHOT\.jar$/;
   return shell.find(JORJE_DEV_DIR).filter(function(file) { return file.match(re); })[0];
 }
 
@@ -104,4 +90,6 @@ const jar = getLSP();
 copyLSP(jar);
 
 logger.info('\nJorge is built!');
+console.log('\nRun this command before testing to check for any stale servers: ');
+console.log('\nps -eo pid,args | grep "[A]pexLanguageServerLauncher"');
 console.log(util.format(`%s\n`, LOG_HEADER));
