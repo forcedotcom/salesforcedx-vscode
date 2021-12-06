@@ -27,7 +27,7 @@ export default class List extends SfdxCommand {
     `$ sfdx force:apex:log:list -u me@my.org`
   ];
 
-  protected static flagsConfig = {
+  public static readonly flagsConfig = {
     json: flags.boolean({
       description: messages.getMessage('jsonDescription')
     }),

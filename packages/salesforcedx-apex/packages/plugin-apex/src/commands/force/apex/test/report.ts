@@ -46,7 +46,7 @@ export default class Report extends SfdxCommand {
     `$ sfdx force:apex:test:report -i <test run id> -c -d <path to outputdir> -u me@myorg`
   ];
 
-  protected static flagsConfig = {
+  public static readonly flagsConfig = {
     testrunid: flags.string({
       char: 'i',
       description: messages.getMessage('testRunIdDescription'),

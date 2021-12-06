@@ -36,7 +36,7 @@ export default class Execute extends SfdxCommand {
   ];
   protected static requiresUsername = true;
 
-  protected static flagsConfig = {
+  public static readonly flagsConfig = {
     apexcodefile: flags.filepath({
       char: 'f',
       description: messages.getMessage('apexCodeFileDescription')

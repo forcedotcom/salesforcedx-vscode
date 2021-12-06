@@ -29,7 +29,7 @@ export default class Tail extends SfdxCommand {
     `$ sfdx force:apex:log:tail -c -s`
   ];
 
-  protected static flagsConfig = {
+  public static readonly flagsConfig = {
     json: flags.boolean({
       description: messages.getMessage('jsonDescription')
     }),
