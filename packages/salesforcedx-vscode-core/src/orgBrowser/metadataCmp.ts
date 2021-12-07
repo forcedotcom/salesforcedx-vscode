@@ -173,6 +173,13 @@ export class ComponentUtils {
     return componentsList;
   }
 
+  /**
+   * Retrieves a list of all fields of the standard or custom object.
+   * @param connection instance of Connection
+   * @param componentsPath json file path of the component
+   * @param folderName name of the custom or standard object listed under Custom Objects
+   * @returns list of name of fields of the standard or custom object
+   */
   public async fetchCustomObjectsFields(connection: Connection, componentsPath: string, folderName: string) {
     const result = await this.fetchAndSaveSObjectFieldsProperties(
       connection,
@@ -187,6 +194,12 @@ export class ComponentUtils {
     return fieldList;
   }
 
+  /**
+   * Builds list of components from existing json file at the componentsPath
+   * @param metadataType name of metadata type
+   * @param componentsPath existing json file path of the component
+   * @returns list of name of metadata components
+   */
   public fetchExistingMetadataComponents(metadataType: string, componentsPath: string) {
     return this.buildComponentsList(
       metadataType,
@@ -195,6 +208,14 @@ export class ComponentUtils {
     );
   }
 
+  /**
+   * Retrieves a list of metadata components
+   * @param metadataType name of metadata component
+   * @param connection instance of connection
+   * @param componentsPath json file path of the component
+   * @param folderName name of the folders listed under metadata components like Email Templates, Documents, Dashboards or Reports
+   * @returns a list of name of metadata components
+   */
   public async fetchMetadataComponents(metadataType: string, connection: Connection, componentsPath: string, folderName: string | undefined) {
     const result = await this. fetchAndSaveMetadataComponentProperties(
       metadataType,
@@ -209,6 +230,12 @@ export class ComponentUtils {
     );
     return componentList;
   }
+
+  /**
+   * Builds a list of all fields of the standard or custom object from existing json file at the componentsPath
+   * @param componentsPath existing json file path of the component
+   * @returns a list of all fields of the standard or custom object
+   */
   public fetchExistingCustomObjectsFields(componentsPath: string) {
     return this.buildCustomObjectFieldsList(
       undefined,
