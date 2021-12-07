@@ -130,9 +130,9 @@ export class ComponentUtils {
   }
 
   public async fetchAndSaveSObjectFieldsProperties(
-    sObjectName: string,
     connection: Connection,
-    componentsPath: string
+    componentsPath: string,
+    sObjectName: string
   ): Promise<string> {
     const describeSObjectFields = await connection.describe(sObjectName);
     const describeSObjectFieldsList = describeSObjectFields.fields;
@@ -159,9 +159,9 @@ export class ComponentUtils {
 
     if (metadataType === 'CustomObject' && folderName) {
       if (forceRefresh || !fs.existsSync(componentsPath)) {
-        componentsList = await this.fetchCustomObjectsFields(folderName, connection, componentsPath);
+        componentsList = await this.fetchCustomObjectsFields(connection, componentsPath, folderName);
       } else {
-        componentsList = this.fetchExistingCustomObjectsFields(folderName, componentsPath);
+        componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
       }
     } else {
       if (forceRefresh || !fs.existsSync(componentsPath)) {
@@ -173,11 +173,11 @@ export class ComponentUtils {
     return componentsList;
   }
 
-  public async fetchCustomObjectsFields(folderName: string, connection: Connection, componentsPath: string) {
+  public async fetchCustomObjectsFields(connection: Connection, componentsPath: string, folderName: string) {
     const result = await this.fetchAndSaveSObjectFieldsProperties(
-      folderName,
       connection,
-      componentsPath
+      componentsPath,
+      folderName
     );
     const fieldList = this.buildCustomObjectFieldsList(
       result,
@@ -209,8 +209,7 @@ export class ComponentUtils {
     );
     return componentList;
   }
-// TODO: fetchExistingCustomObjectsFields requires only one parameter componentsPath and corresponding tests have to be modified
-  public fetchExistingCustomObjectsFields(folderName: string, componentsPath: string) {
+  public fetchExistingCustomObjectsFields(componentsPath: string) {
     return this.buildCustomObjectFieldsList(
       undefined,
       componentsPath
