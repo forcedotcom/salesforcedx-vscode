@@ -248,6 +248,8 @@ describe('load metadata components and custom objects fields list', () => {
   const metadataType = 'ApexClass';
   const metadataTypeCustomObject = 'CustomObject';
   const sObjectName = 'DemoCustomObject';
+  const folderName = 'DemoDashboard';
+  const metadataTypeDashboard = 'Dashboard';
   const filePath = '/test/metadata/ApexClass.json';
   const fileData = JSON.stringify({
     status: 0,
@@ -305,6 +307,23 @@ describe('load metadata components and custom objects fields list', () => {
     expect(fetchAndSaveMetadataComponentPropertiesStub.calledWith(metadataType, mockConnection, filePath)).to.be.true;
     expect(buildComponentsListStub.calledOnce).to.be.true;
     expect(buildComponentsListStub.calledWith(metadataType, fileData, undefined)).to.be.true;
+  });
+
+  it('should load metadata components listed under folders of Dashboards through sfdx-core library if file does not exist', async () => {
+    fileExistsStub.returns(false);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeDashboard, folderName, undefined);
+    expect(fetchAndSaveMetadataComponentPropertiesStub.calledOnce).to.equal(true);
+    expect(fetchAndSaveMetadataComponentPropertiesStub.calledWith(metadataTypeDashboard, mockConnection, filePath, folderName)).to.be.true;
+    expect(buildComponentsListStub.calledOnce).to.be.true;
+    expect(buildComponentsListStub.calledWith(metadataTypeDashboard, fileData, undefined)).to
+      .be.true;
+  });
+
+  it('should load metadata components listed under folders of Dashboards from json file if the file exists', async () => {
+    fileExistsStub.returns(true);
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeDashboard, folderName, undefined);
+    expect(fetchAndSaveMetadataComponentPropertiesStub.called).to.equal(false);
+    expect(buildComponentsListStub.calledWith(metadataTypeDashboard, undefined, filePath)).to.be.true;
   });
 
   it('should load sobject fields list through sfdx-core if file does not exist', async () => {
