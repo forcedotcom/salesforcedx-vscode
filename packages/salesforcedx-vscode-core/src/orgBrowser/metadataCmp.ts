@@ -132,9 +132,9 @@ export class ComponentUtils {
   public async fetchAndSaveSObjectFieldsProperties(
     connection: Connection,
     componentsPath: string,
-    sObjectName: string
+    folderName: string
   ): Promise<string> {
-    const describeSObjectFields = await connection.describe(sObjectName);
+    const describeSObjectFields = await connection.describe(folderName);
     const describeSObjectFieldsList = describeSObjectFields.fields;
     const result = {status: 0, result: describeSObjectFieldsList};
     const jsonResult = JSON.stringify(result, null, 2);
@@ -217,7 +217,7 @@ export class ComponentUtils {
    * @returns a list of name of metadata components
    */
   public async fetchMetadataComponents(metadataType: string, connection: Connection, componentsPath: string, folderName: string | undefined) {
-    const result = await this. fetchAndSaveMetadataComponentProperties(
+    const result = await this.fetchAndSaveMetadataComponentProperties(
       metadataType,
       connection,
       componentsPath,
