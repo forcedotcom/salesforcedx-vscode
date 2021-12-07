@@ -123,6 +123,7 @@ describe('Force Apex Execute', () => {
     let outputStub: SinonStub;
     let showChannelOutputStub: SinonSpy;
     let setDiagnosticStub: SinonStub;
+    const file = '/test';
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
@@ -251,7 +252,7 @@ describe('Force Apex Execute', () => {
       const expectedDiagnostic = {
         message: execAnonResponse.diagnostic[0].exceptionMessage,
         severity: vscode.DiagnosticSeverity.Error,
-        source: '/test',
+        source: file,
         range: new vscode.Range(3, 0, 3, 0)
       };
 
