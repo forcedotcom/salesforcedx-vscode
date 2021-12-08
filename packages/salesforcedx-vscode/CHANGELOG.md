@@ -1,3 +1,11 @@
+# 53.7.0 - December 8, 2021
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Org browser folders no longer display items ([PR #3685](https://github.com/forcedotcom/salesforcedx-vscode/pull/3685))
+
 # 53.4.0 - November 17, 2021
 
 ## Added
