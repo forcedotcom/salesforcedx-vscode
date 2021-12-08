@@ -259,6 +259,7 @@ describe('Force Apex Execute', () => {
       await executor.run({
         type: 'CONTINUE',
         data: {
+          fileName: file,
           selection: new vscode.Range(
             new vscode.Position(3, 1),
             new vscode.Position(3, 22)
