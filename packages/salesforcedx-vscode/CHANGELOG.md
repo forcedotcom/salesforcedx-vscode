@@ -4,7 +4,7 @@
 
 #### docs
 
-- Update i18n.ts ([PR #3665](https://github.com/forcedotcom/salesforcedx-vscode/pull/3665))
+- Fix broken doc links ([PR #3665](https://github.com/forcedotcom/salesforcedx-vscode/pull/3665))
 
 #### salesforcedx-vscode-core
 
