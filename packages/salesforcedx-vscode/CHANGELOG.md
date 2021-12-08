@@ -2,9 +2,17 @@
 
 ## Fixed
 
+#### docs
+
+- Fix broken doc links ([PR #3665](https://github.com/forcedotcom/salesforcedx-vscode/pull/3665))
+
 #### salesforcedx-vscode-core
 
 - Org browser folders no longer display items ([PR #3685](https://github.com/forcedotcom/salesforcedx-vscode/pull/3685))
+
+- Retrieve field data for a custom object type ([PR #3661](https://github.com/forcedotcom/salesforcedx-vscode/pull/3661))
+
+- Ability to select and deploy multiple files ([PR #3660](https://github.com/forcedotcom/salesforcedx-vscode/pull/3660))
 
 # 53.4.0 - November 17, 2021
 
@@ -25,6 +33,8 @@
 - Add multi-selecting files and folders in explorer for Source Deploy/Retrieve, and fields and field details for custom objects ([PR #3639](https://github.com/forcedotcom/salesforcedx-vscode/pull/3639))
 
 - Added New Articles for Japanese ([PR #3640](https://github.com/forcedotcom/salesforcedx-vscode/pull/3640))
+
+- Update i18n.ts ([PR #3665](https://github.com/forcedotcom/salesforcedx-vscode/pull/3665))
 
 # 53.3.0 - November 10, 2021
 
