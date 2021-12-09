@@ -74,9 +74,13 @@ describe('Force Apex Execute', () => {
         document: {
           uri: { fsPath: fileName },
           getText: () => text,
-          isUntitled: true
+          isUntitled: true,
+          isDirty: true
         },
-        selection: { isEmpty: true, text: 'System.assert(false);' }
+        selection: {
+          isEmpty: true,
+          text: 'System.assert(false);'
+        }
       };
       sb.stub(vscode.window, 'activeTextEditor').get(() => {
         return mockActiveTextEditor;
@@ -93,9 +97,15 @@ describe('Force Apex Execute', () => {
       const mockActiveTextEditor = {
         document: {
           getText: (doc: { isEmpty: boolean; text: string }) => doc.text,
-          isUntitled: true
+          isUntitled: true,
+          isDirty: false
         },
-        selection: { isEmpty: false, text: 'System.assert(true);' }
+        selection: {
+          isEmpty: false,
+          text: 'System.assert(true);',
+          start: new vscode.Position(1, 1),
+          end: new vscode.Position(1, 19)
+        }
       };
       sb.stub(vscode.window, 'activeTextEditor').get(() => {
         return mockActiveTextEditor;
@@ -112,10 +122,19 @@ describe('Force Apex Execute', () => {
   describe('Format Execute Anonymous Response', () => {
     let outputStub: SinonStub;
     let showChannelOutputStub: SinonSpy;
+    let setDiagnosticStub: SinonStub;
+    const file = '/test';
 
     beforeEach(() => {
       outputStub = sb.stub(channelService, 'appendLine');
-      showChannelOutputStub = sb.spy(ChannelService.prototype, 'showChannelOutput');
+      showChannelOutputStub = sb.spy(
+        ChannelService.prototype,
+        'showChannelOutput'
+      );
+      setDiagnosticStub = sb.stub(
+        ApexLibraryExecuteExecutor.diagnostics,
+        'set'
+      );
     });
 
     it('should format result correctly for a successful execution', async () => {
@@ -208,6 +227,49 @@ describe('Force Apex Execute', () => {
       await executor.run({ type: 'CONTINUE', data: {} });
       expect(showChannelOutputStub.notCalled).to.be.true;
       expect(outputStub.firstCall.args[0]).to.equal(expectedOutput);
+    });
+
+    it('should translate result line position correctly for a selected text failure', async () => {
+      const executor = new ApexLibraryExecuteExecutor();
+      const execAnonResponse = {
+        compiled: true,
+        success: false,
+        logs:
+          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(false);|EXECUTION_FINISHED\n',
+        diagnostic: [
+          {
+            columnNumber: 1,
+            lineNumber: 1,
+            compileProblem: '',
+            exceptionMessage: 'System.AssertException: Assertion Failed',
+            exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
+          }
+        ]
+      };
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
+        execAnonResponse
+      );
+      const expectedDiagnostic = {
+        message: execAnonResponse.diagnostic[0].exceptionMessage,
+        severity: vscode.DiagnosticSeverity.Error,
+        source: file,
+        range: new vscode.Range(3, 0, 3, 0)
+      };
+
+      await executor.run({
+        type: 'CONTINUE',
+        data: {
+          fileName: file,
+          selection: new vscode.Range(
+            new vscode.Position(3, 1),
+            new vscode.Position(3, 22)
+          )
+        }
+      });
+
+      expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
+        expectedDiagnostic
+      ]);
     });
   });
 
