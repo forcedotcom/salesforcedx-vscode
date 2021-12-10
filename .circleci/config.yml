@@ -534,7 +534,9 @@ workflows:
     jobs:
       - build-all
       - unit-tests
-      - integration-tests
+      # - integration-tests
+      # TODO: Move to scheduled section after testing 
+      - release-management/dependabot-automerge
 
   pre-publish-workflow:
     when: << pipeline.parameters.pre-publish >>
