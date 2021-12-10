@@ -26,6 +26,7 @@ import { nls } from '../messages';
 interface ApexExecuteParameters {
   apexCode?: string;
   fileName?: string;
+  selection?: vscode.Range;
 }
 export class AnonApexGatherer
   implements ParametersGatherer<ApexExecuteParameters> {
@@ -39,13 +40,20 @@ export class AnonApexGatherer
       }
 
       const document = editor.document;
-      if (!editor.selection.isEmpty || document.isUntitled) {
+      if (
+        !editor.selection.isEmpty ||
+        document.isUntitled ||
+        document.isDirty
+      ) {
         return {
           type: 'CONTINUE',
           data: {
             apexCode: !editor.selection.isEmpty
               ? document.getText(editor.selection)
-              : document.getText()
+              : document.getText(),
+            selection: !editor.selection.isEmpty
+              ? new vscode.Range(editor.selection.start, editor.selection.end)
+              : undefined
           }
         };
       }
@@ -76,7 +84,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
     const executeService = new ExecuteService(connection);
-    const { apexCode, fileName: apexFilePath } = response.data;
+    const { apexCode, fileName: apexFilePath, selection } = response.data;
 
     const result = await executeService.executeAnonymous({
       apexFilePath,
@@ -89,7 +97,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     const document = editor!.document;
     const filePath = apexFilePath ?? document.uri.fsPath;
 
-    this.handleDiagnostics(result, filePath);
+    this.handleDiagnostics(result, filePath, selection);
 
     return result.success;
   }
@@ -118,7 +126,8 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 
   private handleDiagnostics(
     response: ExecuteAnonymousResponse,
-    filePath: string
+    filePath: string,
+    selection?: vscode.Range
   ) {
     ApexLibraryExecuteExecutor.diagnostics.clear();
 
@@ -141,9 +150,10 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         message,
         severity: vscode.DiagnosticSeverity.Error,
         source: filePath,
-        range: this.getZeroBasedRange(
-          Number(lineNumber) || 1,
-          Number(columnNumber) || 1
+        range: this.adjustErrorRange(
+          Number(lineNumber),
+          Number(columnNumber),
+          selection
         )
       };
 
@@ -151,6 +161,16 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         vscDiagnostic
       ]);
     }
+  }
+
+  private adjustErrorRange(
+    lineNumber: number | undefined,
+    columnNumber: number | undefined,
+    selection?: vscode.Range
+  ): vscode.Range {
+    const lineOffset = selection ? selection.start.line : 0;
+    const adjustedLine = lineNumber ? lineNumber + lineOffset : 1;
+    return this.getZeroBasedRange(adjustedLine, columnNumber || 1);
   }
 
   private getZeroBasedRange(line: number, column: number): vscode.Range {
