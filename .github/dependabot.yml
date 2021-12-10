@@ -3,6 +3,9 @@
 # Please see the documentation for all configuration options:
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
+# Notes:
+# - Must have a unique combination of 'package-ecosystem', 'directory', and 'target-branch'
+
 version: 2
 updates:
   # Minor, Patch updates
@@ -48,4 +51,4 @@ updates:
       #- dependency-name: "@salesforce/*"
     open-pull-requests-limit: 5
     # TODO: Remove config before merging into origin to revert to default branch
-    target-branch: "dependabot-spike"
+    target-branch: "dependabot-major-updates"
