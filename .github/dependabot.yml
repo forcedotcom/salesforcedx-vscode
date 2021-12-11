@@ -25,7 +25,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-    open-pull-requests-limit: 10
+    # TODO: Revert to a saner num of open PRs, using higher number for testing
+    open-pull-requests-limit: 15
     # TODO: Remove config before merging into origin to revert to default branch
     target-branch: "dependabot-spike"
   # Major version updates
