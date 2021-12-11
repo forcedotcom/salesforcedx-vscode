@@ -534,9 +534,8 @@ workflows:
     jobs:
       - build-all
       - unit-tests
+      # TODO: reenable after testing in fork - fails in fork
       # - integration-tests
-      # TODO: Move to scheduled section after testing 
-      - release-management/dependabot-automerge
 
   pre-publish-workflow:
     when: << pipeline.parameters.pre-publish >>
@@ -630,3 +629,15 @@ workflows:
     jobs:
       - create-release-branch:
           e: default-executor
+          
+  dependabot-automerge:
+    triggers:
+      - schedule:
+          # TODO: change schedule before merge - currently set for freq testing
+          cron: '10 * * * *'
+          filters:
+            branches:
+              only:
+                - develop
+    jobs:
+      - release-management/dependabot-automerge
