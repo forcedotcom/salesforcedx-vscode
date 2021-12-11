@@ -629,15 +629,20 @@ workflows:
     jobs:
       - create-release-branch:
           e: default-executor
-          
+
   dependabot-automerge:
     triggers:
       - schedule:
           # TODO: change schedule before merge - currently set for freq testing
           cron: '10 * * * *'
+          # Every hour during regular working hours (9am-5pm) 
+          # on Tue to Fri as Monday is release freeze.
+          # cron: '0 9-17 * * 2-5'
           filters:
             branches:
               only:
                 - develop
     jobs:
+      # Merges 1 mergeable PR from dependabot containing minor, patch updates
+      # Requires package.json-> repository to be a string of 'owner/repo'
       - release-management/dependabot-automerge
