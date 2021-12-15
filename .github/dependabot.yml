@@ -4,6 +4,7 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 # Notes:
+# - Use "redhat.vscode-yaml" extension for schema and config validation
 # - Must have a unique combination of 'package-ecosystem', 'directory', and 'target-branch'.
 
 version: 2
