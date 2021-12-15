@@ -134,6 +134,7 @@ export class BrowserNode extends vscode.TreeItem
     switch (this.type) {
       case NodeType.MetadataType:
         return RetrieveDescriberFactory.createTypeNodeDescriber(this);
+      case NodeType.Folder:
       case NodeType.MetadataComponent:
         return RetrieveDescriberFactory.createComponentNodeDescriber(this);
     }

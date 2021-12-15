@@ -154,7 +154,7 @@
         },
         {
           "command": "sfdx.force.source.retrieve.component",
-          "when": "view == metadata && viewItem =~ /(type|component)/",
+          "when": "view == metadata && viewItem =~ /(type|component|folder)/",
           "group": "inline"
         },
         {
