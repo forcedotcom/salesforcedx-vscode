@@ -3,54 +3,43 @@
 # Please see the documentation for all configuration options:
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
-# Must have a unique combination of 'package-ecosystem', 'directory', and
-# 'target-branch'. Hence different target branches are used for major vs
-# minor/patch updates.
+# Notes:
+# - Must have a unique combination of 'package-ecosystem', 'directory', and
+#   'target-branch'.
 
 version: 2
 updates:
-  # Minor, Patch updates
-  - package-ecosystem: "npm"
-    directory: "/" # Location of package manifests
+  # Minor, Patch updates (to be auto-merged using 'release-management/dependabot-automerge')
+  - package-ecosystem: 'npm'
+    directory: '/' # Location of package manifests
     schedule:
-      interval: "daily"
-      # TODO: Config to be turned on before merging branch into origin
-      # After the weekly release cut-off on Tuesday
-      #interval: "weekly"
-      #day: "Wednesday"
-      #time: "07:00"
-      #timezone: "America/Los_Angeles"
-    labels:
-      - "dependencies"
-      - "minor/patch"
+      # After the weekly release branch cut-off on Monday
+      interval: 'weekly'
+      day: 'Tuesday'
+      time: '06:00'
+      timezone: 'America/Los_Angeles'
     ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-    # TODO: Revert to a saner num of open PRs, using higher number for testing
-    open-pull-requests-limit: 20
-    # TODO: Remove config before merging into origin to revert to default branch
-    target-branch: "dependabot-spike"
-  # Major version updates
-  - package-ecosystem: "npm"
-    directory: "/" # Location of package manifests
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    open-pull-requests-limit: 10
+  # Major version updates (not auto-merged)
+  - package-ecosystem: 'npm'
+    directory: '/' # Location of package manifests
+    target-branch: 'develop'
     schedule:
-      interval: "daily"
-      # TODO: Config to be turned on before merging branch into origin
-      # After the weekly release cut-off on Tuesday
-      # interval: 'monthly'
-      #day: "Wednesday"
-      #time: "07:00"
-      #timezone: "America/Los_Angeles"
-    labels:
-      - "dependencies"
-      - "major"
+      # Monthly after the weekly minor,patch updates have been merged
+      interval: 'monthly'
+      day: 'Friday'
+      time: '06:00'
+      timezone: 'America/Los_Angeles'
     ignore:
-      - dependency-name: "*"
+      - dependency-name: '*'
         update-types:
-          ["version-update:semver-minor", "version-update:semver-patch"]
-      # TODO: Do we need to exclude specific packages to prevent W-7236739
-      #- dependency-name: "@lwc/*"
-      #- dependency-name: "@salesforce/*"
+          ['version-update:semver-minor', 'version-update:semver-patch']
     open-pull-requests-limit: 5
-    # TODO: Remove config before merging into origin to revert to default branch
-    target-branch: "dependabot-major-updates"
+  # Exclude updates to /docs
+  # TODO: Enable after adding automated check(s) for doc generation
+  - package-ecosystem: 'bundler'
+    directory: '/docs' # Location of package manifests
+    ignore:
+      - dependency-name: '*'
