@@ -4,8 +4,7 @@
 # https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 # Notes:
-# - Must have a unique combination of 'package-ecosystem', 'directory', and
-#   'target-branch'.
+# - Must have a unique combination of 'package-ecosystem', 'directory', and 'target-branch'.
 
 version: 2
 updates:
@@ -37,7 +36,7 @@ updates:
         update-types:
           ['version-update:semver-minor', 'version-update:semver-patch']
     open-pull-requests-limit: 5
-  # Exclude updates to /docs
+  # Exclude updates to doc tools
   # TODO: Enable after adding automated check(s) for doc generation
   - package-ecosystem: 'bundler'
     directory: '/docs' # Location of package manifests
