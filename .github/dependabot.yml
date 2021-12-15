@@ -9,36 +9,38 @@
 version: 2
 updates:
   # Minor, Patch updates (to be auto-merged using 'release-management/dependabot-automerge')
-  - package-ecosystem: 'npm'
-    directory: '/' # Location of package manifests
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package manifests
     schedule:
       # After the weekly release branch cut-off on Monday
-      interval: 'weekly'
-      day: 'Tuesday'
-      time: '06:00'
-      timezone: 'America/Los_Angeles'
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
     ignore:
-      - dependency-name: '*'
-        update-types: ['version-update:semver-major']
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     open-pull-requests-limit: 10
   # Major version updates (not auto-merged)
-  - package-ecosystem: 'npm'
-    directory: '/' # Location of package manifests
-    target-branch: 'develop'
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package manifests
+    target-branch: "develop"
     schedule:
       # Monthly after the weekly minor,patch updates have been merged
-      interval: 'monthly'
-      day: 'Friday'
-      time: '06:00'
-      timezone: 'America/Los_Angeles'
+      interval: "monthly"
+      day: "friday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
     ignore:
-      - dependency-name: '*'
+      - dependency-name: "*"
         update-types:
-          ['version-update:semver-minor', 'version-update:semver-patch']
+          ["version-update:semver-minor", "version-update:semver-patch"]
     open-pull-requests-limit: 5
   # Exclude updates to doc tools
   # TODO: Enable after adding automated check(s) for doc generation
-  - package-ecosystem: 'bundler'
-    directory: '/docs' # Location of package manifests
+  - package-ecosystem: "bundler"
+    directory: "/docs" # Location of package manifests
     ignore:
-      - dependency-name: '*'
+      - dependency-name: "*"
+    schedule:
+      interval: "monthly"
