@@ -620,7 +620,7 @@ workflows:
   cut-release:
     triggers:
       - schedule:
-          cron: '0 4 * * 2'
+          cron: '0 4 * * 3'
           filters:
             branches:
               only:
