@@ -26,7 +26,7 @@ For more information about publishing take a look at:
 
 ## Creating a release branch
 
-The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Mondays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
+The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Tuesdays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
 
 To create a release branch manually:
 
