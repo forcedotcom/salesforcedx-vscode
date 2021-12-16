@@ -1,3 +1,19 @@
+# 53.8.0 - December 16, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Enable use of anonymous Apex execution codelens ([PR #3688](https://github.com/forcedotcom/salesforcedx-vscode/pull/3688))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix org browser to show retrieve source action for sobjects ([PR #3697](https://github.com/forcedotcom/salesforcedx-vscode/pull/3697))
+
+- Fix org browser to display nested items such as Email Templates, Dashboards, Documents and Reports ([PR #3685](https://github.com/forcedotcom/salesforcedx-vscode/pull/3685))
+
 # 53.7.0 - December 9, 2021
 
 ## Fixed
