@@ -7,12 +7,12 @@
 import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
+import { ListMetadataQuery } from 'jsforce';
 import * as path from 'path';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
-import { ListMetadataQuery } from 'jsforce';
 
 const validManageableStates = new Set([
   'unmanaged',
