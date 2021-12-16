@@ -1,3 +1,23 @@
+# 53.8.0 - December 16, 2021
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Enable use of anon Apex execution codelens ([PR #3688](https://github.com/forcedotcom/salesforcedx-vscode/pull/3688))
+
+## Fixed
+
+#### salesforcedx-vscode
+
+- Update date of release ([PR #3691](https://github.com/forcedotcom/salesforcedx-vscode/pull/3691))
+
+#### salesforcedx-vscode-core
+
+- Display retrieve source button ([PR #3697](https://github.com/forcedotcom/salesforcedx-vscode/pull/3697))
+
+- Org browser folders no longer display items ([PR #3685](https://github.com/forcedotcom/salesforcedx-vscode/pull/3685))
+
 # 53.7.0 - December 9, 2021
 
 ## Fixed
