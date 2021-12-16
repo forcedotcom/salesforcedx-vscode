@@ -12,6 +12,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { ListMetadataQuery } from 'jsforce';
 
 const validManageableStates = new Set([
   'unmanaged',
@@ -121,7 +122,10 @@ export class ComponentUtils {
     componentsPath: string,
     folderName?: string
   ): Promise<string> {
-    const metadataQuery = {folder: folderName, type: metadataType};
+    const metadataQuery: ListMetadataQuery = {type: metadataType};
+    if (folderName) {
+      metadataQuery.folder = folderName
+    }
     const metadataFileProperties = await connection.metadata.list(metadataQuery);
     const result = {status: 0, result: metadataFileProperties};
     const jsonResult = JSON.stringify(result, null, 2);
