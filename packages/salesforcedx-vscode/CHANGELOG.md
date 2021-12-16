@@ -10,9 +10,9 @@
 
 #### salesforcedx-vscode-core
 
-- Display retrieve source button ([PR #3697](https://github.com/forcedotcom/salesforcedx-vscode/pull/3697))
+- Fix org browser to show retrieve source action for sobjects ([PR #3697](https://github.com/forcedotcom/salesforcedx-vscode/pull/3697))
 
-- Org browser folders no longer display items ([PR #3685](https://github.com/forcedotcom/salesforcedx-vscode/pull/3685))
+- Fix org browser to display nested items such as Email Templates, Dashboards, Documents and Reports ([PR #3685](https://github.com/forcedotcom/salesforcedx-vscode/pull/3685))
 
 # 53.7.0 - December 9, 2021
 
