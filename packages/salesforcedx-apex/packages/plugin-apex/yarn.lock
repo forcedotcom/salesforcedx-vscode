@@ -310,14 +310,6 @@
   dependencies:
     fancy-test "^1.4.3"
 
-"@salesforce/apex-node@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/apex-node/-/apex-node-0.6.0.tgz#b53e4ddb9034a944b219b13ebd07952f5db9888d"
-  integrity sha512-nktb24MMORVnMxw42jvoAFIpNYjL6OHU6tebrwp/vvsISjouLwgZr2xdQzvtWgPpmutAIoLNs3p2Q0e0EZgSag==
-  dependencies:
-    "@salesforce/core" "2.31.0"
-    faye "1.4.0"
-
 "@salesforce/bunyan@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@salesforce/bunyan/-/bunyan-2.0.0.tgz#8dbe377f2cf7d35348a23260416fee15adba5f97"
@@ -362,7 +354,7 @@
     chalk "^2.4.2"
     cli-ux "^4.9.3"
 
-"@salesforce/core@2.31.0", "@salesforce/core@2.33.1", "@salesforce/core@^2.2.0", "@salesforce/core@^2.31.0", "@salesforce/core@^2.6.0":
+"@salesforce/core@2.33.1", "@salesforce/core@^2.2.0", "@salesforce/core@^2.31.0", "@salesforce/core@^2.6.0":
   version "2.33.1"
   resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.33.1.tgz#23c22953174ad0e809b2f1c7b2881b5ba8a89d9c"
   integrity sha512-jKVFYEvlV+loBoau5heBOVXmzsPO+RbYh6SPybJK6xF7khQmzu7+WAQbikY2eY8VaXcded2kka8L/FKuD/LKBg==
@@ -1594,7 +1586,7 @@ faye-websocket@>=0.9.1:
   dependencies:
     websocket-driver ">=0.5.1"
 
-faye@1.4.0, faye@^1.4.0:
+faye@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/faye/-/faye-1.4.0.tgz#01d3d26ed5642c1cb203eed358afb1c1444b8669"
   integrity sha512-kRrIg4be8VNYhycS2PY//hpBJSzZPr/DBbcy9VWelhZMW3KhyLkQR0HL0k0MNpmVoNFF4EdfMFkNAWjTP65g6w==
