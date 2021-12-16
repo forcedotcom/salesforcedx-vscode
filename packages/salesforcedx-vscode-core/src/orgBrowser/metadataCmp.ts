@@ -7,6 +7,7 @@
 import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
+import { ListMetadataQuery } from 'jsforce';
 import * as path from 'path';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -121,7 +122,10 @@ export class ComponentUtils {
     componentsPath: string,
     folderName?: string
   ): Promise<string> {
-    const metadataQuery = {folder: folderName, type: metadataType};
+    const metadataQuery: ListMetadataQuery = {type: metadataType};
+    if (folderName) {
+      metadataQuery.folder = folderName;
+    }
     const metadataFileProperties = await connection.metadata.list(metadataQuery);
     const result = {status: 0, result: metadataFileProperties};
     const jsonResult = JSON.stringify(result, null, 2);
