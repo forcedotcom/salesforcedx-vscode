@@ -4,13 +4,9 @@
 
 #### salesforcedx-vscode-apex
 
-- Enable use of anon Apex execution codelens ([PR #3688](https://github.com/forcedotcom/salesforcedx-vscode/pull/3688))
+- Enable use of anonymous Apex execution codelens ([PR #3688](https://github.com/forcedotcom/salesforcedx-vscode/pull/3688))
 
 ## Fixed
-
-#### salesforcedx-vscode
-
-- Update date of release ([PR #3691](https://github.com/forcedotcom/salesforcedx-vscode/pull/3691))
 
 #### salesforcedx-vscode-core
 
