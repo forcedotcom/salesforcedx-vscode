@@ -124,7 +124,7 @@ export class ComponentUtils {
   ): Promise<string> {
     const metadataQuery: ListMetadataQuery = {type: metadataType};
     if (folderName) {
-      metadataQuery.folder = folderName
+      metadataQuery.folder = folderName;
     }
     const metadataFileProperties = await connection.metadata.list(metadataQuery);
     const result = {status: 0, result: metadataFileProperties};
