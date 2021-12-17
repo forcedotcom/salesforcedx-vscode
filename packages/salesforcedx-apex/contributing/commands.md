@@ -178,7 +178,7 @@ USAGE
 
 OPTIONS
   -c, --codecoverage
-      retrieves code coverage results
+      runs code coverage and retrieves results
 
   -d, --outputdir=outputdir
       directory to store test run files
@@ -241,6 +241,7 @@ DESCRIPTION
   output displays a high-level summary of the test run and the code coverage values for 
   classes in your org. If you specify human-readable result format, use the 
   --detailedcoverage parameter to see detailed coverage results for each test method run.
+  If --codecoverage is not included, code coverage will be skipped during the test run.
 
   NOTE: The testRunCoverage value (JSON and JUnit result formats) is a percentage of the 
   covered lines and total lines from all the Apex classes evaluated by the tests in this 

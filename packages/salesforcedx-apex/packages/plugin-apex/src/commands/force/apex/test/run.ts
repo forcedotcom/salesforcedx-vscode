@@ -163,6 +163,7 @@ export default class Run extends SfdxCommand {
         this.flags.tests,
         this.flags.classnames
       );
+      payload.skipCodeCoverage = this.flags.codecoverage ? false : true;
       result = (await testService.runTestSynchronous(
         payload,
         this.flags.codecoverage,
@@ -175,6 +176,7 @@ export default class Run extends SfdxCommand {
         this.flags.classnames,
         this.flags.suitenames
       );
+      payload.skipCodeCoverage = this.flags.codecoverage ? false : true;
       const reporter = undefined;
       if (this.flags.resultformat !== undefined) {
         result = await testService.runTestAsynchronous(

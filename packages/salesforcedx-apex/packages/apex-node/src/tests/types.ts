@@ -48,6 +48,9 @@ export type AsyncTestConfiguration = {
    * Specifies which tests to run, default level is RunSpecifiedTests
    */
   testLevel: TestLevel;
+  /**
+   * Allows for faster tests by skipping code coverage
+   */
   skipCodeCoverage?: boolean;
   /**
    * Does not wait for test run to complete and returns the test run id immediately
@@ -106,6 +109,10 @@ export type AsyncTestArrayConfiguration = {
    * Does not wait for test run to complete and returns the test run id immediately
    */
   exitOnTestRunId?: boolean;
+  /**
+   * Allows for faster tests by skipping code coverage
+   */
+  skipCodeCoverage?: boolean;
 };
 
 export type SyncTestConfiguration = {
@@ -123,6 +130,10 @@ export type SyncTestConfiguration = {
    * Valid value ranges from 0 to 1,000,000. A value of 0 causes the test run to stop if any failure occurs.
    */
   maxFailedTests?: number;
+  /**
+   * Allows for faster tests by skipping code coverage
+   */
+  skipCodeCoverage?: boolean;
 };
 
 export type SyncTestSuccess = {

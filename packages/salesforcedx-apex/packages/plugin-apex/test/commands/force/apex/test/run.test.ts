@@ -376,15 +376,19 @@ describe('force:apex:test:run', () => {
       'force:apex:test:run',
       '--classnames',
       'MyApexTests',
-      '--synchronous'
+      '--synchronous',
+      '--resultformat',
+      'json',
+      '-c'
     ])
     .it(
-      'should format request with correct properties for sync run with class name',
+      'should format request with correct properties for sync code coverage run with class name',
       ctx => {
         expect(
           (ctx.myStub as SinonStub).calledWith({
             tests: [{ className: 'MyApexTests' }],
-            testLevel: 'RunSpecifiedTests'
+            testLevel: 'RunSpecifiedTests',
+            skipCodeCoverage: false
           })
         ).to.be.true;
       }
@@ -416,7 +420,8 @@ describe('force:apex:test:run', () => {
         expect(
           (ctx.myStub as SinonStub).calledWith({
             tests: [{ classId: '01p45678x123456' }],
-            testLevel: 'RunSpecifiedTests'
+            testLevel: 'RunSpecifiedTests',
+            skipCodeCoverage: true
           })
         ).to.be.true;
       }
@@ -453,7 +458,8 @@ describe('force:apex:test:run', () => {
                 testMethods: ['testMethodOne']
               }
             ],
-            testLevel: 'RunSpecifiedTests'
+            testLevel: 'RunSpecifiedTests',
+            skipCodeCoverage: true
           })
         ).to.be.true;
       }
@@ -477,8 +483,13 @@ describe('force:apex:test:run', () => {
     .it(
       'should format request with correct properties for sync run with no tests or classname parameters specified',
       ctx => {
-        expect((ctx.mySpy as SinonSpy).calledWith(TestLevel.RunLocalTests)).to
-          .be.true;
+        expect(
+          (ctx.myStub as SinonSpy).calledWith({
+            suiteNames: undefined,
+            testLevel: TestLevel.RunLocalTests,
+            skipCodeCoverage: true
+          })
+        ).to.be.true;
         expect(ctx.stdout).to.not.be.empty;
         expect(ctx.stdout).to.contain(
           new HumanReporter().format(testRunSimple, false)
@@ -509,8 +520,13 @@ describe('force:apex:test:run', () => {
     .it(
       'should format request with correct properties for sync run with RunAllTestsInOrg test level specified',
       ctx => {
-        expect((ctx.mySpy as SinonSpy).calledWith(TestLevel.RunAllTestsInOrg))
-          .to.be.true;
+        expect(
+          (ctx.myStub as SinonSpy).calledWith({
+            suiteNames: undefined,
+            testLevel: TestLevel.RunAllTestsInOrg,
+            skipCodeCoverage: true
+          })
+        ).to.be.true;
         expect(ctx.stdout).to.not.be.empty;
         expect(ctx.stdout).to.contain(
           new HumanReporter().format(testRunSimple, false)
@@ -536,8 +552,13 @@ describe('force:apex:test:run', () => {
     .it(
       'should format request with correct properties and display correct info for async run with no tests or classname parameters specified',
       ctx => {
-        expect((ctx.mySpy as SinonSpy).calledWith(TestLevel.RunLocalTests)).to
-          .be.true;
+        expect(
+          (ctx.myStub as SinonSpy).calledWith({
+            suiteNames: undefined,
+            testLevel: TestLevel.RunLocalTests,
+            skipCodeCoverage: true
+          })
+        ).to.be.true;
         expect(ctx.stdout).to.not.be.empty;
         expect(ctx.stdout).to.contain('Run "sfdx force:apex:test:report');
       }

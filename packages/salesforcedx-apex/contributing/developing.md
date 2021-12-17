@@ -67,6 +67,14 @@ $ yarn test
 
 > When running tests, code changes don't need to be built with `yarn build` first because the test suite uses ts-node as its runtime environment. Otherwise, run `yarn build` before manually testing changes.
 
+### Running Individual Tests
+
+While developing, you may temporarily edit the `test` command in the package.json of the package you are developing in to limit the command to your individual test file. For instance:
+
+```
+$ "test": "cross-env FORCE_COLOR=true mocha --recursive \"./test/**/run.test.ts\" --full-trace",
+```
+
 <br />
 
 ### Debugging the Plugin
@@ -83,6 +91,12 @@ Alternatively, replace `sfdx` with `NODE_OPTIONS=--inspect-brk bin/run` and run 
 
 ```
 $ NODE_OPTIONS=--inspect-brk bin/run force:apex:log:list -u myOrg@example.com
+```
+
+The inspect-brk option can also be used for debugging tests:
+
+```
+NODE_OPTIONS=--inspect-brk yarn test
 ```
 
 2. Set some breakpoints in your code.
