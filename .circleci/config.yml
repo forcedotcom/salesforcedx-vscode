@@ -633,9 +633,9 @@ workflows:
     triggers:
       - schedule:
           # Every hour after regular working hours (8pm-4am) specified in UTC
-          # on Wed to Thurs, giving time before and after release cutoff for changes to get tested
+          # on Thu to Fri, giving time before and after release cutoff for changes to get tested
           # Ref: https://circleci.com/docs/2.0/workflows/#scheduling-a-workflow
-          cron: '0 4,6,8,10,12 * * 3,4'
+          cron: '0 4,6,8,10,12 * * 4,5'
           filters:
             branches:
               only:

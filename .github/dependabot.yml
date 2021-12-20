@@ -15,7 +15,7 @@ updates:
     schedule:
       # After the weekly release branch cut-off on Monday
       interval: "weekly"
-      day: "tuesday"
+      day: "wednesday"
       time: "06:00"
       timezone: "America/Los_Angeles"
     ignore:
