@@ -33,7 +33,7 @@ Analyzes your JavaScript code to find issues and to help you fix them. As a part
 
 ## XML
 
-VS Code doesn’t ship with rich XML tools by default. This extension, built by Red Hat, provides language support for XML documents such as the `-meta.xml` or `package.xml` files in your VS Code project.
+VS Code doesn’t ship with rich XML tools by default. This extension, built by Red Hat, provides language support for for XML documents such as the `-meta.xml` or `package.xml` files in your VS Code project.
 
 <https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml>
 
@@ -42,5 +42,4 @@ VS Code doesn’t ship with rich XML tools by default. This extension, built by 
 The community has developed several extensions to help make Salesforce development more productive. To find these, search the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/vscode) or browse all extensions tagged [Salesforce](https://marketplace.visualstudio.com/search?term=tag%3Asalesforce&target=VSCode&category=All%20categories&sortBy=Relevance).
 
 ## Debugger for Java
-
 Java Debugger based on Java Debug Server that extends the Language Support for Java by Red Hat. It allows you to debug Java code in VSCode. Install this extension to invoke and debug Java functions.
