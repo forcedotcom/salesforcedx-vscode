@@ -32,7 +32,7 @@
     "request-light": "0.2.4",
     "sinon": "^7.3.1",
     "typescript": "3.8.3",
-    "vscode-debugadapter-testsupport": "1.28.0"
+    "vscode-debugadapter-testsupport": "1.51.0"
   },
   "scripts": {
     "compile": "tsc -p ./",
