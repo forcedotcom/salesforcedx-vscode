@@ -40,15 +40,17 @@ describe('Java Requirements Test', () => {
   it('Should prevent local java runtime path', async () => {
     const localRuntime = './java_home/donthackmebro';
     settingStub.withArgs(JAVA_HOME_KEY).returns('./java_home/donthackmebro');
+    let exceptionThrown = false;
     try {
-      const requirements = await resolveRequirements();
-      expect(requirements).to.equal(false);
+      await resolveRequirements();
     } catch (e) {
       expect(e).contains(localRuntime);
+      exceptionThrown = true;
     }
+    expect(exceptionThrown).to.be.true;
   });
 
-  it('Should valid java runtime path outside the project', async () => {
+  it('Should allow valid java runtime path outside the project', async () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
     execFileStub.yields('', '', 'build 1.8');
     const requirements = await resolveRequirements();

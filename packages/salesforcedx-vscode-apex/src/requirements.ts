@@ -12,13 +12,13 @@ import * as cp from 'child_process';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
+import path = require('path');
 import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
 // tslint:disable-next-line:no-var-requires
 import findJavaHome = require('find-java-home');
-import path = require('path');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
@@ -96,11 +96,7 @@ function readJavaConfig(): string {
 }
 
 function isLocal(javaHome: string): boolean {
-  if (path.isAbsolute(javaHome)) {
-    return false;
-  } else {
-    return true;
-  }
+  return !path.isAbsolute(javaHome);
 }
 
 function checkJavaVersion(javaHome: string): Promise<any> {
