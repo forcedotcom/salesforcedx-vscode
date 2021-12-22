@@ -13,8 +13,8 @@ import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { JAVA_HOME_KEY, JAVA_MEMORY_KEY } from '../../src/requirements';
 
-describe('Java Configuration Test', () => {  
-  
+describe('Java Configuration Test', () => {
+
   it('The jar should be signed', () => {
     shell.config.execPath = process.execPath;
     const apexJarPath = path.join(__dirname, '..', '..', 'apex-jorje-lsp.jar');

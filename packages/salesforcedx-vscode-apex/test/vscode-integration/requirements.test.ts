@@ -44,7 +44,7 @@ describe('Java Requirements Test', () => {
       const requirements = await resolveRequirements();
       expect(requirements).to.equal(false);
     } catch (e) {
-      expect(e).contains(localRuntime)
+      expect(e).contains(localRuntime);
     }
   });
 
