@@ -18,6 +18,7 @@ import pathExists = require('path-exists');
 const expandHomeDir = require('expand-home-dir');
 // tslint:disable-next-line:no-var-requires
 const findJavaHome = require('find-java-home');
+const path = require('path');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';
@@ -62,6 +63,12 @@ function checkJavaRuntime(): Promise<string> {
 
     if (javaHome) {
       javaHome = expandHomeDir(javaHome) as string;
+      if (isLocal(javaHome)) {
+        //prevent injecting malicious code from unknown repositories
+        return reject(
+          nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
+        );
+      }
       if (!pathExists.sync(javaHome)) {
         return reject(
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
@@ -86,6 +93,14 @@ function checkJavaRuntime(): Promise<string> {
 function readJavaConfig(): string {
   const config = workspace.getConfiguration();
   return config.get<string>('salesforcedx-vscode-apex.java.home', '');
+}
+
+function isLocal(javaHome: string): boolean {
+  if (path.isAbsolute(javaHome)) {
+    return false;
+  } else {
+    return true;
+  }
 }
 
 function checkJavaVersion(javaHome: string): Promise<any> {
