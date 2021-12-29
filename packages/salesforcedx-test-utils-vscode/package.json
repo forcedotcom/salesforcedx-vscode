@@ -29,7 +29,7 @@
     "mock-spawn": "0.2.6",
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
-    "request-light": "0.2.4",
+    "request-light": "0.5.5",
     "sinon": "^7.3.1",
     "source-map-support": "^0.4.15",
     "typescript": "3.8.3"

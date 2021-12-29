@@ -34,7 +34,7 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "proxyquire": "2.1.3",
-    "request-light": "0.2.4",
+    "request-light": "0.5.5",
     "shelljs": "0.8.3",
     "sinon": "^7.3.1",
     "typescript": "3.8.3"
