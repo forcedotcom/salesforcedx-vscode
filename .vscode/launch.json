@@ -34,6 +34,7 @@
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
         "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
+        "webpack:///salesforcedx-vscode-core/./*": "${workspaceFolder}/packages/salesforcedx-vscode-core/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile"
@@ -53,6 +54,7 @@
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
         "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
+        "webpack:///salesforcedx-vscode-core/./*": "${workspaceFolder}/packages/salesforcedx-vscode-core/*",
         "webpack:///*": "*"
       }
     },
@@ -195,6 +197,7 @@
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
         "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
+        "webpack:///salesforcedx-vscode-core/./*": "${workspaceFolder}/packages/salesforcedx-vscode-core/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile",
