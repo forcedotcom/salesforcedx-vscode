@@ -25,6 +25,7 @@ module.exports = {
   // devtool: 'none',
   // excluding dependencies from getting bundled
   externals: {
+    '@salesforce/core': 'commonjs @salesforce/core',
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls',
     'keybase-ecurve': 'commonjs keybase-ecurve',
