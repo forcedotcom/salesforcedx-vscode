@@ -60,6 +60,18 @@ of flexibility.
 More information can be found at the doc
 [site](https://code.visualstudio.com/docs/extensions/testing-extensions).
 
+## Running Single and Exclusive Integration Tests
+
+Our integration tests provide end-to-end coverage which is useful for our
+automated builds, but running the full suite can consume a lot of time during
+development. To run one suite, compile your work, then have the \*.test.ts file
+in focus. From Run and Debug, select `Launch Current Integration Test with sfdx-simple`.
+
+To run an exclusive test, append .only to the `describe` and `it` keywords of the
+test that you wish to run. Breakpoints will also be honored when running single tests.
+
+More information on exclusive tests can be found the MochaJS doc [site](https://mochajs.org/#exclusive-tests).
+
 ### Assumptions
 
 While the test runner is highly configurable, there are certain assumptions that
