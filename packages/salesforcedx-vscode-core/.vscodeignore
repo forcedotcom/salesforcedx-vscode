@@ -7,48 +7,59 @@ src/**
 .gitignore
 tsconfig.json
 
-node_modules/**
+# node_modules/**
 
 # salesforcedx-utils-vscode files to ignore 
-# node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
-# node_modules/@salesforce/salesforcedx-utils-vscode/src/**
-# node_modules/@salesforce/salesforcedx-utils-vscode/test/**
-# node_modules/@salesforce/salesforcedx-utils-vscode/.vscode
-# node_modules/@salesforce/salesforcedx-utils-vscode/.vscodeignore
-# node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
-# node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
-# node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
-# node_modules/@salesforce/salesforcedx-utils-vscode/out/test/**
+node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
+node_modules/@salesforce/salesforcedx-utils-vscode/src/**
+node_modules/@salesforce/salesforcedx-utils-vscode/test/**
+node_modules/@salesforce/salesforcedx-utils-vscode/.vscode
+node_modules/@salesforce/salesforcedx-utils-vscode/.vscodeignore
+node_modules/@salesforce/salesforcedx-utils-vscode/package-lock.json
+node_modules/@salesforce/salesforcedx-utils-vscode/tsconfig.json
+node_modules/@salesforce/salesforcedx-utils-vscode/webpack.config.js
+node_modules/@salesforce/salesforcedx-utils-vscode/out/test/**
 
-# # salesforcedx-sobjects-faux-generator files to ignore 
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/node_modules/**
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/src/**
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/test/**
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/.vscode
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/.vscodeignore
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/package-lock.json
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/tsconfig.json
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/webpack.config.js
-# node_modules/@salesforce/salesforcedx-sobjects-faux-generator/out/test/**
+# salesforcedx-sobjects-faux-generator files to ignore 
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/node_modules/**
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/src/**
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/test/**
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/.vscode
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/.vscodeignore
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/package-lock.json
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/tsconfig.json
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/webpack.config.js
+node_modules/@salesforce/salesforcedx-sobjects-faux-generator/out/test/**
 
-# # ignore unused rxjs code 
-# node_modules/rxjs/src/**
-# node_modules/rxjs/bundles/**
-# node_modules/rxjs/_esm5/**
-# node_modules/rxjs/_esm2015/**
-# node_modules/inquirer/node_modules/rxjs/src/**
-# node_modules/inquirer/node_modules/rxjs/bundles/**
-# node_modules/inquirer/node_modules/rxjs/_esm5/**
-# node_modules/inquirer/node_modules/rxjs/_esm2015/**
+# ignore unused rxjs code 
+node_modules/rxjs/src/**
+node_modules/rxjs/bundles/**
+node_modules/rxjs/_esm5/**
+node_modules/rxjs/_esm2015/**
+node_modules/inquirer/node_modules/rxjs/src/**
+node_modules/inquirer/node_modules/rxjs/bundles/**
+node_modules/inquirer/node_modules/rxjs/_esm5/**
+node_modules/inquirer/node_modules/rxjs/_esm2015/**
 
-# # ignore unused jsforce code
-# node_modules/jsforce/test/**
-# node_modules/jsforce/build/**
+# ignore unused jsforce code
+node_modules/jsforce/test/**
+node_modules/jsforce/build/**
 
-# # ignore unused sfdx-faye code
-# node_modules/sfdx-faye/examples/**
-# node_modules/sfdx-faye/site/**
-# node_modules/sfdx-faye/spec/**
+# ignore unused sfdx-faye code
+node_modules/sfdx-faye/examples/**
+node_modules/sfdx-faye/site/**
+node_modules/sfdx-faye/spec/**
 
-# # ignore unused dayjs code
-# node_modules/dayjs/esm/**
+# ignore unused dayjs code
+node_modules/dayjs/esm/**
+
+node_modules/a**
+node_modules/b**
+node_modules/c**
+node_modules/d**
+node_modules/m**
+node_modules/n**
+node_modules/p**
+node_modules/s**
+node_modules/t**
+
