@@ -153,10 +153,7 @@ export class OrgList implements vscode.Disposable {
       case '$(plus) ' +
         nls.localize('force_auth_web_login_authorize_org_text'): {
         vscode.commands.executeCommand('sfdx.force.auth.web.login');
-        return {
-          type: 'CONTINUE',
-          data: {}
-        };
+        return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' +
         nls.localize('force_auth_web_login_authorize_dev_hub_text'): {
