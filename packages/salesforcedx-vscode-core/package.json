@@ -102,7 +102,7 @@
     "onCommand:sfdx.force.project.with.manifest.create",
     "onCommand:sfdx.debug.isv.bootstrap"
   ],
-  "main": "./dist/src",
+  "main": "./out/src",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
