@@ -7,7 +7,7 @@ The Apex Language Server, shipped as part of the Salesforce Apex Extension for V
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
 2. Search for `apex`.
-3. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself. Note that this path cannot be set to a location inside your project folder.
+3. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself. Note that this pathname can't point to a location inside your project folder.
 
 ![Apex Java Setting](../../../images/apex-java-home-setting.png)
 
