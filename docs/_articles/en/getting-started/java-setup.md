@@ -94,7 +94,7 @@ Windows:
 1. If prompted to log in, use your Oracle account.
 1. Once the file is downloaded open it and complete the installation steps.
 
-Inside Visual Studio Code, you'll need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
+Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
 
 MacOS:
 
