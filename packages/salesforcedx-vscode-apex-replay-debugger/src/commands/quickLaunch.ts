@@ -18,7 +18,7 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
@@ -30,7 +30,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
-import { TraceFlags } from './traceFlags';
+
 interface TestRunResult {
   logFileId?: string;
   message?: string;
