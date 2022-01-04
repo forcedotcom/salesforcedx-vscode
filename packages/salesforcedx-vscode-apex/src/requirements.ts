@@ -18,7 +18,7 @@ import pathExists = require('path-exists');
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
 // tslint:disable-next-line:no-var-requires
-import findJavaHome = require('find-java-home');
+const findJavaHome = require('find-java-home');
 
 export const JAVA_HOME_KEY = 'salesforcedx-vscode-apex.java.home';
 export const JAVA_MEMORY_KEY = 'salesforcedx-vscode-apex.java.memory';

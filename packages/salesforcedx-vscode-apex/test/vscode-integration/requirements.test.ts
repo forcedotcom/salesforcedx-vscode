@@ -14,7 +14,10 @@ import { JAVA_HOME_KEY, resolveRequirements } from '../../src/requirements';
 import pathExists = require('path-exists');
 import * as cp from 'child_process';
 
-const runtimePath = '~/java_home/real/jdk/openjdk1.8.0.302_8.56.0.22_x64';
+const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
+const runtimePath = `~/java_home/real/jdk/${jdk}`;
+
+// TODO: Move this to a new unit test directory
 
 describe('Java Requirements Test', () => {
   let sandbox: SinonSandbox;
@@ -54,7 +57,7 @@ describe('Java Requirements Test', () => {
     settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
     execFileStub.yields('', '', 'build 1.8');
     const requirements = await resolveRequirements();
-    expect(requirements.java_home).contains('openjdk1.8.0.302_8.56.0.22_x64');
+    expect(requirements.java_home).contains(jdk);
   });
 
 });
