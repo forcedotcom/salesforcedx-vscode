@@ -21,7 +21,7 @@ Below you'll find instructions on how to download and configure different versio
 1. Select **OpenJDK 11 (LTS)**
 1. Select **HotSpot**
 1. Click the **Latest Release** button to download.
-1. Once the file is downloaded open it and complete the installation steps.
+1. After the file has downloaded, open it and complete the installation steps.
 
 Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
 
