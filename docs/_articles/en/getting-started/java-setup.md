@@ -63,7 +63,7 @@ Zulu Java builds are TCK-tested and free to download and use without restriction
 1. For Windows Download the "11", "JDK", "Client" version.
 1. Once the file is downloaded open it and complete the installation steps.
 
-Inside Visual Studio Code, you'll need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
+Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
 
 MacOS:
 
