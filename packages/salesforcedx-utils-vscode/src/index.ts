@@ -38,20 +38,12 @@ export {
   getRootWorkspaceSfdxPath
 } from './workspaces';
 export { getRelativeProjectPath } from './helpers';
-
-
-
-// import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-// import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-// import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 export {
   NotificationService
 } from './commands/notificationService';
-
 export {
   getTestResultsFolder
 } from './helpers';
-
 export {
   ContinueResponse
 } from './types';
