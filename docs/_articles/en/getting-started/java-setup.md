@@ -91,7 +91,7 @@ Windows:
 1. Click the download link that applies to your OS
 1. For macOS download the dmg version.
 1. For Windows Download exe version.
-1. If prompted to login, you'll need to login with your Oracle account.
+1. If prompted to log in, use your Oracle account.
 1. Once the file is downloaded open it and complete the installation steps.
 
 Inside Visual Studio Code, you'll need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
