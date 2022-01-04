@@ -23,7 +23,7 @@ Below you'll find instructions on how to download and configure different versio
 1. Click the **Latest Release** button to download.
 1. Once the file is downloaded open it and complete the installation steps.
 
-Inside Visual Studio Code, you'll need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
+Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
 
 MacOS:
 
