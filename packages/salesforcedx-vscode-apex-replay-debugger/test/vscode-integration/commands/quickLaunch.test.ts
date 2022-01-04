@@ -10,9 +10,7 @@ import { TestLevel, TestResult } from '@salesforce/apex-node/lib/src/tests/types
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import * as utils from '@salesforce/salesforcedx-utils-vscode/src';
-import {
-  notificationService,
-} from '@salesforce/salesforcedx-utils-vscode/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
