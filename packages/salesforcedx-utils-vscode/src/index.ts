@@ -20,6 +20,7 @@ export {
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
 export { SfdxCommandlet } from './commands/sfdxCommandlet';
+export { TraceFlags } from './commands/traceFlags';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export { OrgInfo, WorkspaceContextUtil, getLogDirPath } from './context/workspaceContextUtil';
 export {
@@ -37,3 +38,20 @@ export {
   getRootWorkspaceSfdxPath
 } from './workspaces';
 export { getRelativeProjectPath } from './helpers';
+
+
+
+// import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+// import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+// import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+export {
+  NotificationService
+} from './commands/notificationService';
+
+export {
+  getTestResultsFolder
+} from './helpers';
+
+export {
+  ContinueResponse
+} from './types';

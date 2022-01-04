@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import {
   ApexTestResultData,
   LogService,
@@ -14,13 +15,16 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
+  ContinueResponse,
   getLogDirPath,
   getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  getTestResultsFolder,
+  LibraryCommandletExecutor,
+  TraceFlags
+} from '@salesforce/salesforcedx-utils-vscode/src';
+import {
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode/src/commands';
 import * as path from 'path';
 import { workspace } from 'vscode';
 import { sfdxCreateCheckpoints } from '../breakpoints';
@@ -30,7 +34,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
-import { TraceFlags } from './traceFlags';
+
 interface TestRunResult {
   logFileId?: string;
   message?: string;
