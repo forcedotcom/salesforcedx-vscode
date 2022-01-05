@@ -10,7 +10,7 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { TraceFlags } from '../../../src/commands/traceFlags';
+import { TraceFlags } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 const $$ = testSetup();
