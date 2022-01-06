@@ -10,7 +10,15 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { TraceFlags } from '../../../src/commands';
+
+
+// import { TraceFlags } from '../../../src/commands';
+// import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/src';
+// import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/src/commands';
+// import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/src';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+
+
 import { nls } from '../../../src/messages';
 
 const $$ = testSetup();
