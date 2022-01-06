@@ -56,6 +56,7 @@
     "@types/yeoman-assert": "^3.1.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "esbuild": "^0.14.10",
     "mocha": "^5",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
@@ -66,7 +67,11 @@
     "yeoman-assert": "^3.1.1"
   },
   "scripts": {
-    "vscode:prepublish": "npm prune --production",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/index.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "test-compile": "tsc -p ./",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
