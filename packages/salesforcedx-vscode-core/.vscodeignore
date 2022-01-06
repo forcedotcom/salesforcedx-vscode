@@ -6,7 +6,6 @@ src/**
 **/*.map
 .gitignore
 tsconfig.json
-node_modules
 
 # salesforcedx-utils-vscode files to ignore 
 node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
