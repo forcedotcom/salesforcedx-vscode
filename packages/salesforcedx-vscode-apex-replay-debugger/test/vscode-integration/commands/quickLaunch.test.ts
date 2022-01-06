@@ -9,7 +9,11 @@ import { LogService, TestService } from '@salesforce/apex-node';
 import { TestLevel, TestResult } from '@salesforce/apex-node/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+
+// import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/src';
+
 import * as utils from '@salesforce/salesforcedx-utils-vscode/out/src/index';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
