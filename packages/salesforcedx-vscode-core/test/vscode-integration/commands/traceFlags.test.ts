@@ -15,7 +15,7 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 // import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/src';
 // import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/src/commands';
 import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/src';
-//import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+// import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 
 import { nls } from '../../../src/messages';
 
