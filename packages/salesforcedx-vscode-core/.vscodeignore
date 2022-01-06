@@ -50,3 +50,9 @@ node_modules/sfdx-faye/spec/**
 
 # ignore unused dayjs code
 node_modules/dayjs/esm/**
+
+node_modules/@babel/**
+node_modules/typescript/**
+node_modules/yeoman-generator/**
+node_modules/inquirer/**
+node_modules/nyc/**
