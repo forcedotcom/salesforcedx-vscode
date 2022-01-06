@@ -37,3 +37,6 @@ export {
   getRootWorkspaceSfdxPath
 } from './workspaces';
 export { getRelativeProjectPath } from './helpers';
+export {
+  TraceFlags
+} from './commands/traceFlags';
