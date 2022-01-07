@@ -38,12 +38,3 @@ export {
   getRootWorkspaceSfdxPath
 } from './workspaces';
 export { getRelativeProjectPath } from './helpers';
-export {
-  NotificationService
-} from './commands/notificationService';
-export {
-  getTestResultsFolder
-} from './helpers';
-export {
-  ContinueResponse
-} from './types';

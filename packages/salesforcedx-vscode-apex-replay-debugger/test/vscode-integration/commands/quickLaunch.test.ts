@@ -9,9 +9,9 @@ import { LogService, TestService } from '@salesforce/apex-node';
 import { TestLevel, TestResult } from '@salesforce/apex-node/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import * as utils from '@salesforce/salesforcedx-utils-vscode/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/src/commands';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import * as utils from '@salesforce/salesforcedx-utils-vscode/out/src/index';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -88,7 +88,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
     traceFlagsStub = sb
-      .stub(utils.TraceFlags.prototype, 'ensureTraceFlags')
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
@@ -150,7 +150,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
     traceFlagsStub = sb
-      .stub(utils.TraceFlags.prototype, 'ensureTraceFlags')
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
@@ -212,7 +212,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
     traceFlagsStub = sb
-      .stub(utils.TraceFlags.prototype, 'ensureTraceFlags')
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
@@ -243,7 +243,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
     traceFlagsStub = sb
-      .stub(utils.TraceFlags.prototype, 'ensureTraceFlags')
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
@@ -307,7 +307,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
     traceFlagsStub = sb
-      .stub(utils.TraceFlags.prototype, 'ensureTraceFlags')
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     testServiceStub.resolves({} as TestResult);
     sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
@@ -365,7 +365,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
     traceFlagsStub = sb
-      .stub(utils.TraceFlags.prototype, 'ensureTraceFlags')
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     testServiceStub.resolves({ tests: [] });
 
@@ -419,7 +419,7 @@ describe('Quick launch apex tests', () => {
       testLevel: 'RunSpecifiedTests'
     });
     traceFlagsStub = sb
-      .stub(utils.TraceFlags.prototype, 'ensureTraceFlags')
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     testServiceStub.resolves({ tests: [{}] });
 

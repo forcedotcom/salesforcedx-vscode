@@ -15,16 +15,16 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  ContinueResponse,
   getLogDirPath,
   getRootWorkspacePath,
-  getTestResultsFolder,
-  LibraryCommandletExecutor,
-  TraceFlags
-} from '@salesforce/salesforcedx-utils-vscode/src';
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode/src/commands';
+  notificationService,
+  TraceFlags
+} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { workspace } from 'vscode';
 import { sfdxCreateCheckpoints } from '../breakpoints';
