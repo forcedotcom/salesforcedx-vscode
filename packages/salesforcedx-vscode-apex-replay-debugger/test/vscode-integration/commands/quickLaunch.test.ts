@@ -15,7 +15,6 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/type
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import Sinon = require('sinon');
 import * as vscode from 'vscode';
 import * as breakpoints from '../../../src/breakpoints';
 import { CheckpointService } from '../../../src/breakpoints/checkpointService';
