@@ -19,10 +19,7 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  notificationService,
-  TraceFlags
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
