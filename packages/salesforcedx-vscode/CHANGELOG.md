@@ -1,3 +1,11 @@
+# 53.12.0 - January 5, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add ability to remove expired orgs from the org list ([PR #3732](https://github.com/forcedotcom/salesforcedx-vscode/pull/3732))
+
 # 53.8.0 - December 16, 2021
 
 ## Added

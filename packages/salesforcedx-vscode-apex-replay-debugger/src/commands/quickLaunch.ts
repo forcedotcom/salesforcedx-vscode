@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import {
   ApexTestResultData,
   LogService,
@@ -18,7 +19,7 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
@@ -30,7 +31,7 @@ import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
-import { TraceFlags } from './traceFlags';
+
 interface TestRunResult {
   logFileId?: string;
   message?: string;
