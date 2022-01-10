@@ -9,9 +9,17 @@ import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
+import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { TraceFlags } from '../../../src/commands/traceFlags';
 import { nls } from '../../../src/messages';
+import { vscodeStub } from './mocks';
+
+const { TraceFlags } = proxyquire.noCallThru()(
+  '../../../src/commands',
+  {
+    vscode: vscodeStub
+  }
+);
 
 const $$ = testSetup();
 
@@ -20,7 +28,6 @@ describe('Trace Flags', () => {
   const USER_ID = 'abcd';
   let mockConnection: Connection;
   let sb: SinonSandbox;
-  let flags: TraceFlags;
   let queryStub: SinonStub;
   let toolingCreateStub: SinonStub;
   let toolingQueryStub: SinonStub;
@@ -47,7 +54,7 @@ describe('Trace Flags', () => {
 
   it('should validate an existing trace flag', async () => {
     const currDate = new Date().valueOf();
-    flags = new TraceFlags(mockConnection);
+    const traceFlags = new TraceFlags(mockConnection);
     queryStub = sb.stub(mockConnection, 'query');
     toolingCreateStub = sb.stub(mockConnection.tooling, 'create');
     toolingQueryStub = sb.stub(mockConnection.tooling, 'query');
@@ -76,7 +83,7 @@ describe('Trace Flags', () => {
       .onSecondCall()
       .resolves({ success: true });
 
-    const ensure = await flags.ensureTraceFlags();
+    const ensure = await traceFlags.ensureTraceFlags();
 
     expect(ensure).to.equal(true);
     expect(queryStub.callCount, 'Query stub called').to.equal(1);
@@ -104,7 +111,7 @@ describe('Trace Flags', () => {
 
   it('should create a new trace flag', async () => {
     const currDate = new Date().valueOf();
-    flags = new TraceFlags(mockConnection);
+    const traceFlags = new TraceFlags(mockConnection);
     queryStub = sb.stub(mockConnection, 'query');
     toolingCreateStub = sb.stub(mockConnection.tooling, 'create');
     toolingQueryStub = sb.stub(mockConnection.tooling, 'query');
@@ -125,7 +132,7 @@ describe('Trace Flags', () => {
       .onSecondCall()
       .resolves({ success: true, id: '01020304' });
 
-    const ensure = await flags.ensureTraceFlags();
+    const ensure = await traceFlags.ensureTraceFlags();
 
     expect(ensure).to.equal(true);
     expect(queryStub.callCount, 'Query stub called').to.equal(1);
@@ -149,11 +156,11 @@ describe('Trace Flags', () => {
   });
 
   it('should raise error for missing username', async () => {
-    flags = new TraceFlags(mockConnection);
+    const traceFlags = new TraceFlags(mockConnection);
     sb.stub(mockConnection, 'getUsername').returns(undefined);
 
     try {
-      await flags.ensureTraceFlags();
+      await traceFlags.ensureTraceFlags();
       fail('Expected an error');
     } catch (err) {
       expect(err.message).to.equal(nls.localize('error_no_default_username'));
@@ -161,13 +168,13 @@ describe('Trace Flags', () => {
   });
 
   it('should raise error for unknown user', async () => {
-    flags = new TraceFlags(mockConnection);
+    const traceFlags = new TraceFlags(mockConnection);
     sb.stub(mockConnection, 'query')
       .onFirstCall()
       .resolves({ done: true, totalSize: 0, records: [] });
 
     try {
-      await flags.ensureTraceFlags();
+      await traceFlags.ensureTraceFlags();
       fail('Expected an error');
     } catch (err) {
       expect(err.message).to.equal(nls.localize('trace_flags_unknown_user'));
@@ -175,7 +182,7 @@ describe('Trace Flags', () => {
   });
 
   it('should raise error on failure to create debug level', async () => {
-    flags = new TraceFlags(mockConnection);
+    const traceFlags = new TraceFlags(mockConnection);
     queryStub = sb.stub(mockConnection, 'query');
     toolingCreateStub = sb.stub(mockConnection.tooling, 'create');
     toolingQueryStub = sb.stub(mockConnection.tooling, 'query');
@@ -191,7 +198,7 @@ describe('Trace Flags', () => {
     toolingCreateStub.onFirstCall().resolves({ success: false, id: undefined });
 
     try {
-      await flags.ensureTraceFlags();
+      await traceFlags.ensureTraceFlags();
       fail('Expected to raise an error');
     } catch (err) {
       expect(err.message).to.equal(
