@@ -8,29 +8,56 @@
 // tslint:disable:no-unused-expression
 
 import { expect } from 'chai';
-import * as path from 'path';
-import * as shell from 'shelljs';
-import { workspace } from 'vscode';
-import { JAVA_HOME_KEY, JAVA_MEMORY_KEY } from '../../src/requirements';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import * as vscode from 'vscode';
+import { JAVA_HOME_KEY, resolveRequirements } from '../../src/requirements';
+import pathExists = require('path-exists');
+import * as cp from 'child_process';
+
+const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
+const runtimePath = `~/java_home/real/jdk/${jdk}`;
+
+// TODO: Move this to a new unit test directory
 
 describe('Java Requirements Test', () => {
-  it('The jar should be signed', () => {
-    shell.config.execPath = process.execPath;
-    const apexJarPath = path.join(__dirname, '..', '..', 'apex-jorje-lsp.jar');
-    expect(
-      shell
-        .exec(`jarsigner -verify ${apexJarPath}`)
-        .stdout.includes('jar verified')
-    ).to.be.true;
+  let sandbox: SinonSandbox;
+  let settingStub: SinonStub;
+  let pathExistsStub: SinonStub;
+  let execFileStub: SinonStub;
+
+  beforeEach(() => {
+    sandbox = createSandbox();
+    settingStub = sandbox.stub();
+    sandbox
+      .stub(vscode.workspace, 'getConfiguration')
+      .withArgs()
+      .returns({
+        get: settingStub
+      });
+    pathExistsStub = sandbox.stub(pathExists, 'sync').resolves(true);
+    execFileStub = sandbox.stub(cp, 'execFile');
   });
 
-  it('Should have java.home section', () => {
-    const config = workspace.getConfiguration();
-    expect(config.has(JAVA_HOME_KEY)).to.be.true;
+  afterEach(() => sandbox.restore());
+
+  it('Should prevent local java runtime path', async () => {
+    const localRuntime = './java_home/donthackmebro';
+    settingStub.withArgs(JAVA_HOME_KEY).returns('./java_home/donthackmebro');
+    let exceptionThrown = false;
+    try {
+      await resolveRequirements();
+    } catch (e) {
+      expect(e).contains(localRuntime);
+      exceptionThrown = true;
+    }
+    expect(exceptionThrown).to.be.true;
   });
 
-  it('Should have java.memory section', () => {
-    const config = workspace.getConfiguration();
-    expect(config.has(JAVA_MEMORY_KEY)).to.be.true;
+  it('Should allow valid java runtime path outside the project', async () => {
+    settingStub.withArgs(JAVA_HOME_KEY).returns(runtimePath);
+    execFileStub.yields('', '', 'build 1.8');
+    const requirements = await resolveRequirements();
+    expect(requirements.java_home).contains(jdk);
   });
+
 });
