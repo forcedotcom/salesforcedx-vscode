@@ -16,10 +16,11 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import {
   getYYYYMMddHHmmssDateFormat
 } from '@salesforce/salesforcedx-utils-vscode/out/src/date';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse,
