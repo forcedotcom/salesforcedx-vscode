@@ -643,4 +643,5 @@ workflows:
     jobs:
       # Merges 1 mergeable PR created by dependabot containing minor, patch updates
       # Requires "repository" property in package.json to be a string of 'owner/repo'
-      - release-management/dependabot-automerge
+      - release-management/dependabot-automerge:
+          merge-method: squash
