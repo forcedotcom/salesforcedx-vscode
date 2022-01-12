@@ -82,20 +82,26 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     'apex-errors'
   );
 
-  constructor() {
+  private isDebugging: boolean;
+
+  constructor(isDebugging: boolean) {
     super(
       nls.localize('apex_execute_text'),
       'force_apex_execute_library',
       OUTPUT_CHANNEL
     );
+
+    this.isDebugging = isDebugging;
   }
 
   public async run(
     response: ContinueResponse<ApexExecuteParameters>
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
-    if (!(await this.setUpTraceFlags(connection))) {
-      return false;
+    if (this.isDebugging) {
+      if (!(await this.setUpTraceFlags(connection))) {
+        return false;
+      }
     }
 
     const executeService = new ExecuteService(connection);
@@ -108,7 +114,11 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 
     this.processResult(result, apexFilePath, selection);
 
-    return await this.launchReplayDebugger(result.logs);
+    if (this.isDebugging) {
+      return await this.launchReplayDebugger(result.logs);
+    }
+
+    return true;
   }
 
   private async setUpTraceFlags(connection: Connection): Promise<boolean> {
@@ -250,11 +260,13 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export async function forceApexExecute() {
+export async function forceApexExecute(
+  isDebugging: boolean
+) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
-    new ApexLibraryExecuteExecutor()
+    new ApexLibraryExecuteExecutor(isDebugging)
   );
 
   await commandlet.run();

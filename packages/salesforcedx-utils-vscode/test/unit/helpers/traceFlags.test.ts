@@ -15,7 +15,7 @@ import { nls } from '../../../src/messages';
 import { vscodeStub } from '../commands/mocks';
 
 const { TraceFlags } = proxyquire.noCallThru()(
-  '../../../src/commands',
+  '../../../src/helpers',
   {
     vscode: vscodeStub
   }

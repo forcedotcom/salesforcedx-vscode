@@ -183,7 +183,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should format result correctly for a successful execution', async () => {
-      const executor = new ApexLibraryExecuteExecutor();
+      const executor = new ApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: true,
@@ -214,7 +214,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should format result correctly for a compilation failure', async () => {
-      const executor = new ApexLibraryExecuteExecutor();
+      const executor = new ApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: false,
         success: false,
@@ -240,7 +240,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should format result correctly for a runtime failure', async () => {
-      const executor = new ApexLibraryExecuteExecutor();
+      const executor = new ApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: false,
@@ -275,7 +275,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should translate result line position correctly for a selected text failure', async () => {
-      const executor = new ApexLibraryExecuteExecutor();
+      const executor = new ApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: false,
@@ -320,7 +320,7 @@ describe('Force Apex Execute', () => {
   });
 
   describe('Report Diagnostics', () => {
-    const executor = new ApexLibraryExecuteExecutor();
+    const executor = new ApexLibraryExecuteExecutor(true);
     const file = '/test';
     const defaultResponse = {
       compiled: true,
@@ -514,7 +514,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should set up trace flags when ApexLibraryExecuteExecutor runs', async () => {
-      const executor = new ApexLibraryExecuteExecutor();
+      const executor = new ApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: true,
@@ -545,7 +545,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should execute the sfdx.launch.replay.debugger.logfile.path command and run the Apex replay debugger', async () => {
-      const executor = new ApexLibraryExecuteExecutor();
+      const executor = new ApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: true,

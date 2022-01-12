@@ -88,7 +88,7 @@ function registerCommands(): vscode.Disposable {
     'sfdx.launch.replay.debugger.logfile.path',
     logFilePath => {
       if (logFilePath) {
-        launchFromLogFile(logFilePath);
+        launchFromLogFile(logFilePath, true);
       }
     }
   );
