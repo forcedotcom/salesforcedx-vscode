@@ -65,7 +65,8 @@ describe('Quick launch apex tests', () => {
       .withArgs('defaultusername')
       .returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
-    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
+    sb.stub(workspaceContext, 'getConnection')
+      .returns(mockConnection);
     testServiceStub = sb
       .stub(TestService.prototype, 'runTestSynchronous')
       .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);

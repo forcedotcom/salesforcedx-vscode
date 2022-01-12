@@ -8,26 +8,36 @@ import {
   ExecuteAnonymousResponse,
   ExecuteService
 } from '@salesforce/apex-node';
+import { Connection } from '@salesforce/core';
 import {
+  getLogDirPath,
   hasRootWorkspace,
   LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { notificationService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  getYYYYMMddHHmmssDateFormat
+} from '@salesforce/salesforcedx-utils-vscode/out/src/date';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
+
 interface ApexExecuteParameters {
   apexCode?: string;
   fileName?: string;
   selection?: vscode.Range;
 }
+
 export class AnonApexGatherer
   implements ParametersGatherer<ApexExecuteParameters> {
   public async gather(): Promise<
@@ -83,6 +93,10 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     response: ContinueResponse<ApexExecuteParameters>
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
+    if (!(await this.setUpTraceFlags(connection))) {
+      return false;
+    }
+
     const executeService = new ExecuteService(connection);
     const { apexCode, fileName: apexFilePath, selection } = response.data;
 
@@ -91,15 +105,68 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
       apexCode
     });
 
+    this.processResult(result, apexFilePath, selection);
+
+    return await this.launchReplayDebugger(result.logs);
+  }
+
+  private async setUpTraceFlags(connection: Connection): Promise<boolean> {
+    const traceFlags = new TraceFlags(connection);
+    if (!(await traceFlags.ensureTraceFlags())) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private processResult(
+    result: ExecuteAnonymousResponse,
+    apexFilePath: string | undefined,
+    selection: any
+  ) {
     this.outputResult(result);
 
     const editor = vscode.window.activeTextEditor;
     const document = editor!.document;
     const filePath = apexFilePath ?? document.uri.fsPath;
-
     this.handleDiagnostics(result, filePath, selection);
+  }
 
-    return result.success;
+  private async launchReplayDebugger(
+    logs?: string | undefined
+  ): Promise<boolean> {
+    const logFilePath = this.getLogFilePath();
+    if (!this.saveLogFile(logFilePath, logs)) {
+      return false;
+    }
+
+    await vscode.commands.executeCommand(
+      'sfdx.launch.replay.debugger.logfile.path',
+      logFilePath
+    );
+
+    return true;
+  }
+
+  private getLogFilePath(): string {
+    const outputDir = getLogDirPath();
+    const now = new Date();
+    const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
+    const logFilePath = path.join(outputDir, `${localDateFormatted}.log`);
+
+    return logFilePath;
+  }
+
+  private saveLogFile(
+    logFilePath: string,
+    logs?: string): boolean {
+    if (!logFilePath || !logs) {
+      return false;
+    }
+
+    fs.writeFileSync(logFilePath, logs);
+
+    return true;
   }
 
   private outputResult(response: ExecuteAnonymousResponse): void {

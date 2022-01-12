@@ -5,12 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteService } from '@salesforce/apex-node';
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { ChannelService, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
-import { createSandbox, SinonSpy, SinonStub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
@@ -20,20 +23,61 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
-const sb = createSandbox();
+const $$ = testSetup();
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Execute', () => {
-  beforeEach(() => {
-    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
-      document: {
-        uri: vscode.Uri.file('/test')
-      }
-    }));
-    sb.stub(workspaceContext, 'getConnection');
+  const testData = new MockTestOrgData();
+  let mockConnection: Connection;
+  let sb: SinonSandbox;
+  let traceFlagsStub: SinonStub;
+  let settingStub: SinonStub;
+  let writeFileStub: SinonStub;
+  let executeCommandStub: SinonStub;
+
+  beforeEach(async () => {
+    sb = createSandbox();
+    settingStub = sb.stub();
+    sb.stub(vscode.workspace, 'getConfiguration')
+      .withArgs('salesforcedx-vscode-core')
+      .returns({
+        get: settingStub
+    });
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
+      .withArgs('defaultusername')
+      .returns(testData.username);
+    sb.stub(workspaceContext, 'getConnection')
+      .returns(mockConnection);
+
+    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags')
+      .returns(true);
+
+    sb.stub(vscode.window, 'activeTextEditor')
+      .get(() => ({
+        document: {
+          uri: vscode.Uri.file('/test')
+        }
+      }));
+
+    writeFileStub = sb.stub(fs, 'writeFileSync')
+      .returns(true);
+
+    executeCommandStub = sb.stub(vscode.commands, 'executeCommand')
+      .withArgs('sfdx.launch.replay.debugger.logfile.path')
+      .returns(true);
   });
 
-  afterEach(() => sb.restore());
+  afterEach(() => {
+    sb.restore();
+  });
 
   describe('AnonApexGatherer', async () => {
     it('should return the selected file to execute anonymous apex', async () => {
@@ -249,6 +293,7 @@ describe('Force Apex Execute', () => {
       sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
         execAnonResponse
       );
+
       const expectedDiagnostic = {
         message: execAnonResponse.diagnostic[0].exceptionMessage,
         severity: vscode.DiagnosticSeverity.Error,
@@ -446,6 +491,87 @@ describe('Force Apex Execute', () => {
       expect(setDiagnosticStub.firstCall.args[1]).to.deep.equal([
         expectedDiagnostic
       ]);
+    });
+  });
+
+  describe('Apex Replay Debugger', () => {
+    let outputStub: SinonStub;
+    let showChannelOutputStub: SinonSpy;
+    let setDiagnosticStub: SinonStub;
+    const file = '/test';
+
+    beforeEach(() => {
+      outputStub = sb.stub(channelService, 'appendLine');
+      showChannelOutputStub = sb.spy(
+        ChannelService.prototype,
+        'showChannelOutput'
+      );
+      setDiagnosticStub = sb.stub(
+        ApexLibraryExecuteExecutor.diagnostics,
+        'set'
+      );
+    });
+
+    it('should set up trace flags when ApexLibraryExecuteExecutor runs', async () => {
+      const executor = new ApexLibraryExecuteExecutor();
+      const execAnonResponse = {
+        compiled: true,
+        success: true,
+        logs:
+          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
+        diagnostic: [
+          {
+            lineNumber: -1,
+            columnNumber: -1,
+            compileProblem: '',
+            exceptionMessage: '',
+            exceptionStackTrace: ''
+          }
+        ]
+      };
+      const expectedOutput = `${nls.localize(
+        'apex_execute_compile_success'
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
+        execAnonResponse.logs
+      }`;
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
+        execAnonResponse
+      );
+
+      await executor.run({ type: 'CONTINUE', data: {} });
+
+      expect(traceFlagsStub.called).to.be.true;
+    });
+
+    it('should execute the sfdx.launch.replay.debugger.logfile.path command and run the Apex replay debugger', async () => {
+      const executor = new ApexLibraryExecuteExecutor();
+      const execAnonResponse = {
+        compiled: true,
+        success: true,
+        logs:
+          '47.0 APEX_CODE,DEBUG;APEX_PROFILING,INFO\nExecute Anonymous: System.assert(true);|EXECUTION_FINISHED\n',
+        diagnostic: [
+          {
+            lineNumber: -1,
+            columnNumber: -1,
+            compileProblem: '',
+            exceptionMessage: '',
+            exceptionStackTrace: ''
+          }
+        ]
+      };
+      const expectedOutput = `${nls.localize(
+        'apex_execute_compile_success'
+      )}\n${nls.localize('apex_execute_runtime_success')}\n\n${
+        execAnonResponse.logs
+      }`;
+      sb.stub(ExecuteService.prototype, 'executeAnonymous').resolves(
+        execAnonResponse
+      );
+
+      await executor.run({ type: 'CONTINUE', data: {} });
+
+      expect(executeCommandStub.called).to.be.true;
     });
   });
 });
