@@ -10,19 +10,11 @@
 
 #### docs
 
-- Update java-setup.md ([PR #3741](https://github.com/forcedotcom/salesforcedx-vscode/pull/3741))
-
-#### salesforcedx-utils-vscode
-
-- Move traceFlags.ts to salesforcedx-utils-vscode, updated import statements ([PR #3740](https://github.com/forcedotcom/salesforcedx-vscode/pull/3740))
+- Updates to reflect runtime restrictions ([PR #3741](https://github.com/forcedotcom/salesforcedx-vscode/pull/3741))
 
 #### salesforcedx-vscode-apex
 
 - Prevent local java runtime in project ([PR #3730](https://github.com/forcedotcom/salesforcedx-vscode/pull/3730))
-
-#### salesforcedx-vscode-apex-replay-debugger
-
-- Move traceFlags.ts to salesforcedx-utils-vscode, updated import statements ([PR #3740](https://github.com/forcedotcom/salesforcedx-vscode/pull/3740))
 
 # 53.12.0 - January 5, 2022
 
