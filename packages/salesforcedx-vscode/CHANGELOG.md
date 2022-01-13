@@ -1,3 +1,29 @@
+# 53.13.0 - January 13, 2022
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Identify test class from uri ([PR #3751](https://github.com/forcedotcom/salesforcedx-vscode/pull/3751))
+
+## Fixed
+
+#### docs
+
+- Update java-setup.md ([PR #3741](https://github.com/forcedotcom/salesforcedx-vscode/pull/3741))
+
+#### salesforcedx-utils-vscode
+
+- Move traceFlags.ts to salesforcedx-utils-vscode, updated import statements ([PR #3740](https://github.com/forcedotcom/salesforcedx-vscode/pull/3740))
+
+#### salesforcedx-vscode-apex
+
+- Prevent local java runtime in project ([PR #3730](https://github.com/forcedotcom/salesforcedx-vscode/pull/3730))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Move traceFlags.ts to salesforcedx-utils-vscode, updated import statements ([PR #3740](https://github.com/forcedotcom/salesforcedx-vscode/pull/3740))
+
 # 53.12.0 - January 5, 2022
 
 ## Added
