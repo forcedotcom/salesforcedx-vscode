@@ -513,7 +513,7 @@ describe('Force Apex Execute', () => {
       );
     });
 
-    it('should set up trace flags when ApexLibraryExecuteExecutor runs', async () => {
+    it('should set up trace flags and run the Apex replay debugger when ApexLibraryExecuteExecutor(true) runs', async () => {
       const executor = new ApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
@@ -542,10 +542,11 @@ describe('Force Apex Execute', () => {
       await executor.run({ type: 'CONTINUE', data: {} });
 
       expect(traceFlagsStub.called).to.be.true;
+      expect(executeCommandStub.called).to.be.true;
     });
 
-    it('should execute the sfdx.launch.replay.debugger.logfile.path command and run the Apex replay debugger', async () => {
-      const executor = new ApexLibraryExecuteExecutor(true);
+    it('should not set up trace flags and should not run the Apex replay debugger when ApexLibraryExecuteExecutor(false) runs', async () => {
+      const executor = new ApexLibraryExecuteExecutor(false);
       const execAnonResponse = {
         compiled: true,
         success: true,
@@ -572,7 +573,8 @@ describe('Force Apex Execute', () => {
 
       await executor.run({ type: 'CONTINUE', data: {} });
 
-      expect(executeCommandStub.called).to.be.true;
+      expect(traceFlagsStub.called).to.be.false;
+      expect(executeCommandStub.called).to.be.false;
     });
   });
 });
