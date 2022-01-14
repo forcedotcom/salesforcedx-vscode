@@ -116,14 +116,18 @@ export class SyncTests {
         apexTestClassIdSet
       );
 
-      result.tests.forEach(item => {
-        const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
-        const perClassCov = perClassCovMap.get(keyCodeCov);
-        perClassCov.forEach(classCov =>
-          coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
-        );
-        item.perClassCoverage = perClassCov;
-      });
+      if (perClassCovMap.size > 0) {
+        result.tests.forEach(item => {
+          const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
+          const perClassCov = perClassCovMap.get(keyCodeCov);
+          if (perClassCov) {
+            perClassCov.forEach(classCov =>
+              coveredApexClassIdSet.add(classCov.apexClassOrTriggerId)
+            );
+            item.perClassCoverage = perClassCov;
+          }
+        });
+      }
 
       const {
         codeCoverageResults,
