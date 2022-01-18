@@ -22,7 +22,7 @@
     "tslint": "5.5.0",
     "typescript": "3.8.3",
     "vsce": "1.62.0",
-    "vscode-test": "1.4.0",
+    "vscode-test": "1.6.1",
     "webpack": "4.30.0",
     "webpack-cli": "3.3.5"
   },
