@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@salesforce/core": "2.28.0",
-    "shelljs": "0.8.3"
+    "shelljs": "0.8.5"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
