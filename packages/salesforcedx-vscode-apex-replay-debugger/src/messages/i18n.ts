@@ -67,8 +67,6 @@ export const messages = {
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
-  trace_flags_unknown_user: 'Unknown user',
-  trace_flags_failed_to_create_debug_level: 'Failed to create a debug level',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',

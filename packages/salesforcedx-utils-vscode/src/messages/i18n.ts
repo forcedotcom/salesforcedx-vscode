@@ -42,5 +42,7 @@ export const messages = {
   predicates_no_folder_opened_text:
     'No folder opened. Open a Salesforce DX project in VS Code.',
   predicates_no_sfdx_project_found_text:
-    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.'
+    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
+  trace_flags_unknown_user: 'Unknown user',
+  trace_flags_failed_to_create_debug_level: 'Failed to create a debug level'
 };

@@ -12,10 +12,10 @@ import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { nls } from '../../../src/messages';
-import { vscodeStub } from './mocks';
+import { vscodeStub } from '../commands/mocks';
 
 const { TraceFlags } = proxyquire.noCallThru()(
-  '../../../src/commands',
+  '../../../src/helpers',
   {
     vscode: vscodeStub
   }

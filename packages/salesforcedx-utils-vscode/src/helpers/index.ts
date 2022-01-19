@@ -18,3 +18,4 @@ export {
   getTestResultsFolder,
   getRelativeProjectPath
 } from './paths';
+export { TraceFlags } from './traceFlags';
