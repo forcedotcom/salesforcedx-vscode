@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "53.13.1",
+    "@salesforce/ts-sinon": "1.2.2",
     "@types/chai": "^4.0.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
