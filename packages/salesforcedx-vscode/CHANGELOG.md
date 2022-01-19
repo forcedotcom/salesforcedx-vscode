@@ -1,3 +1,27 @@
+# 53.14.0 - January 19, 2022
+
+## Fixed
+
+#### salesforcedx-utils-vscode
+
+- Added replay debugging to ApexLibraryExecuteExecutor ([PR #3758](https://github.com/forcedotcom/salesforcedx-vscode/pull/3758))
+
+#### salesforcedx-visualforce-language-server
+
+- Chore(deps-dev): bump shx from 0.2.2 to 0.3.4 ([PR #3754](https://github.com/forcedotcom/salesforcedx-vscode/pull/3754))
+
+#### salesforcedx-visualforce-markup-language-server
+
+- Chore(deps-dev): bump shx from 0.2.2 to 0.3.4 ([PR #3754](https://github.com/forcedotcom/salesforcedx-vscode/pull/3754))
+
+#### salesforcedx-vscode-apex
+
+- Added replay debugging to ApexLibraryExecuteExecutor ([PR #3758](https://github.com/forcedotcom/salesforcedx-vscode/pull/3758))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Added replay debugging to ApexLibraryExecuteExecutor ([PR #3758](https://github.com/forcedotcom/salesforcedx-vscode/pull/3758))
+
 # 53.13.0 - January 13, 2022
 
 ## Added
