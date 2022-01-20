@@ -1,3 +1,11 @@
+# 53.14.1 - January 19, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Backend changes to set up Anonymous Apex in replay debugging ([PR #3758](https://github.com/forcedotcom/salesforcedx-vscode/pull/3758))
+
 # 53.13.0 - January 13, 2022
 
 ## Added
