@@ -250,7 +250,10 @@ export const messages = {
   demo_mode_prompt:
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
+  manifest_editor_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
+  manifest_editor_save_placeholder: 'Enter unique manifest name (no .xml)',
+  manifest_editor_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   manifest_editor_title_message: 'Manifest Editor',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
