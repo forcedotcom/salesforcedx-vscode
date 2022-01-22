@@ -11,10 +11,10 @@ import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
+  forceApexDebug,
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
   forceApexExecute,
-  forceApexDebug,
   forceApexLogGet,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
