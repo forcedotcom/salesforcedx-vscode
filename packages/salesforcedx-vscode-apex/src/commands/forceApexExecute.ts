@@ -260,13 +260,21 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export async function forceApexExecute(
-  isDebugging: boolean
-) {
+export async function forceApexExecute() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
-    new ApexLibraryExecuteExecutor(isDebugging)
+    new ApexLibraryExecuteExecutor(false)
+  );
+
+  await commandlet.run();
+}
+
+export async function forceApexDebug() {
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new AnonApexGatherer(),
+    new ApexLibraryExecuteExecutor(true)
   );
 
   await commandlet.run();

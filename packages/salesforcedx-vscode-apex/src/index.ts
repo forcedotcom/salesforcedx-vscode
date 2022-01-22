@@ -14,6 +14,7 @@ import {
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
   forceApexExecute,
+  forceApexDebug,
   forceApexLogGet,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
@@ -175,7 +176,7 @@ function registerCommands(
   );
   const forceApexAnonRunDelegateCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.anon.run.delegate',
-    () => forceApexExecute(false)
+    forceApexExecute
   );
   const forceApexLogGetCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.log.get',
@@ -207,17 +208,22 @@ function registerCommands(
   );
   const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.execute.document',
-    () => forceApexExecute(false)
+    forceApexExecute
+  );
+  const forceApexDebugDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.debug.document',
+    forceApexDebug
   );
   const forceApexExecuteSelectionCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.execute.selection',
-    () => forceApexExecute(false)
+    forceApexExecute
   );
   return vscode.Disposable.from(
     forceApexDebugClassRunDelegateCmd,
     forceApexDebugMethodRunDelegateCmd,
     forceApexAnonRunDelegateCmd,
     forceApexExecuteDocumentCmd,
+    forceApexDebugDocumentCmd,
     forceApexExecuteSelectionCmd,
     forceApexLogGetCmd,
     forceApexTestClassRunCmd,
