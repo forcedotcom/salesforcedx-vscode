@@ -102,9 +102,7 @@ export class ForceAnonApexLaunchReplayDebuggerExecutor extends SfdxCommandletExe
       .build();
   }
 
-  public async execute(
-    // response: ContinueResponse<string>
-  ): Promise<void> {
+  public async execute(): Promise<void> {
     await forceAnonApexDebug();
   }
 }
