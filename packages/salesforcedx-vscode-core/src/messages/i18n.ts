@@ -138,7 +138,6 @@ export const messages = {
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
-  force_launch_apex_replay_debugger_with_selected_file_text: 'SFDX: Launch Apex Replay Debugger with Currently Selected File',
   force_lightning_app_create_text: 'SFDX: Create Aura App',
   force_lightning_component_create_text: 'SFDX: Create Aura Component',
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
