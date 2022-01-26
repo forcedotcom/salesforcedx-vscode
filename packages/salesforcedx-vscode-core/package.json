@@ -551,6 +551,10 @@
         {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.launch.replay.debugger",
+          "when": "sfdx:project_opened"
         }
       ]
     },
@@ -855,7 +859,7 @@
         "command": "sfdx.force.launch.replay.debugger",
         "title": "%force_launch_apex_replay_debugger_with_selected_file%"
       }
-    ],
+  ],
     "configuration": {
       "type": "object",
       "title": "%feature_previews_title%",
