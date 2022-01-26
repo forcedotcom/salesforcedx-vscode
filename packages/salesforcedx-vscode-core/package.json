@@ -850,6 +850,10 @@
       {
         "command": "sfdx.force.internal.refreshsobjects",
         "title": "%force_sobjects_refresh%"
+      },
+      {
+        "command": "sfdx.force.launch.replay.debugger",
+        "title": "%force_launch_apex_replay_debugger_with_selected_file%"
       }
     ],
     "configuration": {

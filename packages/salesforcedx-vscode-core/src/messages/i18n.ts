@@ -130,16 +130,15 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
-
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
   force_apex_class_create_text: 'SFDX: Create Apex Class',
   force_visualforce_component_create_text: 'SFDX: Create Visualforce Component',
   force_visualforce_page_create_text: 'SFDX: Create Visualforce Page',
+  force_launch_apex_replay_debugger_with_selected_file_text: 'SFDX: Launch Apex Replay Debugger with Currently Selected File',
   force_lightning_app_create_text: 'SFDX: Create Aura App',
   force_lightning_component_create_text: 'SFDX: Create Aura Component',
   force_lightning_event_create_text: 'SFDX: Create Aura Event',

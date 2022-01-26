@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   apex_execute_compile_success: 'Compiled successfully.',
@@ -75,5 +75,8 @@ export const messages = {
     '%s points to a missing folder. For information on how to setup the Salesforce Apex extension, see [Set Your Java Version](%s).',
   wrong_java_version_text:
     'An unsupported Java version was detected. Download and install [Java 8](https://java.com/en/download/) or [Java 11](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html) to run the extensions. For more information, see [Set Your Java Version](%s).',
-  force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite'
+  force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
+  unable_to_locate_editor: 'You can run this command only on a source file.',
+  unable_to_locate_document: 'You can run this command only on a source file.',
+  command_available_for_anon_apex_or_apex_test_only: 'You can run this command only for anonymous Apex files, or Apex test files.'
 };

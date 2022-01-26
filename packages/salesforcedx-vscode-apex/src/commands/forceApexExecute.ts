@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2021, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -16,7 +16,6 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import {
   getYYYYMMddHHmmssDateFormat
 } from '@salesforce/salesforcedx-utils-vscode/out/src/date';
@@ -75,7 +74,7 @@ export class AnonApexGatherer
   }
 }
 
-export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
+export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   ApexExecuteParameters
 > {
   public static diagnostics = vscode.languages.createDiagnosticCollection(
@@ -207,7 +206,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     filePath: string,
     selection?: vscode.Range
   ) {
-    ApexLibraryExecuteExecutor.diagnostics.clear();
+    AnonApexLibraryExecuteExecutor.diagnostics.clear();
 
     if (response.diagnostic) {
       const {
@@ -235,7 +234,7 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         )
       };
 
-      ApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [
+      AnonApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [
         vscDiagnostic
       ]);
     }
@@ -260,21 +259,21 @@ export class ApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export async function forceApexExecute() {
+export async function forceAnonApexExecute() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
-    new ApexLibraryExecuteExecutor(false)
+    new AnonApexLibraryExecuteExecutor(false)
   );
 
   await commandlet.run();
 }
 
-export async function forceApexDebug() {
+export async function forceAnonApexDebug() {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
-    new ApexLibraryExecuteExecutor(true)
+    new AnonApexLibraryExecuteExecutor(true)
   );
 
   await commandlet.run();
