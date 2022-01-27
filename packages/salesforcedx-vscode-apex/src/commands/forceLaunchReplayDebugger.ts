@@ -87,7 +87,7 @@ async function launchAnonymousApexReplayDebugger() {
 
 async function launchApexReplayDebugger(apexTestClassName: string) {
   // Launch using QuickLaunch (the same way the "Debug All Tests" code lens runs)
-  const result = await vscode.commands.executeCommand(
+  await vscode.commands.executeCommand(
     'sfdx.force.test.view.debugTests',
     {
       name: apexTestClassName
