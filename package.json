@@ -67,7 +67,7 @@
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node": "12.4.0",
+    "node": "12.22.9",
     "npm": "^6.9.0"
   },
   "husky": {
