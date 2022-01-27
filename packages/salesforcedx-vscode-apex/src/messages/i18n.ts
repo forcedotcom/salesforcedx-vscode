@@ -78,5 +78,5 @@ export const messages = {
   force_apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unable_to_locate_document: 'You can run this command only on a source file.',
-  command_available_for_anon_apex_or_apex_test_only: 'You can run this command only for anonymous Apex files, or Apex test files.'
+  command_available_for_anon_apex_or_apex_test_only: 'You can run this command only on an Anonymous Apex file, or an Apex test file.'
 };
