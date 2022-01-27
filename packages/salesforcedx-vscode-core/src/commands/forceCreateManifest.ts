@@ -33,7 +33,7 @@ export async function forceCreateManifest(
     } as vscode.InputBoxOptions;
     const response = await vscode.window.showInputBox(inputOptions);
     if (response === undefined) {
-      //Canceled and declined to name the document
+      // Canceled and declined to name the document
       openUntitledDocument(componentSet);
     } else {
       saveDocument(response, componentSet);
@@ -54,23 +54,25 @@ function openUntitledDocument(componentSet: ComponentSet) {
   }
 }
 
-function saveDocument(response: String, componentSet: ComponentSet) {
-  let fileName = response ? response.concat('.xml') : 'package.xml';
+function saveDocument(response: string, componentSet: ComponentSet) {
+  const fileName = response ? response.concat('.xml') : 'package.xml';
 
   const manifestPath = join(getRootWorkspacePath(), 'manifest');
   if (!fs.existsSync(manifestPath)) {
     fs.mkdirSync(manifestPath);
   }
   const saveLocation = join(manifestPath, fileName);
+  checkForDuplicateManifest(saveLocation, fileName);
 
   try {
-    checkForDuplicateManifest(saveLocation, fileName);
     fs.writeFileSync(saveLocation, componentSet.getPackageXml());
     vscode.workspace.openTextDocument(saveLocation).then(newManifest => {
+      console.log('did not get here');
       vscode.window.showTextDocument(newManifest);
     });
   } catch (e) {
-    console.log(nls.localize('error_creating_packagexml', e.message));
+    const error = e.message;
+    console.log(format(nls.localize('error_creating_packagexml'), error));
   }
 }
 
