@@ -42,16 +42,12 @@ export async function forceCreateManifest(
 }
 
 function openUntitledDocument(componentSet: ComponentSet) {
-  try {
-    vscode.workspace.openTextDocument({
-      content: componentSet.getPackageXml(),
-      language: 'xml'
-    }).then(newManifest => {
-      vscode.window.showTextDocument(newManifest);
-    });
-  } catch (exception) {
-    console.log(nls.localize('error_creating_packagexml', exception));
-  }
+  vscode.workspace.openTextDocument({
+    content: componentSet.getPackageXml(),
+    language: 'xml'
+  }).then(newManifest => {
+    vscode.window.showTextDocument(newManifest);
+  });
 }
 
 function saveDocument(response: string, componentSet: ComponentSet) {
@@ -64,16 +60,10 @@ function saveDocument(response: string, componentSet: ComponentSet) {
   const saveLocation = join(manifestPath, fileName);
   checkForDuplicateManifest(saveLocation, fileName);
 
-  try {
-    fs.writeFileSync(saveLocation, componentSet.getPackageXml());
-    vscode.workspace.openTextDocument(saveLocation).then(newManifest => {
-      console.log('did not get here');
-      vscode.window.showTextDocument(newManifest);
-    });
-  } catch (e) {
-    const error = e.message;
-    console.log(format(nls.localize('error_creating_packagexml'), error));
-  }
+  fs.writeFileSync(saveLocation, componentSet.getPackageXml());
+  vscode.workspace.openTextDocument(saveLocation).then(newManifest => {
+    vscode.window.showTextDocument(newManifest);
+  });
 }
 
 function checkForDuplicateManifest(saveLocation: string, fileName: string) {

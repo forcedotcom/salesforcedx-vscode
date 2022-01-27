@@ -8,6 +8,7 @@
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { fail } from 'assert';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import util = require('util');
 import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
@@ -16,9 +17,6 @@ import {
   forceCreateManifest
 } from '../../../src/commands';
 import { nls } from '../../../src/messages';
-import * as fs from 'fs';
-import { getRootWorkspacePath } from '../../../src/util';
-import { join } from 'path';
 
 const classPath = '/force-app/main/default/classes/';
 const class1 = 'Apex1';
@@ -53,7 +51,7 @@ describe('Force Create Manifest', () => {
       env.restore();
     });
 
-    it.only('Should create manifest from single sourceUri', async () => {
+    it('Should create first manifest from single sourceUri', async () => {
       const packageXML = util.format(manifest, `<member>${class1}</member>`);
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
@@ -61,6 +59,7 @@ describe('Force Create Manifest', () => {
         }
       });
       env.stub(fs, 'existsSync').returns(false);
+      env.stub(fs, 'mkdirSync').returns(undefined);
       env.stub(fs, 'writeFileSync').returns(undefined);
       const packageName = 'package' + generateRandomSuffix() + '.xml';
       inputBoxSpy.onCall(0).returns(packageName);
@@ -143,9 +142,10 @@ describe('Force Create Manifest', () => {
         exceptionThrown = true;
       }
       expect(exceptionThrown).to.equal(true);
+      expect(openDocSpy.called).to.equal(false);
     });
 
-    it('Should enforce unique manifest names', async() => {
+    it('Should enforce unique manifest names', async () => {
       const packageXML = util.format(manifest, `<member>${class1}</member>`);
       env.stub(ComponentSet, 'fromSource').returns({
         getPackageXml: () => {
@@ -155,7 +155,7 @@ describe('Force Create Manifest', () => {
       env.stub(fs, 'existsSync').returns(true);
       const fileName = 'duplicatePackageName';
       inputBoxSpy.resolves(fileName);
-  
+
       let exceptionThrown = false;
       try {
         await forceCreateManifest(uri1, undefined);
@@ -164,16 +164,8 @@ describe('Force Create Manifest', () => {
         expect(e.message).to.contain(fileName);
       }
       expect(exceptionThrown).to.equal(true);
+      expect(openDocSpy.called).to.equal(false);
     });
-
-  /*
-
-  it('Should handle exception while creating untitled document', async() => {
-  });
-
-  it('Should handle exception while saving document', async() => {
-  });*/
-
   });
 
 });
