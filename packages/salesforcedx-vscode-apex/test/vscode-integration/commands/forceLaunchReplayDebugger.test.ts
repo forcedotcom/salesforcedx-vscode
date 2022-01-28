@@ -16,7 +16,6 @@ import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider'
 
 const $$ = testSetup();
 
-// tslint:disable:no-unused-expression
 describe('Force Launch Replay Debugger', () => {
   let sb: SinonSandbox;
 
