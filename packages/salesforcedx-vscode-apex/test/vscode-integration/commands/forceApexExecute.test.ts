@@ -20,7 +20,7 @@ import { channelService } from '../../../src/channels';
 import {
   AnonApexGatherer,
   AnonApexLibraryExecuteExecutor
-} from '../../../src/commands/forceApexExecute';
+} from '../../../src/commands/forceAnonApexExecute';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 

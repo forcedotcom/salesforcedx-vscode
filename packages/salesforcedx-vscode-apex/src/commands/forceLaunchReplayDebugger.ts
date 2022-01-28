@@ -25,7 +25,7 @@ import {
 } from '../views/testOutlineProvider';
 import {
   forceAnonApexDebug
-} from './forceApexExecute';
+} from './forceAnonApexExecute';
 
 export async function forceLaunchReplayDebugger() {
   const editor = vscode.window.activeTextEditor;
