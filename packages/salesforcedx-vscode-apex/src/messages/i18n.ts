@@ -36,9 +36,9 @@ export const messages = {
   colorizer_no_code_coverage_current_file:
     'No code coverage information was found for this file. Set "salesforcedx-vscode-core.retrieve-test-code-coverage": true in your user or workspace settings. Then, run Apex tests that include methods in this file. You can run tests from the Apex Tests sidebar or using the Run Tests or Run All Tests code lens within the file.',
   colorizer_statusbar_hover_text: 'Highlight Apex Code Coverage',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_apex_log_get_text: 'SFDX: Get Apex Debug Logs',
   force_apex_log_get_no_logs_text: 'No Apex debug logs were found',

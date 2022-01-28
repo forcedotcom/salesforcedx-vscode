@@ -192,9 +192,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',

@@ -174,12 +174,12 @@ function registerCommands(
     'sfdx.force.apex.debug.method.run.delegate',
     forceApexDebugMethodRunCodeActionDelegate
   );
-  const forceApexAnonRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.anon.run.delegate',
+  const forceAnonApexRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.run.delegate',
     forceAnonApexExecute
   );
-  const forceApexAnonDebugDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.anon.debug.delegate',
+  const forceAnonApexDebugDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.debug.delegate',
     forceAnonApexDebug
   );
   const forceApexLogGetCmd = vscode.commands.registerCommand(
@@ -211,15 +211,15 @@ function registerCommands(
     forceApexTestRun
   );
   const forceAnonApexExecuteDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.execute.document',
+    'sfdx.force.anon.apex.execute.document',
     forceAnonApexExecute
   );
-  const forceApexDebugDocumentCmd = vscode.commands.registerCommand(
+  const forceAnonApexDebugDocumentCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.debug.document',
     forceAnonApexDebug
   );
   const forceAnonApexExecuteSelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.execute.selection',
+    'sfdx.force.anon.apex.execute.selection',
     forceAnonApexExecute
   );
   const forceLaunchReplayDebuggerCmd = vscode.commands.registerCommand(
@@ -230,11 +230,11 @@ function registerCommands(
   return vscode.Disposable.from(
     forceApexDebugClassRunDelegateCmd,
     forceApexDebugMethodRunDelegateCmd,
-    forceApexAnonRunDelegateCmd,
-    forceApexAnonDebugDelegateCmd,
+    forceAnonApexRunDelegateCmd,
+    forceAnonApexDebugDelegateCmd,
     forceAnonApexExecuteDocumentCmd,
     forceAnonApexExecuteSelectionCmd,
-    forceApexDebugDocumentCmd,
+    forceAnonApexDebugDocumentCmd,
     forceLaunchReplayDebuggerCmd,
     forceApexLogGetCmd,
     forceApexTestClassRunCmd,
