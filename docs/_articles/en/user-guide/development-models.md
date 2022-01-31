@@ -54,7 +54,8 @@ Automatically generate a manifest file for a given a set of metadata components 
 1.  In the Explorer view, right-click to select the files you want to use to generate the manifest.
 2. Run **SFDX: Generate Manifest File**
 3. Enter a unique name (without an xml extension) for the manifest file. 
-4. A new file is created and added to the manifest folder.
+
+A new file is created and added to the manifest folder.
    
 Use the new manifest file to deploy and retrieve source from the org using **SFDX: Retrieve Source in Manifest from Org** or **SFDX: Retrieve Source in Manifest from Org** commands. 
 
