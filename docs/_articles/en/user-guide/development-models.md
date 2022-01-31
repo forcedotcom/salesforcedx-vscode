@@ -51,7 +51,7 @@ After connecting to a sandbox, DE org, or Trailhead Playground, use the package.
 
 ### Manifest Builder
 Automatically generate a manifest file for a given a set of metadata components instead of editing the package.xml file manually: 
-1.  In the Explorer view, right-click to select the files you want to use to generate the manifest.
+1.  In the Explorer view, right-click to select the components you want to use to generate the manifest.
 2. Run **SFDX: Generate Manifest File**
 3. Enter a unique name (without an xml extension) for the manifest file. 
 
