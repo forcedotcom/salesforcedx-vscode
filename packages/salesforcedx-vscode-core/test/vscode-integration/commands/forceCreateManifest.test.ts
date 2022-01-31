@@ -129,6 +129,28 @@ describe('Force Create Manifest', () => {
       expect(pathArg).to.contain('/manifest/package.xml');
     });
 
+    it('Should append correct extension', async () => {
+      const packageXML = util.format(APEX_MANIFEST, `<member>${CLASS_1}</member>\n<member>${CLASS_2}</member>\n`);
+      env.stub(ComponentSet, 'fromSource').returns({
+        getPackageXml: () => {
+          return packageXML;
+        }
+      });
+      env.stub(fs, 'existsSync')
+        .onFirstCall()
+        .returns(true)
+        .onSecondCall()
+        .returns(false);
+      env.stub(fs, 'writeFileSync').returns(undefined);
+      const packageName = 'package123.txt';
+      showInputBoxStub.onCall(0).returns(packageName);
+      await forceCreateManifest(URI_1, [URI_1, URI_2]);
+
+      expect(openTextDocumentSpy.calledOnce).to.equal(true);
+      const pathArg = openTextDocumentSpy.getCalls()[0].args[0];
+      expect(pathArg).to.contain('/manifest/package123.xml');
+    });
+
     it('Should not throw an exception for an empty xml', async () => {
       const packageXML = util.format(EMPTY_MANIFEST, '');
       env.stub(ComponentSet, 'fromSource').returns({

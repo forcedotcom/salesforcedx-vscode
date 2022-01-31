@@ -7,7 +7,7 @@
 
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
-import { join } from 'path';
+import { join, parse } from 'path';
 import { format } from 'util';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -28,10 +28,7 @@ export async function forceCreateManifest(
     const componentSet = ComponentSet.fromSource(sourcePaths);
     const inputOptions = {
         placeHolder: nls.localize('manifest_input_save_placeholder'),
-        prompt: nls.localize('manifest_input_save_prompt'),
-        validateInput: text => {
-          return text.toLowerCase().includes('.xml') ? nls.localize('manifest_input_save_prompt') : null;
-        }
+        prompt: nls.localize('manifest_input_save_prompt')
     } as vscode.InputBoxOptions;
     const responseText = await vscode.window.showInputBox(inputOptions);
     if (responseText === undefined) {
@@ -53,7 +50,7 @@ function openUntitledDocument(componentSet: ComponentSet) {
 }
 
 function saveDocument(response: string, componentSet: ComponentSet) {
-  const fileName = response ? response.concat('.xml') : DEFAULT_MANIFEST;
+  const fileName = response ? appendExtension(response) : DEFAULT_MANIFEST;
 
   const manifestPath = join(getRootWorkspacePath(), 'manifest');
   if (!fs.existsSync(manifestPath)) {
@@ -73,4 +70,8 @@ function checkForDuplicateManifest(saveLocation: string, fileName: string) {
     vscode.window.showErrorMessage(format(nls.localize('manifest_input_dupe_error'), fileName));
     throw new Error(format(nls.localize('manifest_input_dupe_error'), fileName));
   }
+}
+
+function appendExtension(input: string) {
+  return parse(input).name?.concat('.xml');
 }
