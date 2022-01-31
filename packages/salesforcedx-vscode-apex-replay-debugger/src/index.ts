@@ -83,6 +83,16 @@ function registerCommands(): vscode.Disposable {
       return launchFromLogFile(logFile);
     }
   );
+
+  const launchFromLogFilePathCmd = vscode.commands.registerCommand(
+    'sfdx.launch.replay.debugger.logfile.path',
+    logFilePath => {
+      if (logFilePath) {
+        launchFromLogFile(logFilePath, true);
+      }
+    }
+  );
+
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.last.logfile',
     lastLogFileUri => {
@@ -105,6 +115,7 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(
     promptForLogCmd,
     launchFromLogFileCmd,
+    launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
     sfdxCreateCheckpointsCmd,
     sfdxToggleCheckpointCmd
