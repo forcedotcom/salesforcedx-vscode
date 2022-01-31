@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -13,6 +13,8 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
 
+const DEFAULT_MANIFEST = 'package.xml';
+
 export async function forceCreateManifest(
   sourceUri: vscode.Uri,
   uris: vscode.Uri[] | undefined
@@ -25,18 +27,18 @@ export async function forceCreateManifest(
   if (sourcePaths) {
     const componentSet = ComponentSet.fromSource(sourcePaths);
     const inputOptions = {
-        placeHolder: nls.localize('manifest_editor_save_placeholder'),
-        prompt: nls.localize('manifest_editor_save_prompt'),
+        placeHolder: nls.localize('manifest_input_save_placeholder'),
+        prompt: nls.localize('manifest_input_save_prompt'),
         validateInput: text => {
-          return text.includes('.xml') ? 'Remove file extension' : null;
+          return text.toLowerCase().includes('.xml') ? nls.localize('manifest_input_save_prompt') : null;
         }
     } as vscode.InputBoxOptions;
-    const response = await vscode.window.showInputBox(inputOptions);
-    if (response === undefined) {
+    const responseText = await vscode.window.showInputBox(inputOptions);
+    if (responseText === undefined) {
       // Canceled and declined to name the document
       openUntitledDocument(componentSet);
     } else {
-      saveDocument(response, componentSet);
+      saveDocument(responseText, componentSet);
     }
   }
 }
@@ -51,7 +53,7 @@ function openUntitledDocument(componentSet: ComponentSet) {
 }
 
 function saveDocument(response: string, componentSet: ComponentSet) {
-  const fileName = response ? response.concat('.xml') : 'package.xml';
+  const fileName = response ? response.concat('.xml') : DEFAULT_MANIFEST;
 
   const manifestPath = join(getRootWorkspacePath(), 'manifest');
   if (!fs.existsSync(manifestPath)) {
@@ -68,7 +70,7 @@ function saveDocument(response: string, componentSet: ComponentSet) {
 
 function checkForDuplicateManifest(saveLocation: string, fileName: string) {
   if (fs.existsSync(saveLocation)) {
-    vscode.window.showErrorMessage(format(nls.localize('manifest_editor_dupe_error'), fileName));
-    throw new Error(format(nls.localize('manifest_editor_dupe_error'), fileName));
+    vscode.window.showErrorMessage(format(nls.localize('manifest_input_dupe_error'), fileName));
+    throw new Error(format(nls.localize('manifest_input_dupe_error'), fileName));
   }
 }

@@ -31,20 +31,16 @@ const manifest = `<?xml version="1.0" encoding="UTF-8"?>
   </types>
 </Package>`;
 
+const env = createSandbox();
+let openTextDocumentSpy: sinon.SinonSpy;
+let showInputBoxStub: sinon.SinonStub;
+
 describe('Force Create Manifest', () => {
-  describe('Happy Paths', () => {
-
-    let env: sinon.SinonSandbox;
-    let openDocSpy: sinon.SinonSpy;
-    let inputBoxSpy: sinon.SinonStub;
-
-    before(() => {
-      env = createSandbox();
-    });
+  describe('Happy Path Unit Tests', () => {
 
     beforeEach(() => {
-      inputBoxSpy = env.stub(vscode.window, 'showInputBox');
-      openDocSpy = env.spy(vscode.workspace, 'openTextDocument');
+      openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
+      showInputBoxStub = env.stub(vscode.window, 'showInputBox');
     });
 
     afterEach(() => {
@@ -62,10 +58,10 @@ describe('Force Create Manifest', () => {
       env.stub(fs, 'mkdirSync').returns(undefined);
       env.stub(fs, 'writeFileSync').returns(undefined);
       const packageName = 'package' + generateRandomSuffix() + '.xml';
-      inputBoxSpy.onCall(0).returns(packageName);
+      showInputBoxStub.onCall(0).returns(packageName);
       await forceCreateManifest(uri1, undefined);
 
-      expect(openDocSpy.calledOnce).to.equal(true);
+      expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
 
     it('Should create manifest from list of uris', async () => {
@@ -82,10 +78,10 @@ describe('Force Create Manifest', () => {
         .returns(false);
       env.stub(fs, 'writeFileSync').returns(undefined);
       const packageName = 'package' + generateRandomSuffix() + '.xml';
-      inputBoxSpy.onCall(0).returns(packageName);
+      showInputBoxStub.onCall(0).returns(packageName);
       await forceCreateManifest(uri1, [uri1, uri2]);
 
-      expect(openDocSpy.calledOnce).to.equal(true);
+      expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
 
     it('Should create but not save manifest if cancelled', async () => {
@@ -101,28 +97,20 @@ describe('Force Create Manifest', () => {
         .returns(true)
         .onSecondCall()
         .returns(false);
-      inputBoxSpy.onCall(0).returns(undefined);
+      showInputBoxStub.onCall(0).returns(undefined);
       await forceCreateManifest(uri1, [uri1, uri2]);
 
-      expect(openDocSpy.calledOnce).to.equal(true);
+      expect(openTextDocumentSpy.calledOnce).to.equal(true);
       expect(writeFileSpy.called).to.equal(false);
     });
 
   });
 
-  describe('Exception Handling', () => {
-
-    let env: sinon.SinonSandbox;
-    let openDocSpy: sinon.SinonSpy;
-    let inputBoxSpy: sinon.SinonStub;
-
-    before(() => {
-      env = createSandbox();
-    });
+  describe('Exception Handling Unit Tests', () => {
 
     beforeEach(() => {
-      inputBoxSpy = env.stub(vscode.window, 'showInputBox');
-      openDocSpy = env.spy(vscode.workspace, 'openTextDocument');
+      openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
+      showInputBoxStub = env.stub(vscode.window, 'showInputBox');
     });
 
     afterEach(() => {
@@ -142,7 +130,7 @@ describe('Force Create Manifest', () => {
         exceptionThrown = true;
       }
       expect(exceptionThrown).to.equal(true);
-      expect(openDocSpy.called).to.equal(false);
+      expect(openTextDocumentSpy.called).to.equal(false);
     });
 
     it('Should enforce unique manifest names', async () => {
@@ -154,7 +142,7 @@ describe('Force Create Manifest', () => {
       });
       env.stub(fs, 'existsSync').returns(true);
       const fileName = 'duplicatePackageName';
-      inputBoxSpy.resolves(fileName);
+      showInputBoxStub.resolves(fileName);
 
       let exceptionThrown = false;
       try {
@@ -164,7 +152,7 @@ describe('Force Create Manifest', () => {
         expect(e.message).to.contain(fileName);
       }
       expect(exceptionThrown).to.equal(true);
-      expect(openDocSpy.called).to.equal(false);
+      expect(openTextDocumentSpy.called).to.equal(false);
     });
   });
 
