@@ -161,6 +161,10 @@
           "command": "sfdx.force.conflict.open",
           "when": "view == conflicts && viewItem == conflict-actions",
           "group": "inline"
+        },
+        {
+          "command": "sfdx.create.manifest",
+          "when": "view == metadata && viewItem == component"
         }
       ],
       "editor/context": [
@@ -285,6 +289,10 @@
         {
           "command": "sfdx.force.function.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
+        {
+          "command": "sfdx.create.manifest",
+          "when": "sfdx:project_opened"
         }
       ],
       "commandPalette": [
@@ -403,6 +411,10 @@
         {
           "command": "sfdx.force.project.with.manifest.create",
           "when": "!sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.create.manifest",
+          "when": "false"
         },
         {
           "command": "sfdx.force.apex.trigger.create",
@@ -810,6 +822,10 @@
           "light": "resources/light/code.svg",
           "dark": "resources/dark/code.svg"
         }
+      },
+      {
+        "command": "sfdx.create.manifest",
+        "title": "%force_create_manifest%"
       },
       {
         "command": "sfdx.force.diff",

@@ -19,6 +19,7 @@ import {
   forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
+  forceCreateManifest,
   forceDataSoqlQuery,
   forceDebuggerStop,
   forceFunctionCreate,
@@ -513,6 +514,11 @@ async function setupOrgBrowser(
     async (trigger: RetrieveMetadataTrigger) => {
       await forceSourceRetrieveCmp(trigger, true);
     }
+  );
+
+  vscode.commands.registerCommand(
+    'sfdx.create.manifest',
+    forceCreateManifest
   );
 }
 
