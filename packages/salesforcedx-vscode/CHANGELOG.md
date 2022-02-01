@@ -1,3 +1,29 @@
+# 53.14.1 - January 19, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Backend changes to set up Anonymous Apex in replay debugging ([PR #3758](https://github.com/forcedotcom/salesforcedx-vscode/pull/3758))
+
+# 53.13.0 - January 13, 2022
+
+## Added
+
+#### salesforcedx-vscode-apex
+
+- Identify test class from uri ([PR #3751](https://github.com/forcedotcom/salesforcedx-vscode/pull/3751))
+
+## Fixed
+
+#### docs
+
+- Updates to reflect runtime restrictions ([PR #3741](https://github.com/forcedotcom/salesforcedx-vscode/pull/3741))
+
+#### salesforcedx-vscode-apex
+
+- Prevent local java runtime in project ([PR #3730](https://github.com/forcedotcom/salesforcedx-vscode/pull/3730))
+
 # 53.12.0 - January 5, 2022
 
 ## Added

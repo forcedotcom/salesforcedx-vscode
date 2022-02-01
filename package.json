@@ -15,16 +15,16 @@
     "ncp": "^2.0.0",
     "prettier": "1.19.1",
     "remap-istanbul": "^0.13.0",
-    "shelljs": "0.8.3",
-    "shx": "0.2.2",
+    "shelljs": "0.8.5",
+    "shx": "0.3.4",
     "snyk": "^1.364.0",
     "ts-loader": "5.4.5",
     "tslint": "5.5.0",
     "typescript": "3.8.3",
-    "vsce": "1.62.0",
-    "vscode-test": "1.4.0",
+    "vsce": "1.103.1",
+    "vscode-test": "1.6.1",
     "webpack": "4.30.0",
-    "webpack-cli": "3.3.5"
+    "webpack-cli": "3.3.12"
   },
   "name": "salesforcedx-vscode",
   "scripts": {
@@ -67,7 +67,7 @@
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node": "12.4.0",
+    "node": "12.22.9",
     "npm": "^6.9.0"
   },
   "husky": {
