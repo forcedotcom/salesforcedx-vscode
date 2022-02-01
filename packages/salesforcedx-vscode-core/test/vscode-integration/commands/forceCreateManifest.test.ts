@@ -126,7 +126,7 @@ describe('Force Create Manifest', () => {
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
       const pathArg = openTextDocumentSpy.getCalls()[0].args[0];
-      expect(pathArg).to.contain('/manifest/package.xml');
+      expect(pathArg).to.contain('package.xml');
     });
 
     it('Should append correct extension', async () => {
@@ -142,13 +142,14 @@ describe('Force Create Manifest', () => {
         .onSecondCall()
         .returns(false);
       env.stub(fs, 'writeFileSync').returns(undefined);
-      const packageName = 'package123.txt';
+      const randomSuffix = generateRandomSuffix();
+      const packageName = 'package' + randomSuffix + '.txt';
       showInputBoxStub.onCall(0).returns(packageName);
       await forceCreateManifest(URI_1, [URI_1, URI_2]);
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
       const pathArg = openTextDocumentSpy.getCalls()[0].args[0];
-      expect(pathArg).to.contain('/manifest/package123.xml');
+      expect(pathArg).to.contain('package' + randomSuffix + '.xml');
     });
 
     it('Should not throw an exception for an empty xml', async () => {
