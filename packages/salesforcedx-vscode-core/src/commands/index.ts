@@ -150,6 +150,9 @@ export {
   forceSourceFolderDiff,
   handleCacheResults
 } from './forceSourceDiff';
+export {
+  forceCreateManifest
+} from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';
