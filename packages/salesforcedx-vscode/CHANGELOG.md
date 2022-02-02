@@ -1,3 +1,15 @@
+# 53.16.0 - February 2, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- The new Manifest Builder feature has been added to automatically generate a manifest file for a given set of metadata components instead of editing the package.xml file manually ([PR #3784](https://github.com/forcedotcom/salesforcedx-vscode/pull/3784))
+
+#### docs
+
+- Updated development-models.md with a new section on Manifest Builder ([PR #3788](https://github.com/forcedotcom/salesforcedx-vscode/pull/3788))
+
 # 53.14.1 - January 19, 2022
 
 ## Fixed
