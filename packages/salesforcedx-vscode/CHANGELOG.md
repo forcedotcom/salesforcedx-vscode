@@ -1,3 +1,21 @@
+# 53.16.0 - February 2, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Manifest builder ([PR #3784](https://github.com/forcedotcom/salesforcedx-vscode/pull/3784))
+
+## Fixed
+
+#### docs
+
+- Update development-models.md ([PR #3788](https://github.com/forcedotcom/salesforcedx-vscode/pull/3788))
+
+#### salesforcedx-vscode-soql
+
+- Chore(deps-dev): bump webpack-cli from 3.3.5 to 3.3.12 ([PR #3769](https://github.com/forcedotcom/salesforcedx-vscode/pull/3769))
+
 # 53.14.1 - January 19, 2022
 
 ## Fixed
