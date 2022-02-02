@@ -4,17 +4,11 @@
 
 #### salesforcedx-vscode-core
 
-- Manifest builder ([PR #3784](https://github.com/forcedotcom/salesforcedx-vscode/pull/3784))
-
-## Fixed
+- The new Manifest Builder feature has been added to automatically generate a manifest file for a given set of metadata components instead of editing the package.xml file manually ([PR #3784](https://github.com/forcedotcom/salesforcedx-vscode/pull/3784))
 
 #### docs
 
-- Update development-models.md ([PR #3788](https://github.com/forcedotcom/salesforcedx-vscode/pull/3788))
-
-#### salesforcedx-vscode-soql
-
-- Chore(deps-dev): bump webpack-cli from 3.3.5 to 3.3.12 ([PR #3769](https://github.com/forcedotcom/salesforcedx-vscode/pull/3769))
+- Updated development-models.md with a new section on Manifest Builder ([PR #3788](https://github.com/forcedotcom/salesforcedx-vscode/pull/3788))
 
 # 53.14.1 - January 19, 2022
 
