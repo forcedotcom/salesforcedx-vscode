@@ -9,7 +9,8 @@ import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  fileExtensionsMatch
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
@@ -66,16 +67,11 @@ export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
 }
 
 function isLogFile(sourceUri: vscode.Uri): boolean {
-  return fileExtensionMatches(sourceUri, 'log');
+  return fileExtensionsMatch(sourceUri, 'log');
 }
 
 function isAnonymousApexFile(sourceUri: vscode.Uri): boolean {
-  return fileExtensionMatches(sourceUri, 'apex');
-}
-
-function fileExtensionMatches(sourceUri: vscode.Uri, targetExtension: string): boolean {
-  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
-  return extension === targetExtension.toLowerCase();
+  return fileExtensionsMatch(sourceUri, 'apex');
 }
 
 async function launchReplayDebuggerLogFile(sourceUri: vscode.Uri) {
