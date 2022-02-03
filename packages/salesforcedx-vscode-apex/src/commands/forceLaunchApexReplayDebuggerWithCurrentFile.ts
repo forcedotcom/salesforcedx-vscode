@@ -27,7 +27,7 @@ import {
   forceAnonApexDebug
 } from './forceAnonApexExecute';
 
-export async function forceLaunchReplayDebugger() {
+export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     notificationService.showErrorMessage(
@@ -44,7 +44,12 @@ export async function forceLaunchReplayDebugger() {
     return;
   }
 
-  if (fileIsAnonymousApex(sourceUri)) {
+  if (isLogFile(sourceUri)) {
+    await launchReplayDebuggerLogFile(sourceUri);
+    return;
+  }
+
+  if (isAnonymousApexFile(sourceUri)) {
     await launchAnonymousApexReplayDebugger();
     return;
   }
@@ -56,13 +61,30 @@ export async function forceLaunchReplayDebugger() {
   }
 
   notificationService.showErrorMessage(
-    nls.localize('command_available_for_anon_apex_or_apex_test_only')
+    nls.localize('launch_apex_replay_debugger_unsupported_file')
   );
 }
 
-function fileIsAnonymousApex(sourceUri: vscode.Uri): boolean {
+function isLogFile(sourceUri: vscode.Uri): boolean {
+  return fileExtensionMatches(sourceUri, 'log');
+}
+
+function isAnonymousApexFile(sourceUri: vscode.Uri): boolean {
+  return fileExtensionMatches(sourceUri, 'apex');
+}
+
+function fileExtensionMatches(sourceUri: vscode.Uri, targetExtension: string): boolean {
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();
-  return extension === 'apex';
+  return extension === targetExtension.toLowerCase();
+}
+
+async function launchReplayDebuggerLogFile(sourceUri: vscode.Uri) {
+  await vscode.commands.executeCommand(
+    'sfdx.launch.replay.debugger.logfile',
+    {
+      fsPath: sourceUri.fsPath
+    }
+  );
 }
 
 async function getApexTestClassName(sourceUri: vscode.Uri): Promise<string | undefined> {

@@ -191,6 +191,10 @@
         {
           "command": "sfdx.force.diff",
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ],
       "explorer/context": [
@@ -553,8 +557,8 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.launch.replay.debugger",
-          "when": "sfdx:project_opened && editorLangId == 'apex'"
+          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ]
     },
@@ -856,8 +860,8 @@
         "title": "%force_sobjects_refresh%"
       },
       {
-        "command": "sfdx.force.launch.replay.debugger",
-        "title": "%force_launch_apex_replay_debugger_with_selected_file%"
+        "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+        "title": "%force_launch_apex_replay_debugger_with_current_file%"
       }
     ],
     "configuration": {

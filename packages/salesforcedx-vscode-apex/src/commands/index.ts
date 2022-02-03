@@ -21,4 +21,4 @@ export {
   forceAnonApexDebug
 } from './forceAnonApexExecute';
 export { forceApexTestSuiteAdd, forceApexTestSuiteCreate, forceApexTestSuiteRun } from './forceApexTestSuite';
-export { forceLaunchReplayDebugger } from './forceLaunchReplayDebugger';
+export { forceLaunchApexReplayDebuggerWithCurrentFile } from './forceLaunchApexReplayDebuggerWithCurrentFile';

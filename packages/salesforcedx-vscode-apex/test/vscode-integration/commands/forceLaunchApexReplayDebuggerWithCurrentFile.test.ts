@@ -10,7 +10,7 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/s
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import { forceLaunchReplayDebugger } from '../../../src/commands/forceLaunchReplayDebugger';
+import { forceLaunchApexReplayDebuggerWithCurrentFile } from '../../../src/commands/forceLaunchApexReplayDebuggerWithCurrentFile';
 import { nls } from '../../../src/messages';
 import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider';
 
@@ -36,7 +36,7 @@ describe('Force Launch Replay Debugger', () => {
       'showErrorMessage'
     );
 
-    await forceLaunchReplayDebugger();
+    await forceLaunchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
@@ -57,7 +57,7 @@ describe('Force Launch Replay Debugger', () => {
       'showErrorMessage'
     );
 
-    await forceLaunchReplayDebugger();
+    await forceLaunchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
@@ -65,7 +65,7 @@ describe('Force Launch Replay Debugger', () => {
     ).to.equal(true);
   });
 
-  it('should return an error when the file type is not anon apex and is not an apex test class', async () => {
+  it('should return an error when not a log file, not an anon apex file, and not an apex test class', async () => {
     sb.stub(vscode.window, 'activeTextEditor')
       .get(() => ({
         document: {
@@ -84,15 +84,33 @@ describe('Force Launch Replay Debugger', () => {
     sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName')
       .returns(undefined);
 
-    await forceLaunchReplayDebugger();
+    await forceLaunchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
-      showErrorMessageStub.calledWith(nls.localize('command_available_for_anon_apex_or_apex_test_only'))
+      showErrorMessageStub.calledWith(nls.localize('launch_apex_replay_debugger_unsupported_file'))
     ).to.equal(true);
   });
 
-  it('should call SfdxCommandlet.run() if file is anon apex', async () => {
+  it('should call executeCommand() if file is a log file', async () => {
+    sb.stub(vscode.window, 'activeTextEditor')
+      .get(() => ({
+        document: {
+          uri: vscode.Uri.file('foo.log')
+        }
+      }));
+
+    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+
+    await forceLaunchApexReplayDebuggerWithCurrentFile();
+
+    expect(executeCommandSpy.called).to.equal(true);
+    expect(
+      executeCommandSpy.calledWith('sfdx.launch.replay.debugger.logfile')
+    ).to.equal(true);
+  });
+
+  it('should call SfdxCommandlet.run() if file is an anon apex file', async () => {
     sb.stub(vscode.window, 'activeTextEditor')
       .get(() => ({
         document: {
@@ -103,12 +121,12 @@ describe('Force Launch Replay Debugger', () => {
     const runStub = sb.stub(SfdxCommandlet.prototype, 'run')
       .returns(undefined);
 
-    await forceLaunchReplayDebugger();
+    await forceLaunchApexReplayDebuggerWithCurrentFile();
 
     expect(runStub.called).to.equal(true);
   });
 
-  it('should execute the sfdx.force.test.view.debugTests command if file is an apex test class', async () => {
+  it('should call executeCommand if file is an apex test class', async () => {
     sb.stub(vscode.window, 'activeTextEditor')
       .get(() => ({
         document: {
@@ -125,14 +143,13 @@ describe('Force Launch Replay Debugger', () => {
     sb.stub(SfdxCommandlet.prototype, 'run')
       .returns(undefined);
 
-    const executeCommandStub = sb.stub(vscode.commands, 'executeCommand')
-      .returns(undefined);
+    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
 
-    await forceLaunchReplayDebugger();
+    await forceLaunchApexReplayDebuggerWithCurrentFile();
 
-    expect(executeCommandStub.called).to.equal(true);
+    expect(executeCommandSpy.called).to.equal(true);
     expect(
-      executeCommandStub.calledWith('sfdx.force.test.view.debugTests')
+      executeCommandSpy.calledWith('sfdx.force.test.view.debugTests')
     ).to.equal(true);
   });
 });
