@@ -7,10 +7,10 @@
 
 import {
   EmptyParametersGatherer,
+  fileExtensionsMatch,
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SfdxWorkspaceChecker,
-  fileExtensionsMatch
+  SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
