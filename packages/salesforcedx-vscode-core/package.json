@@ -25,7 +25,7 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.0.7",
+    "@heroku/functions-core": "0.2.3",
     "@salesforce/core": "2.28.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "53.16.0",
     "@salesforce/salesforcedx-utils-vscode": "53.16.0",
