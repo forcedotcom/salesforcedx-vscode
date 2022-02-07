@@ -64,20 +64,20 @@ export class QuickLaunch {
       }
     }
 
-    const testResult = await this.runSingleTest(
+    const testResult = await this.runTests(
       connection,
       testClass,
       testName
     );
 
     if (testResult.success && testResult.logFileId) {
-      const logFileRetrive = await this.retrieveLogFile(
+      const logFileRetrieve = await this.retrieveLogFile(
         connection,
         testResult.logFileId
       );
 
-      if (logFileRetrive.success && logFileRetrive.filePath) {
-        launchFromLogFile(logFileRetrive.filePath, false);
+      if (logFileRetrieve.success && logFileRetrieve.filePath) {
+        launchFromLogFile(logFileRetrieve.filePath, false);
         return true;
       }
     } else if (testResult.message) {
@@ -86,7 +86,7 @@ export class QuickLaunch {
     return false;
   }
 
-  private async runSingleTest(
+  private async runTests(
     connection: Connection,
     testClass: string,
     testMethod?: string

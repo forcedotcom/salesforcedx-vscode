@@ -11,9 +11,10 @@ import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
 import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
+  forceAnonApexDebug,
+  forceAnonApexExecute,
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
-  forceApexExecute,
   forceApexLogGet,
   forceApexTestClassRunCodeAction,
   forceApexTestClassRunCodeActionDelegate,
@@ -22,7 +23,8 @@ import {
   forceApexTestRun,
   forceApexTestSuiteAdd,
   forceApexTestSuiteCreate,
-  forceApexTestSuiteRun
+  forceApexTestSuiteRun,
+  forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
 import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
 import { workspaceContext } from './context';
@@ -37,14 +39,13 @@ import {
 import * as languageServer from './languageServer';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
-import { ApexTestOutlineProvider } from './views/testOutlineProvider';
+import { testOutlineProvider } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 let languageClient: LanguageClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const testOutlineProvider = new ApexTestOutlineProvider(null);
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = getTestResultsFolder(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
@@ -124,7 +125,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const commands = registerCommands(context);
   context.subscriptions.push(commands);
 
-  context.subscriptions.push(await registerTestView(testOutlineProvider));
+  context.subscriptions.push(await registerTestView());
 
   const exportedApi = {
     getLineBreakpointInfo,
@@ -173,9 +174,13 @@ function registerCommands(
     'sfdx.force.apex.debug.method.run.delegate',
     forceApexDebugMethodRunCodeActionDelegate
   );
-  const forceApexAnonRunDelegateCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.anon.run.delegate',
-    () => forceApexExecute(false)
+  const forceAnonApexRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.run.delegate',
+    forceAnonApexExecute
+  );
+  const forceAnonApexDebugDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.debug.delegate',
+    forceAnonApexDebug
   );
   const forceApexLogGetCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.log.get',
@@ -205,20 +210,32 @@ function registerCommands(
     'sfdx.force.apex.test.run',
     forceApexTestRun
   );
-  const forceApexExecuteDocumentCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.execute.document',
-    () => forceApexExecute(false)
+  const forceAnonApexExecuteDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.execute.document',
+    forceAnonApexExecute
   );
-  const forceApexExecuteSelectionCmd = vscode.commands.registerCommand(
-    'sfdx.force.apex.execute.selection',
-    () => forceApexExecute(false)
+  const forceAnonApexDebugDocumentCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.debug.document',
+    forceAnonApexDebug
   );
+  const forceAnonApexExecuteSelectionCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.execute.selection',
+    forceAnonApexExecute
+  );
+  const forceLaunchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
+    'sfdx.force.launch.apex.replay.debugger.with.current.file',
+    forceLaunchApexReplayDebuggerWithCurrentFile
+  );
+
   return vscode.Disposable.from(
     forceApexDebugClassRunDelegateCmd,
     forceApexDebugMethodRunDelegateCmd,
-    forceApexAnonRunDelegateCmd,
-    forceApexExecuteDocumentCmd,
-    forceApexExecuteSelectionCmd,
+    forceAnonApexRunDelegateCmd,
+    forceAnonApexDebugDelegateCmd,
+    forceAnonApexExecuteDocumentCmd,
+    forceAnonApexExecuteSelectionCmd,
+    forceAnonApexDebugDocumentCmd,
+    forceLaunchApexReplayDebuggerWithCurrentFileCmd,
     forceApexLogGetCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,
@@ -235,7 +252,6 @@ function registerCommands(
 }
 
 async function registerTestView(
-  testOutlineProvider: ApexTestOutlineProvider
 ): Promise<vscode.Disposable> {
   // Create TestRunner
   const testRunner = new ApexTestRunner(testOutlineProvider);

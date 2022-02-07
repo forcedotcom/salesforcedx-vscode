@@ -3,7 +3,6 @@
   "launch_snippet_label_text": "Apex Replay Debugger: 起動",
   "launch_snippet_description_text": "Apex Replay Debugger を起動するための新しい構成",
   "launch_snippet_name": "Apex Replay Debugger を起動",
-  "launch_from_log_file": "SFDX: 現在のファイルで Apex Replay Debugger を起動",
   "launch_from_last_log_file": "SFDX: 最新のログファイルで Apex Replay Debugger を起動",
   "logfile_text": "ワークスペースフォルダ内の Apex デバッグログファイル(*.log) のパス。",
   "stop_on_entry_text": "起動後にデバッガを停止する。もし false に設定した場合、デバッガはブレークポイントにヒットするまで実行されます。",

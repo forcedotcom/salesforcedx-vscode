@@ -20,7 +20,6 @@ export {
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
 export { SfdxCommandlet } from './commands/sfdxCommandlet';
-export { TraceFlags } from './helpers/traceFlags';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export { OrgInfo, WorkspaceContextUtil, getLogDirPath } from './context/workspaceContextUtil';
 export {
@@ -30,6 +29,11 @@ export {
   Properties,
   Measurements
 } from './telemetry/telemetry';
+export {
+  getRelativeProjectPath,
+  fileExtensionsMatch
+} from './helpers';
+export { TraceFlags } from './helpers/traceFlags';
 export { TelemetryReporter } from './telemetry/telemetryReporter';
 export {
   hasRootWorkspace,
@@ -37,4 +41,3 @@ export {
   getRootWorkspacePath,
   getRootWorkspaceSfdxPath
 } from './workspaces';
-export { getRelativeProjectPath } from './helpers';

@@ -31,9 +31,9 @@ export const messages = {
     'このファイルでコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-core.retrieve-test-code-coverage" を true に設定してください。次に、このファイルを含むApex テストを実行してください。Apex テストのサイドバーまたは、ファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行できます。',
   colorizer_statusbar_hover_text: 'Apex コードカバレッジを強調表示',
   force_sobjects_refresh: 'SFDX: SObject の定義を更新',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   force_apex_log_get_text: 'SFDX: Apex デバッグログを取得',
   force_apex_log_get_no_logs_text: 'Apex デバッグログが見つかりませんでした。',

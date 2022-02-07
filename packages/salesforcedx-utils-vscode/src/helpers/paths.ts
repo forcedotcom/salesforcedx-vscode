@@ -7,6 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -55,4 +56,9 @@ export function getRelativeProjectPath(
     }
   }
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
+}
+
+export function fileExtensionsMatch(sourceUri: vscode.Uri, targetExtension: string): boolean {
+  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
+  return extension === targetExtension.toLowerCase();
 }

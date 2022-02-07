@@ -110,10 +110,6 @@
           "when": "sfdx:project_opened && editorLangId == 'apex'"
         },
         {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
-        },
-        {
           "command": "sfdx.launch.replay.debugger.last.logfile",
           "when": "sfdx:project_opened && !inDebugMode"
         },
@@ -144,18 +140,6 @@
           "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
-      ],
-      "editor/context": [
-        {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
-        }
       ]
     },
     "commands": [
@@ -171,10 +155,6 @@
           "dark": "images/dark/cloud-upload.svg"
         },
         "when": "sfdx:project_opened"
-      },
-      {
-        "command": "sfdx.launch.replay.debugger.logfile",
-        "title": "%launch_from_log_file%"
       },
       {
         "command": "sfdx.launch.replay.debugger.last.logfile",

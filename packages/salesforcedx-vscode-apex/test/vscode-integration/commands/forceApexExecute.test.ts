@@ -19,8 +19,8 @@ import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
   AnonApexGatherer,
-  ApexLibraryExecuteExecutor
-} from '../../../src/commands/forceApexExecute';
+  AnonApexLibraryExecuteExecutor
+} from '../../../src/commands/forceAnonApexExecute';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
@@ -177,13 +177,13 @@ describe('Force Apex Execute', () => {
         'showChannelOutput'
       );
       setDiagnosticStub = sb.stub(
-        ApexLibraryExecuteExecutor.diagnostics,
+        AnonApexLibraryExecuteExecutor.diagnostics,
         'set'
       );
     });
 
     it('should format result correctly for a successful execution', async () => {
-      const executor = new ApexLibraryExecuteExecutor(true);
+      const executor = new AnonApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: true,
@@ -214,7 +214,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should format result correctly for a compilation failure', async () => {
-      const executor = new ApexLibraryExecuteExecutor(true);
+      const executor = new AnonApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: false,
         success: false,
@@ -240,7 +240,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should format result correctly for a runtime failure', async () => {
-      const executor = new ApexLibraryExecuteExecutor(true);
+      const executor = new AnonApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: false,
@@ -275,7 +275,7 @@ describe('Force Apex Execute', () => {
     });
 
     it('should translate result line position correctly for a selected text failure', async () => {
-      const executor = new ApexLibraryExecuteExecutor(true);
+      const executor = new AnonApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: false,
@@ -320,7 +320,7 @@ describe('Force Apex Execute', () => {
   });
 
   describe('Report Diagnostics', () => {
-    const executor = new ApexLibraryExecuteExecutor(true);
+    const executor = new AnonApexLibraryExecuteExecutor(true);
     const file = '/test';
     const defaultResponse = {
       compiled: true,
@@ -343,7 +343,7 @@ describe('Force Apex Execute', () => {
 
     beforeEach(() => {
       setDiagnosticStub = sb.stub(
-        ApexLibraryExecuteExecutor.diagnostics,
+        AnonApexLibraryExecuteExecutor.diagnostics,
         'set'
       );
       executeStub = sb
@@ -353,7 +353,7 @@ describe('Force Apex Execute', () => {
 
     it('should clear diagnostics before setting new ones', async () => {
       const clearStub = sb.stub(
-        ApexLibraryExecuteExecutor.diagnostics,
+        AnonApexLibraryExecuteExecutor.diagnostics,
         'clear'
       );
 
@@ -508,13 +508,13 @@ describe('Force Apex Execute', () => {
         'showChannelOutput'
       );
       setDiagnosticStub = sb.stub(
-        ApexLibraryExecuteExecutor.diagnostics,
+        AnonApexLibraryExecuteExecutor.diagnostics,
         'set'
       );
     });
 
-    it('should set up trace flags and run the Apex replay debugger when ApexLibraryExecuteExecutor(true) runs', async () => {
-      const executor = new ApexLibraryExecuteExecutor(true);
+    it('should set up trace flags and run the Apex replay debugger when AnonApexLibraryExecuteExecutor(true) runs', async () => {
+      const executor = new AnonApexLibraryExecuteExecutor(true);
       const execAnonResponse = {
         compiled: true,
         success: true,
@@ -545,8 +545,8 @@ describe('Force Apex Execute', () => {
       expect(executeCommandStub.called).to.be.true;
     });
 
-    it('should not set up trace flags and should not run the Apex replay debugger when ApexLibraryExecuteExecutor(false) runs', async () => {
-      const executor = new ApexLibraryExecuteExecutor(false);
+    it('should not set up trace flags and should not run the Apex replay debugger when AnonApexLibraryExecuteExecutor(false) runs', async () => {
+      const executor = new AnonApexLibraryExecuteExecutor(false);
       const execAnonResponse = {
         compiled: true,
         success: true,
