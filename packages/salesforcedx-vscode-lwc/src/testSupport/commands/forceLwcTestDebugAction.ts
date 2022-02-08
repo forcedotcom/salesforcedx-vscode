@@ -128,6 +128,10 @@ export function handleDidStartDebugSession(session: vscode.DebugSession) {
  * @param session debug session
  */
 export function handleDidTerminateDebugSession(session: vscode.DebugSession) {
+
+  // jab
+  // debugger;
+
   const { configuration } = session;
   const startTime = debugSessionStartTimes.get(
     configuration.sfdxDebugSessionId

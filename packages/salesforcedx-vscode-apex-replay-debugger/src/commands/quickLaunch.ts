@@ -23,7 +23,7 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/s
 import { getTestResultsFolder, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
-import { workspace } from 'vscode';
+import * as vscode from 'vscode';
 import { sfdxCreateCheckpoints } from '../breakpoints';
 import { checkpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -49,10 +49,31 @@ export class QuickLaunch {
     testName?: string
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
-    const flags = new TraceFlags(connection);
-    if (!(await flags.ensureTraceFlags())) {
+
+    const traceFlags = new TraceFlags(connection);
+    if (!(await traceFlags.ensureTraceFlags())) {
       return false;
     }
+
+    // if (!(await this.setUpTraceFlags(connection))) {
+    //   return false;
+    // }
+
+    /*
+    debugger;
+    try {
+      // three-b...works!
+      vscode.debug.onDidTerminateDebugSession(() => {
+
+        // jab
+        debugger;
+
+        traceFlags.deleteNewTraceFlagRecord();
+      });
+    } catch(e) {
+      debugger;
+    }
+    */
 
     const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(
       true
@@ -86,6 +107,27 @@ export class QuickLaunch {
     return false;
   }
 
+  private async setUpTraceFlags(connection: Connection): Promise<boolean> {
+
+    // jab
+    // debugger;
+
+    const traceFlags = new TraceFlags(connection);
+    if (!(await traceFlags.ensureTraceFlags())) {
+      return false;
+    }
+
+    // vscode.debug.onDidTerminateDebugSession(() => {
+
+    //   // jab
+    //   debugger;
+
+    //   traceFlags.deleteNewTraceFlagRecord();
+    // });
+
+    return true;
+  }
+
   private async runTests(
     connection: Connection,
     testClass: string,
@@ -102,7 +144,7 @@ export class QuickLaunch {
         payload,
         true
       )) as TestResult;
-      if (workspace && workspace.workspaceFolders) {
+      if (vscode.workspace && vscode.workspace.workspaceFolders) {
         const apexTestResultsPath = getTestResultsFolder(
           getRootWorkspacePath(),
           'apex'

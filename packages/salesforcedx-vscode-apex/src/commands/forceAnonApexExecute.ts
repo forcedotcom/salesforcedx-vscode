@@ -121,10 +121,30 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 
   private async setUpTraceFlags(connection: Connection): Promise<boolean> {
+
+    // jab
+    // debugger;
+
     const traceFlags = new TraceFlags(connection);
     if (!(await traceFlags.ensureTraceFlags())) {
       return false;
     }
+
+    /*
+    debugger;
+    try {
+      // three-a
+      vscode.debug.onDidTerminateDebugSession(() => {
+
+        // jab
+        debugger;
+
+        traceFlags.deleteNewTraceFlagRecord();
+      });
+    } catch(e) {
+      debugger;
+    }
+    */
 
     return true;
   }
