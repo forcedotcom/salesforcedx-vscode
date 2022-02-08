@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { removeNewTraceFlagsFunc, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { removeNewTraceFlagsFunc, removeNewTraceFlagsFunc2, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -222,11 +222,15 @@ export class FunctionService {
         // await removeNewTraceFlagsFunc();
 
         // @ts-ignore
-        (async () => {
-          const foo = await removeNewTraceFlagsFunc();
-        })()
-        .then(() => {})
-        .catch(() => {});
+        // (async () => {
+        //   const foo = await removeNewTraceFlagsFunc();
+        // })()
+        // .then(() => {})
+        // .catch(() => {});
+
+        // debugger;
+
+        removeNewTraceFlagsFunc2();
       }
     );
     context.subscriptions.push(

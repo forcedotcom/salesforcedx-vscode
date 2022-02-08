@@ -45,6 +45,14 @@ export class TraceFlags {
 
   constructor(connection: Connection) {
     this.connection = connection;
+
+    if (!_connection) {
+      _connection = connection;
+    } else {
+      if (_connection !== connection) {
+        // debugger;
+      }
+    }
   }
 
   public async ensureTraceFlags(): Promise<boolean> {
@@ -173,9 +181,9 @@ export class TraceFlags {
 
       // debugger;
 
-      _connection = this.connection;
+      // _connection = this.connection;
 
-      // newTraceFlagIds.push(result.id);
+      newTraceFlagIds.push(result.id);
 
       /*
       debugger;
@@ -331,6 +339,18 @@ export async function removeNewTraceFlagsFunc() {
 
   // debugger;
 
+}
+
+export function removeNewTraceFlagsFunc2() {
+
+  // debugger;
+
+  while (newTraceFlagIds.length > 0) {
+    const newTraceFlagId = newTraceFlagIds.pop();
+    if (newTraceFlagId) {
+      const result = _connection!.tooling.delete('TraceFlag', newTraceFlagId);
+    }
+  }
 }
 
 /*

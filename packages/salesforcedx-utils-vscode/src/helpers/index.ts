@@ -19,4 +19,4 @@ export {
   getRelativeProjectPath,
   fileExtensionsMatch
 } from './paths';
-export { TraceFlags, removeNewTraceFlagsFunc } from './traceFlags';
+export { removeNewTraceFlagsFunc, removeNewTraceFlagsFunc2, TraceFlags } from './traceFlags';
