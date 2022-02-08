@@ -35,6 +35,8 @@ interface DataRecordResult {
 }
 
 const newTraceFlagIds = new Array<string>();
+let _connection: Connection | undefined = undefined;
+
 
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
@@ -171,6 +173,8 @@ export class TraceFlags {
       this.newTraceFlagId = result.id;
 
       // debugger;
+
+      _connection = this.connection;
 
       // newTraceFlagIds.push(result.id);
 
@@ -311,6 +315,24 @@ export async function removeNewTraceFlagsFunc() {
 
   debugger;
   */
+
+
+  // const workspaceContext = WorkspaceContextUtil.getInstance();
+  // const connection = await workspaceContext.getConnection();
+
+  while (newTraceFlagIds.length > 0) {
+
+    // jab
+    // debugger;
+
+    const newTraceFlagId = newTraceFlagIds.pop();
+    if (newTraceFlagId) {
+      const result = await _connection!.tooling.delete('TraceFlag', newTraceFlagId);
+    }
+  }
+
+  debugger;
+
 
 }
 
