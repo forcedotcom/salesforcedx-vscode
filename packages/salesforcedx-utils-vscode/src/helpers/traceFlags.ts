@@ -37,7 +37,6 @@ interface DataRecordResult {
 const newTraceFlagIds = new Array<string>();
 let _connection: Connection | undefined = undefined;
 
-
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
   private readonly MILLISECONDS_PER_MINUTE = 60000;
@@ -316,7 +315,6 @@ export async function removeNewTraceFlagsFunc() {
   debugger;
   */
 
-
   // const workspaceContext = WorkspaceContextUtil.getInstance();
   // const connection = await workspaceContext.getConnection();
 
@@ -332,7 +330,6 @@ export async function removeNewTraceFlagsFunc() {
   }
 
   debugger;
-
 
 }
 
