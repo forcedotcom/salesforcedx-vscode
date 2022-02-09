@@ -10,7 +10,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "2.28.0",
+    "@salesforce/core": "2.35.0",
     "applicationinsights": "1.0.7",
     "cross-spawn": "6.0.5",
     "rxjs": "^5.4.1",
