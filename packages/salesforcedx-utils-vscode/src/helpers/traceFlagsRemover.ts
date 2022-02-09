@@ -7,7 +7,7 @@
 import { Connection } from '@salesforce/core';
 
 /**
- * TraceFlagsRemover is a singleton which deletes trace flags not created by the user.
+ * TraceFlagsRemover is a singleton which deletes trace flags created by the extensions.
  */
 export class TraceFlagsRemover {
   private static _instance: TraceFlagsRemover | undefined;
