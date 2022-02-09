@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2022, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { expect } from 'chai';
+import * as proxyquire from 'proxyquire';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { vscodeStub } from '../commands/mocks';
+
+const { TraceFlagsRemover } = proxyquire.noCallThru()(
+  '../../../src/helpers',
+  {
+    vscode: vscodeStub
+  }
+);
+
+const $$ = testSetup();
+
+describe('Trace Flags Remover', () => {
+  const testData = new MockTestOrgData();
+  let mockConnection: Connection;
+  let sb: SinonSandbox;
+
+  beforeEach(async () => {
+    sb = createSandbox();
+    $$.setConfigStubContents('AuthInfoConfig', {
+      contents: await testData.getConfig()
+    });
+    mockConnection = await Connection.create({
+      authInfo: await AuthInfo.create({
+        username: testData.username
+      })
+    });
+    sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
+      .withArgs('defaultusername')
+      .returns(testData.username);
+  });
+
+  afterEach(() => {
+    sb.restore();
+  });
+
+  it('should validate that a connection must be present when created', () => {
+    try {
+      TraceFlagsRemover.resetInstance();
+      TraceFlagsRemover.getInstance(undefined);
+      expect.fail('TraceFlagsRemover.getInstance() should have thrown an error');
+    } catch (err) {
+      expect(err.message).to.equal(
+        'connection passed to TraceFlagsRemover is invalid'
+      );
+    }
+  });
+
+  it('should validate that an instance is created when a connection is passed', () => {
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
+    expect(instance).not.to.be.undefined;
+  });
+
+  it('should validate that connection.tooling.delete is called when a new trace flag is added', async () => {
+    let toolingDeleteStub: SinonStub;
+    toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
+
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
+    instance.addNewTraceFlagId("123");
+
+    await instance.removeNewTraceFlags();
+
+    expect(toolingDeleteStub.called).to.equal(true);
+    expect(1).to.equal(1);
+  });
+
+  it('should delete multiple trace flags', async () => {
+    let toolingDeleteStub: SinonStub;
+    toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
+
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
+    instance.addNewTraceFlagId("123");
+    instance.addNewTraceFlagId("456");
+    instance.addNewTraceFlagId("789");
+
+    await instance.removeNewTraceFlags();
+
+    expect(toolingDeleteStub.called).to.equal(true);
+    expect(1).to.equal(3);
+  });
+});

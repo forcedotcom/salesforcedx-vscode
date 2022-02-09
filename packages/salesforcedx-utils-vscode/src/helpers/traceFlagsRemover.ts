@@ -10,12 +10,15 @@ import { Connection } from '@salesforce/core';
  * TraceFlagsRemover is a singleton which deletes trace flags not created by the user.
  */
 export class TraceFlagsRemover {
-  private static _instance: TraceFlagsRemover;
-
+  private static _instance: TraceFlagsRemover | undefined;
   private connection: Connection;
   private newTraceFlagIds = new Array<string>();
 
   private constructor(connection: Connection) {
+    if (!connection) {
+      throw Error('connection passed to TraceFlagsRemover is invalid');
+    }
+
     this.connection = connection;
   }
 
@@ -25,6 +28,10 @@ export class TraceFlagsRemover {
     }
 
     return TraceFlagsRemover._instance;
+  }
+
+  public static resetInstance() {
+    TraceFlagsRemover._instance = undefined;
   }
 
   public addNewTraceFlagId(newTraceFlagId: string) {

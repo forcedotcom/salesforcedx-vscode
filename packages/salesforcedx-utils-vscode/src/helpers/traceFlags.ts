@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
+import { TraceFlagsRemover } from '../helpers';
 import { nls } from '../messages';
-import { TraceFlagsRemover } from './traceFlagsRemover';
 
 interface UserRecord {
   Id: string;
