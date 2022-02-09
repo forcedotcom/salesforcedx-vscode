@@ -23,7 +23,7 @@ import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/s
 import { getTestResultsFolder, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import { workspace } from 'vscode';
 import { sfdxCreateCheckpoints } from '../breakpoints';
 import { checkpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -103,7 +103,7 @@ export class QuickLaunch {
         payload,
         true
       )) as TestResult;
-      if (vscode.workspace && vscode.workspace.workspaceFolders) {
+      if (workspace && workspace.workspaceFolders) {
         const apexTestResultsPath = getTestResultsFolder(
           getRootWorkspacePath(),
           'apex'
