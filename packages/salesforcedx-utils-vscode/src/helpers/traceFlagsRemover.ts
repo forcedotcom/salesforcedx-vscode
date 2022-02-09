@@ -19,12 +19,8 @@ export class TraceFlagsRemover {
     this.connection = connection;
   }
 
-  public static getInstance(connection: Connection | undefined): TraceFlagsRemover {
+  public static getInstance(connection: Connection): TraceFlagsRemover {
     if (!TraceFlagsRemover._instance) {
-      if (!connection) {
-        throw Error('When TraceFlagsRemover is created, connection must be passed');
-      }
-
       TraceFlagsRemover._instance = new TraceFlagsRemover(connection);
     }
 
