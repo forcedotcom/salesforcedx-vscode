@@ -60,7 +60,7 @@ describe('Trace Flags Remover', () => {
   it('should validate that an instance is created when a connection is passed', () => {
     TraceFlagsRemover.resetInstance();
     const instance = TraceFlagsRemover.getInstance(mockConnection);
-    expect(instance).not.to.be.undefined;
+    expect(instance).to.not.equal(undefined);
   });
 
   it('should validate that connection.tooling.delete is called when a new trace flag is added', async () => {
@@ -69,7 +69,7 @@ describe('Trace Flags Remover', () => {
 
     TraceFlagsRemover.resetInstance();
     const instance = TraceFlagsRemover.getInstance(mockConnection);
-    instance.addNewTraceFlagId("123");
+    instance.addNewTraceFlagId('123');
 
     await instance.removeNewTraceFlags();
 
@@ -83,9 +83,9 @@ describe('Trace Flags Remover', () => {
 
     TraceFlagsRemover.resetInstance();
     const instance = TraceFlagsRemover.getInstance(mockConnection);
-    instance.addNewTraceFlagId("123");
-    instance.addNewTraceFlagId("456");
-    instance.addNewTraceFlagId("789");
+    instance.addNewTraceFlagId('123');
+    instance.addNewTraceFlagId('456');
+    instance.addNewTraceFlagId('789');
 
     await instance.removeNewTraceFlags();
 
