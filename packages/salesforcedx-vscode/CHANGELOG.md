@@ -1,3 +1,17 @@
+# 53.17.0 - February 9, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Upgrade to latest functions lib to fix regressions @W-10257676@ ([PR #3802](https://github.com/forcedotcom/salesforcedx-vscode/pull/3802))
+
+- Jb/add launch replay debugger command ([PR #3779](https://github.com/forcedotcom/salesforcedx-vscode/pull/3779))
+
+#### salesforcedx-vscode-soql
+
+- Remove excess telemetry ([PR #3789](https://github.com/forcedotcom/salesforcedx-vscode/pull/3789))
+
 # 53.16.0 - February 2, 2022
 
 ## Added
