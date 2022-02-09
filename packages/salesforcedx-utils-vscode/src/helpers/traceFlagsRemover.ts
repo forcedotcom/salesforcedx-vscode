@@ -39,11 +39,11 @@ export class TraceFlagsRemover {
     this.newTraceFlagIds.push(newTraceFlagId);
   }
 
-  public removeNewTraceFlags() {
+  public async removeNewTraceFlags() {
     while (this.newTraceFlagIds.length > 0) {
       const newTraceFlagId = this.newTraceFlagIds.pop();
       if (newTraceFlagId) {
-        const result = this.connection.tooling.delete('TraceFlag', newTraceFlagId);
+        await this.connection.tooling.delete('TraceFlag', newTraceFlagId);
       }
     }
   }
