@@ -55,26 +55,6 @@ export class QuickLaunch {
       return false;
     }
 
-    // if (!(await this.setUpTraceFlags(connection))) {
-    //   return false;
-    // }
-
-    /*
-    debugger;
-    try {
-      // three-b...works!
-      vscode.debug.onDidTerminateDebugSession(() => {
-
-        // jab
-        debugger;
-
-        traceFlags.deleteNewTraceFlagRecord();
-      });
-    } catch(e) {
-      debugger;
-    }
-    */
-
     const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(
       true
     );
@@ -105,27 +85,6 @@ export class QuickLaunch {
       notificationService.showErrorMessage(testResult.message);
     }
     return false;
-  }
-
-  private async setUpTraceFlags(connection: Connection): Promise<boolean> {
-
-    // jab
-    // debugger;
-
-    const traceFlags = new TraceFlags(connection);
-    if (!(await traceFlags.ensureTraceFlags())) {
-      return false;
-    }
-
-    // vscode.debug.onDidTerminateDebugSession(() => {
-
-    //   // jab
-    //   debugger;
-
-    //   traceFlags.deleteNewTraceFlagRecord();
-    // });
-
-    return true;
   }
 
   private async runTests(

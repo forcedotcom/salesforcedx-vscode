@@ -5,10 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import * as vscode from 'vscode';
 import { nls } from '../messages';
-
-import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+import { TraceFlagsRemover } from './traceFlagsRemover';
 
 interface UserRecord {
   Id: string;
@@ -34,25 +32,13 @@ interface DataRecordResult {
   success: boolean;
 }
 
-const newTraceFlagIds = new Array<string>();
-let _connection: Connection | undefined;
-
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
   private readonly MILLISECONDS_PER_MINUTE = 60000;
   private connection: Connection;
-  private newTraceFlagId: string | undefined;
 
   constructor(connection: Connection) {
     this.connection = connection;
-
-    if (!_connection) {
-      _connection = connection;
-    } else {
-      if (_connection !== connection) {
-        // debugger;
-      }
-    }
   }
 
   public async ensureTraceFlags(): Promise<boolean> {
@@ -89,23 +75,6 @@ export class TraceFlags {
       const expirationDate = this.calculateExpirationDate(new Date());
       if (!(await this.createTraceFlag(userId, debugLevelId, expirationDate))) {
         return false;
-      } else {
-
-        /*
-        debugger;
-        try {
-          // two
-          vscode.debug.onDidTerminateDebugSession(() => {
-
-            // jab
-            debugger;
-
-            // this.deleteNewTraceFlagRecord();
-          });
-        } catch(e) {
-          debugger;
-        }
-        */
       }
     }
 
@@ -174,34 +143,9 @@ export class TraceFlags {
       traceFlag
     )) as DataRecordResult;
 
-    // return result.success && result.id ? result.id : undefined;
-
     if (result.success && result.id) {
-      this.newTraceFlagId = result.id;
-
-      // debugger;
-
-      // _connection = this.connection;
-
-      newTraceFlagIds.push(result.id);
-
-      /*
-      debugger;
-      try {
-        // one
-        vscode.debug.onDidTerminateDebugSession(() => {
-
-          // jab
-          debugger;
-
-          // this.deleteNewTraceFlagRecord();
-        });
-      } catch(e) {
-        debugger;
-      }
-      */
-
-      return this.newTraceFlagId;
+      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);
+      return result.id;
     } else {
       return undefined;
     }
@@ -252,142 +196,4 @@ export class TraceFlags {
     }
     return undefined;
   }
-
-// ]  public async deleteNewTraceFlagRecord() {
-//
-//     // jab
-//     debugger;
-//
-//     if (!this.newTraceFlagId) {
-//       return;
-//     }
-//
-//     const result = await this.connection.tooling.delete('TraceFlag', this.newTraceFlagId);
-//
-//     // jab
-//     debugger;
-//
-//     this.newTraceFlagId = undefined;
-//   }
-
-  /*
-  // darn
-  public static async removeNewTraceFlagsMethod() {
-    // jab
-    debugger;
-
-    const workspaceContext = WorkspaceContextUtil.getInstance();
-
-    const connection = await workspaceContext.getConnection();
-
-    while (newTraceFlagIds.length > 0) {
-
-      // jab
-      debugger;
-
-      const newTraceFlagId = newTraceFlagIds.pop();
-      if (newTraceFlagId) {
-        const result = await connection.tooling.delete('TraceFlag', newTraceFlagId);
-      }
-    }
-
-    debugger;
-
-  }
-  */
-
 }
-
-/*
-*/
-export async function removeNewTraceFlagsFunc() {
-  // jab
-  // debugger;
-
-  /*
-  const workspaceContext = WorkspaceContextUtil.getInstance();
-
-  const connection = await workspaceContext.getConnection();
-
-  while (newTraceFlagIds.length > 0) {
-
-    // jab
-    debugger;
-
-    const newTraceFlagId = newTraceFlagIds.pop();
-    if (newTraceFlagId) {
-      const result = await connection.tooling.delete('TraceFlag', newTraceFlagId);
-    }
-  }
-
-  debugger;
-  */
-
-  // const workspaceContext = WorkspaceContextUtil.getInstance();
-  // const connection = await workspaceContext.getConnection();
-
-  while (newTraceFlagIds.length > 0) {
-
-    // jab
-    // debugger;
-
-    const newTraceFlagId = newTraceFlagIds.pop();
-    if (newTraceFlagId) {
-      const result = await _connection!.tooling.delete('TraceFlag', newTraceFlagId);
-    }
-  }
-
-  // debugger;
-
-}
-
-export function removeNewTraceFlagsFunc2() {
-
-  // debugger;
-
-  while (newTraceFlagIds.length > 0) {
-    const newTraceFlagId = newTraceFlagIds.pop();
-    if (newTraceFlagId) {
-      const result = _connection!.tooling.delete('TraceFlag', newTraceFlagId);
-    }
-  }
-}
-
-/*
-export async function removeNewTraceFlags() {
-  // jab
-  debugger;
-
-  const workspaceContext = WorkspaceContextUtil.getInstance();
-
-  const connection = await workspaceContext.getConnection();
-
-  /*
-  newTraceFlagIds.forEach((newTraceFlagId) => {
-
-    debugger;
-
-    if (newTraceFlagId) {
-      const result = await connection.tooling.delete('TraceFlag', newTraceFlagId);
-    }
-
-  });
-  *
-
-  /*
-  for (let i=0; i<newTraceFlagIds.length; i++) {
-    const result = await connection.tooling.delete('TraceFlag', newTraceFlagIds[i]);
-  }
-
-  newTraceFlagIds.
-  *
-  while (newTraceFlagIds.length > 0) {
-    const newTraceFlagId = newTraceFlagIds.pop();
-    if (newTraceFlagId) {
-      const result = await connection.tooling.delete('TraceFlag', newTraceFlagId);
-    }
-  }
-
-  debugger;
-}
-*/
