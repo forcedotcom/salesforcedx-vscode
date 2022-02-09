@@ -82,6 +82,7 @@ When you are ready to commit
 
 1.  Run `npm run lint` to run tslint in more thorough mode to identify any
     errors.
+1. Run `npm run check:links` to check for any broken links in docs
 1.  Some of the items can be fixed using `tslint --project . fix`. Some you
     might need to fix them manually.
 
