@@ -43,7 +43,7 @@ export class TraceFlagsRemover {
   }
 
   public async removeNewTraceFlags() {
-    while (this.newTraceFlagIds.length > 0) {
+    while (this.newTraceFlagIds && this.newTraceFlagIds.length > 0) {
       const newTraceFlagId = this.newTraceFlagIds.pop();
       if (newTraceFlagId) {
         await this.connection.tooling.delete('TraceFlag', newTraceFlagId);

@@ -74,7 +74,20 @@ describe('Trace Flags Remover', () => {
     await instance.removeNewTraceFlags();
 
     expect(toolingDeleteStub.called).to.equal(true);
-    expect(1).to.equal(1);
+  });
+
+  it('should validate that connection.tooling.delete is not called when a trace flag already exists', async () => {
+    let toolingDeleteStub: SinonStub;
+    toolingDeleteStub = sb.stub(mockConnection.tooling, 'delete');
+
+    // Create an instance, but don't add any records.
+    TraceFlagsRemover.resetInstance();
+    const instance = TraceFlagsRemover.getInstance(mockConnection);
+
+    await instance.removeNewTraceFlags();
+
+    // Now validate that since no records were added, that connection.tooling.delete was not called.
+    expect(toolingDeleteStub.called).to.equal(false);
   });
 
   it('should delete multiple trace flags', async () => {
@@ -90,6 +103,5 @@ describe('Trace Flags Remover', () => {
     await instance.removeNewTraceFlags();
 
     expect(toolingDeleteStub.called).to.equal(true);
-    expect(1).to.equal(3);
   });
 });
