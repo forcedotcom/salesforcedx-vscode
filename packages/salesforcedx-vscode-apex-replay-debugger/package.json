@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "53.15.0",
+  "version": "53.17.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,15 +26,15 @@
   "dependencies": {
     "@salesforce/apex-node": "0.2.9",
     "@salesforce/core": "2.28.0",
-    "@salesforce/salesforcedx-apex-replay-debugger": "53.15.0",
-    "@salesforce/salesforcedx-utils-vscode": "53.15.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "53.17.0",
+    "@salesforce/salesforcedx-utils-vscode": "53.17.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "53.15.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "53.17.0",
     "@salesforce/ts-sinon": "1.2.2",
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
@@ -110,10 +110,6 @@
           "when": "sfdx:project_opened && editorLangId == 'apex'"
         },
         {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
-        },
-        {
           "command": "sfdx.launch.replay.debugger.last.logfile",
           "when": "sfdx:project_opened && !inDebugMode"
         },
@@ -144,18 +140,6 @@
           "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
-      ],
-      "editor/context": [
-        {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
-        }
       ]
     },
     "commands": [
@@ -171,10 +155,6 @@
           "dark": "images/dark/cloud-upload.svg"
         },
         "when": "sfdx:project_opened"
-      },
-      {
-        "command": "sfdx.launch.replay.debugger.logfile",
-        "title": "%launch_from_log_file%"
       },
       {
         "command": "sfdx.launch.replay.debugger.last.logfile",

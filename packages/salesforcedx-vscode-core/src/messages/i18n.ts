@@ -130,10 +130,8 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
-
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
@@ -194,9 +192,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',
