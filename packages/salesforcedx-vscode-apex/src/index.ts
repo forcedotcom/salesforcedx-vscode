@@ -174,6 +174,13 @@ function registerCommands(
     'sfdx.force.apex.debug.method.run.delegate',
     forceApexDebugMethodRunCodeActionDelegate
   );
+  // TODO: remove forceApexAnonRunDelegateCmd
+  // forceApexAnonRunDelegateCmd is a duplicate of forceAnonApexRunDelegateCmd
+  // and needs to be removed after the Apex language server is updated.
+  const forceApexAnonRunDelegateCmd = vscode.commands.registerCommand(
+    'sfdx.force.apex.anon.run.delegate',
+    forceAnonApexExecute
+  );
   const forceAnonApexRunDelegateCmd = vscode.commands.registerCommand(
     'sfdx.force.anon.apex.run.delegate',
     forceAnonApexExecute
@@ -230,6 +237,7 @@ function registerCommands(
   return vscode.Disposable.from(
     forceApexDebugClassRunDelegateCmd,
     forceApexDebugMethodRunDelegateCmd,
+    forceApexAnonRunDelegateCmd,
     forceAnonApexRunDelegateCmd,
     forceAnonApexDebugDelegateCmd,
     forceAnonApexExecuteDocumentCmd,
