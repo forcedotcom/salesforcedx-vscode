@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@salesforce/core": "2.28.0",
+    "@types/jsforce": "1.9.40",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
