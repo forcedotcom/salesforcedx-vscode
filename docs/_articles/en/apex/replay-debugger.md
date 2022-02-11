@@ -5,7 +5,7 @@ lang: en
 
 ## Overview
 
-Debug your code using the **Launch Apex Replay Debugger with Current File** from the command palette. You can invoke this command on an Apex test file, Anonymous Apex file or an Apex log file.
+Debug your code using the **Launch Apex Replay Debugger with Current File** command. You can invoke this command on an Apex test file, Anonymous Apex file or an Apex log file.
 
 ## Set Breakpoints and Checkpoints
 
