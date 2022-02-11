@@ -44,7 +44,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
   fields: [
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 18,
       calculated: false,
       calculatedFormula: null,
@@ -99,7 +99,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 18,
       calculated: false,
       calculatedFormula: null,
@@ -154,7 +154,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: false,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 0,
       calculated: false,
       calculatedFormula: null,
@@ -210,7 +210,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: true,
+      autoNumber: true,
       byteLength: 240,
       calculated: false,
       calculatedFormula: null,
@@ -265,7 +265,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 0,
       calculated: false,
       calculatedFormula: null,
@@ -320,7 +320,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 18,
       calculated: false,
       calculatedFormula: null,
@@ -375,7 +375,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 0,
       calculated: false,
       calculatedFormula: null,
@@ -430,7 +430,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 18,
       calculated: false,
       calculatedFormula: null,
@@ -485,7 +485,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 0,
       calculated: false,
       calculatedFormula: null,
@@ -540,7 +540,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 0,
       calculated: false,
       calculatedFormula: null,
@@ -595,7 +595,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 0,
       calculated: false,
       calculatedFormula: null,
@@ -650,7 +650,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 0,
       calculated: false,
       calculatedFormula: null,
@@ -705,7 +705,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 300,
       calculated: false,
       calculatedFormula: null,
@@ -760,7 +760,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 765,
       calculated: false,
       calculatedFormula: null,
@@ -816,7 +816,7 @@ export const apiCustomSObject: DescribeSObjectResult = {
     },
     {
       aggregatable: true,
-      autonumber: false,
+      autoNumber: false,
       byteLength: 120,
       calculated: false,
       calculatedFormula: null,
