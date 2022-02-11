@@ -9,10 +9,10 @@
     "vscode": "^1.49.3"
   },
   "dependencies": {
-    "@salesforce/core": "2.28.0",
-    "shelljs": "0.8.5",
+    "@salesforce/core": "2.28.4",
+    "@types/jsforce": "1.9.41",
     "jsforce": "1.11.0",
-    "@types/jsforce": "1.9.41"
+    "shelljs": "0.8.5"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
@@ -29,7 +29,8 @@
     "nyc": "^13",
     "sinon": "^7.3.1",
     "ts-node": "^9.1.1",
-    "typescript": "3.8.3"
+    "typescript": "3.8.3",
+    "webpack": "5.68.0"
   },
   "scripts": {
     "compile": "webpack",
