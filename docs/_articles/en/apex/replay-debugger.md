@@ -5,7 +5,8 @@ lang: en
 
 ## Overview
 
-Debug your code using the Launch Apex Replay Debugger with Current File from the command palette. You can invoke this command on an Apex test file, Anonymous Apex file or an Apex log file. 
+Debug your code using the **Launch Apex Replay Debugger with Current File** from the command palette. You can invoke this command on an Apex test file, Anonymous Apex file or an Apex log file.
+
 ## Set Breakpoints and Checkpoints
 
 Before you generate a debug log for replay debugging, set breakpoints and checkpoints.
@@ -36,7 +37,7 @@ The command updates checkpoints in your org, sets (and deletes upon completion) 
 Set up Apex Replay Debugger for debugging more complicated issues such as Queuable Apex or Apex trigger issues in your org:
 
 1. Open the command palette, and run **SFDX: Update Checkpoints in Org** to upload your checkpoints to your org to collect heap dump information. 
-Note:  If you modify your Apex code or toggle checkpoints, run this command again to stay in sync.
+**Note**:  If you modify your Apex code or toggle checkpoints, run this command again to stay in sync.
 2.  Run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
 3.  In your org, reproduce the issue that you’re debugging. 
 4.  Get a list of debug logs in your org, run **SFDX: Get Apex Debug Logs**.
