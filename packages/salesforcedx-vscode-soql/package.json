@@ -39,7 +39,7 @@
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3",
     "@types/jsforce": "1.9.41",
-    "jsforce": "1.10.0"
+    "jsforce": "1.11.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-sobjects-faux-generator": "53.17.0",
