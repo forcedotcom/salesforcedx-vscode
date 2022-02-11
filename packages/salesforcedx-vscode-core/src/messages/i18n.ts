@@ -130,10 +130,8 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
-
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
@@ -194,9 +192,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',
@@ -251,7 +249,9 @@ export const messages = {
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
   force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
-  manifest_editor_title_message: 'Manifest Editor',
+  manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
