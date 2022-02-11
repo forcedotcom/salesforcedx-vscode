@@ -12,7 +12,7 @@
     "@salesforce/core": "2.28.0",
     "shelljs": "0.8.5",
     "jsforce": "1.10.0",
-    "@types/jsforce": "1.9.40"
+    "@types/jsforce": "1.9.41"
   },
   "devDependencies": {
     "@types/chai": "^4.0.0",
