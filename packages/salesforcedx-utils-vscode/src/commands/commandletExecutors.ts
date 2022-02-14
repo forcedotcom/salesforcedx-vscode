@@ -128,7 +128,7 @@ export abstract class LibraryCommandletExecutor<T>
   protected readonly telemetry = new TelemetryBuilder();
 
   /**
-   * @param name Name visible to user while executing.
+   * @param executionName Name visible to user while executing.
    * @param logName Name for logging purposes such as telemetry.
    * @param outputChannel VS Code output channel to report execution status to.
    */
