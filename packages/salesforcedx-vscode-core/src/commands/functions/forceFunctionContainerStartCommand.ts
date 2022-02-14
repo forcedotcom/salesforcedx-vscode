@@ -23,7 +23,7 @@ export const FUNCTION_CONTAINER_LOG_NAME = 'force_function_container_start';
  * Executes sfdx run:function:start --verbose
  * @param sourceUri
  */
-export async function forceFunctionContainerStartCommand(sourceUri?: Uri) {
+export const forceFunctionContainerStartCommand = async (sourceUri?: Uri) => {
   const validSourceUri = validateStartFunctionsUri(sourceUri);
   if (validSourceUri === undefined) {
     return;
@@ -38,4 +38,4 @@ export async function forceFunctionContainerStartCommand(sourceUri?: Uri) {
     )
   );
   await commandlet.run();
-}
+};

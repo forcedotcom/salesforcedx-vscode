@@ -1,4 +1,4 @@
-import { vscodeStub } from '@salesforce/salesforcedx-utils-vscode/test/unit/commands/mocks';
+import { vscodeStub } from '@salesforce/salesforcedx-utils-vscode/out/test/unit/commands/mocks';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';

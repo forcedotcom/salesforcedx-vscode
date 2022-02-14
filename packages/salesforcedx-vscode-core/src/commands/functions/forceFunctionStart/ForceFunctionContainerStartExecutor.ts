@@ -1,13 +1,12 @@
+import { getFunctionsBinary } from '@heroku/functions-core';
 import * as vscode from 'vscode';
 import { channelService } from '../../../channels';
+import { nls } from '../../../messages';
 import { notificationService } from '../../../notifications';
+import { telemetryService } from '../../../telemetry';
 import { FunctionService } from '../functionService';
 import { FUNCTION_RUNTIME_DETECTION_PATTERN } from '../types/constants';
-
-import { getFunctionsBinary } from '@heroku/functions-core';
-import { nls } from '../../../messages';
-import { telemetryService } from '../../../telemetry';
-import { ForceFunctionStartExecutor as ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
+import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 
 /**
  * Error types when running SFDX: Start Function
