@@ -163,10 +163,6 @@
           "command": "sfdx.force.conflict.open",
           "when": "view == conflicts && viewItem == conflict-actions",
           "group": "inline"
-        },
-        {
-          "command": "sfdx.create.manifest",
-          "when": "view == metadata && viewItem == component"
         }
       ],
       "editor/context": [
