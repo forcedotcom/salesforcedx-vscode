@@ -1,8 +1,6 @@
 # Publishing
 
-This is a guide for publishing to the Visual Studio Code Marketplace. Most
-contributors will not need to worry about publishing. However, it might be
-worthwhile familiarizing yourself with the steps in case you need to share the
+This is a guide for publishing to the Visual Studio Code Marketplace. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the
 extensions through the .vsix files.
 
 # Goal
@@ -14,8 +12,7 @@ Marketplace](https://marketplace.visualstudio.com/vscode).
 For more information about publishing take a look at:
 
 - [Publishing VS Code Extensions][publish_vscode_ext]
-- [Managing
-  Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
+- [Managing Extensions](https://code.visualstudio.com/docs/editor/extension-gallery)
 
 # Prerequisites
 
@@ -28,19 +25,6 @@ For more information about publishing take a look at:
 
 The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Tuesdays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
 
-To create a release branch manually:
-
-<b>Note that this isn't typically required due to the scheduled job in CircleCI</b>
-
-1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
-1. Search for `Tasks: Run Task`.
-1. Select `Create Release Branch`.
-1. Approve the workflow in CircleCI:
-   1. Navigate to the `#pdt_releases` channel in Slack.
-   1. Soon you'll see a `Pending Approval for Creation of Release Branch` option. Click the `Visit Workflow` button to navigate to CircleCI.
-   1. Click the selection for `hold`.
-   1. Click the `Approve` button. See ![Approval View](./images/contributing-approval-button.png) for an example.
-
 ## Generating the Change Log
 
 We generate the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
@@ -52,7 +36,11 @@ To run the change log generator:
 1. Search for `Tasks: Run Task`.
 1. Select `Create Change Log`.
 1. When prompted for the `Release Version` leave the value blank to let the script grab the latest release version for you. If you'd like to use a different value from the latest, this can be provided in this prompt manually.
-1. Verify the changelog entries' workitems in GUS have the correct scheduled builds (Example: offcore.tooling.51.4.0 if the current release is 51.4.0).
+1. Verify the changelog entries' workitems in GUS
+   1. have the correct scheduled builds (Example: offcore.tooling.51.4.0 if the current release is 51.4.0).
+   2. are closed.
+1. Create a PR with the updated changelog against `main` branch
+   1. Add PDT's liaison from [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) as reviewer
 
 ## Merging the Release Branch into Main
 
@@ -69,7 +57,7 @@ To run the merge process:
    1. Navigate to the `#pdt_releases` channel in Slack.
    1. Soon you'll see a `Pending Approval for merge of release branch into main` option. Click the `Visit Workflow` button to navigate to CircleCI.
    1. Click the selection for `hold`.
-   1. Click the `Approve` button. See ![Approval View](./images/contributing-approval-button.png) for an example.
+   1. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
 
 ## Publishing Main
 
@@ -78,11 +66,16 @@ After the pre-publish steps have run and main has been rebased off of the releas
 1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
 1. Search for `Tasks: Run Task`.
 1. Select `Publish Extensions`.
-1. Approve the workflow in CircleCI:
+   1. You will be need the generated [CircleCI token](https://app.circleci.com/settings/user/tokens)
+2. Approve the workflow in CircleCI:
    1. Navigate to the `#pdt_releases` channel in Slack.
-   1. Soon you'll see a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCI.
-   1. Click the selection for `hold`.
-   1. Click the `Approve` button. See ![Approval View](./images/contributing-approval-button.png) for an example.
+   2. Soon you'll see a `Pending Approval for Publish` option. Click the `Visit Workflow` button to navigate to CircleCI.
+   3. Wait for all tests to pass.
+   4. Click the selection for `hold`.
+   5. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
+   6. Check that `main` is merged back into `develop` by the publish job and that the [branches have no differences](https://github.com/forcedotcom/salesforcedx-vscode/compare/main...develop?expand=1).
+
+---
 
 # Manual Publish
 
@@ -103,6 +96,21 @@ portable manner across platforms.
 1. `scripts/publish-circleci.js`
 
 It is possible to run each step manually as illustrated below.
+
+
+## Creating release branch manually
+
+<b>Note that this isn't typically required due to the scheduled job in CircleCI</b>
+
+1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
+1. Search for `Tasks: Run Task`.
+1. Select `Create Release Branch`.
+1. Approve the workflow in CircleCI:
+   1. Navigate to the `#pdt_releases` channel in Slack.
+   1. Soon you'll see a `Pending Approval for Creation of Release Branch` option. Click the `Visit Workflow` button to navigate to CircleCI.
+   1. Click the selection for `hold`.
+   1. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
+
 
 ## Downloading the .vsix from CircleCI
 
