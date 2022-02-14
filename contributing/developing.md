@@ -178,3 +178,13 @@ errors. The results of this is deeper than what the tslint extension in VS Code
 does because of [semantic lint
 rules](https://palantir.github.io/tslint/usage/type-checking/) which requires a
 tsconfig.json to be passed to tslint.
+
+### `npm run check:links`
+Runs `markdown-link-check` on all markdown files in the repo to check for any broken links.
+- Does not check html files.
+- Ignores [429 Too Many Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429)
+  - We get 429 mostly from github as there are many URLs pointing to PRs etc in Changelog
+
+### `npm run check:deps`
+
+This runs `depcheck` on each package to check for unused and missing dependencies. Pay particular attention to "Missing dependencies". Unused dependency result might have [false positives](https://github.com/depcheck/depcheck#false-alert). Check code usage to verify.
