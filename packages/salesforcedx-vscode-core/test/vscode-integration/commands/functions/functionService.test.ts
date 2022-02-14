@@ -1,8 +1,9 @@
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { FunctionService } from '../../../../src/commands/functions/functionService';
+import { FUNCTION_TYPE, FUNCTION_TYPE_ERROR, FunctionExecution, FunctionService } from '../../../../src/commands/functions/functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
   FUNCTION_DEFAULT_PORT
@@ -261,4 +262,63 @@ describe('Function Service', () => {
       expect(service.getFunctionLanguage()).to.equal('unknown');
     });
   });
+
+  describe('Function type.', () => {
+
+    let fsSyncStub: SinonStub;
+
+    const functionDef: FunctionExecution = {
+      rootDir: 'FirstFunction',
+      debugPort: 7777,
+      port: 8080,
+      debugType: 'unknown',
+      terminate: () => Promise.resolve()
+    };
+
+    beforeEach(() => {
+      fsSyncStub = sandbox.stub(
+        fs,
+        'existsSync'
+      );
+    });
+
+    it('Should throw error if no started function.', () => {
+      const service = new FunctionService();
+      expect(() => {
+        service.getFunctionType();
+      }).to.throw(FUNCTION_TYPE_ERROR);
+    });
+
+    it('Should identify a typscript function.', () => {
+      fsSyncStub.returns(true);
+      const service = new FunctionService();
+      service.registerStartedFunction(functionDef);
+      const functionType = service.getFunctionType();
+      expect(functionType).to.equal(FUNCTION_TYPE.TYPESCRIPT);
+      expect(fsSyncStub.callCount).to.equal(1);
+      expect(fsSyncStub.getCall(0).args[0]).to.equal(`${functionDef.rootDir}/tsconfig.json`);
+    });
+
+    it('Should identify a javascript function.', () => {
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(true);
+      const service = new FunctionService();
+      service.registerStartedFunction(functionDef);
+      const functionType = service.getFunctionType();
+      expect(functionType).to.equal(FUNCTION_TYPE.JAVASCRIPT);
+      expect(fsSyncStub.callCount).to.equal(2);
+      expect(fsSyncStub.getCall(1).args[0]).to.equal(`${functionDef.rootDir}/package.json`);
+    });
+
+    it('Should identify a java function.', () => {
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(false);
+      const service = new FunctionService();
+      service.registerStartedFunction(functionDef);
+      const functionType = service.getFunctionType();
+      expect(functionType).to.equal(FUNCTION_TYPE.JAVA);
+      expect(fsSyncStub.callCount).to.equal(2);
+    });
+  });
+
 });
