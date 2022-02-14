@@ -33,7 +33,7 @@ Code Builder is a browser-based version of Salesforce Extensions, with everythin
 - [Test and Debug](https://youtu.be/f6OacBmQk1g)
 - [LWC Local Development](https://www.youtube.com/watch?v=8eRFE4t2VyU&list=PLgIMQe2PKPSJdFGHjGpjd1FbCsOqq5H8t&index=4)
 - [Best Practices for Building with VS Code](https://www.youtube.com/watch?v=jn91h69qC-o)
-- [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=11)
+- [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=9)
 
 ### Open Source
 
