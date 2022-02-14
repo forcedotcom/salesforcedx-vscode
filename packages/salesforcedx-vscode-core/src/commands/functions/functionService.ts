@@ -4,11 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {Disposable} from 'vscode';
-import {getRootWorkspace, getRootWorkspacePath} from '../../util';
+import { Disposable } from 'vscode';
+import { workspaceContext } from '../../context';
+import { getRootWorkspace, getRootWorkspacePath } from '../../util';
 
 /**
  * An enum for the different types of functions.
@@ -235,6 +237,13 @@ export class FunctionService {
         if (functionExecution) {
           functionExecution.debugSession = undefined;
         }
+
+        (async () => {
+          const connection = await workspaceContext.getConnection();
+          await TraceFlagsRemover.getInstance(connection).removeNewTraceFlags();
+        })().catch(err => {
+          throw err;
+        });
       }
     );
     context.subscriptions.push(
