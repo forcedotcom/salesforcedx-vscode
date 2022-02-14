@@ -1,4 +1,5 @@
-export { forceFunctionStart } from './forceFunctionStart';
+export { forceFunctionContainerStartCommand } from './forceFunctionContainerStartCommand';
+export { forceFunctionContainerlessStartCommand } from './forceFunctionContainerlessStartCommand';
 export { forceFunctionStop } from './forceFunctionStop';
 export {
   forceFunctionDebugInvoke,
