@@ -24,6 +24,6 @@ describe('Apex LSP Jar Contents', () => {
     const stdout = shell.exec(`jar tvf ${apexJarPath}`).stdout;
     expect(
       permGuardedClasses.some(permGuardedClass => stdout.includes(permGuardedClass))
-    ).to.be.true;
+    ).to.be.false;
   });
 });
