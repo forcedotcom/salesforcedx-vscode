@@ -5,14 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fail } from 'assert';
 import { Benny } from '@heroku/functions-core';
 import { vscodeStub } from '@salesforce/salesforcedx-utils-vscode/out/test/unit/commands/mocks';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
-import { StreamingMockSubscriptionCall } from '@salesforce/core/lib/testSetup';
-import Sinon = require('sinon');
 
 const proxyquireStrict = proxyquire.noCallThru();
 
@@ -36,9 +34,13 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
   const START_KEY = 'startKey';
   const LOG_NAME = 'logName';
 
+  // mapping to class names here so need to have vars that start with a capital letter
+  // tslint:disable-next-line:variable-name
   let ForceFunctionStartExecutor: any;
+  // tslint:disable-next-line:variable-name
   let ForceFunctionContainerStartExecutor: any;
   let BINARY_EVENT_ENUM: any;
+  // tslint:disable-next-line:variable-name
   let ContinueResponse: any;
   let getFunctionsBinaryStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -81,19 +83,19 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
     addPropertyStub = stub();
 
     class FunctionService {
-      static instance = {
+      public static instance = {
         updateFunction: updateFunctionStub,
         registerStartedFunction: registerStartedFunctionStub,
         getFunctionLanguage: getFunctionLanguageStub
       };
 
-      static getFunctionDir(...args: any) {
+      public static getFunctionDir(...args: any) {
         return getFunctionDirStub(...args);
       }
     }
 
     class LibraryCommandletExecutor {
-      telemetry = {
+      public telemetry = {
         addProperty: addPropertyStub
       };
     }
@@ -237,8 +239,9 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
 
     it('Should update function on matching message.', async () => {
       const testMessage = 'www.heroku/.yo-function-invoker.test';
-      expect(testMessage.match(FUNCTION_RUNTIME_DETECTION_PATTERN)).to.not.be
-        .empty;
+      expect(
+        testMessage.match(FUNCTION_RUNTIME_DETECTION_PATTERN)
+      ).to.not.equal(undefined);
       await executor.setupFunctionListeners(fakeDirPath, fakeDisposible);
       expect(fakeBinary.on.getCalls()[0].args[0]).to.equal(
         BINARY_EVENT_ENUM.PACK
@@ -465,7 +468,7 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
       data: '/ima/fake/path/for/real'
     };
 
-    const runExecutor = async (getDefaultUsernameOrAliasStub: SinonStub) => {
+    const runExecutor = async (getUsernameStub: SinonStub) => {
       const fakeDisposable = { dispose: stub() };
       const fakeLanguage = 'javascript';
       const fakeId = 'ImAFunctionNameAndId';
@@ -492,14 +495,14 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
 
       const result = await executor.run(fakeResponse);
       expect(result).to.equal(true);
-      assert.calledWith(getDefaultUsernameOrAliasStub, false);
+      assert.calledWith(getUsernameStub, false);
       assert.called(registerStartedFunctionStub);
       const registerArg = registerStartedFunctionStub.getCall(0).args[0];
       expect(registerArg.rootDir).to.equal(fakeResponse.data);
       expect(registerArg.port).to.equal(FUNCTION_DEFAULT_PORT);
       expect(registerArg.debugPort).to.equal(FUNCTION_DEFAULT_DEBUG_PORT);
       expect(registerArg.debugType).to.equal('node');
-      expect(registerArg.terminate).to.not.be.undefined;
+      expect(registerArg.terminate).to.not.equal(undefined);
 
       assert.calledWith(addPropertyStub, 'language', fakeLanguage);
       assert.calledWith(setupFunctionListenersStub, fakeResponse.data);
