@@ -1,3 +1,25 @@
+# 54.0.0 - February 15, 2022
+
+## Fixed
+
+#### docs
+
+- Fix link to tooling video ([PR #3817](https://github.com/forcedotcom/salesforcedx-vscode/pull/3817))
+
+- Add clarifying info to publishing doc ([PR #3813](https://github.com/forcedotcom/salesforcedx-vscode/pull/3813))
+
+- Update replay-debugger.md ([PR #3827](https://github.com/forcedotcom/salesforcedx-vscode/pull/3827))
+
+#### salesforcedx-vscode-apex
+
+- Fixed issue with execute anonymous apex code lens not working ([PR #3819](https://github.com/forcedotcom/salesforcedx-vscode/pull/3819))
+
+#### salesforcedx-vscode-core
+
+- Remove generate manifest command from ob ([PR #3818](https://github.com/forcedotcom/salesforcedx-vscode/pull/3818))
+
+- Jb/add trace flag auto delete ([PR #3812](https://github.com/forcedotcom/salesforcedx-vscode/pull/3812))
+
 # 53.16.0 - February 2, 2022
 
 ## Added
