@@ -228,6 +228,7 @@ workflows:
   commit-workflow:
     jobs:
       - slack/approval-notification:
+          context: IEAT_keys
           message: Pending Approval for Publish of Apex Plugin
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -252,14 +253,14 @@ workflows:
             branches:
               only: main
       - prepublish:
-          context: pdt-publish-restricted-context
+          context: IEAT_keys
           requires:
               - hold
           filters:
             branches:
               only: main
       - publish-apex-node:
-          context: pdt-publish-restricted-context
+          context: IEAT_keys
           filters:
             branches:
               only: main
@@ -271,7 +272,7 @@ workflows:
               - hold
               - prepublish
       - publish-plugin-apex:
-          context: pdt-publish-restricted-context
+          context: IEAT_keys
           filters:
             branches:
               only: main
