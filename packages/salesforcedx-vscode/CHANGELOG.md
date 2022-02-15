@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode
 
-- The Generate Manifest File  doesn’t show up as an option when you right-click on components within metadata types. Previously, the command showed up incorrectly even though it wasn’t executable. ([PR #3818](https://github.com/forcedotcom/salesforcedx-vscode/pull/3818))
+- The Generate Manifest File  doesn’t show up as an option when you right-click on components within metadata types. Previously, the command showed up incorrectly even though it wasn’t executable ([PR #3818](https://github.com/forcedotcom/salesforcedx-vscode/pull/3818)).
 
 - The Execute Anonymous Apex code lens is now working as expected ([PR #3819](https://github.com/forcedotcom/salesforcedx-vscode/pull/3819)).
 
