@@ -16,7 +16,7 @@ describe('Apex LSP Jar Contents', () => {
   it('should not contain perm-guarded apex classes', () => {
     shell.config.execPath = process.execPath;
     const apexJarPath = path.join(__dirname, '..', '..', 'apex-jorje-lsp.jar');
-    const permGuardedClasses = ['AuraException.cls', 'AuraHandledException.cls', 'Blacktab.cls', 'InstallContext.cls', 'InstallHandler.cls', 'UninstallContext.cls', 
+    const permGuardedClasses = ['AuraException.cls', 'AuraHandledException.cls', 'Blacktab.cls', 'InstallContext.cls', 'InstallHandler.cls', 'UninstallContext.cls',
     'UninstallHandler.cls', 'BusOp.cls', 'AppExchange.cls', 'ApplicationReadWriteMode.cls', 'CollectSimilarCasesData.cls', 'FfxPortalData.cls', 'ProductSecurity.cls',
     'LegalOrgOps.cls', 'Org62Ops.cls', 'OrgCSOps.cls', 'GusOps.cls', 'BlackTabFramework.cls', 'SfdcOps.cls', 'Org62LEXFeedbackController.cls', 'TrailblazerIdentityAdditionalInfo.cls',
     'TrailblazerIdentityInfo.cls', 'TrailblazerIdentityInfoWrapper.cls', 'TrailblazerIdentityArrayLengthMismatchException.cls', 'ChatterGroupSummaryPage.cls',
