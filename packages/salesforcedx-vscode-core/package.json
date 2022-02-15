@@ -630,6 +630,26 @@
         "title": "%force_source_status_text%"
       },
       {
+        "command": "sfdx.force.source.pull.legacy",
+        "title": "%force_source_pull_legacy_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.pull.force.legacy",
+        "title": "%force_source_pull_legacy_force_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.push.legacy",
+        "title": "%force_source_push_legacy_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.push.force.legacy",
+        "title": "%force_source_push_legacy_force_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.status.legacy",
+        "title": "%force_source_status_legacy_text%"
+      },
+      {
         "command": "sfdx.force.source.status.local",
         "title": "%force_source_status_local_text%"
       },

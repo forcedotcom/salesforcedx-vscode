@@ -54,6 +54,8 @@ export {
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
+export { forceSourcePullLegacy, ForceSourcePullLegacyExecutor } from './forceSourcePullLegacy';
+export { forceSourcePushLegacy, ForceSourcePushLegacyExecutor } from './forceSourcePushLegacy';
 export {
   forceSourceRetrieveSourcePaths,
   LibraryRetrieveSourcePathExecutor,

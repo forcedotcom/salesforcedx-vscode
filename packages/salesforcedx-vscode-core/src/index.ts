@@ -53,7 +53,9 @@ import {
   forceSourceDiff,
   forceSourceFolderDiff,
   forceSourcePull,
+  forceSourcePullLegacy,
   forceSourcePush,
+  forceSourcePushLegacy,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
@@ -175,6 +177,24 @@ function registerCommands(
   const forceSourcePushForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push.force',
     forceSourcePush,
+    { flag: '--forceoverwrite' }
+  );
+  const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.pull.legacy',
+    forceSourcePullLegacy
+  );
+  const forceSourcePullLegacyForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.pull.force.legacy',
+    forceSourcePullLegacy,
+    { flag: '--forceoverwrite' }
+  );
+  const forceSourcePushLegacyCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.push.legacy',
+    forceSourcePushLegacy
+  );
+  const forceSourcePushForceLegacyCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.push.force.legacy',
+    forceSourcePushLegacy,
     { flag: '--forceoverwrite' }
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(

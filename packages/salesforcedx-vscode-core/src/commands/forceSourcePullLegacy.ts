@@ -10,13 +10,14 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../messages';
-import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   EmptyParametersGatherer,
+  FlagParameter,
   SfdxCommandlet,
+  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-export class ForceSourcePushExecutor extends BaseDeployExecutor {
+export class ForceSourcePullLegacyExecutor extends SfdxCommandletExecutor<{}> {
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -27,36 +28,29 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('force_source_push_default_scratch_org_text')
+        nls.localize('force_source_pull_legacy_default_scratch_org_text')
       )
-      .withArg('force:source:beta:push')
-      .withJson()
-      .withLogName('force_source_push_default_scratch_org');
+      .withArg('force:source:pull')
+      .withLogName('force_source_pull_legacy_default_scratch_org');
+
     if (this.flag === '--forceoverwrite') {
-      builder.withArg(this.flag);
-      builder.withDescription(
-        nls.localize('force_source_push_force_default_scratch_org_text')
-      );
+      builder
+        .withArg(this.flag)
+        .withDescription(
+          nls.localize('force_source_pull_legacy_force_default_scratch_org_text')
+        );
     }
     return builder.build();
-  }
-
-  protected getDeployType() {
-    return DeployType.Push;
   }
 }
 
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export interface FlagParameter {
-  flag: string;
-}
-
-export async function forceSourcePush(this: FlagParameter) {
+export async function forceSourcePullLegacy(this: FlagParameter<string>) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
-  const executor = new ForceSourcePushExecutor(flag);
+  const executor = new ForceSourcePullLegacyExecutor(flag);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
