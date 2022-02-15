@@ -1,24 +1,22 @@
 # 54.0.0 - February 15, 2022
 
+## Added
+
+#### salesforcedx-vscode
+
+- Run the updated *Launch Apex Replay Debugger with Current File* to launch the Apex Replay Debugger from an Apex test file, an Anonymous Apex file, or an Apex log file. Previously, you could launch the Apex Replay Debugger only from an Apex log file. Also, we’ve simplified both the setup and execution of the command. You’re no longer required to create a launch configuration (launch.json) to run the Apex Replay Debugger, and you can debug your code with fewer steps. ([PR #3779](https://github.com/forcedotcom/salesforcedx-vscode/pull/3779), [PR #3827](https://github.com/forcedotcom/salesforcedx-vscode/pull/3827)).
+
 ## Fixed
 
-#### docs
+#### salesforcedx-vscode
 
-- Fix link to tooling video ([PR #3817](https://github.com/forcedotcom/salesforcedx-vscode/pull/3817))
+- The Generate Manifest File  doesn’t show up as an option when you right-click on components within metadata types. Previously, the command showed up incorrectly even though it wasn’t executable. ([PR #3818](https://github.com/forcedotcom/salesforcedx-vscode/pull/3818))
 
-- Add clarifying info to publishing doc ([PR #3813](https://github.com/forcedotcom/salesforcedx-vscode/pull/3813))
+- The Execute Anonymous Apex code lens is now working as expected ([PR #3819](https://github.com/forcedotcom/salesforcedx-vscode/pull/3819)).
 
-- Update replay-debugger.md ([PR #3827](https://github.com/forcedotcom/salesforcedx-vscode/pull/3827))
+- We fixed a broken video link in documentation ([PR #3817](https://github.com/forcedotcom/salesforcedx-vscode/pull/3817)).
 
-#### salesforcedx-vscode-apex
-
-- Fixed issue with execute anonymous apex code lens not working ([PR #3819](https://github.com/forcedotcom/salesforcedx-vscode/pull/3819))
-
-#### salesforcedx-vscode-core
-
-- Remove generate manifest command from ob ([PR #3818](https://github.com/forcedotcom/salesforcedx-vscode/pull/3818))
-
-- Jb/add trace flag auto delete ([PR #3812](https://github.com/forcedotcom/salesforcedx-vscode/pull/3812))
+- We fixed some issues under the hood ([PR #3813](https://github.com/forcedotcom/salesforcedx-vscode/pull/3813)), ([PR #3812](https://github.com/forcedotcom/salesforcedx-vscode/pull/3812)).
 
 # 53.16.0 - February 2, 2022
 
