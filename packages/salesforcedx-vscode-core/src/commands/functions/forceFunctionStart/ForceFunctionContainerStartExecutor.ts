@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getFunctionsBinary } from '@heroku/functions-core';
+import { Benny, getFunctionsBinary } from '@heroku/functions-core';
 import * as vscode from 'vscode';
 import { channelService } from '../../../channels';
 import { nls } from '../../../messages';
@@ -35,12 +35,23 @@ const forceFunctionStartErrorInfo: {
   }
 };
 
+export const BINARY_EVENT_ENUM = {
+  CONTAINER: 'container',
+  ERROR: 'error',
+  LOG: 'log',
+  PACK: 'pack'
+};
+
 export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecutor {
+  // The function binary. It must be used as a single instance. Multiple class to the getFunctionBinary
+  // function will not provide the same instance of the binary.
+  private functionsBinary: Benny | undefined;
+
   public async setupFunctionListeners(
     functionDirPath: string,
     functionDisposable: vscode.Disposable
   ): Promise<void> {
-    const functionsBinary = await getFunctionsBinary();
+    this.functionsBinary = await getFunctionsBinary();
 
     const writeMsg = (msg: { text: string; timestamp: string }) => {
       const outputMsg = msg.text;
@@ -77,10 +88,10 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
 
       if (unexpectedError) {
         const errorNotificationMessage = nls.localize(
-          'force_function_start_unexpected_error'
+          this.UNEXPECTED_ERROR_KEY
         );
         telemetryService.sendException(
-          'force_function_start_unexpected_error',
+          this.UNEXPECTED_ERROR_KEY,
           errorNotificationMessage
         );
         notificationService.showErrorMessage(errorNotificationMessage);
@@ -89,10 +100,10 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
       channelService.showChannelOutput();
     };
 
-    functionsBinary.on('pack', writeMsg);
-    functionsBinary.on('container', writeMsg);
+    this.functionsBinary.on(BINARY_EVENT_ENUM.PACK, writeMsg);
+    this.functionsBinary.on(BINARY_EVENT_ENUM.CONTAINER, writeMsg);
 
-    functionsBinary.on('log', (msg: any) => {
+    this.functionsBinary.on(BINARY_EVENT_ENUM.LOG, (msg: any) => {
       if (msg.level === 'debug') return;
       if (msg.level === 'error') {
         handleError(msg);
@@ -112,13 +123,15 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
     });
     // Allows for showing custom notifications
     // and sending custom telemtry data for predefined errors
-    functionsBinary.on('error', handleError);
+    this.functionsBinary.on(BINARY_EVENT_ENUM.ERROR, handleError);
   }
   public async cancelFunction(
     registeredStartedFunctionDisposable: vscode.Disposable
   ): Promise<void> {
-    const functionsBinary = await getFunctionsBinary();
-    functionsBinary.cancel();
+    if (this.functionsBinary !== undefined) {
+      this.functionsBinary.cancel();
+    }
+    this.functionsBinary = undefined;
     registeredStartedFunctionDisposable.dispose();
   }
 
@@ -127,8 +140,12 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
     functionDirPath: string
   ): Promise<void> {
     channelService.appendLine(`Building ${functionName}`);
-    const functionsBinary = await getFunctionsBinary();
-    await functionsBinary.build(functionName, {
+
+    if (this.functionsBinary === undefined) {
+      throw new Error('Unable to find binary for building function.');
+    }
+
+    await this.functionsBinary.build(functionName, {
       verbose: true,
       path: functionDirPath
     });
@@ -139,7 +156,9 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
     functionDirPath: string
   ): Promise<void> {
     channelService.appendLine(`Starting ${functionName} in container`);
-    const functionsBinary = await getFunctionsBinary();
-    functionsBinary.run(functionName, {}).catch(err => console.log(err));
+    if (!this.functionsBinary) {
+      throw new Error('Unable to start function with no binary.');
+    }
+    this.functionsBinary.run(functionName, {}).catch(err => console.log(err));
   }
 }

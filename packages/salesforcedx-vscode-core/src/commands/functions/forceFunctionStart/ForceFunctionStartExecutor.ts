@@ -24,6 +24,8 @@ import {
 export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecutor<
   string
 > {
+  protected UNEXPECTED_ERROR_KEY = 'force_function_start_unexpected_error';
+
   constructor(startMessageKey: string, logName: string) {
     super(nls.localize(startMessageKey), logName, OUTPUT_CHANNEL);
     this.cancellable = true;

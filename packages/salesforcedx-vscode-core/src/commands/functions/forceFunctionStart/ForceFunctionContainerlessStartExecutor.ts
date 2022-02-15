@@ -7,6 +7,10 @@
 
 import { LocalRun } from '@heroku/functions-core';
 import { Disposable } from 'vscode';
+import { channelService } from '../../../channels';
+import { nls } from '../../../messages';
+import { notificationService } from '../../../notifications';
+import { telemetryService } from '../../../telemetry';
 import { FunctionService } from '../functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
@@ -41,7 +45,9 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     functionDirPath: string
   ): Promise<void> {
     const functionLanguage = FunctionService.instance.getFunctionType();
-
+    channelService.appendLine(
+      `Starting ${functionName} of type ${functionLanguage}`
+    );
     const localRun = new LocalRun(functionLanguage, {
       path: functionDirPath,
       port: FUNCTION_DEFAULT_PORT,
@@ -51,10 +57,18 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     localRun
       .exec()
       .then(msg => {
-        console.log('Gordon resolved: ' + msg);
+        console.log(
+          `localRun resolved in ForceFunctionContainerlessStartExecutor with message: ${msg}`
+        );
       })
       .catch(err => {
-        console.log('Gordon Error: ' + err.message);
+        const errorNotificationMessage = nls.localize(
+          this.UNEXPECTED_ERROR_KEY
+        );
+        telemetryService.sendException(this.UNEXPECTED_ERROR_KEY, err.message);
+        notificationService.showErrorMessage(errorNotificationMessage);
+        channelService.appendLine(errorNotificationMessage);
+        channelService.showChannelOutput();
       });
   }
 }
