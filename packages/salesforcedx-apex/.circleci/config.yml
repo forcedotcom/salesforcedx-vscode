@@ -272,7 +272,9 @@ workflows:
               - hold
               - prepublish
       - publish-plugin-apex:
-          context: IEAT_keys
+          context:
+            - IEAT_keys
+            - AWS
           filters:
             branches:
               only: main
