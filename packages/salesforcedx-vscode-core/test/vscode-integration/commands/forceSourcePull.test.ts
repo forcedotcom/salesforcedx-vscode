@@ -14,7 +14,7 @@ describe('Force Source Pull', () => {
   it('Should build the source pull command with no flag', async () => {
     const sourcePullNoFlag = new ForceSourcePullExecutor();
     const pullCommand = sourcePullNoFlag.build({});
-    expect(pullCommand.toCommand()).to.equal('sfdx force:source:pull');
+    expect(pullCommand.toCommand()).to.equal(`sfdx ${ForceSourcePullExecutor.command}`);
     expect(pullCommand.description).to.equal(
       nls.localize('force_source_pull_default_scratch_org_text')
     );
@@ -23,7 +23,7 @@ describe('Force Source Pull', () => {
     const sourcePullOverwrite = new ForceSourcePullExecutor('--forceoverwrite');
     const pullCommand = sourcePullOverwrite.build({});
     expect(pullCommand.toCommand()).to.equal(
-      'sfdx force:source:pull --forceoverwrite'
+      `sfdx ${ForceSourcePullExecutor.command} --forceoverwrite`
     );
     expect(pullCommand.description).to.equal(
       nls.localize('force_source_pull_force_default_scratch_org_text')

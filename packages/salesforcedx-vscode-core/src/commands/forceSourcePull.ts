@@ -18,6 +18,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
+  static readonly command = 'force:source:beta:pull';
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -30,7 +31,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       .withDescription(
         nls.localize('force_source_pull_default_scratch_org_text')
       )
-      .withArg('force:source:beta:pull')
+      .withArg(ForceSourcePullExecutor.command)
       .withLogName('force_source_pull_default_scratch_org');
 
     if (this.flag === '--forceoverwrite') {

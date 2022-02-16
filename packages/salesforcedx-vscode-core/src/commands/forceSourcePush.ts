@@ -17,6 +17,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
+  static readonly command = 'force:source:beta:push';
   private flag: string | undefined;
 
   public constructor(flag?: string) {
@@ -29,7 +30,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
       .withDescription(
         nls.localize('force_source_push_default_scratch_org_text')
       )
-      .withArg('force:source:beta:push')
+      .withArg(ForceSourcePushExecutor.command)
       .withJson()
       .withLogName('force_source_push_default_scratch_org');
     if (this.flag === '--forceoverwrite') {
