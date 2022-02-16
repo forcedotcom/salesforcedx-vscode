@@ -76,9 +76,10 @@ After the pre-publish steps have run and main has been rebased off of the releas
    6. Check that `main` is merged back into `develop` by the publish job and that the [branches have no differences](https://github.com/forcedotcom/salesforcedx-vscode/compare/main...develop?expand=1).
 
 ## Post-Publishing the .vsix
-1. Update the Salesforce Extension Pack to the version you just published.  Either go to Exensions, select Salesforce Extension pack, and update, or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install.
-2. Restart Visual Studio Code, and test & validate the application.
-3. Once validated, post an announcement in #platform-dev-tools
+1. Update the Salesforce Extension Pack to the version you just published.  Either go to Extensions, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install.
+2. Restart Visual Studio Code
+3. Test & validate the application.
+4. Once validated, post an announcement in #platform-dev-tools
 
 ---
 
