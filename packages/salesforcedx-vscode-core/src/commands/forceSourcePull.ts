@@ -18,7 +18,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
-  static readonly command = 'force:source:beta:pull';
+  public static readonly command = 'force:source:beta:pull';
   private flag: string | undefined;
 
   public constructor(flag?: string) {

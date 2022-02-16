@@ -17,7 +17,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
-  static readonly command = 'force:source:beta:push';
+  public static readonly command = 'force:source:beta:push';
   private flag: string | undefined;
 
   public constructor(flag?: string) {
