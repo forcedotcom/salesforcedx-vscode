@@ -538,7 +538,7 @@
         },
         {
           "command": "sfdx.force.diff",
-          "when": "false"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.folder.diff",
