@@ -38,7 +38,7 @@ describe('Apex LSP Jar Contents', () => {
     expect(stdout.includes('BlackTabFramework.cls')).to.be.false;
     expect(stdout.includes('SfdcOps.cls')).to.be.false;
     expect(stdout.includes('Org62LEXFeedbackController.cls')).to.be.false;
-    expect(stdout.includes('TrailblazerIdentityAdditionalInfo.cls')).to.be.false;    
+    expect(stdout.includes('TrailblazerIdentityAdditionalInfo.cls')).to.be.false;
     expect(stdout.includes('TrailblazerIdentityInfo.cls')).to.be.false;
     expect(stdout.includes('TrailblazerIdentityInfoWrapper.cls')).to.be.false;
     expect(stdout.includes('TrailblazerIdentityArrayLengthMismatchException.cls')).to.be.false;
