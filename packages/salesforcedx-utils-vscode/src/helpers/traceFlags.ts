@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
+import { TraceFlagsRemover } from '../helpers';
 import { nls } from '../messages';
 
 interface UserRecord {
@@ -141,7 +142,13 @@ export class TraceFlags {
       'TraceFlag',
       traceFlag
     )) as DataRecordResult;
-    return result.success && result.id ? result.id : undefined;
+
+    if (result.success && result.id) {
+      TraceFlagsRemover.getInstance(this.connection).addNewTraceFlagId(result.id);
+      return result.id;
+    } else {
+      return undefined;
+    }
   }
 
   private isValidDateLength(expirationDate: Date) {

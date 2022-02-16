@@ -20,3 +20,4 @@ export {
   fileExtensionsMatch
 } from './paths';
 export { TraceFlags } from './traceFlags';
+export { TraceFlagsRemover } from './traceFlagsRemover';
