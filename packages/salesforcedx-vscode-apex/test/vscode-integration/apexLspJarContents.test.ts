@@ -16,14 +16,33 @@ describe('Apex LSP Jar Contents', () => {
   it('should not contain perm-guarded apex classes', () => {
     shell.config.execPath = process.execPath;
     const apexJarPath = path.join(__dirname, '..', '..', 'apex-jorje-lsp.jar');
-    const permGuardedClasses = ['AuraException.cls', 'AuraHandledException.cls', 'Blacktab.cls', 'InstallContext.cls', 'InstallHandler.cls', 'UninstallContext.cls',
-    'UninstallHandler.cls', 'BusOp.cls', 'AppExchange.cls', 'ApplicationReadWriteMode.cls', 'CollectSimilarCasesData.cls', 'FfxPortalData.cls', 'ProductSecurity.cls',
-    'LegalOrgOps.cls', 'Org62Ops.cls', 'OrgCSOps.cls', 'GusOps.cls', 'BlackTabFramework.cls', 'SfdcOps.cls', 'Org62LEXFeedbackController.cls', 'TrailblazerIdentityAdditionalInfo.cls',
-    'TrailblazerIdentityInfo.cls', 'TrailblazerIdentityInfoWrapper.cls', 'TrailblazerIdentityArrayLengthMismatchException.cls', 'ChatterGroupSummaryPage.cls',
-    'FeedItemInputAttachmentType.cls'];
     const stdout = shell.exec(`jar tvf ${apexJarPath}`).stdout;
-    expect(
-      permGuardedClasses.some(permGuardedClass => stdout.includes(permGuardedClass))
-    ).to.be.false;
+
+    expect(stdout.includes('AuraException.cls')).to.be.false;
+    expect(stdout.includes('AuraHandledException.cls')).to.be.false;
+    expect(stdout.includes('Blacktab.cls')).to.be.false;
+    expect(stdout.includes('InstallContext.cls')).to.be.false;
+    expect(stdout.includes('InstallHandler.cls')).to.be.false;
+    expect(stdout.includes('UninstallContext.cls')).to.be.false;
+    expect(stdout.includes('UninstallHandler.cls')).to.be.false;
+    expect(stdout.includes('BusOp.cls')).to.be.false;
+    expect(stdout.includes('AppExchange.cls')).to.be.false;
+    expect(stdout.includes('ApplicationReadWriteMode.cls')).to.be.false;
+    expect(stdout.includes('CollectSimilarCasesData.cls')).to.be.false;
+    expect(stdout.includes('FfxPortalData.cls')).to.be.false;
+    expect(stdout.includes('ProductSecurity.cls')).to.be.false;
+    expect(stdout.includes('LegalOrgOps.cls')).to.be.false;
+    expect(stdout.includes('Org62Ops.cls')).to.be.false;
+    expect(stdout.includes('OrgCSOps.cls')).to.be.false;
+    expect(stdout.includes('GusOps.cls')).to.be.false;
+    expect(stdout.includes('BlackTabFramework.cls')).to.be.false;
+    expect(stdout.includes('SfdcOps.cls')).to.be.false;
+    expect(stdout.includes('Org62LEXFeedbackController.cls')).to.be.false;
+    expect(stdout.includes('TrailblazerIdentityAdditionalInfo.cls')).to.be.false;    
+    expect(stdout.includes('TrailblazerIdentityInfo.cls')).to.be.false;
+    expect(stdout.includes('TrailblazerIdentityInfoWrapper.cls')).to.be.false;
+    expect(stdout.includes('TrailblazerIdentityArrayLengthMismatchException.cls')).to.be.false;
+    expect(stdout.includes('ChatterGroupSummaryPage.cls')).to.be.false;
+    expect(stdout.includes('FeedItemInputAttachmentType.cls')).to.be.false;
   });
 });
