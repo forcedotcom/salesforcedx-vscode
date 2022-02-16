@@ -21,7 +21,7 @@ For more information about publishing take a look at:
 
 # Steps
 
-## Creating a release branch
+## Creating a Release Branch
 
 The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Tuesdays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
 
@@ -75,6 +75,11 @@ After the pre-publish steps have run and main has been rebased off of the releas
    5. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
    6. Check that `main` is merged back into `develop` by the publish job and that the [branches have no differences](https://github.com/forcedotcom/salesforcedx-vscode/compare/main...develop?expand=1).
 
+## Post-Pushing the .vsix
+1. Update the Salesforce Extension Pack to the version you just published.  Either go to Exensions, select Salesforce Extension pack, and update, or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install.
+2. Restart Visual Studio Code, and test & validate the application.
+3. Once validated, post an announcement in #platform-dev-tools
+
 ---
 
 # Manual Publish
@@ -97,7 +102,7 @@ portable manner across platforms.
 
 It is possible to run each step manually as illustrated below.
 
-## Creating release branch manually
+## Creating a Release Branch Manually
 
 <b>Note that this isn't typically required due to the scheduled job in CircleCI</b>
 
@@ -194,7 +199,7 @@ $ vsce login (publisher name)
 It's **crucial** that you publish the .vsix that you had before so that the
 SHA256 match. If you were to repackage, the SHA256 would be different.
 
-## Merging back from the release branch into develop and main
+## Merging Back From the Release Branch Into Develop and Main
 
 ### Prerequisite
 
