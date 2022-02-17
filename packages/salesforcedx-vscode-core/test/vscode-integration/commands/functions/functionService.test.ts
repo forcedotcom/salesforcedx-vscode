@@ -16,12 +16,14 @@ import {
 import { getRootWorkspace, getRootWorkspacePath } from '../../../../src/util';
 import { MockContext } from '../../telemetry/MockContext';
 
-describe('Function Service', () => {
+describe.only('Function Service', () => {
   let sandbox: SinonSandbox;
   beforeEach(() => {
     sandbox = createSandbox();
   });
   afterEach(() => {
+    // Reset the instance var on the FunctionService so we're starting fresh as the tests expect.
+    (FunctionService as any)._instance = undefined;
     sandbox.restore();
   });
 
