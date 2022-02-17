@@ -543,6 +543,10 @@
           "when": "false"
         },
         {
+          "command": "sfdx.force.folder.diff",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.conflict.open",
           "when": "false"
         },
