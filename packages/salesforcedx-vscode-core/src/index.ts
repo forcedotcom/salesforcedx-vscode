@@ -352,7 +352,7 @@ function registerCommands(
   );
 
   const forceFunctionStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.start',
+    'sfdx.force.function.containerless.start',
     forceFunctionContainerlessStartCommand
   );
 

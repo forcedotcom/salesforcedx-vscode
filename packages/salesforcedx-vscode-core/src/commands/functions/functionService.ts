@@ -15,7 +15,7 @@ import { getRootWorkspace, getRootWorkspacePath } from '../../util';
 /**
  * An enum for the different types of functions.
  */
-export enum FUNCTION_TYPE {
+export enum functionType {
   JAVASCRIPT = 'javascript',
   TYPESCRIPT = 'typescript',
   JAVA = 'java'
@@ -54,7 +54,8 @@ export interface FunctionExecution extends Terminable {
   debugSession?: vscode.DebugSession;
 }
 
-export const FUNCTION_TYPE_ERROR = 'Unable to determine type of exectucting function.';
+export const FUNCTION_TYPE_ERROR =
+  'Unable to determine type of executing function.';
 
 export class FunctionService {
   private static _instance: FunctionService;
@@ -64,6 +65,8 @@ export class FunctionService {
     }
     return FunctionService._instance;
   }
+
+  private constructor() {}
 
   /**
    * Locate the directory that has project.toml.
@@ -136,21 +139,21 @@ export class FunctionService {
     return undefined;
   }
 
-/**
- * Get the type of function that is current running.
- * @returns FunctionType
- */
-  public getFunctionType(): FUNCTION_TYPE {
+  /**
+   * Get the type of function that is current running.
+   * @returns FunctionType
+   */
+  public getFunctionType(): functionType {
     if (this.startedExecutions.size > 0) {
       const [rootDir] = this.startedExecutions.keys();
 
       if (fs.existsSync(`${rootDir}/tsconfig.json`)) {
-        return FUNCTION_TYPE.TYPESCRIPT;
+        return functionType.TYPESCRIPT;
       } else if (fs.existsSync(`${rootDir}/package.json`)) {
-        return FUNCTION_TYPE.JAVASCRIPT;
+        return functionType.JAVASCRIPT;
       }
 
-      return FUNCTION_TYPE.JAVA;
+      return functionType.JAVA;
     }
     throw new Error(FUNCTION_TYPE_ERROR);
   }

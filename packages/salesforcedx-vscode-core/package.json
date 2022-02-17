@@ -169,7 +169,7 @@
       ],
       "editor/context": [
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
@@ -295,7 +295,7 @@
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
@@ -557,7 +557,7 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
         },
         {
@@ -868,7 +868,7 @@
         "title": "%force_function_create%"
       },
       {
-        "command": "sfdx.force.function.start",
+        "command": "sfdx.force.function.containerless.start",
         "title": "%force_function_start%"
       },
       {

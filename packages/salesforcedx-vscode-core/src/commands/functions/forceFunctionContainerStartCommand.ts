@@ -25,7 +25,7 @@ export const FUNCTION_CONTAINER_LOG_NAME = 'force_function_container_start';
  */
 export const forceFunctionContainerStartCommand = async (sourceUri?: Uri) => {
   const validSourceUri = validateStartFunctionsUri(sourceUri);
-  if (validSourceUri === undefined) {
+  if (!validSourceUri) {
     return;
   }
 

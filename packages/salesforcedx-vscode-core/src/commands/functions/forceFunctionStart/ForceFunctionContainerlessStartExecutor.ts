@@ -19,10 +19,7 @@ import {
 import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {
-  public async setupFunctionListeners(
-    functionDirPath: string,
-    functionDisposable: Disposable
-  ): Promise<void> {
+  public async setupFunctionListeners(): Promise<void> {
     console.log('No listeners for containerless function.');
   }
 
@@ -33,17 +30,11 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     registeredStartedFunctionDisposable.dispose();
   }
 
-  public async buildFunction(
-    functionName: string,
-    functionDirPath: string
-  ): Promise<void> {
+  public async buildFunction(): Promise<void> {
     console.log('No build for containerless function');
   }
 
-  public async startFunction(
-    functionName: string,
-    functionDirPath: string
-  ): Promise<void> {
+  public startFunction(functionName: string, functionDirPath: string): void {
     const functionLanguage = FunctionService.instance.getFunctionType();
     channelService.appendLine(
       `Starting ${functionName} of type ${functionLanguage}`

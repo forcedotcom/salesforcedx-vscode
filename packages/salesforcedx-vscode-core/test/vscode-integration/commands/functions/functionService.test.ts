@@ -3,7 +3,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { FUNCTION_TYPE, FUNCTION_TYPE_ERROR, FunctionExecution, FunctionService } from '../../../../src/commands/functions/functionService';
+import {
+  FUNCTION_TYPE_ERROR,
+  FunctionExecution,
+  FunctionService,
+  functionType
+} from '../../../../src/commands/functions/functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
   FUNCTION_DEFAULT_PORT
@@ -193,7 +198,7 @@ describe('Function Service', () => {
     });
 
     it('Should update debugType of a Java function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'Foo',
         debugPort: 7777,
@@ -208,7 +213,7 @@ describe('Function Service', () => {
     });
 
     it('Should update debugType of a Java JVM function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'Foo',
         debugPort: 7777,
@@ -223,7 +228,7 @@ describe('Function Service', () => {
     });
 
     it('Should update debugType of a Node function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'Bar',
         debugPort: 7777,
@@ -238,7 +243,7 @@ describe('Function Service', () => {
     });
 
     it('Should not update debugType of an unknown function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'FirstFunction',
         debugPort: 7777,
@@ -264,7 +269,6 @@ describe('Function Service', () => {
   });
 
   describe('Function type.', () => {
-
     let fsSyncStub: SinonStub;
 
     const functionDef: FunctionExecution = {
@@ -276,14 +280,11 @@ describe('Function Service', () => {
     };
 
     beforeEach(() => {
-      fsSyncStub = sandbox.stub(
-        fs,
-        'existsSync'
-      );
+      fsSyncStub = sandbox.stub(fs, 'existsSync');
     });
 
     it('Should throw error if no started function.', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       expect(() => {
         service.getFunctionType();
       }).to.throw(FUNCTION_TYPE_ERROR);
@@ -291,34 +292,37 @@ describe('Function Service', () => {
 
     it('Should identify a typscript function.', () => {
       fsSyncStub.returns(true);
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
-      const functionType = service.getFunctionType();
-      expect(functionType).to.equal(FUNCTION_TYPE.TYPESCRIPT);
+      const functionTypeVal = service.getFunctionType();
+      expect(functionTypeVal).to.equal(functionType.TYPESCRIPT);
       expect(fsSyncStub.callCount).to.equal(1);
-      expect(fsSyncStub.getCall(0).args[0]).to.equal(`${functionDef.rootDir}/tsconfig.json`);
+      expect(fsSyncStub.getCall(0).args[0]).to.equal(
+        `${functionDef.rootDir}/tsconfig.json`
+      );
     });
 
     it('Should identify a javascript function.', () => {
       fsSyncStub.onCall(0).returns(false);
       fsSyncStub.onCall(1).returns(true);
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
-      const functionType = service.getFunctionType();
-      expect(functionType).to.equal(FUNCTION_TYPE.JAVASCRIPT);
+      const functionTypeVal = service.getFunctionType();
+      expect(functionTypeVal).to.equal(functionType.JAVASCRIPT);
       expect(fsSyncStub.callCount).to.equal(2);
-      expect(fsSyncStub.getCall(1).args[0]).to.equal(`${functionDef.rootDir}/package.json`);
+      expect(fsSyncStub.getCall(1).args[0]).to.equal(
+        `${functionDef.rootDir}/package.json`
+      );
     });
 
     it('Should identify a java function.', () => {
       fsSyncStub.onCall(0).returns(false);
       fsSyncStub.onCall(1).returns(false);
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
-      const functionType = service.getFunctionType();
-      expect(functionType).to.equal(FUNCTION_TYPE.JAVA);
+      const functionTypeVal = service.getFunctionType();
+      expect(functionTypeVal).to.equal(functionType.JAVA);
       expect(fsSyncStub.callCount).to.equal(2);
     });
   });
-
 });

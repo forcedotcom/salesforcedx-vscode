@@ -15,32 +15,16 @@ import { FunctionService } from '../functionService';
 import { FUNCTION_RUNTIME_DETECTION_PATTERN } from '../types/constants';
 import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 
-/**
- * Error types when running SFDX: Start Function
- * This is also used as the telemetry log name.
- */
-type ForceFunctionStartErrorType = 'force_function_start_docker_plugin_not_installed_or_started';
+export enum BINARY_EVENT_ENUM {
+  CONTAINER = 'container',
+  ERROR = 'error',
+  LOG = 'log',
+  PACK = 'pack'
+}
 
-const forceFunctionStartErrorInfo: {
-  [key in ForceFunctionStartErrorType]: {
-    cliMessage: string;
-    errorNotificationMessage: string;
-  };
-} = {
-  force_function_start_docker_plugin_not_installed_or_started: {
-    cliMessage: 'Cannot connect to the Docker daemon',
-    errorNotificationMessage: nls.localize(
-      'force_function_start_warning_docker_not_installed_or_not_started'
-    )
-  }
-};
-
-export const BINARY_EVENT_ENUM = {
-  CONTAINER: 'container',
-  ERROR: 'error',
-  LOG: 'log',
-  PACK: 'pack'
-};
+const DOCKER_NOT_INSTALLED_KEY =
+  'force_function_start_warning_docker_not_installed_or_not_started';
+const DOCKER_MISSING_ERROR = 'Cannot connect to the Docker daemon';
 
 export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecutor {
   // The function binary. It must be used as a single instance. Multiple class to the getFunctionBinary
@@ -62,8 +46,9 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
         const matches = String(outputMsg).match(
           FUNCTION_RUNTIME_DETECTION_PATTERN
         );
-        if (matches && matches.length > 1) {
-          FunctionService.instance.updateFunction(functionDirPath, matches[1]);
+        const [, firstMatch] = matches ?? [];
+        if (firstMatch) {
+          FunctionService.instance.updateFunction(functionDirPath, firstMatch);
         }
       }
     };
@@ -71,20 +56,17 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
     const handleError = (error: any) => {
       functionDisposable.dispose();
       let unexpectedError = true;
-      (Object.keys(
-        forceFunctionStartErrorInfo
-      ) as ForceFunctionStartErrorType[]).forEach(errorType => {
-        const {
-          cliMessage,
+
+      if (error.text?.includes(DOCKER_MISSING_ERROR)) {
+        const errorNotificationMessage = nls.localize(DOCKER_NOT_INSTALLED_KEY);
+        unexpectedError = false;
+        telemetryService.sendException(
+          DOCKER_NOT_INSTALLED_KEY,
           errorNotificationMessage
-        } = forceFunctionStartErrorInfo[errorType];
-        if (error.text?.includes(cliMessage)) {
-          unexpectedError = false;
-          telemetryService.sendException(errorType, errorNotificationMessage);
-          notificationService.showErrorMessage(errorNotificationMessage);
-          channelService.appendLine(errorNotificationMessage);
-        }
-      });
+        );
+        notificationService.showErrorMessage(errorNotificationMessage);
+        channelService.appendLine(errorNotificationMessage);
+      }
 
       if (unexpectedError) {
         const errorNotificationMessage = nls.localize(
@@ -122,7 +104,7 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
       }
     });
     // Allows for showing custom notifications
-    // and sending custom telemtry data for predefined errors
+    // and sending custom telemetry data for predefined errors
     this.functionsBinary.on(BINARY_EVENT_ENUM.ERROR, handleError);
   }
   public async cancelFunction(
@@ -141,7 +123,7 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
   ): Promise<void> {
     channelService.appendLine(`Building ${functionName}`);
 
-    if (this.functionsBinary === undefined) {
+    if (!this.functionsBinary) {
       throw new Error('Unable to find binary for building function.');
     }
 
@@ -151,14 +133,14 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
     });
   }
 
-  public async startFunction(
-    functionName: string,
-    functionDirPath: string
-  ): Promise<void> {
+  public startFunction(functionName: string): void {
     channelService.appendLine(`Starting ${functionName} in container`);
     if (!this.functionsBinary) {
       throw new Error('Unable to start function with no binary.');
     }
-    this.functionsBinary.run(functionName, {}).catch(err => console.log(err));
+
+    this.functionsBinary.run(functionName, {}).catch(err => {
+      console.log(err);
+    });
   }
 }

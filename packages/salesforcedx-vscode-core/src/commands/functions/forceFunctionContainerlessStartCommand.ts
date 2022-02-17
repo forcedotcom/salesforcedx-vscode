@@ -28,7 +28,7 @@ export const forceFunctionContainerlessStartCommand = async (
   sourceUri?: Uri
 ) => {
   const validSourceUri = validateStartFunctionsUri(sourceUri);
-  if (validSourceUri === undefined) {
+  if (!validSourceUri) {
     return;
   }
 

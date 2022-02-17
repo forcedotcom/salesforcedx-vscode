@@ -11,7 +11,7 @@ import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
 
 const proxyquireStrict = proxyquire.noCallThru();
 
-describe.only('Force Function Start Container Command Unit Tests.', () => {
+describe('Force Function Start Container Command Unit Tests.', () => {
   let sandbox: SinonSandbox;
 
   before(() => {

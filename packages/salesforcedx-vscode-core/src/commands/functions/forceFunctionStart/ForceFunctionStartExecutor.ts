@@ -108,7 +108,7 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
     this.buildFunction(functionName, functionDirPath);
 
     channelService.appendLine(`Starting ${functionName}`);
-    await this.startFunction(functionName, functionDirPath);
+    this.startFunction(functionName, functionDirPath);
     return true;
   }
 
