@@ -9,6 +9,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import {SOURCE_TRACKING_VERSION} from '../constants';
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
@@ -25,10 +26,13 @@ export enum SourceStatusFlags {
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;
+  private sourceTrackingVersion: SOURCE_TRACKING_VERSION | undefined;
 
-  public constructor(flag?: SourceStatusFlags) {
+  public constructor(flag?: SourceStatusFlags,
+                     sourceTrackingVersion: SOURCE_TRACKING_VERSION = SOURCE_TRACKING_VERSION.BETA) {
     super();
     this.flag = flag;
+    this.sourceTrackingVersion = sourceTrackingVersion;
   }
 
   public build(data: {}): Command {
@@ -53,11 +57,11 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourceStatus(
-  this: FlagParameter<SourceStatusFlags>
-) {
+  sourceStatusFlag: FlagParameter<SourceStatusFlags>,
+  sourceTrackingVersion: SOURCE_TRACKING_VERSION) {
   // tslint:disable-next-line:no-invalid-this
-  const flag = this ? this.flag : undefined;
-  const executor = new ForceSourceStatusExecutor(flag);
+  const flag = sourceStatusFlag ? sourceStatusFlag.flag : undefined;
+  const executor = new ForceSourceStatusExecutor(flag, sourceTrackingVersion);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

@@ -89,7 +89,8 @@ import {
 } from './conflict';
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-  SFDX_CORE_CONFIGURATION_NAME
+  SFDX_CORE_CONFIGURATION_NAME,
+  SOURCE_TRACKING_VERSION
 } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
@@ -222,6 +223,11 @@ function registerCommands(
     'sfdx.force.source.status.remote',
     forceSourceStatus,
     { flag: '--remote' }
+  );
+  const forceSourceStatusLegacyCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.status',
+    forceSourceStatus,
+    {sourceTrackingVersion: SOURCE_TRACKING_VERSION.LEGACY}
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
