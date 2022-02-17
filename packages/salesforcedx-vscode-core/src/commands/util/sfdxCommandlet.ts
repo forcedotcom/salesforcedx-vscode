@@ -28,8 +28,14 @@ import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
 
+export enum SourceTrackingVersion {
+  Beta = 'beta:',
+  Legacy = 'legacy:'
+}
+
 export interface FlagParameter<T> {
   flag: T;
+  sourceTrackingVersion: SourceTrackingVersion;
 }
 
 export interface CommandletExecutor<T> {

@@ -37,7 +37,3 @@ export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
-export const enum SOURCE_TRACKING_VERSION {
-  BETA = 'beta:',
-  LEGACY = 'legacy:'
-}

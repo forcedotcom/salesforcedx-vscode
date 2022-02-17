@@ -78,6 +78,7 @@ import {
   EmptyParametersGatherer,
   SelectFileName,
   SelectOutputDir,
+  SourceTrackingVersion,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -89,8 +90,7 @@ import {
 } from './conflict';
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-  SFDX_CORE_CONFIGURATION_NAME,
-  SOURCE_TRACKING_VERSION
+  SFDX_CORE_CONFIGURATION_NAME
 } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
