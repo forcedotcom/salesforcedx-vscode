@@ -49,8 +49,9 @@ export class QuickLaunch {
     testName?: string
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
-    const flags = new TraceFlags(connection);
-    if (!(await flags.ensureTraceFlags())) {
+
+    const traceFlags = new TraceFlags(connection);
+    if (!(await traceFlags.ensureTraceFlags())) {
       return false;
     }
 
