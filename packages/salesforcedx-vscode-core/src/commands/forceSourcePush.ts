@@ -13,6 +13,7 @@ import { nls } from '../messages';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
   EmptyParametersGatherer,
+  FlagParameter,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
@@ -50,11 +51,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export interface FlagParameter {
-  flag: string;
-}
-
-export async function forceSourcePush(this: FlagParameter) {
+export async function forceSourcePush(this: FlagParameter<string>) {
   // tslint:disable-next-line:no-invalid-this
   const flag = this ? this.flag : undefined;
   const executor = new ForceSourcePushExecutor(flag);
