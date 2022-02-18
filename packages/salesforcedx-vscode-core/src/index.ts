@@ -78,7 +78,7 @@ import {
   EmptyParametersGatherer,
   SelectFileName,
   SelectOutputDir,
-  SourceTrackingVersion,
+  CommandVersion,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
@@ -225,9 +225,9 @@ function registerCommands(
     { flag: '--remote' }
   );
   const forceSourceStatusLegacyCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status',
+    'sfdx.force.source.status.legacy',
     forceSourceStatus,
-    {sourceTrackingVersion: SOURCE_TRACKING_VERSION.LEGACY}
+    {commandVersion: CommandVersion.Legacy}
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',

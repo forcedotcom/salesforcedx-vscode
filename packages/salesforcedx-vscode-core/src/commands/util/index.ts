@@ -30,7 +30,7 @@ export {
 export {
   SfdxCommandlet,
   SfdxCommandletExecutor,
-  SourceTrackingVersion,
+  CommandVersion,
   FlagParameter,
   CommandletExecutor
 } from './sfdxCommandlet';

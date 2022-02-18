@@ -9,8 +9,8 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {SOURCE_TRACKING_VERSION} from '../constants';
 import { nls } from '../messages';
+import { CommandVersion } from './util/sfdxCommandlet';
 import {
   EmptyParametersGatherer,
   FlagParameter,
@@ -21,25 +21,28 @@ import {
 
 export enum SourceStatusFlags {
   Local = '--local',
-  Remote = '--remote'
+  Remote = '--remote',
 }
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
+  public command: string;
   private flag: SourceStatusFlags | undefined;
-  private sourceTrackingVersion: SOURCE_TRACKING_VERSION | undefined;
+  private description: string;
+  private logName: string;
 
-  public constructor(flag?: SourceStatusFlags,
-                     sourceTrackingVersion: SOURCE_TRACKING_VERSION = SOURCE_TRACKING_VERSION.BETA) {
+  public constructor(flag?: SourceStatusFlags, cmdVersion?: CommandVersion) {
     super();
     this.flag = flag;
-    this.sourceTrackingVersion = sourceTrackingVersion;
+    this.command = `force:source:${cmdVersion? cmdVersion : CommandVersion.Default}:status`;
+    this.description = ['force_source_status', cmdVersion, 'text'].filter(Boolean).join('_');
+    this.logName = ['force_source_status', cmdVersion].filter(Boolean).join('_');
   }
 
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_status_text'))
-      .withArg('force:source:status')
-      .withLogName('force_source_status');
+      .withDescription(nls.localize(this.description))
+      .withArg(this.command)
+      .withLogName(this.logName);
     if (this.flag === SourceStatusFlags.Local) {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize('force_source_status_local_text'));
@@ -57,11 +60,12 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourceStatus(
-  sourceStatusFlag: FlagParameter<SourceStatusFlags>,
-  sourceTrackingVersion: SOURCE_TRACKING_VERSION) {
+  this: FlagParameter<SourceStatusFlags>
+) {
   // tslint:disable-next-line:no-invalid-this
-  const flag = sourceStatusFlag ? sourceStatusFlag.flag : undefined;
-  const executor = new ForceSourceStatusExecutor(flag, sourceTrackingVersion);
+  const flag = this ? this.flag: undefined;
+  const cmdVersion = this ? this.commandVersion : undefined;
+  const executor = new ForceSourceStatusExecutor(flag, cmdVersion);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
