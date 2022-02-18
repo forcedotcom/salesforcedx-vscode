@@ -16,7 +16,7 @@ import {
 import { getRootWorkspace, getRootWorkspacePath } from '../../../../src/util';
 import { MockContext } from '../../telemetry/MockContext';
 
-describe.only('Function Service', () => {
+describe('Function Service', () => {
   let sandbox: SinonSandbox;
   beforeEach(() => {
     sandbox = createSandbox();

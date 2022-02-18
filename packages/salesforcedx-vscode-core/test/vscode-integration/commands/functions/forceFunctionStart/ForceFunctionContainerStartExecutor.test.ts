@@ -303,7 +303,6 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
     it('Should handle an error log event with an expected message.', async () => {
       const testMessage = 'Cannot connect to the Docker daemon';
       const fakeMessage = 'l0caliz3d';
-      const exceptionKey = 'force_function_start_unexpected_error';
       localizeStub.returns(fakeMessage);
       await executor.setupFunctionListeners(fakeDirPath, fakeDisposible);
       expect(fakeBinary.on.getCalls()[2].args[0]).to.equal(
@@ -315,15 +314,17 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
 
       assert.calledOnce(fakeDisposible.dispose);
       assert.calledTwice(localizeStub);
-
-      // message below is undefined due to how the nls service is uned on module initialziation.
+      console.log('what are the args', {
+        args0: sendExceptionStub.getCalls()[0].args[0],
+        args1: sendExceptionStub.getCalls()[0].args[1]
+      });
       assert.calledWith(
         sendExceptionStub,
         'force_function_start_docker_plugin_not_installed_or_started',
-        undefined
+        fakeMessage
       );
-      assert.calledWith(showErrorMessageStub, undefined);
-      assert.calledWith(appendLineStub, undefined);
+      assert.calledWith(showErrorMessageStub, fakeMessage);
+      assert.calledWith(appendLineStub, fakeMessage);
       assert.called(showChannelOutputStub);
     });
 
@@ -517,7 +518,7 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
       await runExecutor(getDefaultUsernameOrAliasStub);
       assert.callCount(appendLineStub, 2);
       assert.callCount(showChannelOutputStub, 1);
-      assert.callCount(localizeStub, 2);
+      assert.callCount(localizeStub, 1);
     });
 
     it('Should be able to have the OrgAuthInfo call fail.', async () => {
@@ -525,7 +526,7 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
       await runExecutor(getDefaultUsernameOrAliasStub);
       assert.callCount(appendLineStub, 3);
       assert.callCount(showChannelOutputStub, 2);
-      assert.callCount(localizeStub, 3);
+      assert.callCount(localizeStub, 2);
       assert.callCount(showInformationMessageStub, 1);
     });
 

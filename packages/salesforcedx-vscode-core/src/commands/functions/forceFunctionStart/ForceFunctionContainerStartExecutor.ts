@@ -24,6 +24,8 @@ export enum BINARY_EVENT_ENUM {
 
 const DOCKER_NOT_INSTALLED_KEY =
   'force_function_start_warning_docker_not_installed_or_not_started';
+const DOCKER_NOT_INSTALLED_TYPE =
+  'force_function_start_docker_plugin_not_installed_or_started';
 const DOCKER_MISSING_ERROR = 'Cannot connect to the Docker daemon';
 
 export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecutor {
@@ -61,7 +63,7 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
         const errorNotificationMessage = nls.localize(DOCKER_NOT_INSTALLED_KEY);
         unexpectedError = false;
         telemetryService.sendException(
-          DOCKER_NOT_INSTALLED_KEY,
+          DOCKER_NOT_INSTALLED_TYPE,
           errorNotificationMessage
         );
         notificationService.showErrorMessage(errorNotificationMessage);
