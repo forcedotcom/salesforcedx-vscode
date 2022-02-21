@@ -4,24 +4,34 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import {
   ApexTestResultData,
   LogService,
+  ResultFormat,
   TestLevel,
   TestResult,
   TestService
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  getLogDirPath,
+  getRootWorkspacePath,
+  LibraryCommandletExecutor
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { getTestResultsFolder, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
+import { workspace } from 'vscode';
+import { sfdxCreateCheckpoints } from '../breakpoints';
+import { checkpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { getLogDirPath } from '../utils';
+import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
-import { TraceFlags } from './traceFlags';
+
 interface TestRunResult {
   logFileId?: string;
   message?: string;
@@ -39,25 +49,36 @@ export class QuickLaunch {
     testName?: string
   ): Promise<boolean> {
     const connection = await workspaceContext.getConnection();
-    const flags = new TraceFlags(connection);
-    if (!(await flags.ensureTraceFlags())) {
+
+    const traceFlags = new TraceFlags(connection);
+    if (!(await traceFlags.ensureTraceFlags())) {
       return false;
     }
 
-    const testResult = await this.runSingleTest(
+    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(
+      true
+    );
+    if (oneOrMoreCheckpoints) {
+      const createCheckpointsResult = await sfdxCreateCheckpoints();
+      if (!createCheckpointsResult) {
+        return false;
+      }
+    }
+
+    const testResult = await this.runTests(
       connection,
       testClass,
       testName
     );
 
     if (testResult.success && testResult.logFileId) {
-      const logFileRetrive = await this.retrieveLogFile(
+      const logFileRetrieve = await this.retrieveLogFile(
         connection,
         testResult.logFileId
       );
 
-      if (logFileRetrive.success && logFileRetrive.filePath) {
-        launchFromLogFile(logFileRetrive.filePath, false);
+      if (logFileRetrieve.success && logFileRetrieve.filePath) {
+        launchFromLogFile(logFileRetrieve.filePath, false);
         return true;
       }
     } else if (testResult.message) {
@@ -66,7 +87,7 @@ export class QuickLaunch {
     return false;
   }
 
-  private async runSingleTest(
+  private async runTests(
     connection: Connection,
     testClass: string,
     testMethod?: string
@@ -78,7 +99,21 @@ export class QuickLaunch {
         testMethod ? `${testClass}.${testMethod}` : undefined,
         testClass
       );
-      const result: TestResult = await testService.runTestSynchronous(payload);
+      const result: TestResult = (await testService.runTestSynchronous(
+        payload,
+        true
+      )) as TestResult;
+      if (workspace && workspace.workspaceFolders) {
+        const apexTestResultsPath = getTestResultsFolder(
+          getRootWorkspacePath(),
+          'apex'
+        );
+        await testService.writeResultFiles(
+          result,
+          { dirPath: apexTestResultsPath, resultFormats: [ResultFormat.json] },
+          retrieveTestCodeCoverage()
+        );
+      }
       const tests: ApexTestResultData[] = result.tests;
       if (tests.length === 0) {
         return {

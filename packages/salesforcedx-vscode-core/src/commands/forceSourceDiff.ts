@@ -7,12 +7,12 @@
 
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import * as conflictDetectionService from '../conflict/conflictDetectionService';
 import {
   MetadataCacheExecutor,
   MetadataCacheResult,
   PathType
-} from '../conflict/metadataCacheService';
+} from '../conflict';
+import * as differ from '../conflict/directoryDiffer';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -37,20 +37,22 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
   }
 
   const defaultUsernameorAlias = workspaceContext.username;
-  if (defaultUsernameorAlias) {
-    const executor = new MetadataCacheExecutor(
-      defaultUsernameorAlias,
-      nls.localize('force_source_diff_text'),
-      'force_source_diff',
-      handleCacheResults
-    );
-    const commandlet = new SfdxCommandlet(
-      workspaceChecker,
-      new FilePathGatherer(sourceUri),
-      executor
-    );
-    await commandlet.run();
+  if (!defaultUsernameorAlias) {
+    notificationService.showErrorMessage(nls.localize('missing_default_org'));
+    return;
   }
+  const executor = new MetadataCacheExecutor(
+    defaultUsernameorAlias,
+    nls.localize('force_source_diff_text'),
+    'force_source_diff',
+    handleCacheResults
+  );
+  const commandlet = new SfdxCommandlet(
+    workspaceChecker,
+    new FilePathGatherer(sourceUri),
+    executor
+  );
+  await commandlet.run();
 }
 
 export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
@@ -93,17 +95,17 @@ export async function handleCacheResults(
 ): Promise<void> {
   if (cache) {
     if (cache.selectedType === PathType.Individual && cache.cache.components) {
-      await conflictDetectionService.diffOneFile(
+      await differ.diffOneFile(
         cache.selectedPath,
         cache.cache.components[0],
         username
       );
     } else if (cache.selectedType === PathType.Folder) {
-      await conflictDetectionService.diffFolder(cache, username);
+      await differ.diffFolder(cache, username);
     }
   } else {
-    notificationService.showErrorMessage(
-      nls.localize('force_source_diff_components_not_in_org')
-    );
+    const message = nls.localize('force_source_diff_components_not_in_org');
+    notificationService.showErrorMessage(message);
+    throw new Error(message);
   }
 }

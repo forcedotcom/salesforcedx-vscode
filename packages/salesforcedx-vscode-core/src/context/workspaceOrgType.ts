@@ -39,6 +39,7 @@ export function setWorkspaceOrgTypeWithOrgType(orgType: OrgType) {
 
 export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   try {
+    setHasDefaultUsername(!!defaultUsernameOrAlias);
     const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
     setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
@@ -73,6 +74,14 @@ function setDefaultUsernameHasNoChangeTracking(val: boolean) {
   vscode.commands.executeCommand(
     'setContext',
     'sfdx:default_username_has_no_change_tracking',
+    val
+  );
+}
+
+function setHasDefaultUsername(val: boolean) {
+  vscode.commands.executeCommand(
+    'setContext',
+    'sfdx:has_default_username',
     val
   );
 }

@@ -16,5 +16,8 @@ export {
 export {
   ensureDirectoryExists,
   getTestResultsFolder,
-  getRelativeProjectPath
+  getRelativeProjectPath,
+  fileExtensionsMatch
 } from './paths';
+export { TraceFlags } from './traceFlags';
+export { TraceFlagsRemover } from './traceFlagsRemover';

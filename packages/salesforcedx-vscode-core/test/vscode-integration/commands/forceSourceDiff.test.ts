@@ -14,7 +14,7 @@ import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
-import * as conflictDetectionService from '../../../src/conflict/conflictDetectionService';
+import * as differ from '../../../src/conflict/directoryDiffer';
 import {
   MetadataCacheResult,
   MetadataCacheService,
@@ -125,7 +125,8 @@ describe('Force Source Diff', () => {
           baseDirectory: path.join('/projects/trailheadapps/lwc-recipes'),
           commonRoot: path.join('force-app/main/default/classes'),
           components: []
-        }
+        },
+        properties: []
       };
       const remoteFsPath = path.join(
         mockResult.cache.baseDirectory,
@@ -151,23 +152,6 @@ describe('Force Source Diff', () => {
           'mockFile.cls'
         )
       );
-    });
-
-    it('Should show message when remote file is not found in org', async () => {
-      processStub.returns(null);
-
-      try {
-        await forceSourceDiff(Uri.file(mockFilePath));
-      } catch (error) {
-        expect(error.message).to.be(
-          nls.localize('force_source_diff_remote_not_found')
-        );
-        assert.calledOnce(notificationStub);
-        assert.calledWith(
-          notificationStub,
-          nls.localize('force_source_diff_remote_not_found')
-        );
-      }
     });
 
     it('Should show message when diffing on unsupported file type', async () => {
@@ -210,8 +194,8 @@ describe('Force Source Diff', () => {
 
     beforeEach(() => {
       notificationStub = stub(notificationService, 'showErrorMessage');
-      diffOneFileStub = stub(conflictDetectionService, 'diffOneFile');
-      diffFolderStub = stub(conflictDetectionService, 'diffFolder');
+      diffOneFileStub = stub(differ, 'diffOneFile');
+      diffFolderStub = stub(differ, 'diffFolder');
     });
 
     afterEach(() => {
@@ -221,9 +205,18 @@ describe('Force Source Diff', () => {
     });
 
     it('Should throw error for empty cache', async () => {
-      await conflictCommands.handleCacheResults('username', undefined);
+      let expectedError = null;
+      try {
+        await conflictCommands.handleCacheResults('username', undefined);
+      } catch (error) {
+        expectedError = error;
+      }
+      expect(expectedError.message).to.equal(
+        nls.localize('force_source_diff_components_not_in_org')
+      );
       assert.calledOnce(notificationStub);
-      expect(notificationStub.getCall(0).args[0]).to.equal(
+      assert.calledWith(
+        notificationStub,
         nls.localize('force_source_diff_components_not_in_org')
       );
     });
@@ -238,7 +231,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Individual,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffOneFileStub);
@@ -254,7 +248,8 @@ describe('Force Source Diff', () => {
         selectedType: PathType.Folder,
         selectedPath: '.',
         cache: metadataCache,
-        project: metadataCache
+        project: metadataCache,
+        properties: []
       };
       await conflictCommands.handleCacheResults('username', cacheResult);
       assert.calledOnce(diffFolderStub);

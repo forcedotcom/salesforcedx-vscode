@@ -24,7 +24,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 
 ## Documentation
 
-For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://forcedotcom.github.io/salesforcedx-vscode) documentation site.
+For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.
 
 ## Open Source
 
@@ -53,8 +53,10 @@ The Salesforce Extension Pack extension installs these extensions.
    This extension (`salesforcedx-vscode-lightning`) supports Aura component bundles. It uses the HTML language server from VS Code.
 - [Visualforce](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-visualforce)  
    This extension (`salesforcedx-vscode-visualforce`) supports Visualforce pages and components. It uses the Visualforce Language Server and the HTML language server from VS Code.
+- [SOQL](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-soql)  
+   This extension (`salesforcedx-vscode-soql`) enables you to interactively build a SOQL query via a form-based visual editor, view the query as you build, and save the output to a .csv or .json file.
 - [Salesforce Lightning Design System (SLDS) Validator](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforce-vscode-slds)  
-   This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS).  It provides code completion, syntax highlighting and validation with recommended tokens and utility classes.
+   This extension (`salesforcedx-vscode-slds`) simplifies working with the Salesforce Lightning Design System (SLDS). It provides code completion, syntax highlighting and validation with recommended tokens and utility classes.
 
 ---
 

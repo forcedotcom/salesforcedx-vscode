@@ -13,10 +13,6 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  ConflictDetectionChecker,
-  ConflictDetectionMessages
-} from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -30,19 +26,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-
-export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
-  string
-> {
-  public build(manifestPath: string): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_retrieve_text'))
-      .withArg('force:source:retrieve')
-      .withFlag('--manifest', manifestPath)
-      .withLogName('force_source_retrieve_with_manifest')
-      .build();
-  }
-}
 
 export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
   string
@@ -89,24 +72,10 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
     }
   }
 
-  const messages: ConflictDetectionMessages = {
-    warningMessageKey: 'conflict_detect_conflicts_during_retrieve',
-    commandHint: input => {
-      return new SfdxCommandBuilder()
-        .withArg('force:source:retrieve')
-        .withFlag('--manifest', input)
-        .build()
-        .toString();
-    }
-  };
-
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibrarySourceRetrieveManifestExecutor()
-      : new ForceSourceRetrieveManifestExecutor(),
-    new ConflictDetectionChecker(messages)
+    new LibrarySourceRetrieveManifestExecutor()
   );
   await commandlet.run();
 }

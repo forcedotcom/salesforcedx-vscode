@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "51.14.0",
+  "version": "54.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,17 +24,17 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.1.20",
-    "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-apex-replay-debugger": "51.14.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.14.0",
+    "@salesforce/apex-node": "0.2.9",
+    "@salesforce/core": "2.28.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "54.1.0",
+    "@salesforce/salesforcedx-utils-vscode": "54.1.0",
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.14.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "54.1.0",
     "@salesforce/ts-sinon": "1.2.2",
     "@types/async-lock": "0.0.20",
     "@types/chai": "^4.0.0",
@@ -60,6 +60,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
@@ -109,10 +110,6 @@
           "when": "sfdx:project_opened && editorLangId == 'apex'"
         },
         {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
-        },
-        {
           "command": "sfdx.launch.replay.debugger.last.logfile",
           "when": "sfdx:project_opened && !inDebugMode"
         },
@@ -143,18 +140,6 @@
           "when": "view == sfdx.force.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
           "group": "inline"
         }
-      ],
-      "editor/context": [
-        {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && editorLangId == 'apexlog'"
-        }
-      ],
-      "explorer/context": [
-        {
-          "command": "sfdx.launch.replay.debugger.logfile",
-          "when": "sfdx:project_opened && resourceIsFile && resourceLangId == 'apexlog'"
-        }
       ]
     },
     "commands": [
@@ -170,10 +155,6 @@
           "dark": "images/dark/cloud-upload.svg"
         },
         "when": "sfdx:project_opened"
-      },
-      {
-        "command": "sfdx.launch.replay.debugger.logfile",
-        "title": "%launch_from_log_file%"
       },
       {
         "command": "sfdx.launch.replay.debugger.last.logfile",

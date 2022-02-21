@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.14.0",
+  "version": "54.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,21 +25,25 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "51.14.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.14.0",
+    "@heroku/functions-core": "^0.2.3",
+    "@salesforce/core": "2.28.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "54.1.0",
+    "@salesforce/salesforcedx-utils-vscode": "54.1.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "2.1.3",
-    "@salesforce/templates": "51.4.0",
+    "@salesforce/source-deploy-retrieve": "5.0.0",
+    "@salesforce/templates": "52.3.0",
+    "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
+    "jsforce": "1.11.0",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.3"
+    "shelljs": "0.8.5",
+    "yeoman-generator": "^4.8.2"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.14.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "54.1.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "^4.0.0",
@@ -70,6 +74,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
@@ -151,7 +156,7 @@
         },
         {
           "command": "sfdx.force.source.retrieve.component",
-          "when": "view == metadata && viewItem =~ /(type|component)/",
+          "when": "view == metadata && viewItem =~ /(type|component|folder)/",
           "group": "inline"
         },
         {
@@ -163,7 +168,7 @@
       "editor/context": [
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
@@ -188,6 +193,10 @@
         {
           "command": "sfdx.force.diff",
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ],
       "explorer/context": [
@@ -281,7 +290,11 @@
         },
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
+        {
+          "command": "sfdx.create.manifest",
+          "when": "sfdx:project_opened"
         }
       ],
       "commandPalette": [
@@ -294,12 +307,20 @@
           "when": "sfdx:project_opened"
         },
         {
+          "command": "sfdx.force.auth.accessToken",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.auth.web.login",
           "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.auth.logout.all",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.auth.logout.default",
+          "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
           "command": "sfdx.force.org.create",
@@ -392,6 +413,10 @@
         {
           "command": "sfdx.force.project.with.manifest.create",
           "when": "!sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.create.manifest",
+          "when": "false"
         },
         {
           "command": "sfdx.force.apex.trigger.create",
@@ -514,16 +539,20 @@
           "when": "false"
         },
         {
+          "command": "sfdx.force.folder.diff",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.conflict.open",
           "when": "false"
         },
         {
           "command": "sfdx.force.function.create",
-          "when": "sfdx:functions_enabled"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.function.start",
-          "when": "sfdx:functions_enabled && sfdx:project_opened && resource =~ /.*/functions/[^/]+(/[^/]+\\.(ts|js|json|toml))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
         },
         {
           "command": "sfdx.force.function.invoke",
@@ -535,11 +564,15 @@
         },
         {
           "command": "sfdx.force.function.stop",
-          "when": "sfdx:functions_enabled"
+          "when": "sfdx:project_opened"
         },
         {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ]
     },
@@ -557,8 +590,16 @@
         "title": "%force_auth_web_login_authorize_org_text%"
       },
       {
+        "command": "sfdx.force.auth.accessToken",
+        "title": "%force_auth_access_token_authorize_org_text%"
+      },
+      {
         "command": "sfdx.force.auth.logout.all",
         "title": "%force_auth_logout_all_text%"
+      },
+      {
+        "command": "sfdx.force.auth.logout.default",
+        "title": "%force_auth_logout_default_text%"
       },
       {
         "command": "sfdx.force.org.create",
@@ -793,6 +834,10 @@
         }
       },
       {
+        "command": "sfdx.create.manifest",
+        "title": "%force_create_manifest%"
+      },
+      {
         "command": "sfdx.force.diff",
         "title": "%force_diff_against_org%"
       },
@@ -831,12 +876,21 @@
       {
         "command": "sfdx.force.internal.refreshsobjects",
         "title": "%force_sobjects_refresh%"
+      },
+      {
+        "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+        "title": "%force_launch_apex_replay_debugger_with_current_file%"
       }
     ],
     "configuration": {
       "type": "object",
       "title": "%feature_previews_title%",
       "properties": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": {
+          "type": "boolean",
+          "default": false,
+          "description": "%override_conflicts_on_push_description%"
+        },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",
           "default": true,
@@ -861,21 +915,6 @@
           "type": "boolean",
           "default": false,
           "description": "%conflict_detection_enabled_description%"
-        },
-        "salesforcedx-vscode-core.experimental.deployRetrieve": {
-          "type": "boolean",
-          "default": true,
-          "description": "%experimental_deploy_retrieve_description%"
-        },
-        "salesforcedx-vscode-core.experimental.functions_install_dependencies": {
-          "type": "boolean",
-          "default": true,
-          "description": "%experimental_functions_install_dependencies%"
-        },
-        "salesforcedx-vscode-core.experimental.supportFunctions": {
-          "type": "boolean",
-          "default": false,
-          "description": "%experimental_support_functions%"
         },
         "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
           "type": "boolean",

@@ -318,6 +318,30 @@ describe('Set Default Org', () => {
     ).to.be.true;
   });
 
+  it('should return Continue and call sfdx:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
+    orgListStub.returns(orgsList);
+    quickPickStub.returns(
+      '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text')
+    );
+    const response = await orgList.setDefaultOrg();
+    expect(response.type).to.equal('CONTINUE');
+    const commandResult = expect(
+      executeCommandStub.calledWith('sfdx.force.auth.accessToken')
+    ).to.be.true;
+  });
+
+  it('should return Continue and call force:org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
+    orgListStub.returns(orgsList);
+    quickPickStub.returns(
+      '$(plus) ' + nls.localize('force_org_list_clean_text')
+    );
+    const response = await orgList.setDefaultOrg();
+    expect(response.type).to.equal('CONTINUE');
+    const commandResult = expect(
+      executeCommandStub.calledWith('sfdx.force.org.list.clean')
+    ).to.be.true;
+  });
+
   it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
     orgListStub.returns(orgsList);
     quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));

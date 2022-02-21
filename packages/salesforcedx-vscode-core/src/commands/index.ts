@@ -5,23 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export {
-  forceAuthWebLogin,
+  AccessTokenParamsGatherer,
   AuthParams,
   AuthParamsGatherer,
-  createAuthWebLoginExecutor,
   DEFAULT_ALIAS,
-  ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor,
   OrgTypeItem,
+  INSTANCE_URL_PLACEHOLDER,
   PRODUCTION_URL,
   SANDBOX_URL
-} from './forceAuthWebLogin';
+} from './auth/authParamsGatherer';
+export { forceAuthAccessToken } from './auth/forceAuthAccessTokenLogin';
+export {
+  forceAuthWebLogin,
+  createAuthWebLoginExecutor,
+  ForceAuthWebLoginDemoModeExecutor,
+  ForceAuthWebLoginExecutor
+} from './auth/forceAuthWebLogin';
 export {
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
-} from './forceAuthDevHub';
+} from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export {
   forceOrgCreate,
@@ -41,26 +46,21 @@ export {
   ManifestChecker
 } from './forceSourceDelete';
 export {
-  forceSourceDeployManifest,
-  ForceSourceDeployManifestExecutor
+  forceSourceDeployManifest
 } from './forceSourceDeployManifest';
 export {
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
-  ForceSourceDeploySourcePathExecutor,
+  forceSourceDeploySourcePaths,
   LibraryDeploySourcePathExecutor
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
-  forceSourceRetrieveSourcePath,
-  ForceSourceRetrieveSourcePathExecutor,
+  forceSourceRetrieveSourcePaths,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
 export {
-  forceSourceRetrieveManifest,
-  ForceSourceRetrieveManifestExecutor
+  forceSourceRetrieveManifest
 } from './forceSourceRetrieveManifest';
 export {
   forceSourceStatus,
@@ -128,7 +128,11 @@ export {
   turnOffLogging,
   ForceStopApexDebugLoggingExecutor
 } from './forceStopApexDebugLogging';
-export { forceAuthLogoutAll, ForceAuthLogoutAll } from './forceAuthLogout';
+export {
+  forceAuthLogoutAll,
+  ForceAuthLogoutAll,
+  forceAuthLogoutDefault
+} from './auth/forceAuthLogout';
 import { DeveloperLogTraceFlag } from '../traceflag/developerLogTraceFlag';
 export const developerLogTraceFlag = DeveloperLogTraceFlag.getInstance();
 export { forceConfigSet, ForceConfigSetExecutor } from './forceConfigSet';
@@ -146,6 +150,9 @@ export {
   forceSourceFolderDiff,
   handleCacheResults
 } from './forceSourceDiff';
+export {
+  forceCreateManifest
+} from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';

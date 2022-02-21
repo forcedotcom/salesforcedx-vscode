@@ -19,6 +19,7 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
+import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
@@ -67,7 +68,7 @@ function registerCommands(): vscode.Disposable {
   );
   const launchFromLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.logfile',
-    editorUri => {
+    (editorUri: vscode.Uri) => {
       let logFile: string | undefined;
       if (!editorUri) {
         const editor = vscode.window.activeTextEditor;
@@ -82,6 +83,16 @@ function registerCommands(): vscode.Disposable {
       return launchFromLogFile(logFile);
     }
   );
+
+  const launchFromLogFilePathCmd = vscode.commands.registerCommand(
+    'sfdx.launch.replay.debugger.logfile.path',
+    logFilePath => {
+      if (logFilePath) {
+        launchFromLogFile(logFilePath, true);
+      }
+    }
+  );
+
   const launchFromLastLogFileCmd = vscode.commands.registerCommand(
     'sfdx.launch.replay.debugger.last.logfile',
     lastLogFileUri => {
@@ -104,6 +115,7 @@ function registerCommands(): vscode.Disposable {
   return vscode.Disposable.from(
     promptForLogCmd,
     launchFromLogFileCmd,
+    launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
     sfdxCreateCheckpointsCmd,
     sfdxToggleCheckpointCmd
@@ -236,13 +248,7 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     // If lastOpenedLogFolder isn't defined or doesn't exist then use the
     // same directory that the SFDX download logs command would download to
     // if it exists.
-    const sfdxCommandLogDir = path.join(
-      vscode.workspace.workspaceFolders![0].uri.fsPath,
-      '.sfdx',
-      'tools',
-      'debug',
-      'logs'
-    );
+    const sfdxCommandLogDir = getLogDirPath();
     if (pathExists.sync(sfdxCommandLogDir)) {
       return vscode.Uri.file(sfdxCommandLogDir);
     }

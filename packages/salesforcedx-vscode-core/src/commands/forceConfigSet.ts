@@ -22,7 +22,7 @@ export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
 
   public constructor(usernameOrAlias: string) {
     super();
-    this.usernameOrAlias = usernameOrAlias;
+    this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
   public build(data: {}): Command {

@@ -14,34 +14,16 @@ import { join } from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
-  ConflictDetectionChecker,
-  ConflictDetectionMessages
+  ConflictDetectionMessages,
+  TimestampConflictChecker
 } from '../commands/util/postconditionCheckers';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from '../util';
-import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
-
-export class ForceSourceDeployManifestExecutor extends BaseDeployExecutor {
-  public build(manifestPath: string): Command {
-    const commandBuilder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_deploy_text'))
-      .withArg('force:source:deploy')
-      .withLogName('force_source_deploy_with_manifest')
-      .withFlag('--manifest', manifestPath)
-      .withJson();
-    return commandBuilder.build();
-  }
-
-  protected getDeployType() {
-    return DeployType.Deploy;
-  }
-}
 
 export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
   string
@@ -87,7 +69,7 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
     commandHint: input => {
       return new SfdxCommandBuilder()
         .withArg('force:source:deploy')
-        .withFlag('--manifest', input)
+        .withFlag('--manifest', input as string)
         .build()
         .toString();
     }
@@ -96,10 +78,8 @@ export async function forceSourceDeployManifest(manifestUri: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(manifestUri),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibrarySourceDeployManifestExecutor()
-      : new ForceSourceDeployManifestExecutor(),
-    new ConflictDetectionChecker(messages)
+    new LibrarySourceDeployManifestExecutor(),
+    new TimestampConflictChecker(true, messages)
   );
   await commandlet.run();
 }

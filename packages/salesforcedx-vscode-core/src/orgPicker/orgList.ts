@@ -132,7 +132,9 @@ export class OrgList implements vscode.Disposable {
     let quickPickList = [
       '$(plus) ' + nls.localize('force_auth_web_login_authorize_org_text'),
       '$(plus) ' + nls.localize('force_auth_web_login_authorize_dev_hub_text'),
-      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text')
+      '$(plus) ' + nls.localize('force_org_create_default_scratch_org_text'),
+      '$(plus) ' + nls.localize('force_auth_access_token_authorize_org_text'),
+      '$(plus) ' + nls.localize('force_org_list_clean_text')
     ];
 
     const authInfoList = await this.updateOrgList();
@@ -151,10 +153,7 @@ export class OrgList implements vscode.Disposable {
       case '$(plus) ' +
         nls.localize('force_auth_web_login_authorize_org_text'): {
         vscode.commands.executeCommand('sfdx.force.auth.web.login');
-        return {
-          type: 'CONTINUE',
-          data: {}
-        };
+        return { type: 'CONTINUE', data: {} };
       }
       case '$(plus) ' +
         nls.localize('force_auth_web_login_authorize_dev_hub_text'): {
@@ -164,6 +163,16 @@ export class OrgList implements vscode.Disposable {
       case '$(plus) ' +
         nls.localize('force_org_create_default_scratch_org_text'): {
         vscode.commands.executeCommand('sfdx.force.org.create');
+        return { type: 'CONTINUE', data: {} };
+      }
+      case '$(plus) ' +
+        nls.localize('force_auth_access_token_authorize_org_text'): {
+        vscode.commands.executeCommand('sfdx.force.auth.accessToken');
+        return { type: 'CONTINUE', data: {} };
+      }
+      case '$(plus) ' +
+        nls.localize('force_org_list_clean_text'): {
+        vscode.commands.executeCommand('sfdx.force.org.list.clean');
         return { type: 'CONTINUE', data: {} };
       }
       default: {

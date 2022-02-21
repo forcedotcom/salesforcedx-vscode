@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "51.14.0",
+  "version": "54.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,20 +25,21 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.1.20",
+    "@salesforce/apex-node": "0.2.9",
     "@salesforce/apex-tmlanguage": "1.4.0",
-    "@salesforce/core": "2.13.0",
-    "@salesforce/salesforcedx-utils-vscode": "51.14.0",
-    "@salesforce/source-deploy-retrieve": "1.1.17",
+    "@salesforce/core": "2.28.0",
+    "@salesforce/salesforcedx-utils-vscode": "54.1.0",
+    "@salesforce/source-deploy-retrieve": "5.0.0",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
-    "shelljs": "0.8.3",
+    "shelljs": "0.8.5",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "5.1.1"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "51.14.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "54.1.0",
+    "@salesforce/ts-sinon": "1.2.2",
     "@types/chai": "^4.0.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
@@ -61,6 +62,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
@@ -125,11 +127,11 @@
       ],
       "commandPalette": [
         {
-          "command": "sfdx.force.apex.execute.selection",
+          "command": "sfdx.force.anon.apex.execute.selection",
           "when": "sfdx:project_opened && editorHasSelection"
         },
         {
-          "command": "sfdx.force.apex.execute.document",
+          "command": "sfdx.force.anon.apex.execute.document",
           "when": "sfdx:project_opened && !editorHasSelection"
         },
         {
@@ -154,6 +156,18 @@
         },
         {
           "command": "sfdx.force.apex.test.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.run",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.create",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.apex.test.suite.add",
           "when": "sfdx:project_opened"
         },
         {
@@ -184,12 +198,12 @@
     },
     "commands": [
       {
-        "command": "sfdx.force.apex.execute.document",
-        "title": "%force_apex_execute_document_text%"
+        "command": "sfdx.force.anon.apex.execute.document",
+        "title": "%force_anon_apex_execute_document_text%"
       },
       {
-        "command": "sfdx.force.apex.execute.selection",
-        "title": "%force_apex_execute_selection_text%"
+        "command": "sfdx.force.anon.apex.execute.selection",
+        "title": "%force_anon_apex_execute_selection_text%"
       },
       {
         "command": "sfdx.force.apex.log.get",
@@ -198,6 +212,18 @@
       {
         "command": "sfdx.force.apex.test.run",
         "title": "%force_apex_test_run_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.run",
+        "title": "%force_apex_test_suite_run_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.create",
+        "title": "%force_apex_test_suite_create_text%"
+      },
+      {
+        "command": "sfdx.force.apex.test.suite.add",
+        "title": "%force_apex_test_suite_build_text%"
       },
       {
         "command": "sfdx.force.test.view.run",
@@ -286,6 +312,11 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_semantic_errors_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.enable-completion-statistics": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_code_completion_stats_description%"
         }
       }
     },

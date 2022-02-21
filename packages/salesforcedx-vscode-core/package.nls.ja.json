@@ -2,7 +2,9 @@
   "running_tasks_title_text": "実行中のタスク",
   "force_auth_web_login_authorize_dev_hub_text": "SFDX: Dev Hub を認証",
   "force_auth_web_login_authorize_org_text": "SFDX: 組織を認証",
+  "force_auth_access_token_authorize_org_text": "SFDX: Authorize an Org using Session ID",
   "force_auth_logout_all_text": "SFDX: すべての認証済み組織からログアウト",
+  "force_auth_logout_default_text": "SFDX: Log Out from Default Org",
   "force_org_create_default_scratch_org_text": "SFDX: デフォルトのスクラッチ組織を作成...",
   "force_org_open_default_scratch_org_text": "SFDX: デフォルトの組織を開く",
   "force_source_pull_default_scratch_org_text": "SFDX: デフォルトのスクラッチ組織からソースをプル",
@@ -56,8 +58,7 @@
   "refresh_components_text": "コンポーネントを更新",
   "force_source_retrieve_display_text": "組織からソースを取得",
   "force_source_retrieve_and_open_display_text": "Retrieve and Open Source",
-  "org_browser_enabled_description": "(ベータ) デフォルトの組織が非スクラッチ組織の場合に、組織ブラウザビューを表示するかどうかを指定します。組織ブラウザの [ドキュメント] (https://forcedotcom.github.io/salesforcedx-vscode/user-guide/org-browser) を参照してください。",
+  "org_browser_enabled_description": "(ベータ) デフォルトの組織が非スクラッチ組織の場合に、組織ブラウザビューを表示するかどうかを指定します。組織ブラウザの [ドキュメント] (https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) を参照してください。",
   "force_diff_against_org": "組織のファイルとの差分を表示",
   "force_analytics_template_create_text": "SFDX: サンプルの Analytics テンプレートを作成",
-  "experimental_deploy_retrieve_description": "デプロイ/取得のパフォーマンス改善を有効化します。"
 }
