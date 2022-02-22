@@ -74,11 +74,11 @@ import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
+  CommandVersion,
   CompositeParametersGatherer,
   EmptyParametersGatherer,
   SelectFileName,
   SelectOutputDir,
-  CommandVersion,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker

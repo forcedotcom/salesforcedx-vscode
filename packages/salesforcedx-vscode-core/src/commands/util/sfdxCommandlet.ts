@@ -39,6 +39,12 @@ export interface FlagParameter<T> {
   commandVersion: CommandVersion;
 }
 
+export interface CommandParams {
+  command: string;
+  description: string; // handle to localized user facing help text
+  logName: string; // metric key
+}
+
 export interface CommandletExecutor<T> {
   execute(response: ContinueResponse<T>): void;
   readonly onDidFinishExecution?: vscode.Event<[number, number]>;

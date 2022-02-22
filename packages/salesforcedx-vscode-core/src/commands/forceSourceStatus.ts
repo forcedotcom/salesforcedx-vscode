@@ -10,19 +10,32 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../messages';
-import { CommandVersion } from './util/sfdxCommandlet';
 import {
+  CommandParams,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import { CommandVersion } from './util/sfdxCommandlet';
 
 export enum SourceStatusFlags {
   Local = '--local',
-  Remote = '--remote',
+  Remote = '--remote'
 }
+
+const statusCommand: CommandParams = {
+  command: 'force:source:status',
+  description: 'force_source_status_text',
+  logName: 'force_source_status'
+};
+
+const statusCommandLegacy: CommandParams = {
+  command: 'force:source:legacy:status',
+  description: 'force_source_legacy_status_text',
+  logName: 'force_source_legacy_status'
+};
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   public command: string;
@@ -30,12 +43,12 @@ export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private description: string;
   private logName: string;
 
-  public constructor(flag?: SourceStatusFlags, cmdVersion?: CommandVersion) {
+  public constructor(flag?: SourceStatusFlags, params: CommandParams = statusCommand) {
     super();
     this.flag = flag;
-    this.command = `force:source:${cmdVersion? cmdVersion : CommandVersion.Default}:status`;
-    this.description = ['force_source_status', cmdVersion, 'text'].filter(Boolean).join('_');
-    this.logName = ['force_source_status', cmdVersion].filter(Boolean).join('_');
+    this.command =  params.command;
+    this.description = params.description;
+    this.logName = params.logName;
   }
 
   public build(data: {}): Command {
@@ -60,12 +73,13 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourceStatus(
-  this: FlagParameter<SourceStatusFlags>
+  params: FlagParameter<SourceStatusFlags>
 ) {
-  // tslint:disable-next-line:no-invalid-this
-  const flag = this ? this.flag: undefined;
-  const cmdVersion = this ? this.commandVersion : undefined;
-  const executor = new ForceSourceStatusExecutor(flag, cmdVersion);
+  const {flag, commandVersion} = params;
+  const command = commandVersion && commandVersion === CommandVersion.Legacy ? statusCommandLegacy : statusCommand;
+  // const flag = this ? this.flag: undefined;
+  // const cmdVersion = this ? this.commandVersion : undefined;
+  const executor = new ForceSourceStatusExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,
