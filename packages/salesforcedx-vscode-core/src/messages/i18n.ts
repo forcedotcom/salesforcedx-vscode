@@ -111,6 +111,8 @@ export const messages = {
 
   force_source_status_text:
     'View All Changes (Local and in Default Scratch Org)',
+  force_source_legacy_status_text:
+    'View All Changes (Local and in Default Scratch Org) (Legacy)',
 
   force_source_pull_legacy_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org (Legacy)',
@@ -121,9 +123,6 @@ export const messages = {
     'SFDX: Push Source to Default Scratch Org (Legacy)',
   force_source_push_legacy_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)',
-
-  force_source_status_legacy_text:
-    'View All Changes (Local and in Default Scratch Org) (Legacy)',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:

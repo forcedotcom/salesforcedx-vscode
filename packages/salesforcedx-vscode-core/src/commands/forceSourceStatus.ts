@@ -39,9 +39,9 @@ const statusCommandLegacy: CommandParams = {
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   public command: string;
-  private flag: SourceStatusFlags | undefined;
   private description: string;
   private logName: string;
+  private flag: SourceStatusFlags | undefined;
 
   public constructor(flag?: SourceStatusFlags, params: CommandParams = statusCommand) {
     super();
@@ -77,8 +77,6 @@ export async function forceSourceStatus(
 ) {
   const {flag, commandVersion} = params;
   const command = commandVersion && commandVersion === CommandVersion.Legacy ? statusCommandLegacy : statusCommand;
-  // const flag = this ? this.flag: undefined;
-  // const cmdVersion = this ? this.commandVersion : undefined;
   const executor = new ForceSourceStatusExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
