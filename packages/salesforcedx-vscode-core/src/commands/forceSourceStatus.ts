@@ -28,12 +28,14 @@ export enum SourceStatusFlags {
 const statusCommand: CommandParams = {
   command: 'force:source:status',
   description: 'force_source_status_text',
+  forceFlagDescription: '', // No 'force' option for status
   logName: 'force_source_status'
 };
 
 const statusCommandLegacy: CommandParams = {
   command: 'force:source:legacy:status',
   description: 'force_source_legacy_status_text',
+  forceFlagDescription: '', // No 'force' option for status
   logName: 'force_source_legacy_status'
 };
 
