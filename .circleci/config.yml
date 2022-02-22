@@ -18,7 +18,7 @@ parameters:
   # Configurable Versions
   cli-version:
     type: string
-    default: '7.132.0'
+    default: '7.45.1'
   lerna-version:
     type: string
     default: '3.13.1'
@@ -628,7 +628,6 @@ workflows:
     jobs:
       - create-release-branch:
           e: default-executor
-
   # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
   # dependabot-automerge:
   #   triggers:

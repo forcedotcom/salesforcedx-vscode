@@ -190,3 +190,13 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 ### `npm run check:deps`
 
 This runs `depcheck` on each package to check for unused and missing dependencies. Pay particular attention to "Missing dependencies". Unused dependency result might have [false positives](https://github.com/depcheck/depcheck#false-alert). Check code usage to verify.
+
+## Node Configuration
+
+### .npmrc
+
+The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8/using-npm/config) of the npm environment. The settings that we care about are `engine-strict` (this enforces the minimum node version in our packages) and `save-exact` (saving exact versions of dependencies from the package.json).
+
+### .nvmrc
+
+Our nvmrc specifies the minimimum node version required to run the project.
