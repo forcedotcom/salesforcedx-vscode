@@ -11,17 +11,33 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { nls } from '../messages';
 import {
+  CommandParams,
+  CommandVersion,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+
+const pullCommand: CommandParams = {
+  command: 'force:source:pull',
+  description: 'force_source_pull_default_scratch_org_text',
+  forceFlagDescription: 'force_source_pull_force_default_scratch_org_text',
+  logName: 'force_source_pull_default_scratch_org'
+};
+
+const pullCommandLegacy: CommandParams = {
+  command: 'force:source:legacy:pull',
+  description: 'force_source_legacy_pull_default_scratch_org_text',
+  forceFlagDescription: 'force_source_legacy_pull_force_default_scratch_org_text',
+  logName: 'force_source_legacy_pull_default_scratch_org'
+};
+
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
-  public static readonly command = 'force:source:beta:pull';
   private flag: string | undefined;
 
-  public constructor(flag?: string) {
+  public constructor(flag?: string, public params: CommandParams = pullCommand) {
     super();
     this.flag = flag;
   }
@@ -29,16 +45,16 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('force_source_pull_default_scratch_org_text')
+        nls.localize(this.params.description)
       )
-      .withArg(ForceSourcePullExecutor.command)
-      .withLogName('force_source_pull_default_scratch_org');
+      .withArg(this.params.command)
+      .withLogName(this.params.logName);
 
     if (this.flag === '--forceoverwrite') {
       builder
         .withArg(this.flag)
         .withDescription(
-          nls.localize('force_source_pull_force_default_scratch_org_text')
+          nls.localize(this.params.forceFlagDescription)
         );
     }
     return builder.build();
@@ -48,9 +64,9 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceSourcePull(this: FlagParameter<string>) {
-  // tslint:disable-next-line:no-invalid-this
-  const flag = this ? this.flag : undefined;
+export async function forceSourcePull(params: FlagParameter<string>) {
+  const {flag, commandVersion} = params;
+  const command = commandVersion && commandVersion === CommandVersion.Legacy ? pullCommandLegacy : pullCommand;
   const executor = new ForceSourcePullExecutor(flag);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
