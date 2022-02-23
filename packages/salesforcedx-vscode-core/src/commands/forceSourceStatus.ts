@@ -12,13 +12,13 @@ import {
 import { nls } from '../messages';
 import {
   CommandParams,
+  CommandVersion,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-import { CommandVersion } from './util/sfdxCommandlet';
 
 export enum SourceStatusFlags {
   Local = '--local',

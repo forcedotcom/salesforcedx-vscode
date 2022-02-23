@@ -638,10 +638,6 @@
         "title": "%force_source_status_remote_text%"
       },
       {
-        "command": "sfdx.force.source.legacy.status",
-        "title": "%force_source_legacy_status_text%"
-      },
-      {
         "command": "sfdx.force.source.legacy.pull",
         "title": "%force_source_legacy_pull_default_scratch_org_text%"
       },
@@ -656,6 +652,10 @@
       {
         "command": "sfdx.force.source.legacy.push.force",
         "title": "%force_source_legacy_push_force_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.status",
+        "title": "%force_source_legacy_status_text%"
       },
       {
         "command": "sfdx.force.task.stop",
