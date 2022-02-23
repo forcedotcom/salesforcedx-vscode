@@ -1,8 +1,14 @@
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { FunctionService } from '../../../../src/commands/functions/functionService';
+import {
+  FUNCTION_TYPE_ERROR,
+  FunctionExecution,
+  FunctionService,
+  functionType
+} from '../../../../src/commands/functions/functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
   FUNCTION_DEFAULT_PORT
@@ -16,6 +22,8 @@ describe('Function Service', () => {
     sandbox = createSandbox();
   });
   afterEach(() => {
+    // Reset the instance var on the FunctionService so we're starting fresh as the tests expect.
+    (FunctionService as any)._instance = undefined;
     sandbox.restore();
   });
 
@@ -192,7 +200,7 @@ describe('Function Service', () => {
     });
 
     it('Should update debugType of a Java function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'Foo',
         debugPort: 7777,
@@ -207,7 +215,7 @@ describe('Function Service', () => {
     });
 
     it('Should update debugType of a Java JVM function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'Foo',
         debugPort: 7777,
@@ -222,7 +230,7 @@ describe('Function Service', () => {
     });
 
     it('Should update debugType of a Node function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'Bar',
         debugPort: 7777,
@@ -237,7 +245,7 @@ describe('Function Service', () => {
     });
 
     it('Should not update debugType of an unknown function', () => {
-      const service = new FunctionService();
+      const service = FunctionService.instance;
       service.registerStartedFunction({
         rootDir: 'FirstFunction',
         debugPort: 7777,
@@ -259,6 +267,64 @@ describe('Function Service', () => {
         'unknown'
       );
       expect(service.getFunctionLanguage()).to.equal('unknown');
+    });
+  });
+
+  describe('Function type.', () => {
+    let fsSyncStub: SinonStub;
+
+    const functionDef: FunctionExecution = {
+      rootDir: 'FirstFunction',
+      debugPort: 7777,
+      port: 8080,
+      debugType: 'unknown',
+      terminate: () => Promise.resolve()
+    };
+
+    beforeEach(() => {
+      fsSyncStub = sandbox.stub(fs, 'existsSync');
+    });
+
+    it('Should throw error if no started function.', () => {
+      const service = FunctionService.instance;
+      expect(() => {
+        service.getFunctionType();
+      }).to.throw(FUNCTION_TYPE_ERROR);
+    });
+
+    it('Should identify a typscript function.', () => {
+      fsSyncStub.returns(true);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const functionTypeVal = service.getFunctionType();
+      expect(functionTypeVal).to.equal(functionType.TYPESCRIPT);
+      expect(fsSyncStub.callCount).to.equal(1);
+      expect(fsSyncStub.getCall(0).args[0]).to.equal(
+        `${functionDef.rootDir}/tsconfig.json`
+      );
+    });
+
+    it('Should identify a javascript function.', () => {
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(true);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const functionTypeVal = service.getFunctionType();
+      expect(functionTypeVal).to.equal(functionType.JAVASCRIPT);
+      expect(fsSyncStub.callCount).to.equal(2);
+      expect(fsSyncStub.getCall(1).args[0]).to.equal(
+        `${functionDef.rootDir}/package.json`
+      );
+    });
+
+    it('Should identify a java function.', () => {
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(false);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const functionTypeVal = service.getFunctionType();
+      expect(functionTypeVal).to.equal(functionType.JAVA);
+      expect(fsSyncStub.callCount).to.equal(2);
     });
   });
 });

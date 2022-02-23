@@ -51,6 +51,7 @@
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
+    "@types/proxyquire": "1.3.28",
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.2",
@@ -63,6 +64,7 @@
     "mocha-multi-reporters": "^1.1.7",
     "mock-spawn": "0.2.6",
     "nyc": "^13",
+    "proxyquire": "2.1.3",
     "sinon": "^7.3.1",
     "typescript": "3.8.3",
     "yeoman-assert": "^3.1.1"
@@ -167,7 +169,11 @@
       ],
       "editor/context": [
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
+        {
+          "command": "sfdx.force.function.container.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
@@ -289,7 +295,11 @@
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
+        {
+          "command": "sfdx.force.function.container.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
@@ -551,7 +561,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
+        },
+        {
+          "command": "sfdx.force.function.container.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
         },
         {
@@ -858,8 +872,12 @@
         "title": "%force_function_create%"
       },
       {
-        "command": "sfdx.force.function.start",
+        "command": "sfdx.force.function.containerless.start",
         "title": "%force_function_start%"
+      },
+      {
+        "command": "sfdx.force.function.container.start",
+        "title": "%force_function_start_container%"
       },
       {
         "command": "sfdx.force.function.invoke",
