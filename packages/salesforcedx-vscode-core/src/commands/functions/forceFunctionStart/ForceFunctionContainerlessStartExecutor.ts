@@ -59,7 +59,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
         telemetryService.sendException(this.UNEXPECTED_ERROR_KEY, err.message);
         notificationService.showErrorMessage(errorNotificationMessage);
         channelService.appendLine(errorNotificationMessage);
-        if (err?.message) {
+        if (err.message) {
           channelService.appendLine(err.message);
         }
         channelService.showChannelOutput();
