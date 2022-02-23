@@ -15,7 +15,7 @@ describe('Force Source Push', () => {
     const sourcePushNoFlag = new ForceSourcePushExecutor();
     const pushCommand = sourcePushNoFlag.build({});
     expect(pushCommand.toCommand()).to.equal(
-      `sfdx ${ForceSourcePushExecutor.command} --json --loglevel fatal`
+      `sfdx ${sourcePushNoFlag.params.command} --json --loglevel fatal`
     );
     expect(pushCommand.description).to.equal(
       nls.localize('force_source_push_default_scratch_org_text')
@@ -25,7 +25,7 @@ describe('Force Source Push', () => {
     const sourcePushOverwrite = new ForceSourcePushExecutor('--forceoverwrite');
     const pushCommand = sourcePushOverwrite.build({});
     expect(pushCommand.toCommand()).to.equal(
-      `sfdx ${ForceSourcePushExecutor.command} --json --loglevel fatal --forceoverwrite`
+      `sfdx ${sourcePushOverwrite.params.command} --json --loglevel fatal --forceoverwrite`
     );
     expect(pushCommand.description).to.equal(
       nls.localize('force_source_push_force_default_scratch_org_text')

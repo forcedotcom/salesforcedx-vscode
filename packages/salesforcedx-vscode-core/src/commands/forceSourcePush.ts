@@ -12,16 +12,32 @@ import {
 import { nls } from '../messages';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
+  CommandParams,
+  CommandVersion,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
+
+const pushCommand: CommandParams = {
+  command: 'force:source:push',
+  description: 'force_source_push_default_scratch_org_text',
+  forceFlagDescription: 'force_source_push_force_default_scratch_org_text',
+  logName: 'force_source_push_default_scratch_org'
+};
+
+const pushCommandLegacy: CommandParams = {
+  command: 'force:source:legacy:push',
+  description: 'force_source_legacy_push_default_scratch_org_text',
+  forceFlagDescription: 'force_source_legacy_push_force_default_scratch_org_text',
+  logName: 'force_source_legacy_push_default_scratch_org'
+};
+
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
-  public static readonly command = 'force:source:beta:push';
   private flag: string | undefined;
 
-  public constructor(flag?: string) {
+  public constructor(flag?: string, public params: CommandParams = pushCommand) {
     super();
     this.flag = flag;
   }
@@ -29,15 +45,15 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(
-        nls.localize('force_source_push_default_scratch_org_text')
+        nls.localize(this.params.description)
       )
-      .withArg(ForceSourcePushExecutor.command)
+      .withArg(this.params.command)
       .withJson()
-      .withLogName('force_source_push_default_scratch_org');
+      .withLogName(this.params.logName);
     if (this.flag === '--forceoverwrite') {
       builder.withArg(this.flag);
       builder.withDescription(
-        nls.localize('force_source_push_force_default_scratch_org_text')
+        nls.localize(this.params.forceFlagDescription)
       );
     }
     return builder.build();
@@ -51,9 +67,9 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceSourcePush(this: FlagParameter<string>) {
-  // tslint:disable-next-line:no-invalid-this
-  const flag = this ? this.flag : undefined;
+export async function forceSourcePush(params: FlagParameter<string>) {
+  const {flag, commandVersion} = params;
+  const command = commandVersion && commandVersion === CommandVersion.Legacy ? pushCommandLegacy : pushCommand;
   const executor = new ForceSourcePushExecutor(flag);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
