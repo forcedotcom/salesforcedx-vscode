@@ -6,7 +6,7 @@ lang: en
 Use the Salesforce Functions features in VS Code to build event-driven, elastically scalable apps and experiences. You can create and test functions against sample payloads locally in VS Code.
 
 ### Create Function
-Run `SFDX: Create Function` to create a Salesforce Function in Javascript, Typescript or Java in a Salesforce DX project.
+Run `SFDX: Create Function` to create a Salesforce Function in Javascript, Typescript, or Java in a Salesforce DX project.
 
 This command creates a new directory named after your Function name and all the supporting files.
 
