@@ -24,18 +24,18 @@ const pullCommand: CommandParams = {
   command: 'force:source:pull',
   description: {
     default: 'force_source_pull_default_scratch_org_text',
-    forceoverwrite: 'force_source_pull_force_default_scratch_org_text',
+    forceoverwrite: 'force_source_pull_force_default_scratch_org_text'
   },
-  logName: 'force_source_pull_default_scratch_org'
+  logName: {default: 'force_source_pull_default_scratch_org'}
 };
 
 const pullCommandLegacy: CommandParams = {
   command: 'force:source:legacy:pull',
   description: {
     default: 'force_source_legacy_pull_default_scratch_org_text',
-    forceoverwrite: 'force_source_legacy_pull_force_default_scratch_org_text',
+    forceoverwrite: 'force_source_legacy_pull_force_default_scratch_org_text'
   },
-  logName: 'force_source_legacy_pull_default_scratch_org'
+  logName: {default: 'force_source_legacy_pull_default_scratch_org'}
 };
 
 export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
@@ -52,7 +52,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
         nls.localize(this.params.description.default)
       )
       .withArg(this.params.command)
-      .withLogName(this.params.logName);
+      .withLogName(this.params.logName.default);
 
     if (this.flag === '--forceoverwrite') {
       builder

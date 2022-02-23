@@ -32,13 +32,17 @@ const statusCommand: CommandParams = {
     local: 'force_source_status_local_text',
     remote: 'force_source_status_remote_text'
   },
-  logName: 'force_source_status'
+  logName: {
+    default: 'force_source_status',
+    local: 'force_source_status_local',
+    remote: 'force_source_status_remote'
+  }
 };
 
 const statusCommandLegacy: CommandParams = {
   command: 'force:source:legacy:status',
   description: {default: 'force_source_legacy_status_text'},
-  logName: 'force_source_legacy_status'
+  logName: {default: 'force_source_legacy_status'}
 };
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
@@ -53,15 +57,15 @@ export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
     const builder = new SfdxCommandBuilder()
       .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
-      .withLogName(this.params.logName);
+      .withLogName(this.params.logName.default);
     if (this.flag === SourceStatusFlags.Local) {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize(this.params.description.local));
-      builder.withLogName('force_source_status_local');
+      builder.withLogName(this.params.logName.local);
     } else if (this.flag === SourceStatusFlags.Remote) {
       builder.withArg(this.flag);
       builder.withDescription(nls.localize(this.params.description.remote));
-      builder.withLogName('force_source_status_remote');
+      builder.withLogName(this.params.logName.remote);
     }
     return builder.build();
   }

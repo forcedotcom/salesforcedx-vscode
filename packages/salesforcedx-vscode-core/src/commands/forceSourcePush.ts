@@ -26,7 +26,7 @@ const pushCommand: CommandParams = {
     default: 'force_source_push_default_scratch_org_text',
     forceoverwrite: 'force_source_push_force_default_scratch_org_text'
   },
-  logName: 'force_source_push_default_scratch_org'
+  logName: {default: 'force_source_push_default_scratch_org'}
 };
 
 const pushCommandLegacy: CommandParams = {
@@ -35,7 +35,7 @@ const pushCommandLegacy: CommandParams = {
     default: 'force_source_legacy_push_default_scratch_org_text',
     forceoverwrite: 'force_source_legacy_push_force_default_scratch_org_text'
   },
-  logName: 'force_source_legacy_push_default_scratch_org'
+  logName: {default: 'force_source_legacy_push_default_scratch_org'}
 };
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
@@ -53,7 +53,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
       )
       .withArg(this.params.command)
       .withJson()
-      .withLogName(this.params.logName);
+      .withLogName(this.params.logName.default);
     if (this.flag === '--forceoverwrite') {
       builder.withArg(this.flag);
       builder.withDescription(

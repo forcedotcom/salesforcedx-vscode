@@ -42,8 +42,8 @@ export interface FlagParameter<T> {
 export interface CommandParams {
   readonly command: string;
   // handle to localized user facing help text, with entries for diff flags
-  description: Record<string, string>; 
-  logName: string; // metric key
+  description: Record<string, string>;
+  logName: Record<string, string>; // metric key
 }
 
 export interface CommandletExecutor<T> {
