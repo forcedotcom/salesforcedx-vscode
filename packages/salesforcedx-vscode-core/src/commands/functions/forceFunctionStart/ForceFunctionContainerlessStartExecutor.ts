@@ -52,13 +52,16 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
           `localRun resolved in ForceFunctionContainerlessStartExecutor with message: ${msg}`
         );
       })
-      .catch(err => {
+      .catch((err: Error) => {
         const errorNotificationMessage = nls.localize(
           this.UNEXPECTED_ERROR_KEY
         );
         telemetryService.sendException(this.UNEXPECTED_ERROR_KEY, err.message);
         notificationService.showErrorMessage(errorNotificationMessage);
         channelService.appendLine(errorNotificationMessage);
+        if (err?.message) {
+          channelService.appendLine(err.message);
+        }
         channelService.showChannelOutput();
       });
   }

@@ -259,7 +259,7 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
     const errMessage = 'oh noes. FAIL';
     const runError = new Error(errMessage);
     const fakeLocalRunInst = {
-      exec: stub().rejects()
+      exec: stub().rejects(runError)
     };
     localRunConstructorStub.returns(fakeLocalRunInst);
     const localizedMsg = 'better message';
@@ -279,7 +279,9 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
     assert.calledOnce(fakeLocalRunInst.exec);
     assert.calledWith(localizeStub, 'force_function_start_unexpected_error');
     assert.calledWith(showErrorMessageStub, localizedMsg);
+    assert.calledThrice(appendLineStub);
     assert.calledWith(appendLineStub, localizedMsg);
+    assert.calledWith(appendLineStub, errMessage);
     assert.calledOnce(showChannelOutputStub);
   });
 });
