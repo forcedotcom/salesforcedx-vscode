@@ -11,7 +11,8 @@ import { channelService } from '../../../channels';
 import { nls } from '../../../messages';
 import { notificationService } from '../../../notifications';
 import { telemetryService } from '../../../telemetry';
-import { FunctionService } from '../functionService';
+import { FUNCTION_TYPE_JAVA } from '../../templates/metadataTypeConstants';
+import { FunctionService, functionType } from '../functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
   FUNCTION_DEFAULT_PORT
@@ -39,11 +40,15 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     channelService.appendLine(
       `Starting ${functionName} of type ${functionLanguage}`
     );
+
     const localRun = new LocalRun(functionLanguage, {
       path: functionDirPath,
       port: FUNCTION_DEFAULT_PORT,
       debugPort: FUNCTION_DEFAULT_DEBUG_PORT
     });
+
+    const debugType = functionLanguage === functionType.JAVA ? 'java' : 'node';
+    FunctionService.instance.updateFunction(functionDirPath, debugType);
 
     localRun
       .exec()

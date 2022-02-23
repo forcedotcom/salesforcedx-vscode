@@ -94,6 +94,10 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
       }
     }
 
+    enum functionType {
+      JAVA = 'java'
+    }
+
     class LibraryCommandletExecutor {
       public telemetry = {
         addProperty: addPropertyStub
@@ -175,7 +179,8 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
           }
         },
         '../functionService': {
-          FunctionService
+          FunctionService,
+          functionType
         },
         '../types/constants': constantsStubs
       }
@@ -193,7 +198,8 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
         '../../../notifications': notificationServiceStubs,
         '../../../telemetry': telemetryServiceStubs,
         '../functionService': {
-          FunctionService
+          FunctionService,
+          functionType
         },
         '../types/constants': constantsStubs,
         './ForceFunctionStartExecutor': { ForceFunctionStartExecutor }
@@ -250,6 +256,7 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
       port: FUNCTION_DEFAULT_PORT,
       debugPort: FUNCTION_DEFAULT_DEBUG_PORT
     });
+    assert.calledWith(updateFunctionStub, functionDirPath, 'node');
     assert.calledOnce(fakeLocalRunInst.exec);
   });
 
