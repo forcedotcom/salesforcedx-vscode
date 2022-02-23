@@ -27,7 +27,7 @@
   "dependencies": {
     "@salesforce/apex-node": "0.2.9",
     "@salesforce/apex-tmlanguage": "1.4.0",
-    "@salesforce/core": "2.28.0",
+    "@salesforce/core": "2.35.2",
     "@salesforce/salesforcedx-utils-vscode": "54.2.0",
     "@salesforce/source-deploy-retrieve": "5.0.0",
     "expand-home-dir": "0.0.3",
