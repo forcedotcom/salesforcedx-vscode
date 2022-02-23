@@ -53,9 +53,7 @@ import {
   forceSourceDiff,
   forceSourceFolderDiff,
   forceSourcePull,
-  forceSourcePullLegacy,
   forceSourcePush,
-  forceSourcePushLegacy,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
   forceSourceRetrieveSourcePaths,
@@ -171,6 +169,16 @@ function registerCommands(
     forceSourcePull,
     { flag: '--forceoverwrite' }
   );
+  const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull',
+    forceSourcePull,
+    {commandVersion: CommandVersion.Legacy}
+  );
+  const forceSourceLegacyPullForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull.force',
+    forceSourcePull,
+    { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy }
+  );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
     forceSourcePush
@@ -180,23 +188,15 @@ function registerCommands(
     forceSourcePush,
     { flag: '--forceoverwrite' }
   );
-  const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.pull.legacy',
-    forceSourcePullLegacy
+  const forceSourceLegacyPushCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push',
+    forceSourcePush,
+    {commandVersion: CommandVersion.Legacy}
   );
-  const forceSourcePullLegacyForceCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.pull.force.legacy',
-    forceSourcePullLegacy,
-    { flag: '--forceoverwrite' }
-  );
-  const forceSourcePushLegacyCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.push.legacy',
-    forceSourcePushLegacy
-  );
-  const forceSourcePushForceLegacyCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.push.force.legacy',
-    forceSourcePushLegacy,
-    { flag: '--forceoverwrite' }
+  const forceSourceLegacyPushForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push.force',
+    forceSourcePush,
+    { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy }
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
@@ -224,8 +224,8 @@ function registerCommands(
     forceSourceStatus,
     { flag: '--remote' }
   );
-  const forceSourceStatusLegacyCmd = vscode.commands.registerCommand(
-    'sfdx.force.source.status.legacy',
+  const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.status',
     forceSourceStatus,
     {commandVersion: CommandVersion.Legacy}
   );
@@ -429,15 +429,19 @@ function registerCommands(
     forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
+    forceSourceLegacyPullCmd,
+    forceSourceLegacyPullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceLegacyPushCmd,
+    forceSourceLegacyPushForceCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,
     forceSourceStatusCmd,
     forceSourceStatusLocalCmd,
     forceSourceStatusRemoteCmd,
-    forceSourceStatusLegacyCmd,
+    forceSourceLegacyStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
     forceAnalyticsTemplateCreateCmd,
