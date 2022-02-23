@@ -22,15 +22,19 @@ import {
 
 const pullCommand: CommandParams = {
   command: 'force:source:pull',
-  description: 'force_source_pull_default_scratch_org_text',
-  forceFlagDescription: 'force_source_pull_force_default_scratch_org_text',
+  description: {
+    default: 'force_source_pull_default_scratch_org_text',
+    forceoverwrite: 'force_source_pull_force_default_scratch_org_text',
+  },
   logName: 'force_source_pull_default_scratch_org'
 };
 
 const pullCommandLegacy: CommandParams = {
   command: 'force:source:legacy:pull',
-  description: 'force_source_legacy_pull_default_scratch_org_text',
-  forceFlagDescription: 'force_source_legacy_pull_force_default_scratch_org_text',
+  description: {
+    default: 'force_source_legacy_pull_default_scratch_org_text',
+    forceoverwrite: 'force_source_legacy_pull_force_default_scratch_org_text',
+  },
   logName: 'force_source_legacy_pull_default_scratch_org'
 };
 
@@ -45,7 +49,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(
-        nls.localize(this.params.description)
+        nls.localize(this.params.description.default)
       )
       .withArg(this.params.command)
       .withLogName(this.params.logName);
@@ -54,7 +58,7 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
       builder
         .withArg(this.flag)
         .withDescription(
-          nls.localize(this.params.forceFlagDescription)
+          nls.localize(this.params.description.forceoverwrite)
         );
     }
     return builder.build();

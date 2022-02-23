@@ -22,15 +22,19 @@ import {
 
 const pushCommand: CommandParams = {
   command: 'force:source:push',
-  description: 'force_source_push_default_scratch_org_text',
-  forceFlagDescription: 'force_source_push_force_default_scratch_org_text',
+  description: {
+    default: 'force_source_push_default_scratch_org_text',
+    forceoverwrite: 'force_source_push_force_default_scratch_org_text'
+  },
   logName: 'force_source_push_default_scratch_org'
 };
 
 const pushCommandLegacy: CommandParams = {
   command: 'force:source:legacy:push',
-  description: 'force_source_legacy_push_default_scratch_org_text',
-  forceFlagDescription: 'force_source_legacy_push_force_default_scratch_org_text',
+  description: {
+    default: 'force_source_legacy_push_default_scratch_org_text',
+    forceoverwrite: 'force_source_legacy_push_force_default_scratch_org_text'
+  },
   logName: 'force_source_legacy_push_default_scratch_org'
 };
 
@@ -45,7 +49,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
       .withDescription(
-        nls.localize(this.params.description)
+        nls.localize(this.params.description.default)
       )
       .withArg(this.params.command)
       .withJson()
@@ -53,7 +57,7 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
     if (this.flag === '--forceoverwrite') {
       builder.withArg(this.flag);
       builder.withDescription(
-        nls.localize(this.params.forceFlagDescription)
+        nls.localize(this.params.description.forceoverwrite)
       );
     }
     return builder.build();

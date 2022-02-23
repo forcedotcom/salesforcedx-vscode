@@ -18,7 +18,7 @@ describe('Force Source Status', () => {
     const localFlag = new ForceSourceStatusExecutor(SourceStatusFlags.Local);
     const flagCommand = localFlag.build({});
     expect(flagCommand.toCommand()).to.equal(
-      'sfdx force:source:status --local'
+      `sfdx ${localFlag.params.command} --local`
     );
     expect(flagCommand.description).to.equal(
       nls.localize('force_source_status_local_text')
@@ -28,7 +28,7 @@ describe('Force Source Status', () => {
     const remoteFlag = new ForceSourceStatusExecutor(SourceStatusFlags.Remote);
     const flagCommand = remoteFlag.build({});
     expect(flagCommand.toCommand()).to.equal(
-      'sfdx force:source:status --remote'
+      `sfdx ${remoteFlag.params.command} --remote`
     );
     expect(flagCommand.description).to.equal(
       nls.localize('force_source_status_remote_text')

@@ -27,44 +27,40 @@ export enum SourceStatusFlags {
 
 const statusCommand: CommandParams = {
   command: 'force:source:status',
-  description: 'force_source_status_text',
-  forceFlagDescription: '', // No 'force' option for status
+  description: {
+    default: 'force_source_status_text',
+    local: 'force_source_status_local_text',
+    remote: 'force_source_status_remote_text'
+  },
   logName: 'force_source_status'
 };
 
 const statusCommandLegacy: CommandParams = {
   command: 'force:source:legacy:status',
-  description: 'force_source_legacy_status_text',
-  forceFlagDescription: '', // No 'force' option for status
+  description: {default: 'force_source_legacy_status_text'},
   logName: 'force_source_legacy_status'
 };
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
-  public command: string;
-  private description: string;
-  private logName: string;
   private flag: SourceStatusFlags | undefined;
 
-  public constructor(flag?: SourceStatusFlags, params: CommandParams = statusCommand) {
+  public constructor(flag?: SourceStatusFlags, public params: CommandParams = statusCommand) {
     super();
     this.flag = flag;
-    this.command =  params.command;
-    this.description = params.description;
-    this.logName = params.logName;
   }
 
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize(this.description))
-      .withArg(this.command)
-      .withLogName(this.logName);
+      .withDescription(nls.localize(this.params.description.default))
+      .withArg(this.params.command)
+      .withLogName(this.params.logName);
     if (this.flag === SourceStatusFlags.Local) {
       builder.withArg(this.flag);
-      builder.withDescription(nls.localize('force_source_status_local_text'));
+      builder.withDescription(nls.localize(this.params.description.local));
       builder.withLogName('force_source_status_local');
     } else if (this.flag === SourceStatusFlags.Remote) {
       builder.withArg(this.flag);
-      builder.withDescription(nls.localize('force_source_status_remote_text'));
+      builder.withDescription(nls.localize(this.params.description.remote));
       builder.withLogName('force_source_status_remote');
     }
     return builder.build();

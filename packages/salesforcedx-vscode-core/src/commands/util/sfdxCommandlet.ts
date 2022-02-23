@@ -39,11 +39,10 @@ export interface FlagParameter<T> {
   commandVersion: CommandVersion;
 }
 
-// TODO(refactor): de-dupe with `Command` from @salesforce/salesforcedx-utils-vscode/src/cli
 export interface CommandParams {
   readonly command: string;
-  description: string; // handle to localized user facing help text
-  forceFlagDescription: string; // .. help text for use with the 'force' option
+  // handle to localized user facing help text, with entries for diff flags
+  description: Record<string, string>; 
   logName: string; // metric key
 }
 
