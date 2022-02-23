@@ -195,7 +195,7 @@ This runs `depcheck` on each package to check for unused and missing dependencie
 
 ### .npmrc
 
-The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8/using-npm/config) of the npm environment. The settings that we care about are `engine-strict` (this enforces the minimum node version in our packages) and `save-exact` (saving exact versions of dependencies from the package.json).
+The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8/using-npm/config) of the npm environment.
 
 ### .nvmrc
 
