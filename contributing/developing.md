@@ -2,7 +2,7 @@
 
 ## Pre-requisites
 
-1.  We are using Node 12. If you need to work with multiple versions of Node, you
+1.  We are requiring Node 14 at a minimum. If you need to work with multiple versions of Node, you
     might consider using [nvm](https://github.com/creationix/nvm).
 1.  This repository uses [Lerna](https://lernajs.io/) to manage it as a
     _monorepo_. Please install Lerna globally using `npm install --global lerna`.
@@ -180,7 +180,9 @@ rules](https://palantir.github.io/tslint/usage/type-checking/) which requires a
 tsconfig.json to be passed to tslint.
 
 ### `npm run check:links`
+
 Runs `markdown-link-check` on all markdown files in the repo to check for any broken links.
+
 - Does not check html files.
 - Ignores [429 Too Many Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429)
   - We get 429 mostly from github as there are many URLs pointing to PRs etc in Changelog
@@ -188,3 +190,13 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 ### `npm run check:deps`
 
 This runs `depcheck` on each package to check for unused and missing dependencies. Pay particular attention to "Missing dependencies". Unused dependency result might have [false positives](https://github.com/depcheck/depcheck#false-alert). Check code usage to verify.
+
+## Node Configuration
+
+### .npmrc
+
+The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8/using-npm/config) of the npm environment.
+
+### .nvmrc
+
+Our nvmrc specifies the minimimum node version required to run the project.
