@@ -22,10 +22,11 @@ import {
   forceCreateManifest,
   forceDataSoqlQuery,
   forceDebuggerStop,
+  forceFunctionContainerlessStartCommand,
+  forceFunctionContainerStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
-  forceFunctionStart,
   forceFunctionStop,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
@@ -351,8 +352,13 @@ function registerCommands(
   );
 
   const forceFunctionStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.start',
-    forceFunctionStart
+    'sfdx.force.function.containerless.start',
+    forceFunctionContainerlessStartCommand
+  );
+
+  const forceFunctionContainerStartCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.container.start',
+    forceFunctionContainerStartCommand
   );
 
   const forceFunctionInvokeCmd = vscode.commands.registerCommand(
@@ -388,6 +394,7 @@ function registerCommands(
     forceFunctionInvokeCmd,
     forceFunctionDebugInvokeCmd,
     forceFunctionStartCmd,
+    forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
