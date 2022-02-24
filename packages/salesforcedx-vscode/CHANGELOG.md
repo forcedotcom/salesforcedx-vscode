@@ -14,7 +14,7 @@
 
 #### salesforcedx-vscode-apex
 
-- We removed some unessential apex classes from the Apex LSP jar file. ([PR #3844](https://github.com/forcedotcom/salesforcedx-vscode/pull/3844))
+- We removed some unessential Apex classes from the Apex LSP .jar file. ([PR #3844](https://github.com/forcedotcom/salesforcedx-vscode/pull/3844))
 
 
 # 54.0.0 - February 15, 2022
