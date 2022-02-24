@@ -1,20 +1,21 @@
 # 54.2.0 - February 24, 2022
 
+## Added
+
+#### salesforcedx-vscode
+
+- Run the new *Start Function in Container* command to run a Salesforce Function in a Docker container.  The old command, *Start Function* now runs a function locally. ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838), [PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
+
 ## Fixed
 
-#### docs
+#### salesforcedx-vscode
 
-- Updated Functions Overview Doc ([PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
+- We resolved the issue with the *Diff Folder Against Org* command being visible from command palette even when an SFDX project wasn’t open. ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843)).
 
 #### salesforcedx-vscode-apex
 
-- Remove unessential apex classes from Apex LSP jar ([PR #3844](https://github.com/forcedotcom/salesforcedx-vscode/pull/3844))
+- We removed some unessential apex classes from the Apex LSP jar file. ([PR #3844](https://github.com/forcedotcom/salesforcedx-vscode/pull/3844))
 
-#### salesforcedx-vscode-core
-
-- Containerless function when running locally ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838))
-
-- Remove visibility of Diff Folder from command palette ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843))
 
 # 54.0.0 - February 15, 2022
 
