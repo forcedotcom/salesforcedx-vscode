@@ -99,7 +99,7 @@ function isLocal(javaHome: string): boolean {
   return !path.isAbsolute(javaHome);
 }
 
-function checkJavaVersion(javaHome: string): Promise<any> {
+export function checkJavaVersion(javaHome: string): Promise<any> {
   return new Promise((resolve, reject) => {
     cp.execFile(
       javaHome + '/bin/java',
@@ -108,7 +108,8 @@ function checkJavaVersion(javaHome: string): Promise<any> {
       (error, stdout, stderr) => {
         if (
           stderr.indexOf('build 1.8') < 0 &&
-          stderr.indexOf('build 11.') < 0
+          stderr.indexOf('build 11.') < 0 &&
+          stderr.indexOf('build 17.') < 0
         ) {
           reject(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
         } else {

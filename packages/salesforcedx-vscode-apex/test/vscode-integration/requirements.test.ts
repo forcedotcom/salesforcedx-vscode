@@ -7,10 +7,13 @@
 
 // tslint:disable:no-unused-expression
 
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { JAVA_HOME_KEY, resolveRequirements } from '../../src/requirements';
+import { SET_JAVA_DOC_LINK } from '../../src/constants';
+import { nls } from '../../src/messages';
+import { JAVA_HOME_KEY, resolveRequirements, checkJavaVersion } from '../../src/requirements';
 import pathExists = require('path-exists');
 import * as cp from 'child_process';
 
@@ -60,4 +63,45 @@ describe('Java Requirements Test', () => {
     expect(requirements.java_home).contains(jdk);
   });
 
+  it('Should support Java 8', async () => {
+    execFileStub.yields('', '', 'build 1.8.0');
+    checkJavaVersion('~/java_home')
+      .then(result => {
+        expect(result).to.equal(true);
+      }).catch(error => {
+        fail(`Should not have thrown when the Java version is 8.  The error was: ${error.message}`);
+      });
+  });
+
+  it('Should support Java 11', async () => {
+    execFileStub.yields('', '', 'build 11.0.0');
+    checkJavaVersion('~/java_home')
+      .then(result => {
+        expect(result).to.equal(true);
+      }).catch(error => {
+        fail(`Should not have thrown when the Java version is 11.  The error was: ${error.message}`);
+      });
+  });
+
+  it('Should support Java 17', async () => {
+    execFileStub.yields('', '', 'build 17.2.3');
+    checkJavaVersion('~/java_home')
+      .then(result => {
+        expect(result).to.equal(true);
+      }).catch(error => {
+        fail(`Should not have thrown when the Java version is 17.  The error was: ${error.message}`);
+      });
+  });
+
+  it('Should not support Java 20', async () => {
+    execFileStub.yields('', '', 'build 20.0.0');
+    checkJavaVersion('~/java_home')
+      .then(() => {
+        fail('Should have thrown when the Java version is not supported');
+      }).catch(error => {
+        expect(error.message).to.equal(
+          nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
+        );
+      });
+  });
 });
