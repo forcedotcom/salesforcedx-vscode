@@ -359,6 +359,26 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
+          "command": "sfdx.force.source.legacy.pull",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.pull.force",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.push",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.push.force",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.status",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
           "command": "sfdx.force.task.stop",
           "when": "sfdx:project_opened"
         },
