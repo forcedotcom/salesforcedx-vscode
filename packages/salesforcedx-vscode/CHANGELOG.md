@@ -1,3 +1,21 @@
+# 54.2.0 - February 24, 2022
+
+## Fixed
+
+#### docs
+
+- Updated Functions Overview Doc ([PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
+
+#### salesforcedx-vscode-apex
+
+- Remove unessential apex classes from Apex LSP jar ([PR #3844](https://github.com/forcedotcom/salesforcedx-vscode/pull/3844))
+
+#### salesforcedx-vscode-core
+
+- Containerless function when running locally ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838))
+
+- Remove visibility of Diff Folder from command palette ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843))
+
 # 54.0.0 - February 15, 2022
 
 ## Added
