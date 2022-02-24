@@ -75,6 +75,7 @@ import {
   CommandVersion,
   CompositeParametersGatherer,
   EmptyParametersGatherer,
+  FlagParameter,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -103,6 +104,11 @@ import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+
+
+const flagOverwrite : FlagParameter<string> = { flag: '--forceoverwrite' };
+const flagLegacy : FlagParameter<null> = { commandVersion: CommandVersion.Legacy };
+const flagLegacyOverwrite : FlagParameter<string> = { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy };
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -167,17 +173,17 @@ function registerCommands(
   const forceSourcePullForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull.force',
     forceSourcePull,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
   );
   const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.pull',
     forceSourcePull,
-    { commandVersion: CommandVersion.Legacy }
+    flagOverwrite
   );
   const forceSourceLegacyPullForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.pull.force',
     forceSourcePull,
-    { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy }
+    flagOverwrite
   );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
@@ -186,17 +192,17 @@ function registerCommands(
   const forceSourcePushForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push.force',
     forceSourcePush,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
   );
   const forceSourceLegacyPushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.push',
     forceSourcePush,
-    { commandVersion: CommandVersion.Legacy }
+    flagLegacy
   );
   const forceSourceLegacyPushForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.push.force',
     forceSourcePush,
-    { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy }
+    flagLegacyOverwrite
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
@@ -227,7 +233,7 @@ function registerCommands(
   const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.status',
     forceSourceStatus,
-    { commandVersion: CommandVersion.Legacy }
+    flagOverwrite
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',

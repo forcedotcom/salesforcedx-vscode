@@ -35,8 +35,8 @@ export enum CommandVersion {
 }
 
 export interface FlagParameter<T> {
-  flag: T;
-  commandVersion: CommandVersion;
+  flag?: T;
+  commandVersion?: CommandVersion;
 }
 
 export interface CommandParams {
