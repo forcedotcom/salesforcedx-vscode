@@ -10,7 +10,7 @@
 
 #### salesforcedx-vscode
 
-- We resolved the issue with the *Diff Folder Against Org* command being visible from command palette even when an SFDX project wasn’t open. ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843)).
+- We resolved the issue with the *Diff Folder Against Org* command being visible from the command palette even when an SFDX project wasn’t open. ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843)).
 
 #### salesforcedx-vscode-apex
 
