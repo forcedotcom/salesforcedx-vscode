@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode
 
-- Run the new *Start Function in Container* command to run a Salesforce Function in a Docker container.  The old command, *Start Function* now runs a function locally. ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838), [PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
+- Run the new *Start Function in Container* command to run a Salesforce Function in a Docker container. The old command, *Start Function* now runs a function locally. ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838), [PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
 
 ## Fixed
 
