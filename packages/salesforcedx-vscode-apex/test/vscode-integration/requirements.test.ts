@@ -5,15 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// tslint:disable:no-unused-expression
-
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../src/constants';
 import { nls } from '../../src/messages';
-import { JAVA_HOME_KEY, resolveRequirements, checkJavaVersion } from '../../src/requirements';
+import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../src/requirements';
 import pathExists = require('path-exists');
 import * as cp from 'child_process';
 
