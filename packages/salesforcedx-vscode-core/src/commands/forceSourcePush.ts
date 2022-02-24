@@ -71,10 +71,10 @@ export class ForceSourcePushExecutor extends BaseDeployExecutor {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceSourcePush(params: FlagParameter<string>) {
-  const {flag, commandVersion} = params;
-  const command = commandVersion && commandVersion === CommandVersion.Legacy ? pushCommandLegacy : pushCommand;
-  const executor = new ForceSourcePushExecutor(flag);
+export async function forceSourcePush(this: FlagParameter<string>) {
+  const {flag, commandVersion} = this || {};
+  const command = commandVersion === CommandVersion.Legacy ? pushCommandLegacy : pushCommand;
+  const executor = new ForceSourcePushExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

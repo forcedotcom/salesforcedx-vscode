@@ -68,10 +68,10 @@ export class ForceSourcePullExecutor extends SfdxCommandletExecutor<{}> {
 const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
-export async function forceSourcePull(params: FlagParameter<string>) {
-  const {flag, commandVersion} = params;
-  const command = commandVersion && commandVersion === CommandVersion.Legacy ? pullCommandLegacy : pullCommand;
-  const executor = new ForceSourcePullExecutor(flag);
+export async function forceSourcePull(this: FlagParameter<string>) {
+  const {flag, commandVersion} = this || {};
+  const command = commandVersion === CommandVersion.Legacy ? pullCommandLegacy : pullCommand;
+  const executor = new ForceSourcePullExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

@@ -75,10 +75,10 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourceStatus(
-  params: FlagParameter<SourceStatusFlags>
+  this: FlagParameter<SourceStatusFlags>
 ) {
-  const {flag, commandVersion} = params;
-  const command = commandVersion && commandVersion === CommandVersion.Legacy ? statusCommandLegacy : statusCommand;
+  const {flag, commandVersion} = this || {};
+  const command = commandVersion === CommandVersion.Legacy ? statusCommandLegacy : statusCommand;
   const executor = new ForceSourceStatusExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
