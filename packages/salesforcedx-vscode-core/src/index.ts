@@ -65,6 +65,7 @@ import {
   forceVisualforcePageCreate,
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
+  SourceStatusFlags,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
@@ -105,10 +106,9 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
-
-const flagOverwrite : FlagParameter<string> = { flag: '--forceoverwrite' };
-const flagLegacy : FlagParameter<null> = { commandVersion: CommandVersion.Legacy };
-const flagLegacyOverwrite : FlagParameter<string> = { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy };
+const flagOverwrite: FlagParameter<string> = { flag: '--forceoverwrite' };
+const flagLegacy: FlagParameter<null> = { commandVersion: CommandVersion.Legacy };
+const flagLegacyOverwrite: FlagParameter<string> = { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy };
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -223,12 +223,12 @@ function registerCommands(
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
     forceSourceStatus,
-    { flag: '--local' }
+    { flag: SourceStatusFlags.Local }
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
     forceSourceStatus,
-    { flag: '--remote' }
+    { flag: SourceStatusFlags.Remote }
   );
   const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.status',

@@ -25,7 +25,7 @@ export enum SourceStatusFlags {
   Remote = '--remote'
 }
 
-const statusCommand: CommandParams = {
+export const statusCommand: CommandParams = {
   command: 'force:source:status',
   description: {
     default: 'force_source_status_text',
@@ -39,7 +39,7 @@ const statusCommand: CommandParams = {
   }
 };
 
-const statusCommandLegacy: CommandParams = {
+export const statusCommandLegacy: CommandParams = {
   command: 'force:source:legacy:status',
   description: {default: 'force_source_legacy_status_text'},
   logName: {default: 'force_source_legacy_status'}
