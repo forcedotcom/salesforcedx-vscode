@@ -10,7 +10,7 @@
     "@oclif/errors": "^1",
     "@salesforce/apex-node": "0.9.0",
     "@salesforce/command": "4.2.0",
-    "@salesforce/core": "2.33.1",
+    "@salesforce/core": "^2.35.0",
     "chalk": "^4.1.0",
     "tslib": "^1"
   },
@@ -38,7 +38,7 @@
     "typescript": "4.3.2"
   },
   "resolutions": {
-    "**/@salesforce/core": "2.33.1"
+    "**/@salesforce/core": "^2.35.0"
   },
   "engines": {
     "node": ">=10.17.0"

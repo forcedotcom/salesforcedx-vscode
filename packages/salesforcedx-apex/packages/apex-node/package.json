@@ -6,7 +6,7 @@
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/src/index.js",
   "dependencies": {
-    "@salesforce/core": "2.33.1",
+    "@salesforce/core": "^2.35.0",
     "faye": "1.4.0"
   },
   "devDependencies": {
