@@ -106,9 +106,22 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
-const flagOverwrite: FlagParameter<string> = { flag: '--forceoverwrite' };
-const flagLegacy: FlagParameter<null> = { commandVersion: CommandVersion.Legacy };
-const flagLegacyOverwrite: FlagParameter<string> = { flag: '--forceoverwrite', commandVersion: CommandVersion.Legacy };
+const flagOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite'
+};
+const flagLegacy: FlagParameter<null> = {
+  commandVersion: CommandVersion.Legacy
+};
+const flagLegacyOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite',
+  commandVersion: CommandVersion.Legacy
+};
+const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Local
+};
+const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Remote
+};
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -223,12 +236,12 @@ function registerCommands(
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
     forceSourceStatus,
-    { flag: SourceStatusFlags.Local }
+    flagStatusRemote
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
     forceSourceStatus,
-    { flag: SourceStatusFlags.Remote }
+    flagStatusRemote
   );
   const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.status',
