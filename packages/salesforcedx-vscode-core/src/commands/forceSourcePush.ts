@@ -20,7 +20,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-const pushCommand: CommandParams = {
+export const pushCommand: CommandParams = {
   command: 'force:source:push',
   description: {
     default: 'force_source_push_default_scratch_org_text',
@@ -29,7 +29,7 @@ const pushCommand: CommandParams = {
   logName: {default: 'force_source_push_default_scratch_org'}
 };
 
-const pushCommandLegacy: CommandParams = {
+export const pushCommandLegacy: CommandParams = {
   command: 'force:source:legacy:push',
   description: {
     default: 'force_source_legacy_push_default_scratch_org_text',

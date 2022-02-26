@@ -20,7 +20,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-const pullCommand: CommandParams = {
+export const pullCommand: CommandParams = {
   command: 'force:source:pull',
   description: {
     default: 'force_source_pull_default_scratch_org_text',
@@ -29,7 +29,7 @@ const pullCommand: CommandParams = {
   logName: {default: 'force_source_pull_default_scratch_org'}
 };
 
-const pullCommandLegacy: CommandParams = {
+export const pullCommandLegacy: CommandParams = {
   command: 'force:source:legacy:pull',
   description: {
     default: 'force_source_legacy_pull_default_scratch_org_text',

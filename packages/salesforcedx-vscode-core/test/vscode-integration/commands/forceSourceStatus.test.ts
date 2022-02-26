@@ -15,7 +15,7 @@ import { nls } from '../../../src/messages';
 
 // tslint:disable:no-unused-expression
 describe('Force Source Status', () => {
-  it('Should build the source command with local flag', async () => {
+  it('Should build the source status command with local flag', async () => {
     const localFlag = new ForceSourceStatusExecutor(SourceStatusFlags.Local);
     const flagCommand = localFlag.build({});
     expect(flagCommand.toCommand()).to.equal(
@@ -26,7 +26,7 @@ describe('Force Source Status', () => {
     );
   });
 
-  it('Should build the source command with remote flag', async () => {
+  it('Should build the source status command with remote flag', async () => {
     const remoteFlag = new ForceSourceStatusExecutor(SourceStatusFlags.Remote);
     const flagCommand = remoteFlag.build({});
     expect(flagCommand.toCommand()).to.equal(
@@ -37,7 +37,7 @@ describe('Force Source Status', () => {
     );
   });
 
-  it('Should build the source command with legacy version', async () => {
+  it('Should build the source status command with legacy version', async () => {
     const legacyFlag = new ForceSourceStatusExecutor(undefined, statusCommandLegacy);
     const flagCommand = legacyFlag.build({});
     expect(legacyFlag.params.command).to.contain(':legacy:');
