@@ -49,8 +49,8 @@ describe('Java Requirements Test', () => {
     let exceptionThrown = false;
     try {
       await resolveRequirements();
-    } catch (e) {
-      expect(e).contains(localRuntime);
+    } catch (err) {
+      expect(err).contains(localRuntime);
       exceptionThrown = true;
     }
     expect(exceptionThrown).to.be.true;
@@ -65,43 +65,43 @@ describe('Java Requirements Test', () => {
 
   it('Should support Java 8', async () => {
     execFileStub.yields('', '', 'build 1.8.0');
-    checkJavaVersion('~/java_home')
-      .then(result => {
-        expect(result).to.equal(true);
-      }).catch(error => {
-        fail(`Should not have thrown when the Java version is 8.  The error was: ${error.message}`);
-      });
+    try {
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
+    } catch (err) {
+      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+    }
   });
 
   it('Should support Java 11', async () => {
     execFileStub.yields('', '', 'build 11.0.0');
-    checkJavaVersion('~/java_home')
-      .then(result => {
-        expect(result).to.equal(true);
-      }).catch(error => {
-        fail(`Should not have thrown when the Java version is 11.  The error was: ${error.message}`);
-      });
+    try {
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
+    } catch (err) {
+      fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
+    }
   });
 
   it('Should support Java 17', async () => {
     execFileStub.yields('', '', 'build 17.2.3');
-    checkJavaVersion('~/java_home')
-      .then(result => {
-        expect(result).to.equal(true);
-      }).catch(error => {
-        fail(`Should not have thrown when the Java version is 17.  The error was: ${error.message}`);
-      });
+    try {
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
+    } catch (err) {
+      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+    }
   });
 
   it('Should not support Java 20', async () => {
     execFileStub.yields('', '', 'build 20.0.0');
-    checkJavaVersion('~/java_home')
-      .then(() => {
-        fail('Should have thrown when the Java version is not supported');
-      }).catch(error => {
-        expect(error.message).to.equal(
-          nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
-        );
-      });
+    try {
+      await checkJavaVersion('~/java_home');
+      fail('Should have thrown when the Java version is not supported');
+    } catch (err) {
+      expect(err).to.equal(
+        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
+      );
+    }
   });
 });

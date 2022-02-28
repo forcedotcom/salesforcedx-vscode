@@ -99,7 +99,7 @@ function isLocal(javaHome: string): boolean {
   return !path.isAbsolute(javaHome);
 }
 
-export function checkJavaVersion(javaHome: string): Promise<any> {
+export function checkJavaVersion(javaHome: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     cp.execFile(
       javaHome + '/bin/java',
