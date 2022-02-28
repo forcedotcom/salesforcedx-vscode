@@ -354,29 +354,7 @@
     chalk "^2.4.2"
     cli-ux "^4.9.3"
 
-"@salesforce/core@2.33.1", "@salesforce/core@^2.2.0", "@salesforce/core@^2.31.0", "@salesforce/core@^2.6.0":
-  version "2.33.1"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.33.1.tgz#23c22953174ad0e809b2f1c7b2881b5ba8a89d9c"
-  integrity sha512-jKVFYEvlV+loBoau5heBOVXmzsPO+RbYh6SPybJK6xF7khQmzu7+WAQbikY2eY8VaXcded2kka8L/FKuD/LKBg==
-  dependencies:
-    "@salesforce/bunyan" "^2.0.0"
-    "@salesforce/kit" "^1.5.0"
-    "@salesforce/schemas" "^1.0.1"
-    "@salesforce/ts-types" "^1.5.13"
-    "@types/graceful-fs" "^4.1.5"
-    "@types/jsforce" "^1.9.35"
-    "@types/mkdirp" "^1.0.1"
-    debug "^3.1.0"
-    faye "^1.4.0"
-    graceful-fs "^4.2.4"
-    jsen "0.6.6"
-    jsforce "^1.11.0"
-    jsonwebtoken "8.5.0"
-    mkdirp "1.0.4"
-    semver "^7.3.5"
-    ts-retry-promise "^0.6.0"
-
-"@salesforce/core@2.35.3":
+"@salesforce/core@^2.2.0", "@salesforce/core@^2.31.0", "@salesforce/core@^2.35.0", "@salesforce/core@^2.6.0":
   version "2.35.3"
   resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.35.3.tgz#acda80e6a329a40f257033c99ed353168253b0db"
   integrity sha512-F/Up8QQf7H8iKxQpGa4EZpViuNUzS+MSKaifbs+nBHs3ni0XZ2NMxB5Ai+C1vsbNNEeB1NoTPcOw/cpTm7WRRA==
@@ -415,14 +393,6 @@
   integrity sha512-/6owokpdkljkbM5axJ7xVgn6ggMS1YJgtD8zv2gBAfIHT/EgIMnwkyU6Rymb8QmWp93q/RoHXdgNQkDonWYSqw==
   dependencies:
     "@salesforce/ts-types" "^1.5.0"
-    tslib "^1.10.0"
-
-"@salesforce/kit@^1.5.0":
-  version "1.5.8"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.5.8.tgz#7a1abb46ffd6af8f35d4af8ee08a80eee9bcdbb1"
-  integrity sha512-tBq4eJfLvmtQT/jJElEN8bSJzKbVkY5yh9W/0CASTVw+aSOQ46Z8jYDtnYhRo+u5gDS4EiUQJKcq1J6xfkY7ZQ==
-  dependencies:
-    "@salesforce/ts-types" "^1.5.13"
     tslib "^1.10.0"
 
 "@salesforce/kit@^1.5.17":
@@ -473,13 +443,6 @@
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-1.5.0.tgz#e2baaca088f30a3f9d10127eb789a12abad44958"
   integrity sha512-fJsVXSJ0s8voDNM7TYulPkiRDdR1bC/rE2hsY/+2q0DDa57UAeql34tEdaBs84GGbe/VGCVbiazkLDJW/bX7KQ==
-  dependencies:
-    tslib "^1.10.0"
-
-"@salesforce/ts-types@^1.5.13":
-  version "1.5.13"
-  resolved "https://registry.yarnpkg.com/@salesforce/ts-types/-/ts-types-1.5.13.tgz#cf6bd3ed3860e305a070ab78718ac2be86d73ee0"
-  integrity sha512-tyHc0mZrn5u/K+zn5fyhFTnp10vIjLFBQ6CqYL7mvC9SAq4Bi+ZCwzd9aKGBBDLOqARGVvPTRlutmlnRID1BEw==
   dependencies:
     tslib "^1.10.0"
 
@@ -559,13 +522,6 @@
   version "4.1.5"
   resolved "https://registry.yarnpkg.com/@types/graceful-fs/-/graceful-fs-4.1.5.tgz#21ffba0d98da4350db64891f92a9e5db3cdb4e15"
   integrity sha512-anKkLmZZ+xm4p8JWBf4hElkM4XR+EZeA2M9BAkkTldmcyDY4mbdIJnRghDJH3Ov5ooY7/UAoENtmdMSkaAd7Cw==
-  dependencies:
-    "@types/node" "*"
-
-"@types/jsforce@^1.9.35":
-  version "1.9.35"
-  resolved "https://registry.yarnpkg.com/@types/jsforce/-/jsforce-1.9.35.tgz#abda87c796910d286420b07a97382c782b576ca8"
-  integrity sha512-GEb1iMAK8raElbBbozR7aVEuMl47jrPYLNkeh+3h2vLJIG21uQ/kOk4kPgMiMFwCmgfX4/tPDugnjb7qrMav4A==
   dependencies:
     "@types/node" "*"
 

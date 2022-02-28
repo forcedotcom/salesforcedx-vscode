@@ -105,7 +105,7 @@
     mv "~2"
     safe-json-stringify "~1"
 
-"@salesforce/core@2.35.3":
+"@salesforce/core@^2.35.0":
   version "2.35.3"
   resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-2.35.3.tgz#acda80e6a329a40f257033c99ed353168253b0db"
   integrity sha512-F/Up8QQf7H8iKxQpGa4EZpViuNUzS+MSKaifbs+nBHs3ni0XZ2NMxB5Ai+C1vsbNNEeB1NoTPcOw/cpTm7WRRA==
