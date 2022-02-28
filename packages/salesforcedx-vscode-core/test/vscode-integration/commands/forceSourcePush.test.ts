@@ -28,7 +28,7 @@ describe('Force Source Push', () => {
     const sourcePushOverwrite = new ForceSourcePushExecutor('--forceoverwrite');
     const pushCommand = sourcePushOverwrite.build({});
     expect(pushCommand.toCommand()).to.equal(
-      `sfdx ${sourcePushOverwrite.params.command} ${commonParams}  --forceoverwrite`
+      `sfdx ${sourcePushOverwrite.params.command} ${commonParams} --forceoverwrite`
     );
     expect(pushCommand.description).to.equal(
       nls.localize('force_source_push_force_default_scratch_org_text')
@@ -40,10 +40,10 @@ describe('Force Source Push', () => {
     const flagCommand = legacyFlag.build({});
     expect(legacyFlag.params.command).to.contain(':legacy:');
     expect(flagCommand.toCommand()).to.equal(
-      `sfdx ${legacyFlag.params.command} ${commonParams} '--forceoverwrite'`
+      `sfdx ${legacyFlag.params.command} ${commonParams} --forceoverwrite`
     );
     expect(flagCommand.description).to.equal(
-      nls.localize(legacyFlag.params.description.default)
+      nls.localize(legacyFlag.params.description.forceoverwrite)
     );
   });
 });

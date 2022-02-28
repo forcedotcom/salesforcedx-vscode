@@ -37,10 +37,10 @@ describe('Force Source Pull', () => {
     const flagCommand = legacyFlag.build({});
     expect(legacyFlag.params.command).to.contain(':legacy:');
     expect(flagCommand.toCommand()).to.equal(
-      `sfdx ${legacyFlag.params.command} '--forceoverwrite'`
+      `sfdx ${legacyFlag.params.command} --forceoverwrite`
     );
     expect(flagCommand.description).to.equal(
-      nls.localize(legacyFlag.params.description.default)
+      nls.localize(legacyFlag.params.description.forceoverwrite)
     );
   });
 });
