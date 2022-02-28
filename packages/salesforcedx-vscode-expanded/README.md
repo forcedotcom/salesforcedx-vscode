@@ -16,7 +16,7 @@ Before you set up Salesforce Extensions for VS Code, make sure that you have the
 - **Java Platform, Standard Edition Development Kit**
   Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 8 or version 11 of the JDK installed.
 
-  If you don’t already have version 8, 11, or 17 of the JDK installed, you can install the latest version of the Java 8 JDK from [Java 8 Downloads](https://www.oracle.com/java/technologies/downloads/#java8), or the latest version of the Java 11 JDK from [Java 11 Downloads](https://www.oracle.com/java/technologies/downloads/#java8), or Java 17 from [Java 17 Downloads](https://www.oracle.com/java/technologies/downloads/#java17).
+  If you don’t already have version 8, 11, or 17 of the JDK installed, you can install the latest version of the Java 8 JDK from [Java 8 Downloads](https://www.oracle.com/java/technologies/downloads/#java8), or the latest version of the Java 11 JDK from [Java 11 Downloads](https://www.oracle.com/java/technologies/downloads/#java11), or Java 17 from [Java 17 Downloads](https://www.oracle.com/java/technologies/downloads/#java17).
 
   If you also use other versions of the JDK, set your VS Code user setting `salesforcedx-vscode-apex.java.home` to point to the location where you installed Java 88, 11, or 17.
 
