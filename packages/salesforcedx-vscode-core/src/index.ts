@@ -191,12 +191,12 @@ function registerCommands(
   const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.pull',
     forceSourcePull,
-    flagOverwrite
+    flagLegacy
   );
   const forceSourceLegacyPullForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.pull.force',
     forceSourcePull,
-    flagOverwrite
+    flagLegacyOverwrite
   );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
@@ -246,7 +246,7 @@ function registerCommands(
   const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
     'sfdx.force.source.legacy.status',
     forceSourceStatus,
-    flagOverwrite
+    flagLegacy
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
