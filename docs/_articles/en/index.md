@@ -6,7 +6,7 @@ permalink: /
 
 The Salesforce Extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
 
-![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](./images/overview.gif)
+![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](../../images/overview.gif)
 
 ### Salesforce Extensions for Desktop
 
@@ -33,7 +33,7 @@ Code Builder is a browser-based version of Salesforce Extensions, with everythin
 - [Test and Debug](https://youtu.be/f6OacBmQk1g)
 - [LWC Local Development](https://www.youtube.com/watch?v=8eRFE4t2VyU&list=PLgIMQe2PKPSJdFGHjGpjd1FbCsOqq5H8t&index=4)
 - [Best Practices for Building with VS Code](https://www.youtube.com/watch?v=jn91h69qC-o)
-- [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=11)
+- [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=9)
 
 ### Open Source
 

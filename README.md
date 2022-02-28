@@ -33,7 +33,7 @@ Dreamforce 2018 session on how to use Visual Studio Code and Salesforce Extensio
 
 [![Be An Efficient Salesforce Developer with VS Code](imgs/DF18_VSCode_Session_thumbnail.jpg)](https://www.youtube.com/watch?v=hw9LBvjo4PQ)
 
-## Getting Started
+### Getting Started
 
 If you are interested in contributing, please take a look at the [CONTRIBUTING](CONTRIBUTING.md) guide.
 

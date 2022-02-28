@@ -24,7 +24,7 @@ parameters:
     default: '3.13.1'
   node-version:
     type: string
-    default: '12.4.0'
+    default: '14.16.0'
   # Constants
   cache-version:
     type: string
@@ -540,6 +540,7 @@ workflows:
     when: << pipeline.parameters.pre-publish >>
     jobs:
       - slack/approval-notification:
+          context: IEAT_keys
           message: Pending Approval for merge of release branch into main
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -547,7 +548,7 @@ workflows:
           type: approval
       - merge-release-branch:
           e: default-executor
-          context: pdt-publish-restricted-context
+          context: IEAT_keys
           requires:
             - hold
           filters:
@@ -559,6 +560,7 @@ workflows:
     when: << pipeline.parameters.publish >>
     jobs:
       - slack/approval-notification:
+          context: IEAT_keys
           message: Pending Approval for Publish
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -570,7 +572,7 @@ workflows:
       - publish:
           e: default-executor
           context:
-            - pdt-publish-restricted-context
+            - IEAT_keys
             - CLI_CTC
           requires:
             - build-all
@@ -586,6 +588,7 @@ workflows:
     when: << pipeline.parameters.create-release >>
     jobs:
       - slack/approval-notification:
+          context: IEAT_keys
           message: Pending Approval for Creation of Release Branch
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -593,7 +596,7 @@ workflows:
           type: approval
       - create-release-branch:
           e: default-executor
-          context: pdt-publish-restricted-context
+          context: IEAT_keys
           requires:
             - hold
           filters:
@@ -628,7 +631,6 @@ workflows:
     jobs:
       - create-release-branch:
           e: default-executor
-
   # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
   # dependabot-automerge:
   #   triggers:
