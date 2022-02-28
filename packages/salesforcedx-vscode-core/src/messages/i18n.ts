@@ -154,7 +154,8 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
-  force_function_start_text: 'SFDX: Start Function',
+  force_function_container_start_text: 'SFDX: Start Container Function',
+  force_function_containerless_start_text: 'SFDX: Start Local Function',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:

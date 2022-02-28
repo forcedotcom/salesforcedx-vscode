@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Benny, getFunctionsBinary } from '@heroku/functions-core';
+import { getFunctionsBinary } from '@heroku/functions-core';
 import * as library from '@heroku/functions-core';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { EventEmitter } from 'events';
@@ -13,7 +13,7 @@ import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri, window } from 'vscode';
 import { channelService } from '../../../../src/channels';
-import { forceFunctionStart } from '../../../../src/commands/functions/forceFunctionStart';
+import { forceFunctionContainerStartCommand } from '../../../../src/commands/functions/forceFunctionContainerStartCommand';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
 import {
@@ -24,7 +24,7 @@ import { taskViewService } from '../../../../src/statuses';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 
-describe('Force Function Start', () => {
+describe('Force Function Start Integration Tests.', () => {
   describe('execute', () => {
     let sandbox: SinonSandbox;
     const functionsBinaryStub: {
@@ -133,7 +133,7 @@ describe('Force Function Start', () => {
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
       assert.calledOnce(functionsBinaryStub.build);
       assert.calledOnce(functionsBinaryStub.run);
     });
@@ -148,7 +148,7 @@ describe('Force Function Start', () => {
         )
       );
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       assert.calledOnce(functionsBinaryStub.build);
       assert.calledOnce(functionsBinaryStub.run);
@@ -171,7 +171,7 @@ describe('Force Function Start', () => {
           }
         };
       });
-      await forceFunctionStart();
+      await forceFunctionContainerStartCommand();
 
       assert.calledOnce(functionsBinaryStub.build);
       assert.calledOnce(functionsBinaryStub.run);
@@ -195,7 +195,7 @@ describe('Force Function Start', () => {
         };
       });
 
-      await forceFunctionStart();
+      await forceFunctionContainerStartCommand();
 
       assert.notCalled(functionsBinaryStub.build);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
@@ -215,7 +215,7 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'force-app/main/default/lwc')
       );
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       assert.notCalled(functionsBinaryStub.build);
       assert.calledOnce(notificationServiceStubs.showWarningMessageStub);
@@ -235,7 +235,7 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       assert.calledOnce(channelServiceStubs.showChannelOutputStub);
     });
@@ -247,20 +247,25 @@ describe('Force Function Start', () => {
       const mockStartTime = [1234, 5678];
       hrtimeStub.returns(mockStartTime);
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       assert.calledOnce(logMetricStub);
-      assert.calledWith(logMetricStub, 'force_function_start', mockStartTime, {
-        language: 'node',
-        success: 'true'
-      });
+      assert.calledWith(
+        logMetricStub,
+        'force_function_container_start',
+        mockStartTime,
+        {
+          language: 'node',
+          success: 'true'
+        }
+      );
     });
 
     it('Should show error message and send telemetry if docker is not installed or started', async () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
       emitter.emit('error', {
         text:
           'Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?'
@@ -288,7 +293,7 @@ describe('Force Function Start', () => {
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       emitter.emit('error', { text: '' });
 
@@ -314,7 +319,7 @@ describe('Force Function Start', () => {
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       assert.notCalled(notificationServiceStubs.showInformationMessageStub);
     });
@@ -325,7 +330,7 @@ describe('Force Function Start', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       assert.calledOnce(notificationServiceStubs.showInformationMessageStub);
       assert.calledWith(
@@ -344,7 +349,7 @@ describe('Force Function Start', () => {
 
       hrtimeStub.returns([1234, 5678]);
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       emitter.emit('log', { text: 'heroku/nodejs-engine' });
       assert.notCalled(functionServiceStub);
@@ -361,7 +366,7 @@ describe('Force Function Start', () => {
 
       hrtimeStub.returns([1234, 5678]);
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
 
       emitter.emit('log', { text: ' heroku/jvm-function-invoker@latest' });
       assert.calledOnce(functionServiceStub);
@@ -379,7 +384,7 @@ describe('Force Function Start', () => {
 
       hrtimeStub.returns([1234, 5678]);
 
-      await forceFunctionStart(srcUri);
+      await forceFunctionContainerStartCommand(srcUri);
       emitter.emit('log', { text: 'heroku/nodejs-function-invoker@2.1.1' });
       assert.calledOnce(functionServiceStub);
       assert.calledWith(functionServiceStub, srcUri.fsPath, 'nodejs');
