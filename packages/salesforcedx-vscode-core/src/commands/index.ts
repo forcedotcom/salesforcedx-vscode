@@ -158,7 +158,8 @@ export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
-  forceFunctionStart,
+  forceFunctionContainerStartCommand,
+  forceFunctionContainerlessStartCommand,
   forceFunctionStop,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
