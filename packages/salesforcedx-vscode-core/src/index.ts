@@ -237,7 +237,7 @@ function registerCommands(
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
     forceSourceStatus,
-    flagStatusRemote
+    flagStatusLocal
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
