@@ -5,15 +5,46 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { join, parse } from 'path';
 import { format } from 'util';
 import * as vscode from 'vscode';
+import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
+import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const DEFAULT_MANIFEST = 'package.xml';
+
+export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
+  private sourcePaths: string[];
+  private responseText: string | undefined;
+  constructor(sourcePaths: string[], responseText: string | undefined) {
+    super(
+      nls.localize('force_create_manifest'),
+      'force_create_manifest',
+      OUTPUT_CHANNEL
+    );
+    this.sourcePaths = sourcePaths;
+    this.responseText = responseText;
+  }
+  public async run(response: ContinueResponse<string>, progress?: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token?: vscode.CancellationToken): Promise<boolean> {
+    if (this.sourcePaths) {
+      const componentSet = ComponentSet.fromSource(this.sourcePaths);
+      if (this.responseText === undefined) {
+        // Canceled and declined to name the document
+        openUntitledDocument(componentSet);
+      } else {
+        saveDocument(this.responseText, componentSet);
+      }
+      return true;
+    }
+    return false;
+  }
+}
 
 export async function forceCreateManifest(
   sourceUri: vscode.Uri,
@@ -24,19 +55,18 @@ export async function forceCreateManifest(
     uris.push(sourceUri);
   }
   const sourcePaths = uris.map(uri => uri.fsPath);
+  const inputOptions = {
+    placeHolder: nls.localize('manifest_input_save_placeholder'),
+    prompt: nls.localize('manifest_input_save_prompt')
+  } as vscode.InputBoxOptions;
+  const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourcePaths) {
-    const componentSet = ComponentSet.fromSource(sourcePaths);
-    const inputOptions = {
-        placeHolder: nls.localize('manifest_input_save_placeholder'),
-        prompt: nls.localize('manifest_input_save_prompt')
-    } as vscode.InputBoxOptions;
-    const responseText = await vscode.window.showInputBox(inputOptions);
-    if (responseText === undefined) {
-      // Canceled and declined to name the document
-      openUntitledDocument(componentSet);
-    } else {
-      saveDocument(responseText, componentSet);
-    }
+    const commandlet = new SfdxCommandlet(
+      new SfdxWorkspaceChecker(),
+      new FilePathGatherer(sourceUri),
+      new ManifestCreateExecutor(sourcePaths, responseText)
+    );
+    await commandlet.run();
   }
 }
 
