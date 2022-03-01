@@ -66,6 +66,7 @@ import {
   forceVisualforcePageCreate,
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
+  SourceStatusFlags,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
@@ -73,8 +74,10 @@ import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
+  CommandVersion,
   CompositeParametersGatherer,
   EmptyParametersGatherer,
+  FlagParameter,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -103,6 +106,23 @@ import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+
+const flagOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite'
+};
+const flagLegacy: FlagParameter<null> = {
+  commandVersion: CommandVersion.Legacy
+};
+const flagLegacyOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite',
+  commandVersion: CommandVersion.Legacy
+};
+const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Local
+};
+const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Remote
+};
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -167,7 +187,17 @@ function registerCommands(
   const forceSourcePullForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull.force',
     forceSourcePull,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
+  );
+  const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull',
+    forceSourcePull,
+    flagLegacy
+  );
+  const forceSourceLegacyPullForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull.force',
+    forceSourcePull,
+    flagLegacyOverwrite
   );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
@@ -176,7 +206,17 @@ function registerCommands(
   const forceSourcePushForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push.force',
     forceSourcePush,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
+  );
+  const forceSourceLegacyPushCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push',
+    forceSourcePush,
+    flagLegacy
+  );
+  const forceSourceLegacyPushForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push.force',
+    forceSourcePush,
+    flagLegacyOverwrite
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
@@ -197,12 +237,17 @@ function registerCommands(
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
     forceSourceStatus,
-    { flag: '--local' }
+    flagStatusLocal
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
     forceSourceStatus,
-    { flag: '--remote' }
+    flagStatusRemote
+  );
+  const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.status',
+    forceSourceStatus,
+    flagLegacy
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
@@ -410,12 +455,19 @@ function registerCommands(
     forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
+    forceSourceLegacyPullCmd,
+    forceSourceLegacyPullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceLegacyPushCmd,
+    forceSourceLegacyPushForceCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,
     forceSourceStatusCmd,
+    forceSourceStatusLocalCmd,
+    forceSourceStatusRemoteCmd,
+    forceSourceLegacyStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
     forceAnalyticsTemplateCreateCmd,
@@ -427,8 +479,6 @@ function registerCommands(
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
-    forceSourceStatusLocalCmd,
-    forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
     forceConfigListCmd,
     forceAliasListCmd,
