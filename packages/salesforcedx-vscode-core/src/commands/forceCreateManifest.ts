@@ -17,21 +17,26 @@ import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
+const CREATE_MANIFEST_EXECUTOR = 'force_create_manifest';
 const DEFAULT_MANIFEST = 'package.xml';
+const MANIFEST_SAVE_PLACEHOLDER = 'manifest_input_save_placeholder';
+const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 
 export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string | undefined;
   constructor(sourcePaths: string[], responseText: string | undefined) {
     super(
-      nls.localize('force_create_manifest'),
-      'force_create_manifest',
+      nls.localize(CREATE_MANIFEST_EXECUTOR),
+      CREATE_MANIFEST_EXECUTOR,
       OUTPUT_CHANNEL
     );
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
   }
-  public async run(response: ContinueResponse<string>, progress?: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>, token?: vscode.CancellationToken): Promise<boolean> {
+  public async run(response: ContinueResponse<string>,
+                   progress?: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>,
+                   token?: vscode.CancellationToken): Promise<boolean> {
     if (this.sourcePaths) {
       const componentSet = ComponentSet.fromSource(this.sourcePaths);
       if (this.responseText === undefined) {
@@ -56,8 +61,8 @@ export async function forceCreateManifest(
   }
   const sourcePaths = uris.map(uri => uri.fsPath);
   const inputOptions = {
-    placeHolder: nls.localize('manifest_input_save_placeholder'),
-    prompt: nls.localize('manifest_input_save_prompt')
+    placeHolder: nls.localize(MANIFEST_SAVE_PLACEHOLDER),
+    prompt: nls.localize(MANIFEST_SAVE_PROMPT)
   } as vscode.InputBoxOptions;
   const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourcePaths) {
