@@ -71,10 +71,11 @@ if (isRemoteReleaseBranchExist) {
 // Create the new release branch and switch to it
 shell.exec(`git checkout -b ${releaseBranchName}`);
 
-changeLogGeneratorUtils.getPreviousReleaseBranch(releaseBranchName);
-const parsedCommits = changeLogGeneratorUtils.parseCommits(getCommits(releaseBranch, previousBranch));
-const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits);
-const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranch, groupedMessages);
+// Generate changelog
+const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch(releaseBranchName);
+const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, previousBranchName));
+const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
+const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
 changeLogGeneratorUtils.writeChangeLog(changeLog);
 
 // git clean but keeping node_modules around

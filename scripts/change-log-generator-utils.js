@@ -1,28 +1,44 @@
 const constants = require('./change-log-constants');
+const fs = require('fs');
+const shell = require('shelljs');
+const util = require('util');
 
 // Commit Map Keys
 const PR_NUM = 'PR_NUM';
+const LOG_HEADER = '# %s - %s\n';
 const COMMIT = 'COMMIT';
 const TYPE = 'TYPE';
 const MESSAGE = 'MESSAGE';
 const FILES_CHANGED = 'FILES_CHANGED';
+const RELEASE_DATE_ARG = '-t';
 const PACKAGES = 'PACKAGES';
+const TYPE_HEADER = '\n## %s\n';
+const SECTION_HEADER = '\n#### %s\n';
+const MESSAGE_FORMAT =
+  '\n- %s ([PR #%s](https://github.com/forcedotcom/salesforcedx-vscode/pull/%s))\n';
 const PR_ALREADY_EXISTS_ERROR =
   'Filtered PR number %s. An entry already exists in the changelog.';
 
+const typesToIgnore = [
+  'chore',
+  'style',
+  'refactor',
+  'test',
+  'build',
+  'ci',
+  'revert'
+];
+
 module.exports = {
-  getPreviousReleaseBranch, parseCommits, getMessagesGroupedByPackage, getChangeLogText, writeChangeLog
+  getPreviousReleaseBranch, parseCommits, getMessagesGroupedByPackage, getChangeLogText, getCommits, writeChangeLog
 }
 
+/**
+ *  Returns the previous release branch
+ */
 function getPreviousReleaseBranch(releaseBranch) {
   const releaseBranches = getReleaseBranches();
-  const index = releaseBranches.indexOf(releaseBranch);
-  if (index != -1 && index + 1 < releaseBranches.length) {
-    return releaseBranches[index + 1];
-  } else {
-    console.log('Unable to retrieve previous release. Exiting.');
-    process.exit(-1);
-  }
+  return releaseBranches[0];
 }
 
 /**
@@ -33,7 +49,7 @@ function getPreviousReleaseBranch(releaseBranch) {
   return shell
     .exec(
       `git branch --remotes --list --sort='-creatordate' '${constants.RELEASE_BRANCH_PREFIX}*'`,
-      { silent: true }
+      { silent: false }
     )
     .replace(/\n/g, ',')
     .split(',')
@@ -117,12 +133,12 @@ function filterExistingPREntries(parsedCommits) {
  * Groups all messages per package header so they can be displayed under
  * the same package header subsection. Returns a map of lists.
  */
- function getMessagesGroupedByPackage(parsedCommits) {
+ function getMessagesGroupedByPackage(parsedCommits, packagesToIgnore) {
   let groupedMessages = {};
   let sortedMessages = {};
   parsedCommits.forEach(function(map) {
     map[PACKAGES].forEach(function(packageName) {
-      const key = generateKey(packageName, map[TYPE]);
+      const key = generateKey(packageName, map[TYPE], packagesToIgnore);
       if (key) {
         groupedMessages[key] = groupedMessages[key] || [];
         groupedMessages[key].push(
@@ -160,6 +176,26 @@ function getChangeLogText(releaseBranch, groupedMessages) {
   return changeLogText + '\n';
 }
 
+function getFilesChanged(commitNumber) {
+  return shell
+    .exec('git show --pretty="" --name-only ' + commitNumber, {
+      silent: true
+    })
+    .stdout.trim()
+    .toString()
+    .replace(/\n/g, ',');
+}
+
+function getPackageHeaders(filesChanged) {
+  let packageHeaders = new Set();
+  filesChanged.split(',').forEach(function(filePath) {
+    const packageName = getPackageName(filePath);
+    if (packageName) {
+      packageHeaders.add(packageName);
+    }
+  });
+  return filterPackageNames(packageHeaders);
+}
 
 function writeChangeLog(textToInsert) {
   let data = fs.readFileSync(constants.CHANGE_LOG_PATH);
@@ -169,4 +205,70 @@ function writeChangeLog(textToInsert) {
   fs.writeSync(fd, data, 0, data.length, buffer.length);
   fs.closeSync(fd);
   console.log(`\nChange log written to: ${constants.CHANGE_LOG_PATH}`);
+}
+
+function getPackageName(filePath) {
+  if (
+    filePath &&
+    !filePath.includes('/images/') &&
+    !filePath.includes('/test/')
+  ) {
+    let packageName = filePath.replace('packages/', '').split('/')[0];
+    return packageName.startsWith('salesforce') ||
+      packageName.startsWith('docs')
+      ? packageName
+      : null;
+  }
+  return null;
+}
+
+function filterPackageNames(packageHeaders) {
+  let filteredHeaders = new Set(packageHeaders);
+  if (packageHeaders.has('salesforcedx-vscode-core')) {
+    packageHeaders.forEach(function(packageName) {
+      if (packageName != 'salesforcedx-vscode-core' && packageName != 'docs') {
+        filteredHeaders.delete(packageName);
+      }
+    });
+  }
+  return filteredHeaders;
+}
+
+/**
+ * Generate the key to be used in the grouped messages map. This will help us
+ * determine whether this is an addition or fix, along with the package header
+ * that the commit should be inserted under.
+ *
+ * If we have a type that should be ignored, return an empty key.
+ */
+function generateKey(packageName, type, packagesToIgnore) {
+  if (
+    typesToIgnore.includes(type) ||
+    packagesToIgnore.includes(packageName)
+  ) {
+    return '';
+  }
+  const keyPrefix = type === 'feat' ? 'Added' : 'Fixed';
+  return `${keyPrefix}|${packageName}`;
+}
+
+function getReleaseDate() {
+  const dateArg = getArgumentValue(RELEASE_DATE_ARG);
+  return dateArg
+    ? dateArg
+    : new Intl.DateTimeFormat('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(new Date());
+}
+
+function getArgumentValue(arg) {
+  const argIndex = process.argv.indexOf(arg);
+  if (argIndex > -1) {
+    const argValue = process.argv[argIndex + 1];
+    return argValue && !argValue.startsWith('-') ? argValue : '';
+  } else {
+    return '';
+  }
 }
