@@ -26,11 +26,11 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "^0.2.3",
-    "@salesforce/core": "2.28.0",
+    "@salesforce/core": "^2.35.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "54.2.0",
     "@salesforce/salesforcedx-utils-vscode": "54.2.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "5.0.0",
+    "@salesforce/source-deploy-retrieve": "5.12.0",
     "@salesforce/templates": "52.3.0",
     "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",
@@ -369,6 +369,26 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
+          "command": "sfdx.force.source.legacy.pull",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.pull.force",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.push",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.push.force",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.status",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
           "command": "sfdx.force.task.stop",
           "when": "sfdx:project_opened"
         },
@@ -650,6 +670,26 @@
       {
         "command": "sfdx.force.source.status.remote",
         "title": "%force_source_status_remote_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.pull",
+        "title": "%force_source_legacy_pull_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.pull.force",
+        "title": "%force_source_legacy_pull_force_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.push",
+        "title": "%force_source_legacy_push_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.push.force",
+        "title": "%force_source_legacy_push_force_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.status",
+        "title": "%force_source_legacy_status_text%"
       },
       {
         "command": "sfdx.force.task.stop",

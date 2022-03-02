@@ -103,11 +103,24 @@ export const messages = {
     'SFDX: Pull Source from Default Scratch Org',
   force_source_pull_force_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
+  force_source_legacy_pull_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org (Legacy)',
+  force_source_legacy_pull_force_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)',
 
   force_source_push_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+  force_source_legacy_push_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org (Legacy)',
+  force_source_legacy_push_force_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)',
+
+  force_source_status_text:
+    'View All Changes (Local and in Default Scratch Org)',
+  force_source_legacy_status_text:
+    'View All Changes (Local and in Default Scratch Org) (Legacy)',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
@@ -130,8 +143,6 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-  force_source_status_text:
-    'View All Changes (Local and in Default Scratch Org)',
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
