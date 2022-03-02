@@ -87,9 +87,9 @@ export class MetadataOutlineProvider
         let nodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        } else if (element.type === NodeType.Folder && element.parent!.fullName != 'CustomObject') {
+        } else if (element.type === NodeType.Folder && element.parent!.fullName !== 'CustomObject') {
           nodeType = NodeType.MetadataComponent;
-        } else if (element.type === NodeType.Folder && element.parent!.fullName == 'CustomObject') {
+        } else if (element.type === NodeType.Folder && element.parent!.fullName === 'CustomObject') {
           nodeType = NodeType.MetadataField;
         }
 
