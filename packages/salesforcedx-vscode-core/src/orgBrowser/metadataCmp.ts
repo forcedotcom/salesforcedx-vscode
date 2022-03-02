@@ -167,6 +167,12 @@ export class ComponentUtils {
       } else {
         componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
       }
+    } else if (metadataType != 'CustomObject' && folderName) {
+      if (forceRefresh || !fs.existsSync(componentsPath)) {
+        componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);
+      } else {
+        componentsList = this.fetchExistingMetadataComponents(metadataType, componentsPath);
+      }
     } else {
       if (forceRefresh || !fs.existsSync(componentsPath)) {
         componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);
