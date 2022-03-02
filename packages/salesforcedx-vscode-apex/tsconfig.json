@@ -10,6 +10,7 @@
     "rootDir": ".",
     "outDir": "out",
     "preserveConstEnums": true,
+    "skipLibCheck": true,
     "strict": true
   },
   "exclude": ["node_modules", ".vscode-test", "out"]
