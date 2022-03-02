@@ -185,20 +185,21 @@ export class TestService {
    * Asynchronous Test Runs
    * @param options test options
    * @param codeCoverage should report code coverage
+   * @param immediatelyReturn should not wait for test run to complete, return test run id immediately
    * @param progress progress reporter
    * @param token cancellation token
    */
   public async runTestAsynchronous(
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
-    exitOnTestRunId = false,
+    immediatelyReturn = false,
     progress?: Progress<ApexTestProgressValue>,
     token?: CancellationToken
   ): Promise<TestResult | TestRunIdResult> {
     return await this.asyncService.runTests(
       options,
       codeCoverage,
-      exitOnTestRunId,
+      immediatelyReturn,
       progress,
       token
     );

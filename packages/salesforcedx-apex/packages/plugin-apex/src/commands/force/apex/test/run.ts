@@ -121,14 +121,6 @@ export default class Run extends SfdxCommand {
       this.ux.warn(messages.getMessage('warningMessage'));
     }
 
-    // W-9346875 - default to human-readable result format for --wait flag
-    if (
-      this.flags.hasOwnProperty('wait') &&
-      !this.flags.hasOwnProperty('resultformat')
-    ) {
-      this.flags.resultformat = 'human';
-    }
-
     // add listener for errors
     process.on('uncaughtException', err => {
       const formattedErr = this.formatError(
@@ -176,25 +168,16 @@ export default class Run extends SfdxCommand {
         this.flags.classnames,
         this.flags.suitenames
       );
+
       payload.skipCodeCoverage = this.flags.codecoverage ? false : true;
       const reporter = undefined;
-      if (this.flags.resultformat !== undefined) {
-        result = await testService.runTestAsynchronous(
-          payload,
-          this.flags.codecoverage,
-          false,
-          reporter,
-          this.cancellationTokenSource.token
-        );
-      } else {
-        result = await testService.runTestAsynchronous(
-          payload,
-          this.flags.codecoverage,
-          true,
-          reporter,
-          this.cancellationTokenSource.token
-        );
-      }
+      result = await testService.runTestAsynchronous(
+        payload,
+        this.flags.codecoverage,
+        this.shouldImmediatelyReturn(),
+        reporter,
+        this.cancellationTokenSource.token
+      );
     }
 
     if (this.cancellationTokenSource.token.isCancellationRequested) {
@@ -251,7 +234,7 @@ export default class Run extends SfdxCommand {
           }
           break;
         default:
-          if (this.flags.synchronous) {
+          if (this.flags.synchronous || this.flags.wait) {
             this.logHuman(
               result as TestResult,
               this.flags.detailedcoverage,
@@ -373,5 +356,26 @@ export default class Run extends SfdxCommand {
     }
     const hint = messages.getMessage('apexTestReportFormatHint', [reportArgs]);
     return hint;
+  }
+
+  /**
+   * Handles special exceptions where we don't want to return early
+   * with the testRunId.
+   **/
+  private shouldImmediatelyReturn(): boolean {
+    if (this.flags.resultformat !== undefined) {
+      return false;
+    }
+
+    // when the user has explictly asked to wait for results, but didn't give a format
+    if (this.flags.wait) {
+      return false;
+    }
+
+    //historical expectation to wait for results from a synchronous test run
+    if (this.flags.synchronous && !this.flags.json) {
+      return false;
+    }
+    return true;
   }
 }

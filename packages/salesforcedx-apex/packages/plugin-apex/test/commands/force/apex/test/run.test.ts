@@ -637,6 +637,32 @@ describe('force:apex:test:run', () => {
       root: __dirname
     })
     .stub(process, 'cwd', () => projectPath)
+    .stub(TestService.prototype, 'runTestAsynchronous', () => testRunSimple)
+    .stub(fs, 'existsSync', () => true)
+    .stub(fs, 'mkdirSync', () => true)
+    .stub(fs, 'createWriteStream', () => new stream.PassThrough())
+    .stub(fs, 'openSync', () => 10)
+    .stub(fs, 'closeSync', () => true)
+    .stdout()
+    .stderr()
+    .command(['force:apex:test:run', '-y'])
+    .it(
+      'should output human-readable result for synchronous test run with no tests specified',
+      ctx => {
+        const result = ctx.stdout;
+        expect(result).to.not.be.empty;
+        expect(result).to.contain('Test Summary');
+        expect(result).to.contain('Test Results');
+        expect(result).to.not.contain('to retrieve test results');
+      }
+    );
+
+  test
+    .withOrg({ username: TEST_USERNAME }, true)
+    .loadConfig({
+      root: __dirname
+    })
+    .stub(process, 'cwd', () => projectPath)
     .stub(TestService.prototype, 'runTestAsynchronous', () => runWithCoverage)
     .do(ctx => {
       ctx.myStub = sandboxStub.stub(TestService.prototype, 'writeResultFiles');
