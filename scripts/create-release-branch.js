@@ -99,8 +99,5 @@ shell.exec('git add lerna.json');
 // Git commit
 shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
-// Push version update commits to develop
-// shell.exec(`git push origin develop`);
-
 // Push new release branch to remote
 shell.exec(`git push -u origin ${releaseBranchName}`);

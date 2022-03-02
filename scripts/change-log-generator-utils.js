@@ -29,13 +29,12 @@ const typesToIgnore = [
   'revert'
 ];
 
-module.exports = {
-  getPreviousReleaseBranch, parseCommits, getMessagesGroupedByPackage, getChangeLogText, getCommits, writeChangeLog
-}
-
 /**
- *  Returns the previous release branch
+ * Returns the previous release branch
+ * @param {string} releaseBranch current release branch
+ * @returns 
  */
+
 function getPreviousReleaseBranch(releaseBranch) {
   const releaseBranches = getReleaseBranches();
   return releaseBranches[0];
@@ -60,6 +59,9 @@ function getPreviousReleaseBranch(releaseBranch) {
  * This command will list all commits that are different between
  * the two branches. Therefore, we are guaranteed to get all new
  * commits relevant only to the new branch.
+ * @param {string} releaseBranch 
+ * @param {string} previousBranch 
+ * @returns 
  */
  function getCommits(releaseBranch, previousBranch) {
   const commits = shell
@@ -76,6 +78,8 @@ function getPreviousReleaseBranch(releaseBranch) {
 
 /**
  * Parse the commits and return them as a list of hashmaps.
+ * @param {string[]} commits 
+ * @returns 
  */
  function parseCommits(commits) {
   let commitMaps = [];
@@ -130,8 +134,11 @@ function filterExistingPREntries(parsedCommits) {
 }
 
 /**
- * Groups all messages per package header so they can be displayed under
- * the same package header subsection. Returns a map of lists.
+* Groups all messages per package header so they can be displayed under
+ * the same package header subsection. Returns a map of lists. 
+ * @param {string[]} parsedCommits array of parsed commit
+ * @param {string} packagesToIgnore comma separated list of packages to be ignored for changelog generation
+ * @returns 
  */
  function getMessagesGroupedByPackage(parsedCommits, packagesToIgnore) {
   let groupedMessages = {};
@@ -155,6 +162,12 @@ function filterExistingPREntries(parsedCommits) {
   return sortedMessages;
 }
 
+/**
+ * Returns formatted change log
+ * @param {string} releaseBranch 
+ * @param {string[]} groupedMessages 
+ * @returns 
+ */
 function getChangeLogText(releaseBranch, groupedMessages) {
   let changeLogText = util.format(
     LOG_HEADER,
@@ -197,6 +210,10 @@ function getPackageHeaders(filesChanged) {
   return filterPackageNames(packageHeaders);
 }
 
+/**
+ * Write changelog to file
+ * @param {string} textToInsert 
+ */
 function writeChangeLog(textToInsert) {
   let data = fs.readFileSync(constants.CHANGE_LOG_PATH);
   let fd = fs.openSync(constants.CHANGE_LOG_PATH, 'w+');
@@ -235,11 +252,15 @@ function filterPackageNames(packageHeaders) {
 }
 
 /**
+ * 
  * Generate the key to be used in the grouped messages map. This will help us
  * determine whether this is an addition or fix, along with the package header
  * that the commit should be inserted under.
- *
- * If we have a type that should be ignored, return an empty key.
+ * 
+ * @param {string} packageName Name of the package within the extensions repo 
+ * @param {string} type Type of the commit
+ * @param {string} packagesToIgnore  Name of the packages (comma separated) that we don't need changelog generated
+ * @returns 
  */
 function generateKey(packageName, type, packagesToIgnore) {
   if (
@@ -271,4 +292,9 @@ function getArgumentValue(arg) {
   } else {
     return '';
   }
+}
+
+
+module.exports = {
+  getPreviousReleaseBranch, parseCommits, getMessagesGroupedByPackage, getChangeLogText, getCommits, writeChangeLog
 }
