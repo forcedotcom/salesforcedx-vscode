@@ -1,3 +1,33 @@
+# release/v54.3.0 - March 3, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Add legacy source pull, push, status cmds for scratch orgs ([PR #3839](https://github.com/forcedotcom/salesforcedx-vscode/pull/3839))
+
+## Fixed
+
+#### docs
+
+- Jb/update to java 17 ([PR #3860](https://github.com/forcedotcom/salesforcedx-vscode/pull/3860))
+
+#### salesforcedx-vscode
+
+- Jb/update to java 17 ([PR #3860](https://github.com/forcedotcom/salesforcedx-vscode/pull/3860))
+
+#### salesforcedx-vscode-apex
+
+- Jb/update to java 17 ([PR #3860](https://github.com/forcedotcom/salesforcedx-vscode/pull/3860))
+
+#### salesforcedx-vscode-core
+
+- Add telemetry to manifest builder @W-10754639@ ([PR #3869](https://github.com/forcedotcom/salesforcedx-vscode/pull/3869))
+
+#### salesforcedx-vscode-expanded
+
+- Jb/update to java 17 ([PR #3860](https://github.com/forcedotcom/salesforcedx-vscode/pull/3860))
+
 # 54.2.0 - February 24, 2022
 
 ## Added
