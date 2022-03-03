@@ -6,6 +6,10 @@
 
 - Add legacy source pull, push, status cmds for scratch orgs ([PR #3839](https://github.com/forcedotcom/salesforcedx-vscode/pull/3839))
 
+#### salesforcedx-vscode-lightning & salesforcedx-vscode-lwc
+
+- Provide autocompletion for bracket syntax '{}' in HTML files ([PR #3865](_https://github.com/forcedotcom/salesforcedx-vscode/pull/3865_))
+
 ## Fixed
 
 #### docs
