@@ -85,7 +85,7 @@ shell.exec('git clean -xfd -e node_modules');
 // increment the version number in all packages without publishing to npmjs
 // only run on branch named develop and do not create git tags
 shell.exec(
-  `lerna version ${nextVersion} --force-publish --allow-branch develop --no-git-tag-version --exact --yes`
+  `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
 );
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
