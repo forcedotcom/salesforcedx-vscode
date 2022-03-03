@@ -78,6 +78,9 @@ const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(pars
 const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
 changeLogGeneratorUtils.writeChangeLog(changeLog);
 
+const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranchName}"`;
+shell.exec(commitCommand);
+
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
 
@@ -85,7 +88,7 @@ shell.exec('git clean -xfd -e node_modules');
 // increment the version number in all packages without publishing to npmjs
 // only run on branch named develop and do not create git tags
 shell.exec(
-  `lerna version ${nextVersion} --force-publish --allow-branch develop --no-git-tag-version --exact --yes`
+  `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
 );
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
