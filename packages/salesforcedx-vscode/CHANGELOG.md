@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We’ve made functionality of older versions of some commands available for you to use for your existing scratch orgs. Use these legacy commands so you don’t run into issues with their newer versions:
+- We’ve made the functionality of older versions of some commands available for you to use with your existing scratch orgs. Use these legacy commands so you don’t run into issues with their newer versions:
 
     *SFDX: Pull Source from Default Scratch Org (Legacy)*
     
