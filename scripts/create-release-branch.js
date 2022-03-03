@@ -78,6 +78,9 @@ const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(pars
 const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
 changeLogGeneratorUtils.writeChangeLog(changeLog);
 
+const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranch}"`;
+shell.exec(commitCommand);
+
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
 
