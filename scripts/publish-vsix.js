@@ -29,3 +29,20 @@ if (vscePublish.code !== 0) {
   logger.error(`There was and error while publishing extension ${vsix}`);
   shell.exit(1);
 }
+
+const OVSX_PERSONAL_ACCESS_TOKEN = process.env['OVSX_PERSONAL_ACCESS_TOKEN'];
+let ovsxPublish = '';
+if (OVSX_PERSONAL_ACCESS_TOKEN) {
+  ovsxPublish = shell.exec(
+    `ovsx publish --pat ${OVSX_PERSONAL_ACCESS_TOKEN} --packagePath ${vsix}`
+  );
+} else {
+  // Assume that one has already been configured
+  ovsxPublish = shell.exec(`vsce publish --packagePath ${vsix}`);
+}
+
+// Check that publishing extension was successful.
+if (ovsxPublish.code !== 0) {
+  logger.error(`There was and error while publishing extension ${vsix}`);
+  shell.exit(1);
+}
