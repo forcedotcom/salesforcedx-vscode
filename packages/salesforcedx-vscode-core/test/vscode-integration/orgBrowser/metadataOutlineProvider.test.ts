@@ -210,19 +210,19 @@ describe('load org browser tree outline', () => {
       {
         fullName: 'SampleFolder/Sample_Template',
         label: 'Sample_Template',
-        type: NodeType.MetadataField
+        type: NodeType.MetadataComponent
       },
       {
         fullName: 'SampleFolder/Sample_Template2',
         label: 'Sample_Template2',
-        type: NodeType.MetadataField
+        type: NodeType.MetadataComponent
       }
     ];
     const folder2 = [
       {
         fullName: 'SampleFolder2/Main',
         label: 'Main',
-        type: NodeType.MetadataField
+        type: NodeType.MetadataComponent
       }
     ];
     const folders = [
