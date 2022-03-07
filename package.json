@@ -41,7 +41,6 @@
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
     "publish": "node scripts/publish-circleci.js",
-    "build-change-log": "node scripts/change-log-generator.js",
     "test": "lerna exec --concurrency 1 --stream --bail=false -- npm run test --if-present",
     "test:unit": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:unit --if-present",
     "test:ui": "lerna exec --concurrency 1 --stream --bail=false -- npm run test:ui --if-present",

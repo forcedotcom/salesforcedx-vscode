@@ -27,6 +27,7 @@ The release branch is typically created from a scheduled job in CircleCI. This s
 Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
 
 ## Verifying the Change Log
+
 One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) would review the changelog and make any changes to the release branch.
 
 ## Merging the Release Branch into Main
@@ -63,7 +64,8 @@ After the pre-publish steps have run and main has been rebased off of the releas
    6. Check that `main` is merged back into `develop` by the publish job and that the [branches have no differences](https://github.com/forcedotcom/salesforcedx-vscode/compare/main...develop?expand=1).
 
 ## Post-Publishing the .vsix
-1. Update the Salesforce Extension Pack to the version you just published.  Either go to Extensions, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install.
+
+1. Update the Salesforce Extension Pack to the version you just published. Either go to Extensions, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install.
 2. Restart Visual Studio Code
 3. Test & validate the application.
 4. Once validated, post an announcement in #platform-dev-tools

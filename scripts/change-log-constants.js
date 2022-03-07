@@ -10,7 +10,6 @@ module.exports = Object.freeze({
     'salesforcedx-vscode',
     'CHANGELOG.md'
   ),
-  CHANGE_LOG_BRANCH: 'changeLog-v',
   RELEASE_BRANCH_PREFIX: 'origin/release/v',
 
   // Regex
