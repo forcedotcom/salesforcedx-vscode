@@ -7,10 +7,13 @@
 
 // tslint:disable:no-unused-expression
 
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { JAVA_HOME_KEY, resolveRequirements } from '../../src/requirements';
+import { SET_JAVA_DOC_LINK } from '../../src/constants';
+import { nls } from '../../src/messages';
+import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../src/requirements';
 import pathExists = require('path-exists');
 import * as cp from 'child_process';
 
@@ -46,8 +49,8 @@ describe('Java Requirements Test', () => {
     let exceptionThrown = false;
     try {
       await resolveRequirements();
-    } catch (e) {
-      expect(e).contains(localRuntime);
+    } catch (err) {
+      expect(err).contains(localRuntime);
       exceptionThrown = true;
     }
     expect(exceptionThrown).to.be.true;
@@ -60,4 +63,45 @@ describe('Java Requirements Test', () => {
     expect(requirements.java_home).contains(jdk);
   });
 
+  it('Should support Java 8', async () => {
+    execFileStub.yields('', '', 'build 1.8.0');
+    try {
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
+    } catch (err) {
+      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+    }
+  });
+
+  it('Should support Java 11', async () => {
+    execFileStub.yields('', '', 'build 11.0.0');
+    try {
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
+    } catch (err) {
+      fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
+    }
+  });
+
+  it('Should support Java 17', async () => {
+    execFileStub.yields('', '', 'build 17.2.3');
+    try {
+      const result = await checkJavaVersion('~/java_home');
+      expect(result).to.equal(true);
+    } catch (err) {
+      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+    }
+  });
+
+  it('Should not support Java 20', async () => {
+    execFileStub.yields('', '', 'build 20.0.0');
+    try {
+      await checkJavaVersion('~/java_home');
+      fail('Should have thrown when the Java version is not supported');
+    } catch (err) {
+      expect(err).to.equal(
+        nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK)
+      );
+    }
+  });
 });

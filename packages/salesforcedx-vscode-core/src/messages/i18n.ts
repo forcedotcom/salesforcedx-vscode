@@ -103,11 +103,24 @@ export const messages = {
     'SFDX: Pull Source from Default Scratch Org',
   force_source_pull_force_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
+  force_source_legacy_pull_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org (Legacy)',
+  force_source_legacy_pull_force_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)',
 
   force_source_push_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+  force_source_legacy_push_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org (Legacy)',
+  force_source_legacy_push_force_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)',
+
+  force_source_status_text:
+    'View All Changes (Local and in Default Scratch Org)',
+  force_source_legacy_status_text:
+    'View All Changes (Local and in Default Scratch Org) (Legacy)',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
@@ -130,8 +143,6 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-  force_source_status_text:
-    'View All Changes (Local and in Default Scratch Org)',
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
@@ -145,6 +156,7 @@ export const messages = {
   force_function_create_text: 'SFDX: Create Function',
   force_function_container_start_text: 'SFDX: Start Container Function',
   force_function_containerless_start_text: 'SFDX: Start Local Function',
+  force_create_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
