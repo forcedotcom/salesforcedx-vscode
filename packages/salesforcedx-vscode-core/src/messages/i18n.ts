@@ -621,5 +621,8 @@ export const messages = {
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects'
+  sobject_refresh_standard: 'Standard SObjects',
+  rename_comp_input_dup_error: 'Component name is already in use',
+  rename_comp_input_placeholder: 'Enter a unique component name',
+  rename_comp_input_prompt: 'Press Enter to confirm your input or Escape to cancel'
 };
