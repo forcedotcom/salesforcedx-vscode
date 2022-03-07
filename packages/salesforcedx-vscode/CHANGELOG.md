@@ -1,3 +1,11 @@
+# release/v54.4.0 - March 7, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fix(apex and core package.json): update SDR to v5.12.3 to pick up fix for child reads ([PR #3876](https://github.com/forcedotcom/salesforcedx-vscode/pull/3876))
+
 # 54.3.0 - March 3, 2022
 
 ## Added
