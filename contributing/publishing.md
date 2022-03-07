@@ -23,7 +23,12 @@ For more information about publishing take a look at:
 
 ## Creating a Release Branch
 
-The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Mondays at 8 AM PST. Release branches are in the format `release/vxx.yy.zz`. A Change Log is generated automatically at the same time, and needs to be reviewed by the team's Doc Writer before being merged into the release branch by the engineer in charge of release.
+The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format `release/vxx.yy.zz`.
+Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
+
+## Verifying the Change Log
+
+One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) would review the changelog and make any changes to the release branch.
 
 ## Merging the Release Branch into Main
 
