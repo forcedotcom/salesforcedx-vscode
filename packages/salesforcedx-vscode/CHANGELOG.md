@@ -1,5 +1,10 @@
-# release/v54.4.0 - March 7, 2022
+# 54.4.0 - March 9, 2022
 
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the *SFDX: Diff Folder Against Org* command so that it now diffs objects against orgs correctly. ([PR #3876](https://github.com/forcedotcom/salesforcedx-vscode/pull/3876))
 
 
 # 54.3.0 - March 3, 2022
@@ -36,7 +41,7 @@
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #3869](https://github.com/forcedotcom/salesforcedx-vscode/pull/3869))
-- We fixed an issue with the *SFDX: Diff Folder Against Org* command so that it now diffs objects against orgs correctly. ([PR #3876](https://github.com/forcedotcom/salesforcedx-vscode/pull/3876))
+
 
 # 54.2.0 - February 24, 2022
 
