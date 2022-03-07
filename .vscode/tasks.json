@@ -80,20 +80,6 @@
       "args": ["${input:circleCiId}", "${input:publishType}"]
     },
     {
-      "label": "Create Change Log",
-      "command": "./scripts/change-log-generator.js",
-      "type": "shell",
-      "args": [
-        "${input:verboseOutput}",
-        "-t",
-        "${input:date}",
-        "-i",
-        "${input:packagesToIgnore}",
-        "-o",
-        "${input:releaseOverride}"
-      ]
-    },
-    {
       "label": "Lint",
       "command": "npm",
       "type": "shell",
