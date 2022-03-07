@@ -128,11 +128,6 @@
       "description": "CircleCi Token"
     },
     {
-      "id": "date",
-      "type": "promptString",
-      "description": "Date of release (ex April 3, 2021). Leave blank to use today's date."
-    },
-    {
       "id": "needSigning",
       "type": "pickString",
       "description": "Are you publishing Jorje changes? (Need Signed Jar)",
@@ -140,29 +135,11 @@
       "default": "false"
     },
     {
-      "id": "packagesToIgnore",
-      "type": "promptString",
-      "description": "Packages To Ignore: These are packages that are not to be included in the change log (Ex package1,package2)",
-      "default": ""
-    },
-    {
       "id": "publishType",
       "type": "pickString",
       "description": "Type of version to publish",
       "options": ["patch", "minor", "major"],
       "default": "minor"
-    },
-    {
-      "id": "verboseOutput",
-      "type": "pickString",
-      "description": "Output verbose logging? Select -v for verbose, and blank for quiet.",
-      "options": ["", "-v"],
-      "default": "-v"
-    },
-    {
-      "id": "releaseOverride",
-      "type": "promptString",
-      "description": "Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 49.11.0)"
     },
     {
       "id": "releaseBranch",
