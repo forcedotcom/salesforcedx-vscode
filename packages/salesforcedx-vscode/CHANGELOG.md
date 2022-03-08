@@ -1,3 +1,58 @@
+# 54.3.0 - March 3, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We’ve made the functionality of older versions of some commands available for you to use with your existing scratch orgs. Use these legacy commands so you don’t run into issues with their newer versions:
+
+    *SFDX: Pull Source from Default Scratch Org (Legacy)*
+    
+    *SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)*
+    
+    *SFDX: Push Source to Default Scratch Org (Legacy)*
+    
+    *SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)*  and
+    
+    *SFDX: View All Changes (Local and in Default Scratch Org) (Legacy)* ([PR #3839](https://github.com/forcedotcom/salesforcedx-vscode/pull/3839))
+
+#### salesforcedx-vscode-lightning & salesforcedx-vscode-lwc
+
+- Autocompletion is now available for bracket syntax ```'{}'``` in HTML files.([PR #3865](https://github.com/forcedotcom/salesforcedx-vscode/pull/3865))
+
+## Fixed
+
+#### docs
+#### salesforcedx-vscode-expanded
+#### salesforcedx-vscode-apex
+#### salesforcedx-vscode
+
+- We now support JDK version 17 in addition to versions 8 and 11. ([PR #3860](https://github.com/forcedotcom/salesforcedx-vscode/pull/3860))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #3869](https://github.com/forcedotcom/salesforcedx-vscode/pull/3869))
+
+
+# 54.2.0 - February 24, 2022
+
+## Added
+
+#### salesforcedx-vscode
+
+- Run the new *Start Function in Container* command to run a Salesforce Function in a Docker container. The old command, *Start Function* now runs a function locally. ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838), [PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
+
+## Fixed
+
+#### salesforcedx-vscode
+
+- We resolved the issue with the *Diff Folder Against Org* command being visible from the command palette even when an SFDX project wasn’t open. ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843)).
+
+#### salesforcedx-vscode-apex
+
+- We removed some unessential Apex classes from the Apex LSP .jar file. ([PR #3844](https://github.com/forcedotcom/salesforcedx-vscode/pull/3844))
+
+
 # 54.0.0 - February 15, 2022
 
 ## Added

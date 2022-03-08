@@ -28,8 +28,22 @@ import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
 
+export enum CommandVersion {
+  Beta = 'beta',
+  Legacy = 'legacy',
+  Default = Beta
+}
+
 export interface FlagParameter<T> {
-  flag: T;
+  flag?: T;
+  commandVersion?: CommandVersion;
+}
+
+export interface CommandParams {
+  readonly command: string;
+  // handle to localized user facing help text, with entries for diff flags
+  description: Record<string, string>;
+  logName: Record<string, string>; // metric key
 }
 
 export interface CommandletExecutor<T> {
