@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ManifestResolver } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
-import { join } from 'path';
+import * as path from 'path';
 import { format } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getRootWorkspacePath } from '../util';
 
 const RENAME_INPUT_PLACEHOLDER = 'rename_comp_input_placeholder';
 const REAME_INPUT_PROMPT = 'rename_comp_input_prompt';
@@ -31,33 +31,30 @@ export async function forceRenameLightningComponent(sourceUri: vscode.Uri) {
 
   const responseText = await vscode.window.showInputBox(inputOptions);
   const sourceFsPath = sourceUri.fsPath;
-  const stats = fs.statSync(sourceFsPath);
-  const isFile = stats.isFile();
   if (responseText) {
-    renameComponent(sourceFsPath, isFile, responseText);
+    renameComponent(sourceFsPath, responseText);
     // TODO: warning prompt
   }
 }
 
-function renameComponent(componentPath: string, isFile: boolean, newName: string) {
-  if (isFile) {
-    componentPath = componentPath.substring(0, componentPath.lastIndexOf('/') + 1);
-  }
-  const lwcOrAuraPath = componentPath.substring(0, componentPath.lastIndexOf('/') + 1);
-  const newComponentPath = join(lwcOrAuraPath, newName);
-  const componentName = componentPath.substring(componentPath.lastIndexOf('/') + 1);
+function renameComponent(sourceFsPath: string, newName: string) {
+  const stats = fs.statSync(sourceFsPath);
+  const componentPath = stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
+  const newComponentPath = path.join(path.dirname(componentPath), newName);
+  const componentName = path.basename(componentPath);
   if (!fs.existsSync(newComponentPath)) {
     const items: string[] | undefined = readItemsFromDir(componentPath);
     if (items) {
       for (const item of items) {
         // item can be file or folder(eg: _test_)
-        const baseAndExtension = item.split('.');
+        const baseAndExtension = getBaseNameAndExtension(item);
         const baseName = baseAndExtension[0];
-        const extensionSuffix = baseAndExtension.length > 1 ? '.' + baseAndExtension[1] : undefined;
+        const extensionSuffix = baseAndExtension[1];
         if (baseName === componentName) {
+          const newItem = newName + extensionSuffix;
           fs.rename(
-            componentPath + `/${item}`,
-            componentPath + `/${newName}` + extensionSuffix,
+            path.join(componentPath, item),
+            path.join(componentPath, newItem),
             err => {
               if (err) {
                   console.log(err);
@@ -78,6 +75,18 @@ function renameComponent(componentPath: string, isFile: boolean, newName: string
     vscode.window.showErrorMessage(nls.localize(REANME_INPUT_DUP_ERROR));
     throw new Error(format(nls.localize(REANME_INPUT_DUP_ERROR)));
   }
+}
+
+function getBaseNameAndExtension(item: string): string[] {
+  const splited = item.split('.');
+  const baseName = splited[0];
+  let extensionSuffix = '';
+  if (splited.length > 1) {
+    for (let i = 1; i < splited.length; i++) {
+      extensionSuffix += '.' + splited[i];
+    }
+  }
+  return [baseName, extensionSuffix];
 }
 
 function readItemsFromDir(uri: string): string[] | undefined {
