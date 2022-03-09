@@ -13,6 +13,7 @@ orbs:
   win: circleci/windows@2.4.0
   release-management: salesforce/npm-release-management@4
   slack: circleci/slack@3.4.2
+  github-cli: circleci/github-cli@2.1.0
 
 parameters:
   # Configurable Versions
@@ -449,6 +450,11 @@ jobs:
             git tag v${RELEASE_VERSION}
             git push origin v${RELEASE_VERSION}
             git push origin main
+      - github-cli/setup
+      - run:
+          name: 'Create release on git tag'
+          command: |
+            gh release create v${RELEASE_VERSION} ./packages/**/*.vsix --title "Release v${RELEASE_VERSION}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
