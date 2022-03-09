@@ -622,7 +622,9 @@ export const messages = {
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
+  force_rename_lightning_component: 'SFDX: Rename Component (Files Only)',
   rename_comp_input_dup_error: 'Component name is already in use',
   rename_comp_input_placeholder: 'Enter a unique component name',
-  rename_comp_input_prompt: 'Press Enter to confirm your input or Escape to cancel'
+  rename_comp_input_prompt: 'Press Enter to confirm your input or Escape to cancel',
+  rename_comp_warning: 'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.'
 };
