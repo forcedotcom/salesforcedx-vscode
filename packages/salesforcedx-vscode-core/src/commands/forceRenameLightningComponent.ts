@@ -75,12 +75,9 @@ function renameComponent(sourceFsPath: string, newName: string) {
   const items = readItemsFromDir(componentPath);
   if (items) {
     for (const item of items) {
-      // item can be file or folder(eg: _test_)
-      const baseAndExtension = getBaseNameAndExtension(item);
-      const baseName = baseAndExtension[0];
-      const extensionSuffix = baseAndExtension[1];
-      if (baseName === componentName) {
-        const newItem = newName + extensionSuffix;
+      // only rename the file that has same name with component
+      if (isNameMatch(item, componentName, componentPath)) {
+        const newItem = item.replace(componentName, newName);
         fs.rename(
           path.join(componentPath, item),
           path.join(componentPath, newItem),
@@ -117,7 +114,7 @@ function checkForDuplicateName(componentPath: string, newName: string) {
 }
 
 function isDuplicate(componentPath: string, newName: string): boolean {
-  const isLwc = path.basename(path.dirname(componentPath)) === 'lwc' ? true : false;
+  const isLwc = isLwcComp(componentPath);
   const lwcPath = isLwc ? path.dirname(componentPath) : path.join(path.dirname(path.dirname(componentPath)), 'lwc');
   const auraPath = isLwc ? path.join(path.dirname(path.dirname(componentPath)), 'aura') : path.dirname(componentPath);
   if (fs.existsSync(path.join(lwcPath, newName)) || fs.existsSync(path.join(auraPath, newName))) {
@@ -135,14 +132,17 @@ function readItemsFromDir(uri: string): string[] | undefined {
   }
 }
 
-function getBaseNameAndExtension(item: string): string[] {
-  const splited = item.split('.');
-  const baseName = splited[0];
-  let extensionSuffix = '';
-  if (splited.length > 1) {
-    for (let i = 1; i < splited.length; i++) {
-      extensionSuffix += '.' + splited[i];
-    }
+function isNameMatch(item: string, componentName: string, componentPath: string) {
+  const isLwc = isLwcComp(componentPath);
+  let regularExp: RegExp;
+  if (isLwc) {
+    regularExp = new RegExp(`${componentName}\.(html|js|js-meta.xml|css|svg)`);
+  } else {
+    regularExp = new RegExp(`${componentName}(((Controller|Renderer|Helper)?\.js)|(\.(cmp|app|css|design|auradoc|svg)))`);
   }
-  return [baseName, extensionSuffix];
+  return item.match(regularExp) ? true : false;
+}
+
+function isLwcComp(componentPath: string): boolean {
+  return path.basename(path.dirname(componentPath)) === 'lwc' ? true : false;
 }

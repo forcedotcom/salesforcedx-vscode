@@ -1,0 +1,10 @@
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { fail } from 'assert';
+import { expect } from 'chai';
+import * as fs from 'fs';
+import * as util from 'util';
+import * as sinon from 'sinon';
+import { createSandbox } from 'sinon';
+import * as vscode from 'vscode';
+import { RenameLwcComponentExecutor } from '../../../src/commands/forceRenameLightningComponent';
+import { nls } from '../../../src/messages';
