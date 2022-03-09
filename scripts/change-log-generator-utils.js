@@ -10,7 +10,6 @@ const COMMIT = 'COMMIT';
 const TYPE = 'TYPE';
 const MESSAGE = 'MESSAGE';
 const FILES_CHANGED = 'FILES_CHANGED';
-const RELEASE_DATE_ARG = '-t';
 const PACKAGES = 'PACKAGES';
 const TYPE_HEADER = '\n## %s\n';
 const SECTION_HEADER = '\n#### %s\n';
