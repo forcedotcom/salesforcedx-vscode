@@ -23,24 +23,12 @@ For more information about publishing take a look at:
 
 ## Creating a Release Branch
 
-The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Tuesdays at 7 PM PST. Release branches are in the format `release/vxx.yy.zz`.
+The release branch is typically created from a scheduled job in CircleCI. This scheduled job creates the release branch off of the `develop` branch on Mondays at 3 PM GMT (i.e. 7AM or 8AM Pacific time depending on daylight savings). Release branches are in the format `release/vxx.yy.zz`.
+Creating a release branch automatically generates the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
 
-## Generating the Change Log
+## Verifying the Change Log
 
-We generate the change log based off of the new commits that are being staged for production. The change log generator helps us automate the process of generating the `CHANGELOG.md` with the correct format and commits being staged.
-
-To run the change log generator:
-
-1. Run `git pull` to make sure your local changes are up to date.
-1. Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
-1. Search for `Tasks: Run Task`.
-1. Select `Create Change Log`.
-1. When prompted for the `Release Version` leave the value blank to let the script grab the latest release version for you. If you'd like to use a different value from the latest, this can be provided in this prompt manually.
-1. Verify the changelog entries' workitems in GUS
-   1. have the correct scheduled builds (Example: offcore.tooling.51.4.0 if the current release is 51.4.0).
-   2. are closed.
-1. Create a PR with the updated changelog against the release branch
-   1. Add PDT's liaison from [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) as reviewer
+One of the members of [Doc Maintainers](https://github.com/orgs/forcedotcom/teams/doc-maintainers/members) would review the changelog and make any changes to the release branch.
 
 ## Merging the Release Branch into Main
 
@@ -76,7 +64,8 @@ After the pre-publish steps have run and main has been rebased off of the releas
    6. Check that `main` is merged back into `develop` by the publish job and that the [branches have no differences](https://github.com/forcedotcom/salesforcedx-vscode/compare/main...develop?expand=1).
 
 ## Post-Publishing the .vsix
-1. Update the Salesforce Extension Pack to the version you just published.  Either go to Extensions, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install.
+
+1. Update the Salesforce Extension Pack to the version you just published. Either go to Extensions, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install.
 2. Restart Visual Studio Code
 3. Test & validate the application.
 4. Once validated, post an announcement in #platform-dev-tools

@@ -13,9 +13,7 @@ import util = require('util');
 import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  forceCreateManifest
-} from '../../../src/commands';
+import { ManifestCreateExecutor } from '../../../src/commands/forceCreateManifest';
 import { nls } from '../../../src/messages';
 
 const classPath = '/force-app/main/default/classes/';
@@ -37,14 +35,12 @@ const APEX_MANIFEST = util.format(EMPTY_MANIFEST, `
 
 const env = createSandbox();
 let openTextDocumentSpy: sinon.SinonSpy;
-let showInputBoxStub: sinon.SinonStub;
 
 describe('Force Create Manifest', () => {
   describe('Happy Path Unit Tests', () => {
 
     beforeEach(() => {
       openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
-      showInputBoxStub = env.stub(vscode.window, 'showInputBox');
     });
 
     afterEach(() => {
@@ -62,8 +58,11 @@ describe('Force Create Manifest', () => {
       env.stub(fs, 'mkdirSync').returns(undefined);
       env.stub(fs, 'writeFileSync').returns(undefined);
       const packageName = 'package' + generateRandomSuffix() + '.xml';
-      showInputBoxStub.onCall(0).returns(packageName);
-      await forceCreateManifest(URI_1, undefined);
+      const executor = new ManifestCreateExecutor([URI_1.fsPath], packageName);
+      await executor.run({
+        type: 'CONTINUE',
+        data: ''
+      });
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
@@ -82,8 +81,11 @@ describe('Force Create Manifest', () => {
         .returns(false);
       env.stub(fs, 'writeFileSync').returns(undefined);
       const packageName = 'package' + generateRandomSuffix() + '.xml';
-      showInputBoxStub.onCall(0).returns(packageName);
-      await forceCreateManifest(URI_1, [URI_1, URI_2]);
+      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], packageName);
+      await executor.run({
+        type: 'CONTINUE',
+        data: ''
+      });
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
@@ -101,8 +103,11 @@ describe('Force Create Manifest', () => {
         .returns(true)
         .onSecondCall()
         .returns(false);
-      showInputBoxStub.onCall(0).returns(undefined);
-      await forceCreateManifest(URI_1, [URI_1, URI_2]);
+      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], undefined);
+      await executor.run({
+        type: 'CONTINUE',
+        data: ''
+      });
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
       expect(writeFileSpy.called).to.equal(false);
@@ -121,8 +126,11 @@ describe('Force Create Manifest', () => {
         .onSecondCall()
         .returns(false);
       env.stub(fs, 'writeFileSync').returns(undefined);
-      showInputBoxStub.onCall(0).returns('');
-      await forceCreateManifest(URI_1, [URI_1, URI_2]);
+      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], '');
+      await executor.run({
+        type: 'CONTINUE',
+        data: ''
+      });
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
       const pathArg = openTextDocumentSpy.getCalls()[0].args[0];
@@ -144,8 +152,11 @@ describe('Force Create Manifest', () => {
       env.stub(fs, 'writeFileSync').returns(undefined);
       const randomSuffix = generateRandomSuffix();
       const packageName = 'package' + randomSuffix + '.txt';
-      showInputBoxStub.onCall(0).returns(packageName);
-      await forceCreateManifest(URI_1, [URI_1, URI_2]);
+      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], packageName);
+      await executor.run({
+        type: 'CONTINUE',
+        data: ''
+      });
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
       const pathArg = openTextDocumentSpy.getCalls()[0].args[0];
@@ -164,8 +175,11 @@ describe('Force Create Manifest', () => {
         .returns(true)
         .onSecondCall()
         .returns(false);
-      showInputBoxStub.onCall(0).returns(undefined);
-      await forceCreateManifest(URI_1, [URI_1, URI_2]);
+      const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], undefined);
+      await executor.run({
+        type: 'CONTINUE',
+        data: ''
+      });
 
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
@@ -176,7 +190,6 @@ describe('Force Create Manifest', () => {
 
     beforeEach(() => {
       openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
-      showInputBoxStub = env.stub(vscode.window, 'showInputBox');
     });
 
     afterEach(() => {
@@ -189,7 +202,12 @@ describe('Force Create Manifest', () => {
       );
       let exceptionThrown = false;
       try {
-        await forceCreateManifest(URI_1, [URI_2]);
+        const executor = new ManifestCreateExecutor([URI_1.fsPath, URI_2.fsPath], '');
+        await executor.run({
+          type: 'CONTINUE',
+          data: ''
+        });
+
         fail('Should have thrown exception');
       } catch (e) {
         expect(e.message).to.contain('package.xml');
@@ -208,11 +226,15 @@ describe('Force Create Manifest', () => {
       });
       env.stub(fs, 'existsSync').returns(true);
       const fileName = 'duplicatePackageName';
-      showInputBoxStub.resolves(fileName);
 
       let exceptionThrown = false;
       try {
-        await forceCreateManifest(URI_1, undefined);
+        const executor = new ManifestCreateExecutor([URI_1.fsPath], fileName);
+        await executor.run({
+          type: 'CONTINUE',
+          data: ''
+        });
+
       } catch (e) {
         exceptionThrown = true;
         expect(e.message).to.contain(fileName);
