@@ -3,5 +3,13 @@
     "docs",
     "packages/*"
   ],
-  "version": "54.1.0"
+  "version": "54.4.0",
+  "command": {
+    "version": {
+      "allowBranch": [
+        "develop",
+        "release/*"
+      ]
+    }
+  }
 }

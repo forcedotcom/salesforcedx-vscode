@@ -24,7 +24,7 @@ parameters:
     default: '3.13.1'
   node-version:
     type: string
-    default: '12.4.0'
+    default: '14.16.0'
   # Constants
   cache-version:
     type: string
@@ -623,7 +623,7 @@ workflows:
   cut-release:
     triggers:
       - schedule:
-          cron: '0 4 * * 3'
+          cron: '0 13 * * 1'
           filters:
             branches:
               only:
@@ -631,7 +631,6 @@ workflows:
     jobs:
       - create-release-branch:
           e: default-executor
-
   # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
   # dependabot-automerge:
   #   triggers:
