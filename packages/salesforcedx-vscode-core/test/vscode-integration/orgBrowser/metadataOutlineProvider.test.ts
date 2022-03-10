@@ -424,7 +424,7 @@ describe('load org browser tree outline', () => {
     );
     parentNode.setComponents(['TestAccount', 'TestCleanInfo'], NodeType.Folder);
     const childNodes = parentNode.children;
-    //@ts-ignore
+    // @ts-ignore
     const childNode1 = childNodes[0];
     childNode1.setComponents(['Id (id)', 'IsDeleted (boolean)'], NodeType.MetadataField);
     const cmpsNodes = await metadataProvider.getChildren(childNode1);
