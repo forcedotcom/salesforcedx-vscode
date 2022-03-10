@@ -394,13 +394,13 @@ describe('load org browser tree outline', () => {
   it('should check for parent node when a folder node is selected', async () => {
     const expected = [
       {
-        label: 'ID',
-        fullName: 'ID',
+        label: 'Id (id)',
+        fullName: 'Id (id)',
         type: NodeType.MetadataField
       },
       {
-        label: 'Length',
-        fullName: 'Length',
+        label: 'IsDeleted (boolean)',
+        fullName: 'IsDeleted (boolean)',
         type: NodeType.MetadataField
       }
     ];
@@ -424,14 +424,11 @@ describe('load org browser tree outline', () => {
     );
     parentNode.setComponents(['TestAccount', 'TestCleanInfo'], NodeType.Folder);
     const childNodes = parentNode.children;
-    if (childNodes) {
-      const childNode1 = childNodes[0];
-      childNode1.setComponents(['ID', 'Length'], NodeType.MetadataField);
-      const cmpsNodes = await metadataProvider.getChildren(childNode1);
-      compareNodes(cmpsNodes, expected);
-    } else {
-      fail('Children nodes are not defined');
-    }
+    //@ts-ignore
+    const childNode1 = childNodes[0];
+    childNode1.setComponents(['Id (id)', 'IsDeleted (boolean)'], NodeType.MetadataField);
+    const cmpsNodes = await metadataProvider.getChildren(childNode1);
+    compareNodes(cmpsNodes, expected);
     getCmpsStub.restore();
   });
 
