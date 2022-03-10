@@ -6,6 +6,10 @@
 
 - Fixed issue running in OSX Monterey, and reverted the source-deploy-retrieve library to v5.12.3
 
+#### salesforcedx-vscode-core
+
+- Fixed issue running in OSX Monterey, and reverted the source-deploy-retrieve library to v5.12.3
+
 # 54.4.0 - March 9, 2022
 
 ## Fixed
