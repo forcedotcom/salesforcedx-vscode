@@ -4,11 +4,11 @@
 
 #### salesforcedx-vscode-apex
 
-- Fixed issue running in OSX Monterey, and reverted the source-deploy-retrieve library to v5.12.3
+- We reverted the source-deploy-retrieve library to v5.12.3 to fix the issue with using it in OSX Monterey.
 
 #### salesforcedx-vscode-core
 
-- Fixed issue running in OSX Monterey, and reverted the source-deploy-retrieve library to v5.12.3
+- We reverted the source-deploy-retrieve library to v5.12.3 to fix the issue with using it in OSX Monterey.
 
 # 54.4.0 - March 9, 2022
 
