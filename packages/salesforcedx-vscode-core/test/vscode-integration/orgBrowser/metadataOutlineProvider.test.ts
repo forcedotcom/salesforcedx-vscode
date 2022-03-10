@@ -507,7 +507,7 @@ describe('load org browser tree outline', () => {
     loadCmpStub.restore();
   });
 
-  it('should display field nodes when a folder node within custom object type node is selected', async () => {
+  it('should load field nodes when folder within Custom Objects type is selected', async () => {
     const loadComponentsStub = stub(ComponentUtils.prototype, 'loadComponents');
 
     const customObjectBrowserNodes = [
@@ -581,16 +581,16 @@ describe('load org browser tree outline', () => {
     loadComponentsStub.restore();
   });
 
-  it('should load component nodes when folder node (except folder nodes within Custom Object type node) is selected', async () => {
+  it('should load component nodes when folder within Dashboards type is selected', async () => {
     const expected = [
       {
-        label: 'FolderComponent1',
-        fullName: 'FolderComponent1',
+        label: 'DashboardA',
+        fullName: 'DashboardA',
         type: NodeType.MetadataComponent
       },
       {
-        label: 'FolderComponent2',
-        fullName: 'FolderComponent2',
+        label: 'DashboardB',
+        fullName: 'DashboardB',
         type: NodeType.MetadataComponent
       }
     ];
@@ -600,20 +600,131 @@ describe('load org browser tree outline', () => {
       ).returns(expected.map(n => n.fullName));
 
     const metadataObject = {
-      xmlName: 'foldertypeNode1',
+      xmlName: 'Dashboard Folder',
       directoryName: 'testDirectory',
       suffix: 'cls',
-      inFolder: true,
+      inFolder: false,
       metaFile: false,
-      label: 'Folder Type Node 1'
+      label: 'Dashboard Folder'
     };
-    const folderNode = new BrowserNode(
-      'folderlabel',
+    const dashboardFolderNode = new BrowserNode(
+      'Dashboard Folder',
       NodeType.Folder,
       'DashboardFolder',
       metadataObject
     );
-    const cmpsNodes = await metadataProvider.getChildren(folderNode);
+    const cmpsNodes = await metadataProvider.getChildren(dashboardFolderNode);
+    compareNodes(cmpsNodes, expected);
+    getCmpsStub.restore();
+  });
+
+  it('should load component nodes when folder within Documents type is selected', async () => {
+    const expected = [
+      {
+        label: 'DocumentA',
+        fullName: 'DocumentA',
+        type: NodeType.MetadataComponent
+      },
+      {
+        label: 'DocumentB',
+        fullName: 'DocumentB',
+        type: NodeType.MetadataComponent
+      }
+    ];
+    const getCmpsStub = stub(
+      MetadataOutlineProvider.prototype,
+      'getComponents'
+      ).returns(expected.map(n => n.fullName));
+
+    const metadataObject = {
+      xmlName: 'Document Folder',
+      directoryName: 'testDirectory',
+      suffix: 'cls',
+      inFolder: true,
+      metaFile: false,
+      label: 'Document Folder'
+    };
+    const documentFolderNode = new BrowserNode(
+      'Document folder',
+      NodeType.Folder,
+      'DocumentFolder',
+      metadataObject
+    );
+    const cmpsNodes = await metadataProvider.getChildren(documentFolderNode);
+    compareNodes(cmpsNodes, expected);
+    getCmpsStub.restore();
+  });
+
+  it('should load component nodes when folder within Email Templates type is selected', async () => {
+    const expected = [
+      {
+        label: 'TemplateA',
+        fullName: 'TemplateA',
+        type: NodeType.MetadataComponent
+      },
+      {
+        label: 'TemplateB',
+        fullName: 'TemplateB',
+        type: NodeType.MetadataComponent
+      }
+    ];
+    const getCmpsStub = stub(
+      MetadataOutlineProvider.prototype,
+      'getComponents'
+      ).returns(expected.map(n => n.fullName));
+
+    const metadataObject = {
+      xmlName: 'Email Template Folder',
+      directoryName: 'testDirectory',
+      suffix: 'cls',
+      inFolder: true,
+      metaFile: false,
+      label: 'Email Template Folder'
+    };
+    const emailFolderNode = new BrowserNode(
+      'Email Template Folder',
+      NodeType.Folder,
+      'EmailFolder',
+      metadataObject
+    );
+    const cmpsNodes = await metadataProvider.getChildren(emailFolderNode);
+    compareNodes(cmpsNodes, expected);
+    getCmpsStub.restore();
+  });
+
+  it('should load component nodes when folder within Reports type is selected', async () => {
+    const expected = [
+      {
+        label: 'ReportA',
+        fullName: 'ReportA',
+        type: NodeType.MetadataComponent
+      },
+      {
+        label: 'ReportB',
+        fullName: 'ReportB',
+        type: NodeType.MetadataComponent
+      }
+    ];
+    const getCmpsStub = stub(
+      MetadataOutlineProvider.prototype,
+      'getComponents'
+      ).returns(expected.map(n => n.fullName));
+
+    const metadataObject = {
+      xmlName: 'Report Folder',
+      directoryName: 'testDirectory',
+      suffix: 'cls',
+      inFolder: true,
+      metaFile: false,
+      label: 'Report Folder'
+    };
+    const reportFolderNode = new BrowserNode(
+      'Report folder',
+      NodeType.Folder,
+      'ReportFolder',
+      metadataObject
+    );
+    const cmpsNodes = await metadataProvider.getChildren(reportFolderNode);
     compareNodes(cmpsNodes, expected);
     getCmpsStub.restore();
   });
