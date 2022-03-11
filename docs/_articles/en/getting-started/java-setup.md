@@ -83,9 +83,9 @@ Windows:
 }
 ```
 
-## Oracle Java 11 (Officially Tested)
+## Oracle Java 17 (Officially Tested)
 
-1. Navigate to the [download page](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)
+1. Navigate to the [download page](https://www.oracle.com/java/technologies/downloads/)
 2. Navigate to **Java SE Development Kit 17.0.2 downloads**.
 3. Click the download link that applies to your OS
 4. If prompted to log in, use your Oracle account.
