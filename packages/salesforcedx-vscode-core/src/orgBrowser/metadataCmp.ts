@@ -21,6 +21,8 @@ const validManageableStates = new Set([
   undefined // not part of a package
 ]);
 
+const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
+
 export class ComponentUtils {
   public async getComponentsPath(
     metadataType: string,
@@ -160,7 +162,7 @@ export class ComponentUtils {
     let componentsList: string[];
     const freshFetch = (forceRefresh || !fs.existsSync(componentsPath));
     const connection = await workspaceContext.getConnection();
-    if (metadataType === 'CustomObject' && folderName) {
+    if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
       if (freshFetch) {
         componentsList = await this.fetchCustomObjectsFields(connection, componentsPath, folderName);
       } else {

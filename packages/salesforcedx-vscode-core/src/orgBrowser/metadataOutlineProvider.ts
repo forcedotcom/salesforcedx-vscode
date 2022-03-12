@@ -19,6 +19,8 @@ import {
   TypeUtils
 } from './index';
 
+const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
+
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {
   private defaultOrg: string | undefined;
@@ -87,7 +89,7 @@ export class MetadataOutlineProvider
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        } else if (element.parent && element.parent.fullName === 'CustomObject') {
+        } else if (element.parent && element.parent.fullName === CUSTOMOBJECTS_FULLNAME) {
           nodeType = NodeType.MetadataField;
         }
 
