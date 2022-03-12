@@ -15,9 +15,9 @@ Below you'll find instructions on how to download and configure different versio
 
 ## Adoptium
 
-[Adoptium](https://adoptopenjdk.net/) provides prebuilt OpenJDK binaries for free without authentication or complications.
+[Adoptium](https://adoptium.net) provides prebuilt OpenJDK binaries for free without authentication or complications.
 
-1. Navigate to [Adoptium](https://adoptium.net/?variant=openjdk11)
+1. Navigate to [Adoptium](https://adoptium.net/?variant=openjdk17)
 2. Select **Temurin 17 (LTS)**
 3. Click the **Latest Release** button to download.
 4. After the file has downloaded, open it and complete the installation steps.
