@@ -534,12 +534,12 @@ function getExpected(label1: string, label2: string, type: NodeType) {
     {
       label: label1,
       fullName: label1,
-      type
+      type: type
     },
     {
       label: label2,
       fullName: label2,
-      type
+      type: type
     }
   ];
 }
