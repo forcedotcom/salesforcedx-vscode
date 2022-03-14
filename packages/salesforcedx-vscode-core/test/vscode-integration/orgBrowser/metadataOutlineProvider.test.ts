@@ -529,29 +529,29 @@ function compareNodes(actual: BrowserNode[], expected: any[]) {
   });
 }
 
-function getExpected(label1: string, label2: string, type: NodeType) {
+function getExpected(label1: string, label2: string, nodetype: NodeType) {
   return [
     {
       label: label1,
       fullName: label1,
-      type: type
+      type: nodetype
     },
     {
       label: label2,
       fullName: label2,
-      type: type
+      type: nodetype
     }
   ];
 }
 
-function getMetadataObject(label: string) {
+function getMetadataObject(label1: string) {
   return {
-    xmlName: label,
+    xmlName: label1,
     directoryName: 'testDirectory',
     suffix: 'cls',
     inFolder: true,
     metaFile: false,
-    label
+    label: label1
   };
 }
 
