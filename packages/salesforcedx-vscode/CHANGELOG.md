@@ -1,3 +1,11 @@
+# release/v54.5.0 - March 14, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Revert source-deploy-retireve to previous version ([PR #3908](https://github.com/forcedotcom/salesforcedx-vscode/pull/3908))
+
 # 54.4.1 - March 10, 2022
 
 ## Fixed
