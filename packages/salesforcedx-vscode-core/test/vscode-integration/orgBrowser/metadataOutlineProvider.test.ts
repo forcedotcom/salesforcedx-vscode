@@ -410,9 +410,7 @@ describe('load fields or components when folder within metadata type is selected
     );
 
     parentNode.setComponents(['TestAccount', 'TestCleanInfo'], NodeType.Folder);
-    const childNodes = parentNode.children;
-    // childNodes can not be undefined as we are setting components to the parent node
-    // @ts-ignore
+    const childNodes = parentNode.children || [];
     const childNode1 = childNodes[0];
     childNode1.setComponents(['Id (id)', 'IsDeleted (boolean)'], NodeType.MetadataField);
 
