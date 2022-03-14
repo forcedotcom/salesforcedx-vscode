@@ -33,7 +33,7 @@ Analyzes your JavaScript code to find issues and to help you fix them. As a part
 
 ## XML
 
-VS Code doesn’t ship with rich XML tools by default. This extension, built by Red Hat, provides language support for for XML documents such as the `-meta.xml` or `package.xml` files in your VS Code project.
+VS Code doesn’t ship with rich XML tools by default. This extension, built by Red Hat, provides language support for XML documents such as the `-meta.xml` or `package.xml` files in your VS Code project.
 
 <https://marketplace.visualstudio.com/items?itemName=redhat.vscode-xml>
 
