@@ -14,12 +14,11 @@ import { hasRootWorkspace, OrgAuthInfo } from '../util';
 import {
   BrowserNode,
   ComponentUtils,
+  CUSTOMOBJECTS_FULLNAME,
   MetadataObject,
   NodeType,
   TypeUtils
 } from './index';
-
-const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 
 export class MetadataOutlineProvider
   implements vscode.TreeDataProvider<BrowserNode> {

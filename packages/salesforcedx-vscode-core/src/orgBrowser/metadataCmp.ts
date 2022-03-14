@@ -21,7 +21,7 @@ const validManageableStates = new Set([
   undefined // not part of a package
 ]);
 
-const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
+export const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 
 export class ComponentUtils {
   public async getComponentsPath(
