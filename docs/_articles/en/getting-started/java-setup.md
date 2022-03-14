@@ -22,7 +22,7 @@ Below you'll find instructions on how to download and configure different versio
 3. Click the **Latest Release** button to download.
 4. After the file has downloaded, open it and complete the installation steps.
 
-Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
+Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values or to wherever your have installed JDK 17. For example:
 
 MacOS:
 
@@ -30,7 +30,7 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home"
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/adoptopenjdk-17.jdk/Contents/Home"
 }
 ```
 
@@ -38,7 +38,7 @@ Windows:
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\AdoptOpenJDK\\jdk-11.0.3.7-hotspot"
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\AdoptOpenJDK\\jdk-17.0.2.8-hotspot"
 }
 ```
 
@@ -46,7 +46,7 @@ Linux (Pop! OS 20.04, installation via aptitude):
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-11-openjdk-amd64"
+  "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-17-openjdk-amd64"
 }
 ```
 
@@ -71,7 +71,7 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-11.jdk/Contents/Home"
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
 }
 ```
 
@@ -79,7 +79,7 @@ Windows:
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Zulu\\zulu-11"
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Zulu\\zulu-17"
 }
 ```
 
@@ -99,7 +99,7 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk-11.0.3.jdk/Contents/Home"
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk-17.0.2.jdk/Contents/Home"
 }
 ```
 
@@ -107,7 +107,7 @@ Windows:
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk11.0.3"
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk17.0.2"
 }
 ```
 
