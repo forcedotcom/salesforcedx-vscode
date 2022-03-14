@@ -30,7 +30,7 @@
     "nyc": "^11.0.2",
     "remap-istanbul": "^0.9.5",
     "request-light": "0.2.4",
-    "sinon": "^7.3.1",
+    "sinon": "^13.0.1",
     "source-map-support": "^0.4.15",
     "typescript": "3.8.3"
   },

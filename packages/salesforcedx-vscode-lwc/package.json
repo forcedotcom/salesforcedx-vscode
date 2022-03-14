@@ -57,7 +57,7 @@
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
     "nyc": "^13",
-    "sinon": "^7.3.1",
+    "sinon": "^13.0.1",
     "sinon-chai": "^3.4.0",
     "ts-sinon": "^1.0.25",
     "typescript": "3.8.3",
