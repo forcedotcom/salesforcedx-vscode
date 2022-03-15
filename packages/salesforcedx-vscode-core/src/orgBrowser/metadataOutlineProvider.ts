@@ -14,6 +14,7 @@ import { hasRootWorkspace, OrgAuthInfo } from '../util';
 import {
   BrowserNode,
   ComponentUtils,
+  CUSTOMOBJECTS_FULLNAME,
   MetadataObject,
   NodeType,
   TypeUtils
@@ -84,10 +85,10 @@ export class MetadataOutlineProvider
         break;
       case NodeType.Folder:
       case NodeType.MetadataType:
-        let nodeType = NodeType.MetadataComponent;
+        let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        } else if (element.type === NodeType.Folder && element.fullName) {
+        } else if (element.parent && element.parent.fullName === CUSTOMOBJECTS_FULLNAME) {
           nodeType = NodeType.MetadataField;
         }
 
