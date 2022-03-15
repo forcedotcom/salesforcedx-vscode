@@ -357,6 +357,39 @@
         "title": "%force_lightning_lwc_test_stop_watching_all_tests_text%"
       }
     ],
+    "debuggers": [
+      {
+        "type": "vscode-lwc-tests",
+        "label": "%force_lightning_lwc_debugger%",
+        "languages": [
+          "javascript",
+          "typescript"
+        ],
+        "configurationSnippets": [
+          {
+            "label": "%force_lightning_lwc_debugger%",
+            "description": "%force_lightning_lwc_debugger_desc%",
+            "body": {
+              "name": "%force_lightning_lwc_debugger%",
+              "type": "node",
+              "request": "launch",
+              "program": "^\"\\${workspaceFolder}/node_modules/.bin/sfdx-lwc-jest\"",
+              "args": [
+                "--",
+                "--runInBand"
+              ],
+              "cwd": "^\"\\${workspaceFolder}\"",
+              "console": "integratedTerminal",
+              "internalConsoleOptions": "neverOpen",
+              "disableOptimisticBPs": true,
+              "windows": {
+                "program": "^\"\\${workspaceFolder}/node_modules/bin/sfdx-lwc-jest\""
+              }
+            }
+          }
+        ]
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "%force_lightning_lwc_preferences%",
