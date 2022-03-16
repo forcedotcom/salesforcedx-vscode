@@ -94,9 +94,10 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json"
+    "workspaceContains:sfdx-project.json",
+    "onCommand:soql.builder.toggle"
   ],
-  "main": "./dist/src",
+  "main": "./dist/src/index.js",
   "contributes": {
     "customEditors": [
       {
