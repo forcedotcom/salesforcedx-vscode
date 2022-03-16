@@ -43,8 +43,8 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<string
       if (this.sourceFsPath) {
         if (this.responseText) {
           renameComponent(this.sourceFsPath, this.responseText);
+          return true;
         }
-        return true;
       }
       return false;
   }
