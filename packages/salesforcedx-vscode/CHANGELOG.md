@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Revert source-deploy-retireve to previous version ([PR #3908](https://github.com/forcedotcom/salesforcedx-vscode/pull/3908))
+- Consuming new templates version so we generate templates with the source api version 54.0. ([PR #3749](https://github.com/forcedotcom/salesforcedx-vscode/pull/3749))
 
 # 54.4.1 - March 10, 2022
 
