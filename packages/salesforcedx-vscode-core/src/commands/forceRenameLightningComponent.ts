@@ -91,7 +91,7 @@ function renameComponent(sourceFsPath: string, newName: string) {
   notificationService.showWarningMessage(nls.localize(RENAME_COMP_WARNING));
 }
 
-export function getComponentPath(sourceFsPath: string): string {
+function getComponentPath(sourceFsPath: string): string {
   const stats = fs.statSync(sourceFsPath);
   return stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
 }
@@ -103,7 +103,7 @@ function checkForDuplicateName(componentPath: string, newName: string) {
   }
 }
 
-export function isDuplicate(componentPath: string, newName: string): boolean {
+function isDuplicate(componentPath: string, newName: string): boolean {
   const isLwc = isLwcComp(componentPath);
   const lwcPath = isLwc ? path.dirname(componentPath) : path.join(path.dirname(path.dirname(componentPath)), 'lwc');
   const auraPath = isLwc ? path.join(path.dirname(path.dirname(componentPath)), 'aura') : path.dirname(componentPath);
@@ -124,6 +124,6 @@ function isNameMatch(item: string, componentName: string, componentPath: string)
   return item.match(regularExp) ? true : false;
 }
 
-export function isLwcComp(componentPath: string): boolean {
+function isLwcComp(componentPath: string): boolean {
   return path.basename(path.dirname(componentPath)) === 'lwc' ? true : false;
 }
