@@ -6,8 +6,8 @@
  */
 
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'util';
@@ -72,36 +72,26 @@ function renameComponent(sourceFsPath: string, newName: string) {
   const componentPath = getComponentPath(sourceFsPath);
   const componentName = path.basename(componentPath);
   checkForDuplicateName(componentPath, newName);
-  const items = readItemsFromDir(componentPath);
+  const items = fs.readdirSync(componentPath);
   if (items) {
     for (const item of items) {
       // only rename the file that has same name with component
       if (isNameMatch(item, componentName, componentPath)) {
         const newItem = item.replace(componentName, newName);
-        fs.rename(
+        fs.renameSync(
           path.join(componentPath, item),
-          path.join(componentPath, newItem),
-          err => {
-            if (err) {
-                console.log(err);
-            }
-        });
+          path.join(componentPath, newItem));
       }
     }
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
-  fs.rename(
+  fs.renameSync(
     componentPath,
-    newComponentPath,
-    err => {
-      if (err) {
-          console.log(err);
-      }
-  });
+    newComponentPath);
   notificationService.showWarningMessage(nls.localize(RENAME_COMP_WARNING));
 }
 
-function getComponentPath(sourceFsPath: string): string {
+export function getComponentPath(sourceFsPath: string): string {
   const stats = fs.statSync(sourceFsPath);
   return stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
 }
@@ -113,7 +103,7 @@ function checkForDuplicateName(componentPath: string, newName: string) {
   }
 }
 
-function isDuplicate(componentPath: string, newName: string): boolean {
+export function isDuplicate(componentPath: string, newName: string): boolean {
   const isLwc = isLwcComp(componentPath);
   const lwcPath = isLwc ? path.dirname(componentPath) : path.join(path.dirname(path.dirname(componentPath)), 'lwc');
   const auraPath = isLwc ? path.join(path.dirname(path.dirname(componentPath)), 'aura') : path.dirname(componentPath);
@@ -121,15 +111,6 @@ function isDuplicate(componentPath: string, newName: string): boolean {
     return true;
   }
   return false;
-}
-
-function readItemsFromDir(uri: string): string[] | undefined {
-  try {
-    const files: string[] = fs.readdirSync(uri);
-    return files;
-  } catch (err) {
-    console.error('Unable to scan directory: ', uri);
-  }
 }
 
 function isNameMatch(item: string, componentName: string, componentPath: string) {
@@ -143,6 +124,6 @@ function isNameMatch(item: string, componentName: string, componentPath: string)
   return item.match(regularExp) ? true : false;
 }
 
-function isLwcComp(componentPath: string): boolean {
+export function isLwcComp(componentPath: string): boolean {
   return path.basename(path.dirname(componentPath)) === 'lwc' ? true : false;
 }
