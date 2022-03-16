@@ -34,7 +34,7 @@ describe('Force Rename Lightning Component', () => {
       env.restore();
     });
 
-    it('should rename the files and folder with new name under the same path and same file format', async () => {
+    it('should rename the files and folder with new name under the same path', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
       env.stub(fs, 'readdirSync').returns([itemsInHero[1]]);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, 'hero1');
@@ -139,23 +139,6 @@ describe('Force Rename Lightning Component', () => {
       }
       expect(exceptionThrown).to.equal(true);
       expect(renameStub.callCount).to.equal(0);
-    });
-  });
-
-  describe('getComponentPath', () => {
-    it('should return component path whatever file path or component path is given', () => {
-    });
-  });
-
-  describe('isDuplicate', () => {
-    it('should return true when new name already existed in LWC or Aura', () => {
-
-    });
-  });
-
-  describe('isLwcComponent', () => {
-    it('should know if it is LWC component based on component path', () => {
-
     });
   });
 });
