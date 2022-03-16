@@ -114,11 +114,9 @@ describe('In project folder, SOQL files should', function() {
 
     // toggle editor should open in SOQL Builder
     await toggleEditor(filename);
-    const webviewEditor = await new EditorView().openEditor(filename);
-    expect(webviewEditor.constructor === WebView).to.be.true;
 
     // UI should render
-    const webview = webviewEditor as WebView;
+    const webview = new WebView();
     await webview.switchToFrame();
     const qbApp = await webview.findWebElement(By.css('querybuilder-app'));
     expect(qbApp).is.not.undefined;
