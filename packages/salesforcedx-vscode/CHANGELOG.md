@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Consuming new templates version so we generate templates with the source api version 54.0. ([PR #3749](https://github.com/forcedotcom/salesforcedx-vscode/pull/3749))
+- We’ve updated the library that supports Salesforce Templates commands in VS Code so that it now uses API version 54.0 when generating new metadata from our standard templates.([PR #3749](https://github.com/forcedotcom/salesforcedx-vscode/pull/3749))
 
 # 54.4.1 - March 10, 2022
 
