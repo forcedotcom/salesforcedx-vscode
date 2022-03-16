@@ -1,4 +1,4 @@
-# release/v54.5.0 - March 14, 2022
+# v54.5.0 - March 14, 2022
 
 ## Fixed
 
@@ -10,7 +10,6 @@
 
 ## Fixed
 
-#### salesforcedx-vscode-core
 #### salesforcedx-vscode-apex
 
 - We reverted the source-deploy-retrieve library to v5.12.2 because it was sometimes failing on OSX Monterey.
