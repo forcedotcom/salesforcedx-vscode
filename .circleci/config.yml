@@ -342,7 +342,9 @@ jobs:
       - run:
           name: 'Run SOQL UI Tests if Needed'
           shell: bash.exe
-          command: npm run test:ui
+          command: |
+            set -e
+            npm run test:ui
 
   integration-tests:
     description: 'Run tests on Windows'
