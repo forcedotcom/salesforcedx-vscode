@@ -20,7 +20,7 @@ const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'force_rename_lightning_component';
 const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
 const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
-const RENAME_COMPONENT_WARNING = 'rename_component_warning';
+const RENAME_WARNING = 'rename_component_warning';
 
 export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<string> {
   private sourceFsPath: string;
@@ -88,7 +88,7 @@ function renameComponent(sourceFsPath: string, newName: string) {
   fs.renameSync(
     componentPath,
     newComponentPath);
-  notificationService.showWarningMessage(nls.localize(RENAME_COMPONENT_WARNING));
+  notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
 }
 
 function getComponentPath(sourceFsPath: string): string {
