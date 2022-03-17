@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -17,10 +17,10 @@ import { nls } from '../messages';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'force_rename_lightning_component';
-const RENAME_INPUT_PLACEHOLDER = 'rename_comp_input_placeholder';
-const REAME_INPUT_PROMPT = 'rename_comp_input_prompt';
-const REANME_INPUT_DUP_ERROR = 'rename_comp_input_dup_error';
-const RENAME_COMP_WARNING = 'rename_comp_warning';
+const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
+const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
+const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
+const RENAME_COMPONENT_WARNING = 'rename_component_warning';
 
 export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<string> {
   private sourceFsPath: string;
@@ -54,7 +54,7 @@ export async function forceRenameLightningComponent(sourceUri: vscode.Uri) {
   const sourceFsPath = sourceUri.fsPath;
   const inputOptions = {
     placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
-    promopt: nls.localize(REAME_INPUT_PROMPT)
+    promopt: nls.localize(RENAME_INPUT_PROMPT)
   } as vscode.InputBoxOptions;
 
   const responseText = await vscode.window.showInputBox(inputOptions);
@@ -88,7 +88,7 @@ function renameComponent(sourceFsPath: string, newName: string) {
   fs.renameSync(
     componentPath,
     newComponentPath);
-  notificationService.showWarningMessage(nls.localize(RENAME_COMP_WARNING));
+  notificationService.showWarningMessage(nls.localize(RENAME_COMPONENT_WARNING));
 }
 
 function getComponentPath(sourceFsPath: string): string {
@@ -98,15 +98,23 @@ function getComponentPath(sourceFsPath: string): string {
 
 function checkForDuplicateName(componentPath: string, newName: string) {
   if (isDuplicate(componentPath, newName)) {
-    notificationService.showErrorMessage(nls.localize(REANME_INPUT_DUP_ERROR));
-    throw new Error(format(nls.localize(REANME_INPUT_DUP_ERROR)));
+    const errorMessage = nls.localize(RENAME_INPUT_DUP_ERROR);
+    notificationService.showErrorMessage(errorMessage);
+    throw new Error(format(errorMessage));
   }
 }
 
 function isDuplicate(componentPath: string, newName: string): boolean {
-  const isLwc = isLwcComp(componentPath);
-  const lwcPath = isLwc ? path.dirname(componentPath) : path.join(path.dirname(path.dirname(componentPath)), 'lwc');
-  const auraPath = isLwc ? path.join(path.dirname(path.dirname(componentPath)), 'aura') : path.dirname(componentPath);
+  const componentPathDirName = path.dirname(componentPath);
+  let lwcPath: string;
+  let auraPath: string;
+  if (isLwcComponent(componentPath)) {
+    lwcPath = componentPathDirName;
+    auraPath = path.join(path.dirname(componentPathDirName), 'aura');
+  } else {
+    lwcPath = path.join(path.dirname(componentPathDirName), 'lwc');
+    auraPath = componentPathDirName;
+  }
   if (fs.existsSync(path.join(lwcPath, newName)) || fs.existsSync(path.join(auraPath, newName))) {
     return true;
   }
@@ -114,7 +122,7 @@ function isDuplicate(componentPath: string, newName: string): boolean {
 }
 
 function isNameMatch(item: string, componentName: string, componentPath: string) {
-  const isLwc = isLwcComp(componentPath);
+  const isLwc = isLwcComponent(componentPath);
   let regularExp: RegExp;
   if (isLwc) {
     regularExp = new RegExp(`${componentName}\.(html|js|js-meta.xml|css|svg)`);
@@ -124,6 +132,6 @@ function isNameMatch(item: string, componentName: string, componentPath: string)
   return item.match(regularExp) ? true : false;
 }
 
-function isLwcComp(componentPath: string): boolean {
+function isLwcComponent(componentPath: string): boolean {
   return path.basename(path.dirname(componentPath)) === 'lwc' ? true : false;
 }
