@@ -105,6 +105,7 @@ function checkForDuplicateName(componentPath: string, newName: string) {
 }
 
 function isDuplicate(componentPath: string, newName: string): boolean {
+  // A LWC component can't share the same name as a Aura component
   const componentPathDirName = path.dirname(componentPath);
   let lwcPath: string;
   let auraPath: string;
