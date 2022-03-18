@@ -116,7 +116,9 @@ function isDuplicate(componentPath: string, newName: string): boolean {
     lwcPath = path.join(path.dirname(componentPathDirName), 'lwc');
     auraPath = componentPathDirName;
   }
-  if (fs.existsSync(path.join(lwcPath, newName)) || fs.existsSync(path.join(auraPath, newName))) {
+  const allLwcComponents = fs.readdirSync(lwcPath);
+  const allAuraComponents = fs.readdirSync(auraPath);
+  if (allLwcComponents.includes(newName) || allAuraComponents.includes(newName)) {
     return true;
   }
   return false;
