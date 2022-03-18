@@ -7,14 +7,14 @@
 
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'util';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'force_rename_lightning_component';
 const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
@@ -22,47 +22,61 @@ const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
 const RENAME_WARNING = 'rename_component_warning';
 
-export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<string> {
+export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
-  private responseText: string | undefined;
-  constructor(sourceFsPath: string, responseText: string | undefined) {
+  constructor(sourceFsPath: string) {
     super(
       nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR),
       RENAME_LIGHTNING_COMPONENT_EXECUTOR,
       OUTPUT_CHANNEL
     );
     this.sourceFsPath = sourceFsPath;
-    this.responseText = responseText;
   }
 
   public async run(
-    response: ContinueResponse<string>,
-    progress?: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>,
-    token?: vscode.CancellationToken
+    response: ContinueResponse<ComponentName>
     ): Promise<boolean> {
-      if (this.sourceFsPath) {
-        if (this.responseText) {
-          renameComponent(this.sourceFsPath, this.responseText);
+      const newComponentName = response.data.name;
+      if (newComponentName) {
+        if (this.sourceFsPath) {
+          renameComponent(this.sourceFsPath, newComponentName);
           return true;
         }
       }
       return false;
   }
 }
+export interface ComponentName {
+  name?: string;
+}
+export class GetComponentName
+  implements ParametersGatherer<ComponentName> {
+  private sourceFsPath: string;
+  constructor(sourceFsPath: string) {
+    this.sourceFsPath = sourceFsPath;
+  }
+  public async gather(): Promise<
+    CancelResponse | ContinueResponse<ComponentName>
+  > {
+    const inputOptions = {
+      value: getComponentName(getComponentPath(this.sourceFsPath)),
+      placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
+      promopt: nls.localize(RENAME_INPUT_PROMPT)
+    } as vscode.InputBoxOptions;
+    const inputResult = await vscode.window.showInputBox(inputOptions);
+    return inputResult
+      ? { type: 'CONTINUE', data: { name: inputResult } }
+      : { type: 'CANCEL' };
+  }
+}
 
 export async function forceRenameLightningComponent(sourceUri: vscode.Uri) {
   const sourceFsPath = sourceUri.fsPath;
-  const inputOptions = {
-    placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
-    promopt: nls.localize(RENAME_INPUT_PROMPT)
-  } as vscode.InputBoxOptions;
-
-  const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourceFsPath) {
     const commandlet = new SfdxCommandlet(
       new SfdxWorkspaceChecker(),
-      new FilePathGatherer(sourceUri),
-      new RenameLwcComponentExecutor(sourceFsPath, responseText)
+      new GetComponentName(sourceFsPath),
+      new RenameLwcComponentExecutor(sourceFsPath)
     );
     await commandlet.run();
   }
@@ -70,7 +84,7 @@ export async function forceRenameLightningComponent(sourceUri: vscode.Uri) {
 
 function renameComponent(sourceFsPath: string, newName: string) {
   const componentPath = getComponentPath(sourceFsPath);
-  const componentName = path.basename(componentPath);
+  const componentName = getComponentName(componentPath);
   checkForDuplicateName(componentPath, newName);
   const items = fs.readdirSync(componentPath);
   for (const item of items) {
@@ -94,6 +108,10 @@ function renameComponent(sourceFsPath: string, newName: string) {
 function getComponentPath(sourceFsPath: string): string {
   const stats = fs.statSync(sourceFsPath);
   return stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
+}
+
+function getComponentName(componentPath: string): string {
+  return path.basename(componentPath);
 }
 
 function checkForDuplicateName(componentPath: string, newName: string) {

@@ -38,10 +38,10 @@ describe('Force Rename Lightning Component', () => {
         .onFirstCall().returns([])
         .onSecondCall().returns([])
         .onThirdCall().returns([itemsInHero[1]]);
-      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, 'hero1');
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
-        data: ''
+        data: {name: 'hero1'}
       });
       const oldFilePath = path.join(sourceUri.fsPath, 'hero.css');
       const newFilePath = path.join(sourceUri.fsPath, 'hero1.css');
@@ -57,10 +57,10 @@ describe('Force Rename Lightning Component', () => {
       .onFirstCall().returns([])
       .onSecondCall().returns([])
       .onThirdCall().returns(itemsInHero);
-      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, 'hero1');
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
-        data: ''
+        data: {name: 'hero1'}
       });
       expect(renameStub.callCount).to.equal(5);
     });
@@ -71,10 +71,10 @@ describe('Force Rename Lightning Component', () => {
       .onFirstCall().returns([])
       .onSecondCall().returns([])
       .onThirdCall().returns(itemsInPage);
-      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, 'page1');
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
-        data: ''
+        data: {name: 'page1'}
       });
       expect(renameStub.callCount).to.equal(10);
     });
@@ -86,10 +86,10 @@ describe('Force Rename Lightning Component', () => {
       .onSecondCall().returns([])
       .onThirdCall().returns([itemsInHero[1]]);
       const warningSpy = env.spy(notificationService, 'showWarningMessage');
-      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, 'hero1');
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
-        data: ''
+        data: {name: 'hero1'}
       });
       expect(warningSpy.callCount).to.equal(1);
     });
@@ -115,10 +115,10 @@ describe('Force Rename Lightning Component', () => {
         .onFirstCall().returns([])
         .onSecondCall().returns([])
         .onThirdCall().returns([itemsInHero[1]]);
-      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, undefined);
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
-        data: ''
+        data: {}
       });
       expect(renameStub.callCount).to.equal(0);
     });
@@ -130,10 +130,10 @@ describe('Force Rename Lightning Component', () => {
       .onSecondCall().returns([])
       .onThirdCall().returns([itemsInHero[1]]);
       const warningSpy = env.spy(notificationService, 'showWarningMessage');
-      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, undefined);
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
-        data: ''
+        data: {}
       });
       expect(warningSpy.callCount).to.equal(0);
     });
@@ -145,10 +145,10 @@ describe('Force Rename Lightning Component', () => {
        .onSecondCall().returns([]);
       let exceptionThrown = false;
       try {
-        const executor = new RenameLwcComponentExecutor(sourceUri.fsPath, 'hero');
+        const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
         await executor.run({
           type: 'CONTINUE',
-          data: ''
+          data: {name: 'hero'}
         });
       } catch (e) {
         exceptionThrown = true;
