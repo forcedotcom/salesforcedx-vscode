@@ -73,21 +73,21 @@ function renameComponent(sourceFsPath: string, newName: string) {
   const componentName = path.basename(componentPath);
   checkForDuplicateName(componentPath, newName);
   const items = fs.readdirSync(componentPath);
-  if (items) {
-    for (const item of items) {
-      // only rename the file that has same name with component
-      if (isNameMatch(item, componentName, componentPath)) {
-        const newItem = item.replace(componentName, newName);
-        fs.renameSync(
-          path.join(componentPath, item),
-          path.join(componentPath, newItem));
-      }
+  for (const item of items) {
+    // only rename the file that has same name with component
+    if (isNameMatch(item, componentName, componentPath)) {
+      const newItem = item.replace(componentName, newName);
+      fs.renameSync(
+        path.join(componentPath, item),
+        path.join(componentPath, newItem)
+      );
     }
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
   fs.renameSync(
     componentPath,
-    newComponentPath);
+    newComponentPath
+  );
   notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
 }
 
