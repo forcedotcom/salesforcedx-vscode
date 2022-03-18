@@ -1,3 +1,63 @@
+# v54.5.0 - March 14, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We’ve updated the library that supports Salesforce Templates commands in VS Code so that it now uses API version 54.0 when generating new metadata from our standard templates.([PR #3749](https://github.com/forcedotcom/salesforcedx-vscode/pull/3749))
+
+# 54.4.1 - March 10, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core, salesforcedx-vscode-apex
+
+- We reverted the source-deploy-retrieve library to v5.12.2 because it was sometimes failing on OSX Monterey.
+
+# 54.4.0 - March 9, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the *SFDX: Diff Folder Against Org* command so that it now diffs objects against orgs correctly. ([PR #3876](https://github.com/forcedotcom/salesforcedx-vscode/pull/3876))
+
+# 54.3.0 - March 3, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We’ve made the functionality of older versions of some commands available for you to use with your existing scratch orgs. Use these legacy commands so you don’t run into issues with their newer versions:
+
+    *SFDX: Pull Source from Default Scratch Org (Legacy)*
+
+    *SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)*
+
+    *SFDX: Push Source to Default Scratch Org (Legacy)*
+
+    *SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)*  and
+
+    *SFDX: View All Changes (Local and in Default Scratch Org) (Legacy)* ([PR #3839](https://github.com/forcedotcom/salesforcedx-vscode/pull/3839))
+
+#### salesforcedx-vscode-lightning & salesforcedx-vscode-lwc
+
+- Autocompletion is now available for bracket syntax ```'{}'``` in HTML files.([PR #3865](https://github.com/forcedotcom/salesforcedx-vscode/pull/3865))
+
+## Fixed
+
+#### docs
+#### salesforcedx-vscode-expanded
+#### salesforcedx-vscode-apex
+#### salesforcedx-vscode
+
+- We now support JDK version 17 in addition to versions 8 and 11. ([PR #3860](https://github.com/forcedotcom/salesforcedx-vscode/pull/3860))
+
+#### salesforcedx-vscode-core
+
+- We made some changes under the hood. ([PR #3869](https://github.com/forcedotcom/salesforcedx-vscode/pull/3869))
+
+
 # 54.2.0 - February 24, 2022
 
 ## Added
