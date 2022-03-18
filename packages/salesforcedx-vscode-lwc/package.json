@@ -362,8 +362,7 @@
         "type": "vscode-lwc-tests",
         "label": "%force_lightning_lwc_debugger%",
         "languages": [
-          "javascript",
-          "typescript"
+          "javascript"
         ],
         "configurationSnippets": [
           {
