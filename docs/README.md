@@ -1,5 +1,8 @@
 # How to run the doc site locally
 
+The `docs` folder contains content published to [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode)
+
+
 ## Setup Ruby
 
 ```
@@ -50,7 +53,9 @@ npm run update-externals
 
 ## Relative URLs
 
-When writing docs always use urls relative to the docs folder.
+For content under `docs` folder always use URLs relative to the `docs` folder.
+
+***The links appear broken in the markdown files but get rendered correctly when they get published as html.***
 
 For images it means the url will start with `./images/` like the example below:
 
