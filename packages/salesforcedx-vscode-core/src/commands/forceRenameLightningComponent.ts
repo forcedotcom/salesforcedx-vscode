@@ -80,23 +80,23 @@ export class GetComponentName
   }
 }
 
-async function renameComponent(sourceFsPath: string, newName: string) {
+function renameComponent(sourceFsPath: string, newName: string) {
   const componentPath = getComponentPath(sourceFsPath);
   const componentName = getComponentName(componentPath);
   checkForDuplicateName(componentPath, newName);
-  const items = await fs.promises.readdir(componentPath);
+  const items = fs.readdirSync(componentPath);
   for (const item of items) {
     // only rename the file that has same name with component
     if (isNameMatch(item, componentName, componentPath)) {
       const newItem = item.replace(componentName, newName);
-      await fs.promises.rename(
+      fs.renameSync(
         path.join(componentPath, item),
         path.join(componentPath, newItem)
       );
     }
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
-  await fs.promises.rename(
+  fs.renameSync(
     componentPath,
     newComponentPath
   );
@@ -112,8 +112,8 @@ function getComponentName(componentPath: string): string {
   return path.basename(componentPath);
 }
 
-async function checkForDuplicateName(componentPath: string, newName: string) {
-  const isNameDuplicate = await isDuplicate(componentPath, newName);
+function checkForDuplicateName(componentPath: string, newName: string) {
+  const isNameDuplicate = isDuplicate(componentPath, newName);
   if (isNameDuplicate) {
     const errorMessage = nls.localize(RENAME_INPUT_DUP_ERROR);
     notificationService.showErrorMessage(errorMessage);
@@ -121,7 +121,7 @@ async function checkForDuplicateName(componentPath: string, newName: string) {
   }
 }
 
-async function isDuplicate(componentPath: string, newName: string): Promise<boolean> {
+function isDuplicate(componentPath: string, newName: string): boolean {
   // A LWC component can't share the same name as a Aura component
   const componentPathDirName = path.dirname(componentPath);
   let lwcPath: string;
@@ -133,12 +133,12 @@ async function isDuplicate(componentPath: string, newName: string): Promise<bool
     lwcPath = path.join(path.dirname(componentPathDirName), 'lwc');
     auraPath = componentPathDirName;
   }
-  const allLwcComponents = await fs.promises.readdir(lwcPath);
-  const allAuraComponents = await fs.promises.readdir(auraPath);
+  const allLwcComponents = fs.readdirSync(lwcPath);
+  const allAuraComponents = fs.readdirSync(auraPath);
   return allLwcComponents.includes(newName) || allAuraComponents.includes(newName) ? true : false;
 }
 
-export function isNameMatch(item: string, componentName: string, componentPath: string) {
+export function isNameMatch(item: string, componentName: string, componentPath: string): boolean {
   const isLwc = isLwcComponent(componentPath);
   let regularExp: RegExp;
   if (isLwc) {
@@ -146,7 +146,7 @@ export function isNameMatch(item: string, componentName: string, componentPath: 
   } else {
     regularExp = new RegExp(`${componentName}(((Controller|Renderer|Helper)?\.js)|(\.(cmp|app|css|design|auradoc|svg)))`);
   }
-  return item.match(regularExp);
+  return item.match(regularExp) ? true : false;
 }
 
 function isLwcComponent(componentPath: string): boolean {
