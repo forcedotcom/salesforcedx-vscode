@@ -16,6 +16,7 @@
     "@salesforce/dev-config": "1.4.1",
     "acorn": "6.4.2",
     "ajv": "6.12.6",
+    "check-peer-dependencies": "4.1.0",
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.2.0",
     "depcheck": "1.4.3",
@@ -41,7 +42,7 @@
     "webpack-cli": "3.3.12"
   },
   "scripts": {
-    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
+    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier && npm run check:peer-deps",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
@@ -66,6 +67,7 @@
     "coverage:system-tests": "lerna exec --scope system-tests --concurrency 1 --stream --bail=false -- npm run coverage:system-tests",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:deps": "lerna exec --no-bail --stream depcheck",
+    "check:peer-deps": "check-peer-dependencies",
     "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
