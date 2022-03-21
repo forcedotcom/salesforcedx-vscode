@@ -1,4 +1,14 @@
 {
+  "name": "salesforcedx-vscode",
+  "repository": "forcedotcom/salesforcedx-vscode",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=14.16.0"
+  },
+  "dependencies": {
+    "node": "^14.16.0",
+    "npm": "^6.14.11"
+  },
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
     "@commitlint/config-conventional": "^15.0.0",
@@ -27,7 +37,6 @@
     "webpack": "4.30.0",
     "webpack-cli": "3.3.12"
   },
-  "name": "salesforcedx-vscode",
   "scripts": {
     "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
@@ -65,15 +74,6 @@
     "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
     "link-lsp": "lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
     "unlink-lsp": "lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc"
-  },
-  "repository": "forcedotcom/salesforcedx-vscode",
-  "license": "BSD-3-Clause",
-  "dependencies": {
-    "node": "^14.16.0",
-    "npm": "^6.14.11"
-  },
-  "engines": {
-    "node": ">=14.16.0"
   },
   "husky": {
     "hooks": {
