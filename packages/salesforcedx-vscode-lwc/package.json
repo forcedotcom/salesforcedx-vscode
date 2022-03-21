@@ -381,7 +381,7 @@
               "internalConsoleOptions": "neverOpen",
               "disableOptimisticBPs": true,
               "windows": {
-                "program": "^\"\\${workspaceFolder}/node_modules/bin/sfdx-lwc-jest\""
+                "program": "^\"\\${workspaceFolder}/node_modules/@salesforce/sfdx-lwc-jest/bin/sfdx-lwc-jest\""
               }
             }
           }
