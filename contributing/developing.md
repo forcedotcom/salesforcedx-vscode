@@ -191,6 +191,12 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 
 This runs `depcheck` on each package to check for unused and missing dependencies. Pay particular attention to "Missing dependencies". Unused dependency result might have [false positives](https://github.com/depcheck/depcheck#false-alert). Check code usage to verify.
 
+### `npm run check:peer-deps`
+This runs [check-peer-dependencies](https://www.npmjs.com/package/check-peer-dependencies) which
+> Checks peer dependencies of the current NodeJS package. Offers solutions for any that are unmet.
+
+Add any missing peer dependencies identified to the package's dev dependency.
+
 ## Node Configuration
 
 ### .npmrc
