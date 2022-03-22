@@ -28,7 +28,7 @@
 
 #### salesforcedx-vscode-core
 
-- Now you can retrieve components with folders for metadata types such as Reports, Dashboards, Documents, and EmailTemplates.Before this update, it was not possible to retrieve individual components within folders. ([PR #3892](https://github.com/forcedotcom/salesforcedx-vscode/pull/3892))
+- Now you can retrieve components within folders for metadata types such as Reports, Dashboards, Documents, and EmailTemplates.Before this update, it was not possible to retrieve individual component metadata from within folders. ([PR #3892](https://github.com/forcedotcom/salesforcedx-vscode/pull/3892))
 
 #### salesforcedx-vscode-lightning
 #### salesforcedx-vscode-lwc
