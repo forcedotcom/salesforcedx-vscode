@@ -3,7 +3,7 @@ title: Org Browser
 lang: en
 ---
 
-The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier to retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest). The Org Browser is available only in non source-tracked orgs such as sandboxes or developer edition orgs.
+The Org Browser displays the available metadata types and their corresponding components in your default org. This feature makes it easier to retrieve metadata source, without having to use a [manifest file](./en/user-guide/development-models/#create-project-with-manifest). The Org Browser is available only in non source-tracked orgs such as sandboxes or Developer Edition orgs.
 
 ## Opening the Org Browser
 
@@ -19,13 +19,13 @@ The Org Browser displays the available metadata types and their corresponding co
 8. Retrieve source for all components of metadata type
 9. Retrieve source for metadata component and open it in VS Code
 
-To open the Org Browser, click the cloud icon in the Activity Bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./en/user-guide/default-org/) is set to a non-scratch org.
+To open the Org Browser, click the cloud icon in the Activity Bar of the VS Code window **(1)**. If you don't see the icon, make sure your [default org](./en/user-guide/default-org/) is set to a non source-tracked org.
 
 When you open the Org Browser, all the metadata for the default org is saved in your local project under the `.sfdx` directory to minimize the number of calls to the org.
 
 ## Listing and Refreshing Metadata
 
-The Org Browser lists all the metadata types **(4)** in your default org. To view the components **(5)**, expand the metadata type. When you expand metadata types with folders such as Reports, Dashboards, Documents, and EmailTemplates, all the available folders are displayed. You can view the components in a folder by expanding it. Expand the Custom Object metadata type to view fields and their type information. Additional information is displayed for following field types:
+The Org Browser lists all the metadata types **(4)** in your default org. To view the components **(5)**, expand the metadata type. When you expand metadata types with folders such as Reports, Dashboards, Documents, and EmailTemplates, all the available folders are displayed. You can view the components in a folder by expanding it. Expand the `Custom Object` metadata type to view fields and their type information. Additional information is displayed for following field types:
 -  strings: string(length)
 -  textareas: textarea(length)
 -  emails: email(length)
@@ -47,7 +47,7 @@ You can retrieve a single metadata component or all components of the same type.
 - Component name **(7)** to retrieve a component to your local project
 - Metadata type **(8)** to retrieve all components of the type
 
-You can retrieve all folders of folder metadata types such as Reports, Dashboards, Documents, and EmailTemplates, by clicking on the retrieve icon next to the metadata type. When you retrieve a folder, only information about the folder is retrieved  and added to a <folder>-meta.xml file. To retrieve components within folders, view the components in a folder by expanding it and then retrieve the individual component by clicking the retrieve icon. 
+You can retrieve all folders of folder metadata types such as Reports, Dashboards, Documents, and EmailTemplates, by clicking on the retrieve icon next to the metadata type. When you retrieve a folder, only information about the folder is retrieved  and added to a `<folder>-meta.xml` file. To retrieve components within folders, view the components in a folder by expanding it and then retrieve the individual component by clicking the retrieve icon. 
 
 Currently, the source is retrieved into your default package directory as defined in the [sfdx-project.json](./en/getting-started/first-project#the-sfdx-projectjson-file) file.
 
