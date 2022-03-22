@@ -1,3 +1,57 @@
+# release/v54.6.0 - March 22, 2022
+
+## Added
+
+#### salesforcedx-vscode-lightning
+
+- Add iterator template directive and improve directive descriptions ([PR #3891](https://github.com/forcedotcom/salesforcedx-vscode/pull/3891))
+
+#### salesforcedx-vscode-lwc
+
+- Add flow for creating LWC jest debug config ([PR #3920](https://github.com/forcedotcom/salesforcedx-vscode/pull/3920))
+
+- Add iterator template directive and improve directive descriptions ([PR #3891](https://github.com/forcedotcom/salesforcedx-vscode/pull/3891))
+
+## Fixed
+
+#### docs
+
+- Update Java Setup for JDK 17 ([PR #3909](https://github.com/forcedotcom/salesforcedx-vscode/pull/3909))
+
+#### salesforcedx-utils-vscode
+
+- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
+
+#### salesforcedx-vscode-apex
+
+- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
+
+#### salesforcedx-vscode-core
+
+- Chore(deps-dev): bump @types/glob from 5.0.37 to 7.2.0 ([PR #3720](https://github.com/forcedotcom/salesforcedx-vscode/pull/3720))
+
+- Ra/retrieve components within folders ([PR #3892](https://github.com/forcedotcom/salesforcedx-vscode/pull/3892))
+
+#### salesforcedx-vscode-lightning
+
+- Prevent excessive autocompletion in template JS files ([PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931))
+
+- Chore(deps-dev): bump @types/open from 6.0.0 to 6.2.1 ([PR #3872](https://github.com/forcedotcom/salesforcedx-vscode/pull/3872))
+
+#### salesforcedx-vscode-lwc
+
+- Prevent excessive autocompletion in template JS files ([PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931))
+
+#### salesforcedx-vscode-soql
+
+- Chore(deps-dev): bump @typescript-eslint/eslint-plugin from 3.10.1 to 4.0.0 ([PR #3724](https://github.com/forcedotcom/salesforcedx-vscode/pull/3724))
+
+- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
+
 # v54.5.0 - March 14, 2022
 
 ## Fixed
