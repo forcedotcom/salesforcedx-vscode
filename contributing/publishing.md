@@ -61,7 +61,7 @@ After the pre-publish steps have run and main has been rebased off of the releas
    3. Wait for all tests to pass.
    4. Click the selection for `hold`.
    5. Click the `Approve` button. See ![Approval View](../imgs/contributing-approval-button.png) for an example.
-   6. Check that `main` is merged back into `develop` by the publish job and that the [branches have no differences](https://github.com/forcedotcom/salesforcedx-vscode/compare/main...develop?expand=1).
+   6. Check that [the extension](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) has been updated and `main` is merged back into `develop` by the publish job.
 
 ## Post-Publishing the .vsix
 
