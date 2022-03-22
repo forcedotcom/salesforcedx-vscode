@@ -2,19 +2,20 @@
 
 The `docs` folder contains content published to [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode)
 
-
 ## Setup Ruby
 
+Note that the server will only work with Ruby version 2. If you install 3 (which is the current default) you will be unable to run the server.
+
 ```
-brew install ruby
+brew install ruby@2.7
 ```
 
 Add the following to your profile:
 
 ```
-export PATH="/usr/local/opt/ruby/bin:$PATH"
-export LDFLAGS="-L/usr/local/opt/ruby/lib"
-export CPPFLAGS="-I/usr/local/opt/ruby/include"
+export PATH="/usr/local/opt/ruby@2.7/bin:$PATH"
+export LDFLAGS="-L/usr/local/opt/ruby@2.7/lib"
+export CPPFLAGS="-I/usr/local/opt/ruby@2.7/include"
 ```
 
 ## Install Jekyll
@@ -41,6 +42,16 @@ netlify dev
 
 Navigate to: http://127.0.0.1:8888/tools/vscode/
 
+## Troubleshooting
+
+If you run into issues when starting the server with an error message similar to
+
+```
+Address already in use - bind(2) for 127.0.0.1:4000 (Errno::EADDRINUSE)
+```
+
+a process is already using port 4000. To identify what process you can run `sudo lsof -wni tcp:4000`.
+
 ## Updating Header, Head, and Footer Includes
 
 The `footer.html`, `head.html`, and `header.html` files are pulled from the DSC docs API. Do not update them by hand.
@@ -55,7 +66,7 @@ npm run update-externals
 
 For content under `docs` folder always use URLs relative to the `docs` folder.
 
-***The links appear broken in the markdown files but get rendered correctly when they get published as html.***
+**_The links appear broken in the markdown files but get rendered correctly when they get published as html._**
 
 For images it means the url will start with `./images/` like the example below:
 
