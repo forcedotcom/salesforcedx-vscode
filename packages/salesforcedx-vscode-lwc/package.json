@@ -30,7 +30,6 @@
     "@salesforce/lightning-lsp-common": "3.7.0",
     "@salesforce/lwc-language-server": "3.7.0",
     "@salesforce/salesforcedx-utils-vscode": "54.5.0",
-    "ajv": "^6.1.1",
     "applicationinsights": "1.0.7",
     "eslint": "5.0.0",
     "jest-editor-support": "^28.0.0",
@@ -355,6 +354,38 @@
       {
         "command": "sfdx.force.lightning.lwc.test.stopWatchingAllTests",
         "title": "%force_lightning_lwc_test_stop_watching_all_tests_text%"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "vscode-lwc-tests",
+        "label": "%force_lightning_lwc_debugger%",
+        "languages": [
+          "javascript"
+        ],
+        "configurationSnippets": [
+          {
+            "label": "%force_lightning_lwc_debugger%",
+            "description": "%force_lightning_lwc_debugger_desc%",
+            "body": {
+              "name": "%force_lightning_lwc_debugger%",
+              "type": "node",
+              "request": "launch",
+              "program": "^\"\\${workspaceFolder}/node_modules/.bin/sfdx-lwc-jest\"",
+              "args": [
+                "--",
+                "--runInBand"
+              ],
+              "cwd": "^\"\\${workspaceFolder}\"",
+              "console": "integratedTerminal",
+              "internalConsoleOptions": "neverOpen",
+              "disableOptimisticBPs": true,
+              "windows": {
+                "program": "^\"\\${workspaceFolder}/node_modules/@salesforce/sfdx-lwc-jest/bin/sfdx-lwc-jest\""
+              }
+            }
+          }
+        ]
       }
     ],
     "configuration": {
