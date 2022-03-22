@@ -9,7 +9,7 @@
 
 #### salesforcedx-vscode-lwc
 
-- We added a new debug configuration for creating LWC jest tests so that you can easily write JavaScirpts tests for your Lightning web components. ([PR #3920](https://github.com/forcedotcom/salesforcedx-vscode/pull/3920))
+- We added a new debug configuration for creating LWC jest tests so that you can easily write JavaScript tests for your Lightning web components. ([PR #3920](https://github.com/forcedotcom/salesforcedx-vscode/pull/3920))
 
 
 ## Fixed
