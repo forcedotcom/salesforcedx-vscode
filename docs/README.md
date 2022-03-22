@@ -1,6 +1,8 @@
 # How to run the doc site locally
 
-The `docs` folder contains content published to [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode)
+- The `docs` folder contains content published to [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode).
+- To preview the rendered doc site from a Github Pull request click "Details" against the "netlify/salesforcedx-vscode/deploy-preview — Deploy Preview ready!" check.
+
 
 ## Setup Ruby
 
