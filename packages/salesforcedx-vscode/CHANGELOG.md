@@ -2,8 +2,7 @@
 
 ## Added
 
-#### salesforcedx-vscode-lightning
-#### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - Took advantage of recent updates to lightning langauage server packages and added the iterator template directive and also improved directive descriptions. ([PR #3891](https://github.com/forcedotcom/salesforcedx-vscode/pull/3891))
 
@@ -18,10 +17,7 @@
 
 - Updated Java Setup instructions to include instructions for JDK 17. ([PR #3909](https://github.com/forcedotcom/salesforcedx-vscode/pull/3909))
 
-#### salesforcedx-utils-vscode
-#### salesforcedx-vscode-apex
-#### salesforcedx-vscode-apex-replay-debugger
-### salesforcedx-vscode-soql
+#### salesforcedx-utils-vscode, salesforcedx-vscode-apex, salesforcedx-vscode-apex-replay-debugger, salesforcedx-vscode-soql
  
 -Fixed some issues under the hood. ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790),[PR #3720](https://github.com/forcedotcom/salesforcedx-vscode/pull/3720),[PR #3872](https://github.com/forcedotcom/salesforcedx-vscode/pull/3872),[PR #3724](https://github.com/forcedotcom/salesforcedx-vscode/pull/3724))
 
@@ -30,8 +26,7 @@
 
 - Retrieve components within folders for metadata types such as Reports, Dashboards, Documents, and EmailTemplates.Before this update, it was not possible to retrieve individual component metadata from within folders. ([PR #3892](https://github.com/forcedotcom/salesforcedx-vscode/pull/3892))
 
-#### salesforcedx-vscode-lightning
-#### salesforcedx-vscode-lwc
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
 
 - Fixed some issues with autocompletion in template JS files. ([PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931),[PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931))
 
