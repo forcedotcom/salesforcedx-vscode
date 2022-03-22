@@ -23,7 +23,7 @@
 #### salesforcedx-vscode-apex-replay-debugger
 ### salesforcedx-vscode-soql
  
-- We made fixed some issues under the hood. ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790),[PR #3720](https://github.com/forcedotcom/salesforcedx-vscode/pull/3720),[PR #3872](https://github.com/forcedotcom/salesforcedx-vscode/pull/3872),[PR #3724](https://github.com/forcedotcom/salesforcedx-vscode/pull/3724))
+- We fixed some issues under the hood. ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790),[PR #3720](https://github.com/forcedotcom/salesforcedx-vscode/pull/3720),[PR #3872](https://github.com/forcedotcom/salesforcedx-vscode/pull/3872),[PR #3724](https://github.com/forcedotcom/salesforcedx-vscode/pull/3724))
 
 
 #### salesforcedx-vscode-core
