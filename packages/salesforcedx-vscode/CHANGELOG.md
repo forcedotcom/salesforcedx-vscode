@@ -3,54 +3,39 @@
 ## Added
 
 #### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lwc
 
-- Add iterator template directive and improve directive descriptions ([PR #3891](https://github.com/forcedotcom/salesforcedx-vscode/pull/3891))
+- We took advantage of recent updates to lightning langauage server packages and added the iterator template directive and also improved directive descriptions. ([PR #3891](https://github.com/forcedotcom/salesforcedx-vscode/pull/3891))
 
 #### salesforcedx-vscode-lwc
 
-- Add flow for creating LWC jest debug config ([PR #3920](https://github.com/forcedotcom/salesforcedx-vscode/pull/3920))
+- We added a new debug configuration for creating LWC jest tests so that you can easily write JavaScirpts tests for your Lightning web components. ([PR #3920](https://github.com/forcedotcom/salesforcedx-vscode/pull/3920))
 
-- Add iterator template directive and improve directive descriptions ([PR #3891](https://github.com/forcedotcom/salesforcedx-vscode/pull/3891))
 
 ## Fixed
 
 #### docs
 
-- Update Java Setup for JDK 17 ([PR #3909](https://github.com/forcedotcom/salesforcedx-vscode/pull/3909))
+- We updated Java Setup instructions to include instructions for JDK 17. ([PR #3909](https://github.com/forcedotcom/salesforcedx-vscode/pull/3909))
 
 #### salesforcedx-utils-vscode
-
-- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
-
 #### salesforcedx-vscode-apex
-
-- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
-
 #### salesforcedx-vscode-apex-replay-debugger
+### salesforcedx-vscode-soql
+ 
+- We made fixed some issues under the hood. ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790),[PR #3720](https://github.com/forcedotcom/salesforcedx-vscode/pull/3720),[PR #3872](https://github.com/forcedotcom/salesforcedx-vscode/pull/3872),[PR #3724](https://github.com/forcedotcom/salesforcedx-vscode/pull/3724))
 
-- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
 
 #### salesforcedx-vscode-core
 
-- Chore(deps-dev): bump @types/glob from 5.0.37 to 7.2.0 ([PR #3720](https://github.com/forcedotcom/salesforcedx-vscode/pull/3720))
-
-- Ra/retrieve components within folders ([PR #3892](https://github.com/forcedotcom/salesforcedx-vscode/pull/3892))
+- Now you can retrieve components with folders for metadata types such as Reports, Dashboards, Documents, and EmailTemplates.Before this update, it was not possible to retrieve individual components within folders. ([PR #3892](https://github.com/forcedotcom/salesforcedx-vscode/pull/3892))
 
 #### salesforcedx-vscode-lightning
-
-- Prevent excessive autocompletion in template JS files ([PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931))
-
-- Chore(deps-dev): bump @types/open from 6.0.0 to 6.2.1 ([PR #3872](https://github.com/forcedotcom/salesforcedx-vscode/pull/3872))
-
 #### salesforcedx-vscode-lwc
 
-- Prevent excessive autocompletion in template JS files ([PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931))
+- We fixed some issues with autocompletion in template JS files. ([PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931),[PR #3931](https://github.com/forcedotcom/salesforcedx-vscode/pull/3931))
 
-#### salesforcedx-vscode-soql
 
-- Chore(deps-dev): bump @typescript-eslint/eslint-plugin from 3.10.1 to 4.0.0 ([PR #3724](https://github.com/forcedotcom/salesforcedx-vscode/pull/3724))
-
-- Chore(deps-dev): bump @salesforce/ts-sinon from 1.2.2 to 1.3.21 ([PR #3790](https://github.com/forcedotcom/salesforcedx-vscode/pull/3790))
 
 # v54.5.0 - March 14, 2022
 
