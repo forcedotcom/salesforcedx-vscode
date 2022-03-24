@@ -622,7 +622,7 @@ export const messages = {
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
-  force_rename_lightning_component: 'SFDX: Rename Component (Files Only)',
+  force_rename_lightning_component: 'SFDX: Rename Component',
   rename_component_input_dup_error: 'Component name is already in use in LWC or Aura',
   rename_component_input_placeholder: 'Enter a unique component name',
   rename_component_input_prompt: 'Press Enter to confirm your input or Escape to cancel',
