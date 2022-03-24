@@ -109,6 +109,37 @@ describe('Force Rename Lightning Component', () => {
       env.restore();
     });
 
+    it('should get trimmed component name if new component input has leading or trailing spaces', async () => {
+      const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      env.stub(fs.promises, 'readdir')
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([])
+        .onThirdCall().resolves([itemsInHero[1]]);
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
+      await executor.run({
+        type: 'CONTINUE',
+        data: {name: '    hero1   '}
+      });
+      const oldFilePath = path.join(sourceUri.fsPath, 'hero.css');
+      const newFilePath = path.join(sourceUri.fsPath, 'hero1.css');
+      expect(renameStub.callCount).to.equal(2);
+      expect(renameStub.calledWith(oldFilePath, newFilePath)).to.equal(true);
+    });
+
+    it('should not rename when input text only contains white spaces', async () => {
+      const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      env.stub(fs.promises, 'readdir')
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([])
+        .onThirdCall().resolves([itemsInHero[1]]);
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
+      await executor.run({
+        type: 'CONTINUE',
+        data: {name: '    '}
+      });
+      expect(renameStub.callCount).to.equal(0);
+    });
+
     it('should not rename when input text is empty', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
       env.stub(fs.promises, 'readdir')
