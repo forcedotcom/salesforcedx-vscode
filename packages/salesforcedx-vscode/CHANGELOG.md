@@ -1,5 +1,9 @@
 # 54.6.1 - March 26, 2022
 
+## Fixed
+
+- Fixed inconsistent published package versions caused by issues with the availability of the VSCode Marketplace during publish of v54.6.0.
+
 # 54.6.0 - March 23, 2022
 
 ## Added
