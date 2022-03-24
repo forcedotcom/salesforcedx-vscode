@@ -87,38 +87,39 @@ describe('Force Project Create', () => {
   });
 
   describe('SelectProjectName Gatherer', () => {
-    let inputBoxSpy: sinon.SinonStub;
+    let gatherer: SelectProjectName;
+    let inputBox: sinon.SinonStub;
 
-    before(() => {
-      inputBoxSpy = sinon.stub(vscode.window, 'showInputBox');
-      inputBoxSpy.onCall(0).returns(undefined);
-      inputBoxSpy.onCall(1).returns('');
-      inputBoxSpy.onCall(2).returns(PROJECT_NAME);
-      inputBoxSpy.onCall(3).returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
+    beforeEach(() => {
+      gatherer = new SelectProjectName();
+      inputBox = sinon.stub(vscode.window, 'showInputBox');
     });
 
-    after(() => {
-      inputBoxSpy.restore();
+    afterEach(() => {
+      inputBox.restore();
+    });
+
+    it('Should make one call to showInputBox', async () => {
+      inputBox.returns(undefined);
+      const response = await gatherer.gather();
+      expect(inputBox.calledOnce).to.be.true;
     });
 
     it('Should return cancel if project name is undefined', async () => {
-      const gatherer = new SelectProjectName();
+      inputBox.returns(undefined);
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledOnce).to.be.true;
       expect(response.type).to.equal('CANCEL');
     });
 
     it('Should return cancel if user input is empty string', async () => {
-      const gatherer = new SelectProjectName();
+      inputBox.returns('');
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledTwice).to.be.true;
       expect(response.type).to.equal('CANCEL');
     });
 
     it('Should return Continue with inputted project name if project name is not undefined or empty', async () => {
-      const gatherer = new SelectProjectName();
+      inputBox.returns(PROJECT_NAME);
       const response = await gatherer.gather();
-      expect(inputBoxSpy.calledThrice).to.be.true;
       if (response.type === 'CONTINUE') {
         expect(response.data.projectName).to.equal(PROJECT_NAME);
       } else {
@@ -127,7 +128,7 @@ describe('Force Project Create', () => {
     });
 
     it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
-      const gatherer = new SelectProjectName();
+      inputBox.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
       const response = await gatherer.gather();
       if (response.type === 'CONTINUE') {
         expect(response.data.projectName).to.equal(PROJECT_NAME);
