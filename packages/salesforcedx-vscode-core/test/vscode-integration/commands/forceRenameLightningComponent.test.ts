@@ -20,7 +20,7 @@ let statStub: sinon.SinonStub;
 describe('Force Rename Lightning Component', () => {
   describe('Happy Path Unit Test', () => {
     beforeEach(() => {
-      renameStub = env.stub(fs, 'renameSync').returns(undefined);
+      renameStub = env.stub(fs.promises, 'rename').resolves(undefined);
       statStub = env.stub(fs, 'statSync').returns({
         isFile: () => {
           return false;
@@ -34,10 +34,10 @@ describe('Force Rename Lightning Component', () => {
 
     it('should rename the files and folder with new name under the same path', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
-      env.stub(fs, 'readdirSync')
-        .onFirstCall().returns([])
-        .onSecondCall().returns([])
-        .onThirdCall().returns([itemsInHero[1]]);
+      env.stub(fs.promises, 'readdir')
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([])
+        .onThirdCall().resolves([itemsInHero[1]]);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -53,10 +53,10 @@ describe('Force Rename Lightning Component', () => {
 
     it('should only rename the files and folder that have same name with LWC component', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
-      env.stub(fs, 'readdirSync')
-      .onFirstCall().returns([])
-      .onSecondCall().returns([])
-      .onThirdCall().returns(itemsInHero);
+      env.stub(fs.promises, 'readdir')
+      .onFirstCall().resolves([])
+      .onSecondCall().resolves([])
+      .onThirdCall().resolves(itemsInHero);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -67,10 +67,10 @@ describe('Force Rename Lightning Component', () => {
 
     it('should only rename the files and folder that have same name with Aura component', async () => {
       const sourceUri = vscode.Uri.joinPath(auraPath, auraComponent);
-      env.stub(fs, 'readdirSync')
-      .onFirstCall().returns([])
-      .onSecondCall().returns([])
-      .onThirdCall().returns(itemsInPage);
+      env.stub(fs.promises, 'readdir')
+      .onFirstCall().resolves([])
+      .onSecondCall().resolves([])
+      .onThirdCall().resolves(itemsInPage);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -81,10 +81,10 @@ describe('Force Rename Lightning Component', () => {
 
     it('should show the warning message once rename is done', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
-      env.stub(fs, 'readdirSync')
-      .onFirstCall().returns([])
-      .onSecondCall().returns([])
-      .onThirdCall().returns([itemsInHero[1]]);
+      env.stub(fs.promises, 'readdir')
+      .onFirstCall().resolves([])
+      .onSecondCall().resolves([])
+      .onThirdCall().resolves([itemsInHero[1]]);
       const warningSpy = env.spy(notificationService, 'showWarningMessage');
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
@@ -97,7 +97,7 @@ describe('Force Rename Lightning Component', () => {
 
   describe('Exception handling', () => {
     beforeEach(() => {
-      renameStub = env.stub(fs, 'rename').returns(undefined);
+      renameStub = env.stub(fs.promises, 'rename').resolves(undefined);
       statStub = env.stub(fs, 'statSync').returns({
         isFile: () => {
           return false;
@@ -111,10 +111,10 @@ describe('Force Rename Lightning Component', () => {
 
     it('should not rename when input text is empty', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
-      env.stub(fs, 'readdirSync')
-        .onFirstCall().returns([])
-        .onSecondCall().returns([])
-        .onThirdCall().returns([itemsInHero[1]]);
+      env.stub(fs.promises, 'readdir')
+        .onFirstCall().resolves([])
+        .onSecondCall().resolves([])
+        .onThirdCall().resolves([itemsInHero[1]]);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -125,10 +125,10 @@ describe('Force Rename Lightning Component', () => {
 
     it('should not show warning message when input text is empty', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
-      env.stub(fs, 'readdirSync')
-      .onFirstCall().returns([])
-      .onSecondCall().returns([])
-      .onThirdCall().returns([itemsInHero[1]]);
+      env.stub(fs.promises, 'readdir')
+      .onFirstCall().resolves([])
+      .onSecondCall().resolves([])
+      .onThirdCall().resolves([itemsInHero[1]]);
       const warningSpy = env.spy(notificationService, 'showWarningMessage');
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
@@ -140,9 +140,9 @@ describe('Force Rename Lightning Component', () => {
 
     it('should enforce unique component name under LWC and Aura and show error message for duplicate name', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
-      env.stub(fs, 'readdirSync')
-       .onFirstCall().returns([lwcComponent])
-       .onSecondCall().returns([]);
+      env.stub(fs.promises, 'readdir')
+       .onFirstCall().resolves([lwcComponent])
+       .onSecondCall().resolves([]);
       let exceptionThrown = false;
       try {
         const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
