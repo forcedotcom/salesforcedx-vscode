@@ -38,7 +38,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
   public async run(
     response: ContinueResponse<ComponentName>
     ): Promise<boolean> {
-      const newComponentName = response.data.name;
+      const newComponentName = response.data.name?.trim();
       if (newComponentName && this.sourceFsPath) {
         await renameComponent(this.sourceFsPath, newComponentName);
         return true;
