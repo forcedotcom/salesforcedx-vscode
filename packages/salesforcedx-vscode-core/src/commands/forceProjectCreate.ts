@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
+import { getTrimmedString } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import {
   CompositeParametersGatherer,
@@ -97,15 +98,6 @@ export interface ProjectName {
   projectName: string;
 }
 
-class SfdxProjectName implements ProjectName {
-  public projectName: string;
-  constructor(projectName: string) {
-    this.projectName = projectName !== undefined
-      ? projectName.trim()
-      : projectName;
-  }
-}
-
 export interface ProjectTemplate {
   projectTemplate: string;
 }
@@ -172,11 +164,9 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
     if (this.prefillValueProvider) {
       projectNameInputOptions.value = this.prefillValueProvider();
     }
-    const projectNameInput = await vscode.window.showInputBox(
-      projectNameInputOptions
-    );
-    return projectNameInput
-      ? { type: 'CONTINUE', data: new SfdxProjectName(projectNameInput) }
+    const projectName = await getTrimmedString(projectNameInputOptions);
+    return projectName
+      ? { type: 'CONTINUE', data: { projectName } }
       : { type: 'CANCEL' };
   }
 }
