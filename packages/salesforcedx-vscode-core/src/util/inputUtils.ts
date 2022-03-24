@@ -4,5 +4,5 @@ export async function getTrimmedString(projectNameInputOptions: vscode.InputBoxO
   const input = await vscode.window.showInputBox(
     projectNameInputOptions
   );
-  return input !== undefined ? input.trim() : input;
+  return input ? input.trim() : input;
 }
