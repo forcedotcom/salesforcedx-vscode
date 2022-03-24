@@ -21,6 +21,8 @@ const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
 const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
 const RENAME_WARNING = 'rename_component_warning';
+const LWC = 'lwc';
+const AURA = 'aura';
 
 export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
@@ -128,9 +130,9 @@ function isDuplicate(componentPath: string, newName: string): boolean {
   let auraPath: string;
   if (isLwcComponent(componentPath)) {
     lwcPath = componentPathDirName;
-    auraPath = path.join(path.dirname(componentPathDirName), 'aura');
+    auraPath = path.join(path.dirname(componentPathDirName), AURA);
   } else {
-    lwcPath = path.join(path.dirname(componentPathDirName), 'lwc');
+    lwcPath = path.join(path.dirname(componentPathDirName), LWC);
     auraPath = componentPathDirName;
   }
   const allLwcComponents = fs.readdirSync(lwcPath);
@@ -146,9 +148,9 @@ export function isNameMatch(item: string, componentName: string, componentPath: 
   } else {
     regularExp = new RegExp(`${componentName}(((Controller|Renderer|Helper)?\.js)|(\.(cmp|app|css|design|auradoc|svg)))`);
   }
-  return item.match(regularExp) ? true : false;
+  return Boolean(item.match(regularExp));
 }
 
 function isLwcComponent(componentPath: string): boolean {
-  return path.basename(path.dirname(componentPath)) === 'lwc';
+  return path.basename(path.dirname(componentPath)) === LWC;
 }
