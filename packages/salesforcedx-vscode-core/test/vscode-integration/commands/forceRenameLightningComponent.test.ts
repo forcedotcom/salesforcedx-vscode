@@ -87,13 +87,13 @@ describe('Force Rename Lightning Component', () => {
       .onFirstCall().resolves([])
       .onSecondCall().resolves([])
       .onThirdCall().resolves([itemsInHero[1]]);
-      const warningSpy = env.spy(notificationService, 'showWarningMessage');
+      const showWarningMessageSpy = env.spy(notificationService, 'showWarningMessage');
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
         data: {name: 'hero1'}
       });
-      expect(warningSpy.callCount).to.equal(1);
+      expect(showWarningMessageSpy.callCount).to.equal(1);
     });
   });
 
