@@ -71,7 +71,7 @@ export class GetComponentName
     CancelResponse | ContinueResponse<ComponentName>
   > {
     const inputOptions = {
-      value: getComponentName(getComponentPath(this.sourceFsPath)),
+      value: getComponentName(await getComponentPath(this.sourceFsPath)),
       placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
       promopt: nls.localize(RENAME_INPUT_PROMPT)
     } as vscode.InputBoxOptions;
@@ -83,7 +83,7 @@ export class GetComponentName
 }
 
 async function renameComponent(sourceFsPath: string, newName: string) {
-  const componentPath = getComponentPath(sourceFsPath);
+  const componentPath = await getComponentPath(sourceFsPath);
   const componentName = getComponentName(componentPath);
   await checkForDuplicateName(componentPath, newName);
   const items = await fs.promises.readdir(componentPath);
@@ -105,8 +105,8 @@ async function renameComponent(sourceFsPath: string, newName: string) {
   notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
 }
 
-function getComponentPath(sourceFsPath: string): string {
-  const stats = fs.statSync(sourceFsPath);
+async function getComponentPath(sourceFsPath: string): Promise<string> {
+  const stats = await fs.promises.stat(sourceFsPath);
   return stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
 }
 
