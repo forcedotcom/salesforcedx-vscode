@@ -1,3 +1,13 @@
+# 54.6.1 - March 23, 2022
+
+## Fixed
+
+- Fixed inconsistent published package versions caused by issues with the availability of the VSCode Marketplace during publish of v54.6.0.
+
+#### docs
+
+- Improved documentation regarding org browser behavior ([PR #3941](https://github.com/forcedotcom/salesforcedx-vscode/pull/3941)) and fixed broken links ([PR #3939](https://github.com/forcedotcom/salesforcedx-vscode/pull/3939)).
+
 # 54.6.0 - March 23, 2022
 
 ## Added
