@@ -97,6 +97,15 @@ export interface ProjectName {
   projectName: string;
 }
 
+class SfdxProjectName implements ProjectName {
+  public projectName: string;
+  constructor(projectName: string) {
+    this.projectName = projectName !== undefined
+      ? projectName.trim()
+      : projectName;
+  }
+}
+
 export interface ProjectTemplate {
   projectTemplate: string;
 }
@@ -163,11 +172,11 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
     if (this.prefillValueProvider) {
       projectNameInputOptions.value = this.prefillValueProvider();
     }
-    const projectName = await vscode.window.showInputBox(
+    const projectNameInput = await vscode.window.showInputBox(
       projectNameInputOptions
     );
-    return projectName
-      ? { type: 'CONTINUE', data: { projectName } }
+    return projectNameInput
+      ? { type: 'CONTINUE', data: new SfdxProjectName(projectNameInput) }
       : { type: 'CANCEL' };
   }
 }

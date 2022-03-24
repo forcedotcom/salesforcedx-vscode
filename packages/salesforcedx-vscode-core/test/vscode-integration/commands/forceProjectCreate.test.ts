@@ -33,6 +33,7 @@ import { getRootWorkspacePath } from '../../../src/util';
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
+  const PROJECT_NAME_WITH_LEADING_TRAILING_SPACES = '  sfdx-simple  ';
   const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
@@ -93,6 +94,7 @@ describe('Force Project Create', () => {
       inputBoxSpy.onCall(0).returns(undefined);
       inputBoxSpy.onCall(1).returns('');
       inputBoxSpy.onCall(2).returns(PROJECT_NAME);
+      inputBoxSpy.onCall(3).returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
     });
 
     after(() => {
@@ -117,6 +119,16 @@ describe('Force Project Create', () => {
       const gatherer = new SelectProjectName();
       const response = await gatherer.gather();
       expect(inputBoxSpy.calledThrice).to.be.true;
+      if (response.type === 'CONTINUE') {
+        expect(response.data.projectName).to.equal(PROJECT_NAME);
+      } else {
+        expect.fail('Response should be of type ContinueResponse');
+      }
+    });
+
+    it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
+      const gatherer = new SelectProjectName();
+      const response = await gatherer.gather();
       if (response.type === 'CONTINUE') {
         expect(response.data.projectName).to.equal(PROJECT_NAME);
       } else {
