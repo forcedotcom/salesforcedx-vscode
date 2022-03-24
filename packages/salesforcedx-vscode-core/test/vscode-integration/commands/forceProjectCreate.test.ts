@@ -33,7 +33,7 @@ import { getRootWorkspacePath } from '../../../src/util';
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
-  const PROJECT_NAME_WITH_LEADING_TRAILING_SPACES = '  sfdx-simple  ';
+  const PROJECT_NAME_WITH_LEADING_TRAILING_SPACES = `  ${PROJECT_NAME}  `;
   const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
