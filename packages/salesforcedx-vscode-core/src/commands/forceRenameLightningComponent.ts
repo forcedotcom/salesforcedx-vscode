@@ -137,7 +137,7 @@ async function isDuplicate(componentPath: string, newName: string): Promise<bool
   }
   const allLwcComponents = await fs.promises.readdir(lwcPath);
   const allAuraComponents = await fs.promises.readdir(auraPath);
-  return allLwcComponents.includes(newName) || allAuraComponents.includes(newName) ? true : false;
+  return (allLwcComponents.includes(newName) || allAuraComponents.includes(newName));
 }
 
 export function isNameMatch(item: string, componentName: string, componentPath: string): boolean {
