@@ -120,21 +120,15 @@ describe('Force Project Create', () => {
     it('Should return Continue with inputted project name if project name is not undefined or empty', async () => {
       inputBox.returns(PROJECT_NAME);
       const response = await gatherer.gather();
-      if (response.type === 'CONTINUE') {
-        expect(response.data.projectName).to.equal(PROJECT_NAME);
-      } else {
-        expect.fail('Response should be of type ContinueResponse');
-      }
+      expect(response.type).to.equal('CONTINUE');
+      expect(response.data.projectName).to.equal(PROJECT_NAME);
     });
 
     it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
       inputBox.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
       const response = await gatherer.gather();
-      if (response.type === 'CONTINUE') {
-        expect(response.data.projectName).to.equal(PROJECT_NAME);
-      } else {
-        expect.fail('Response should be of type ContinueResponse');
-      }
+      expect(response.type).to.equal('CONTINUE');
+      expect(response.data.projectName).to.equal(PROJECT_NAME);
     });
   });
 
