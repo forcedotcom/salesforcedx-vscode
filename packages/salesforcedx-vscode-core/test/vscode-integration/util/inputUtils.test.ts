@@ -12,12 +12,20 @@ import { getTrimmedString } from '../../../src/util/inputUtils';
 
 describe('inputUtils Unit tests', () => {
   const sandbox = createSandbox();
-  const showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+  let showInputBoxStub: sinon.SinonStub;
 
   describe('getTrimmedString', () => {
     const INPUT_VAL = 'Test Input';
     const EMPTY_STRING = '';
     const WHITESPACE = '   ';
+
+    beforeEach(() => {
+     showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+    });
+
+    afterEach(() => {
+      showInputBoxStub.restore();
+    });
 
     after(() => {
       sandbox.restore();
