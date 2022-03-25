@@ -25,6 +25,7 @@ import {
   SelectProjectName,
   SelectProjectTemplate
 } from '../../../src/commands';
+import { ProjectName } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { telemetryService } from '../../../src/telemetry';
@@ -88,51 +89,47 @@ describe('Force Project Create', () => {
 
   describe('SelectProjectName Gatherer', () => {
     let gatherer: SelectProjectName;
-    let inputBox: sinon.SinonStub;
+    let inputBoxStub: sinon.SinonStub;
 
     beforeEach(() => {
       gatherer = new SelectProjectName();
-      inputBox = sinon.stub(vscode.window, 'showInputBox');
+      inputBoxStub = sinon.stub(vscode.window, 'showInputBox');
     });
 
     afterEach(() => {
-      inputBox.restore();
+      inputBoxStub.restore();
     });
 
     it('Should make one call to showInputBox', async () => {
-      inputBox.returns(undefined);
+      inputBoxStub.returns(undefined);
       const response = await gatherer.gather();
-      expect(inputBox.calledOnce).to.be.true;
+      expect(inputBoxStub.calledOnce).to.be.true;
     });
 
     it('Should return cancel if project name is undefined', async () => {
-      inputBox.returns(undefined);
+      inputBoxStub.returns(undefined);
       const response = await gatherer.gather();
       expect(response.type).to.equal('CANCEL');
     });
 
     it('Should return cancel if user input is empty string', async () => {
-      inputBox.returns('');
+      inputBoxStub.returns('');
       const response = await gatherer.gather();
       expect(response.type).to.equal('CANCEL');
     });
 
     it('Should return Continue with inputted project name if project name is not undefined or empty', async () => {
-      inputBox.returns(PROJECT_NAME);
+      inputBoxStub.returns(PROJECT_NAME);
       const response = await gatherer.gather();
       expect(response.type).to.equal('CONTINUE');
-      if (response.type === 'CONTINUE') {
-        expect(response.data.projectName).to.equal(PROJECT_NAME);
-      }
+      expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
     });
 
     it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
-      inputBox.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
+      inputBoxStub.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
       const response = await gatherer.gather();
       expect(response.type).to.equal('CONTINUE');
-      if (response.type === 'CONTINUE') {
-        expect(response.data.projectName).to.equal(PROJECT_NAME);
-      }
+      expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
     });
   });
 
