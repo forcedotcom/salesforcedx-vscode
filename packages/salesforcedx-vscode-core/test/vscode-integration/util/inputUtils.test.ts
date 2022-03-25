@@ -12,7 +12,7 @@ import { getTrimmedString } from '../../../src/util/inputUtils';
 
 describe('getTrimmedString', () => {
   let sandbox: SinonSandbox;
-  const inputString = 'Test Input';
+  const INPUT_VAL = 'Test Input';
 
   beforeEach(() => {
     sandbox = createSandbox();
@@ -23,26 +23,26 @@ describe('getTrimmedString', () => {
   });
 
   it('should call showInputBox once', async () => {
-    const inputBox = sandbox.stub(vscode.window, 'showInputBox').resolves(inputString);
+    const inputBox = sandbox.stub(vscode.window, 'showInputBox').resolves(INPUT_VAL);
     const trimmedString = await getTrimmedString({});
     sandbox.assert.calledOnce(inputBox);
   });
 
   it('should remove leading whitespace', async () => {
-    sandbox.stub(vscode.window, 'showInputBox').resolves(`  ${inputString}`);
+    sandbox.stub(vscode.window, 'showInputBox').resolves(`  ${INPUT_VAL}`);
     const trimmedString = await getTrimmedString({});
-    expect(trimmedString).to.be.eq(inputString);
+    expect(trimmedString).to.be.eq(INPUT_VAL);
   });
 
   it('should remove trailing whitespace', async () => {
-    sandbox.stub(vscode.window, 'showInputBox').resolves(`${inputString}  `);
+    sandbox.stub(vscode.window, 'showInputBox').resolves(`${INPUT_VAL}  `);
     const trimmedString = await getTrimmedString({});
-    expect(trimmedString).to.be.eq(inputString);
+    expect(trimmedString).to.be.eq(INPUT_VAL);
   });
 
   it('should remove leading and trailing whitespace', async () => {
-    sandbox.stub(vscode.window, 'showInputBox').resolves(`  ${inputString}  `);
+    sandbox.stub(vscode.window, 'showInputBox').resolves(`  ${INPUT_VAL}  `);
     const trimmedString = await getTrimmedString({});
-    expect(trimmedString).to.be.eq(inputString);
+    expect(trimmedString).to.be.eq(INPUT_VAL);
   });
 });
