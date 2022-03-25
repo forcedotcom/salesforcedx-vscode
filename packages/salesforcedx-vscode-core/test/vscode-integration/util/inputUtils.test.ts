@@ -5,44 +5,75 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { assert, expect } from 'chai';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { getTrimmedString } from '../../../src/util/inputUtils';
 
-describe('getTrimmedString', () => {
+describe('inputUtils Unit tests', () => {
   let sandbox: SinonSandbox;
-  const INPUT_VAL = 'Test Input';
+  let showInputBoxStub: SinonStub;
 
-  beforeEach(() => {
-    sandbox = createSandbox();
-  });
+  describe('getTrimmedString', () => {
+    const INPUT_VAL = 'Test Input';
+    const EMPTY_STRING = '';
+    const WHITESPACE = '   ';
 
-  afterEach(() => {
-    sandbox.restore();
-  });
+    before(() => {
+      sandbox = createSandbox();
+      showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+    });
 
-  it('should call showInputBox once', async () => {
-    const inputBox = sandbox.stub(vscode.window, 'showInputBox').resolves(INPUT_VAL);
-    const trimmedString = await getTrimmedString({});
-    sandbox.assert.calledOnce(inputBox);
-  });
+    after(() => {
+      sandbox.restore();
+    });
 
-  it('should remove leading whitespace', async () => {
-    sandbox.stub(vscode.window, 'showInputBox').resolves(`  ${INPUT_VAL}`);
-    const trimmedString = await getTrimmedString({});
-    expect(trimmedString).to.be.eq(INPUT_VAL);
-  });
+    it('should call showInputBox once', async () => {
+      showInputBoxStub.resolves(INPUT_VAL);
+      const trimmedString = await getTrimmedString({});
+      sandbox.assert.calledOnce(showInputBoxStub);
+    });
 
-  it('should remove trailing whitespace', async () => {
-    sandbox.stub(vscode.window, 'showInputBox').resolves(`${INPUT_VAL}  `);
-    const trimmedString = await getTrimmedString({});
-    expect(trimmedString).to.be.eq(INPUT_VAL);
-  });
+    it('should remove leading whitespace', async () => {
+      showInputBoxStub.resolves(`  ${INPUT_VAL}`);
+      const trimmedString = await getTrimmedString({});
+      expect(trimmedString).to.be.eq(INPUT_VAL);
+    });
 
-  it('should remove leading and trailing whitespace', async () => {
-    sandbox.stub(vscode.window, 'showInputBox').resolves(`  ${INPUT_VAL}  `);
-    const trimmedString = await getTrimmedString({});
-    expect(trimmedString).to.be.eq(INPUT_VAL);
+    it('should remove trailing whitespace', async () => {
+      showInputBoxStub.resolves(`${INPUT_VAL}  `);
+      const trimmedString = await getTrimmedString({});
+      expect(trimmedString).to.be.eq(INPUT_VAL);
+    });
+
+    it('should remove leading and trailing whitespace', async () => {
+      showInputBoxStub.resolves(`  ${INPUT_VAL}  `);
+      const trimmedString = await getTrimmedString({});
+      expect(trimmedString).to.be.eq(INPUT_VAL);
+    });
+
+    it('should return an empty string when given an empty string', async () => {
+      showInputBoxStub.resolves(EMPTY_STRING);
+      const trimmedString = await getTrimmedString({});
+      expect(trimmedString).to.be.eq(EMPTY_STRING);
+    });
+
+    it('should return empty string when given whitespace', async () => {
+      showInputBoxStub.resolves(WHITESPACE);
+      const trimmedString = await getTrimmedString({});
+      expect(trimmedString).to.be.eq(EMPTY_STRING);
+    });
+
+    it('should return undefined when given undefined', async () => {
+      showInputBoxStub.resolves(undefined);
+      const trimmedString = await getTrimmedString({});
+      assert.isUndefined(trimmedString);
+    });
+
+    it('should return null when given null', async () => {
+      showInputBoxStub.resolves(null);
+      const trimmedString = await getTrimmedString({});
+      assert.isNull(trimmedString);
+    });
   });
 });
