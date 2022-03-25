@@ -304,6 +304,10 @@
         {
           "command": "sfdx.create.manifest",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.lightning.rename",
+          "when": "sfdx:project_opened && resource =~ /.*/(lwc|aura)/[^/]+(/[^/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
       ],
       "commandPalette": [
@@ -445,6 +449,10 @@
         },
         {
           "command": "sfdx.create.manifest",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.lightning.rename",
           "when": "false"
         },
         {
@@ -937,6 +945,10 @@
       {
         "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
         "title": "%force_launch_apex_replay_debugger_with_current_file%"
+      },
+      {
+        "command": "sfdx.lightning.rename",
+        "title": "%force_lightning_rename_component_text%"
       }
     ],
     "configuration": {

@@ -47,6 +47,7 @@ import {
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
+  forceRenameLightningComponent,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
@@ -424,6 +425,11 @@ function registerCommands(
   const forceRefreshSObjectsCmd = vscode.commands.registerCommand(
     'sfdx.force.internal.refreshsobjects',
     forceRefreshSObjects
+  );
+
+  const forceRenameComponentCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.rename',
+    forceRenameLightningComponent
   );
 
   return vscode.Disposable.from(

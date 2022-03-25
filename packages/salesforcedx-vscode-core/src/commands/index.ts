@@ -170,3 +170,6 @@ export {
   forceRefreshSObjects,
   initSObjectDefinitions
 } from './forceRefreshSObjects';
+export {
+  forceRenameLightningComponent
+} from './forceRenameLightningComponent';
