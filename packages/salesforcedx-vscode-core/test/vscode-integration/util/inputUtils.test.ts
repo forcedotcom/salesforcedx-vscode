@@ -31,7 +31,7 @@ describe('inputUtils Unit tests', () => {
     it('should call showInputBox once', async () => {
       showInputBoxStub.resolves(INPUT_VAL);
       const trimmedString = await getTrimmedString({});
-      sandbox.assert.calledOnce(showInputBoxStub);
+      assert(showInputBoxStub.calledOnce);
     });
 
     it('should remove leading whitespace', async () => {
