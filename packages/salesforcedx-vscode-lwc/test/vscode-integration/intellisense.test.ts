@@ -7,7 +7,6 @@
 
 import { assert, expect } from 'chai';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import {
   commands,
   CompletionItem,
@@ -26,11 +25,25 @@ import {
 
 describe('LWC Intellisense Integration Tests', () => {
 
+  let lwcExtension: Extension<any>;
+
+  before(async () => {
+    lwcExtension = extensions.getExtension(
+      'salesforce.salesforcedx-vscode-lwc'
+    ) as Extension<any>;
+    await lwcExtension.activate();
+  });
+
+  it('LWC Extension Activation', async () => {
+    expect(lwcExtension.isActive);
+  });
+
   describe('LWC JS Intellisense Test Suite', function() {
+
+    // Time taken to execute the command to fetch actualcompletion list, varies with different environment and system.
     // tslint:disable-next-line:no-invalid-this
-    this.timeout(20000);
+    this.timeout(10000);
     let lwcDir: string;
-    let lwcExtension: Extension<any>;
     let docUri: Uri;
     let doc: TextDocument;
     let editor: TextEditor;
@@ -39,18 +52,14 @@ describe('LWC Intellisense Integration Tests', () => {
     let endPosition: Position;
     let selection: Selection;
 
-    beforeEach(async() => {
+    beforeEach(async () => {
       lwcDir = path.join(
-        vscode.workspace.workspaceFolders![0].uri.fsPath,
+        workspace.workspaceFolders![0].uri.fsPath,
         'force-app',
         'main',
         'default',
         'lwc'
       );
-      lwcExtension = extensions.getExtension(
-        'salesforce.salesforcedx-vscode-lwc'
-      ) as Extension<any>;
-      await lwcExtension.activate();
       docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
       doc = await workspace.openTextDocument(docUri);
       editor = await window.showTextDocument(doc);
@@ -60,19 +69,11 @@ describe('LWC Intellisense Integration Tests', () => {
     });
 
     afterEach(() => {
-      try {
-        selection = new Selection(startPosition, endPosition);
-        // We need to clear the editor's line or the input text will change and test will fail.
-        editor.edit(editBuilder => {
-          editBuilder.delete(selection)
-        });
-      } catch (e) {
-        throw e;
-      }
-    });
-
-    it('LWC Extension Activation', async () => {
-      expect(lwcExtension.isActive);
+      selection = new Selection(startPosition, endPosition);
+      // We need to clear the editor's line or the input text will change and test will fail.
+      editor.edit(editBuilder => {
+        editBuilder.delete(selection)
+      });
     });
 
     it('LWC JS Module Import Intellisense', async () => {
@@ -95,16 +96,10 @@ describe('LWC Intellisense Integration Tests', () => {
           kind: CompletionItemKind.Folder
         }
       ]
-
-      try {
-        await testCompletion(docUri, endPosition, items);
-      } catch (error) {
-        throw error;
-      }
+      await testCompletion(docUri, endPosition, items);
     });
 
     it('LWC JS @Salesforce Import Intellisense', async () => {
-      // We have to have some text or we'll just get generic completions
       text = "import {} from '@sales";
       endPosition = new Position(
         startPosition.line,
@@ -128,16 +123,10 @@ describe('LWC Intellisense Integration Tests', () => {
           kind: CompletionItemKind.Module
         }
       ]
-
-      try {
-        await testCompletion(docUri, endPosition, items);
-      } catch (error) {
-        throw error;
-      }
+      await testCompletion(docUri, endPosition, items);
     });
 
     it('LWC JS Lightning Import Intellisense', async () => {
-      // We have to have some text or we'll just get generic completions
       text = "import {} from 'li";
       endPosition = new Position(
         startPosition.line,
@@ -156,18 +145,12 @@ describe('LWC Intellisense Integration Tests', () => {
           kind: CompletionItemKind.Folder
         }
       ]
-
-      try {
-        await testCompletion(docUri, endPosition, items);
-      } catch (error) {
-        throw error;
-      }
+      await testCompletion(docUri, endPosition, items);
     });
   });
 
   describe('LWC MarkUp Intellisense Test Suite', function() {
     let lwcDir: string;
-    let lwcExtension: Extension<any>;
     let docUri: Uri;
     let doc: TextDocument;
     let editor: TextEditor;
@@ -176,7 +159,7 @@ describe('LWC Intellisense Integration Tests', () => {
     let endPosition: Position;
     let selection: Selection;
 
-    beforeEach(async() => {
+    beforeEach(async () => {
       lwcDir = path.join(
         workspace.workspaceFolders![0].uri.fsPath,
         'force-app',
@@ -184,10 +167,6 @@ describe('LWC Intellisense Integration Tests', () => {
         'default',
         'lwc'
       );
-      lwcExtension = extensions.getExtension(
-        'salesforce.salesforcedx-vscode-lwc'
-      ) as Extension<any>;
-      await lwcExtension.activate();
       docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
       doc = await workspace.openTextDocument(docUri);
       editor = await window.showTextDocument(doc);
@@ -196,26 +175,16 @@ describe('LWC Intellisense Integration Tests', () => {
     });
 
     afterEach(() => {
-      try {
-        selection = new Selection(startPosition, endPosition);
-        // We need to clear the editor's line or the input text will change and test will fail.
-        editor.edit(editBuilder => {
-          editBuilder.delete(selection)
-        });
-      } catch (e) {
-        throw e;
-      }
-    });
-
-    it('LWC Extension Activation', async function() {
-      expect(lwcExtension.isActive);
+      selection = new Selection(startPosition, endPosition);
+      editor.edit(editBuilder => {
+        editBuilder.delete(selection)
+      });
     });
 
     /**
      * Test that lwc markup intellisense includes standard lwc tags and custom lwc tags
      */
     it('LWC Markup Intellisense', async () => {
-      // We have to have some text or we'll just get generic completions
       text = '<c-';
       endPosition = new Position(
         startPosition.line,
@@ -235,15 +204,11 @@ describe('LWC Intellisense Integration Tests', () => {
           }
         ]
 
-      try {
-        // NOTE: Because the completion providers always returns all possible results and then VSCode
-        // does the filtering based on what is typed, we have no good way of testing what vscode is
-        // actually displaying to the user based on what we typed
-        // TODO - investigate why this only happens on markup
-        await testCompletion(docUri, endPosition, items);
-      } catch (error) {
-        throw error;
-      }
+      // NOTE: Because the completion providers always returns all possible results and then VSCode
+      // does the filtering based on what is typed, we have no good way of testing what vscode is
+      // actually displaying to the user based on what we typed
+      // TODO - investigate why this only happens on markup
+      await testCompletion(docUri, endPosition, items);
     });
   });
 });
@@ -255,7 +220,7 @@ async function testCompletion(
   expectedCompletionList: CompletionItem[]
 ) {
   // Simulate triggering a completion
-  let actualCompletionList = (((await commands.executeCommand(
+  const actualCompletionList = (((await commands.executeCommand(
     'vscode.executeCompletionItemProvider',
     docUri,
     position
@@ -264,7 +229,7 @@ async function testCompletion(
   actualCompletionList.sort();
   expectedCompletionList.sort();
 
-  expectedCompletionList.map(expectedItem => {
+  expectedCompletionList.forEach(expectedItem => {
     const actualItem = actualCompletionList.find(obj => {
       if (obj.label) {
         return obj.label === expectedItem.label;
@@ -289,7 +254,5 @@ async function testCompletion(
         "' to have type: " +
         expectedItem.kind
     );
-    // TODO do we want some kind of documentation test?
-    //assert.isDefined(actualItem!.documentation);
   });
 }
