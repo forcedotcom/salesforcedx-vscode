@@ -43,24 +43,22 @@ describe('LWC Intellisense Integration Tests', () => {
     // Time taken to execute the command to fetch actualcompletion list, varies with different environment and system.
     // tslint:disable-next-line:no-invalid-this
     this.timeout(10000);
-    let lwcDir: string;
-    let docUri: Uri;
     let doc: TextDocument;
     let editor: TextEditor;
     let text: string;
     let startPosition: Position;
     let endPosition: Position;
     let selection: Selection;
+    const lwcDir = path.join(
+      workspace.workspaceFolders![0].uri.fsPath,
+      'force-app',
+      'main',
+      'default',
+      'lwc'
+    );
+    const docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
 
     beforeEach(async () => {
-      lwcDir = path.join(
-        workspace.workspaceFolders![0].uri.fsPath,
-        'force-app',
-        'main',
-        'default',
-        'lwc'
-      );
-      docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.js'));
       doc = await workspace.openTextDocument(docUri);
       editor = await window.showTextDocument(doc);
       startPosition = new Position(1, 0);
@@ -150,24 +148,22 @@ describe('LWC Intellisense Integration Tests', () => {
   });
 
   describe('LWC MarkUp Intellisense Test Suite', function() {
-    let lwcDir: string;
-    let docUri: Uri;
     let doc: TextDocument;
     let editor: TextEditor;
     let text: string;
     let startPosition: Position;
     let endPosition: Position;
     let selection: Selection;
+    const lwcDir = path.join(
+      workspace.workspaceFolders![0].uri.fsPath,
+      'force-app',
+      'main',
+      'default',
+      'lwc'
+    );
+    const docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
 
     beforeEach(async () => {
-      lwcDir = path.join(
-        workspace.workspaceFolders![0].uri.fsPath,
-        'force-app',
-        'main',
-        'default',
-        'lwc'
-      );
-      docUri = Uri.file(path.join(lwcDir, 'hello', 'hello.html'));
       doc = await workspace.openTextDocument(docUri);
       editor = await window.showTextDocument(doc);
       startPosition = new Position(5, 0);
