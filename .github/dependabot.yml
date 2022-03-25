@@ -21,25 +21,24 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 100
+    rebase-strategy: disabled
   # Major version updates (not auto-merged)
-  # TODO: Disabled temporarily to ruleout interference of "target-branch" config
-  #   with dependabot automatic rebase of PRs. Enable and test after the workflow
-  #   for minor/patch updates is working without issues.
-  # - package-ecosystem: "npm"
-  #   directory: "/" # Location of package manifests
-  #   target-branch: "develop"
-  #   schedule:
-  #     # Monthly after the weekly minor,patch updates have been merged
-  #     interval: "monthly"
-  #     day: "friday"
-  #     time: "06:00"
-  #     timezone: "America/Los_Angeles"
-  #   ignore:
-  #     - dependency-name: "*"
-  #       update-types:
-  #         ["version-update:semver-minor", "version-update:semver-patch"]
-  #   open-pull-requests-limit: 5
+  - package-ecosystem: "npm"
+    directory: "/" # Location of package manifests
+    target-branch: "develop"
+    schedule:
+      # Monthly after the weekly minor,patch updates have been merged
+      interval: "monthly"
+      day: "friday"
+      time: "06:00"
+      timezone: "America/Los_Angeles"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          ["version-update:semver-minor", "version-update:semver-patch"]
+    open-pull-requests-limit: 10
+    rebase-strategy: disabled
   # Exclude updates to doc tools
   # TODO: Enable after adding automated check(s) for doc generation
   - package-ecosystem: "bundler"
