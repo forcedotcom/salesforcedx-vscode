@@ -7,9 +7,9 @@
 
 import * as vscode from 'vscode';
 
-export async function getTrimmedString(projectNameInputOptions: vscode.InputBoxOptions) {
+export async function getTrimmedString(options: vscode.InputBoxOptions) {
   const input = await vscode.window.showInputBox(
-    projectNameInputOptions
+    options
   );
   return input ? input.trim() : input;
 }
