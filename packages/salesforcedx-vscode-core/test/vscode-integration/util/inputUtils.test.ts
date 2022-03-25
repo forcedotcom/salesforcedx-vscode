@@ -11,18 +11,13 @@ import * as vscode from 'vscode';
 import { getTrimmedString } from '../../../src/util/inputUtils';
 
 describe('inputUtils Unit tests', () => {
-  let sandbox: SinonSandbox;
-  let showInputBoxStub: SinonStub;
+  const sandbox = createSandbox();
+  const showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
 
   describe('getTrimmedString', () => {
     const INPUT_VAL = 'Test Input';
     const EMPTY_STRING = '';
     const WHITESPACE = '   ';
-
-    before(() => {
-      sandbox = createSandbox();
-      showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
-    });
 
     after(() => {
       sandbox.restore();
