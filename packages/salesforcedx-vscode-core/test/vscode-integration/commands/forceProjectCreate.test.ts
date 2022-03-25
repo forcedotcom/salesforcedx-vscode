@@ -89,13 +89,14 @@ describe('Force Project Create', () => {
 
   describe('SelectProjectName Gatherer', () => {
     let gatherer: SelectProjectName;
-    const inputBoxStub = sinon.stub(vscode.window, 'showInputBox');
+    let inputBoxStub: sinon.SinonStub;
 
     beforeEach(() => {
       gatherer = new SelectProjectName();
+      inputBoxStub = sinon.stub(vscode.window, 'showInputBox');
     });
 
-    after(() => {
+    afterEach(() => {
       inputBoxStub.restore();
     });
 
