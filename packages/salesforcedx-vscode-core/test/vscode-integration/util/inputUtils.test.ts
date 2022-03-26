@@ -6,29 +6,24 @@
  */
 
 import { assert, expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { getTrimmedString } from '../../../src/util/inputUtils';
 
 describe('inputUtils Unit tests', () => {
-  const sandbox = createSandbox();
-  let showInputBoxStub: sinon.SinonStub;
 
   describe('getTrimmedString', () => {
+    let showInputBoxStub: sinon.SinonStub;
     const INPUT_VAL = 'Test Input';
     const EMPTY_STRING = '';
     const WHITESPACE = '   ';
 
     beforeEach(() => {
-     showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+      showInputBoxStub = stub(vscode.window, 'showInputBox');
     });
 
     afterEach(() => {
       showInputBoxStub.restore();
-    });
-
-    after(() => {
-      sandbox.restore();
     });
 
     it('should call showInputBox once', async () => {
