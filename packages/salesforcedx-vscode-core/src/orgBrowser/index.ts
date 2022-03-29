@@ -10,6 +10,6 @@ export {
   parseErrors
 } from './metadataOutlineProvider';
 export { BrowserNode, NodeType } from './nodeTypes';
-export { CUSTOMOBJECTS_FULLNAME, ComponentUtils } from './metadataCmp';
+export { CUSTOMOBJECTS_FULLNAME, STANDARDVALUESET_LIST, ComponentUtils } from './metadataCmp';
 import { OrgBrowser } from './browser';
 export const orgBrowser = OrgBrowser.getInstance();

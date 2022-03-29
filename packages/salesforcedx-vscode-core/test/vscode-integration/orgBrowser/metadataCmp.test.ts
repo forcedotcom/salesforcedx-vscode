@@ -12,7 +12,7 @@ import * as path from 'path';
 import { createSandbox, SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { workspaceContext } from '../../../src/context';
-import { ComponentUtils } from '../../../src/orgBrowser';
+import { ComponentUtils, STANDARDVALUESET_LIST } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 const sb = createSandbox();
@@ -247,6 +247,7 @@ describe('load metadata components and custom objects fields list', () => {
   const defaultOrg = 'defaultOrg@test.com';
   const metadataType = 'ApexClass';
   const metadataTypeCustomObject = 'CustomObject';
+  const metadataTypeStandardValueSet = 'StandardValueSet';
   const sObjectName = 'DemoCustomObject';
   const folderName = 'DemoDashboard';
   const metadataTypeDashboard = 'Dashboard';
@@ -361,6 +362,11 @@ describe('load metadata components and custom objects fields list', () => {
     buildCustomObjectFieldsListStub.returns(formattedFields);
     const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName);
     expect(JSON.stringify(components)).to.equal(JSON.stringify(formattedFields));
+  });
+
+  it('should return hardcoded list of StandardValueSet fullNames', async () => {
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeStandardValueSet);
+    expect(JSON.stringify(components)).to.equal(JSON.stringify(STANDARDVALUESET_LIST));
   });
 });
 
