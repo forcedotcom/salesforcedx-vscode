@@ -27,7 +27,7 @@
     "@types/proxyquire": "1.3.28",
     "@types/shelljs": "0.7.9",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "1.49.0",
+    "@types/vscode": "1.65.0",
     "chai": "^4.0.2",
     "mocha": "^5",
     "mocha-junit-reporter": "^1.23.3",

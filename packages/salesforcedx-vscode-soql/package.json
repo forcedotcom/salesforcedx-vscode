@@ -56,7 +56,7 @@
     "@types/node": "12.0.12",
     "@types/papaparse": "^5.2.3",
     "@types/sinon": "7.5.2",
-    "@types/vscode": "1.49.0",
+    "@types/vscode": "1.65.0",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
     "@typescript-eslint/parser": "^3.7.1",
     "applicationinsights": "1.0.7",
