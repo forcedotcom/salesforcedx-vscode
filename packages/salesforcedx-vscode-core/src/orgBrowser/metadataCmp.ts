@@ -6,6 +6,7 @@
  */
 import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce';
 import * as path from 'path';
@@ -22,87 +23,6 @@ const validManageableStates = new Set([
 ]);
 
 const STANDARDVALUESET_FULLNAME = 'StandardValueSet';
-export const STANDARDVALUESET_LIST = [
-  'AccountContactMultiRoles',
-  'AccountContactRole',
-  'AccountOwnership',
-  'AccountRating',
-  'AccountType',
-  'AssetStatus',
-  'CampaignMemberStatus',
-  'CampaignStatus',
-  'CampaignType',
-  'CareItemStatus2',
-  'CaseContactRole',
-  'CaseOrigin',
-  'CasePriority',
-  'CaseReason',
-  'CaseStatus',
-  'CaseType',
-  'ContactRole',
-  'ContractContactRole',
-  'ContractStatus',
-  'EntitlementType',
-  'EventSubject',
-  'EventType',
-  'FiscalYearPeriodName',
-  'FiscalYearPeriodPrefix',
-  'FiscalYearQuarterName',
-  'FiscalYearQuarterPrefix',
-  'FulfillmentStatus',
-  'FulfillmentType',
-  'IdeaCategory1',
-  'IdeaMultiCategory',
-  'IdeaStatus',
-  'IdeaThemeStatus',
-  'Industry',
-  'LeadSource',
-  'LeadStatus',
-  'OpportunityCompetitor',
-  'OpportunityStage',
-  'OpportunityType',
-  'OrderItemSummaryChgRsn',
-  'OrderStatus',
-  'OrderSummaryRoutingSchdRsn',
-  'OrderSummaryStatus',
-  'OrderType',
-  'PartnerRole',
-  'Product2Family',
-  'ProcessExceptionCategory',
-  'ProcessExceptionPriority',
-  'ProcessExceptionSeverity',
-  'ProcessExceptionStatus',
-  'QuestionOrigin1',
-  'QuickTextCategory',
-  'QuickTextChannel',
-  'QuoteStatus',
-  'RoleInTerritory2',
-  'ResourceAbsenceType',
-  'ReturnOrderLineItemProcessPlan',
-  'ReturnOrderLineItemReasonForRejection',
-  'ReturnOrderLineItemReasonForReturn',
-  'ReturnOrderLineItemRepaymentMethod',
-  'ReturnOrderShipmentType',
-  'ReturnOrderStatus',
-  'SalesTeamRole',
-  'Salutation',
-  'ServiceAppointmentStatus',
-  'ServiceContractApprovalStatus',
-  'ServTerrMemRoleType',
-  'SocialPostClassification',
-  'SocialPostEngagementLevel',
-  'SocialPostReviewedStatus',
-  'SolutionStatus',
-  'TaskPriority',
-  'TaskStatus',
-  'TaskSubject',
-  'TaskType',
-  'WorkOrderLineItemStatus',
-  'WorkOrderPriority',
-  'WorkOrderStatus',
-  'WorkTypeDefApptType',
-  'WorkTypeGroupAddInfo'
-];
 
 export const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 
@@ -252,7 +172,7 @@ export class ComponentUtils {
         componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
       }
     } else if (metadataType === STANDARDVALUESET_FULLNAME) {
-      componentsList = STANDARDVALUESET_LIST;
+      componentsList = standardValueSet.fullnames;
     } else {
       if (freshFetch) {
         componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);

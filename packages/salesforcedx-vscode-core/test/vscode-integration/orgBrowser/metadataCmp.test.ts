@@ -6,13 +6,14 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { workspaceContext } from '../../../src/context';
-import { ComponentUtils, STANDARDVALUESET_LIST } from '../../../src/orgBrowser';
+import { ComponentUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
 
 const sb = createSandbox();
@@ -366,7 +367,7 @@ describe('load metadata components and custom objects fields list', () => {
 
   it('should return hardcoded list of StandardValueSet fullNames', async () => {
     const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeStandardValueSet);
-    expect(JSON.stringify(components)).to.equal(JSON.stringify(STANDARDVALUESET_LIST));
+    expect(JSON.stringify(components)).to.equal(JSON.stringify(standardValueSet.fullnames));
   });
 });
 
