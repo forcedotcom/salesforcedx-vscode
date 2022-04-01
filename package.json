@@ -10,7 +10,7 @@
     "npm": "^6.14.11"
   },
   "devDependencies": {
-    "@commitlint/cli": "^15.0.0",
+    "@commitlint/cli": "^16.2.3",
     "@commitlint/config-conventional": "^15.0.0",
     "@octokit/core": "3.6.0",
     "@salesforce/dev-config": "1.6.0",
