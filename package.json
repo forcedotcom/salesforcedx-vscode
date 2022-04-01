@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
-    "@commitlint/config-conventional": "^15.0.0",
+    "@commitlint/config-conventional": "^16.2.1",
     "@octokit/core": "3.6.0",
     "@salesforce/dev-config": "1.6.0",
     "acorn": "6.4.2",
