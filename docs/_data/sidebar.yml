@@ -27,11 +27,11 @@
     - title:
         en: Set Up Code Builder
         ja: コードビルダーを設定する
-      url: /codebuilder/codebuilder-setup
+      url: /codebuilder/cb-setup
     - title:
         en: Get Started with Code Builder
         ja: コードビルダーを使い始める
-      url: /codebuilder/codebuilder-start
+      url: /codebuilder/cb-start
 - title:
     en: User Guide
     ja: ユーザガイド
