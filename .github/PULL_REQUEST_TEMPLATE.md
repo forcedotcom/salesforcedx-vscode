@@ -1,5 +1,8 @@
+Here are three templates below, please choose one of them and delete others.
+Put correct title based on title template, and only keep body template in this file.  
+-----------------------------------------------------------------------------------------
 # feat
-**if this is a feature work, please ask the technical writer to review this PR title**
+**if this is a feature work, add the technical writer as a reviewer to the PR**
 PR title template: feat:<description of feature work should be reviewed>
 PR body template:
 
@@ -9,8 +12,8 @@ PR body template:
 @<work item number>@
 
 -----------------------------------------------------------------------------------------
-# bug
-**if this is a bug fix, please ask the technical writer to review this PR title**
+# fix
+**if this is a bug fix, add the technical writer as a reviewer to the PR**
 PR title template: bug:<description of bug should be reviewed>
 PR body template:
 
