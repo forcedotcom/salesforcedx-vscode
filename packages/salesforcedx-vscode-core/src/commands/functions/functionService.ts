@@ -55,7 +55,7 @@ export interface FunctionExecution extends Terminable {
   /**
    * Flag to determine whether running in a container
    */
-  isContainerless: boolean;
+  isContainerLess: boolean;
 }
 
 export const FUNCTION_TYPE_ERROR =
@@ -114,7 +114,7 @@ export class FunctionService {
     };
   }
 
-  public updateFunction(rootDir: string, debugType: string, isContainerless: boolean): void {
+  public updateFunction(rootDir: string, debugType: string, isContainerLess: boolean): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const type = debugType.toLowerCase();
@@ -124,7 +124,7 @@ export class FunctionService {
         functionExecution.debugType = 'java';
       }
 
-      functionExecution.isContainerless = isContainerless;
+      functionExecution.isContainerLess = isContainerLess;
     }
   }
 
@@ -220,7 +220,11 @@ export class FunctionService {
       port: debugPort
     };
 
-    if (this.getFunctionType() === functionType.JAVASCRIPT && functionExecution.isContainerless) {
+    // The following check is specifically for when debugging a JavaScript function and not using
+    // a container (see W-10738230).  If there are issues with debugging TypeScript in the future,
+    // this is something to look into for TypeScript as well (though, at this time, debugging
+    // TypeScript w/o a container works).
+    if (functionExecution.isContainerLess && this.getFunctionType() === functionType.JAVASCRIPT) {
       debugConfiguration.remoteRoot = undefined;
     }
 

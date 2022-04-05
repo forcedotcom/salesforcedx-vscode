@@ -213,7 +213,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: false
+        isContainerLess: false
       });
 
       service.updateFunction('Foo', 'Java', false);
@@ -229,7 +229,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: false
+        isContainerLess: false
       });
 
       service.updateFunction('Foo', 'jvm', false);
@@ -245,7 +245,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: false
+        isContainerLess: false
       });
 
       service.updateFunction('Bar', 'Node.js', false);
@@ -261,7 +261,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: false
+        isContainerLess: false
       });
 
       // right function, wrong type
@@ -289,7 +289,7 @@ describe('Function Service', () => {
       port: 8080,
       debugType: 'unknown',
       terminate: () => Promise.resolve(),
-      isContainerless: false
+      isContainerLess: false
     };
 
     beforeEach(() => {
@@ -353,7 +353,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: false
+        isContainerLess: false
       };
 
       fsSyncStub.onCall(0).returns(false);
@@ -373,7 +373,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: true
+        isContainerLess: true
       };
 
       fsSyncStub.onCall(0).returns(false);
@@ -393,7 +393,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: false
+        isContainerLess: false
       };
 
       fsSyncStub.returns(true);
@@ -412,7 +412,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: true
+        isContainerLess: true
       };
 
       fsSyncStub.returns(true);
@@ -431,7 +431,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: false
+        isContainerLess: false
       };
 
       fsSyncStub.onCall(0).returns(false);
@@ -451,7 +451,7 @@ describe('Function Service', () => {
         port: 8080,
         debugType: 'unknown',
         terminate: () => Promise.resolve(),
-        isContainerless: true
+        isContainerLess: true
       };
 
       fsSyncStub.onCall(0).returns(false);

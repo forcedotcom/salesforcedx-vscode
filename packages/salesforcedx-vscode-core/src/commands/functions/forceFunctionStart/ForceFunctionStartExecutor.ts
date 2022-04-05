@@ -82,7 +82,7 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
             resolve(this.cancelFunction(registeredStartedFunctionDisposable))
           );
         },
-        isContainerless: false
+        isContainerLess: false
       }
     );
 
