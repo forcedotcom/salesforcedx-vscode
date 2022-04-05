@@ -1,4 +1,13 @@
-### What does this PR do?
+---
+name: "Bug Fix"
+about: ""
+title: "bug:<description should be reviewed by technical writer>"
+labels: ""
+assignees: ""
+
+---
+
+## What does this PR do?
 
 ### What issues does this PR fix or reference?
 #<Insert GitHub Issue>, @<Insert GUS WI>@
