@@ -81,7 +81,8 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
           return new Promise(resolve =>
             resolve(this.cancelFunction(registeredStartedFunctionDisposable))
           );
-        }
+        },
+        isContainerless: false
       }
     );
 

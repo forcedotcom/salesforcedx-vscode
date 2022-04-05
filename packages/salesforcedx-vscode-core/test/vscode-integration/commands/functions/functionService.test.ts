@@ -83,6 +83,12 @@ describe('Function Service', () => {
         debugPort
       });
 
+      const getFunctionTypeStub = sandbox.stub(
+        FunctionService.prototype,
+        'getFunctionType'
+      );
+      getFunctionTypeStub.returns(functionType.JAVASCRIPT);
+
       await FunctionService.instance.debugFunction(rootDir);
 
       assert.calledOnce(vscodeDebugStubs.startDebuggingStub);
@@ -206,10 +212,11 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve()
+        terminate: () => Promise.resolve(),
+        isContainerless: false
       });
 
-      service.updateFunction('Foo', 'Java');
+      service.updateFunction('Foo', 'Java', false);
       expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
       expect(service.getFunctionLanguage()).to.equal('java');
     });
@@ -221,10 +228,11 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve()
+        terminate: () => Promise.resolve(),
+        isContainerless: false
       });
 
-      service.updateFunction('Foo', 'jvm');
+      service.updateFunction('Foo', 'jvm', false);
       expect(service.getStartedFunction('Foo')?.debugType).to.equal('java');
       expect(service.getFunctionLanguage()).to.equal('java');
     });
@@ -236,10 +244,11 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve()
+        terminate: () => Promise.resolve(),
+        isContainerless: false
       });
 
-      service.updateFunction('Bar', 'Node.js');
+      service.updateFunction('Bar', 'Node.js', false);
       expect(service.getStartedFunction('Bar')?.debugType).to.equal('node');
       expect(service.getFunctionLanguage()).to.equal('node');
     });
@@ -251,18 +260,19 @@ describe('Function Service', () => {
         debugPort: 7777,
         port: 8080,
         debugType: 'unknown',
-        terminate: () => Promise.resolve()
+        terminate: () => Promise.resolve(),
+        isContainerless: false
       });
 
       // right function, wrong type
-      service.updateFunction('FirstFunction', 'random');
+      service.updateFunction('FirstFunction', 'random', false);
       expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
         'unknown'
       );
       expect(service.getFunctionLanguage()).to.equal('unknown');
 
       // wrong function, right type
-      service.updateFunction('Foo', 'Java');
+      service.updateFunction('Foo', 'Java', false);
       expect(service.getStartedFunction('FirstFunction')?.debugType).to.equal(
         'unknown'
       );
@@ -278,7 +288,8 @@ describe('Function Service', () => {
       debugPort: 7777,
       port: 8080,
       debugType: 'unknown',
-      terminate: () => Promise.resolve()
+      terminate: () => Promise.resolve(),
+      isContainerless: false
     };
 
     beforeEach(() => {
@@ -325,6 +336,132 @@ describe('Function Service', () => {
       const functionTypeVal = service.getFunctionType();
       expect(functionTypeVal).to.equal(functionType.JAVA);
       expect(fsSyncStub.callCount).to.equal(2);
+    });
+  });
+
+  describe('Debug Configuration', () => {
+    let fsSyncStub: SinonStub;
+
+    beforeEach(() => {
+      fsSyncStub = sandbox.stub(fs, 'existsSync');
+    });
+
+    it('Should set remoteRoot to /workspace when JavaScript and running in a container.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerless: false
+      };
+
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(true);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
+    });
+
+    it('Should set remoteRoot to undefined when JavaScript and containerless.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerless: true
+      };
+
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(true);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.remoteRoot).to.equal(undefined);
+    });
+
+    it('Should set remoteRoot to /workspace when TypeScript and running in a container.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerless: false
+      };
+
+      fsSyncStub.returns(true);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
+    });
+
+    it('Should set remoteRoot to /workspace when TypeScript and containerless.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerless: true
+      };
+
+      fsSyncStub.returns(true);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
+    });
+
+    it('Should set remoteRoot to /workspace when Java and running in a container.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerless: false
+      };
+
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(false);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
+    });
+
+    it('Should set remoteRoot to /workspace when Java and containerless.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerless: true
+      };
+
+      fsSyncStub.onCall(0).returns(false);
+      fsSyncStub.onCall(1).returns(false);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
   });
 });

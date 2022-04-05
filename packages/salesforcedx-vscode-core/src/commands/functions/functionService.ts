@@ -52,10 +52,18 @@ export interface FunctionExecution extends Terminable {
    * Active debug session attached
    */
   debugSession?: vscode.DebugSession;
+  /**
+   * Flag to determine whether running in a container
+   */
+  isContainerless: boolean;
 }
 
 export const FUNCTION_TYPE_ERROR =
   'Unable to determine type of executing function.';
+// localize?  This appears in the output tab  (but not a notification)
+
+
+
 
 export class FunctionService {
   private static _instance: FunctionService;
@@ -110,7 +118,7 @@ export class FunctionService {
     };
   }
 
-  public updateFunction(rootDir: string, debugType: string): void {
+  public updateFunction(rootDir: string, debugType: string, isContainerless: boolean): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const type = debugType.toLowerCase();
@@ -119,6 +127,8 @@ export class FunctionService {
       } else if (type.startsWith('java') || type.startsWith('jvm')) {
         functionExecution.debugType = 'java';
       }
+
+      functionExecution.isContainerless = isContainerless;
     }
   }
 
@@ -157,6 +167,7 @@ export class FunctionService {
     }
     throw new Error(FUNCTION_TYPE_ERROR);
   }
+
   /**
    * Stop all started function containers
    */
@@ -180,27 +191,87 @@ export class FunctionService {
    */
   public async debugFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
-    if (functionExecution) {
-      const { debugPort, debugType } = functionExecution;
-      const debugConfiguration: vscode.DebugConfiguration = {
-        type: debugType,
-        request: 'attach',
-        name: 'Debug Invoke', // This name doesn't surface in UI
-        resolveSourceMapLocations: ['**', '!**/node_modules/**'],
-        console: 'integratedTerminal',
-        internalConsoleOptions: 'openOnSessionStart',
-        localRoot: rootDir,
-        remoteRoot: '/workspace',
-        hostName: '127.0.0.1',
-        port: debugPort
-      };
-      if (!functionExecution.debugSession) {
-        await vscode.debug.startDebugging(
-          getRootWorkspace(),
-          debugConfiguration
-        );
-      }
+    if (!functionExecution) {
+      // TODO: report error?
+      return;
     }
+
+    // const { debugPort, debugType } = functionExecution;
+    // const debugConfiguration: vscode.DebugConfiguration = {
+    //   type: debugType,
+    //   request: 'attach',
+    //   name: 'Debug Invoke', // This name doesn't surface in UI
+    //   resolveSourceMapLocations: ['**', '!**/node_modules/**'],
+    //   console: 'integratedTerminal',
+    //   internalConsoleOptions: 'openOnSessionStart',
+    //   localRoot: rootDir,
+    //   remoteRoot: '/workspace',
+    //   hostName: '127.0.0.1',
+    //   port: debugPort
+    // };
+
+    // /*
+    // const workspaceFolder = vscode.workspace.workspaceFolders![0];
+    // const relativePath = rootDir.replace(workspaceFolder.uri.path + '/', '');
+    // const fileUris = await vscode.workspace.findFiles(relativePath + '/*.js', null, 100);
+    // if(fileUris && fileUris.length > 0) {
+    //   debugConfiguration.remoteRoot = undefined;
+    // }
+    // */
+
+    // if (this.getFunctionType() === functionType.JAVASCRIPT && functionExecution.isContainerless) {
+    //   debugConfiguration.remoteRoot = undefined;
+    // }
+
+    // const debugConfiguration = this.getDebugSession(rootDir);
+    if (!functionExecution.debugSession) {
+      const debugConfiguration = this.getDebugConfiguration(functionExecution, rootDir);
+
+      await vscode.debug.startDebugging(
+        getRootWorkspace(),
+        debugConfiguration
+      );
+    }
+  }
+
+  /***
+   * Create a DebugConfiguration object
+   */
+  // private getDebugConfiguration(rootDir: string): vscode.DebugConfiguration | undefined {
+  public getDebugConfiguration(functionExecution: FunctionExecution, rootDir: string): vscode.DebugConfiguration {
+    // const functionExecution = this.getStartedFunction(rootDir);
+    // if (!functionExecution) {
+    //   return undefined;
+    // }
+
+    const { debugPort, debugType } = functionExecution;
+    const debugConfiguration: vscode.DebugConfiguration = {
+      type: debugType,
+      request: 'attach',
+      name: 'Debug Invoke', // This name doesn't surface in UI
+      resolveSourceMapLocations: ['**', '!**/node_modules/**'],
+      console: 'integratedTerminal',
+      internalConsoleOptions: 'openOnSessionStart',
+      localRoot: rootDir,
+      remoteRoot: '/workspace',
+      hostName: '127.0.0.1',
+      port: debugPort
+    };
+
+    /*
+    const workspaceFolder = vscode.workspace.workspaceFolders![0];
+    const relativePath = rootDir.replace(workspaceFolder.uri.path + '/', '');
+    const fileUris = await vscode.workspace.findFiles(relativePath + '/*.js', null, 100);
+    if(fileUris && fileUris.length > 0) {
+      debugConfiguration.remoteRoot = undefined;
+    }
+    */
+
+    if (this.getFunctionType() === functionType.JAVASCRIPT && functionExecution.isContainerless) {
+      debugConfiguration.remoteRoot = undefined;
+    }
+
+    return debugConfiguration;
   }
 
   /**
