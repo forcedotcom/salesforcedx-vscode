@@ -1,0 +1,1 @@
+The Salesforce Extension for VSCode is available on Visual Studio Code Extensions  Marketplace. The extension pack contains additional features that help you develop Salesforce apps using Visual Studio Code. 
