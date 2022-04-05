@@ -12,7 +12,6 @@
   },
   "typescript.tsdk": "./node_modules/typescript/lib",
   "editor.tabSize": 2,
-
-  "editor.formatOnSave": false,
-  "Xrewrap.wrappingColumn": 80
+  "editor.formatOnSave": true,
+  "rewrap.wrappingColumn": 80
 }
