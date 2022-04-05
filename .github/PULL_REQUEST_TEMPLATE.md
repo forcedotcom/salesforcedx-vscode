@@ -1,13 +1,6 @@
----
-name: "Bug Fix"
-about: ""
-title: "bug:<description should be reviewed by technical writer>"
-labels: ""
-assignees: ""
+PR title should follow the pattern: <keyword>(optional scope): <description>. If this is a feat/fix, add the technical writer as a reviewer to the PR.
 
----
-
-## What does this PR do?
+### What does this PR do?
 
 ### What issues does this PR fix or reference?
 #<Insert GitHub Issue>, @<Insert GUS WI>@
