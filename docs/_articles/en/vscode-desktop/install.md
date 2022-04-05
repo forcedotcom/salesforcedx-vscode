@@ -1,7 +1,8 @@
 ---
-title: Install Salesforce Extensions for VS Code
+title: Salesforce Extensions for VS Code
 lang: en
 ---
+## Overview
 
 Before you get started, install the required software on your computer.
 

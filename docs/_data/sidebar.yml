@@ -6,19 +6,19 @@
     - title:
         en: Install Salesforce Extensions for Desktop
         ja: インストール
-      url: /getting-started/install
+      url: /vscode-desktop/install
     - title:
         en: Recommended Extensions
         ja: 推奨の拡張機能
-      url: /getting-started/recommended-extensions
+      url: /vscode-desktop/recommended-extensions
     - title:
         en: Settings
         ja: 設定
-      url: /getting-started/settings
+      url: vscode-desktop/settings
     - title:
         en: Tips & Tricks
         ja: ヒントとコツ
-      url: /getting-started/tips-and-tricks
+      url: /vscode-desktop/tips-and-tricks
 - title:
     en: Code Builder (Beta)
     ja: コードビルダー（ベータ版）
@@ -27,11 +27,11 @@
     - title:
         en: Set Up Code Builder
         ja: コードビルダーを設定する
-      url: /codebuilder/code-builder-setup
+      url: /codebuilder/codebuilder-setup
     - title:
         en: Get Started with Code Builder
         ja: コードビルダーを使い始める
-      url: /codebuilder/code-builder-start
+      url: /codebuilder/codebuilder-start
 - title:
     en: User Guide
     ja: ユーザガイド
