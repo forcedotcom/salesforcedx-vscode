@@ -7,10 +7,10 @@
     ja: 
   baseUrl: /desktop-ide/
   children:
-   - title:
+    - title:
         en: Salesforce Extensions for Desktop
         ja: デスクトップ向けSalesforce拡張機能
-      url: /getting-started/extensions-intro.md
+      url: /getting-started/extensions-intro
     - title:
         en: Install Salesforce Extensions for Desktop
         ja: インストール
