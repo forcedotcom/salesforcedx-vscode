@@ -1,16 +1,8 @@
 - title:
-    en: Get Started
+    en: Desktop IDE
     ja: 使用開始
-  baseUrl: /getting-started/
-- title:
-    en: Desktop IDE for Salesforce Development
-    ja: 
-  baseUrl: /desktop-ide/
+  baseUrl: /vscode-desktop/
   children:
-    - title:
-        en: Salesforce Extensions for Desktop
-        ja: デスクトップ向けSalesforce拡張機能
-      url: /getting-started/extensions-intro
     - title:
         en: Install Salesforce Extensions for Desktop
         ja: インストール
@@ -29,17 +21,17 @@
       url: /getting-started/tips-and-tricks
 - title:
     en: Code Builder (Beta)
-    ja:
+    ja: コードビルダー（ベータ版）
   baseUrl: /codebuilder/
   children:
     - title:
         en: Set Up Code Builder
         ja: コードビルダーを設定する
-      url: /getting-started/code-builder-setup
+      url: /codebuilder/code-builder-setup
     - title:
         en: Get Started with Code Builder
         ja: コードビルダーを使い始める
-      url: /getting-started/code-builder-start
+      url: /codebuilder/code-builder-start
 - title:
     en: User Guide
     ja: ユーザガイド
