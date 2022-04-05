@@ -92,7 +92,7 @@ shell.exec('git add lerna.json');
 // Git commit
 shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
-// Merge release branch to develop
+// Merge release branch to develop as soon as it is cut to resolve conflict when merge main branch into develop after release 
 shell.exec(`git checkout develop`)
 shell.exec(`git merge ${releaseBranchName}`)
 shell.exec(`git push -u origin develop`)
