@@ -1,5 +1,5 @@
 # feat
-**if this is a feature work, please contact the technical writer to review this PR title**
+**if this is a feature work, please ask the technical writer to review this PR title**
 PR title template: feat:<description of feature work should be reviewed>
 PR body template:
 
@@ -10,7 +10,7 @@ PR body template:
 
 -----------------------------------------------------------------------------------------
 # bug
-**if this is a bug fix, please contact the technical writer to review this PR title**
+**if this is a bug fix, please ask the technical writer to review this PR title**
 PR title template: bug:<description of bug should be reviewed>
 PR body template:
 
