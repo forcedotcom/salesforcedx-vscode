@@ -6,10 +6,15 @@
  */
 
 import * as vscode from 'vscode';
+export class InputUtils {
 
-export async function getTrimmedString(options: vscode.InputBoxOptions) {
-  const input = await vscode.window.showInputBox(
-    options
-  );
-  return input ? input.trim() : input;
+  public static async getFormattedString(prompt: string, value?: string) {
+    const input = await vscode.window.showInputBox(
+      {
+        prompt,
+        value
+      }
+    );
+    return input ? input.trim() : input;
+  }
 }

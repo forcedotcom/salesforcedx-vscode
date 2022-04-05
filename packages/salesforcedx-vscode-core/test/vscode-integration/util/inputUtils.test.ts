@@ -8,11 +8,11 @@
 import { assert, expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import { getTrimmedString } from '../../../src/util/inputUtils';
+import { InputUtils } from '../../../src/util/inputUtils';
 
 describe('inputUtils Unit tests', () => {
 
-  describe('getTrimmedString', () => {
+  describe('getFormattedString', () => {
     let showInputBoxStub: sinon.SinonStub;
     const INPUT_VAL = 'Test Input';
     const EMPTY_STRING = '';
@@ -28,49 +28,49 @@ describe('inputUtils Unit tests', () => {
 
     it('should call showInputBox once', async () => {
       showInputBoxStub.resolves(INPUT_VAL);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       assert(showInputBoxStub.calledOnce);
     });
 
     it('should remove leading whitespace', async () => {
       showInputBoxStub.resolves(`  ${INPUT_VAL}`);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       expect(trimmedString).to.be.eq(INPUT_VAL);
     });
 
     it('should remove trailing whitespace', async () => {
       showInputBoxStub.resolves(`${INPUT_VAL}  `);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       expect(trimmedString).to.be.eq(INPUT_VAL);
     });
 
     it('should remove leading and trailing whitespace', async () => {
       showInputBoxStub.resolves(`  ${INPUT_VAL}  `);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       expect(trimmedString).to.be.eq(INPUT_VAL);
     });
 
     it('should return an empty string when given an empty string', async () => {
       showInputBoxStub.resolves(EMPTY_STRING);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       expect(trimmedString).to.be.eq(EMPTY_STRING);
     });
 
     it('should return empty string when given whitespace', async () => {
       showInputBoxStub.resolves(WHITESPACE);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       expect(trimmedString).to.be.eq(EMPTY_STRING);
     });
 
     it('should return undefined when given undefined', async () => {
       showInputBoxStub.resolves(undefined);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       assert.isUndefined(trimmedString);
     });
 
     it('should return null when given null', async () => {
       showInputBoxStub.resolves(null);
-      const trimmedString = await getTrimmedString({});
+      const trimmedString = await InputUtils.getFormattedString('', '');
       assert.isNull(trimmedString);
     });
   });
