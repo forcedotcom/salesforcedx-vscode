@@ -220,11 +220,7 @@ export class FunctionService {
       port: debugPort
     };
 
-    // The following check is specifically for when debugging a JavaScript function and not using
-    // a container (see W-10738230).  If there are issues with debugging TypeScript in the future,
-    // this is something to look into for TypeScript as well (though, at this time, debugging
-    // TypeScript w/o a container works).
-    if (functionExecution.isContainerLess && this.getFunctionType() === functionType.JAVASCRIPT) {
+    if (functionExecution.isContainerLess) {
       debugConfiguration.remoteRoot = undefined;
     }
 
