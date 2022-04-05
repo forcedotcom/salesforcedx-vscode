@@ -14,23 +14,23 @@ If you don’t see any SFDX commands in the command palette, make sure that you�
 
 ## Set Your Java Version
 
-See: [Java Configuration](./getting-started/java-setup.md)
+See: [Java Configuration](./en/getting-started/java-setup)
 
 ## Set Salesforce CLI Path (Windows)
 
 See [Installing the Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli). After installing Salesforce CLI, if you get the error 'Salesforce CLI is not installed', most likely Salesforce CLI is not added as a path variable. To verify or add Salesforce CLI to your Windows path variable:
 
 1. Search for `Edit the system environment variables`.
-   <img align="center" width="80%" height="80%" src="../../images/troubleshooting_set_cli_path.1.png" alt="Windows Search">
+   <img align="center" width="80%" height="80%" src="./images/troubleshooting_set_cli_path.1.png" alt="Windows Search">
 
 1. In `System Properties`, click `Environment Variables`.
-   <img align="center" width="80%" height="80%" src="../../images/troubleshooting_set_cli_path.2.png" alt="System Properties">
+   <img align="center" width="80%" height="80%" src="./images/troubleshooting_set_cli_path.2.png" alt="System Properties">
 
 1. Under `User Variables`, double-click `Path` .
-   <img align="center" width="80%" height="80%" src="../../images/troubleshooting_set_cli_path.3.png" alt="User Variables">
+   <img align="center" width="80%" height="80%" src="./images/troubleshooting_set_cli_path.3.png" alt="User Variables">
 
 1. Verify Salesforce CLI is listed as an entry. Otherwise, click New and paste the path where you installed CLI. For example, `C:\Program Files\Salesforce CLI\bin`
-   <img align="center" width="80%" height="80%" src="../../images/troubleshooting_set_cli_path.4.png" alt="Path View">
+   <img align="center" width="80%" height="80%" src="./images/troubleshooting_set_cli_path.4.png" alt="Path View">
 
 1. Click `OK`.
 
@@ -46,7 +46,7 @@ If the Apex Language Server didn’t activate, ensure that you've:
 
 1. Opened a Salesforce DX project that has a valid `sfdx-project.json` file.
 1. Opened the Salesforce DX project as a top-level folder.
-1. Installed Java 8 or Java 11; you’ll see a warning if neither version is installed.
+1. Installed Java 8, Java 11, or Java 17; you’ll see a warning if neither version is installed.
 
 If you’ve checked all of the above and nothing is working, check for errors in VS Code itself. In the VS Code menu bar, select **Help** > **Toggle Developer Tools**, click **Console**, and search for relevant messages.
 
@@ -60,7 +60,7 @@ If your deployment times for Apex code are slow, your org might have the `Compil
 
 ## Other Resources
 
-For Apex Debugger troubleshooting information, see [Apex Interactive Debugger](./apex/interactive-debugger.md).
+For Apex Debugger troubleshooting information, see [Apex Interactive Debugger](./en/apex/interactive-debugger).
 
 For general information about VS Code, see the [Visual Studio Code docs](https://code.visualstudio.com/docs).
 
