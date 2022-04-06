@@ -1,9 +1,8 @@
 Here are three templates below, please choose one of them and delete others.
-Put correct title based on title template, and only keep body template in this file.  
+Put correct title based on the title template(scope with parentheses is optional), and keep only the PR body template here.
 -----------------------------------------------------------------------------------------
-# feat
 **if this is a feature work, add the technical writer as a reviewer to the PR**
-PR title template: feat:<description of feature work should be reviewed>
+PR title template: feat(optional scope):<description of feature work should be reviewed>
 PR body template:
 
 ## What does this PR do?
@@ -12,9 +11,8 @@ PR body template:
 @<work item number>@
 
 -----------------------------------------------------------------------------------------
-# fix
 **if this is a bug fix, add the technical writer as a reviewer to the PR**
-PR title template: bug:<description of bug should be reviewed>
+PR title template: fix(optional scope):<description of bug should be reviewed>
 PR body template:
 
 ## What does this PR do?
@@ -29,9 +27,8 @@ PR body template:
 <insert gif and/or summary>
 
 -----------------------------------------------------------------------------------------
-# other works
 **if this is a chore, style, refactor, test, build, ci, revert, this PR title does not require review**
-PR title template: <keyword>:<description of this work>
+PR title template: <keyword>(optional scope):<description of this work>
 PR body template:
 
 ## What does this PR do?
