@@ -1,5 +1,5 @@
 ---
-title: Salesforce Extensions for VS Code
+title: Install Salesforce Extensions
 lang: en
 ---
 ## Overview

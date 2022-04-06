@@ -25,6 +25,10 @@
   baseUrl: /codebuilder/
   children:
     - title:
+        en: Code Builder Overview
+        ja: コードビルダーの概要
+      url: /codebuilder/about
+    - title:
         en: Set Up Code Builder
         ja: コードビルダーを設定する
       url: /codebuilder/cb-setup

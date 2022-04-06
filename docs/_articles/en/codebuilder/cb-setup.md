@@ -2,15 +2,9 @@
 title: Set Up Code Builder
 lang: en
 ---
-## Overview (To be Revised)
-Salesforce Code Builder is a second-generation (2GP) managed package that you can install in any supported Salesforce org edition. 
+# Install the Code Builder Managed Package
 
-**Note:** We provide Salesforce Code Builder to customers through a Beta program that requires agreement to specific terms and conditions. Code Builder is subject to change and isn't generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. We can't guarantee general availability within any particular time frame or at all. Make your purchase decisions only on the basis of generally available products and features.
-
-
-# Install the Code Builder Managed Package (for Blitz)
-
-Before you install, make sure you have enabled **Unlocked Packages and Second-Generation Managed Packages** in your Dev Hub.
+Salesforce Code Builder is a second-generation (2GP) managed package that you can install in any supported Salesforce org edition. Before you install, make sure you have enabled **Unlocked Packages and Second-Generation Managed Packages** in your Dev Hub.
 
 1. Click the install [link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t6g000008nwJuAAI)
 2. Log into the org in which you want to install Code Builder.
