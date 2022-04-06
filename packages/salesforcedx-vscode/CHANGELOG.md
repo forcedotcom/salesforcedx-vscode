@@ -1,5 +1,11 @@
 # 54.7.0 - April 6, 2022
 
+## Added
+
+#### salesforcedx-vscode-core
+
+- Use the new _SFDX: Rename Component_ command to quickly rename all the files of an LWC component (`js, html, css, js-meta.xml` file types) or an Aura component (`auradoc, cmp, cmp-meta.xml, css, design, svg, contoller, helper, renderer, js` file types) using a single command.
+
 # 54.6.1 - March 23, 2022
 
 ## Fixed
