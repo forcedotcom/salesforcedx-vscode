@@ -13,7 +13,7 @@
     "vscode-css-languageservice": "2.1.9",
     "vscode-languageserver": "5.2.1",
     "vscode-languageserver-protocol": "3.14.1",
-    "vscode-languageserver-types": "3.14.0",
+    "vscode-languageserver-types": "3.16.0",
     "vscode-nls": "2.0.2",
     "vscode-uri": "1.0.1"
   },

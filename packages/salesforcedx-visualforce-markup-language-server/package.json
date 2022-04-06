@@ -25,7 +25,7 @@
     "typescript": "3.8.3"
   },
   "dependencies": {
-    "vscode-languageserver-types": "3.4.0",
+    "vscode-languageserver-types": "3.16.0",
     "vscode-nls": "^2.0.2",
     "vscode-uri": "^1.0.1"
   },
