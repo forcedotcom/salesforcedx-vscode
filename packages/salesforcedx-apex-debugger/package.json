@@ -17,7 +17,7 @@
     "faye": "1.1.2",
     "request-light": "0.2.4",
     "vscode-debugadapter": "1.28.0",
-    "vscode-debugprotocol": "1.28.0"
+    "vscode-debugprotocol": "1.51.0"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "54.6.1",

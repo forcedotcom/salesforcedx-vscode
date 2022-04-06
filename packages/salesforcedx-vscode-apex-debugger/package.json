@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/salesforcedx-apex-debugger": "54.6.1",
-    "vscode-debugprotocol": "1.28.0",
+    "vscode-debugprotocol": "1.51.0",
     "vscode-extension-telemetry": "0.0.17"
   },
   "devDependencies": {
