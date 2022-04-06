@@ -35,7 +35,7 @@
     "snyk": "^1.364.0",
     "ts-loader": "5.4.5",
     "tslint": "5.5.0",
-    "typescript": "3.8.3",
+    "typescript": "3.9.10",
     "vsce": "1.103.1",
     "vscode-test": "1.6.1",
     "webpack": "4.30.0",

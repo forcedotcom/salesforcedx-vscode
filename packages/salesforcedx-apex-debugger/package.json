@@ -36,7 +36,7 @@
     "nyc": "^13",
     "rimraf": "2.6.1",
     "sinon": "^13.0.1",
-    "typescript": "3.8.3",
+    "typescript": "3.9.10",
     "vscode-debugadapter-testsupport": "1.28.0",
     "vscode-uri": "1.0.1"
   },
