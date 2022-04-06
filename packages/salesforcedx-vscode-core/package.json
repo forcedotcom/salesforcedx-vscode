@@ -32,7 +32,7 @@
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "5.12.2",
     "@salesforce/templates": "^54.2.0",
-    "@salesforce/ts-types": "1.5.13",
+    "@salesforce/ts-types": "1.5.20",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
