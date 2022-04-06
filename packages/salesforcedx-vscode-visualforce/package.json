@@ -26,7 +26,7 @@
   "dependencies": {
     "@salesforce/salesforcedx-visualforce-language-server": "54.6.1",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "54.6.1",
-    "vscode-extension-telemetry": "0.0.17",
+    "vscode-extension-telemetry": "0.4.5",
     "vscode-languageclient": "5.2.1",
     "vscode-languageserver-protocol": "3.14.1",
     "vscode-languageserver-types": "3.14.0"

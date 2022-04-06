@@ -30,7 +30,7 @@
     "@salesforce/lightning-lsp-common": "3.7.0",
     "@salesforce/salesforcedx-utils-vscode": "54.6.1",
     "applicationinsights": "1.0.7",
-    "vscode-extension-telemetry": "0.0.17",
+    "vscode-extension-telemetry": "0.4.5",
     "vscode-languageclient": "^5.2.1"
   },
   "devDependencies": {

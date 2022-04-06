@@ -31,7 +31,7 @@
     "async-lock": "1.0.0",
     "path-exists": "3.0.0",
     "request-light": "0.2.4",
-    "vscode-extension-telemetry": "0.0.17"
+    "vscode-extension-telemetry": "0.4.5"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "54.6.1",
