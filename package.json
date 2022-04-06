@@ -38,7 +38,7 @@
     "typescript": "3.8.3",
     "vsce": "1.103.1",
     "vscode-test": "1.6.1",
-    "webpack": "4.30.0",
+    "webpack": "4.46.0",
     "webpack-cli": "3.3.12"
   },
   "scripts": {
