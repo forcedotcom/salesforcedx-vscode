@@ -1,8 +1,12 @@
 - title:
-    en: Desktop IDE
+    en: Salesforce Extensions for Desktop
     ja: 使用開始
   baseUrl: /vscode-desktop/
   children:
+    - title:
+        en: Salesforce Extensions for Desktop
+        ja: インストール
+      url: /vscode-desktop/desktop-intro
     - title:
         en: Install Salesforce Extensions for Desktop
         ja: インストール

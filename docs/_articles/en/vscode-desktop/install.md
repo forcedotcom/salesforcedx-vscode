@@ -14,13 +14,11 @@ To install Visual Studio Code visit <https://code.visualstudio.com> and click th
 
 ## Salesforce Extensions for Visual Studio Code
 
-Install the Salesforce Extension Pack extension from the Visual Studio Marketplace. The extension pack contains additional features that help you develop Salesforce apps using Visual Studio Code.
+Want to develop locally? Already using VS Code? Install Salesforce Extensions and Salesforce CLI to develop quickly and more productively on Salesforce platform.
 
-To install the extensions, visit <https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode> and click the green **Install** button. The installation process prompts you to open Visual Studio Code. After Visual Studio Code opens, a dialog box opens in the lower right corner, asking you to install the extension. Click **Install** to proceed.
+<span>Use the links below to install VS Code and the Salesforce Extension pack.
 
-![Install Extension](./images/install-salesforce-extensions-dialog.png)
-
-After the extensions are installed, you see a blue **Reload** button. To reload Visual Studio Code and finish the installation, click the button (or close and reopen Visual Studio Code).
+<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
 
 ## Salesforce CLI
 
@@ -30,4 +28,4 @@ For information about installing Salesforce CLI, see the _[Salesforce DX Setup G
 
 ## Java Platform, Standard Edition Development Kit
 
-Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 8 or version 11 of the JDK installed. See [Java Setup](./en/getting-started/java-setup) for details.
+Some features in Salesforce Extensions for VS Code depend upon the Java Platform, Standard Edition Development Kit (JDK). You need to have either version 8, 11 or 17 of the JDK installed. See [Java Setup](./en/getting-started/java-setup) for details.
