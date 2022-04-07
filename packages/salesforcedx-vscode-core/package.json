@@ -990,10 +990,10 @@
           "default": false,
           "description": "%enable_sobject_refresh_on_startup_description%"
         },
-        "salesforcedx-vscode-core.activate-source-tracking-for-deploy-retrieve": {
+        "salesforcedx-vscode-core.activateDeployAndRetrieveForSourceTrackedOrgs": {
           "type": "boolean",
           "default": false,
-          "description": "%activate-source-tracking-for-deploy-retrieve%"
+          "description": "%activate-deploy-and-retrieve-for-source-tracked-orgs%"
         }
       }
     },
