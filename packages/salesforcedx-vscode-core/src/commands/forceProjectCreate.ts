@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
+import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import {
   CompositeParametersGatherer,
@@ -157,15 +158,9 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectName>
   > {
-    const projectNameInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_project_name')
-    } as vscode.InputBoxOptions;
-    if (this.prefillValueProvider) {
-      projectNameInputOptions.value = this.prefillValueProvider();
-    }
-    const projectName = await vscode.window.showInputBox(
-      projectNameInputOptions
-    );
+    const prompt = nls.localize('parameter_gatherer_enter_project_name');
+    const prefillValue = this.prefillValueProvider ? this.prefillValueProvider() : '';
+    const projectName = await InputUtils.getFormattedString(prompt, prefillValue);
     return projectName
       ? { type: 'CONTINUE', data: { projectName } }
       : { type: 'CANCEL' };
