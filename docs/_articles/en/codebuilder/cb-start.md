@@ -211,9 +211,5 @@ Congratulations on successfully creating and deploying a new Lightning Web Compo
 ## To Learn More
 You can take your time and use these resources to learn more about what you can do in Code Builder:
 
-*  [Visual Studio Code User Interface](https://code.visualstudio.com/docs/getstarted/userinterface) to get to know the Visual Studio code user interface 
+* [Visual Studio Code User Interface](https://code.visualstudio.com/docs/getstarted/userinterface) to get to know the Visual Studio code user interface 
 * [Salesforce Extensions](https://developer.salesforce.com/tools/vscode) to learn about all the powerful features of the Salesforce Extension for VS Code. 
-
-## Run Into Trouble? Got Feedback?
-
-If you encounter any issues using Code Builder, or want to provide other types of feedback, such as initial impressions or feature requests, [file an issue](https://github.com/forcedotcom/try-code-builder-feedback/issues) in the GitHub repo. We want to understand what features and enhancements are important to you. 

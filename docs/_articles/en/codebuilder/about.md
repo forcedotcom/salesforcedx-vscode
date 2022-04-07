@@ -10,4 +10,14 @@ The Code Builder dev environment that can be spun up in seconds and is custom to
 You can install Code Builder as a managed package in any supported Salesforce org edition.
 
 
+![Code Builder Welcome Page](../../../images/codebuilder_welcome.png)
+
 **Note:** We provide Salesforce Code Builder to customers through a Beta program that requires agreement to specific terms and conditions. Code Builder is subject to change and isn't generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. We can't guarantee general availability within any particular time frame or at all. Make your purchase decisions only on the basis of generally available products and features.
+
+## Additional Resources
+
+- [Salesforce Developer Tooling Learning Map](https://developertoolinglearningmap.herokuapp.com/)
+- Trailhead: [Code Builder Quick Look](https://trailhead.salesforce.com/content/learn/modules/code-builder-quick-look)
+  
+## Bugs and Feedback
+If you encounter any issues using Code Builder, or want to provide other types of feedback, such as initial impressions or feature requests, [file an issue](https://github.com/forcedotcom/try-code-builder-feedback/issues) in the GitHub repo. We want to understand what features and enhancements are important to you. 
