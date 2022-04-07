@@ -1,7 +1,9 @@
 ---
-title: Salesforce Extensions for VS Code
+title: Salesforce Extensions for VS Code (Dumped Extra Links Here Right Now)
 lang: en
 ---
+
+![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](./images/overview.gif)
 ## Additional Resources
 
 - [Salesforce Developer Tooling Learning Map](https://developertoolinglearningmap.herokuapp.com/)
