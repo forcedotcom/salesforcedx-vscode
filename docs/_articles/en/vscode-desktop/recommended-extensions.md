@@ -1,19 +1,20 @@
 ---
-title: Recommended Extensions
+title: Other Recommended Extensions
 lang: en
 ---
 
 #  Extensions We Recommend
 In addition to the extension pack shipped by Salesforce, the following extensions are useful for Salesforce developers. We also package the Extension pack with some of the most-used community extensions in the [expanded extension pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded).
 
-:::note
-Because Code Builder is a web-based and comes with pre-installed extensions, this list is not of relevance to you if Code Builder is your development environment of choice.
-:::
+> **_NOTE:_** Because Code Builder is a web-based and comes with pre-installed extensions, this list is not of relevance to you if Code Builder is your development environment of choice.
 ## Apex PMD
 
 Allows you to run Apex static analysis directly in VS Code on Apex and Visualforce files.
 
 <https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd>
+
+
+<a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="<https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-pmd>">Install Apex PMD</a>
 
 ## Apex Log Analyzer
 

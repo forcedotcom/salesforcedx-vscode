@@ -11,9 +11,8 @@ You can install Code Builder as a managed package in any supported Salesforce or
 
 ![Code Builder Welcome Page](../../../images/codebuilder_welcome.png)
 
-:::note
-We provide Salesforce Code Builder to customers through a Beta program that requires agreement to specific terms and conditions. Code Builder is subject to change and isn't generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. We can't guarantee general availability within any particular time frame or at all. Make your purchase decisions only on the basis of generally available products and features.
-:::
+
+> **_NOTE:_**  We provide Salesforce Code Builder to customers through a Beta program that requires agreement to specific terms and conditions. Code Builder is subject to change and isn't generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. We can't guarantee general availability within any particular time frame or at all. Make your purchase decisions only on the basis of generally available products and features.
 
 # Additional Resources
 
