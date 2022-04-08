@@ -17,9 +17,10 @@ Use SOQL Builder to build simple query statements that include:
 
   To dig deeper regarding SOQL syntax or to build more complex queries in the text editor, see the [SOQL and SOSL Reference guide](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_sosl_intro.htm).
   
-**Note**
-- You can run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
-- WHERE clauses can be quite complex. SOQL Builder supports simple WHERE expressions. You can combine conditions using AND or OR, but not both.
+  
+> **_NOTE:_** 
+> - You can run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
+> - WHERE clauses can be quite complex. SOQL Builder supports simple WHERE expressions. You can combine conditions using AND or OR, but not both.
 
 
 ### Set Up
