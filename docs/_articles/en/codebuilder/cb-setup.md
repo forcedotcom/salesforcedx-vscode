@@ -2,7 +2,8 @@
 title: Set Up Code Builder
 lang: en
 ---
-# Install the Code Builder Managed Package
+
+## Install the Code Builder Managed Package
 
 Salesforce Code Builder is a second-generation (2GP) managed package that you can install in any supported Salesforce org edition. Before you install, make sure you have enabled **Unlocked Packages and Second-Generation Managed Packages** in your Dev Hub.
 
@@ -25,14 +26,22 @@ Salesforce Code Builder is a second-generation (2GP) managed package that you ca
 
 5. Click **Done** when installation is Complete.
 
+## OR THIS Install the Code Builder
+
+Salesforce Code Builder is a second-generation (2GP) managed package that you can install in any supported Salesforce org edition. Before you install, make sure you have enabled **Unlocked Packages and Second-Generation Managed Packages** in your Dev Hub then follow the standard process for installing a managed package. 
+
 # Assign Permissions
 As an admin, assign permissions to users who will use Code Builder:
 
 1. From Setup, enter Permission in the Quick Find box, then select **Permission Sets**.
-2. Select **CodeBuilder**.
+2. Click **CodeBuilder**.
 3. Click **Manage Assignments** 
 4. Click **Add Assignments**.
 5. Select the checkboxes next to the names of the users you want assigned to the permission set, and click **Assign**.
 
 
 Your users can now go to the App Launcher and launch **Code Builder(Beta)**.
+
+## See Also
+[Install a Package](https://help.salesforce.com/s/articleView?id=sf.distribution_installing_packages.htm&type=5)
+[Assign a Permission Set to Multiple Users](https://help.salesforce.com/s/articleView?id=sf.perm_sets_mass_assign.htm&type=5)
