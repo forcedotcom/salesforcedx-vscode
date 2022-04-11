@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalRun } from '@heroku/functions-core';
+import {LocalRun, LocalRunProcess} from '@heroku/functions-core';
 import { Disposable } from 'vscode';
 import { channelService } from '../../../channels';
 import { nls } from '../../../messages';
 import { notificationService } from '../../../notifications';
 import { telemetryService } from '../../../telemetry';
-import { FUNCTION_TYPE_JAVA } from '../../templates/metadataTypeConstants';
 import { FunctionService, functionType } from '../functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
@@ -20,6 +19,8 @@ import {
 import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {
+  private process: LocalRunProcess | undefined;
+
   public async setupFunctionListeners(): Promise<void> {
     console.log('No listeners for containerless function.');
   }
@@ -27,7 +28,10 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
   public async cancelFunction(
     registeredStartedFunctionDisposable: Disposable
   ): Promise<void> {
-    // TODO: how to stop the localRun
+    if (this.process && !this.process.cancelled) {
+      this.process.cancel();
+      this.process = undefined;
+    }
     registeredStartedFunctionDisposable.dispose();
   }
 
@@ -52,10 +56,8 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
 
     localRun
       .exec()
-      .then(msg => {
-        console.log(
-          `localRun resolved in ForceFunctionContainerlessStartExecutor with message: ${msg}`
-        );
+      .then(process => {
+        this.process = process;
       })
       .catch((err: Error) => {
         const errorNotificationMessage = nls.localize(
