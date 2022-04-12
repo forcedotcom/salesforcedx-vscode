@@ -383,7 +383,7 @@ describe('Function Service', () => {
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
       const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
-      expect(debugConfiguration.remoteRoot).to.equal(undefined);
+      expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
     });
 
     it('Should set remoteRoot to /workspace when TypeScript and running in a container.', () => {
@@ -421,7 +421,7 @@ describe('Function Service', () => {
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
       const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
-      expect(debugConfiguration.remoteRoot).to.equal(undefined);
+      expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
     });
 
     it('Should set remoteRoot to /workspace when Java and running in a container.', () => {
@@ -461,7 +461,7 @@ describe('Function Service', () => {
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
       const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
-      expect(debugConfiguration.remoteRoot).to.equal(undefined);
+      expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
     });
   });
 });
