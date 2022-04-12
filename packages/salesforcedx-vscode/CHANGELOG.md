@@ -9,7 +9,7 @@ We now consume the latest lightning-language-server packages, which fixes the te
 
 ### salesforcedx-vscode-core
 
-We now strip leading and trailing white spaces when you create a project using the `SFDX: Create Project` command. ([PR #3950](https://github.com/forcedotcom/salesforcedx-vscode/pull/3950)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/2605
+We now strip leading and trailing white spaces from the project name when you create a project using the `SFDX: Create Project` command. ([PR #3950](https://github.com/forcedotcom/salesforcedx-vscode/pull/3950)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/2605
 
 # 54.7.0 - April 6, 2022
 
