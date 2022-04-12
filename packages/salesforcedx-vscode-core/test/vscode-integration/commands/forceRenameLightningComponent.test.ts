@@ -10,8 +10,10 @@ const lwcPath = vscode.Uri.parse('/force-app/main/default/lwc');
 const auraPath = vscode.Uri.parse('/force-app/main/default/aura/');
 const lwcComponent = 'hero';
 const auraComponent = 'page';
-const itemsInHero = ['_test_', 'hero.css', 'hero.html', 'hero.js', 'hero.js-meta.xml', 'templateOne.html'];
-const itemsInPage = ['_test_', 'page.auradoc', 'page.cmp', 'page.cmp-meta.xml', 'page.css', 'page.design', 'page.svg', 'pageController.js', 'pageHelper.js', 'pageRenderer.js', 'templateOne.css'];
+const itemsInHero = ['hero.css', 'hero.html', 'hero.js', 'hero.js-meta.xml', 'templateOne.html'];
+const itemsInPage = ['page.auradoc', 'page.cmp', 'page.cmp-meta.xml', 'page.css', 'page.design', 'page.svg', 'pageController.js', 'pageHelper.js', 'pageRenderer.js', 'templateOne.css'];
+const testFolder = '__tests__';
+const testFiles = ['hero.test.js', 'example.test.js'];
 
 const env = sinon.createSandbox();
 let renameStub: sinon.SinonStub;
@@ -39,7 +41,7 @@ describe('Force Rename Lightning Component', () => {
       readdirStub
         .onFirstCall().resolves([])
         .onSecondCall().resolves([])
-        .onThirdCall().resolves([itemsInHero[1]]);
+        .onThirdCall().resolves([itemsInHero[0]]);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -81,6 +83,27 @@ describe('Force Rename Lightning Component', () => {
       expect(renameStub.callCount).to.equal(10);
     });
 
+    it('should rename the test file that has the same name as component', async () => {
+      const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      readdirStub
+      .onCall(0).resolves([])
+      .onCall(1).resolves([])
+      .onCall(2).resolves([testFolder])
+      .onCall(3).resolves(testFiles);
+      const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
+      await executor.run({
+        type: 'CONTINUE',
+        data: {name: 'hero1'}
+      });
+      const testFolderPath = path.join(sourceUri.fsPath, testFolder);
+      const oldFilePath = path.join(testFolderPath, 'hero.test.js');
+      const newFilePath = path.join(testFolderPath, 'hero1.test.js');
+      const newFolderPath = path.join(lwcPath.fsPath, 'hero1');
+      expect(renameStub.callCount).to.equal(2);
+      expect(renameStub.calledWith(oldFilePath, newFilePath)).to.equal(true);
+      expect(renameStub.calledWith(sourceUri.fsPath, newFolderPath)).to.equal(true);
+    });
+
     it('should show the warning message once rename is done', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
       readdirStub
@@ -117,7 +140,7 @@ describe('Force Rename Lightning Component', () => {
       readdirStub
         .onFirstCall().resolves([])
         .onSecondCall().resolves([])
-        .onThirdCall().resolves([itemsInHero[1]]);
+        .onThirdCall().resolves([itemsInHero[0]]);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -134,7 +157,7 @@ describe('Force Rename Lightning Component', () => {
       readdirStub
         .onFirstCall().resolves([])
         .onSecondCall().resolves([])
-        .onThirdCall().resolves([itemsInHero[1]]);
+        .onThirdCall().resolves([itemsInHero[0]]);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -148,7 +171,7 @@ describe('Force Rename Lightning Component', () => {
       readdirStub
         .onFirstCall().resolves([])
         .onSecondCall().resolves([])
-        .onThirdCall().resolves([itemsInHero[1]]);
+        .onThirdCall().resolves([itemsInHero[0]]);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -162,7 +185,7 @@ describe('Force Rename Lightning Component', () => {
       readdirStub
       .onFirstCall().resolves([])
       .onSecondCall().resolves([])
-      .onThirdCall().resolves([itemsInHero[1]]);
+      .onThirdCall().resolves([itemsInHero[0]]);
       const showWarningMessageSpy = env.spy(notificationService, 'showWarningMessage');
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
@@ -196,15 +219,16 @@ describe('Force Rename Lightning Component', () => {
     it('should return true if file name and component name match for essential LWC files', () => {
       const componentName = 'hero';
       const componentPath = path.join(lwcPath.fsPath, lwcComponent);
+      expect(isNameMatch(itemsInHero[0], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInHero[1], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInHero[2], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInHero[3], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInHero[4], componentName, componentPath)).to.equal(true);
     });
 
     it('should return true of file name and component name match for essential Aura files', () => {
       const componentName = 'page';
       const componentPath = path.join(auraPath.fsPath, auraComponent);
+      expect(isNameMatch(itemsInPage[0], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInPage[1], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInPage[2], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInPage[3], componentName, componentPath)).to.equal(true);
@@ -213,7 +237,6 @@ describe('Force Rename Lightning Component', () => {
       expect(isNameMatch(itemsInPage[6], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInPage[7], componentName, componentPath)).to.equal(true);
       expect(isNameMatch(itemsInPage[8], componentName, componentPath)).to.equal(true);
-      expect(isNameMatch(itemsInPage[9], componentName, componentPath)).to.equal(true);
     });
 
     it('should return false if file type is not in LWC or Aura or file name and component name do not match', () => {

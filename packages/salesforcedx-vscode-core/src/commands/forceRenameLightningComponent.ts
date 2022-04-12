@@ -23,6 +23,7 @@ const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
 const RENAME_WARNING = 'rename_component_warning';
 const LWC = 'lwc';
 const AURA = 'aura';
+const TEST_FOLDER = '__tests__';
 
 export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
@@ -96,6 +97,19 @@ async function renameComponent(sourceFsPath: string, newName: string) {
         path.join(componentPath, newItem)
       );
     }
+    if (item === TEST_FOLDER) {
+      const testFolderPath = path.join(componentPath, TEST_FOLDER);
+      const testFiles = await fs.promises.readdir(testFolderPath);
+      for (const file of testFiles) {
+        if (isNameMatch(file, componentName, componentPath)) {
+          const newFile = file.replace(componentName, newName);
+          await fs.promises.rename(
+            path.join(testFolderPath, file),
+            path.join(testFolderPath, newFile)
+          );
+        }
+      }
+    }
   }
   const newComponentPath = path.join(path.dirname(componentPath), newName);
   await fs.promises.rename(
@@ -144,7 +158,7 @@ export function isNameMatch(item: string, componentName: string, componentPath: 
   const isLwc = isLwcComponent(componentPath);
   let regularExp: RegExp;
   if (isLwc) {
-    regularExp = new RegExp(`${componentName}\.(html|js|js-meta.xml|css|svg)`);
+    regularExp = new RegExp(`${componentName}\.(html|js|js-meta.xml|css|svg|test.js)`);
   } else {
     regularExp = new RegExp(`${componentName}(((Controller|Renderer|Helper)?\.js)|(\.(cmp|app|css|design|auradoc|svg)))`);
   }
