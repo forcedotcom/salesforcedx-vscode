@@ -1,4 +1,4 @@
-PR title should follow the pattern: <keyword>(optional scope): <description>, if this is a feat/fix, add the technical writer as a reviewer to the PR.
+PR title should follow the pattern: <keyword>(optional scope): <description>. If this is a feat/fix, add the technical writer as a reviewer to the PR.
 
 ### What does this PR do?
 
