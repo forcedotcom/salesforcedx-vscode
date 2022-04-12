@@ -366,7 +366,7 @@ describe('Function Service', () => {
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
-    it('Should set remoteRoot to undefined when JavaScript and containerless.', () => {
+    it('Should set remoteRoot to undefined when JavaScript and running containerless.', () => {
       const functionDef: FunctionExecution = {
         rootDir: 'FirstFunction',
         debugPort: 7777,
@@ -405,7 +405,7 @@ describe('Function Service', () => {
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
-    it('Should set remoteRoot to /workspace when TypeScript and containerless.', () => {
+    it('Should set remoteRoot to /workspace when TypeScript and running containerless.', () => {
       const functionDef: FunctionExecution = {
         rootDir: 'FirstFunction',
         debugPort: 7777,
@@ -421,7 +421,7 @@ describe('Function Service', () => {
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
       const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
-      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
+      expect(debugConfiguration.remoteRoot).to.equal(undefined);
     });
 
     it('Should set remoteRoot to /workspace when Java and running in a container.', () => {
@@ -444,7 +444,7 @@ describe('Function Service', () => {
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
-    it('Should set remoteRoot to /workspace when Java and containerless.', () => {
+    it('Should set remoteRoot to /workspace when Java and running containerless.', () => {
       const functionDef: FunctionExecution = {
         rootDir: 'FirstFunction',
         debugPort: 7777,
@@ -461,7 +461,7 @@ describe('Function Service', () => {
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
       const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
-      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
+      expect(debugConfiguration.remoteRoot).to.equal(undefined);
     });
   });
 });
