@@ -4,7 +4,6 @@ import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import {
-  FUNCTION_TYPE_ERROR,
   FunctionExecution,
   FunctionService,
   functionType
@@ -13,6 +12,7 @@ import {
   FUNCTION_DEFAULT_DEBUG_PORT,
   FUNCTION_DEFAULT_PORT
 } from '../../../../src/commands/functions/types/constants';
+import { nls } from '../../../../src/messages';
 import { getRootWorkspace, getRootWorkspacePath } from '../../../../src/util';
 import { MockContext } from '../../telemetry/MockContext';
 
@@ -300,7 +300,7 @@ describe('Function Service', () => {
       const service = FunctionService.instance;
       expect(() => {
         service.getFunctionType();
-      }).to.throw(FUNCTION_TYPE_ERROR);
+      }).to.throw(nls.localize('error_function_type'));
     });
 
     it('Should identify a typscript function.', () => {

@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
 import { workspaceContext } from '../../context';
+import { nls } from '../../messages';
 import { getRootWorkspace, getRootWorkspacePath } from '../../util';
 
 /**
@@ -57,9 +58,6 @@ export interface FunctionExecution extends Terminable {
    */
   isContainerLess: boolean;
 }
-
-export const FUNCTION_TYPE_ERROR =
-  'Unable to determine type of executing function.';
 
 export class FunctionService {
   private static _instance: FunctionService;
@@ -161,7 +159,8 @@ export class FunctionService {
 
       return functionType.JAVA;
     }
-    throw new Error(FUNCTION_TYPE_ERROR);
+
+    throw new Error(nls.localize('error_function_type'));
   }
 
   /**
@@ -188,8 +187,7 @@ export class FunctionService {
   public async debugFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
     if (!functionExecution) {
-      // TODO: report error?
-      return;
+      throw new Error(nls.localize('error_unable_to_get_started_function').replace('{0}', rootDir));
     }
 
     if (!functionExecution.debugSession) {
@@ -221,7 +219,7 @@ export class FunctionService {
     };
 
     if (functionExecution.isContainerLess) {
-      debugConfiguration.remoteRoot = undefined;
+      delete debugConfiguration.remoteRoot;
     }
 
     return debugConfiguration;
