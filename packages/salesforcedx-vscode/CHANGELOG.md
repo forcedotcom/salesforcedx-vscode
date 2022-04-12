@@ -1,5 +1,16 @@
 # 54.8.0 - April 13, 2022
 
+## Fixed
+
+#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lwc
+
+We now consume the latest lightning-language-server packages, which fixes the textDocument/hover error when the package incorrectly parsed the content of `.js` files ([PR #4003](https://github.com/forcedotcom/salesforcedx-vscode/pull/4003)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/3929.
+
+### salesforcedx-vscode-core
+
+We now strip leading and trailing white spaces when you create a project using the `SFDX: Create Project` command. ([PR #3950](https://github.com/forcedotcom/salesforcedx-vscode/pull/3950)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/2605
+
 # 54.7.0 - April 6, 2022
 
 ## Added
