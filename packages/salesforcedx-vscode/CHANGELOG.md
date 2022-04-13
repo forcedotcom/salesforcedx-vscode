@@ -16,7 +16,7 @@ We now strip leading and trailing white spaces from the project name when you cr
 
 #### salesforcedx-vscode-core
 
-- Use the new _SFDX: Rename Component_ command to quickly rename all the files of an LWC component (`js, html, css, js-meta.xml` file types) or an Aura component (`auradoc, cmp, cmp-meta.xml, css, design, svg, contoller, helper, renderer, js` file types) using a single command.
+- Right-click and run the new SFDX: Rename Component command to quickly rename all the files of an LWC component (js, html, css, js-meta.xml file types) or an Aura component (auradoc, cmp, cmp-meta.xml, css, design, svg, contoller, helper, renderer, js file types) using a single command ([PR #3923](https://github.com/forcedotcom/salesforcedx-vscode/pull/3923)).
 
 # 54.6.1 - March 23, 2022
 
