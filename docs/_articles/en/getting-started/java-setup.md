@@ -30,7 +30,7 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/adoptopenjdk-17.jdk/Contents/Home"
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home"
 }
 ```
 
@@ -38,7 +38,7 @@ Windows:
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\AdoptOpenJDK\\jdk-17.0.2.8-hotspot"
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.2.8-hotspot"
 }
 ```
 
