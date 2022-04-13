@@ -75,7 +75,7 @@ export abstract class ForceFunctionStartExecutor extends LibraryCommandletExecut
         rootDir: functionDirPath,
         port: FUNCTION_DEFAULT_PORT,
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
-        // Note this defaults to node but will be updated by the updateFunction method after the function is started if necessarly.
+        // Note this defaults to node but will be updated by the updateFunction method after the function is started if necessary.
         debugType: 'node',
         terminate: () => {
           return new Promise(resolve =>

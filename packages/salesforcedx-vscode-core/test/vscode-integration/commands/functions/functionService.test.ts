@@ -340,10 +340,17 @@ describe('Function Service', () => {
   });
 
   describe('Debug Configuration', () => {
-    let fsSyncStub: SinonStub;
+    let getFunctionTypeStub: SinonStub;
 
     beforeEach(() => {
-      fsSyncStub = sandbox.stub(fs, 'existsSync');
+      getFunctionTypeStub = sandbox.stub(
+        FunctionService.prototype,
+        'getFunctionType'
+      );
+    });
+
+    afterEach(() => {
+      getFunctionTypeStub.restore()
     });
 
     it('Should set remoteRoot to /workspace when JavaScript and running in a container.', () => {
@@ -355,9 +362,8 @@ describe('Function Service', () => {
         terminate: () => Promise.resolve(),
         isContainerLess: false
       };
+      getFunctionTypeStub.returns(functionType.JAVASCRIPT);
 
-      fsSyncStub.onCall(0).returns(false);
-      fsSyncStub.onCall(1).returns(true);
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
@@ -375,9 +381,8 @@ describe('Function Service', () => {
         terminate: () => Promise.resolve(),
         isContainerLess: true
       };
+      getFunctionTypeStub.returns(functionType.JAVASCRIPT);
 
-      fsSyncStub.onCall(0).returns(false);
-      fsSyncStub.onCall(1).returns(true);
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
@@ -395,8 +400,8 @@ describe('Function Service', () => {
         terminate: () => Promise.resolve(),
         isContainerLess: false
       };
+      getFunctionTypeStub.returns(functionType.TYPESCRIPT);
 
-      fsSyncStub.returns(true);
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
@@ -414,8 +419,8 @@ describe('Function Service', () => {
         terminate: () => Promise.resolve(),
         isContainerLess: true
       };
+      getFunctionTypeStub.returns(functionType.TYPESCRIPT);
 
-      fsSyncStub.returns(true);
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
@@ -433,9 +438,8 @@ describe('Function Service', () => {
         terminate: () => Promise.resolve(),
         isContainerLess: false
       };
+      getFunctionTypeStub.returns(functionType.JAVA);
 
-      fsSyncStub.onCall(0).returns(false);
-      fsSyncStub.onCall(1).returns(false);
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
@@ -453,9 +457,8 @@ describe('Function Service', () => {
         terminate: () => Promise.resolve(),
         isContainerLess: true
       };
+      getFunctionTypeStub.returns(functionType.JAVA);
 
-      fsSyncStub.onCall(0).returns(false);
-      fsSyncStub.onCall(1).returns(false);
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
