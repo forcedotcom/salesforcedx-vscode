@@ -372,7 +372,7 @@ describe('Function Service', () => {
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
-    it('Should set remoteRoot to undefined when JavaScript and running containerless.', () => {
+    it('Should validate that remoteRoot is not defined when JavaScript and running containerless.', () => {
       const functionDef: FunctionExecution = {
         rootDir: 'FirstFunction',
         debugPort: 7777,
@@ -410,7 +410,7 @@ describe('Function Service', () => {
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
-    it('Should set remoteRoot to /workspace when TypeScript and running containerless.', () => {
+    it('Should validate that remoteRoot is not defined when TypeScript and running containerless.', () => {
       const functionDef: FunctionExecution = {
         rootDir: 'FirstFunction',
         debugPort: 7777,
@@ -448,7 +448,7 @@ describe('Function Service', () => {
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
-    it('Should set remoteRoot to /workspace when Java and running containerless.', () => {
+    it('Should validate that remoteRoot is not defined when Java and running containerless.', () => {
       const functionDef: FunctionExecution = {
         rootDir: 'FirstFunction',
         debugPort: 7777,
