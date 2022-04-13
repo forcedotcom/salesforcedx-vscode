@@ -33,6 +33,10 @@
         ja: コードビルダーの概要
       url: /codebuilder/about
     - title:
+        en: What's Different
+        ja: 何が違うの
+      url: /codebuilder/cb-diffs
+    - title:
         en: Set Up Code Builder
         ja: コードビルダーを設定する
       url: /codebuilder/cb-setup

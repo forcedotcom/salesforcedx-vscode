@@ -2,10 +2,11 @@
 title: Code Builder Quick Start
 lang: en
 ---
+
 # Overview
 Complete this Quick Start to become familiar with the Code Builder interface and perform some simple tasks in your Code Builder environment.
 ## Important Considerations for Code Builder Beta
-We have capped usage for beta at 20 hours for a maximum of 30 days. We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using Code Builder.
+We've capped usage for beta at 20 hours for a maximum of 30 days. We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using Code Builder.
 
 ### Don’t Forget to Save Your Work
 Working in the cloud has its advantages. There are some differences though. Unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work. Remember to do this before you close the Code Builder tab on your browser so you don’t lose your work.  Throughout the beta, Code Builder environments could be deleted.  All beta environments will be removed before GA.
@@ -106,7 +107,7 @@ First let’s add a custom field  –
      * Field Label: Created On
      * Field Name: createdon
      * Description: Date of Account Creation
-6. Click Next until you save the field.
+6. Click **Next** until you save the field.
 
 Now let’s retrieve metadata for this new field –
 
@@ -131,9 +132,9 @@ The metadata is here for your reference:
 ```
 We’ll now make a simple edit to this field and deploy our changes back to our org with a single click.
 
-Edit `createdon_c.field-meta.xm`l and change the `<required>` tag value to `true` to indicate that you want this custom field to be a required field. 
-Right click the `objects/Account` folder and click **SFDX: Deploy Source to Org** 
-After the command has successfully run, go back to your org and check details of the **Created On** custom field and confirm that it’s now a required field. 
+1. Edit `createdon_c.field-meta.xm`l and change the `<required>` tag value to `true` to indicate that you want this custom field to be a required field. 
+2. Right click the `objects/Account` folder and click **SFDX: Deploy Source to Org** 
+3. After the command has successfully run, go back to your org and check details of the **Created On** custom field and confirm that it’s now a required field. 
 
 ## Create and Deploy a New Lightning Web Component
 For another exercise in deploying, let’s learn how to quickly create a simple Lightning Web Component in our Code Builder project. We’ll then deploy this component to our org using a single command. Here we go:
@@ -143,7 +144,7 @@ Let’s create a Lightning Web Component –
 1. Press Ctrl+Shift+P (⇧⌘P) run **SFDX: Create Lightning Web Component** to create a New Lightning Web Component. 
 2. Give the component a name, say, `newCBComponent`.
 3. Press Enter to accept the default file location (`force-app/main/default/lwc`).
-4 Press Enter.
+4. Press Enter.
 
 Three new files are created in the `force-app/main/default/lwc/newCBComponent` folder.
 
@@ -186,8 +187,10 @@ export default class NewCBComponent extends LightningElement {
 
 Let’s deploy this new component to our org – 
 
-Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org** 
+1. Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org** 
+
 Your output window and shows this message:
+
 ```
 
 === Deployed Source
@@ -200,8 +203,10 @@ Created  newCBComponent  LightningComponentBundle  force-app/main/default/lwc/ne
 10:22:27.340 ended SFDX: Deploy Source to Org
 
 ```
-Select **SFDX: Open Default Org** to log into your org.
-Navigate to **Setup:Lightning Components** to confirm that a new lightning component named `newCBComponent` is now available in your org. 
+2. Select **SFDX: Open Default Org** to log into your org.
+3. Navigate to **Setup:Lightning Components** to confirm that a new lightning component named `newCBComponent` is now available in your org. 
+
+
 Congratulations on successfully creating and deploying a new Lightning Web Component.
 
 ## To Learn More

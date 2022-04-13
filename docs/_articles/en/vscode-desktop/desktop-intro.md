@@ -4,7 +4,7 @@ lang: en
 ---
 Download Salesforce Extensions for Visual Studio Code are a set of open-source extensions that come with rich tools for developing on the Salesforce platform. Download and install these extensions to start developing on the Salesforce platform. 
 
-![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](./images/overview.gif)
+![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](../../../images/overview.gif)
 ## Additional Resources
 
 - [Salesforce Developer Tooling Learning Map](https://developertoolinglearningmap.herokuapp.com/)
