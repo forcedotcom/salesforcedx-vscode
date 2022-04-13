@@ -514,7 +514,7 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
       assert.calledWith(startFunctionStub, fakeId, fakeResponse.data);
     };
 
-    it.only('Should be able to run a container executor.', async () => {
+    it('Should be able to run a container executor.', async () => {
       getDefaultUsernameOrAliasStub.resolves('defaultUserName');
       await runExecutor(getDefaultUsernameOrAliasStub);
       assert.callCount(appendLineStub, 2);
