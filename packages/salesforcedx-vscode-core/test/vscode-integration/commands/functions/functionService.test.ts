@@ -350,7 +350,7 @@ describe('Function Service', () => {
     });
 
     afterEach(() => {
-      getFunctionTypeStub.restore()
+      getFunctionTypeStub.restore();
     });
 
     it('Should set remoteRoot to /workspace when JavaScript and running in a container.', () => {
