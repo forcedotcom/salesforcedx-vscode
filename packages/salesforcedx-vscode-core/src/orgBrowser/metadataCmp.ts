@@ -6,6 +6,7 @@
  */
 import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce';
 import * as path from 'path';
@@ -20,6 +21,8 @@ const validManageableStates = new Set([
   'deprecatedEditable',
   undefined // not part of a package
 ]);
+
+const STANDARDVALUESET_FULLNAME = 'StandardValueSet';
 
 export const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 
@@ -168,6 +171,8 @@ export class ComponentUtils {
       } else {
         componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
       }
+    } else if (metadataType === STANDARDVALUESET_FULLNAME) {
+      componentsList = standardValueSet.fullnames;
     } else {
       if (freshFetch) {
         componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);
