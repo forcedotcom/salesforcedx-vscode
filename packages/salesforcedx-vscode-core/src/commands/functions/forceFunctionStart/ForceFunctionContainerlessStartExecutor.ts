@@ -31,6 +31,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     if (this.process && !this.process.cancelled) {
       this.process.cancel();
       this.process = undefined;
+      channelService.appendLine('Stopped containerless function');
     }
     registeredStartedFunctionDisposable.dispose();
   }
