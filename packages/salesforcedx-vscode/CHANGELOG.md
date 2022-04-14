@@ -1,10 +1,22 @@
+# 54.8.0 - April 13, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-lightning, salesforcedx-vscode-lwc
+
+We now consume the latest lightning-language-server packages, which fixes the textDocument/hover error when the package incorrectly parsed the content of `.js` files ([PR #4003](https://github.com/forcedotcom/salesforcedx-vscode/pull/4003)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/3929.
+
+#### salesforcedx-vscode-core
+
+We now strip leading and trailing white spaces from the project name when you create a project using the `SFDX: Create Project` command. ([PR #3950](https://github.com/forcedotcom/salesforcedx-vscode/pull/3950)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/2605
+
 # 54.7.0 - April 6, 2022
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Use the new _SFDX: Rename Component_ command to quickly rename all the files of an LWC component (`js, html, css, js-meta.xml` file types) or an Aura component (`auradoc, cmp, cmp-meta.xml, css, design, svg, contoller, helper, renderer, js` file types) using a single command.
+- Right-click and run the new SFDX: Rename Component command to quickly rename all the files of an LWC component (`js, html, css, js-meta.xml` file types) or an Aura component (`auradoc, cmp, cmp-meta.xml, css, design, svg, contoller, helper, renderer, js` file types) using a single command ([PR #3923](https://github.com/forcedotcom/salesforcedx-vscode/pull/3923)).
 
 # 54.6.1 - March 23, 2022
 
