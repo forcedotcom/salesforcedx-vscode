@@ -624,6 +624,7 @@ export const messages = {
   sobject_refresh_standard: 'Standard SObjects',
   force_rename_lightning_component: 'SFDX: Rename Component',
   rename_component_input_dup_error: 'Component name is already in use in LWC or Aura',
+  rename_component_input_dup_file_name_error: 'Component name is already in use for a file in current component directory',
   rename_component_input_placeholder: 'Enter a unique component name',
   rename_component_input_prompt: 'Press Enter to confirm your input or Escape to cancel',
   rename_component_warning: 'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',

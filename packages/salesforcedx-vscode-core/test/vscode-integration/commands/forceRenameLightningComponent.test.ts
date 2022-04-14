@@ -89,7 +89,8 @@ describe('Force Rename Lightning Component', () => {
       .onCall(0).resolves([])
       .onCall(1).resolves([])
       .onCall(2).resolves([testFolder])
-      .onCall(3).resolves(testFiles);
+      .onCall(3).resolves([])
+      .onCall(4).resolves(testFiles);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -206,6 +207,48 @@ describe('Force Rename Lightning Component', () => {
         await executor.run({
           type: 'CONTINUE',
           data: {name: 'hero'}
+        });
+      } catch (e) {
+        exceptionThrown = true;
+      }
+      expect(exceptionThrown).to.equal(true);
+      expect(renameStub.callCount).to.equal(0);
+    });
+
+    it('should prevent new component name from duplicating any existing file name under current component directory', async () => {
+      const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      readdirStub
+      .onCall(0).resolves([])
+      .onCall(1).resolves([])
+      .onCall(2).resolves(itemsInHero.concat([testFolder]))
+      .onCall(3).resolves(testFiles);
+      let exceptionThrown = false;
+      try {
+        const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
+        await executor.run({
+          type: 'CONTINUE',
+          data: {name: 'templateOne'}
+        });
+      } catch (e) {
+        exceptionThrown = true;
+      }
+      expect(exceptionThrown).to.equal(true);
+      expect(renameStub.callCount).to.equal(0);
+    });
+
+    it('should prevent new component name from duplicating any exiting test file name', async () => {
+      const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      readdirStub
+      .onCall(0).resolves([])
+      .onCall(1).resolves([])
+      .onCall(2).resolves(itemsInHero.concat([testFolder]))
+      .onCall(3).resolves(testFiles);
+      let exceptionThrown = false;
+      try {
+        const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
+        await executor.run({
+          type: 'CONTINUE',
+          data: {name: 'example'}
         });
       } catch (e) {
         exceptionThrown = true;
