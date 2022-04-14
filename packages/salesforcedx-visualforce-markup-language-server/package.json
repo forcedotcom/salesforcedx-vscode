@@ -13,7 +13,7 @@
   "main": "./out/src/htmlLanguageService.js",
   "typings": "./out/src/htmlLanguageService",
   "devDependencies": {
-    "@types/chai": "^4.0.0",
+    "@types/chai": "4.3.1",
     "@types/mocha": "^2.2.38",
     "@types/node": "12.0.12",
     "chai": "^4.0.2",
