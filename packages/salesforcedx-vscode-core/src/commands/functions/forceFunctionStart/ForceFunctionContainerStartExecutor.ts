@@ -50,7 +50,7 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
         );
         const [, firstMatch] = matches ?? [];
         if (firstMatch) {
-          FunctionService.instance.updateFunction(functionDirPath, firstMatch);
+          FunctionService.instance.updateFunction(functionDirPath, firstMatch, false);
         }
       }
     };

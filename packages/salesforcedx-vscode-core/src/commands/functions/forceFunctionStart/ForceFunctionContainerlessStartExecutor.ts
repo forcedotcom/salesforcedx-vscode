@@ -11,7 +11,6 @@ import { channelService } from '../../../channels';
 import { nls } from '../../../messages';
 import { notificationService } from '../../../notifications';
 import { telemetryService } from '../../../telemetry';
-import { FUNCTION_TYPE_JAVA } from '../../templates/metadataTypeConstants';
 import { FunctionService, functionType } from '../functionService';
 import {
   FUNCTION_DEFAULT_DEBUG_PORT,
@@ -48,7 +47,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     });
 
     const debugType = functionLanguage === functionType.JAVA ? 'java' : 'node';
-    FunctionService.instance.updateFunction(functionDirPath, debugType);
+    FunctionService.instance.updateFunction(functionDirPath, debugType, true);
 
     localRun
       .exec()
