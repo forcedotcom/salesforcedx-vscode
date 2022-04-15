@@ -504,6 +504,7 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
       expect(registerArg.debugPort).to.equal(FUNCTION_DEFAULT_DEBUG_PORT);
       expect(registerArg.debugType).to.equal('node');
       expect(registerArg.terminate).to.not.equal(undefined);
+      expect(registerArg.isContainerLess).to.equal(false);
 
       assert.calledWith(addPropertyStub, 'language', fakeLanguage);
       assert.calledWith(setupFunctionListenersStub, fakeResponse.data);
