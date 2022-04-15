@@ -6,6 +6,7 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -247,6 +248,7 @@ describe('load metadata components and custom objects fields list', () => {
   const defaultOrg = 'defaultOrg@test.com';
   const metadataType = 'ApexClass';
   const metadataTypeCustomObject = 'CustomObject';
+  const metadataTypeStandardValueSet = 'StandardValueSet';
   const sObjectName = 'DemoCustomObject';
   const folderName = 'DemoDashboard';
   const metadataTypeDashboard = 'Dashboard';
@@ -361,6 +363,11 @@ describe('load metadata components and custom objects fields list', () => {
     buildCustomObjectFieldsListStub.returns(formattedFields);
     const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeCustomObject, sObjectName);
     expect(JSON.stringify(components)).to.equal(JSON.stringify(formattedFields));
+  });
+
+  it('should return hardcoded list of StandardValueSet fullNames', async () => {
+    const components = await cmpUtil.loadComponents(defaultOrg, metadataTypeStandardValueSet);
+    expect(JSON.stringify(components)).to.equal(JSON.stringify(standardValueSet.fullnames));
   });
 });
 
