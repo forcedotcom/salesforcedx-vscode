@@ -20,4 +20,4 @@ You can install Code Builder as a managed package in any supported Salesforce or
 - Trailhead: [Code Builder Quick Look](https://trailhead.salesforce.com/content/learn/modules/code-builder-quick-look)
   
 ## Bugs and Feedback
-If you encounter any issues using Code Builder, or want to provide other types of feedback, such as initial impressions or feature requests, [file an issue](https://github.com/forcedotcom/try-code-builder-feedback/issues) in the GitHub repo. We want to understand what features and enhancements are important to cb-diffs
+If you encounter any issues using Code Builder, or want to provide other types of feedback, such as initial impressions or feature requests, [file an issue](https://github.com/forcedotcom/try-code-builder-feedback/issues) in the GitHub repo. We want to understand what features and enhancements are important to you.
