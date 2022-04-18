@@ -3,7 +3,7 @@
   "displayName": "SFDX Utilities for VS Code",
   "description": "Provides utilities to interface the SFDX libraries with VS Code",
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "54.8.0",
+  "version": "54.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
