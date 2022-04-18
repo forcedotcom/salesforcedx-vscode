@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-We fixed an issue with the _SFDX: Rename Component_ command so that it now correctly renames files in the `tests` folder for LWC components that have the same name as the component being renamed. ([PR #4020](https://github.com/forcedotcom/salesforcedx-vscode/pull/4020)) 
+We fixed an issue with the _SFDX: Rename Component_ command so that it now correctly renames the file in the `__tests__` folder for LWC components that has the same name as the component being renamed. ([PR #4020](https://github.com/forcedotcom/salesforcedx-vscode/pull/4020)) 
 
 # 54.8.0 - April 13, 2022
 
