@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {LocalRun, LocalRunProcess} from '@heroku/functions-core';
+import { LocalRun, LocalRunProcess } from '@heroku/functions-core';
 import { Disposable } from 'vscode';
 import { channelService } from '../../../channels';
 import { nls } from '../../../messages';
@@ -31,7 +31,6 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     if (this.process && !this.process.cancelled) {
       this.process.cancel();
       this.process = undefined;
-      channelService.appendLine('Stopped containerless function');
     }
     registeredStartedFunctionDisposable.dispose();
   }
