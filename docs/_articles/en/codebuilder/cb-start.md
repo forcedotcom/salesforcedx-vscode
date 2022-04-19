@@ -75,7 +75,7 @@ Let’s build and run a simple SOQL query on the Account object:
 
     c. Press **Run Query** to run this simple SOQL Query on your org.
 
-4. You’re prompted to save your changes if you close the untitled file. 
+You’re prompted to save your changes if you close the untitled file. 
 5. Save the changes to a file using a “.soql” extension.
 6. Let’s rerun the saved query – Right click the file and select **Open With…** then select SOQL Builder.
 The file opens in SOQL Builder and you can rerun or edit the query as you wish.
