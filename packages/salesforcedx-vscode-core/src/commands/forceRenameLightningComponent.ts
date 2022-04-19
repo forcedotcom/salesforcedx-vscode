@@ -165,8 +165,16 @@ async function checkForDuplicateInComponent(componentPath: string, newName: stri
     const testFiles = await fs.promises.readdir(path.join(componentPath, TEST_FOLDER));
     allFiles = items.concat(testFiles);
   }
-  // get all file names and filter out folder names
-  const allFileNames = allFiles.map(file => {
+  const allFileNames = getOnlyFileNames(allFiles);
+  if (allFileNames.includes(newName)) {
+    const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
+    notificationService.showErrorMessage(errorMessage);
+    throw new Error(format(errorMessage));
+  }
+}
+
+function getOnlyFileNames(allFiles: string[]) {
+  return allFiles.map(file => {
     const split = file ? file.split('.') : '';
     if (split.length <= 1) {
       return '';
@@ -174,11 +182,6 @@ async function checkForDuplicateInComponent(componentPath: string, newName: stri
       return split[0];
     }
   });
-  if (allFileNames.includes(newName)) {
-    const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
-    notificationService.showErrorMessage(errorMessage);
-    throw new Error(format(errorMessage));
-  }
 }
 
 export function isNameMatch(item: string, componentName: string, componentPath: string): boolean {
