@@ -25,7 +25,7 @@ parameters:
     default: '3.13.1'
   node-version:
     type: string
-    default: '14.16.0'
+    default: '16.14.0'
   # Constants
   cache-version:
     type: string
