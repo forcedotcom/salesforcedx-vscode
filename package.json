@@ -3,11 +3,11 @@
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "engines": {
-    "node": ">=16.14.0"
+    "node": ">=16.13.0"
   },
   "dependencies": {
-    "node": "^16.14.0",
-    "npm": "^8.3.1"
+    "node": "^16.13.0",
+    "npm": "^8.1.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
