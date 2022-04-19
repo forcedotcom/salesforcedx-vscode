@@ -24,8 +24,9 @@ parameters:
     type: string
     default: '3.13.1'
   node-version:
+    # 16.14 doesn't exist yet on https://hub.docker.com/r/circleci/node (Apr 2022)
     type: string
-    default: '16.14.0'
+    default: '16.13'
   # Constants
   cache-version:
     type: string
