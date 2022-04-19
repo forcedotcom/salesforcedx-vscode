@@ -3,7 +3,6 @@ import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
-import { format } from 'util';
 import * as vscode from 'vscode';
 import {isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
 import { nls } from '../../../src/messages';
@@ -205,7 +204,8 @@ describe('Force Rename Lightning Component', () => {
       readdirStub
        .onFirstCall().resolves([lwcComponent])
        .onSecondCall().resolves([]);
-      let exceptionThrown = false;
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(RENAME_INPUT_DUP_ERROR);
       try {
         const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
         await executor.run({
@@ -213,9 +213,9 @@ describe('Force Rename Lightning Component', () => {
           data: {name: 'hero'}
         });
       } catch (e) {
-        exceptionThrown = true;
+        exceptionThrown = e;
       }
-      expect(exceptionThrown).to.equal(true);
+      expect(exceptionThrown.message).to.equal(errorMessage);
       expect(renameStub.callCount).to.equal(0);
     });
 
@@ -226,7 +226,8 @@ describe('Force Rename Lightning Component', () => {
       .onCall(1).resolves([])
       .onCall(2).resolves(itemsInHero.concat([testFolder]))
       .onCall(3).resolves(testFiles);
-      let exceptionThrown = false;
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
       try {
         const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
         await executor.run({
@@ -234,20 +235,20 @@ describe('Force Rename Lightning Component', () => {
           data: {name: 'templateOne'}
         });
       } catch (e) {
-        exceptionThrown = true;
+        exceptionThrown = e;
       }
-      expect(exceptionThrown).to.equal(true);
+      expect(exceptionThrown.message).to.equal(errorMessage);
       expect(renameStub.callCount).to.equal(0);
     });
 
-    it.only('should prevent new component name from duplicating any exiting test file name', async () => {
+    it('should prevent new component name from duplicating any exiting test file name', async () => {
       const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
       readdirStub
       .onCall(0).resolves([])
       .onCall(1).resolves([])
       .onCall(2).resolves(itemsInHero.concat([testFolder]))
       .onCall(3).resolves(testFiles);
-      let exceptionThrown;
+      let exceptionThrown: any;
       const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
       try {
         const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
@@ -258,7 +259,7 @@ describe('Force Rename Lightning Component', () => {
       } catch (e) {
         exceptionThrown = e;
       }
-      expect(exceptionThrown).to.equal(new Error(format(errorMessage)));
+      expect(exceptionThrown.message).to.equal(errorMessage);
       expect(renameStub.callCount).to.equal(0);
     });
   });

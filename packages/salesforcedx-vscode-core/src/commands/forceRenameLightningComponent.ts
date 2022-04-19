@@ -156,7 +156,9 @@ async function isDuplicate(componentPath: string, newName: string): Promise<bool
   return (allLwcComponents.includes(newName) || allAuraComponents.includes(newName));
 }
 
-// enforce unique new file name under current component directory to avoid file loss
+/**
+ * check duplicate name under current component directory and __tests__ directory to avoid file loss
+ */
 async function checkForDuplicateInComponent(componentPath: string, newName: string, items: string[]) {
   let allFiles = items;
   if (items.includes(TEST_FOLDER)) {
