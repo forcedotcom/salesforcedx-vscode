@@ -189,7 +189,7 @@ Let’s deploy this new component to our org –
 
 1. Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org** 
 
-Your output window and shows this message:
+Your output window shows this message:
 
 ```
 
