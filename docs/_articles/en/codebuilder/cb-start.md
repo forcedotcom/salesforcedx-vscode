@@ -115,7 +115,7 @@ Now let’s retrieve metadata for this new field –
 2. Scroll down to **Custom Objects** and navigate to **Account**
 3. Click the retrieve icon next to the Account component to run **SFDX: Retrieve Source from Org**
 4. From the Activity Bar, click the Explorer and navigate to `force-app/main/default/object/Account`
-Lo and behold, in the fields folder, a file named `createdon_c.field-meta.xml` contains metadata for your new custom field! 
+Lo and behold, in the `fields` folder, a file named `createdon_c.field-meta.xml` contains metadata for your new custom field! 
 
 The metadata is here for your reference:
 ```
