@@ -18,7 +18,7 @@ Organizing your VS Code extensions by development task can help you avoid having
 
       1. When you install VS Code, install `code` as part of your prompt. See [Visual Studio Code on Windows](https://code.visualstudio.com/docs/setup/windows#_installation) in the Visual Studio Code docs for details.
       2. Open Git Bash. (Git Bash is installed as part of Salesforce CLI.)
-      3. Check whether you have a .bashrc file. If you don’t, create it by running:  
+      3. Check whether you have a `.bashrc` file. If you don’t, create it by running:  
          `touch .bashrc`
       4. Add this line to your `.bashrc` file.  
          `alias code-sfdx='code --extensions-dir ~/.sfdx-code'`
