@@ -18,7 +18,7 @@ Allows you to run Apex static analysis directly in VS Code on Apex and Visualfor
 
 ## Apex Log Analyzer
 
-An analyzer for Salesforce debug logs aimed at making performance analysis much easier and quicker. You may also find it generally useful for quickly understanding how your code is executing.
+An analyzer for Salesforce debug logs aimed at making performance analysis much easier and quicker. It's also useful for quickly understanding how your code is executing.
 
 
 <a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=financialforce.lana">Install Apex Log Analyzer</a>
