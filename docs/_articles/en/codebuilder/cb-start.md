@@ -150,7 +150,7 @@ Three new files are created in the `force-app/main/default/lwc/newCBComponent` f
 
 Update the files –
 
-1. In the HTML file, `newCBComponent.html`, copy, and paste the following code:
+1. In the HTML file, `newCBComponent.html`, copy and paste the following code:
 
 ```
 <template>
