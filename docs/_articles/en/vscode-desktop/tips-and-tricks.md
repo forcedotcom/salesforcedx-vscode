@@ -20,7 +20,7 @@ Organizing your VS Code extensions by development task can help you avoid having
       2. Open Git Bash. (Git Bash is installed as part of Salesforce CLI.)
       3. Check whether you have a .bashrc file. If you don’t, create it by running:  
          `touch .bashrc`
-      4. Add this line to your .bashrc file.  
+      4. Add this line to your `.bashrc` file.  
          `alias code-sfdx='code --extensions-dir ~/.sfdx-code'`
 
     - macOS or Linux
