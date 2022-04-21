@@ -21,4 +21,4 @@ Code Builder is currently in beta,  and we are actively collecting feedback from
 If you notice any issues that  haven't made our list, or want to provide other types of feedback, such as initial impressions or feature requests, [file an issue](https://github.com/forcedotcom/try-code-builder-feedback/issues) in the GitHub repo. We want to understand what features and enhancements are important to you.
 
 ## Important Considerations for Code Builder Beta
-We've capped usage for beta at 20 hours for a maximum of 30 days. We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using Code Builder.
+We've capped usage for beta at 20 hours for a maximum of 30 days. We highly recommend that you save your work and close the browser tab to stop the usage clock when you aren’t using Code Builder.
