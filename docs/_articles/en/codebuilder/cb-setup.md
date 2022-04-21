@@ -34,7 +34,7 @@ Salesforce Code Builder is a second-generation (2GP) managed package that you ca
 As an admin, assign permissions to users who will use Code Builder:
 
 1. Click the [link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t6g000008nwJuAAI) to go to AppExchange and install the Code Builder managed package.
-2. From Setup, enter Permission in the Quick Find box, then select **Permission Sets**.
+2. From Setup, enter `Permission Sets` in the Quick Find box, then select **Permission Sets**.
 3. Click **CodeBuilder**.
 4. Click **Manage Assignments** 
 5. Click **Add Assignments**.
