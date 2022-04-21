@@ -17,6 +17,7 @@
     "preserveConstEnums": true,
     "strict": true
   },
+  "include": ["src/data"],
   "exclude": [
     "node_modules",
     "out"

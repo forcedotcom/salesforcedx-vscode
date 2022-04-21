@@ -10,10 +10,15 @@
     // "declaration": true,
     // "declarationMap": true,
     "composite": true,
+    "skipLibCheck":true,
     // "strict": true,
     // "noEmitOnError": true,
     // "noUnusedLocals": true,
     // "forceConsistentCasingInFileNames": true
   },
-  // "exclude": ["**/dist", "**/__tests__"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out"
+  ],
 }
