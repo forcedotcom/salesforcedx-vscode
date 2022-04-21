@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    // Ref: https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+    // "lib": ["DOM", "DOM.Iterable", "ES2019"],
+    // "target": "ES2019",
+    // "module": "commonjs",
+    // "moduleResolution": "node",
+    // "esModuleInterop": true,
+    // "sourceMap": true,
+    // "declaration": true,
+    // "declarationMap": true,
+    "composite": true,
+    // "strict": true,
+    // "noEmitOnError": true,
+    // "noUnusedLocals": true,
+    // "forceConsistentCasingInFileNames": true
+  },
+  // "exclude": ["**/dist", "**/__tests__"]
+}
