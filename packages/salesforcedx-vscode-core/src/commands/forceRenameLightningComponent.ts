@@ -20,6 +20,7 @@ const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'force_rename_lightning_component';
 const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
 const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
+const RENAME_INPUT_DUP_FILE_NAME_ERROR = 'rename_component_input_dup_file_name_error';
 const RENAME_WARNING = 'rename_component_warning';
 const LWC = 'lwc';
 const AURA = 'aura';
@@ -88,6 +89,7 @@ async function renameComponent(sourceFsPath: string, newName: string) {
   const componentName = getComponentName(componentPath);
   await checkForDuplicateName(componentPath, newName);
   const items = await fs.promises.readdir(componentPath);
+  await checkForDuplicateInComponent(componentPath, newName, items);
   for (const item of items) {
     // only rename the file that has same name with component
     if (isNameMatch(item, componentName, componentPath)) {
@@ -152,6 +154,34 @@ async function isDuplicate(componentPath: string, newName: string): Promise<bool
   const allLwcComponents = await fs.promises.readdir(lwcPath);
   const allAuraComponents = await fs.promises.readdir(auraPath);
   return (allLwcComponents.includes(newName) || allAuraComponents.includes(newName));
+}
+
+/**
+ * check duplicate name under current component directory and __tests__ directory to avoid file loss
+ */
+async function checkForDuplicateInComponent(componentPath: string, newName: string, items: string[]) {
+  let allFiles = items;
+  if (items.includes(TEST_FOLDER)) {
+    const testFiles = await fs.promises.readdir(path.join(componentPath, TEST_FOLDER));
+    allFiles = items.concat(testFiles);
+  }
+  const allFileNames = getOnlyFileNames(allFiles);
+  if (allFileNames.includes(newName)) {
+    const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
+    notificationService.showErrorMessage(errorMessage);
+    throw new Error(format(errorMessage));
+  }
+}
+
+function getOnlyFileNames(allFiles: string[]) {
+  return allFiles.map(file => {
+    const split = file ? file.split('.') : '';
+    if (split.length <= 1) {
+      return '';
+    } else {
+      return split[0];
+    }
+  });
 }
 
 export function isNameMatch(item: string, componentName: string, componentPath: string): boolean {
