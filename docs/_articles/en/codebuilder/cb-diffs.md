@@ -8,7 +8,7 @@ Code Builder unleashes the power of Salesforce Extensions for VS Code and offers
 
 * Code Builder is installed as a managed package, and your Code Builder environment comes pre-configured for you.
 * Working in Code Builder doesn’t require you to install VS Code or Salesforce Extensions or Salesforce CLI. 
-* Unlike VS Code for the desktop, you cannot add any new extensions to your Code Builder development environment.
+* Unlike VS Code for the desktop, you can't add any new extensions to your Code Builder development environment.
 * Because Code Builder is inherently lightweight and optimized to run in the cloud, access to certain functionalities is limited:    
     * Functions development is available only for Javascript and Typescript functions. (unsure of the capitalization but this "feels" right)
     * LWC Local Development (beta) is not available in Code Builder. Deploy LWC components to your org to view them.
