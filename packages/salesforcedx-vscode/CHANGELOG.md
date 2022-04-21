@@ -1,10 +1,14 @@
-# 54.9.0 - April 20, 2022
+# 54.9.0 - April 21, 2022
 
 ## Fixed
 
 #### salesforcedx-vscode-core
 
-We fixed an issue with the _SFDX: Rename Component_ command so that it now correctly renames the file in the `__tests__` folder for LWC components that has the same name as the component being renamed. ([PR #4020](https://github.com/forcedotcom/salesforcedx-vscode/pull/4020)) 
+- We fixed an issue with the _SFDX: Rename Component_ command so that it now correctly renames the file in the `__tests__` folder for LWC components that has the same name as the component being renamed ([PR #4020](https://github.com/forcedotcom/salesforcedx-vscode/pull/4020)). 
+- We added support for debugging JavaScript in containerless functions ([PR#4001](https://github.com/forcedotcom/salesforcedx-vscode/pull/4001)).
+- We fixed an issue that prevented `Standard Value Sets` from being displayed in the Org Browser([PR # 3992](https://github.com/forcedotcom/salesforcedx-vscode/pull/3992)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/1579
+
+
 
 # 54.8.0 - April 13, 2022
 
