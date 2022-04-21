@@ -1,24 +1,26 @@
+// https://www.typescriptlang.org/tsconfig#extends
+// The configuration from this file is loaded first, then overridden by those in the inheriting config file. But path-based compiler options (outDir, outFile, rootDir, include, exclude, files) are resolved from the config file they're found in. They cannot be extended (https://github.com/microsoft/TypeScript/issues/29172).
+// Config ref: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 {
   "compilerOptions": {
-    // Ref: https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
-    // "lib": ["DOM", "DOM.Iterable", "ES2019"],
-    // "target": "ES2019",
-    // "module": "commonjs",
-    // "moduleResolution": "node",
-    // "esModuleInterop": true,
-    // "sourceMap": true,
-    // "declaration": true,
-    // "declarationMap": true,
     "composite": true,
-    "skipLibCheck":true,
-    // "strict": true,
+    // Ref: https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
+    "target": "es6",
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "strict": true,
+    "skipLibCheck": true,
     // "noEmitOnError": true,
     // "noUnusedLocals": true,
     // "forceConsistentCasingInFileNames": true
-  },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out"
-  ],
+  }
 }

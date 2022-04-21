@@ -1,22 +1,10 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "lib": [
-      "dom",
-      "es2016"
-    ],
-    "sourceMap": true,
-    "declarationMap": true,
-    "declaration": true,
-    "moduleResolution": "node",
-    "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "out",
-    "preserveConstEnums": true,
-    "strict": true,
-    "skipLibCheck": true
+    "strict": false,
+    "noImplicitAny": false,
   },
   "exclude": [
     "node_modules",
