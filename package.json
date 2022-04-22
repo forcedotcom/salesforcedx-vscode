@@ -49,7 +49,7 @@
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
-    "clean": "lerna run clean && git clean -xfd && tsc --clean",
+    "clean": "lerna run clean && git clean -xfd",
     "reinstall": "rm -f package-lock.json && npm run clean && npm install",
     "compile": "tsc --build",
     "postcompile": "shx cp packages/salesforcedx-visualforce-markup-language-server/src/beautify/beautify-* packages/salesforcedx-visualforce-markup-language-server/out/src/beautify && shx cp -R packages/salesforcedx-visualforce-language-server/test/unit/fixtures packages/salesforcedx-visualforce-language-server/out/test/unit",
