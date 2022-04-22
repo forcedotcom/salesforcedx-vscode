@@ -52,8 +52,5 @@
     {
       "path": "packages/system-tests"
     }
-  ],
-  "exclude": [
-    "**/node_modules"
   ]
 }
