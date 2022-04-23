@@ -10,7 +10,7 @@
     // TODO (fix): Need to upgrade ES target/lib and vscode engines version to match node target (W-11052244)
     "target": "es6",
     "lib": [
-      "es2020",
+      "es6",
       "dom"
     ],
     "moduleResolution": "node",
