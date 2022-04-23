@@ -77,7 +77,10 @@ module.exports = {
         exclude: /node_modules|\.d\.ts$/,
         use: [
           {
-            loader: 'ts-loader'
+            loader: 'ts-loader',
+            options: {
+              configFile: 'tsconfig.webpack.json'
+            }
           }
         ]
       }

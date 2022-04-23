@@ -64,7 +64,10 @@ module.exports = {
         ],
         use: [
           {
-            loader: 'ts-loader'
+            loader: 'ts-loader',
+            options: {
+              configFile: 'tsconfig.webpack.json'
+            }
           }
         ]
       }
