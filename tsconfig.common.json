@@ -6,8 +6,9 @@
   "extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
     "composite": true,
+    "target": "es6",
     "lib": [
-      "es2020",
+      "es6",
       "dom"
     ],
     "moduleResolution": "node",
