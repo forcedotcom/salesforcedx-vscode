@@ -18,7 +18,7 @@ Working in the cloud has its advantages. However, unlike working on a desktop wh
 To get started you’ll do the following:
 1. Create a Code Builder environment.
 2. Create a Salesforce DX project.
-3. Connect to your Org by logging in.
+3. Connect to your org by logging in.
 4. Now you’re ready to use Code Builder.
 
 ## Connect to Your Dev Environment
