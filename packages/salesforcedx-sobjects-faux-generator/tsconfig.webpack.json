@@ -1,4 +1,6 @@
 {
+  // ts-loader doesn't process references https://github.com/TypeStrong/ts-loader/issues/1035
+  // "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",

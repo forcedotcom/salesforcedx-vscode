@@ -152,7 +152,7 @@ this command.
 ### `npm run compile`
 
 This invokes typescript compiler on the packages in the monorepo using [typescript project references](https://www.typescriptlang.org/docs/handbook/project-references.html).
-  - `npm run compile:watch` watches for changes in the background and compiles only changed code and its dependencies
+  - `npm run compile:watch` invokes typescript compiler to watch for changes in the background and compile only changed code and its dependencies. This would not invoke the post compile steps such as webpack or copying file artifacts.
   - `npm run compile:clean` cleans previously compiled artifacts and invokes compile
   - `npm run check:typescript-project-references` validates typescript project references and would error if there are any missing references
 
