@@ -19,7 +19,7 @@ To get started you’ll do the following:
 1. Create a Code Builder environment.
 2. Create a Salesforce DX project.
 3. Connect to your org by logging in.
-4. Now you’re ready to use Code Builder.
+Now you’re ready to use Code Builder.
 
 ## Connect to Your Dev Environment
 1. From the App Launcher, find and open **Code Builder**.
