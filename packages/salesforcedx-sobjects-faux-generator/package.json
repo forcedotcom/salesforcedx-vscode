@@ -34,6 +34,7 @@
   },
   "scripts": {
     "compile": "webpack",
+    "webpack": "webpack",
     "lint": "tslint --project . -e **/src/data/minSObjects.json",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
