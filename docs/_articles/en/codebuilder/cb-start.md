@@ -9,7 +9,9 @@ Complete this Quick Start to become familiar with the Code Builder interface and
 We've capped usage for beta at 20 hours for a maximum of 30 days. We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using it.
 
 ### Don’t Forget to Save Your Work
-Working in the cloud has its advantages. There are some differences though. Unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work. Remember to do this before you close the Code Builder tab on your browser so you don’t lose your work.  Throughout the beta, Code Builder environments could be deleted.  All beta environments will be removed before GA.
+Working in the cloud has its advantages. However, unlike working on a desktop where you save your files to a local machine, you must either deploy your changes to your org, or commit them to source control to save your work. Save your work before you close the Code Builder tab on your browser so you don’t lose it. 
+
+**Note:** Throughout the beta, Code Builder environments could be deleted.  All beta environments will be removed before GA.
 
 
 ## Let’s Get Started
