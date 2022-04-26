@@ -41,6 +41,7 @@ export function getCSSMode(
         settings && settings.css
       );
     },
+    // @ts-ignore TS2322: Type '(document: TextDocument, position: Position) => CompletionList' is not assignable to type '(document: TextDocument, position: Position, settings?: Settings) => CompletionList'.
     doComplete(document: TextDocument, position: Position) {
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService.doComplete(

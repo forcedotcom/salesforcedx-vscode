@@ -67,7 +67,7 @@ describe('SOQL language client', () => {
     await commands.executeCommand('workbench.action.closeActiveEditor');
     try {
       await workspace.fs.delete(soqlFileUri);
-    } catch (ignored) {}
+    } catch (ignored) { }
   });
 
   it('should show diagnostics for syntax error', async () => {
@@ -241,6 +241,7 @@ function stubSOQLExtensionConfiguration(
   configValues: { [key: string]: any },
   extension: any
 ) {
+  // @ts-ignore error TS2345: Argument of type 'sinon.SinonSandbox' is not assignable to parameter of type 'import("salesforcedx-vscode/node_modules/@types/sinon/index").SinonSandbox'.
   const mockConfiguration = stubInterface<WorkspaceConfiguration>(sandbox, {
     get: (key: string) => configValues[key]
   });
