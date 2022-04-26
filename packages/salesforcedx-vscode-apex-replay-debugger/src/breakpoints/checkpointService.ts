@@ -7,11 +7,11 @@
 import {
   ForceOrgDisplay,
   OrgInfo
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   ActionScriptEnum,
@@ -273,9 +273,8 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             VSCodeWindowTypeEnum.Error
           );
         } else {
-          const errorMessage = `${
-            result[0].message
-          }. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+          const errorMessage = `${result[0].message
+            }. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
           writeToDebuggerOutputWindow(
             errorMessage,
             true,
@@ -605,7 +604,7 @@ export class CheckpointInfoActionScriptTypeNode extends CheckpointInfoNode {
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
     super(
       EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE +
-        cpOverlayActionInput.ActionScriptType
+      cpOverlayActionInput.ActionScriptType
     );
     this.checkpointOverlayAction = cpOverlayActionInput;
   }

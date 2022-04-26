@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { BaseCommand } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { QUERY_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 
 export interface QueryOverlayActionIdsSuccessResult {
