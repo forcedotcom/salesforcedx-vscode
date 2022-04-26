@@ -5,8 +5,8 @@
     "outDir": "out",
     "strict": false,
     "noImplicitAny": false,
-    // Generating Type Definitions from Javascript is blocked by requiring private name
-    // https://github.com/microsoft/TypeScript/issues/37832
+    // src/beautify/*.js files are copied over to out and not run through tsc
+    //  due to https://github.com/microsoft/TypeScript/issues/37832
     // "allowJs": true, // for the beautify js files
   },
   "exclude": [
