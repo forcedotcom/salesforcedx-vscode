@@ -8,11 +8,11 @@
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/index';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
@@ -48,7 +48,7 @@ describe('ApexExecutionOverlayAction basic class tests', () => {
     );
     expect(overlayActionCommand.getCommandUrl()).to.equal(
       'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/' +
-        actionObjectId
+      actionObjectId
     );
     expect(overlayActionCommand.getQueryString()).to.equal(undefined);
     expect(overlayActionCommand.getRequest()).to.equal(requestString);

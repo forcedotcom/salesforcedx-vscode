@@ -6,6 +6,7 @@
  */
 
 import { expect } from 'chai';
+import { beforeEach, afterEach, xit } from 'mocha';
 import * as proxyquire from 'proxyquire';
 import {
   assert,
@@ -31,7 +32,7 @@ const vscodeStub = {
   window: {
     createOutputChannel: () => {
       return {
-        show: () => {}
+        show: () => { }
       };
     },
     showInformationMessage: mShowInformation
