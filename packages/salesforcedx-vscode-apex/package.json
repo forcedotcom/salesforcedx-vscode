@@ -56,8 +56,7 @@
     "vscode-extension-telemetry": "0.0.17"
   },
   "scripts": {
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
+    "vscode:package": "vsce package --yarn",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",

@@ -213,11 +213,6 @@ from Atlassian on the flow. These steps are manual because you might encounter m
 
 # Tips
 
-1. After publishing, you will need to run `npm run bootstrap` again to continue
-   development. This is because the `npm run vscode:package` step does a `npm prune --production`. This is required due to the way Lerna does symlinking.
-   See [vscode-vsce#52](https://github.com/Microsoft/vscode-vsce/issues/52) for
-   more information.
-
 1. In order to make a previously unpublished extension publishable there are a
    few things that need to get updated:
    1. In packages/salesforcedx-vscode/package.json the extension needs to get added
@@ -228,7 +223,6 @@ from Atlassian on the flow. These steps are manual because you might encounter m
       For `repository` the url is `https://github.com/forcedotcom/salesforcedx-vscode`
    3. In the extension's package.json, under `scripts` the following attributes need
       to be defined:
-      `"vscode:prepublish": "npm prune --production"`
       `"vscode:package": "vsce package"`
       `"vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"`
       `"vscode:publish": "node ../../scripts/publish-vsix.js"`
