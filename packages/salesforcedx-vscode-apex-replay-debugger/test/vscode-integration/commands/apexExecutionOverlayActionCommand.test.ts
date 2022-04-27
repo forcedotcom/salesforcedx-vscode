@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/index';
 import {
   RequestService,
   RestHttpMethodEnum
@@ -13,7 +14,6 @@ import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/index';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
