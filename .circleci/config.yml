@@ -83,10 +83,10 @@ commands:
           shell: bash.exe
           command: |
             npm config set scripts-prepend-node-path true
-            npm install
             npm install -g yarn
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
+            yarn install
       - run:
           name: 'Compile'
           shell: bash.exe
@@ -385,7 +385,7 @@ jobs:
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
             $failure = $results.SelectSingleNode("//failure")
-            if ($failure -ne $null) { 
+            if ($failure -ne $null) {
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }

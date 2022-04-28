@@ -55,7 +55,7 @@
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "clean": "lerna run clean && git clean -xfd",
-    "reinstall": "rm -f package-lock.json && npm run clean && npm install",
+    "reinstall": "npm run clean && yarn install --frozen-lockfile --check-files",
     "compile": "tsc --build",
     "postcompile": "lerna run copy:files && lerna run webpack",
     "compile:clean": "tsc  --build --clean && npm run compile",
