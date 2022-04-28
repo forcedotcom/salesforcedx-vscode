@@ -158,14 +158,17 @@ There are tests that require integration with the Salesforce server. These tests
 require prior authentication to have occurred and a default devhub to be set.
 These show up in several packages. These tests are put under test/integration
 and named in the standard .test.ts pattern. The package.json should have an
-entry like `"test:integration": "cross-env VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration"`.
+entry like
+> "test:integration": "cross-env VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js `yarn bin _mocha` --recursive out/test/integration"`
 
 These can be run in the same way from the CLI using `npm run test:integration`.
 Running `npm run test` will also run these.
 
 ## Unit Tests
 
-A module can also have an entry like `"test:unit": "yarn nyc ./node_modules/mocha/bin/_mocha --recursive out/test/unit"`.
+A module can also have an entry like
+> `"test:unit": "yarn nyc `yarn bin _mocha` --recursive out/test/unit"`
+
 This is used for pure unit tests and for VS Code based tests discussed above.
 It is a good pattern to have an entry of `"test:unit"` in the package.json for
 modules that don't have separate integration tests.
