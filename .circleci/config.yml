@@ -84,6 +84,7 @@ commands:
           command: |
             npm config set scripts-prepend-node-path true
             npm install
+            npm install -g yarn
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
       - run:
@@ -137,9 +138,10 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run: npm ci
-      - run: npm --version
       - run: node --version
+      - run: npm --version
+      - run: yarn --version
+      - run: yarn install --frozen-lockfile
 
   merge-validation:
     description: 'Verify the release branch is not older than main'
