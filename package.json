@@ -48,7 +48,7 @@
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "clean": "lerna run clean && git clean -xfd",
-    "reinstall": "npm run clean && npm ci",
+    "reinstall": "rm -f package-lock.json && npm run clean && npm install",
     "compile": "lerna run --stream compile",
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
