@@ -159,7 +159,7 @@ require prior authentication to have occurred and a default devhub to be set.
 These show up in several packages. These tests are put under test/integration
 and named in the standard .test.ts pattern. The package.json should have an
 entry like
-> "test:integration": "cross-env VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js `yarn bin _mocha` --recursive out/test/integration"`
+> "test:integration": "cross-env VSCODE_NLS_CONFIG={} `yarn bin nyc` `yarn bin _mocha` --recursive out/test/integration"`
 
 These can be run in the same way from the CLI using `npm run test:integration`.
 Running `npm run test` will also run these.
