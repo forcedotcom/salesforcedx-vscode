@@ -27,7 +27,7 @@ would write such tests using Mocha and Chai as you normally would for NPM module
 ### Unit Tests
 
 Place your strict unit tests in the `test/unit` directory of your package and create an npm
-script in your package.json like `"test:unit": "./node_modules/.bin/_mocha --recursive out/test/unit"`
+script in your package.json like `"test:unit": "yarn _mocha --recursive out/test/unit"`
 for running the tests. Check out the `"test:unit"` scripts in the package.json files for the
 salesforce-apex-debugger and salesforce-utils-vscode packages to see examples of how to configure
 code coverage reporting when running the tests.
@@ -41,7 +41,7 @@ There are tests that require integration with the Salesforce server. These tests
 require prior authentication to have occurred and a default devhub to be set.
 These show up in several packages. These tests are put under `test/integration`
 and are named in the standard `*.test.ts` pattern. The package.json should have an
-entry like `"test:integration": "./node_modules/.bin/_mocha --recursive out/test/integration"`.
+entry like `"test:integration": "yarn _mocha --recursive out/test/integration"`.
 Check out the `"test:integration"` scripts in the package.json files for the
 salesforce-apex-debugger and salesforce-utils-vscode packages to see how to additionally
 configure code coverage reporting.

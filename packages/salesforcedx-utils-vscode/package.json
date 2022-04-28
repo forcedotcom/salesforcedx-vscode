@@ -52,7 +52,7 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit",
     "test:unit": "yarn nyc `yarn bin _mocha` --recursive out/test/unit/**/*.js --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
-    "coverage": "./node_modules/.bin/nyc npm test"
+    "coverage": "yarn nyc yarn test"
   },
   "nyc": {
     "reporter": [
