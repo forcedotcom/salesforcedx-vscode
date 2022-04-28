@@ -83,10 +83,10 @@ commands:
           shell: bash.exe
           command: |
             npm config set scripts-prepend-node-path true
-            npm install -g yarn
+            curl -o- -L https://yarnpkg.com/install.sh | bash
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
-            yarn install
+            yarn install --frozen-lockfile
       - run:
           name: 'Compile'
           shell: bash.exe
@@ -210,7 +210,7 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - << parameters.base-cache-path >>{{ checksum "package.json" }}
+            - << parameters.base-cache-path >>{{ checksum "yarn.lock" }}
 
   save_dependency_cache:
     parameters:
@@ -222,7 +222,7 @@ commands:
         default: 'node_modules'
     steps:
       - save_cache:
-          key: << parameters.base-cache-path >>{{ checksum "package.json" }}
+          key: << parameters.base-cache-path >>{{ checksum "yarn.lock" }}
           paths:
             - << parameters.path-to-save >>
 
