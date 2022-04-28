@@ -165,7 +165,7 @@ Running `npm run test` will also run these.
 
 ## Unit Tests
 
-A module can also have an entry like `"test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit"`.
+A module can also have an entry like `"test:unit": "yarn nyc ./node_modules/mocha/bin/_mocha --recursive out/test/unit"`.
 This is used for pure unit tests and for VS Code based tests discussed above.
 It is a good pattern to have an entry of `"test:unit"` in the package.json for
 modules that don't have separate integration tests.
