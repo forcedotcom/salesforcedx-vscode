@@ -40,8 +40,8 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "yarn nyc `yarn bin _mocha` --recursive --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
-    "test:integration": "yarn cross-env VSCODE_NLS_CONFIG={} `yarn bin nyc` `yarn bin _mocha` --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json"
+    "test:unit": "yarn nyc $(yarn bin _mocha) --recursive --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "test:integration": "yarn cross-env VSCODE_NLS_CONFIG={} $(yarn bin nyc) $(yarn bin _mocha) --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json"
   },
   "nyc": {
     "reporter": [
