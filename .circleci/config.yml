@@ -316,7 +316,7 @@ jobs:
       - build-win
       - run:
           name: 'Running unit tests'
-          shell: cmd.exe
+          shell: bash.exe
           command: npm run test:unit
       - run:
           name: 'Aggregate test results'
@@ -374,7 +374,7 @@ jobs:
             rm devhub.key
       - run:
           name: 'Running integration tests'
-          shell: cmd.exe
+          shell: bash.exe
           command: npm run test:integration-tests-without-system-tests
       - run:
           name: 'Assert all tests ran and aggregate results'
