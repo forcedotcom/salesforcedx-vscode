@@ -82,12 +82,12 @@ commands:
           name: 'Install dependent modules'
           shell: bash.exe
           command: |
-            npm config set scripts-prepend-node-path true
             touch ~/.bashrc
             curl -o- -L https://yarnpkg.com/install.sh | bash
             source ~/.bashrc
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
+            yarn config set script-shell /usr/bin/bash.exe
             yarn install --frozen-lockfile
       - run:
           name: 'Compile'
