@@ -111,6 +111,7 @@ commands:
           name: 'Compile in << parameters.compile-mode >> mode'
           environment:
             - NODE_ENV: << parameters.compile-mode >>
+            - BASH_ENV: ~/.bashrc
           command: |
             npm run compile
 
@@ -299,6 +300,7 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_USE_GENERIC_UNIX_KEYCHAIN: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
+      - BASH_ENV: ~/.bashrc
     steps:
       - build-artifacts
 
@@ -309,6 +311,7 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
+      - BASH_ENV: ~/.bashrc
     steps:
       - build-win
       - run:
@@ -342,6 +345,7 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
+      - BASH_ENV: ~/.bashrc
     steps:
       - build-win
       - run:
@@ -358,6 +362,7 @@ jobs:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
+      - BASH_ENV: ~/.bashrc
     steps:
       - build-win
       - run:
