@@ -13,6 +13,7 @@ import {
   AuthParamsGatherer,
   createAuthWebLoginExecutor,
   DEFAULT_ALIAS,
+  ForceAuthWebLoginContainerExecutor,
   ForceAuthWebLoginDemoModeExecutor,
   ForceAuthWebLoginExecutor,
   OrgTypeItem,
@@ -23,12 +24,6 @@ import { nls } from '../../../../src/messages';
 
 const TEST_ALIAS = 'testAlias';
 const TEST_URL = 'https://my.testdomain.salesforce.com';
-
-class TestForceAuthWebLoginExecutor extends ForceAuthWebLoginExecutor {
-  public getShowChannelOutput() {
-    return this.showChannelOutput;
-  }
-}
 
 // tslint:disable:no-unused-expression
 describe('Force Auth Web Login', () => {
@@ -243,42 +238,37 @@ describe('Force Auth Web Login is based on environment variables', () => {
     afterEach(() => {
       delete process.env.SFDX_CONTAINER_MODE;
     });
-    it('Should expose the output channel when in container mode', () => {
-      const notContainerMode = new TestForceAuthWebLoginExecutor();
-      expect(notContainerMode.getShowChannelOutput()).to.be.false;
-      process.env.SFDX_CONTAINER_MODE = 'true';
-      const containerMode = new TestForceAuthWebLoginExecutor();
-      expect(containerMode.getShowChannelOutput()).to.be.true;
-    });
-    it('Should use force:auth:web:login when container mode is not defined', () => {
-      const authWebLogin = new ForceAuthWebLoginExecutor();
-      const authWebLoginCommand = authWebLogin.build(
-        ({} as unknown) as AuthParams
-      );
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setalias  --instanceurl  --setdefaultusername'
-      );
+
+    it('Should use ForceAuthWebLoginExecutor when container mode is not defined', () => {
+      expect(createAuthWebLoginExecutor() instanceof ForceAuthWebLoginExecutor)
+        .to.be.true;
     });
 
-    it('Should use force:auth:web:login when container mode is empty', () => {
+    it('Should use ForceAuthWebLoginExecutor when container mode is empty', () => {
       process.env.SFDX_CONTAINER_MODE = '';
-      const authWebLogin = new ForceAuthWebLoginExecutor();
-      const authWebLoginCommand = authWebLogin.build(
-        ({} as unknown) as AuthParams
-      );
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setalias  --instanceurl  --setdefaultusername'
-      );
+      expect(createAuthWebLoginExecutor() instanceof ForceAuthWebLoginExecutor)
+        .to.be.true;
     });
 
-    it('Should use force:auth:device:login when container mode is defined', () => {
+    it('Should use ForceAuthWebLoginContainerExecutor when container mode is defined', () => {
       process.env.SFDX_CONTAINER_MODE = 'true';
-      const authWebLogin = new ForceAuthWebLoginExecutor();
-      const authWebLoginCommand = authWebLogin.build(
-        ({} as unknown) as AuthParams
-      );
+      expect(
+        createAuthWebLoginExecutor() instanceof
+          ForceAuthWebLoginContainerExecutor
+      ).to.be.true;
+    });
+
+    it('should build the force:auth:device:login command', () => {
+      const authWebLogin = new ForceAuthWebLoginContainerExecutor();
+      const authWebLoginCommand = authWebLogin.build({
+        alias: TEST_ALIAS,
+        loginUrl: TEST_URL
+      });
       expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:device:login --setalias  --instanceurl  --setdefaultusername'
+        `sfdx force:auth:device:login --setalias ${TEST_ALIAS} --instanceurl ${TEST_URL} --setdefaultusername --json --loglevel fatal`
+      );
+      expect(authWebLoginCommand.description).to.equal(
+        nls.localize('force_auth_web_login_authorize_org_text')
       );
     });
   });
