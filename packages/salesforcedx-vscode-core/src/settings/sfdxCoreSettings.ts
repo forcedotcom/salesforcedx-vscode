@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
+  ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
@@ -81,5 +82,9 @@ export class SfdxCoreSettings {
 
   private async setConfigValue(key: string, value: any) {
     await this.getConfiguration().update(key, value);
+  }
+
+  public getDeployAndRetrieveForSourceTrackedOrgsEnabled(): boolean {
+    return this.getConfigValue(ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
   }
 }
