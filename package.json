@@ -1,5 +1,5 @@
 {
-  "name": "salesforcedx-vscode-mono-repo",
+  "name": "salesforcedx-vscode",
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "private": true,
@@ -9,6 +9,10 @@
   "engines": {
     "node": ">=16.13.0",
     "yarn": ">=1.22.15"
+  },
+  "dependencies": {
+    "node": "^16.13.0",
+    "npm": "^8.1.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
@@ -45,7 +49,7 @@
     "webpack-cli": "3.3.12"
   },
   "scripts": {
-    "postinstall": "node scripts/reformat-with-prettier && npm run check:peer-deps && npm run check:typescript-project-references",
+    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier && npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
@@ -97,6 +101,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "packageManager": "yarn@3.2.0"
+  }
 }
