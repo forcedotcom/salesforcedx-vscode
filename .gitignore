@@ -70,6 +70,14 @@ jspm_packages/
 # Output of 'npm pack'
 *.tgz
 
+# https://yarnpkg.com/getting-started/qa#which-files-should-be-gitignored
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 # Yarn Integrity file
 .yarn-integrity
 
