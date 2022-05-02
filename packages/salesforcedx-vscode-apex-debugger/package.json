@@ -63,7 +63,7 @@
     "onDebugResolve:apex",
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
+  "main": "./out/src/index.js",
   "contributes": {
     "breakpoints": [
       {

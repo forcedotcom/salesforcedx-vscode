@@ -89,7 +89,7 @@
     "workspaceContains:**/workspace-user.xml",
     "onCommand:sfdx.force.lightning.lwc.start"
   ],
-  "main": "./out/src",
+  "main": "./out/src/index.js",
   "contributes": {
     "snippets": [
       {

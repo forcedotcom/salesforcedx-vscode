@@ -73,7 +73,7 @@
     "workspaceContains:sfdx-project.json",
     "workspaceContains:**/workspace-user.xml"
   ],
-  "main": "./out/src",
+  "main": "./out/src/index.js",
   "contributes": {
     "languages": [
       {
