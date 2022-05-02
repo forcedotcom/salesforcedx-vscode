@@ -19,7 +19,7 @@ import {
 import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {
-  private process: LocalRunProcess | undefined;
+  private process: LocalRunProcess | undefined | void;
 
   public async setupFunctionListeners(): Promise<void> {
     console.log('No listeners for containerless function.');
@@ -39,7 +39,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     console.log('No build for containerless function');
   }
 
-  public startFunction(functionName: string, functionDirPath: string): void {
+  public async startFunction(functionName: string, functionDirPath: string): Promise<void> {
     const functionLanguage = FunctionService.instance.getFunctionType();
     channelService.appendLine(
       `Starting ${functionName} of type ${functionLanguage}`
@@ -54,11 +54,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     const debugType = functionLanguage === functionType.JAVA ? 'java' : 'node';
     FunctionService.instance.updateFunction(functionDirPath, debugType, true);
 
-    localRun
-      .exec()
-      .then(process => {
-        this.process = process;
-      })
+    this.process = await localRun.exec()
       .catch((err: Error) => {
         const errorNotificationMessage = nls.localize(
           this.UNEXPECTED_ERROR_KEY
