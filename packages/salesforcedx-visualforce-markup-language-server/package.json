@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "54.8.0",
+  "version": "54.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -30,7 +30,8 @@
     "vscode-uri": "^1.0.1"
   },
   "scripts": {
-    "compile": "tsc -p ./ && shx cp src/beautify/beautify-* out/src/beautify",
+    "compile": "tsc -p ./ && npm run copy:files",
+    "copy:files": "shx cp src/beautify/beautify-* out/src/beautify",
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
