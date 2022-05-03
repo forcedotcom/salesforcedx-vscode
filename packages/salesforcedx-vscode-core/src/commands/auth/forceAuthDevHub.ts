@@ -34,22 +34,36 @@ import { isDemoMode } from '../../modes/demo-mode';
 import { isSFDXContainerMode } from '../../util';
 import { ConfigSource, OrgAuthInfo } from '../../util/index';
 import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
+import { ForceAuthWebLoginContainerExecutor } from './forceAuthWebLogin';
+
+export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainerExecutor {
+  public build(data: {}): Command {
+    const command = new SfdxCommandBuilder().withDescription(
+      nls.localize('force_auth_web_login_authorize_dev_hub_text')
+    );
+
+    command
+      .withArg('force:auth:device:login')
+      .withArg('--setdefaultdevhubusername')
+      .withLogName('force_auth_device_dev_hub')
+      .withJson();
+
+    return command.build();
+  }
+}
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
-  protected showChannelOutput = isSFDXContainerMode();
+  protected showChannelOutput = false;
 
   public build(data: {}): Command {
     const command = new SfdxCommandBuilder().withDescription(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
     );
-    if (isSFDXContainerMode()) {
-      command
-        .withArg('force:auth:device:login')
-        .withLogName('force_auth_device_dev_hub');
-    } else {
-      command.withArg('force:auth:web:login').withLogName('force_auth_dev_hub');
-    }
-    command.withArg('--setdefaultdevhubusername');
+
+    command
+      .withArg('force:auth:web:login')
+      .withLogName('force_auth_dev_hub')
+      .withArg('--setdefaultdevhubusername');
     return command.build();
   }
 
@@ -119,9 +133,14 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
-  return isDemoMode()
-    ? new ForceAuthDevHubDemoModeExecutor()
-    : new ForceAuthDevHubExecutor();
+  switch (true) {
+    case isSFDXContainerMode():
+      return new ForceAuthDevHubContainerExecutor();
+    case isDemoMode():
+      return new ForceAuthDevHubDemoModeExecutor();
+    default:
+      return new ForceAuthDevHubExecutor();
+  }
 }
 
 export async function forceAuthDevHub() {

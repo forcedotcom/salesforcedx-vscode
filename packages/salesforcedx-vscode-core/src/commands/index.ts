@@ -26,7 +26,8 @@ export {
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor
+  ForceAuthDevHubExecutor,
+  ForceAuthDevHubContainerExecutor
 } from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export {
