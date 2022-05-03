@@ -96,9 +96,9 @@ import {
   SFDX_CORE_CONFIGURATION_NAME
 } from './constants';
 import {
-  enableOrgBrowser,
   getDefaultUsernameOrAlias,
   getWorkspaceOrgType,
+  setupWorkspaceOrgType,
   workspaceContext
 } from './context';
 import * as decorators from './decorators';
@@ -745,7 +745,7 @@ function setUpChangeConfigurationListener() {
     if (configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
       const username = workspaceContext.username;
       const orgType = await getWorkspaceOrgType(username);
-      enableOrgBrowser(orgType);
+      setupWorkspaceOrgType(username);
     }
   });
 }
