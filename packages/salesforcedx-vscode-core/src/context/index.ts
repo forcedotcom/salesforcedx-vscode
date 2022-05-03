@@ -9,7 +9,8 @@ export {
   getDefaultUsernameOrAlias,
   getWorkspaceOrgType,
   OrgType,
-  setupWorkspaceOrgType
+  setupWorkspaceOrgType,
+  enableOrgBrowser
 } from './workspaceOrgType';
 export { OrgInfo } from './workspaceContext';
 import { WorkspaceContext } from './workspaceContext';

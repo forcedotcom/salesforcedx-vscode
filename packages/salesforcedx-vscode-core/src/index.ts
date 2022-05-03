@@ -91,11 +91,16 @@ import {
   setupConflictView
 } from './conflict';
 import {
+  ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS,
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   SFDX_CORE_CONFIGURATION_NAME
 } from './constants';
-import { getDefaultUsernameOrAlias } from './context';
-import { workspaceContext } from './context';
+import {
+  enableOrgBrowser,
+  getDefaultUsernameOrAlias,
+  getWorkspaceOrgType,
+  workspaceContext
+} from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -107,6 +112,7 @@ import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
@@ -730,7 +736,19 @@ export async function activate(context: vscode.ExtensionContext) {
     ).catch(e => telemetryService.sendException(e.name, e.message));
   }
 
+  setUpChangeConfigurationListener();
+
   return api;
+}
+
+function setUpChangeConfigurationListener() {
+  vscode.workspace.onDidChangeConfiguration(async (configurationChangeEvent: vscode.ConfigurationChangeEvent) => {
+    if(configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
+      const username = workspaceContext.username;
+      const orgType = await getWorkspaceOrgType(username);
+      enableOrgBrowser(orgType);
+    }
+  });
 }
 
 export function deactivate(): Promise<void> {

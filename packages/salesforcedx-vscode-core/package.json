@@ -121,14 +121,14 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "sfdx:project_opened && sfdx:enable_org_browser"
         }
       ],
       "conflicts": [
         {
           "id": "conflicts",
           "name": "Conflicts",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands"
         }
       ]
     },
@@ -177,23 +177,23 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.diff",
@@ -275,23 +275,23 @@
         },
         {
           "command": "sfdx.force.source.retrieve.source.path",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.source.path",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.function.containerless.start",
@@ -345,51 +345,51 @@
         },
         {
           "command": "sfdx.force.source.pull",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.pull.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.push",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.push.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.status",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.status.local",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.status.remote",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.legacy.pull",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.legacy.pull.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.legacy.push",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.legacy.push.force",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.source.legacy.status",
-          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:enable_push_and_pull_commands"
         },
         {
           "command": "sfdx.force.task.stop",
@@ -489,19 +489,19 @@
         },
         {
           "command": "sfdx.force.source.retrieve.current.source.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.retrieve.in.manifest",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.deploy.current.source.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.source.deploy.in.manifest",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId == 'forcesourcemanifest'"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId == 'forcesourcemanifest'"
         },
         {
           "command": "sfdx.force.source.delete",
@@ -521,7 +521,7 @@
         },
         {
           "command": "sfdx.force.source.delete.current.file",
-          "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
+          "when": "sfdx:project_opened && sfdx:enable_deploy_and_retrieve_commands && resourceLangId != 'forcesourcemanifest' && editorIsOpen"
         },
         {
           "command": "sfdx.force.set.default.org",

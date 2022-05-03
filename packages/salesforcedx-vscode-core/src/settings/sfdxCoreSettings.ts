@@ -84,7 +84,7 @@ export class SfdxCoreSettings {
     await this.getConfiguration().update(key, value);
   }
 
-  public getDeployAndRetrieveForSourceTrackedOrgsEnabled(): boolean {
+  public getDeployAndRetrieveForSourceTrackedOrgs(): boolean {
     return this.getConfigValue(ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
   }
 }
