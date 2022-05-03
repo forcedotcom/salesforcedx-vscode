@@ -5,7 +5,10 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
+import { nls } from '../../../src/messages';
 
+const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
+const RENAME_INPUT_DUP_FILE_NAME_ERROR = 'rename_component_input_dup_file_name_error';
 const lwcPath = vscode.Uri.parse('/force-app/main/default/lwc');
 const auraPath = vscode.Uri.parse('/force-app/main/default/aura/');
 const lwcComponent = 'hero';
@@ -89,7 +92,8 @@ describe('Force Rename Lightning Component', () => {
       .onCall(0).resolves([])
       .onCall(1).resolves([])
       .onCall(2).resolves([testFolder])
-      .onCall(3).resolves(testFiles);
+      .onCall(3).resolves([])
+      .onCall(4).resolves(testFiles);
       const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
       await executor.run({
         type: 'CONTINUE',
@@ -200,7 +204,8 @@ describe('Force Rename Lightning Component', () => {
       readdirStub
        .onFirstCall().resolves([lwcComponent])
        .onSecondCall().resolves([]);
-      let exceptionThrown = false;
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(RENAME_INPUT_DUP_ERROR);
       try {
         const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
         await executor.run({
@@ -208,9 +213,53 @@ describe('Force Rename Lightning Component', () => {
           data: {name: 'hero'}
         });
       } catch (e) {
-        exceptionThrown = true;
+        exceptionThrown = e;
       }
-      expect(exceptionThrown).to.equal(true);
+      expect(exceptionThrown.message).to.equal(errorMessage);
+      expect(renameStub.callCount).to.equal(0);
+    });
+
+    it('should prevent new component name from duplicating any existing file name under current component directory', async () => {
+      const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      readdirStub
+      .onCall(0).resolves([])
+      .onCall(1).resolves([])
+      .onCall(2).resolves(itemsInHero.concat([testFolder]))
+      .onCall(3).resolves(testFiles);
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
+      try {
+        const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
+        await executor.run({
+          type: 'CONTINUE',
+          data: {name: 'templateOne'}
+        });
+      } catch (e) {
+        exceptionThrown = e;
+      }
+      expect(exceptionThrown.message).to.equal(errorMessage);
+      expect(renameStub.callCount).to.equal(0);
+    });
+
+    it('should prevent new component name from duplicating any exiting test file name', async () => {
+      const sourceUri = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      readdirStub
+      .onCall(0).resolves([])
+      .onCall(1).resolves([])
+      .onCall(2).resolves(itemsInHero.concat([testFolder]))
+      .onCall(3).resolves(testFiles);
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(RENAME_INPUT_DUP_FILE_NAME_ERROR);
+      try {
+        const executor = new RenameLwcComponentExecutor(sourceUri.fsPath);
+        await executor.run({
+          type: 'CONTINUE',
+          data: {name: 'example'}
+        });
+      } catch (e) {
+        exceptionThrown = e;
+      }
+      expect(exceptionThrown.message).to.equal(errorMessage);
       expect(renameStub.callCount).to.equal(0);
     });
   });
