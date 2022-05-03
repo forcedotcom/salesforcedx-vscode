@@ -8,11 +8,10 @@
   ],
   "engines": {
     "node": ">=16.13.0",
-    "yarn": ">=1.22.15"
+    "pnpm": ">=7.0.0"
   },
   "dependencies": {
-    "node": "^16.13.0",
-    "npm": "^8.1.2"
+    "node": "^16.13.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
