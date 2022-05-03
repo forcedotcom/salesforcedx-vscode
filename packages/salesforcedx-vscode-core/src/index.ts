@@ -745,7 +745,7 @@ function setUpChangeConfigurationListener() {
     if (configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
       const username = workspaceContext.username;
       const orgType = await getWorkspaceOrgType(username);
-      setupWorkspaceOrgType(username);
+      await setupWorkspaceOrgType(username);
     }
   });
 }
