@@ -47,7 +47,7 @@ export const messages = {
   force_auth_access_token_login_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   force_auth_web_login_device_code_parse_error:
-    'There was an unexpected error authorizing to you org in a container environment.',
+    'There was an unexpected error authorizing to your org in a container environment.',
 
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
