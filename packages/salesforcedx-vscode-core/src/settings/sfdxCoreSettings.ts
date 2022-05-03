@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import {
-  BETA_DEPLOY_RETRIEVE,
+  // BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
   ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS,
   INTERNAL_DEVELOPMENT_FLAG,
@@ -18,6 +18,7 @@ import {
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
 } from '../constants';
+
 /**
  * A centralized location for interacting with sfdx-core settings.
  */
@@ -76,15 +77,15 @@ export class SfdxCoreSettings {
     return this.getConfigValue(CONFLICT_DETECTION_ENABLED, false);
   }
 
-  private getConfigValue<T>(key: string, defaultValue: T): T {
+  public getDeployAndRetrieveForSourceTrackedOrgs(): boolean {
+    return this.getConfigValue(ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
+  }
+
+  public getConfigValue<T>(key: string, defaultValue: T): T {
     return this.getConfiguration().get<T>(key, defaultValue);
   }
 
-  private async setConfigValue(key: string, value: any) {
+  public async setConfigValue(key: string, value: any) {
     await this.getConfiguration().update(key, value);
-  }
-
-  public getDeployAndRetrieveForSourceTrackedOrgs(): boolean {
-    return this.getConfigValue(ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
   }
 }
