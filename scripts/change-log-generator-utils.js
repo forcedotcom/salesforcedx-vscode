@@ -46,7 +46,7 @@ function getPreviousReleaseBranch(releaseBranch) {
  function getReleaseBranches() {
   return shell
     .exec(
-      `git branch --remotes --list --sort='-creatordate' '${constants.RELEASE_BRANCH_PREFIX}*'`,
+      `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
       { silent: false }
     )
     .replace(/\n/g, ',')
