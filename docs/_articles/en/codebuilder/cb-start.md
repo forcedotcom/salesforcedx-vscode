@@ -28,18 +28,18 @@ Now you’re ready to use Code Builder.
 
 2. Click **Get Started**.
 3. Click **New Project** to create a new Salesforce DX project.
-4. Give your project a name and choose “Standard” for project type.
+4. Give your project a name and choose **Standard** for project type.
 
-Following steps involve connecting an Org to your Code Builder environment. You can choose to connect to a Salesforce Org (`login.salesforce.com`) or a Sandbox Org (`test.salesforce.com`).
+Next, connect an org to your Code Builder environment. You can choose to connect to a Salesforce org (`login.salesforce.com`) or a sandbox org (`test.salesforce.com`).
 
-1. Go through the standard Salesforce login rituals and give Code Builder access to your org. Click **Allow**.
+1. Log in to your development environment, then click **Allow** to give Code Builder access to your org.
 2. After you’ve successfully connected to your org, click **Next**.
 3. Choose an alias (nickname) for your org. If you work on many orgs, make sure the nickname helps you identify the org quickly in the future. 
-4. Your new Code Builder environment is now available on your dashboard.
+Your new Code Builder environment is now available on your dashboard.
 5. Click **Launch** to launch Code Builder in a new tab. 
 6. Now sit back and relax for a few minutes while Code Builder creates and configures your workspace. Code Builder might take a minute (well, currently  x-y minutes) to start up when it initially sets up.
 
-**Tip**: Once you have created your Code Builder environment, just Launch your Code Builder environment from the dashboard at any time, or bookmark it for fast access.
+**Tip**: Once you have created your Code Builder environment, launch your Code Builder environment from the dashboard at any time, or bookmark it for fast access.
 
 ## Let's Take A Quick Tour
 You’re now in your developer environment in Code Builder. Code Builder has VS Code’s rich IDE plus it gives you easy access to cool Salesforce development-specific tools through the Salesforce extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
@@ -47,14 +47,14 @@ You’re now in your developer environment in Code Builder. Code Builder has VS 
 ![code_builder_ui](../../../images/code_builder_ui.jpg)
 The Code Builder user interface is divided into five main areas.
 
-**Activity Bar**: Located on the left-hand side and it contains iconic buttons to switch between different views. For instance, the Explorer view is active in the above picture.
-**Side Bar**: Contains different views like the Explorer to assist you while working on your project. For example, you can see the Explorer view active in the above image which lists the files in a file structure of your project.
+**Activity Bar**: Located on the left-hand side, it contains iconic buttons to switch between different views. In our example, the Explorer view is active.
+**Side Bar**: Contains different views to assist you while working on your project. For example, you can see the Explorer view in our example. It lists the files in DX project structure in your project.
 **Editors**: The main areas to edit your files. You can open as many editors as you like side by side, vertically and horizontally.
-**Panel**: Shows output or debug information, errors and warnings, or an integrated terminal. You can choose the output you want to display.
+**Panel**: Shows output or debug information, errors and warnings, or an integrated terminal. You can choose the output to display.
 **Status Bar**: Shows information about the opened project and the files you’re editing. This is where you can also see the org you’re working against. 
 
 ## Get To Know Your Org – Use the Org Browser
-Take a closer look at the activity bar and notice a cloud icon. This is the Org Browser. It’s a part of the Salesforce Extension Pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. The Org Browser is available only in non source-tracked orgs such as sandboxes or developer edition orgs. You can retrieve the metadata source into your local project. 
+Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. The Org Browser is available only in non source-tracked orgs such as sandboxes or Developer Edition orgs. You can retrieve the metadata source into your local project. 
 
 **More Information**: You can find more information about the [Org Browser](https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) in the Salesforce Extension Pack documentation.
 
@@ -65,12 +65,12 @@ Click Org Browser and scroll down to **Custom Objects**. The first object you se
 
 ## Use SOQL Builder to Build and Run your First Query
 
-Code Builder comes preloaded with everything you need, to build and run a SOQL query as a part of the Salesforce extension pack. 
+Code Builder comes preloaded with everything you need to build and run a SOQL query. 
 
 Let’s build and run a simple SOQL query on the Account object:
 
 1. Press Ctrl+Shift+P (⇧⌘P)  to view the command palette.
-2. Type “SOQL” in the search box and then select the **SFDX: Create Query in SOQL Builder** command.
+2. Type “SOQL” in the search box and then select **SFDX: Create Query in SOQL Builder**.
 3. Select  the following:
 
     a. **Account** Object in **From** field.
@@ -96,7 +96,7 @@ To log into an org:
 3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
 4. Log in with the relevant username and password.
 5. You’re now connected to your org, and its name is visible in the status bar at the bottom.
-6. Once you authorize an org, we create a connected app that takes care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the previous org from the list.	
+6. Once you authorize an org, we create a connected app that takes care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.	
 
 ## Create, Retrieve, and Deploy a Custom Field
 Let’s add a custom field to an object in our org and pull its metadata into our Code Builder project.
