@@ -3,7 +3,6 @@
 - The `docs` folder contains content published to [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode).
 - To preview the rendered doc site from a Github Pull request click "Details" against the "netlify/salesforcedx-vscode/deploy-preview — Deploy Preview ready!" check.
 
-
 ## Setup Ruby
 
 Note that the server will only work with Ruby version 2. If you install 3 (which is the current default) you will be unable to run the server.
@@ -101,6 +100,7 @@ When adding new articles, you MUST add them in both the `_articles/en` and `_art
 
 When updating the `_/data/sidebar.yml` file, titles must specify both the `en` and `ja` versions. If you are adding an new item in english simply copy the english value to the japanese value and it will be translated on the next localization pass.
 
-```
+## Github Pages
 
-```
+Previously the docs site was hosted on Github pages for the main SF VSCode extensions repository. This has been decommissioned in favor of the [doc site](https://developer.salesforce.com/tools/vscode).
+A javascript redirect has been put in place on the 404.html file to ensure we land on the documentation site when the github pages site is accessed.
