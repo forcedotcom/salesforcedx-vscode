@@ -23,7 +23,9 @@ Now you’re ready to use Code Builder.
 
 ## Connect to Your Dev Environment
 1. From the App Launcher, find and open **Code Builder**.
-(If you don't see Code Builder as an option, or you see an empty screen when you launch it, contact your admin to make sure you have the correct license and permission set assigned to you.)
+
+**Note:** If you don't see Code Builder as an option, or you see an empty screen when you launch it, contact your admin to make sure you have the correct license and permission set assigned to you.
+
 2. Start setting up your Code Builder environment. Click “Get Started”.
 3. Click “New Project to create a new Salesforce DX project.
 4. Give your project a name and choose “Standard” for project type.
