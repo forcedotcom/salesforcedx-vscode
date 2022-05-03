@@ -743,9 +743,7 @@ export async function activate(context: vscode.ExtensionContext) {
 function setUpChangeConfigurationListener() {
   vscode.workspace.onDidChangeConfiguration(async (configurationChangeEvent: vscode.ConfigurationChangeEvent) => {
     if (configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
-      const username = workspaceContext.username;
-      const orgType = await getWorkspaceOrgType(username);
-      await setupWorkspaceOrgType(username);
+      await setupWorkspaceOrgType(workspaceContext.username);
     }
   });
 }
