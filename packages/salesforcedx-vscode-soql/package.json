@@ -70,6 +70,7 @@
     "fs-extra": "^8.1.0",
     "mocha": "^5",
     "papaparse": "^5.3.0",
+    "prettier": "1.19.1",
     "sinon": "13.0.1",
     "typescript": "3.8.3",
     "vscode-extension-tester": "^4.0.2",
@@ -173,5 +174,8 @@
         }
       }
     }
+  },
+  "peerDependencies": {
+    "prettier": "1.19.1"
   }
 }
