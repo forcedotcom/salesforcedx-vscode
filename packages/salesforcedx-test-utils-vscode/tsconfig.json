@@ -1,16 +1,16 @@
 {
+  "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "lib": ["es6", "dom"],
-    "sourceMap": true,
-    "declaration": true,
-    "moduleResolution": "node",
-    "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "out",
-    "preserveConstEnums": true,
-    "strict": true
   },
-  "exclude": ["node_modules", "out"]
+  "exclude": [
+    "node_modules",
+    "out"
+  ],
+  "references": [
+    {
+      "path": "../salesforcedx-utils-vscode"
+    }
+  ]
 }

@@ -77,7 +77,12 @@ module.exports = {
         exclude: /node_modules|\.d\.ts$/,
         use: [
           {
-            loader: 'ts-loader'
+            loader: 'ts-loader',
+            // tsc build requires non-ts files (e.g. json) to be explicitly included and ts-loader seems to be having an issue processing include directives.
+            // https://github.com/TypeStrong/ts-loader/issues/1402
+            options: {
+              configFile: 'tsconfig.webpack.json'
+            }
           }
         ]
       }
