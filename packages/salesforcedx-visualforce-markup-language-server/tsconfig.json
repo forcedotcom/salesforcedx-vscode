@@ -1,14 +1,18 @@
 {
+  "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "lib": ["dom", "es6"],
-    "sourceMap": true,
-    "declaration": true,
-    "moduleResolution": "node",
     "rootDir": ".",
     "outDir": "out",
-    "preserveConstEnums": true
+    "strict": false,
+    "noImplicitAny": false,
+    // src/beautify/*.js files are copied over to out and not run through tsc
+    //  due to https://github.com/microsoft/TypeScript/issues/37832
+    // "allowJs": true, // for the beautify js files
   },
-  "exclude": ["node_modules", ".vscode-test", "out"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out"
+  ],
+  "references": []
 }

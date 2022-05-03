@@ -1,14 +1,20 @@
 {
+  "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es6",
-    "lib": ["dom", "es2016"],
-    "sourceMap": true,
-    "declaration": true,
     "moduleResolution": "node",
     "rootDir": ".",
     "outDir": "out",
-    "preserveConstEnums": true
+    "strict": false,
+    "noImplicitAny": false
   },
-  "exclude": ["node_modules", ".vscode-test", "out"]
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out"
+  ],
+  "references": [
+    {
+      "path": "../salesforcedx-visualforce-markup-language-server"
+    }
+  ]
 }
