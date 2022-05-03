@@ -9,7 +9,6 @@ import { sfdxCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
-
 export enum OrgType {
   SourceTracked,
   NonSourceTracked
@@ -78,9 +77,9 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
   }
 }
 
-export async function enableOrgBrowser(
+export function enableOrgBrowser(
   orgType: OrgType,
-  deployAndRetrieveForSourceTrackedOrgs: boolean | undefined = undefined
+  deployAndRetrieveForSourceTrackedOrgs?: boolean
 ) {
   if (orgType === OrgType.SourceTracked) {
     // Scratch org

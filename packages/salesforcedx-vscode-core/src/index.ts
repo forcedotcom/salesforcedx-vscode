@@ -113,7 +113,6 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
-
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
 };
@@ -743,7 +742,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 function setUpChangeConfigurationListener() {
   vscode.workspace.onDidChangeConfiguration(async (configurationChangeEvent: vscode.ConfigurationChangeEvent) => {
-    if(configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
+    if (configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
       const username = workspaceContext.username;
       const orgType = await getWorkspaceOrgType(username);
       enableOrgBrowser(orgType);
