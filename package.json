@@ -48,12 +48,13 @@
     "webpack-cli": "3.3.12"
   },
   "scripts": {
+    "setup": "npm install -g pnpm && pnpm env use --global 16 && pnpm add -g pnpm",
     "postinstall": "node scripts/reformat-with-prettier && pnpm run check:typescript-project-references",
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
-    "clean": "lerna run clean && git clean -xfd",
-    "reinstall": "npm run clean && yarn install --frozen-lockfile --check-files",
+    "clean": "pnpm run clean && git clean -xfd",
+    "reinstall": "git clean -xfd && pnpm install --frozen-lockfile",
     "compile": "tsc --build",
     "postcompile": "lerna run copy:files && lerna run webpack",
     "compile:clean": "tsc  --build --clean && npm run compile",
