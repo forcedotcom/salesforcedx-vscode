@@ -17,7 +17,6 @@ You can install Code Builder as a managed package in any supported Salesforce or
 
 ## Additional Resources
 
-- [Salesforce Developer Tooling Learning Map](https://developertoolinglearningmap.herokuapp.com/)
 - Trailhead: [Code Builder Quick Look](https://trailhead.salesforce.com/content/learn/modules/code-builder-quick-look)
   
 ## Bugs and Feedback
