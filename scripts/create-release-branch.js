@@ -68,6 +68,9 @@ if (isRemoteReleaseBranchExist) {
   process.exit(-1);
 }
 
+// Create the new release branch and switch to it
+shell.exec(`git checkout -b ${releaseBranchName}`);
+
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
 
@@ -89,8 +92,12 @@ shell.exec('git add lerna.json');
 // Git commit
 shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
-// Create the new release branch and switch to it
-shell.exec(`git checkout -b ${releaseBranchName}`);
+// Merge release branch to develop as soon as it is cut.
+// In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
+shell.exec(`git checkout develop`)
+shell.exec(`git merge ${releaseBranchName}`)
+shell.exec(`git push -u origin develop`)
+shell.exec(`git checkout ${releaseBranchName}`)
 
 // Generate changelog
 const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch(releaseBranchName);
