@@ -9,7 +9,7 @@ Salesforce Code Builder is a second-generation (2GP) managed package that you ca
 
 1. Click the install [link](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t6g000008nwJuAAI)
 2. Log into the org in which you want to install Code Builder.
-3. Check Acknowledge and click **Install**.
+3. Select **Acknowledge** and click **Install**.
 
 
 
