@@ -38,6 +38,9 @@ export class WorkspaceContext {
   }
 
   protected async handleCliConfigChange(orgInfo: OrgInfo) {
+
+    // jab - this gets called 3 times at startup
+
     setupWorkspaceOrgType(orgInfo.username).catch(e =>
       // error reported by setupWorkspaceOrgType
       console.error(e)
