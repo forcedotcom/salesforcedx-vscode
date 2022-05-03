@@ -115,7 +115,7 @@ First let’s add a custom field  –
 
 Now let’s retrieve metadata for this new field –
 
-1. Return to Code Builder and click the Org Browser
+1. Return to Code Builder and open Org Browser.
 2. Scroll down to **Custom Objects** and navigate to **Account**
 3. Click the retrieve icon next to the Account component to run **SFDX: Retrieve Source from Org**
 4. From the Activity Bar, click the Explorer and navigate to `force-app/main/default/object/Account`
