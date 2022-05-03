@@ -3,9 +3,8 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    // https://github.com/microsoft/TypeScript/issues/42873
+    "preserveSymlinks": true,
   },
   "exclude": [
     "node_modules",

@@ -5,6 +5,8 @@
     "outDir": "out",
     "strict": false,
     "noImplicitAny": false,
+    // https://github.com/microsoft/TypeScript/issues/42873
+    "preserveSymlinks": true,
   },
   "exclude": [
     "node_modules",
