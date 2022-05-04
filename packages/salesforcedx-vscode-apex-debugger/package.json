@@ -46,7 +46,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "vscode:prepublish": "pnpm run esbuild",
+    "vscode:prepublish": "pnpm rollup -c ../../rollup.config.js",
     "esbuild": "esbuild ./src/index.ts --bundle --outfile=out/src/index.js --external:vscode --format=cjs --platform=node --minify --log-level=debug",
     "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

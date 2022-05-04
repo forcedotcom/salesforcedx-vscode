@@ -48,7 +48,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "vscode:prepublish": "pnpm run esbuild",
+    "vscode:prepublish": "pnpm rollup -c ../../rollup.config.js",
     "esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/src/extension.js --external:vscode --format=cjs --platform=node --minify --log-level=debug",
     "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -65,7 +65,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src/extension.js",
+  "main": "./out/src/index.js",
   "contributes": {
     "languages": [
       {
