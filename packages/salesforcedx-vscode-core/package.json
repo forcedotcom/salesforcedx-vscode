@@ -43,9 +43,6 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "22.0.0",
-    "@rollup/plugin-json": "4.1.0",
-    "@rollup/plugin-node-resolve": "13.3.0",
     "@salesforce/salesforcedx-test-utils-vscode": "54.11.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
@@ -68,14 +65,12 @@
     "mock-spawn": "0.2.6",
     "nyc": "^13",
     "proxyquire": "2.1.3",
-    "rollup": "2.71.1",
-    "rollup-plugin-typescript2": "0.31.2",
     "sinon": "^13.0.1",
     "typescript": "3.8.3",
     "yeoman-assert": "^3.1.1"
   },
   "scripts": {
-    "vscode:prepublish": "pnpm rollup -c",
+    "vscode:prepublish": "pnpm rollup -c ../../rollup.config.js",
     "esbuild": "esbuild ./src/index.ts --bundle --outfile=out/src/index.js --external:vscode --format=cjs --platform=node --minify --log-level=debug",
     "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

@@ -8,6 +8,9 @@ importers:
       '@commitlint/config-conventional': ^15.0.0
       '@monorepo-utils/workspaces-to-typescript-project-references': 2.7.6
       '@octokit/core': 3.6.0
+      '@rollup/plugin-commonjs': 22.0.0
+      '@rollup/plugin-json': 4.1.0
+      '@rollup/plugin-node-resolve': 13.3.0
       '@salesforce/dev-config': 1.6.0
       '@tsconfig/node14': 1.0.1
       acorn: 6.4.2
@@ -27,6 +30,8 @@ importers:
       node: ^16.13.0
       prettier: 1.19.1
       remap-istanbul: ^0.13.0
+      rollup: 2.71.1
+      rollup-plugin-typescript2: 0.31.2
       shelljs: 0.8.5
       shx: 0.3.4
       snyk: ^1.364.0
@@ -44,6 +49,9 @@ importers:
       '@commitlint/config-conventional': 15.0.0
       '@monorepo-utils/workspaces-to-typescript-project-references': 2.7.6
       '@octokit/core': 3.6.0
+      '@rollup/plugin-commonjs': 22.0.0_rollup@2.71.1
+      '@rollup/plugin-json': 4.1.0_rollup@2.71.1
+      '@rollup/plugin-node-resolve': 13.3.0_rollup@2.71.1
       '@salesforce/dev-config': 1.6.0
       '@tsconfig/node14': 1.0.1
       acorn: 6.4.2
@@ -62,6 +70,8 @@ importers:
       ncp: 2.0.0
       prettier: 1.19.1
       remap-istanbul: 0.13.0
+      rollup: 2.71.1
+      rollup-plugin-typescript2: 0.31.2_byuzyzxbved7oy4x7pwbj2rvey
       shelljs: 0.8.5
       shx: 0.3.4
       snyk: 1.915.0
@@ -535,9 +545,6 @@ importers:
   packages/salesforcedx-vscode-core:
     specifiers:
       '@heroku/functions-core': ^0.2.7
-      '@rollup/plugin-commonjs': 22.0.0
-      '@rollup/plugin-json': 4.1.0
-      '@rollup/plugin-node-resolve': 13.3.0
       '@salesforce/core': ^2.35.0
       '@salesforce/salesforcedx-sobjects-faux-generator': 54.11.0
       '@salesforce/salesforcedx-test-utils-vscode': 54.11.0
@@ -572,8 +579,6 @@ importers:
       mock-spawn: 0.2.6
       nyc: ^13
       proxyquire: 2.1.3
-      rollup: 2.71.1
-      rollup-plugin-typescript2: 0.31.2
       rxjs: ^5.4.1
       sanitize-filename: ^1.6.1
       shelljs: 0.8.5
@@ -598,9 +603,6 @@ importers:
       sanitize-filename: 1.6.3
       shelljs: 0.8.5
     devDependencies:
-      '@rollup/plugin-commonjs': 22.0.0_rollup@2.71.1
-      '@rollup/plugin-json': 4.1.0_rollup@2.71.1
-      '@rollup/plugin-node-resolve': 13.3.0_rollup@2.71.1
       '@salesforce/salesforcedx-test-utils-vscode': link:../salesforcedx-test-utils-vscode
       '@salesforce/ts-sinon': 1.3.21
       '@types/adm-zip': 0.4.34
@@ -623,8 +625,6 @@ importers:
       mock-spawn: 0.2.6
       nyc: 13.3.0
       proxyquire: 2.1.3
-      rollup: 2.71.1
-      rollup-plugin-typescript2: 0.31.2_3ktkqg33lshtpeg7ko6mhm3ley
       sinon: 13.0.2
       typescript: 3.8.3
       yeoman-assert: 3.1.1
@@ -4308,12 +4308,12 @@ packages:
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
     dev: true
 
-  /@yarn-tool/resolve-package/1.0.46_@types+node@12.0.12:
+  /@yarn-tool/resolve-package/1.0.46:
     resolution: {integrity: sha512-RJcBGTVywUqYGRtGkPSgJC/ozf0wK/xjUy66tXkbpL35U0o1oef4S0v23euxA/CiukqBWr2fRGtGY6FidESdTg==}
     dependencies:
       pkg-dir: 5.0.0
       tslib: 2.4.0
-      upath2: 3.1.12_@types+node@12.0.12
+      upath2: 3.1.12
     transitivePeerDependencies:
       - '@types/node'
     dev: true
@@ -14844,14 +14844,14 @@ packages:
       rollup-pluginutils: 2.8.2
     dev: false
 
-  /rollup-plugin-typescript2/0.31.2_3ktkqg33lshtpeg7ko6mhm3ley:
+  /rollup-plugin-typescript2/0.31.2_byuzyzxbved7oy4x7pwbj2rvey:
     resolution: {integrity: sha512-hRwEYR1C8xDGVVMFJQdEVnNAeWRvpaY97g5mp3IeLnzhNXzSVq78Ye/BJ9PAaUfN4DXa/uDnqerifMOaMFY54Q==}
     peerDependencies:
       rollup: '>=1.26.3'
       typescript: '>=2.4.0'
     dependencies:
       '@rollup/pluginutils': 4.2.1
-      '@yarn-tool/resolve-package': 1.0.46_@types+node@12.0.12
+      '@yarn-tool/resolve-package': 1.0.46
       find-cache-dir: 3.3.2
       fs-extra: 10.1.0
       resolve: 1.22.0
@@ -16766,12 +16766,11 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /upath2/3.1.12_@types+node@12.0.12:
+  /upath2/3.1.12:
     resolution: {integrity: sha512-yC3eZeCyCXFWjy7Nu4pgjLhXNYjuzuUmJiRgSSw6TJp8Emc+E4951HGPJf+bldFC5SL7oBLeNbtm1fGzXn2gxw==}
     peerDependencies:
       '@types/node': '*'
     dependencies:
-      '@types/node': 12.0.12
       path-is-network-drive: 1.0.13
       path-strip-sep: 1.0.10
       tslib: 2.4.0
