@@ -1,3 +1,12 @@
+# 54.11.0 - May 4, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with the _SFDX: Rename Component_ command so that it prevents a component from being renamed if the component bundle already contains a file with that name. ([PR #4039](https://github.com/forcedotcom/salesforcedx-vscode/pull/4039)).
+- Fixed some under-the-hood issues. ([PR #4069](https://github.com/forcedotcom/salesforcedx-vscode/pull/4069)).
+
 # 54.9.0 - April 21, 2022
 
 ## Fixed
