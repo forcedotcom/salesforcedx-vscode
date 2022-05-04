@@ -86,6 +86,7 @@
     "vscode:package": "pnpm run -r --workspace-concurrency=1 vscode:package",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
+    "vscode:install": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} \\;",
     "watch": "lerna run --parallel watch",
     "eslint-check": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
     "reformat": "node scripts/reformat-with-prettier.js",
