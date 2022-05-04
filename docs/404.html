@@ -2,6 +2,15 @@
 layout: default
 ---
 
+<script>
+  window.onload = function () {
+      // Redirect to the real documentation site if github pages url is attempted. 
+      if (window.location.href.includes("forcedotcom.github.io/salesforcedx-vscode")) {
+          window.location.href = "https://developer.salesforce.com/tools/vscode";
+      }
+  }
+</script>
+
 <style type="text/css" media="screen">
   .container {
     margin: 10px auto;
