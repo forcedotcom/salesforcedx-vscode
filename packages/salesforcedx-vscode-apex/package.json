@@ -56,7 +56,7 @@
     "vscode-extension-telemetry": "0.0.17"
   },
   "scripts": {
-    "vscode:prepublish": "yarn run esbuild-base -- --minify",
+    "vscode:prepublish": "npm run esbuild-base -- --minify",
     "esbuild-base": "esbuild ./src/index.ts --bundle --outfile=out/src/index.js --external:vscode --format=cjs --platform=node",
     "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
