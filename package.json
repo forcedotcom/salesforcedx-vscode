@@ -77,6 +77,7 @@
     "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
+    "vscode:install": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} \\;",
     "watch": "lerna run --parallel watch",
     "eslint-check": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
     "reformat": "node scripts/reformat-with-prettier.js",
