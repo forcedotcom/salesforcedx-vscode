@@ -103,4 +103,4 @@ When updating the `_/data/sidebar.yml` file, titles must specify both the `en` a
 ## Github Pages
 
 Previously the docs site was hosted on Github pages for the main SF VSCode extensions repository. This has been decommissioned in favor of the [doc site](https://developer.salesforce.com/tools/vscode).
-A javascript redirect has been put in place on the 404.html file to ensure we land on the documentation site when the github pages site is accessed.
+A JavaScript redirect has been put in place on the 404.html file to ensure we land on the documentation site when the github pages site is accessed.
