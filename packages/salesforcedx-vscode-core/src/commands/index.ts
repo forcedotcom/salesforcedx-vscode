@@ -140,10 +140,6 @@ export {
   forceDescribeMetadata,
   ForceDescribeMetadataExecutor
 } from './forceDescribeMetadata';
-export {
-  forceListMetadata,
-  ForceListMetadataExecutor
-} from './forceListMetadata';
 export { forceSourceRetrieveCmp } from './forceSourceRetrieveMetadata';
 export {
   forceSourceDiff,
