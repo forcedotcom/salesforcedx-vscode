@@ -3,7 +3,6 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "allowSyntheticDefaultImports": true
   },
   "exclude": [
     "node_modules",
