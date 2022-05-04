@@ -48,7 +48,9 @@ export const messages = {
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
   force_auth_web_login_device_code_parse_error:
     'There was an unexpected error authorizing to your org in a container environment.',
-
+  force_auth_device_login_enter_code:
+    'Enter %s user code in the verification URL %s',
+  action_required: '=== Action Required!',
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
 
