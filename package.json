@@ -19,6 +19,7 @@
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.7.6",
     "@octokit/core": "3.6.0",
     "@rollup/plugin-commonjs": "22.0.0",
+    "@rollup/plugin-dynamic-import-vars": "1.4.3",
     "@rollup/plugin-json": "4.1.0",
     "@rollup/plugin-node-resolve": "13.3.0",
     "@salesforce/dev-config": "1.6.0",

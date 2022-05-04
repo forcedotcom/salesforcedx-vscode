@@ -1,5 +1,6 @@
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 import json from '@rollup/plugin-json';
 import typescript from 'rollup-plugin-typescript2';
 
@@ -14,9 +15,6 @@ export default {
     'vscode'
   ],
   plugins: [
-    nodeResolve(),
-    commonjs(),
-    json(),
     typescript({
       tsconfigOverride: { 
         compilerOptions: { 
@@ -24,6 +22,13 @@ export default {
       }, 
       verbosity: 3 
     },
-  })
+  }),
+  json(), // Process JSON imports
+  dynamicImportVars({
+    // Throw a warning on error and don't quit build
+    warnOnError: true,
+  }),
+  nodeResolve(),
+  commonjs(),
   ]
 };

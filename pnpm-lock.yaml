@@ -9,6 +9,7 @@ importers:
       '@monorepo-utils/workspaces-to-typescript-project-references': 2.7.6
       '@octokit/core': 3.6.0
       '@rollup/plugin-commonjs': 22.0.0
+      '@rollup/plugin-dynamic-import-vars': 1.4.3
       '@rollup/plugin-json': 4.1.0
       '@rollup/plugin-node-resolve': 13.3.0
       '@salesforce/dev-config': 1.6.0
@@ -50,6 +51,7 @@ importers:
       '@monorepo-utils/workspaces-to-typescript-project-references': 2.7.6
       '@octokit/core': 3.6.0
       '@rollup/plugin-commonjs': 22.0.0_rollup@2.71.1
+      '@rollup/plugin-dynamic-import-vars': 1.4.3_rollup@2.71.1
       '@rollup/plugin-json': 4.1.0_rollup@2.71.1
       '@rollup/plugin-node-resolve': 13.3.0_rollup@2.71.1
       '@salesforce/dev-config': 1.6.0
@@ -3094,6 +3096,19 @@ packages:
       is-reference: 1.2.1
       magic-string: 0.25.9
       resolve: 1.22.0
+      rollup: 2.71.1
+    dev: true
+
+  /@rollup/plugin-dynamic-import-vars/1.4.3_rollup@2.71.1:
+    resolution: {integrity: sha512-VYP9BBVI0pcYpLp/DkFT8YP+EmqmWFMmWXoTObDH6OouERxJyPsIj0tC3HxhjNBOKgcRc7eV75IQItzELt7QSg==}
+    engines: {node: '>= 10.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0
+    dependencies:
+      '@rollup/pluginutils': 4.2.1
+      estree-walker: 2.0.2
+      fast-glob: 3.2.11
+      magic-string: 0.25.9
       rollup: 2.71.1
     dev: true
 
