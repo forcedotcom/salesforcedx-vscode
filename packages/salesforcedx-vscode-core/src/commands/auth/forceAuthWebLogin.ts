@@ -12,6 +12,7 @@ import {
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
@@ -111,6 +112,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
 
       if (verificationUrl && userCode) {
         authUrl = `${verificationUrl}?user_code=${userCode}`;
+        this.logToOutputChannel(userCode, verificationUrl);
       }
     } catch (error) {
       channelService.appendLine(
@@ -123,6 +125,15 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
     }
 
     return authUrl;
+  }
+
+  private logToOutputChannel(code: string, url: string) {
+    channelService.appendLine(`${EOL}`);
+    channelService.appendLine(nls.localize('action_required'));
+    channelService.appendLine(
+      nls.localize('force_auth_device_login_enter_code', code, url)
+    );
+    channelService.appendLine(`${EOL}`);
   }
 }
 
