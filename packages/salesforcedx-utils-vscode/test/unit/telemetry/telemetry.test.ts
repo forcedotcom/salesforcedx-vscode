@@ -6,7 +6,7 @@
  */
 
 import { expect } from 'chai';
-import { beforeEach, afterEach, xit } from 'mocha';
+import { afterEach, beforeEach, xit } from 'mocha';
 import * as proxyquire from 'proxyquire';
 import {
   assert,
