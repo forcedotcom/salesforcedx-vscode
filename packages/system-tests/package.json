@@ -4,7 +4,7 @@
   "version": "54.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
-  "main": "./out/src",
+  "main": "./out/src/index.js",
   "engines": {
     "vscode": "^1.49.3"
   },

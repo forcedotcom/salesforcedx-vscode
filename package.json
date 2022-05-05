@@ -40,7 +40,7 @@
     "ts-loader": "5.4.5",
     "tslint": "5.5.0",
     "typescript": "3.8.3",
-    "vsce": "1.103.1",
+    "vsce": "2.7.0",
     "vscode-test": "1.6.1",
     "webpack": "4.30.0",
     "webpack-cli": "3.3.12"
