@@ -21,7 +21,7 @@
     "vscode": "^1.49.3"
   },
   "scripts": {
-    "vscode:prepublish": "npm prune --production",
+    "vscode:prepublish": "clean-modules -y",
     "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"

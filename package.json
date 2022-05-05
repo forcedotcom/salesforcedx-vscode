@@ -19,6 +19,7 @@
     "acorn": "6.4.2",
     "ajv": "6.12.6",
     "check-peer-dependencies": "4.1.0",
+    "clean-modules": "2.0.4",
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.2.0",
     "depcheck": "1.4.3",
