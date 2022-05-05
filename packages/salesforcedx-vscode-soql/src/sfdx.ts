@@ -8,7 +8,7 @@
 import { Connection } from '@salesforce/core';
 import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import * as debounce from 'debounce';
+import debounce from 'debounce';
 import { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from './messages';

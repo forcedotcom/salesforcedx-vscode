@@ -5,6 +5,7 @@
     "outDir": "out",
     "strict": false,
     "noImplicitAny": false,
+    "esModuleInterop": true
   },
   "exclude": [
     "node_modules",
