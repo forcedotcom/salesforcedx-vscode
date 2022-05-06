@@ -50,7 +50,7 @@ The Code Builder user interface is divided into five main areas.
 **Side Bar**: Contains different views to assist you while working on your project. For example, you can see the Explorer view in our example. It lists the files in DX project structure in your project.
 **Editors**: The main areas to edit your files. You can open as many editors as you like side by side, vertically and horizontally.
 **Panel**: Shows output or debug information, errors and warnings, or an integrated terminal. You can choose the output to display.
-**Status Bar**: Shows information about the opened project and the files you’re editing. This is where you can also see the org you’re working against. 
+**Status Bar**: Shows information about the opened project and the files you’re editing. The Status Bar displays the org that you're connected to. 
 
 ## Get To Know Your Org – Use the Org Browser
 Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. The Org Browser is available only in non source-tracked orgs such as sandboxes or Developer Edition orgs. You can retrieve the metadata source into your local project. 
