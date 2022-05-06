@@ -25,6 +25,7 @@ import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
+import { CLI } from '../../constants';
 import {
   DEFAULT_DEV_HUB_USERNAME_KEY,
   SFDX_CONFIG_FILE
@@ -43,7 +44,7 @@ export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainer
     );
 
     command
-      .withArg('force:auth:device:login')
+      .withArg(CLI.AUTH_DEVICE_LOGIN)
       .withArg('--setdefaultdevhubusername')
       .withLogName('force_auth_device_dev_hub')
       .withJson();
@@ -120,7 +121,7 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
       .withDescription(
         nls.localize('force_auth_web_login_authorize_dev_hub_text')
       )
-      .withArg('force:auth:web:login')
+      .withArg(CLI.AUTH_WEB_LOGIN)
       .withArg('--setdefaultdevhubusername')
       .withArg('--noprompt')
       .withJson()

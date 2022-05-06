@@ -17,6 +17,7 @@ import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
 import { channelService } from '../../channels/index';
+import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
 import {
@@ -53,7 +54,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
     );
 
     command
-      .withArg('force:auth:device:login')
+      .withArg(CLI.AUTH_DEVICE_LOGIN)
       .withLogName('force_auth_device_login')
       .withFlag('--setalias', data.alias)
       .withFlag('--instanceurl', data.loginUrl)
@@ -148,7 +149,7 @@ export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
     );
 
     command
-      .withArg('force:auth:web:login')
+      .withArg(CLI.AUTH_WEB_LOGIN)
       .withLogName('force_auth_web_login')
       .withFlag('--setalias', data.alias)
       .withFlag('--instanceurl', data.loginUrl)
@@ -205,7 +206,7 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
   public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
-      .withArg('force:auth:web:login')
+      .withArg(CLI.AUTH_WEB_LOGIN)
       .withFlag('--setalias', data.alias)
       .withFlag('--instanceurl', data.loginUrl)
       .withArg('--setdefaultusername')
