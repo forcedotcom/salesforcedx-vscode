@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as i18n from './i18n';
+import {messages} from './i18n';
 import {
   BASE_FILE_EXTENSION,
   BASE_FILE_NAME,
@@ -22,7 +22,7 @@ function loadMessageBundle(config?: Config): Message {
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
   }
 
-  const base = new Message(i18n.messages);
+  const base = new Message(messages);
 
   if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
     try {

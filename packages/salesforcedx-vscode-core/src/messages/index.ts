@@ -13,6 +13,7 @@ import {
   Localization,
   Message
 } from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
+import { messages } from './i18n';
 import * as i18n from './i18n';
 
 function loadMessageBundle(config?: Config): Message {
