@@ -32,12 +32,11 @@ Now you’re ready to use Code Builder.
 
 Next, connect an org to your Code Builder environment. You can choose to connect to a Salesforce org (`login.salesforce.com`) or a sandbox org (`test.salesforce.com`).
 
-1. Log in to your development environment, then click **Allow** to give Code Builder access to your org.
-2. After you’ve successfully connected to your org, click **Next**.
-3. Choose an alias (nickname) for your org. If you work on many orgs, make sure the nickname helps you identify the org quickly in the future. 
+1. Log in to your development environment, click **Allow** to grant access, then click **Next**.
+2. Choose an alias (nickname) for your org. If you work on many orgs, make sure the nickname helps you identify the org quickly in the future. 
 Your new Code Builder environment is now available on your dashboard.
-5. Click **Launch** to launch Code Builder in a new tab. 
-6. Now sit back and relax for a few minutes while Code Builder creates and configures your workspace. Code Builder might take a minute (well, currently  x-y minutes) to start up when it initially sets up.
+3. Click **Launch** to launch Code Builder in a new tab. 
+4. Now sit back and relax for a few minutes while Code Builder creates and configures your workspace. Code Builder might take a minute (well, currently  x-y minutes) to start up when it initially sets up.
 
 **Tip**: Once you have created your Code Builder environment, launch your Code Builder environment from the dashboard at any time, or bookmark it for fast access.
 
