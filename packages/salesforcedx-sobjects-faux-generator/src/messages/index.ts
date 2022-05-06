@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as i18n from './i18n';
 import {
-  BASE_FILE_EXTENSION,
   BASE_FILE_NAME,
   Config,
   DEFAULT_LOCALE,
@@ -18,16 +16,18 @@ import {
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
     return locale === DEFAULT_LOCALE
-      ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
-      : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
+      ? `${BASE_FILE_NAME}`
+      : `${BASE_FILE_NAME}.${locale}`;
   }
 
-  const base = new Message(i18n.messages);
+  const base = new Message(
+    require(`./${resolveFileName(DEFAULT_LOCALE)}.js`).messages
+  );
 
   if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
     try {
       const layer = new Message(
-        require(`./${resolveFileName(config.locale)}`).messages,
+        require(`./${resolveFileName(config.locale)}.js`).messages,
         base
       );
       return layer;

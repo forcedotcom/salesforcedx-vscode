@@ -22,14 +22,14 @@ function loadMessageBundle(config?: Config): Message {
 
   const base = new Message(
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
+    require(`./${resolveFileName(DEFAULT_LOCALE)}.js`).messages
   );
 
   if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
     try {
       const layer = new Message(
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        require(`./${resolveFileName(config.locale)}`).messages,
+        require(`./${resolveFileName(config.locale)}.js`).messages,
         base
       );
       return layer;
