@@ -99,7 +99,7 @@
     "workspaceContains:sfdx-project.json",
     "onCommand:soql.builder.toggle"
   ],
-  "main": "./our/src/bundle.js",
+  "main": "./out/src/bundle.js",
   "contributes": {
     "customEditors": [
       {
