@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const esbuild = require('esbuild');
+const {filelocPlugin} = require('esbuild-plugin-fileloc')
 const path = require('path');
 const cwd = process.cwd();
 
@@ -12,5 +13,8 @@ esbuild.build({
   platform: 'node',
   mainFields: ['module','main'],
   external: ['vscode'],
-  logLevel: 'info'
+  logLevel: 'info',
+  plugins: [
+    filelocPlugin()
+  ]
 });
