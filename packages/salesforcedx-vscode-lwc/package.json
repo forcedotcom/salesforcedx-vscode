@@ -68,7 +68,7 @@
     "dbaeumer.vscode-eslint"
   ],
   "scripts": {
-    "vscode:prepublish": "npx rollup -c ../../rollup.config.js",
+    "vscode:prepublish": "shx rm -rf out/src; rollup -c ../../rollup.config.js",
     "esbuild": "esbuild ./out/src/index.js --bundle --outfile=out/src/bundle.js --external:vscode --format=cjs --platform=node --main-fields=module,main",
     "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
