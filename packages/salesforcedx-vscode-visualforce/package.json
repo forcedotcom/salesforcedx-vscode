@@ -48,8 +48,8 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "vscode:prepublish": "npm run esbuild && clean-modules -y",
-    "esbuild": "esbuild ./src/extension.ts --bundle --outfile=out/src/extension.js --external:vscode --format=cjs --platform=node --minify",
+    "vscode:prepublish": "npm run esbuild",
+    "esbuild": "esbuild ./out/src/extension.js --bundle --outfile=out/src/bundle.js --external:vscode --format=cjs --platform=node --main-fields=module,main",
     "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -65,7 +65,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src/extension.js",
+  "main": "./out/src/bundle.js",
   "contributes": {
     "languages": [
       {
