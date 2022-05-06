@@ -62,7 +62,7 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     );
 
     command
-      .withArg('force:auth:web:login')
+      .withArg(CLI.AUTH_WEB_LOGIN)
       .withLogName('force_auth_dev_hub')
       .withArg('--setdefaultdevhubusername');
     return command.build();
