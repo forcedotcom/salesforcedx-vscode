@@ -122,7 +122,7 @@ The versioning we follow is intentionally mapped with Salesforce Core. When a ma
 
 ### Prerequisite
 
-- Lerna is properly installed (`npm install -g lerna@3.13.1`).
+- Lerna is properly installed (`npm install -g lerna@4.0.0`).
 - You've created a CircleCI token that grants you access to the artifacts generated per build. More info on CircleCI's doc [Create a Personal API token](https://circleci.com/docs/2.0/managing-api-tokens/#creating-a-personal-api-token).
 - All tests have been run prior to publishing. We don't run the tests during the
   publishing cycle since it generates artifacts that we do not want to include

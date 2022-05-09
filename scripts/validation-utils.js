@@ -8,7 +8,7 @@ const fs = require('fs');
 const logger = require('./logger-util');
 
 const NODE_VERSION = '12.4.0';
-const LERNA_VERSION = '3.13.1';
+const LERNA_VERSION = '4.0.0';
 
 module.exports = {
   checkVSCodeVersion: () => {

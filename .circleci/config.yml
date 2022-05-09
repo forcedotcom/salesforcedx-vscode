@@ -22,7 +22,7 @@ parameters:
     default: '7.45.1'
   lerna-version:
     type: string
-    default: '3.13.1'
+    default: '4.0.0'
   node-version:
     type: string
     default: '14.16.0'
@@ -382,7 +382,7 @@ jobs:
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
             $failure = $results.SelectSingleNode("//failure")
-            if ($failure -ne $null) { 
+            if ($failure -ne $null) {
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }
