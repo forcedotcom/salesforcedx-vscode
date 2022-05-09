@@ -102,6 +102,7 @@ describe('Telemetry production mode', () => {
     sb.restore();
   });
 
+  /*
   xit('Should send telemetry data', async () => {
     await telemetryService.initializeService(mockContext, extensionName);
 
@@ -306,6 +307,7 @@ describe('Telemetry production mode', () => {
     assert.notCalled(mShowInformation);
     expect(teleStub.firstCall.args).to.eql([true]);
   });
+  */
 
   it('should build TelemetryBuilder object with a property set', () => {
     telemetryBuilder.addProperty('test', 'a');
