@@ -383,7 +383,6 @@ describe('setupWorkspaceOrgType', () => {
   });
 });
 
-
 const getDefaultUsernameStub = (returnValue: any) =>
   sinon
     .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
