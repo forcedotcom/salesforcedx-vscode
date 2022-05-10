@@ -1,0 +1,6 @@
+# https://pnpm.io/workspaces
+packages:
+  - 'packages/**'
+  # Exclude package.json from test assets 
+  - '!packages/system-tests/assets/**' 
+  
