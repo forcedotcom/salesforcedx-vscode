@@ -8,18 +8,18 @@
 import { Aliases, AuthInfo } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-// import * as vscode from 'vscode';
-// import {
-//   ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS
-// } from '../../../src/constants';
+import * as vscode from 'vscode';
+import {
+  ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS
+} from '../../../src/constants';
 import {
   getDefaultUsernameOrAlias,
   getWorkspaceOrgType,
-  OrgType
-  // setupWorkspaceOrgType,
-  // setWorkspaceOrgTypeWithOrgType
+  OrgType,
+  setupWorkspaceOrgType,
+  setWorkspaceOrgTypeWithOrgType
 } from '../../../src/context';
-// import { sfdxCoreSettings } from '../../../src/settings';
+import { sfdxCoreSettings } from '../../../src/settings';
 import { OrgAuthInfo } from '../../../src/util';
 
 describe('getDefaultUsernameOrAlias', () => {
@@ -77,10 +77,9 @@ describe('getWorkspaceOrgType', () => {
 
   it('throws an error when no defaultusername is set', async () => {
     const aliasesSpy = sinon.spy(Aliases, 'fetch');
-    const defaultUsername = undefined;
     let errorWasThrown = false;
     try {
-      await getWorkspaceOrgType(defaultUsername);
+      await getWorkspaceOrgType(undefined);
     } catch (error) {
       errorWasThrown = true;
       expect(error.name).to.equal('NoDefaultusernameSet');
@@ -141,235 +140,234 @@ describe('getWorkspaceOrgType', () => {
   });
 });
 
-// describe('setWorkspaceOrgTypeWithOrgType', () => {
-//   let sandbox: sinon.SinonSandbox;
-//   let executeCommandSpy: sinon.SinonSpy;
-//   let getConfigurationStub: sinon.SinonStub;
+describe('setWorkspaceOrgTypeWithOrgType', () => {
+  let sandbox: sinon.SinonSandbox;
+  let executeCommandSpy: sinon.SinonSpy;
+  let getConfigurationStub: sinon.SinonStub;
 
-//   beforeEach(() => {
-//     sandbox = sinon.createSandbox();
-//     executeCommandSpy = sandbox.spy(vscode.commands, 'executeCommand');
-//     getConfigurationStub = sandbox.stub(vscode.workspace, 'getConfiguration');
-//   });
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+    executeCommandSpy = sandbox.spy(vscode.commands, 'executeCommand');
+    getConfigurationStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+  });
 
-//   afterEach(() => {
-//     sandbox.restore();
-//   });
+  afterEach(() => {
+    sandbox.restore();
+  });
 
-//   it('verifies a scratch org with activateDeployAndRetrieveForSourceTrackedOrgs setting turned on sets enable_org_browser', async () => {
-//     getConfigurationStub.returns({
-//       get: () => {
-//         return true;
-//       }
-//     });
+  it('verifies a scratch org with enableOrgBrowserAndDeployAndRetrieveForSourceTrackedOrgs setting turned on sets enable_org_browser', async () => {
+    getConfigurationStub.returns({
+      get: () => {
+        return true;
+      }
+    });
 
-//     setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
+    setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
 
-//     expect(executeCommandSpy.callCount).to.equal(3);
-//     expect(JSON.stringify(executeCommandSpy.firstCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_org_browser',
-//         true
-//       ])
-//     );
-//     expect(JSON.stringify(executeCommandSpy.secondCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_push_and_pull_commands',
-//         true
-//       ])
-//     );
-//     expect(JSON.stringify(executeCommandSpy.thirdCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_deploy_and_retrieve_commands',
-//         true
-//       ])
-//     );
-//   });
+    expect(executeCommandSpy.callCount).to.equal(3);
+    expect(JSON.stringify(executeCommandSpy.firstCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_org_browser',
+        true
+      ])
+    );
+    expect(JSON.stringify(executeCommandSpy.secondCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_push_and_pull_commands',
+        true
+      ])
+    );
+    expect(JSON.stringify(executeCommandSpy.thirdCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_deploy_and_retrieve_commands',
+        true
+      ])
+    );
+  });
 
-//   it('verifies a scratch org with activateDeployAndRetrieveForSourceTrackedOrgs setting not turned on dos not set enable_org_browser', async () => {
-//     getConfigurationStub.returns({
-//       get: () => {
-//         return false;
-//       }
-//     });
+  it('verifies a scratch org with enableOrgBrowserAndDeployAndRetrieveForSourceTrackedOrgs setting not turned on dos not set enable_org_browser', async () => {
+    getConfigurationStub.returns({
+      get: () => {
+        return false;
+      }
+    });
 
-//     setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
+    setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
 
-//     expect(executeCommandSpy.callCount).to.equal(3);
-//     expect(JSON.stringify(executeCommandSpy.firstCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_org_browser',
-//         false
-//       ])
-//     );
-//     expect(JSON.stringify(executeCommandSpy.secondCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_push_and_pull_commands',
-//         true
-//       ])
-//     );
-//     expect(JSON.stringify(executeCommandSpy.thirdCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_deploy_and_retrieve_commands',
-//         false
-//       ])
-//     );
-//   });
+    expect(executeCommandSpy.callCount).to.equal(3);
+    expect(JSON.stringify(executeCommandSpy.firstCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_org_browser',
+        false
+      ])
+    );
+    expect(JSON.stringify(executeCommandSpy.secondCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_push_and_pull_commands',
+        true
+      ])
+    );
+    expect(JSON.stringify(executeCommandSpy.thirdCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_deploy_and_retrieve_commands',
+        false
+      ])
+    );
+  });
 
-//   it('verifies a developer org sets enable_org_browser', async () => {
-//     setWorkspaceOrgTypeWithOrgType(OrgType.NonSourceTracked);
+  it('verifies a developer org sets enable_org_browser', async () => {
+    setWorkspaceOrgTypeWithOrgType(OrgType.NonSourceTracked);
 
-//     expect(executeCommandSpy.callCount).to.equal(3);
-//     expect(JSON.stringify(executeCommandSpy.firstCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_org_browser',
-//         true
-//       ])
-//     );
-//     expect(JSON.stringify(executeCommandSpy.secondCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_push_and_pull_commands',
-//         false
-//       ])
-//     );
-//     expect(JSON.stringify(executeCommandSpy.thirdCall.args)).to.equal(
-//       JSON.stringify([
-//         'setContext',
-//         'sfdx:enable_deploy_and_retrieve_commands',
-//         true
-//       ])
-//     );
-//   });
-// });
+    expect(executeCommandSpy.callCount).to.equal(3);
+    expect(JSON.stringify(executeCommandSpy.firstCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_org_browser',
+        true
+      ])
+    );
+    expect(JSON.stringify(executeCommandSpy.secondCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_push_and_pull_commands',
+        false
+      ])
+    );
+    expect(JSON.stringify(executeCommandSpy.thirdCall.args)).to.equal(
+      JSON.stringify([
+        'setContext',
+        'sfdx:enable_deploy_and_retrieve_commands',
+        true
+      ])
+    );
+  });
+});
 
-// describe('setupWorkspaceOrgType', () => {
-//   it('should validate the commands are false when user is unknown', async () => {
-//     const defaultUsername = undefined;
-//     const aliasesSpy = sinon.spy(Aliases, 'fetch');
-//     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+describe('setupWorkspaceOrgType', () => {
+  it('should validate the commands are false when user is unknown', async () => {
+    const aliasesSpy = sinon.spy(Aliases, 'fetch');
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-//     await setupWorkspaceOrgType(defaultUsername);
+    await setupWorkspaceOrgType(undefined);
 
-//     expect(aliasesSpy.called).to.be.false;
-//     expect(executeCommandStub.callCount).to.equal(4);
-//     expectHasDefaultUsernameIsSet(false, executeCommandStub);
-//     expectEnableOrgBrowserIsSet(false, executeCommandStub);
-//     expectPushAndPullCommandsIsSet(false, executeCommandStub);
-//     expectEnableDeployAndRetrieveCommandsIsSet(false, executeCommandStub);
+    expect(aliasesSpy.called).to.be.false;
+    expect(executeCommandStub.callCount).to.equal(4);
+    expectHasDefaultUsernameIsSet(false, executeCommandStub);
+    expectEnableOrgBrowserIsSet(false, executeCommandStub);
+    expectPushAndPullCommandsIsSet(false, executeCommandStub);
+    expectEnableDeployAndRetrieveCommandsIsSet(false, executeCommandStub);
 
-//     aliasesSpy.restore();
-//     executeCommandStub.restore();
-//   });
+    aliasesSpy.restore();
+    executeCommandStub.restore();
+  });
 
-//   it('should validate the commands are true when user is set', async () => {
-//     const aliasesStub = getAliasesFetchStub('test@org.com');
-//     const defaultUsername = 'test@org.com';
-//     const error = new Error();
-//     error.name = 'NamedOrgNotFound';
-//     const orgAuthInfoStub = sinon
-//       .stub(OrgAuthInfo, 'isAScratchOrg')
-//       .throws(error);
-//     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+  it('should validate the commands are true when user is set', async () => {
+    const aliasesStub = getAliasesFetchStub('test@org.com');
+    const defaultUsername = 'test@org.com';
+    const error = new Error();
+    error.name = 'NamedOrgNotFound';
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-//     await setupWorkspaceOrgType(defaultUsername);
+    await setupWorkspaceOrgType(defaultUsername);
 
-//     expect(executeCommandStub.callCount).to.equal(4);
-//     expectHasDefaultUsernameIsSet(true, executeCommandStub);
-//     expectEnableOrgBrowserIsSet(true, executeCommandStub);
-//     expectPushAndPullCommandsIsSet(true, executeCommandStub);
-//     expectEnableDeployAndRetrieveCommandsIsSet(true, executeCommandStub);
+    expect(executeCommandStub.callCount).to.equal(4);
+    expectHasDefaultUsernameIsSet(true, executeCommandStub);
+    expectEnableOrgBrowserIsSet(true, executeCommandStub);
+    expectPushAndPullCommandsIsSet(true, executeCommandStub);
+    expectEnableDeployAndRetrieveCommandsIsSet(true, executeCommandStub);
 
-//     aliasesStub.restore();
-//     orgAuthInfoStub.restore();
-//     executeCommandStub.restore();
-//   });
+    aliasesStub.restore();
+    orgAuthInfoStub.restore();
+    executeCommandStub.restore();
+  });
 
-//   it('should validate the org browser and deploy & retrieve are are false when user is set but enableOrgBrowserAndDeployAndRetrieveForSourceTrackedOrgs is false', async () => {
-//     const aliasesStub = getAliasesFetchStub('scratch@org.com');
-//     const authInfoCreateStub = getAuthInfoCreateStub({
-//       getFields: () => ({
-//         devHubUsername: 'dev@hub.com'
-//       })
-//     });
-//     const defaultUsername = 'scratchOrgAlias';
-//     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
-//     await sfdxCoreSettings.setConfigValue(ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
+  it('should validate the org browser and deploy & retrieve are are false when user is set but enableOrgBrowserAndDeployAndRetrieveForSourceTrackedOrgs is false', async () => {
+    const aliasesStub = getAliasesFetchStub('scratch@org.com');
+    const authInfoCreateStub = getAuthInfoCreateStub({
+      getFields: () => ({
+        devHubUsername: 'dev@hub.com'
+      })
+    });
+    const defaultUsername = 'scratchOrgAlias';
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+    await sfdxCoreSettings.setConfigValue(ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
 
-//     await setupWorkspaceOrgType(defaultUsername);
+    await setupWorkspaceOrgType(defaultUsername);
 
-//     expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
-//       username: 'scratch@org.com'
-//     });
-//     expect(executeCommandStub.callCount).to.equal(4);
-//     expectHasDefaultUsernameIsSet(true, executeCommandStub);
-//     expectEnableOrgBrowserIsSet(false, executeCommandStub);
-//     expectPushAndPullCommandsIsSet(true, executeCommandStub);
-//     expectEnableDeployAndRetrieveCommandsIsSet(false, executeCommandStub);
+    expect(authInfoCreateStub.getCall(0).args[0]).to.eql({
+      username: 'scratch@org.com'
+    });
+    expect(executeCommandStub.callCount).to.equal(4);
+    expectHasDefaultUsernameIsSet(true, executeCommandStub);
+    expectEnableOrgBrowserIsSet(false, executeCommandStub);
+    expectPushAndPullCommandsIsSet(true, executeCommandStub);
+    expectEnableDeployAndRetrieveCommandsIsSet(false, executeCommandStub);
 
-//     aliasesStub.restore();
-//     authInfoCreateStub.restore();
-//     executeCommandStub.restore();
-//   });
+    aliasesStub.restore();
+    authInfoCreateStub.restore();
+    executeCommandStub.restore();
+  });
 
-//   it('should validate pish and pull commands are not set when a developer edition org', async () => {
-//     const aliasesStub = getAliasesFetchStub(undefined);
-//     const authInfoCreateStub = getAuthInfoCreateStub({
-//       getFields: () => ({})
-//     });
-//     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
-//     const defaultUsername = 'sandbox@org.com';
+  it('should validate push and pull commands are not set when using a developer edition org', async () => {
+    const aliasesStub = getAliasesFetchStub(undefined);
+    const authInfoCreateStub = getAuthInfoCreateStub({
+      getFields: () => ({})
+    });
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+    const defaultUsername = 'sandbox@org.com';
 
-//     await setupWorkspaceOrgType(defaultUsername);
+    await setupWorkspaceOrgType(defaultUsername);
 
-//     expect(executeCommandStub.callCount).to.equal(4);
-//     expectHasDefaultUsernameIsSet(true, executeCommandStub);
-//     expectEnableOrgBrowserIsSet(true, executeCommandStub);
-//     expectPushAndPullCommandsIsSet(false, executeCommandStub);
-//     expectEnableDeployAndRetrieveCommandsIsSet(true, executeCommandStub);
+    expect(executeCommandStub.callCount).to.equal(4);
+    expectHasDefaultUsernameIsSet(true, executeCommandStub);
+    expectEnableOrgBrowserIsSet(true, executeCommandStub);
+    expectPushAndPullCommandsIsSet(false, executeCommandStub);
+    expectEnableDeployAndRetrieveCommandsIsSet(true, executeCommandStub);
 
-//     aliasesStub.restore();
-//     authInfoCreateStub.restore();
-//     executeCommandStub.restore();
-//   });
+    aliasesStub.restore();
+    authInfoCreateStub.restore();
+    executeCommandStub.restore();
+  });
 
-//   it('should set both sfdx:enable_push_and_pull_commands and sfdx:enable_deploy_and_retrieve_commands contexts to true for cli config error', async () => {
-//     const aliasesSpy = sinon.spy(Aliases, 'fetch');
-//     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
+  it('should set both sfdx:enable_push_and_pull_commands and sfdx:enable_deploy_and_retrieve_commands contexts to true for cli config error', async () => {
+    const aliasesSpy = sinon.spy(Aliases, 'fetch');
+    const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-//     const username = 'test@org.com';
+    const username = 'test@org.com';
 
-//     const error = new Error();
-//     error.name = 'GenericKeychainServiceError';
-//     error.stack =
-//       'GenericKeychainServiceError: The service and account specified in key.json do not match the version of the toolbelt ...';
-//     const orgAuthInfoStub = sinon
-//       .stub(OrgAuthInfo, 'isAScratchOrg')
-//       .throws(error);
+    const error = new Error();
+    error.name = 'GenericKeychainServiceError';
+    error.stack =
+      'GenericKeychainServiceError: The service and account specified in key.json do not match the version of the toolbelt ...';
+    const orgAuthInfoStub = sinon
+      .stub(OrgAuthInfo, 'isAScratchOrg')
+      .throws(error);
 
-//     try {
-//       await setupWorkspaceOrgType(username);
+    try {
+      await setupWorkspaceOrgType(username);
 
-//       expect(aliasesSpy.called).to.be.true;
-//       expect(executeCommandStub.callCount).to.equal(4);
-//       expectHasDefaultUsernameIsSet(true, executeCommandStub);
-//       expectEnableOrgBrowserIsSet(true, executeCommandStub);
-//       expectPushAndPullCommandsIsSet(true, executeCommandStub);
-//       expectEnableDeployAndRetrieveCommandsIsSet(true, executeCommandStub);
-//     } finally {
-//       aliasesSpy.restore();
-//       executeCommandStub.restore();
-//       orgAuthInfoStub.restore();
-//     }
-//   });
-// });
+      expect(aliasesSpy.called).to.be.true;
+      expect(executeCommandStub.callCount).to.equal(4);
+      expectHasDefaultUsernameIsSet(true, executeCommandStub);
+      expectEnableOrgBrowserIsSet(true, executeCommandStub);
+      expectPushAndPullCommandsIsSet(true, executeCommandStub);
+      expectEnableDeployAndRetrieveCommandsIsSet(true, executeCommandStub);
+    } finally {
+      aliasesSpy.restore();
+      executeCommandStub.restore();
+      orgAuthInfoStub.restore();
+    }
+  });
+});
 
 const getDefaultUsernameStub = (returnValue: any) =>
   sinon
@@ -382,46 +380,46 @@ const getAliasesFetchStub = (returnValue: any) =>
 const getAuthInfoCreateStub = (returnValue: any) =>
   sinon.stub(AuthInfo, 'create').returns(Promise.resolve(returnValue));
 
-// const expectHasDefaultUsernameIsSet = (
-//   hasUsername: boolean,
-//   executeCommandStub: sinon.SinonStub
-// ) => {
-//   expect(executeCommandStub.getCall(0).args).to.eql([
-//     'setContext',
-//     'sfdx:has_default_username',
-//     hasUsername
-//   ]);
-// };
+const expectHasDefaultUsernameIsSet = (
+  hasUsername: boolean,
+  executeCommandStub: sinon.SinonStub
+) => {
+  expect(executeCommandStub.getCall(0).args).to.eql([
+    'setContext',
+    'sfdx:has_default_username',
+    hasUsername
+  ]);
+};
 
-// const expectEnableOrgBrowserIsSet = (
-//   hasChangeTracking: boolean,
-//   executeCommandStub: sinon.SinonStub
-// ) => {
-//   expect(executeCommandStub.getCall(1).args).to.eql([
-//     'setContext',
-//     'sfdx:enable_org_browser',
-//     hasChangeTracking
-//   ]);
-// };
+const expectEnableOrgBrowserIsSet = (
+  hasChangeTracking: boolean,
+  executeCommandStub: sinon.SinonStub
+) => {
+  expect(executeCommandStub.getCall(1).args).to.eql([
+    'setContext',
+    'sfdx:enable_org_browser',
+    hasChangeTracking
+  ]);
+};
 
-// const expectPushAndPullCommandsIsSet = (
-//   hasChangeTracking: boolean,
-//   executeCommandStub: sinon.SinonStub
-// ) => {
-//   expect(executeCommandStub.getCall(2).args).to.eql([
-//     'setContext',
-//     'sfdx:enable_push_and_pull_commands',
-//     hasChangeTracking
-//   ]);
-// };
+const expectPushAndPullCommandsIsSet = (
+  hasChangeTracking: boolean,
+  executeCommandStub: sinon.SinonStub
+) => {
+  expect(executeCommandStub.getCall(2).args).to.eql([
+    'setContext',
+    'sfdx:enable_push_and_pull_commands',
+    hasChangeTracking
+  ]);
+};
 
-// const expectEnableDeployAndRetrieveCommandsIsSet = (
-//   hasNoChangeTracking: boolean,
-//   executeCommandStub: sinon.SinonStub
-// ) => {
-//   expect(executeCommandStub.getCall(3).args).to.eql([
-//     'setContext',
-//     'sfdx:enable_deploy_and_retrieve_commands',
-//     hasNoChangeTracking
-//   ]);
-// };
+const expectEnableDeployAndRetrieveCommandsIsSet = (
+  hasNoChangeTracking: boolean,
+  executeCommandStub: sinon.SinonStub
+) => {
+  expect(executeCommandStub.getCall(3).args).to.eql([
+    'setContext',
+    'sfdx:enable_deploy_and_retrieve_commands',
+    hasNoChangeTracking
+  ]);
+};
