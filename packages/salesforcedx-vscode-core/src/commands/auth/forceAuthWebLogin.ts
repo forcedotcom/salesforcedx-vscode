@@ -36,7 +36,7 @@ import {
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { ForceAuthLogoutAll } from './forceAuthLogout';
 
-interface DeviceCodeResponse {
+export interface DeviceCodeResponse {
   user_code: string;
   device_code: string;
   interval: number;
@@ -47,6 +47,8 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
   protected showChannelOutput = false;
+  protected deviceCodeReceived = false;
+  protected stdOut = '';
 
   public build(data: AuthParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
@@ -72,23 +74,12 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
       cwd: getRootWorkspacePath(),
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
-    let deviceCodeReceived = false;
 
     channelService.streamCommandStartStop(execution);
 
-    let stdOut = '';
     execution.stdoutSubject.subscribe(cliResponse => {
-      stdOut += cliResponse.toString();
-
-      if (!deviceCodeReceived) {
-        const authUrl = this.parseAuthUrlFromStdOut(stdOut);
-
-        if (authUrl) {
-          deviceCodeReceived = true;
-          // open the default browser
-          vscode.env.openExternal(vscode.Uri.parse(authUrl, true));
-        }
-      }
+      const responseStr = cliResponse.toString();
+      this.handleCliResponse(responseStr);
     });
 
     execution.processExitSubject.subscribe(() => {
@@ -102,6 +93,21 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
 
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+
+  protected handleCliResponse(response: string) {
+    // response may not be complete data, so we accumulate data as it comes in.
+    this.stdOut += response;
+
+    if (!this.deviceCodeReceived) {
+      const authUrl = this.parseAuthUrlFromStdOut(this.stdOut);
+
+      if (authUrl) {
+        this.deviceCodeReceived = true;
+        // open the default browser
+        vscode.env.openExternal(vscode.Uri.parse(authUrl, true));
+      }
+    }
   }
 
   private parseAuthUrlFromStdOut(stdOut: string): string | undefined {

@@ -20,7 +20,8 @@ export {
   createAuthWebLoginExecutor,
   ForceAuthWebLoginDemoModeExecutor,
   ForceAuthWebLoginExecutor,
-  ForceAuthWebLoginContainerExecutor
+  ForceAuthWebLoginContainerExecutor,
+  DeviceCodeResponse
 } from './auth/forceAuthWebLogin';
 export {
   forceAuthDevHub,

@@ -9,10 +9,10 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import {
-  AuthParams,
   AuthParamsGatherer,
   createAuthWebLoginExecutor,
   DEFAULT_ALIAS,
+  DeviceCodeResponse,
   ForceAuthWebLoginContainerExecutor,
   ForceAuthWebLoginDemoModeExecutor,
   ForceAuthWebLoginExecutor,
@@ -42,7 +42,7 @@ describe('Force Auth Web Login', () => {
   });
 });
 
-describe('Force Auth Web Login in Demo  Mode', () => {
+describe('Force Auth Web Login in Demo Mode', () => {
   it('Should build the auth web login command', async () => {
     const authWebLogin = new ForceAuthWebLoginDemoModeExecutor();
     const authWebLoginCommand = authWebLogin.build({
@@ -271,5 +271,79 @@ describe('Force Auth Web Login is based on environment variables', () => {
         nls.localize('force_auth_web_login_authorize_org_text')
       );
     });
+  });
+});
+
+describe('Force Auth Device Login', () => {
+  class TestForceAuthDeviceLogin extends ForceAuthWebLoginContainerExecutor {
+    public deviceCodeReceived = false;
+    public stdOut = '';
+
+    public injectResponse(data: string) {
+      this.handleCliResponse(data);
+    }
+  }
+
+  let sb: sinon.SinonSandbox;
+  let deviceExecutor: TestForceAuthDeviceLogin;
+  const testResponse: Partial<DeviceCodeResponse> = {
+    user_code: '1234',
+    verification_uri: 'http://example.com'
+  };
+
+  beforeEach(() => {
+    deviceExecutor = new TestForceAuthDeviceLogin();
+
+    sb = sinon.createSandbox();
+  });
+
+  afterEach(async () => {
+    sb.restore();
+  });
+
+  it('should open and external link to the correct url', () => {
+    const openExternal = sb.stub(vscode.env, 'openExternal');
+    const responseStr = JSON.stringify(testResponse);
+    deviceExecutor.injectResponse(responseStr);
+
+    expect(deviceExecutor.stdOut).to.be.equal(responseStr);
+    expect(openExternal.called).to.be.true;
+    expect(deviceExecutor.deviceCodeReceived).to.be.true;
+
+    const uri: vscode.Uri = (openExternal.getCall(0)
+      .args as unknown) as vscode.Uri;
+    const targetUrl = uri.toString();
+    expect(targetUrl).to.contain(testResponse.verification_uri);
+    expect(targetUrl).to.contain(testResponse.user_code);
+    expect(targetUrl).to.contain('user_code');
+  });
+
+  it('should handle partial data from CLI stdOut', () => {
+    const openExternal = sb.stub(vscode.env, 'openExternal');
+    const responseStr1 = '{"user_code":"1234","verification';
+    deviceExecutor.injectResponse(responseStr1);
+
+    expect(deviceExecutor.stdOut).to.be.equal(responseStr1);
+    expect(openExternal.called).to.be.false;
+    expect(deviceExecutor.deviceCodeReceived).to.be.false;
+
+    const responseStr2 = '_uri":"http://example.com"}';
+    deviceExecutor.injectResponse(responseStr2);
+    expect(deviceExecutor.stdOut).to.be.equal(`${responseStr1}${responseStr2}`);
+    expect(openExternal.called).to.be.true;
+    expect(deviceExecutor.deviceCodeReceived).to.be.true;
+  });
+
+  it('should not open a browser if CLI responds with unexpected or bad data', () => {
+    const openExternal = sb.stub(vscode.env, 'openExternal');
+    const responseStr = JSON.stringify({
+      error: 500,
+      message: 'something went wrong'
+    });
+    deviceExecutor.injectResponse(responseStr);
+
+    expect(deviceExecutor.stdOut).to.be.equal(responseStr);
+    expect(openExternal.called).to.be.false;
+    expect(deviceExecutor.deviceCodeReceived).to.be.false;
   });
 });
