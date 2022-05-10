@@ -10,12 +10,12 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 // import * as vscode from 'vscode';
 // import {
-//   ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS
+//   ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS
 // } from '../../../src/constants';
 import {
   getDefaultUsernameOrAlias,
   getWorkspaceOrgType,
-  OrgType,
+  OrgType
   // setupWorkspaceOrgType,
   // setWorkspaceOrgTypeWithOrgType
 } from '../../../src/context';
@@ -292,7 +292,7 @@ describe('getWorkspaceOrgType', () => {
 //     executeCommandStub.restore();
 //   });
 
-//   it('should validate the org browser and deploy & retrieve are are false when user is set but enableDeployAndRetrieveForSourceTrackedOrgs is false', async () => {
+//   it('should validate the org browser and deploy & retrieve are are false when user is set but enableOrgBrowserAndDeployAndRetrieveForSourceTrackedOrgs is false', async () => {
 //     const aliasesStub = getAliasesFetchStub('scratch@org.com');
 //     const authInfoCreateStub = getAuthInfoCreateStub({
 //       getFields: () => ({
@@ -301,7 +301,7 @@ describe('getWorkspaceOrgType', () => {
 //     });
 //     const defaultUsername = 'scratchOrgAlias';
 //     const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
-//     await sfdxCoreSettings.setConfigValue(ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
+//     await sfdxCoreSettings.setConfigValue(ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS, false);
 
 //     await setupWorkspaceOrgType(defaultUsername);
 

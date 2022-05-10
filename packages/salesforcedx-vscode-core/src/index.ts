@@ -91,7 +91,7 @@ import {
   setupConflictView
 } from './conflict';
 import {
-  ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS,
+  ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS,
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   SFDX_CORE_CONFIGURATION_NAME
 } from './constants';
@@ -742,7 +742,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 function setUpChangeConfigurationListener() {
   vscode.workspace.onDidChangeConfiguration(async (configurationChangeEvent: vscode.ConfigurationChangeEvent) => {
-    if (configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
+    if (configurationChangeEvent.affectsConfiguration('salesforcedx-vscode-core.' + ENABLE_ORG_BROWSER_AND_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS)) {
       await setupWorkspaceOrgType(workspaceContext.username);
     }
   });
