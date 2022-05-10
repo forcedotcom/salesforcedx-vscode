@@ -277,7 +277,7 @@ describe('setupWorkspaceOrgType', () => {
     expectPushAndPullCommandsIsSet(false, executeCommandSpy);
     expectEnableDeployAndRetrieveCommandsIsSet(false, executeCommandSpy);
 
-    // aliasesSpy.restore();
+    aliasesSpy.restore();
     // executeCommandSpy.restore();
   });
 
@@ -299,8 +299,8 @@ describe('setupWorkspaceOrgType', () => {
     expectPushAndPullCommandsIsSet(true, executeCommandSpy);
     expectEnableDeployAndRetrieveCommandsIsSet(true, executeCommandSpy);
 
-    // aliasesStub.restore();
-    // orgAuthInfoStub.restore();
+    aliasesStub.restore();
+    orgAuthInfoStub.restore();
     // executeCommandStub.restore();
   });
 
@@ -327,7 +327,7 @@ describe('setupWorkspaceOrgType', () => {
     expectEnableDeployAndRetrieveCommandsIsSet(false, executeCommandSpy);
 
     aliasesStub.restore();
-    // authInfoCreateStub.restore();
+    authInfoCreateStub.restore();
     // executeCommandStub.restore();
   });
 
