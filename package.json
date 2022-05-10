@@ -78,7 +78,7 @@
     "check:peer-deps": "check-peer-dependencies",
     "check:typescript-project-references": "workspaces-to-typescript-project-references --includesRoot --check",
     "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
-    "vscode:install": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} \\;",
+    "vsix:install": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} \\;",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
