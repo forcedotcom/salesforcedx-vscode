@@ -2,8 +2,9 @@
 
 ## Pre-requisites
 
-1.  We are requiring Node 14 at a minimum. If you need to work with multiple versions of Node, you
-    might consider using [nvm](https://github.com/creationix/nvm).
+1.  We are requiring Node 16 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
+    1. npm v6 is declared as a dependency in the workspace root and gets used by vsce packaging due to [issues with vsce packaging and npm v7/8](https://github.com/forcedotcom/salesforcedx-vscode/pull/4092)
+    1. npm v8 that comes installed with node 16 would be used when npm is invoked via npm run scripts or manually via shell. Hence the new lock file format of npm v8 with workspaces support is used by `npm install`.
 1.  This repository uses [Lerna](https://lernajs.io/) to manage it as a
     _monorepo_. Please install Lerna globally using `npm install --global lerna`.
 1.  We use `tslint` so please install it using `npm install --global tslint`.
@@ -200,6 +201,11 @@ This runs [check-peer-dependencies](https://www.npmjs.com/package/check-peer-dep
 
 Add any missing peer dependencies identified to the package's dev dependency.
 
+### `npm run vsix:install`
+This finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code Insiders.
+- The installation would overwrite any installed packages in insiders with same name and version (under `~/.vscode-insiders/extensions`).
+- To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`
+
 ## Node Configuration
 
 ### .npmrc
@@ -208,4 +214,4 @@ The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8
 
 ### .nvmrc
 
-Our nvmrc specifies the minimimum node version required to run the project.
+Our nvmrc specifies the minimum node version required to run the project.
