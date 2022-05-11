@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "0.10.0",
-    "@salesforce/apex-tmlanguage": "1.4.0",
+    "@salesforce/apex-tmlanguage": "1.6.0",
     "@salesforce/core": "^2.35.0",
     "@salesforce/salesforcedx-utils-vscode": "54.12.0",
     "@salesforce/source-deploy-retrieve": "5.12.2",
