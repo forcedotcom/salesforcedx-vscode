@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalRun } from '@heroku/functions-core';
+import { LocalRun, LocalRunProcess } from '@heroku/functions-core';
 import { Disposable } from 'vscode';
 import { channelService } from '../../../channels';
 import { nls } from '../../../messages';
@@ -19,6 +19,8 @@ import {
 import { ForceFunctionStartExecutor } from './ForceFunctionStartExecutor';
 
 export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartExecutor {
+  private process: LocalRunProcess | undefined | void;
+
   public async setupFunctionListeners(): Promise<void> {
     console.log('No listeners for containerless function.');
   }
@@ -26,7 +28,10 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
   public async cancelFunction(
     registeredStartedFunctionDisposable: Disposable
   ): Promise<void> {
-    // TODO: how to stop the localRun
+    if (this.process && !this.process.cancelled) {
+      this.process.cancel();
+      this.process = undefined;
+    }
     registeredStartedFunctionDisposable.dispose();
   }
 
@@ -34,7 +39,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     console.log('No build for containerless function');
   }
 
-  public startFunction(functionName: string, functionDirPath: string): void {
+  public async startFunction(functionName: string, functionDirPath: string): Promise<void> {
     const functionLanguage = FunctionService.instance.getFunctionType();
     channelService.appendLine(
       `Starting ${functionName} of type ${functionLanguage}`
@@ -49,13 +54,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
     const debugType = functionLanguage === functionType.JAVA ? 'java' : 'node';
     FunctionService.instance.updateFunction(functionDirPath, debugType, true);
 
-    localRun
-      .exec()
-      .then(msg => {
-        console.log(
-          `localRun resolved in ForceFunctionContainerlessStartExecutor with message: ${msg}`
-        );
-      })
+    this.process = await localRun.exec()
       .catch((err: Error) => {
         const errorNotificationMessage = nls.localize(
           this.UNEXPECTED_ERROR_KEY

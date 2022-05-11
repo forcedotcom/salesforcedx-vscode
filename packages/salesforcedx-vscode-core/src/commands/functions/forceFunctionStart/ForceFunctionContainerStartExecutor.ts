@@ -135,13 +135,13 @@ export class ForceFunctionContainerStartExecutor extends ForceFunctionStartExecu
     });
   }
 
-  public startFunction(functionName: string): void {
+  public async startFunction(functionName: string): Promise<void> {
     channelService.appendLine(`Starting ${functionName} in container`);
     if (!this.functionsBinary) {
       throw new Error('Unable to start function with no binary.');
     }
 
-    this.functionsBinary.run(functionName, {}).catch(err => {
+    await this.functionsBinary.run(functionName, {}).catch(err => {
       console.log(err);
     });
   }

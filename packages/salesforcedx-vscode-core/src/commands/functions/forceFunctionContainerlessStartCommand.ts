@@ -21,7 +21,7 @@ export const CONTAINER_START_TEXT_KEY =
 export const FUNCTION_CONTAINER_LOG_NAME = 'force_function_containerless_start';
 
 /**
- * Executes sfdx run:function:start:local --verbose
+ * Starts a local run of the function which can then be invoked with payloads.
  * @param sourceUri
  */
 export const forceFunctionContainerlessStartCommand = async (
