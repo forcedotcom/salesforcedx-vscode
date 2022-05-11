@@ -38,7 +38,7 @@
     "sinon": "^13.0.1",
     "typescript": "3.8.3",
     "vscode-debugadapter-testsupport": "1.28.0",
-    "vscode-uri": "1.0.1"
+    "vscode-uri": "1.0.8"
   },
   "scripts": {
     "compile": "tsc -p ./",

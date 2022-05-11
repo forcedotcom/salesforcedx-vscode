@@ -16,7 +16,7 @@
     "@salesforce/salesforcedx-utils-vscode": "54.12.0",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0",
-    "vscode-uri": "1.0.1"
+    "vscode-uri": "1.0.8"
   },
   "devDependencies": {
     "@types/chai": "4.3.0",
