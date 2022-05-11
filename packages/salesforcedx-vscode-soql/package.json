@@ -59,7 +59,7 @@
     "@types/vscode": "1.49.0",
     "@typescript-eslint/eslint-plugin": "^4.0.0",
     "@typescript-eslint/parser": "^4.0.0",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "1.8.10",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
     "debounce": "^1.2.0",

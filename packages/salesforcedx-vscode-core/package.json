@@ -34,7 +34,7 @@
     "@salesforce/templates": "^54.5.0",
     "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",
-    "applicationinsights": "1.0.7",
+    "applicationinsights": "1.8.10",
     "glob": "^7.1.2",
     "jsforce": "1.11.0",
     "rxjs": "^5.4.1",
