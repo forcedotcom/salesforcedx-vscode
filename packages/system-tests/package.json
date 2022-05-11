@@ -20,7 +20,7 @@
     "@types/vscode": "1.49.0",
     "@types/webdriverio": "4.6.1",
     "chai": "^4.0.2",
-    "cross-env": "5.2.0",
+    "cross-env": "5.2.1",
     "decache": "^4.1.0",
     "electron": "7.3.2",
     "glob": "^7.1.2",
