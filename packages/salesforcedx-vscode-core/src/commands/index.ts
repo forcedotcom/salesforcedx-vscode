@@ -19,13 +19,16 @@ export {
   forceAuthWebLogin,
   createAuthWebLoginExecutor,
   ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor
+  ForceAuthWebLoginExecutor,
+  ForceAuthWebLoginContainerExecutor,
+  DeviceCodeResponse
 } from './auth/forceAuthWebLogin';
 export {
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor
+  ForceAuthDevHubExecutor,
+  ForceAuthDevHubContainerExecutor
 } from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export {
@@ -45,9 +48,7 @@ export {
   ForceSourceDeleteExecutor,
   ManifestChecker
 } from './forceSourceDelete';
-export {
-  forceSourceDeployManifest
-} from './forceSourceDeployManifest';
+export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
   forceSourceDeploySourcePaths,
   LibraryDeploySourcePathExecutor
@@ -59,9 +60,7 @@ export {
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
-export {
-  forceSourceRetrieveManifest
-} from './forceSourceRetrieveManifest';
+export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export {
   forceSourceStatus,
   ForceSourceStatusExecutor,
@@ -150,9 +149,7 @@ export {
   forceSourceFolderDiff,
   handleCacheResults
 } from './forceSourceDiff';
-export {
-  forceCreateManifest
-} from './forceCreateManifest';
+export { forceCreateManifest } from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';
@@ -170,6 +167,4 @@ export {
   forceRefreshSObjects,
   initSObjectDefinitions
 } from './forceRefreshSObjects';
-export {
-  forceRenameLightningComponent
-} from './forceRenameLightningComponent';
+export { forceRenameLightningComponent } from './forceRenameLightningComponent';

@@ -46,7 +46,11 @@ export const messages = {
     'SFDX: Authorize an Org using Session ID',
   force_auth_access_token_login_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
-
+  force_auth_web_login_device_code_parse_error:
+    'There was an unexpected error authorizing to your org in a container environment.',
+  force_auth_device_login_enter_code:
+    'Enter %s user code in the verification URL %s',
+  action_required: '=== Action Required!',
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
 
@@ -262,9 +266,12 @@ export const messages = {
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
   force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
-  manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
-  manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
-  manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
+  manifest_input_dupe_error:
+    'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_input_save_placeholder:
+    'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt:
+    'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
@@ -623,11 +630,16 @@ export const messages = {
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
   force_rename_lightning_component: 'SFDX: Rename Component',
-  rename_component_input_dup_error: 'Component name is already in use in LWC or Aura',
-  rename_component_input_dup_file_name_error: 'This file name is already in use in the current component directory. Choose a different name and try again.',
+  rename_component_input_dup_error:
+    'Component name is already in use in LWC or Aura',
+  rename_component_input_dup_file_name_error:
+    'This file name is already in use in the current component directory. Choose a different name and try again.',
   rename_component_input_placeholder: 'Enter a unique component name',
-  rename_component_input_prompt: 'Press Enter to confirm your input or Escape to cancel',
-  rename_component_warning: 'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
+  rename_component_input_prompt:
+    'Press Enter to confirm your input or Escape to cancel',
+  rename_component_warning:
+    'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
   error_function_type: 'Unable to determine type of executing function.',
-  error_unable_to_get_started_function: 'Unable to access the function in "{0}".'
+  error_unable_to_get_started_function:
+    'Unable to access the function in "{0}".'
 };

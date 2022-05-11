@@ -37,3 +37,9 @@ export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
+export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
+  'enableDeployAndRetrieveForSourceTrackedOrgs.enabled';
+export const CLI = {
+  AUTH_DEVICE_LOGIN: 'force:auth:device:login',
+  AUTH_WEB_LOGIN: 'force:auth:web:login'
+};
