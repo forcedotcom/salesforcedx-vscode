@@ -76,17 +76,16 @@ commands:
           name: 'Install node'
           shell: bash.exe
           command: |
-            nvm install $NODE_VERSION
+            nvm install $NODE_VERSION --latest-npm
             nvm use $NODE_VERSION
       - run:
           name: 'Install dependent modules'
           shell: bash.exe
           command: |
             npm config set scripts-prepend-node-path true
-            npm install -g npm@8
+            npm install
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
-            npm install
       - run:
           name: 'Compile'
           shell: bash.exe
@@ -138,7 +137,6 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run: npm install -g npm@8
       - run: npm ci
       - run: npm --version
       - run: node --version
