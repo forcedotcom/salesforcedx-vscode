@@ -37,7 +37,7 @@
     "@types/vscode": "1.49.0",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "mocha": "^5",
+    "mocha": "^10",
     "sinon": "^13.0.1"
   },
   "extensionDependencies": [
