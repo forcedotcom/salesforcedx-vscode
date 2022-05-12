@@ -2,13 +2,9 @@
 
 ## Fixed
 
-#### docs
-
-- Fix typo ([PR #4086](https://github.com/forcedotcom/salesforcedx-vscode/pull/4086))
-
 #### salesforcedx-vscode-core
 
-- Add ability to stop containerless function ([PR #4025](https://github.com/forcedotcom/salesforcedx-vscode/pull/4025))
+- We added ability to stop containerless function ([PR #4025](https://github.com/forcedotcom/salesforcedx-vscode/pull/4025))
 
 # 54.11.0 - May 4, 2022
 
