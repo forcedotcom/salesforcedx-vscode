@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "vscode-languageserver-types": "3.4.0",
-    "vscode-nls": "^2.0.2",
+    "vscode-nls": "^5.0.1",
     "vscode-uri": "^1.0.1"
   },
   "scripts": {
