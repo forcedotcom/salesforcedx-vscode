@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We added ability to stop containerless function ([PR #4025](https://github.com/forcedotcom/salesforcedx-vscode/pull/4025))
+- We added the ability to stop containerless function ([PR #4025](https://github.com/forcedotcom/salesforcedx-vscode/pull/4025))
 
 # 54.11.0 - May 4, 2022
 
