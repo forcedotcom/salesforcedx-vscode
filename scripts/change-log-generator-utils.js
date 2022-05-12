@@ -263,7 +263,7 @@ function filterPackageNames(packageHeaders) {
  */
 function generateKey(packageName, type, packagesToIgnore) {
   if (
-    typesToIgnore.some(typeToIgnore => type.startsWith(typeToIgnore)) ||
+    typesToIgnore.some(typeToIgnore => !type || type.startsWith(typeToIgnore)) ||
     packagesToIgnore.includes(packageName)
   ) {
     return '';
