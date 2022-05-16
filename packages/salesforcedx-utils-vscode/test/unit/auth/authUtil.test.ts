@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Aliases } from '@salesforce/core';
+import { GlobalInfo } from '@salesforce/core';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, stub } from 'sinon';
@@ -56,8 +56,9 @@ describe('AuthUtil', () => {
     });
 
     it('should return the username for the matching alias', async () => {
+      const info = await GlobalInfo.create();
       env
-        .stub(Aliases, 'fetch')
+        .stub(info.aliases, 'getUsername')
         .withArgs(alias)
         .returns(username);
       expect(await AuthUtil.getInstance().getUsername(alias)).to.equal(username);

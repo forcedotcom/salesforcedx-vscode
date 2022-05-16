@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo, AuthInfoConfig } from '@salesforce/core';
+import { AuthInfo, GlobalInfo } from '@salesforce/core';
 import {
   CancelResponse,
   ContinueResponse
@@ -52,7 +52,7 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async getAuthInfoObjects() {
-    const authFilesArray = await AuthInfo.listAllAuthFiles().catch(err => null);
+    const authFilesArray = await AuthInfo.listAllAuthorizations().catch(err => null);
 
     if (authFilesArray === null || authFilesArray.length === 0) {
       return null;
@@ -61,8 +61,8 @@ export class OrgList implements vscode.Disposable {
     for (const username of authFilesArray) {
       try {
         const filePath = path.join(
-          await AuthInfoConfig.resolveRootFolder(true),
-          '.sfdx',
+          await GlobalInfo.resolveRootFolder(true),
+          '.sf',
           username
         );
         const fileData = readFileSync(filePath, 'utf8');
@@ -93,11 +93,12 @@ export class OrgList implements vscode.Disposable {
       );
     }
 
-    const aliases = await Aliases.create(Aliases.getDefaultOptions());
+    // const aliases = await Aliases.create(Aliases.getDefaultOptions());
+    const info = await GlobalInfo.create();
     const authList = [];
     const today = new Date();
     for (const authInfo of authInfoObjects) {
-      const alias = await aliases.getKeysByValue(authInfo.username);
+      const alias = info.getKeysByValue(authInfo.username);
       const isExpired = authInfo.expirationDate
         ? today >= new Date(authInfo.expirationDate)
         : false;

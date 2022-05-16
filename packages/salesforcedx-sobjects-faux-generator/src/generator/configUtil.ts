@@ -6,10 +6,10 @@
  */
 
 import {
-  Aliases,
   ConfigAggregator,
   ConfigFile,
-  ConfigValue
+  ConfigValue,
+  GlobalInfo
 } from '@salesforce/core';
 import * as path from 'path';
 
@@ -23,7 +23,9 @@ export class ConfigUtil {
       projectPath,
       defaultUserNameKey
     )) as string;
-    const username = await Aliases.fetch(defaultUserName);
+    const info = await GlobalInfo.create();
+    const username = info.aliases.getUsername(defaultUserName);
+    // const username = await Aliases.fetch(defaultUserName);
     return Promise.resolve(username);
   }
 
