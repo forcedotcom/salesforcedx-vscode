@@ -28,10 +28,12 @@ export {
   EmptyPostChecker
 } from './postconditionCheckers';
 export {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
+  CommandletExecutor,
+  CommandParams,
+  CommandVersion,
   FlagParameter,
-  CommandletExecutor
+  SfdxCommandlet,
+  SfdxCommandletExecutor
 } from './sfdxCommandlet';
 export {
   SfdxWorkspaceChecker,
@@ -40,3 +42,4 @@ export {
   EmptyPreChecker
 } from './preconditionCheckers';
 export { createComponentCount, formatException } from './betaDeployRetrieve';
+export { LibraryPathsGatherer } from './libraryPathsGatherer';

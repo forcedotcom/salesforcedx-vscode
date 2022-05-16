@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "52.10.0",
+  "version": "54.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,43 +25,46 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "0.0.7",
-    "@salesforce/core": "2.23.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "52.10.0",
-    "@salesforce/salesforcedx-utils-vscode": "52.10.0",
+    "@heroku/functions-core": "^0.3.0",
+    "@salesforce/core": "^2.35.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "54.13.0",
+    "@salesforce/salesforcedx-utils-vscode": "54.13.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "2.1.5",
-    "@salesforce/templates": "52.0.0",
+    "@salesforce/source-deploy-retrieve": "5.12.2",
+    "@salesforce/templates": "^54.5.0",
+    "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
+    "jsforce": "1.11.0",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.3",
-    "yeoman-generator": "^4.8.2"
+    "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "52.10.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "54.13.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
-    "@types/chai": "^4.0.0",
-    "@types/glob": "^5.0.30",
+    "@types/chai": "4.3.0",
+    "@types/glob": "^7.2.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
+    "@types/proxyquire": "1.3.28",
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
-    "@types/sinon": "^2.3.2",
+    "@types/sinon": "^2.3.7",
     "@types/vscode": "1.49.0",
     "@types/yeoman-assert": "^3.1.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
-    "mocha": "^5",
+    "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
     "mock-spawn": "0.2.6",
-    "nyc": "^13",
-    "sinon": "^7.3.1",
+    "nyc": "^15",
+    "proxyquire": "2.1.3",
+    "sinon": "^13.0.1",
     "typescript": "3.8.3",
     "yeoman-assert": "^3.1.1"
   },
@@ -72,6 +75,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
+    "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
@@ -153,7 +157,7 @@
         },
         {
           "command": "sfdx.force.source.retrieve.component",
-          "when": "view == metadata && viewItem =~ /(type|component)/",
+          "when": "view == metadata && viewItem =~ /(type|component|folder)/",
           "group": "inline"
         },
         {
@@ -164,7 +168,11 @@
       ],
       "editor/context": [
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
+        {
+          "command": "sfdx.force.function.container.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
         },
         {
@@ -190,6 +198,10 @@
         {
           "command": "sfdx.force.diff",
           "when": "!explorerResourceIsFolder && sfdx:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ],
       "explorer/context": [
@@ -282,8 +294,20 @@
           "when": "sfdx:project_opened && sfdx:default_username_has_no_change_tracking && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
+        {
+          "command": "sfdx.force.function.container.start",
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/ && resourceFilename != package.json && resourceFilename != package-lock.json && resourceFilename != tsconfig.json"
+        },
+        {
+          "command": "sfdx.create.manifest",
+          "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.lightning.rename",
+          "when": "sfdx:project_opened && resource =~ /.*/(lwc|aura)/[^/]+(/[^/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
       ],
       "commandPalette": [
@@ -348,6 +372,26 @@
           "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
         },
         {
+          "command": "sfdx.force.source.legacy.pull",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.pull.force",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.push",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.push.force",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
+          "command": "sfdx.force.source.legacy.status",
+          "when": "sfdx:project_opened && !sfdx:isv_debug_project && sfdx:default_username_has_change_tracking"
+        },
+        {
           "command": "sfdx.force.task.stop",
           "when": "sfdx:project_opened"
         },
@@ -402,6 +446,14 @@
         {
           "command": "sfdx.force.project.with.manifest.create",
           "when": "!sfdx:internal_dev"
+        },
+        {
+          "command": "sfdx.create.manifest",
+          "when": "false"
+        },
+        {
+          "command": "sfdx.lightning.rename",
+          "when": "false"
         },
         {
           "command": "sfdx.force.apex.trigger.create",
@@ -524,6 +576,10 @@
           "when": "false"
         },
         {
+          "command": "sfdx.force.folder.diff",
+          "when": "false"
+        },
+        {
           "command": "sfdx.force.conflict.open",
           "when": "false"
         },
@@ -532,7 +588,11 @@
           "when": "sfdx:project_opened"
         },
         {
-          "command": "sfdx.force.function.start",
+          "command": "sfdx.force.function.containerless.start",
+          "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
+        },
+        {
+          "command": "sfdx.force.function.container.start",
           "when": "sfdx:project_opened && resource =~ /.*/functions/.*/[^/]+(/[^/]+\\.(ts|js|java|json|toml))?$/"
         },
         {
@@ -550,6 +610,10 @@
         {
           "command": "sfdx.force.internal.refreshsobjects",
           "when": "sfdx:project_opened"
+        },
+        {
+          "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+          "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
         }
       ]
     },
@@ -613,6 +677,26 @@
       {
         "command": "sfdx.force.source.status.remote",
         "title": "%force_source_status_remote_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.pull",
+        "title": "%force_source_legacy_pull_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.pull.force",
+        "title": "%force_source_legacy_pull_force_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.push",
+        "title": "%force_source_legacy_push_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.push.force",
+        "title": "%force_source_legacy_push_force_default_scratch_org_text%"
+      },
+      {
+        "command": "sfdx.force.source.legacy.status",
+        "title": "%force_source_legacy_status_text%"
       },
       {
         "command": "sfdx.force.task.stop",
@@ -811,6 +895,10 @@
         }
       },
       {
+        "command": "sfdx.create.manifest",
+        "title": "%force_create_manifest%"
+      },
+      {
         "command": "sfdx.force.diff",
         "title": "%force_diff_against_org%"
       },
@@ -831,8 +919,12 @@
         "title": "%force_function_create%"
       },
       {
-        "command": "sfdx.force.function.start",
+        "command": "sfdx.force.function.containerless.start",
         "title": "%force_function_start%"
+      },
+      {
+        "command": "sfdx.force.function.container.start",
+        "title": "%force_function_start_container%"
       },
       {
         "command": "sfdx.force.function.invoke",
@@ -849,6 +941,14 @@
       {
         "command": "sfdx.force.internal.refreshsobjects",
         "title": "%force_sobjects_refresh%"
+      },
+      {
+        "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
+        "title": "%force_launch_apex_replay_debugger_with_current_file%"
+      },
+      {
+        "command": "sfdx.lightning.rename",
+        "title": "%force_lightning_rename_component_text%"
       }
     ],
     "configuration": {
@@ -884,11 +984,6 @@
           "type": "boolean",
           "default": false,
           "description": "%conflict_detection_enabled_description%"
-        },
-        "salesforcedx-vscode-core.experimental.deployRetrieve": {
-          "type": "boolean",
-          "default": true,
-          "description": "%experimental_deploy_retrieve_description%"
         },
         "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": {
           "type": "boolean",

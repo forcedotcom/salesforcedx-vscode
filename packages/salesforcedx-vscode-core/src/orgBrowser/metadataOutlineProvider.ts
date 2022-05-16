@@ -14,6 +14,7 @@ import { hasRootWorkspace, OrgAuthInfo } from '../util';
 import {
   BrowserNode,
   ComponentUtils,
+  CUSTOMOBJECTS_FULLNAME,
   MetadataObject,
   NodeType,
   TypeUtils
@@ -78,15 +79,21 @@ export class MetadataOutlineProvider
 
     switch (element.type) {
       case NodeType.Org:
-        element.setTypes(await this.getTypes(), NodeType.MetadataType);
+        const types = await this.getTypes();
+        element.setTypes(types, NodeType.MetadataType);
         this.toRefresh = false;
         break;
       case NodeType.Folder:
       case NodeType.MetadataType:
-        const type = TypeUtils.FOLDER_TYPES.has(element.fullName)
-          ? NodeType.Folder
-          : NodeType.MetadataCmp;
-        element.setComponents(await this.getComponents(element), type);
+        let nodeType: NodeType = NodeType.MetadataComponent;
+        if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
+          nodeType = NodeType.Folder;
+        } else if (element.parent && element.parent.fullName === CUSTOMOBJECTS_FULLNAME) {
+          nodeType = NodeType.MetadataField;
+        }
+
+        const components = await this.getComponents(element);
+        element.setComponents(components, nodeType);
         element.toRefresh = false;
         break;
     }
@@ -122,12 +129,15 @@ export class MetadataOutlineProvider
         default:
           typeName = node.fullName;
       }
-      return await cmpUtils.loadComponents(
+
+      const components = await cmpUtils.loadComponents(
         this.defaultOrg!,
         typeName,
         folder,
         node.toRefresh
       );
+
+      return components;
     } catch (e) {
       throw parseErrors(e);
     }

@@ -2,8 +2,9 @@
 
 ## Pre-requisites
 
-1.  We are using Node 12. If you need to work with multiple versions of Node, you
-    might consider using [nvm](https://github.com/creationix/nvm).
+1.  We are requiring Node 16 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
+    1. npm v6 is declared as a dependency in the workspace root and gets used by vsce packaging due to [issues with vsce packaging and npm v7/8](https://github.com/forcedotcom/salesforcedx-vscode/pull/4092)
+    1. npm v8 that comes installed with node 16 would be used when npm is invoked via npm run scripts or manually via shell. Hence the new lock file format of npm v8 with workspaces support is used by `npm install`.
 1.  This repository uses [Lerna](https://lernajs.io/) to manage it as a
     _monorepo_. Please install Lerna globally using `npm install --global lerna`.
 1.  We use `tslint` so please install it using `npm install --global tslint`.
@@ -151,7 +152,10 @@ this command.
 
 ### `npm run compile`
 
-This runs `npm run compile` on each of the package in packages.
+This invokes typescript compiler on the packages in the monorepo using [typescript project references](https://www.typescriptlang.org/docs/handbook/project-references.html).
+  - `npm run compile:watch` invokes typescript compiler to watch for changes in the background and compile only changed code and its dependencies. This would not invoke the post compile steps such as webpack or copying file artifacts.
+  - `npm run compile:clean` cleans previously compiled artifacts and invokes compile
+  - `npm run check:typescript-project-references` validates typescript project references and would error if there are any missing references
 
 ### `npm run clean`
 
@@ -178,3 +182,36 @@ errors. The results of this is deeper than what the tslint extension in VS Code
 does because of [semantic lint
 rules](https://palantir.github.io/tslint/usage/type-checking/) which requires a
 tsconfig.json to be passed to tslint.
+
+### `npm run check:links`
+
+Runs `markdown-link-check` on all markdown files in the repo to check for any broken links.
+
+- Does not check html files.
+- Ignores [429 Too Many Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429)
+  - We get 429 mostly from github as there are many URLs pointing to PRs etc in Changelog
+
+### `npm run check:deps`
+
+This runs `depcheck` on each package to check for unused and missing dependencies. Pay particular attention to "Missing dependencies". Unused dependency result might have [false positives](https://github.com/depcheck/depcheck#false-alert). Check code usage to verify.
+
+### `npm run check:peer-deps`
+This runs [check-peer-dependencies](https://www.npmjs.com/package/check-peer-dependencies) which
+> Checks peer dependencies of the current NodeJS package. Offers solutions for any that are unmet.
+
+Add any missing peer dependencies identified to the package's dev dependency.
+
+### `npm run vsix:install`
+This finds VSIX packages built locally (using `npm run vscode:package`) and installs them to Visual Studio Code Insiders.
+- The installation would overwrite any installed packages in insiders with same name and version (under `~/.vscode-insiders/extensions`).
+- To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`
+
+## Node Configuration
+
+### .npmrc
+
+The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8/using-npm/config) of the npm environment.
+
+### .nvmrc
+
+Our nvmrc specifies the minimum node version required to run the project.
