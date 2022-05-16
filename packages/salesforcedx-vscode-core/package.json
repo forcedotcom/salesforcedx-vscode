@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "^0.3.0",
-    "@salesforce/core": "^2.35.0",
+    "@salesforce/core": "^3.13.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "54.12.0",
     "@salesforce/salesforcedx-utils-vscode": "54.12.0",
     "@salesforce/schemas": "^1",
@@ -1037,5 +1037,11 @@
         "path": "./syntaxes/manifestXML.tmLanguage.json"
       }
     ]
+  },
+  "__metadata": {
+    "id": "1d9d0701-6f65-4174-a1a6-5720ffa59b61",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
+    "isPreReleaseVersion": false
   }
 }

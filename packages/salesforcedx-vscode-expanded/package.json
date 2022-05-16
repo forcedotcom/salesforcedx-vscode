@@ -43,5 +43,11 @@
     "esbenp.prettier-vscode",
     "chuckjonas.apex-pmd",
     "financialforce.lana"
-  ]
+  ],
+  "__metadata": {
+    "id": "de6d1e92-7025-4754-908b-4ba491aaede8",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
+    "isPreReleaseVersion": false
+  }
 }
