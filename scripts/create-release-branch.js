@@ -86,6 +86,9 @@ shell.exec(
 // Add all package.json version update changes
 shell.exec(`git add "**/package.json"`);
 
+// Add change to package lockfile that includes version bump
+shell.exec('git add package-lock.json');
+
 // Add change to lerna.json
 shell.exec('git add lerna.json');
 
