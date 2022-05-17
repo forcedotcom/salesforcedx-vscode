@@ -30,7 +30,7 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should return the username for the matching alias', async () => {
-      const info = await GlobalInfo.create()
+      const info = await GlobalInfo.create();
       env
         .stub(info.aliases, 'getUsername')
         .withArgs(alias)
