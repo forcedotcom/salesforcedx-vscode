@@ -126,8 +126,8 @@ describe('WorkspaceContext', () => {
   const testUser2 = 'test2@test.com';
   const cliConfigPath = join(
     '/user/dev',
-    '.sfdx',
-    'sfdx-config.json'
+    '.sf',
+    'config.json'
   );
   let mockFileWatcher: MockFileWatcher;
 
@@ -239,7 +239,7 @@ describe('getLogDirPath', () => {
     const dirPath = getRootWorkspacePath();
     const result = getLogDirPath();
     expect(result).to.equal(
-      join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
+      join(dirPath, '.sf', 'tools', 'debug', 'logs')
     );
   });
 });

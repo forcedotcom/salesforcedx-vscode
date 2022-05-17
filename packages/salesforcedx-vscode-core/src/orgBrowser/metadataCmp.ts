@@ -44,7 +44,7 @@ export class ComponentUtils {
     }.json`;
     const componentsPath = path.join(
       getRootWorkspacePath(),
-      '.sfdx',
+      '.sf',
       'orgs',
       username,
       'metadata',
