@@ -19,7 +19,7 @@ To clear your test results, click the refresh icon at the top of the sidebar (ho
 
 ## Add Debug Configuration for Jest Tests
 
-Add a debug configuration to automatically update ```launch.json```.  As a prerequisite, you must have [node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/get-npm) installed.
+Add a debug configuration to automatically update `launch.json`.  As a prerequisite, you must have [node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/get-npm) installed.
 
 
 > **_NOTE:_** If you started from an empty project, first install [sfdx-lwc-jest](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.unit_testing_using_jest_installation) and then add the test configuration using the steps described.
@@ -29,7 +29,7 @@ To quickly add Jest Test configuration to your standard project:
 1. Go to  **Run and Debug** in your Activity Bar.
 2. From the dropdown select **Add Configuration**.
 3. Select **Debug: LWC Jest Tests**.
-4. Save the updated ```launch.json```.
+4. Save the updated `launch.json`.
 5. Select the **Debug: LWC Jest Tests** configuration from the **Configuration dropdown** in the Run view and start debugging.
 
 
