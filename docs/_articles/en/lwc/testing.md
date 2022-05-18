@@ -33,7 +33,7 @@ To quickly add the Jest Tests configuration to your standard project:
 5. Select the **Debug: LWC Jest Tests** configuration from the **Configuration dropdown** in the Run view and start debugging.
 
 
-## Run, Debug or Watch Jest Tests from Within a File
+## Run, Debug, or Watch Jest Tests from Within a File
 
 You can run or debug Jest unit tests in contextual actions within the file, or by clicking buttons from the menu bar in the top right corner of the editor window. View test results in the Terminal panel.
 
