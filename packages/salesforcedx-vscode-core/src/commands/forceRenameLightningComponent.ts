@@ -41,6 +41,7 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
     response: ContinueResponse<ComponentName>
     ): Promise<boolean> {
       const newComponentName = response.data.name?.trim();
+      // call the guard
       if (newComponentName && this.sourceFsPath) {
         await renameComponent(this.sourceFsPath, newComponentName);
         return true;
@@ -82,6 +83,20 @@ export class GetComponentName
       ? { type: 'CONTINUE', data: { name: inputResult } }
       : { type: 'CANCEL' };
   }
+}
+// guard input name, throw error message if it's not following the lwc naming convention
+function inputGuard(sourceFsPath: string, newName: string) {
+  //
+}
+
+// guard lwc component name
+function lwcGuard(newName: string) {
+
+}
+
+// guard aura component name
+function auraGuard(newName: string) {
+  //
 }
 
 async function renameComponent(sourceFsPath: string, newName: string) {
