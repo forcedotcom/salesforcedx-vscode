@@ -13,6 +13,7 @@ lerna-debug.log*
 
 
 # test results
+/path
 /testTmp
 test-results.xml
 xunit.xml

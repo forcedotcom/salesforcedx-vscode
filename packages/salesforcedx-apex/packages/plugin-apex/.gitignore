@@ -28,6 +28,7 @@ junit-custom.xml
 junit-custom-unitTests.xml
 junit-custom-integrationTests.xml
 junit-custom-vscodeIntegrationTests.xml
+/my
 testsoutput/
 testpage/
 folder space/

@@ -91,14 +91,6 @@ export class CodeCoverage {
     return perClassCoverageMap;
   }
 
-  private async queryPerClassCodeCov(
-    apexTestClassSet: Set<string>
-  ): Promise<ApexCodeCoverage[]> {
-    const perClassCodeCovQuery =
-      'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
-    return this.fetchResults(apexTestClassSet, perClassCodeCovQuery);
-  }
-
   /**
    * Returns the aggregate code coverage information from ApexCodeCoverageAggregate entity for a given set of Apex classes
    * @param apexClassIdSet Set of ids for Apex classes
@@ -158,6 +150,14 @@ export class CodeCoverage {
       totalLines: totalLinesCovered + totalLinesUncovered,
       coveredLines: totalLinesCovered
     };
+  }
+
+  private async queryPerClassCodeCov(
+    apexTestClassSet: Set<string>
+  ): Promise<ApexCodeCoverage[]> {
+    const perClassCodeCovQuery =
+      'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
+    return this.fetchResults(apexTestClassSet, perClassCodeCovQuery);
   }
 
   private async queryAggregateCodeCov(

@@ -252,7 +252,9 @@ export default class Run extends SfdxCommand {
       }
     } catch (e) {
       this.ux.logJson(result);
-      const msg = messages.getMessage('testResultProcessErr', [e]);
+      const msg = messages.getMessage('testResultProcessErr', [
+        (e as Error).message
+      ]);
       this.ux.error(msg);
     }
 
@@ -343,7 +345,9 @@ export default class Run extends SfdxCommand {
         : (result as TestRunIdResult);
     } catch (e) {
       this.ux.logJson(result);
-      const msg = messages.getMessage('testResultProcessErr', [e]);
+      const msg = messages.getMessage('testResultProcessErr', [
+        (e as Error).message
+      ]);
       this.ux.error(msg);
       throw e;
     }

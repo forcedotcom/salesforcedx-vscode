@@ -8,3 +8,10 @@
 export { TapReporter } from './tapReporter';
 export { JUnitReporter } from './junitReporter';
 export { HumanReporter } from './humanReporter';
+export {
+  CoverageReporter,
+  CoverageReporterOptions,
+  CoverageReportFormats,
+  DefaultReportOptions,
+  DefaultWatermarks
+} from './coverageReporter';

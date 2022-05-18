@@ -125,7 +125,7 @@ describe('force:apex:test:run', () => {
     .it('should handle a tap format parsing error', ctx => {
       expect(ctx.stdout).to.contain('{\n  "tests": []\n}\n');
       expect(ctx.stderr).to.contain(
-        messages.getMessage('testResultProcessErr', ['TypeError: '])
+        messages.getMessage('testResultProcessErr', [''])
       );
       expect(ctx.stderr).to.contain('testRunId');
     });
@@ -175,7 +175,7 @@ describe('force:apex:test:run', () => {
     .it('should handle a junit format parsing error', ctx => {
       expect(ctx.stdout).to.contain('{\n  "tests": []\n}\n');
       expect(ctx.stderr).to.contain(
-        messages.getMessage('testResultProcessErr', ['TypeError: '])
+        messages.getMessage('testResultProcessErr', [''])
       );
       expect(ctx.stderr).to.contain('testStartTime');
     });

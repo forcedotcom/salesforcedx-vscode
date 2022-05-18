@@ -9,7 +9,8 @@
     "noImplicitAny": true,
     "rootDir": ".",
     "outDir": "lib",
-    "preserveConstEnums": true
+    "preserveConstEnums": true,
+    "skipLibCheck": true
   },
   "exclude": ["node_modules", "lib"]
 }

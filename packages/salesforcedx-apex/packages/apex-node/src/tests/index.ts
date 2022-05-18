@@ -7,6 +7,8 @@
 
 export { TestService } from './testService';
 export {
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
   ApexTestProgressValue,
   ApexTestRunResultStatus,
   AsyncTestConfiguration,

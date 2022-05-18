@@ -1,3 +1,4 @@
+--require ts-node/register
 --reporter ./test/combinedTestReporter.js
 --reporter-options mochaFile=./test-results/test-results.xml
 --require source-map-support/register

@@ -10,7 +10,7 @@ _refs:
   defaults: &defaults
     working_directory: ~/cli
     docker:
-      - image: node:12
+      - image: node:14
   ssh-config: &ssh-config
     fingerprints:
       - 'b1:50:d4:d9:01:2c:7c:8b:a0:e3:3c:c1:f8:a4:41:f0'
@@ -63,7 +63,7 @@ commands:
             git commit -m "chore: updated version $RELEASE_TAG [ci skip]"
       - run: *build
       - run:
-          name: Generate plugin manifest	
+          name: Generate plugin manifest
           command: yarn manifest:generate
       - run: yarn package
   release-management-commands:
@@ -101,7 +101,7 @@ commands:
             git tag -a $PKG_TAG -m "Releasing ${PKG_TAG}"
             git push origin $PKG_TAG
   build-artifact:
-    steps: 
+    steps:
       - run:
           name: Archiving tarball
           command: |
@@ -132,10 +132,10 @@ jobs:
       - run: *build
       - run: *test
       - build-artifact
-  node-12:
+  node-16:
     <<: *node-test
     docker:
-      - image: node:12
+      - image: node:16
   node-14:
     <<: *node-test
     docker:
@@ -193,7 +193,7 @@ jobs:
     working_directory: ~/cli/packages/apex-node
     steps:
       - attach_workspace:
-          at: ~/cli    
+          at: ~/cli
       - npm-release-management/publish:
           use_tarfile: true
       - slack/notify:
@@ -224,7 +224,7 @@ jobs:
 
 workflows:
   version: 2.1
-  
+
   commit-workflow:
     jobs:
       - slack/approval-notification:
@@ -236,7 +236,7 @@ workflows:
             branches:
               only: main
       - node-latest
-      - node-12
+      - node-16
       - node-14
       - cache:
           filters:
@@ -244,7 +244,7 @@ workflows:
               only: /^v.*/
             branches:
               ignore:
-                - main 
+                - main
                 - /.*/
       - run-win-tests
       - hold: # Requires manual approval in Circle Ci
@@ -267,7 +267,7 @@ workflows:
           requires:
               - run-win-tests
               - node-latest
-              - node-12
+              - node-16
               - node-14
               - hold
               - prepublish
@@ -281,7 +281,7 @@ workflows:
           requires:
               - run-win-tests
               - node-latest
-              - node-12
+              - node-16
               - node-14
               - hold
               - prepublish

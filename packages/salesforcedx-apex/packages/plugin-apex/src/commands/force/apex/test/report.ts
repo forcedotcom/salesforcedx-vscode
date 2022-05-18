@@ -148,7 +148,9 @@ export default class Report extends SfdxCommand {
       }
     } catch (e) {
       this.ux.logJson(jsonOutput);
-      const msg = messages.getMessage('testResultProcessErr', [e]);
+      const msg = messages.getMessage('testResultProcessErr', [
+        (e as Error).message
+      ]);
       this.ux.error(msg);
     }
     return jsonOutput as AnyJson;
@@ -184,7 +186,9 @@ export default class Report extends SfdxCommand {
       return reporter.format(result);
     } catch (e) {
       this.ux.logJson(result);
-      const msg = messages.getMessage('testResultProcessErr', [e]);
+      const msg = messages.getMessage('testResultProcessErr', [
+        (e as Error).message
+      ]);
       this.ux.error(msg);
       throw e;
     }

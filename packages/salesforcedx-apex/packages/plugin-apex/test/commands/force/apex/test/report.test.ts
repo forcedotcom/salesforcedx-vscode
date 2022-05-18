@@ -126,7 +126,7 @@ describe('force:apex:test:report', () => {
     .it('should handle a tap format parsing error', ctx => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal(jsonResult);
       expect(ctx.stderr).to.contain(
-        messages.getMessage('testResultProcessErr', ['Error: Error with TAP'])
+        messages.getMessage('testResultProcessErr', ['Error with TAP'])
       );
     });
 
@@ -181,7 +181,7 @@ describe('force:apex:test:report', () => {
     .it('should handle a junit format parsing error', ctx => {
       expect(JSON.parse(ctx.stdout)).to.deep.equal(jsonResult);
       expect(ctx.stderr).to.contain(
-        messages.getMessage('testResultProcessErr', ['Error: Error with JUnit'])
+        messages.getMessage('testResultProcessErr', ['Error with JUnit'])
       );
     });
 

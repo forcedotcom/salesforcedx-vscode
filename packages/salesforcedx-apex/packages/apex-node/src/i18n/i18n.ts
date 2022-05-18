@@ -24,6 +24,8 @@ export const messages = {
   numLogsError: 'Expected number of logs to be greater than 0.',
   optionExecAnonError: 'Please specify an option to execute anonymous Apex.',
   unexpectedExecAnonInputError: 'Unexpected error while reading user input. %s',
+  coverageReportCreationError:
+    'Unexpected error occurred while creating coverage reports. %s',
   execAnonInputPrompt:
     'Start typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.\n',
   execAnonInputTimeout: 'Timed out while waiting for user input.',
