@@ -391,7 +391,6 @@ describe('Parameter Gatherers', () => {
 
       const response = await selector.gather();
       try {
-        //expect(showMenuStub.getCall(0).calledWith(packageDirs)).to.be.true;
         expect(response).to.eql({
           type: 'CANCEL'
         });
