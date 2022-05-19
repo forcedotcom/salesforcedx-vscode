@@ -644,8 +644,7 @@ export const messages = {
     'Unable to access the function in "{0}".',
   not_alphanumeric_or_underscore_error: 'Component name must contain only alphanumeric or underscore characters',
   not_start_with_lowercase_error: 'Component name must begin with a lowercase letter',
-  has_white_space_error: 'Component name can not include whitespace',
   end_with_underscore_error: 'Component name can not end with an underscore',
   has_two_consecutive_underscores_error: 'Component name can not contain two consecutive underscores',
-  has_hyphen_error: 'Component name can not contain a hyphen'
+  not_start_with_letter_error: 'Component name must begin with a letter'
 };

@@ -4,24 +4,22 @@ import { nls } from '../../messages';
 
 const NOT_ALPHANUMERIC_OR_UNDERSCORE_ERROR = 'not_alphanumeric_or_underscore_error';
 const NOT_START_WITH_LOWERCASE_ERROR = 'not_start_with_lowercase_error';
-const HAS_WHITE_SPACE_ERROR = 'has_white_space_error';
 const END_WITH_UNDERSCORE_ERROR = 'end_with_underscore_error';
 const HAS_TWO_CONSECUTIVE_UNDERSCORES_ERROR = 'has_two_consecutive_underscores_error';
-const HAS_HYPHEN_ERROR = 'has_hyphen_error';
+const NOT_START_WITH_LETTER_ERROR = 'not_start_with_letter_error';
 
-// guard lwc component name
 export function lwcComponentInputGuard(newName: string) {
   beginWithLowerCase(newName);
   HasAlphanumericOrUnderscore(newName);
-  hasWhiteSpace(newName);
   endWithUnderscore(newName);
   hasConsecutiveUnderscores(newName);
-  hasHyphen(newName);
 }
 
-// guard aura component name
 export function auraComponentInputGuard(newName: string) {
-  //
+  beginWithLetter(newName);
+  HasAlphanumericOrUnderscore(newName);
+  endWithUnderscore(newName);
+  hasConsecutiveUnderscores(newName);
 }
 
 function HasAlphanumericOrUnderscore(input: string) {
@@ -38,9 +36,10 @@ function beginWithLowerCase(input: string) {
   }
 }
 
-function hasWhiteSpace(input: string) {
-  if (input.indexOf(' ') >= 0) {
-    showErrorMessage(HAS_WHITE_SPACE_ERROR);
+function beginWithLetter(input: string) {
+  const firstChar = input.charAt(0);
+  if (!isLetter(firstChar)) {
+    showErrorMessage(NOT_START_WITH_LETTER_ERROR);
   }
 }
 
@@ -57,18 +56,15 @@ function hasConsecutiveUnderscores(input: string) {
   }
 }
 
-function hasHyphen(input: string) {
-  if (input.indexOf('-') >= 0) {
-    showErrorMessage(HAS_HYPHEN_ERROR);
-  }
-}
-
 function isLowerCase(str: string): boolean {
   return str === str.toLowerCase() && str !== str.toUpperCase();
 }
 
+function isLetter(str: string): boolean {
+  return Boolean(str.match(/a-zA-Z]/));
+}
+
 function showErrorMessage(message: string) {
   const errorMessage = nls.localize(message);
-  notificationService.showErrorMessage(errorMessage);
   throw new Error(format(errorMessage));
 }
