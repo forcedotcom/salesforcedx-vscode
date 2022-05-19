@@ -20,10 +20,10 @@ $ yarn build
 
 ## Branches
 
-- We work in `develop`
+- We work in `main`
 - Our released (_production_) branch is `main`
 - Our work happens in _topic_ branches (feature and/or bug fix)
-  - These branches are based on `develop` and can live in forks for external contributors or within this repository for authors
+  - These branches are based on `main` and can live in forks for external contributors or within this repository for authors
   - Be sure to prefix branches in this repository with `<developer-name>/`
   - Be sure to keep branches up-to-date using `rebase`
 
