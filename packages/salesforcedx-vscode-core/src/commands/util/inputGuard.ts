@@ -10,19 +10,19 @@ const NOT_START_WITH_LETTER_ERROR = 'not_start_with_letter_error';
 
 export function lwcComponentInputGuard(newName: string) {
   beginWithLowerCase(newName);
-  HasAlphanumericOrUnderscore(newName);
+  hasAlphanumericOrUnderscore(newName);
   endWithUnderscore(newName);
   hasConsecutiveUnderscores(newName);
 }
 
 export function auraComponentInputGuard(newName: string) {
   beginWithLetter(newName);
-  HasAlphanumericOrUnderscore(newName);
+  hasAlphanumericOrUnderscore(newName);
   endWithUnderscore(newName);
   hasConsecutiveUnderscores(newName);
 }
 
-function HasAlphanumericOrUnderscore(input: string) {
+function hasAlphanumericOrUnderscore(input: string) {
   const invalidPattern = /\W/;
   if (input.match(invalidPattern)) {
     showErrorMessage(NOT_ALPHANUMERIC_OR_UNDERSCORE_ERROR);
