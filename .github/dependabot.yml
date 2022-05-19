@@ -21,9 +21,9 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-    open-pull-requests-limit: 100
+    open-pull-requests-limit: 10
     rebase-strategy: disabled
-  # Major version updates (not auto-merged)
+  # Major version updates (not to be auto-merged)
   - package-ecosystem: "npm"
     directory: "/" # Location of package manifests
     target-branch: "develop"

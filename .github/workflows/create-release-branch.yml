@@ -7,14 +7,14 @@ on:
 jobs:
   create_branch:
     name: 'Create Branch'
-    
+
     runs-on: ubuntu-latest
 
     steps:
     - name: Setup Node.js
       uses: actions/setup-node@v1
       with:
-        node-version: '14.16.x'
+        node-version: '16.13.x'
     - name: Checkout
       uses: actions/checkout@v2.0.0
       with:
@@ -43,4 +43,3 @@ jobs:
 #         -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' \
 #         -X POST -d "${{ github.event.client_payload.on_success }}" \
 #         https://slack.com/api/chat.update
-      

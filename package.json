@@ -2,12 +2,15 @@
   "name": "salesforcedx-vscode",
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
+  "workspaces": [
+    "packages/*"
+  ],
   "engines": {
-    "node": ">=14.16.0"
+    "node": ">=16.13.0"
   },
   "dependencies": {
-    "node": "^14.16.0",
-    "npm": "^6.14.11"
+    "node": "^16.13.0",
+    "npm": "^6"
   },
   "devDependencies": {
     "@commitlint/cli": "^15.0.0",
@@ -44,13 +47,13 @@
     "webpack-cli": "3.3.12"
   },
   "scripts": {
-    "postinstall": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier && npm run check:peer-deps && npm run check:typescript-project-references",
-    "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock && node scripts/reformat-with-prettier",
+    "postinstall": "npm run bootstrap && npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
+    "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock",
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "clean": "lerna run clean && git clean -xfd",
-    "reinstall": "rm -f package-lock.json && npm run clean && npm install",
+    "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
     "compile": "tsc --build",
     "postcompile": "lerna run copy:files && lerna run webpack",
     "compile:clean": "tsc  --build --clean && npm run compile",
@@ -74,7 +77,8 @@
     "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:peer-deps": "check-peer-dependencies",
     "check:typescript-project-references": "workspaces-to-typescript-project-references --includesRoot --check",
-    "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && node scripts/reformat-with-prettier",
+    "vscode:package": "lerna exec --scope @salesforce/salesforcedx-* -- npm prune --production && lerna run vscode:package --concurrency 1 && npm run reformat",
+    "vsix:install": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} \\;",
     "vscode:sha256": "lerna run vscode:sha256 --concurrency 1",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
