@@ -641,5 +641,11 @@ export const messages = {
     'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
   error_function_type: 'Unable to determine type of executing function.',
   error_unable_to_get_started_function:
-    'Unable to access the function in "{0}".'
+    'Unable to access the function in "{0}".',
+  not_alphanumeric_or_underscore_error: 'Component name must contain only alphanumeric or underscore characters',
+  not_start_with_lowercase_error: 'Component name must begin with a lowercase letter',
+  has_white_space_error: 'Component name can not include whitespace',
+  end_with_underscore_error: 'Component name can not end with an underscore',
+  has_two_consecutive_underscores_error: 'Component name can not contain two consecutive underscores',
+  has_hyphen_error: 'Component name can not contain a hyphen'
 };

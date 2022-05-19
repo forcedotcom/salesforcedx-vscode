@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { SfdxCommandlet, SfdxWorkspaceChecker } from './util';
+import { auraComponentInputGuard, lwcComponentInputGuard } from './util/inputGuard';
 
 const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'force_rename_lightning_component';
 const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
@@ -41,8 +42,8 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
     response: ContinueResponse<ComponentName>
     ): Promise<boolean> {
       const newComponentName = response.data.name?.trim();
-      // call the guard
       if (newComponentName && this.sourceFsPath) {
+        await inputGuard(this.sourceFsPath, newComponentName);
         await renameComponent(this.sourceFsPath, newComponentName);
         return true;
       }
@@ -84,19 +85,14 @@ export class GetComponentName
       : { type: 'CANCEL' };
   }
 }
-// guard input name, throw error message if it's not following the lwc naming convention
-function inputGuard(sourceFsPath: string, newName: string) {
-  //
-}
 
-// guard lwc component name
-function lwcGuard(newName: string) {
-
-}
-
-// guard aura component name
-function auraGuard(newName: string) {
-  //
+async function inputGuard(sourceFsPath: string, newName: string) {
+  const componentPath = await getComponentPath(sourceFsPath);
+  if (isLwcComponent(componentPath)) {
+    lwcComponentInputGuard(newName);
+  }else {
+    auraComponentInputGuard(newName);
+  }
 }
 
 async function renameComponent(sourceFsPath: string, newName: string) {
