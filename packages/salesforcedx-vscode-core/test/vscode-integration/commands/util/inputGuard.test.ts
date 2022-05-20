@@ -11,6 +11,16 @@ const NOT_START_WITH_LETTER_ERROR = 'not_start_with_letter_error';
 
 describe('inputGuard Unite Tests', () => {
   describe('LWC Component Name Input Guard', () => {
+    it('should not show the error message for a valid component name', () => {
+      let exceptionThrown: any;
+      try {
+        lwcComponentInputGuard('account_map');
+      } catch (e) {
+        exceptionThrown = e;
+      }
+      expect(exceptionThrown).to.equal(null);
+    });
+
     it('should show the error message when component name does not start with a lowercase letter', () => {
       let exceptionThrown: any;
       const errorMessage = nls.localize(NOT_START_WITH_LOWERCASE_ERROR);
@@ -23,7 +33,47 @@ describe('inputGuard Unite Tests', () => {
     });
 
     it('should show the error message when component name contains white space between letters', () => {
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(NOT_ALPHANUMERIC_OR_UNDERSCORE_ERROR);
+      try {
+        lwcComponentInputGuard('hello  world');
+      } catch (e) {
+        exceptionThrown = e;
+      }
+      expect(exceptionThrown.message).to.equal(errorMessage);
+    });
 
+    it('should show the error message when component name contains special characters other than underscore or alphanumeric', () => {
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(NOT_ALPHANUMERIC_OR_UNDERSCORE_ERROR);
+      try {
+        lwcComponentInputGuard('hello%$world');
+      } catch (e) {
+        exceptionThrown = e;
+      }
+      expect(exceptionThrown.message).to.equal(errorMessage);
+    });
+
+    it('should show the error message when component name contains two consecutive underscores', () => {
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(HAS_TWO_CONSECUTIVE_UNDERSCORES_ERROR);
+      try {
+        lwcComponentInputGuard('hello__world');
+      } catch (e) {
+        exceptionThrown = e;
+      }
+      expect(exceptionThrown.message).to.equal(errorMessage);
+    });
+
+    it('should show the error message when component name contains two consecutive underscores', () => {
+      let exceptionThrown: any;
+      const errorMessage = nls.localize(HAS_TWO_CONSECUTIVE_UNDERSCORES_ERROR);
+      try {
+        lwcComponentInputGuard('hello__world');
+      } catch (e) {
+        exceptionThrown = e;
+      }
+      expect(exceptionThrown.message).to.equal(errorMessage);
     });
   });
 });
