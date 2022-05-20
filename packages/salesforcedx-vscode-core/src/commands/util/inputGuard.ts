@@ -1,4 +1,3 @@
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { format } from 'util';
 import { nls } from '../../messages';
 
@@ -61,7 +60,7 @@ function isLowerCase(str: string): boolean {
 }
 
 function isLetter(str: string): boolean {
-  return Boolean(str.match(/a-zA-Z]/));
+  return Boolean(str.match(/[a-zA-Z]/));
 }
 
 function showErrorMessage(message: string) {
