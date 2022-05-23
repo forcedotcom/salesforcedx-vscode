@@ -88,14 +88,17 @@ The file opens in SOQL Builder and you can rerun or edit the query as you wish.
 ## Connect to a Different Org
 During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Development Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
 
-To log into an org:
+To log into another org:
 
 1. From the command palette run **SFDX: Authorize an Org**.
 2. Select either sandbox for the login URL (`test.salesforce.com`) or a developer org if you have access to one.
 3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
-4. Log in with the relevant username and password.
-5. You’re now connected to your org, and its name is visible in the status bar at the bottom.
-6. Once you authorize an org, we create a connected app that takes care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.	
+The Ouput panel displays an eight dight user code and an verification URL.
+4. Copy the code and click to open the URL.
+5. Paste the code in the textbox and click **Connect**.
+6. Click **Allow** and log in with the relevant username and password.
+7. You’re now connected to a different org, and its name is visible in the status bar at the bottom.
+8. Once you authorize an org, we create a connected app that takes care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.	
 
 ## Create, Retrieve, and Deploy a Custom Field
 Let’s add a custom field to an object in our org and pull its metadata into our Code Builder project.
