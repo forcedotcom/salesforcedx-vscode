@@ -93,7 +93,9 @@ To log into another org:
 1. From the command palette run **SFDX: Authorize an Org**.
 2. Select either sandbox for the login URL (`test.salesforce.com`) or a developer org if you have access to one.
 3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
-The Ouput panel displays an eight dight user code and an verification URL.
+
+The Ouput panel displays an eight digit user code and a verification URL.
+
 4. Copy the code and click to open the URL.
 5. Paste the code in the textbox and click **Connect**.
 6. Click **Allow** and log in with the relevant username and password.
