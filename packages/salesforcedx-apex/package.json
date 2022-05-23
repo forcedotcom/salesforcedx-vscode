@@ -8,7 +8,7 @@
     "@commitlint/cli": "^7",
     "@commitlint/config-conventional": "^7",
     "@typescript-eslint/eslint-plugin": "^2.22.0",
-    "@types/mocha": "^5",
+    "@types/mocha": "^9",
     "@typescript-eslint/parser": "^2.22.0",
     "commitizen": "^3.0.5",
     "cz-conventional-changelog": "^2.1.0",
@@ -20,7 +20,7 @@
     "husky": "^4.2.5",
     "lerna": "^3.20.2",
     "lint-staged": "^10.2.11",
-    "mocha": "^5",
+    "mocha": "^10",
     "prettier": "1.19.1",
     "typescript": "4.6.4"
   },
