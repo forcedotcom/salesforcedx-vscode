@@ -8,6 +8,7 @@
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import {CreateUtil} from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'util';
@@ -15,7 +16,6 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { SfdxCommandlet, SfdxWorkspaceChecker } from './util';
-import { auraComponentInputGuard, lwcComponentInputGuard } from './util/inputGuard';
 
 const RENAME_LIGHTNING_COMPONENT_EXECUTOR = 'force_rename_lightning_component';
 const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
@@ -41,9 +41,9 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
   public async run(
     response: ContinueResponse<ComponentName>
     ): Promise<boolean> {
-      const newComponentName = response.data.name?.trim();
+      let newComponentName = response.data.name?.trim();
       if (newComponentName && this.sourceFsPath) {
-        await inputGuard(this.sourceFsPath, newComponentName);
+        newComponentName = await inputGuard(this.sourceFsPath, newComponentName);
         await renameComponent(this.sourceFsPath, newComponentName);
         return true;
       }
@@ -86,13 +86,13 @@ export class GetComponentName
   }
 }
 
-async function inputGuard(sourceFsPath: string, newName: string) {
+async function inputGuard(sourceFsPath: string, newName: string): Promise<string> {
   const componentPath = await getComponentPath(sourceFsPath);
   if (isLwcComponent(componentPath)) {
-    lwcComponentInputGuard(newName);
-  }else {
-    auraComponentInputGuard(newName);
+    newName = newName.charAt(0).toLowerCase() + newName.slice(1);
   }
+  CreateUtil.checkInputs(newName);
+  return newName;
 }
 
 async function renameComponent(sourceFsPath: string, newName: string) {
