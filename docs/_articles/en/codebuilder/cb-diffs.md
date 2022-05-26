@@ -10,7 +10,7 @@ Code Builder unleashes the power of Salesforce Extensions for VS Code and offers
 * Unlike VS Code for the desktop, you can't add any new extensions to your Code Builder development environment.
 * Because Code Builder is inherently lightweight and optimized to run in the cloud, access to certain functionalities is limited:    
     * Functions development is available only for Javascript and Typescript functions. (unsure of the capitalization but this "feels" right)
-    * LWC Local Development (beta) is not available in Code Builder. Deploy LWC components to your org to view them.
+    * LWC Local Development (beta) is not available in Code Builder. You can't preview LWC components locally, but deploy them to your org to view them.
 * With Code Builder, you can work from anywhere. Bookmark your development environment to return to it, or access the link from a different machine. 
 * Unlike a desktop IDE, Code Builder saves your work for you without you explicitly having to do so. But since your beta environment's usage is capped at 20 hours, and your environment is wiped once your clock runs out, remember to either push your work to source control or deploy your changes to your org. 
 
