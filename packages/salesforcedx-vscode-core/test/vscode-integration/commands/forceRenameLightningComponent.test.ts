@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {isNameMatch, RenameLwcComponentExecutor, inputGuard} from '../../../src/commands/forceRenameLightningComponent';
+import {inputGuard, isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
 import { nls } from '../../../src/messages';
 
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
@@ -298,7 +298,6 @@ describe('Force Rename Lightning Component', () => {
     });
   });
 
-
   describe('Guard new component name', () => {
     beforeEach(() => {
       statStub = env.stub(fs.promises, 'stat').resolves({
@@ -363,7 +362,7 @@ describe('Force Rename Lightning Component', () => {
       expect(exceptionThrownAura).to.equal(true);
     });
 
-    it('should show the error message when component name contains two consecutive underscores for LWC and Aura', async() => {
+    it('should show the error message when component name contains two consecutive underscores for LWC and Aura', async () => {
       let exceptionThrownLwc = false;
       let exceptionThrownAura = false;
       const sourceUriLWC = vscode.Uri.joinPath(lwcPath, lwcComponent);
