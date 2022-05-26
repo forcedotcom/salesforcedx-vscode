@@ -68,7 +68,7 @@ Code Builder comes preloaded with everything you need to build and run a SOQL qu
 
 Let’s build and run a simple SOQL query on the Account object:
 
-1. Press Ctrl+Shift+P (⇧⌘P)  to view the command palette.
+1. Press Ctrl+Shift+P (⇧⌘P)  to view the Command Palette.
 2. Type “SOQL” in the search box and then select **SFDX: Create Query in SOQL Builder**.
 3. Select  the following:
 
@@ -90,7 +90,7 @@ During the course of development, you'll use different types of orgs for differe
 
 To log into another org:
 
-1. From the command palette run **SFDX: Authorize an Org**.
+1. From the Command Palette run **SFDX: Authorize an Org**.
 2. Select either sandbox or a developer org.
 3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
 
