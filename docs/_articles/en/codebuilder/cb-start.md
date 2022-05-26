@@ -30,7 +30,7 @@ Now you’re ready to use Code Builder.
 3. Click **New Project** to create a new Salesforce DX project.
 4. Give your project a name and choose **Standard** for project type.
 
-Next, connect an org to your Code Builder environment. You can choose to connect to a Salesforce org (`login.salesforce.com`) or a sandbox org (`test.salesforce.com`).
+Next, connect an org to your Code Builder environment. You can choose to connect to a Salesforce org or a sandbox org.
 
 1. Log in to your development environment, click **Allow** to grant access, then click **Next**.
 2. Choose an alias (nickname) for your org. If you work on many orgs, make sure the nickname helps you identify the org quickly in the future. 
@@ -91,7 +91,7 @@ During the course of development, you'll use different types of orgs for differe
 To log into another org:
 
 1. From the command palette run **SFDX: Authorize an Org**.
-2. Select either sandbox for the login URL (`test.salesforce.com`) or a developer org if you have access to one.
+2. Select either sandbox or a developer org.
 3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
 
 The Ouput panel displays an eight digit user code and a verification URL.
