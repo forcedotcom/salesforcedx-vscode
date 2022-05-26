@@ -26,9 +26,9 @@ Organizing your VS Code extensions by development task can help you avoid having
     - macOS or Linux
 
       1.  Open VS Code.
-      2.  To open the command palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Linux).
+      2.  To open the Command Palette, press Cmd+Shift+P (macOS) or Ctrl+Shift+P (Linux).
       3.  Run the command **Shell command: Install 'code' command in PATH**.
-          ![From the command palette, choose Shell command: Install 'code' command in PATH](./images/invoke_shell_command.png)
+          ![From the Command Palette, choose Shell command: Install 'code' command in PATH](./images/invoke_shell_command.png)
 
                 This command lets you invoke `code` directly from your favorite terminal.
 
