@@ -8,6 +8,7 @@
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import {CreateUtil} from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'util';
@@ -40,8 +41,9 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
   public async run(
     response: ContinueResponse<ComponentName>
     ): Promise<boolean> {
-      const newComponentName = response.data.name?.trim();
+      let newComponentName = response.data.name?.trim();
       if (newComponentName && this.sourceFsPath) {
+        newComponentName = await inputGuard(this.sourceFsPath, newComponentName);
         await renameComponent(this.sourceFsPath, newComponentName);
         return true;
       }
@@ -82,6 +84,15 @@ export class GetComponentName
       ? { type: 'CONTINUE', data: { name: inputResult } }
       : { type: 'CANCEL' };
   }
+}
+
+export async function inputGuard(sourceFsPath: string, newName: string): Promise<string> {
+  const componentPath = await getComponentPath(sourceFsPath);
+  if (isLwcComponent(componentPath)) {
+    newName = newName.charAt(0).toLowerCase() + newName.slice(1);
+  }
+  CreateUtil.checkInputs(newName);
+  return newName;
 }
 
 async function renameComponent(sourceFsPath: string, newName: string) {

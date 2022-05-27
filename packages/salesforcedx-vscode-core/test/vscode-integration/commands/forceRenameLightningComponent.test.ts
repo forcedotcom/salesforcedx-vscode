@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
+import {inputGuard, isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
 import { nls } from '../../../src/messages';
 
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
@@ -295,6 +295,109 @@ describe('Force Rename Lightning Component', () => {
       expect(isNameMatch('hero1.css', 'hero', lwcComponentPath)).to.equal(false);
       expect(isNameMatch('page.jpg', 'page', auraComponentPath)).to.equal(false);
       expect(isNameMatch('page1.css', 'hero', auraComponentPath)).to.equal(false);
+    });
+  });
+
+  describe('Guard new component name', () => {
+    beforeEach(() => {
+      statStub = env.stub(fs.promises, 'stat').resolves({
+        isFile: () => {
+          return false;
+        }
+      });
+    });
+
+    afterEach(() => {
+      env.restore();
+    });
+
+    it('should not show the error message when new component name starts with a letter', async () => {
+      let exceptionThrownLwc = false;
+      let exceptionThrownAura = false;
+      const sourceUriLWC = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      const sourceUriAura = vscode.Uri.joinPath(auraPath, auraComponent);
+      try {
+        await inputGuard(sourceUriLWC.fsPath, 'Hello');
+      } catch (e) {
+        exceptionThrownLwc = true;
+      }
+      try {
+        await inputGuard(sourceUriAura.fsPath, 'Hello');
+      } catch (e) {
+        exceptionThrownAura = true;
+      }
+      expect(exceptionThrownLwc).to.equal(false);
+      expect(exceptionThrownAura).to.equal(false);
+    });
+
+    it('should change the first letter to lower case if the new LWC component name is a upper-case letter', async () => {
+      let returnedName: any;
+      let exceptionThrownLwc = false;
+      const sourceUriLWC = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      try {
+        returnedName = await inputGuard(sourceUriLWC.fsPath, 'Hello');
+      } catch (e) {
+        exceptionThrownLwc = true;
+      }
+      expect(returnedName).to.equal('hello');
+      expect(exceptionThrownLwc).to.equal(false);
+    });
+
+    it('should show the error message when component name contains special characters other than underscore or alphanumeric for LWC and Aura', async () => {
+      let exceptionThrownLwc = false;
+      let exceptionThrownAura = false;
+      const sourceUriLWC = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      const sourceUriAura = vscode.Uri.joinPath(auraPath, auraComponent);
+      try {
+        await inputGuard(sourceUriLWC.fsPath, 'hello%$world');
+      } catch (e) {
+        exceptionThrownLwc = true;
+      }
+      try {
+        await inputGuard(sourceUriAura.fsPath, 'hello%$world');
+      } catch (e) {
+        exceptionThrownAura = true;
+      }
+      expect(exceptionThrownLwc).to.equal(true);
+      expect(exceptionThrownAura).to.equal(true);
+    });
+
+    it('should show the error message when component name contains two consecutive underscores for LWC and Aura', async () => {
+      let exceptionThrownLwc = false;
+      let exceptionThrownAura = false;
+      const sourceUriLWC = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      const sourceUriAura = vscode.Uri.joinPath(auraPath, auraComponent);
+      try {
+        await inputGuard(sourceUriLWC.fsPath, 'hello__world');
+      } catch (e) {
+        exceptionThrownLwc = true;
+      }
+      try {
+        await inputGuard(sourceUriAura.fsPath, 'hello__world');
+      } catch (e) {
+        exceptionThrownAura = true;
+      }
+      expect(exceptionThrownLwc).to.equal(true);
+      expect(exceptionThrownAura).to.equal(true);
+    });
+
+    it('should show the error message when component name ends with an underscore for LWC and Aura', async () => {
+      let exceptionThrownLwc = false;
+      let exceptionThrownAura = false;
+      const sourceUriLWC = vscode.Uri.joinPath(lwcPath, lwcComponent);
+      const sourceUriAura = vscode.Uri.joinPath(auraPath, auraComponent);
+      try {
+        await inputGuard(sourceUriLWC.fsPath, 'hello_');
+      } catch (e) {
+        exceptionThrownLwc = true;
+      }
+      try {
+        await inputGuard(sourceUriAura.fsPath, 'hello_');
+      } catch (e) {
+        exceptionThrownAura = true;
+      }
+      expect(exceptionThrownLwc).to.equal(true);
+      expect(exceptionThrownAura).to.equal(true);
     });
   });
 });
