@@ -95,7 +95,7 @@ import {
   SFDX_CORE_CONFIGURATION_NAME
 } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
-import { workspaceContext } from './context';
+import { workspaceContextInstance } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
@@ -661,7 +661,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   if (sfdxProjectOpened) {
-    await workspaceContext.initialize(extensionContext);
+    await workspaceContextInstance.initialize(extensionContext);
 
     // register org picker commands
     const orgList = new OrgList();
@@ -705,7 +705,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     SfdxCommandletExecutor,
     sfdxCoreSettings,
     SfdxWorkspaceChecker,
-    workspaceContext,
+    workspaceContext: workspaceContextInstance,
     taskViewService,
     telemetryService
   };

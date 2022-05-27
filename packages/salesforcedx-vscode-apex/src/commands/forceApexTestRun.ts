@@ -32,7 +32,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
+import { workspaceContextInstance } from '../context';
 import { nls } from '../messages';
 import * as settings from '../settings';
 
@@ -133,7 +133,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await workspaceContextInstance.getConnection();
     const testService = new TestService(connection);
     const testLevel = TestLevel.RunSpecifiedTests;
     const codeCoverage = settings.retrieveTestCodeCoverage();

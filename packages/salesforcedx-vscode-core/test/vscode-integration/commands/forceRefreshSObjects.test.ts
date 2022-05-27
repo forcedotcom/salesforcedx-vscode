@@ -36,7 +36,7 @@ import {
   SObjectRefreshGatherer,
   verifyUsernameAndInitSObjectDefinitions
 } from '../../../src/commands/forceRefreshSObjects';
-import { workspaceContext } from '../../../src/context';
+import { workspaceContextInstance } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
@@ -61,7 +61,7 @@ describe('ForceGenerateFauxClasses', () => {
       existsSyncStub = sandboxStub.stub(fs, 'existsSync');
       getUsernameStub = sandboxStub.stub();
       sandboxStub
-        .stub(workspaceContext, 'getConnection')
+        .stub(workspaceContextInstance, 'getConnection')
         .resolves({ getUsername: getUsernameStub });
       commandletSpy = sandboxStub.stub(SfdxCommandlet.prototype, 'run');
       notificationStub = sandboxStub.stub(

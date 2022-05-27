@@ -33,7 +33,7 @@ import {
 import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
-import { workspaceContext } from './context';
+import { workspaceContextInstance } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
@@ -193,7 +193,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   // Workspace Context
-  await workspaceContext.initialize(extensionContext);
+  await workspaceContextInstance.initialize(extensionContext);
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(

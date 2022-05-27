@@ -27,7 +27,7 @@ import { workspace } from 'vscode';
 import { sfdxCreateCheckpoints } from '../breakpoints';
 import { checkpointService } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
+import { workspaceContextInstance } from '../context';
 import { nls } from '../messages';
 import { retrieveTestCodeCoverage } from '../utils';
 import { launchFromLogFile } from './launchFromLogFile';
@@ -48,7 +48,7 @@ export class QuickLaunch {
     testClass: string,
     testName?: string
   ): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await workspaceContextInstance.getConnection();
 
     const traceFlags = new TraceFlags(connection);
     if (!(await traceFlags.ensureTraceFlags())) {

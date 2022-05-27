@@ -26,7 +26,7 @@ import {
   SourcePathChecker
 } from '../../../src/commands';
 import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
-import { workspaceContext } from '../../../src/context';
+import { workspaceContextInstance } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
@@ -57,8 +57,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         authInfo
       });
 
-      sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
-      sb.stub(workspaceContext, 'username').get(() => testData.username);
+      sb.stub(workspaceContextInstance, 'getConnection').resolves(mockConnection);
+      sb.stub(workspaceContextInstance, 'username').get(() => testData.username);
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
         defaultPackage

@@ -31,7 +31,7 @@ import {
   resolveTestClassParam,
   resolveTestMethodParam
 } from '../../../src/commands/forceApexTestRunCodeAction';
-import { workspaceContext } from '../../../src/context';
+import { workspaceContextInstance } from '../../../src/context';
 
 // return undefined: used to get around strict checks
 function getUndefined(): any {
@@ -248,7 +248,7 @@ describe('Force Apex Test Run - Code Action', () => {
       runTestStub = sb
         .stub(TestService.prototype, 'runTestAsynchronous')
         .resolves(passingResult);
-      sb.stub(workspaceContext, 'getConnection');
+      sb.stub(workspaceContextInstance, 'getConnection');
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
       writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
@@ -522,7 +522,7 @@ describe('Force Apex Test Run - Code Action', () => {
 
     beforeEach(() => {
       sb.stub(TestService.prototype, 'writeResultFiles');
-      sb.stub(workspaceContext, 'getConnection');
+      sb.stub(workspaceContextInstance, 'getConnection');
       sb.stub(SfdxProject, 'resolve').returns({
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };

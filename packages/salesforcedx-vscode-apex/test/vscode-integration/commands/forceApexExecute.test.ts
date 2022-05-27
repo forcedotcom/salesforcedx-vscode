@@ -21,7 +21,7 @@ import {
   AnonApexGatherer,
   AnonApexLibraryExecuteExecutor
 } from '../../../src/commands/forceAnonApexExecute';
-import { workspaceContext } from '../../../src/context';
+import { workspaceContextInstance } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
 const $$ = testSetup();
@@ -55,7 +55,7 @@ describe('Force Apex Execute', () => {
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
       .withArgs('defaultusername')
       .returns(testData.username);
-    sb.stub(workspaceContext, 'getConnection')
+    sb.stub(workspaceContextInstance, 'getConnection')
       .returns(mockConnection);
 
     traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags')

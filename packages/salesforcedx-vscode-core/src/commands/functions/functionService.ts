@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
-import { workspaceContext } from '../../context';
+import { workspaceContextInstance } from '../../context';
 import { nls } from '../../messages';
 import { getRootWorkspace, getRootWorkspacePath } from '../../util';
 
@@ -239,10 +239,10 @@ export class FunctionService {
 
   /**
    * Register listeners for debug session start/stop events and keep track of active debug sessions
-   * @param context extension context
+   * @param extensionContext extension context
    */
   public handleDidStartTerminateDebugSessions(
-    context: vscode.ExtensionContext
+    extensionContext: vscode.ExtensionContext
   ) {
     const handleDidStartDebugSession = vscode.debug.onDidStartDebugSession(
       session => {
@@ -264,14 +264,14 @@ export class FunctionService {
         }
 
         (async () => {
-          const connection = await workspaceContext.getConnection();
+          const connection = await workspaceContextInstance.getConnection();
           await TraceFlagsRemover.getInstance(connection).removeNewTraceFlags();
         })().catch(err => {
           throw err;
         });
       }
     );
-    context.subscriptions.push(
+    extensionContext.subscriptions.push(
       handleDidStartDebugSession,
       handleDidTerminateDebugSession
     );

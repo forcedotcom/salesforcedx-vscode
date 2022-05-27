@@ -39,7 +39,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { workspaceContext } from '../context';
+import { workspaceContextInstance } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
 
@@ -204,7 +204,7 @@ export async function verifyUsernameAndInitSObjectDefinitions(
   projectPath: string
 ) {
   const hasDefaultUsernameSet =
-    (await workspaceContext.getConnection()).getUsername() !== undefined;
+    (await workspaceContextInstance.getConnection()).getUsername() !== undefined;
   if (hasDefaultUsernameSet) {
     initSObjectDefinitions(projectPath).catch(e =>
       telemetryService.sendException(e.name, e.message)

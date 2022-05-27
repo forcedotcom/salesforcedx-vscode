@@ -13,4 +13,4 @@ export {
 } from './workspaceOrgType';
 export { OrgInfo } from './workspaceContext';
 import { WorkspaceContext } from './workspaceContext';
-export const workspaceContext = WorkspaceContext.getInstance();
+export const workspaceContextInstance = WorkspaceContext.getInstance();

@@ -20,7 +20,7 @@ import {
   TestSuiteCreator,
   TestSuiteSelector
 } from '../../../src/commands/forceApexTestSuite';
-import { workspaceContext } from '../../../src/context';
+import { workspaceContextInstance } from '../../../src/context';
 
 const sb = createSandbox();
 
@@ -29,7 +29,7 @@ describe('Test Suite Selector', async () => {
   let retrieveSuitesStub: sinon.SinonStub;
 
   beforeEach(async () => {
-    sb.stub(workspaceContext, 'getConnection');
+    sb.stub(workspaceContextInstance, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns({
       label: 'SuiteOne',
       type: TestType.Suite
@@ -78,7 +78,7 @@ describe('Test Suite Builder', async () => {
   let retrieveSuitesStub: sinon.SinonStub;
 
   beforeEach(async () => {
-    sb.stub(workspaceContext, 'getConnection');
+    sb.stub(workspaceContextInstance, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns([
       {
         label: 'SuiteOne',
@@ -128,7 +128,7 @@ describe('Test Suite Creator', async () => {
   let quickPickStub: sinon.SinonStub;
 
   beforeEach(async () => {
-    sb.stub(workspaceContext, 'getConnection');
+    sb.stub(workspaceContextInstance, 'getConnection');
     quickPickStub = sb.stub(vscode.window, 'showQuickPick').returns([
       {
         label: 'NewClass',

@@ -21,7 +21,7 @@ import * as breakpoints from '../../../src/breakpoints';
 import { CheckpointService } from '../../../src/breakpoints/checkpointService';
 import * as launcher from '../../../src/commands/launchFromLogFile';
 import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
-import { workspaceContext } from '../../../src/context';
+import { workspaceContextInstance } from '../../../src/context';
 import { nls } from '../../../src/messages';
 
 const $$ = testSetup();
@@ -66,7 +66,7 @@ describe('Quick launch apex tests', () => {
       .withArgs('defaultusername')
       .returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
-    sb.stub(workspaceContext, 'getConnection')
+    sb.stub(workspaceContextInstance, 'getConnection')
       .returns(mockConnection);
     testServiceStub = sb
       .stub(TestService.prototype, 'runTestSynchronous')

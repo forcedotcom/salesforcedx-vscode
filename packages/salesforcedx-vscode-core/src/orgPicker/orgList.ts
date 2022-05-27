@@ -13,7 +13,7 @@ import { readFileSync } from 'fs';
 import * as path from 'path';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import { OrgInfo, workspaceContext } from '../context';
+import { OrgInfo, workspaceContextInstance } from '../context';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
@@ -36,10 +36,10 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
-    workspaceContext.onOrgChange((orgInfo: OrgInfo) =>
+    workspaceContextInstance.onOrgChange((orgInfo: OrgInfo) =>
       this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
     );
-    const { username, alias } = workspaceContext;
+    const { username, alias } = workspaceContextInstance;
     this.displayDefaultUsername(alias || username);
   }
 

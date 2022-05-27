@@ -33,7 +33,7 @@ import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { workspaceContext } from '../context';
+import { workspaceContextInstance } from '../context';
 import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
@@ -124,7 +124,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
     const operation = await components.deploy({
-      usernameOrConnection: await workspaceContext.getConnection()
+      usernameOrConnection: await workspaceContextInstance.getConnection()
     });
 
     this.setupCancellation(operation, token);
@@ -206,7 +206,7 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
     components: ComponentSet,
     token: vscode.CancellationToken
   ): Promise<RetrieveResult | undefined> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await workspaceContextInstance.getConnection();
 
     const defaultOutput = join(
       getRootWorkspacePath(),

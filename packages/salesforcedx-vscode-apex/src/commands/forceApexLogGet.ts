@@ -23,7 +23,7 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { workspaceContext } from '../context';
+import { workspaceContextInstance } from '../context';
 import { nls } from '../messages';
 
 const LOG_DIRECTORY = path.join(
@@ -89,7 +89,7 @@ export class LogFileSelector
   }
 
   public async getLogRecords(): Promise<LogRecord[]> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await workspaceContextInstance.getConnection();
     const logService = new LogService(connection);
     return vscode.window.withProgress(
       {
@@ -126,7 +126,7 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
   public async run(
     response: ContinueResponse<{ id: string }>
   ): Promise<boolean> {
-    const connection = await workspaceContext.getConnection();
+    const connection = await workspaceContextInstance.getConnection();
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 

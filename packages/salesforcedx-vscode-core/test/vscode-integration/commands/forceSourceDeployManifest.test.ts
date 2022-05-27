@@ -12,7 +12,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
-import { workspaceContext } from '../../../src/context';
+import { workspaceContextInstance } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
@@ -45,7 +45,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
           username: testData.username
         })
       });
-      env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      env.stub(workspaceContextInstance, 'getConnection').resolves(mockConnection);
 
       env
         .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
