@@ -110,12 +110,12 @@ describe('WorkspaceContext', () => {
     usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
 
-    const context = ({
+    const extensionContext = ({
       subscriptions: []
     } as unknown) as vscode.ExtensionContext;
 
     workspaceContext = WorkspaceContext.getInstance(true);
-    await workspaceContext.initialize(context);
+    await workspaceContext.initialize(extensionContext);
   });
 
   afterEach(() => env.restore());

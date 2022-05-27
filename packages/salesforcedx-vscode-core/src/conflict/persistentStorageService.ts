@@ -25,12 +25,12 @@ export class PersistentStorageService {
   private storage: Memento;
   private static instance?: PersistentStorageService;
 
-  private constructor(context: ExtensionContext) {
-    this.storage = context.globalState;
+  private constructor(extensionContext: ExtensionContext) {
+    this.storage = extensionContext.globalState;
   }
 
-  public static initialize(context: ExtensionContext) {
-    PersistentStorageService.instance = new PersistentStorageService(context);
+  public static initialize(extensionContext: ExtensionContext) {
+    PersistentStorageService.instance = new PersistentStorageService(extensionContext);
   }
 
   public static getInstance(): PersistentStorageService {
