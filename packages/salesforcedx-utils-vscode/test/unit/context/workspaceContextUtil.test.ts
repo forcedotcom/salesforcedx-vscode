@@ -133,7 +133,7 @@ describe('WorkspaceContext', () => {
 
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
-  let workspaceContextUtil: any;
+  let workspaceContextUtilInstance: typeof WorkspaceContextUtil;
   let authUtil: any;
 
   beforeEach(async () => {
@@ -147,9 +147,9 @@ describe('WorkspaceContext', () => {
       subscriptions: []
     };
 
-    workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
+    workspaceContextUtilInstance = WorkspaceContextUtil.getInstance(true);
 
-    authUtil = workspaceContextUtil.getAuthUtil();
+    authUtil = workspaceContextUtilInstance.getAuthUtil();
     getUsernameOrAliasStub = env
       .stub(authUtil, 'getDefaultUsernameOrAlias')
       .returns(testAlias);
@@ -158,14 +158,14 @@ describe('WorkspaceContext', () => {
       .withArgs(testAlias)
       .returns(testUser);
 
-    await workspaceContextUtil.initialize(context);
+    await workspaceContextUtilInstance.initialize(context);
   });
 
   afterEach(() => env.restore());
 
   it('should load the default username and alias upon initialization', () => {
-    expect(workspaceContextUtil.username).to.equal(testUser);
-    expect(workspaceContextUtil.alias).to.equal(testAlias);
+    expect(workspaceContextUtilInstance.username).to.equal(testUser);
+    expect(workspaceContextUtilInstance.alias).to.equal(testAlias);
   });
 
   it('should update default username and alias upon config change', async () => {
@@ -174,8 +174,8 @@ describe('WorkspaceContext', () => {
 
     await mockFileWatcher.fire('change');
 
-    expect(workspaceContextUtil.username).to.equal(testUser2);
-    expect(workspaceContextUtil.alias).to.equal(undefined);
+    expect(workspaceContextUtilInstance.username).to.equal(testUser2);
+    expect(workspaceContextUtilInstance.alias).to.equal(undefined);
   });
 
   it('should update default username and alias to undefined if one is not set', async () => {
@@ -184,13 +184,13 @@ describe('WorkspaceContext', () => {
 
     await mockFileWatcher.fire('change');
 
-    expect(workspaceContextUtil.username).to.equal(undefined);
-    expect(workspaceContextUtil.alias).to.equal(undefined);
+    expect(workspaceContextUtilInstance.username).to.equal(undefined);
+    expect(workspaceContextUtilInstance.alias).to.equal(undefined);
   });
 
   it('should notify subscribers that the default org may have changed', async () => {
     const someLogic = env.stub();
-    workspaceContextUtil.onOrgChange((orgInfo: any) => {
+    workspaceContextUtilInstance.onOrgChange((orgInfo: any) => {
       someLogic(orgInfo);
     });
 
@@ -220,14 +220,14 @@ describe('WorkspaceContext', () => {
     });
 
     it('should return connection for the default org', async () => {
-      const connection = await workspaceContextUtil.getConnection();
+      const connection = await workspaceContextUtilInstance.getConnection();
 
       expect(connection).to.deep.equal(mockConnection);
     });
 
     it('should return a cached connection for the default org if there is one', async () => {
-      await workspaceContextUtil.getConnection();
-      await workspaceContextUtil.getConnection();
+      await workspaceContextUtilInstance.getConnection();
+      await workspaceContextUtilInstance.getConnection();
 
       expect(createConnectionStub.callCount).to.equal(1);
     });

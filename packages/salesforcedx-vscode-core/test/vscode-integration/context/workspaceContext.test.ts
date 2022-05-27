@@ -1,5 +1,4 @@
-import { AuthInfo, Connection } from '@salesforce/core';
-import { OrgInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
@@ -7,7 +6,7 @@ import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import * as wsContext from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const env = createSandbox();
 
@@ -99,16 +98,16 @@ describe('WorkspaceContext', () => {
   let orgTypeStub: SinonStub;
   let usernameStub: SinonStub;
   let aliasStub: SinonStub;
-  let workspaceContextUtil: WorkspaceContextUtil;
+  let workspaceContextUtilInstance: WorkspaceContextUtil;
   let workspaceContext: WorkspaceContext;
 
   beforeEach(async () => {
     orgTypeStub = env.stub(wsContext, 'setupWorkspaceOrgType').resolves();
 
-    workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
-    env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtil);
-    usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
-    aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
+    workspaceContextUtilInstance = TestWorkspaceContextUtil.getInstance();
+    env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtilInstance);
+    usernameStub = env.stub(workspaceContextUtilInstance, 'username').get(() => testUser);
+    aliasStub = env.stub(workspaceContextUtilInstance, 'alias').get(() => testAlias);
 
     const extensionContext = ({
       subscriptions: []
@@ -130,7 +129,7 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(testUser2);
@@ -141,7 +140,7 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(undefined);
@@ -155,9 +154,9 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
+    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('create');
+    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
 
     expect(someLogic.callCount).to.equal(3);
   });
@@ -167,7 +166,7 @@ describe('WorkspaceContext', () => {
     const mockConnection = { authInfo: mockAuthInfo };
 
     beforeEach(() => {
-      env.stub(workspaceContextUtil, 'getConnection').returns(mockConnection);
+      env.stub(workspaceContextUtilInstance, 'getConnection').returns(mockConnection);
     });
 
     it('should return connection for the default org', async () => {
