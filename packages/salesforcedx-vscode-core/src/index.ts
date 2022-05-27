@@ -706,6 +706,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     sfdxCoreSettings,
     SfdxWorkspaceChecker,
     workspaceContext: workspaceContextInstance,
+    workspaceContextInstance,
     taskViewService,
     telemetryService
   };

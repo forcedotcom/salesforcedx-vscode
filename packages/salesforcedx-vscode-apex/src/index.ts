@@ -138,9 +138,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   return exportedApi;
 }
 
-function registerCommands(
-  // extensionContext: vscode.ExtensionContext
-): vscode.Disposable {
+function registerCommands(): vscode.Disposable {
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
