@@ -13,9 +13,13 @@ import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import { workspaceContext, channelService } from './sfdx';
 import { startTelemetry, stopTelemetry } from './telemetry';
 
-export async function activate(extensionContext: vscode.ExtensionContext): Promise<any> {
+export async function activate(
+  extensionContext: vscode.ExtensionContext
+): Promise<any> {
   const extensionHRStart = process.hrtime();
-  extensionContext.subscriptions.push(SOQLEditorProvider.register(extensionContext));
+  extensionContext.subscriptions.push(
+    SOQLEditorProvider.register(extensionContext)
+  );
   QueryDataViewService.register(extensionContext);
   await workspaceContext.initialize(extensionContext);
 
