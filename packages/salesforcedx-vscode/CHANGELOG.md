@@ -1,3 +1,19 @@
+# 54.15.0 - June 1, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- "SFDX: Rename Component" now guard user's input of new component name based on LWC/Aura naming rules ([PR #4145](https://github.com/forcedotcom/salesforcedx-vscode/pull/4145))
+
+#### salesforcedx-vscode-lightning
+
+- Ctrl+space now re-trigger autocomplete within {} in HTML file ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
+
+#### salesforcedx-vscode-lwc
+
+- Ctrl+space now re-trigger autocomplete within {} in HTML file ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
+
 # 54.12.0 - May 14, 2022
 
 ## Fixed
