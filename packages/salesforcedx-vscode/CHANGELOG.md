@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- The **SFDX: Rename Component** command now prevents you from renaming an LWC or Aura component if the new name breaks any naming rules. New LWC component names are automatically revised to start with a lower-case letter if they don't already.([PR #4145](https://github.com/forcedotcom/salesforcedx-vscode/pull/4145))
+- The **SFDX: Rename Component** command now prevents you from renaming an LWC or Aura component if the new name breaks any naming rules. New LWC component names are automatically revised to start with a lower-case letter if they don't already. ([PR #4145](https://github.com/forcedotcom/salesforcedx-vscode/pull/4145))
 
 
 
