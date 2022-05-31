@@ -119,8 +119,8 @@ First let’s add a custom field  –
 Now let’s retrieve metadata for this new field –
 
 1. Return to Code Builder and open Org Browser.
-2. Scroll down to **Custom Objects** and navigate to **Account**
-3. Click the retrieve icon next to the Account component to run **SFDX: Retrieve Source from Org**
+2. Scroll down to **Custom Objects** and navigate to **Account**.
+3. Click the retrieve icon next to the Account component to run **SFDX: Retrieve Source from Org**.
 4. From the Activity Bar, click the Explorer and navigate to `force-app/main/default/object/Account`
 Lo and behold, in the `fields` folder, a file named `createdon_c.field-meta.xml` contains metadata for your new custom field! 
 
@@ -140,7 +140,7 @@ The metadata is here for your reference:
 We’ll now make a simple edit to this field and deploy our changes back to our org with a single click.
 
 1. Edit `createdon_c.field-meta.xml` and change the `<required>` tag value to `true` to indicate that this custom field is required. 
-2. Right click the `objects/Account` folder and click **SFDX: Deploy Source to Org** 
+2. Right click the `objects/Account` folder and click **SFDX: Deploy Source to Org**. 
 3. After the command has successfully run, go back to your org and check details of the **Created On** custom field and confirm that it’s now a required field. 
 
 ## Create and Deploy a New Lightning Web Component
