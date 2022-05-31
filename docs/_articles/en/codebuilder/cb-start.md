@@ -36,7 +36,7 @@ Next, connect an org to your Code Builder environment. You can choose to connect
 2. Choose an alias (nickname) for your org. If you work on many orgs, make sure the nickname helps you identify the org quickly in the future. 
 Your new Code Builder environment is now available on your dashboard.
 3. Click **Launch** to launch Code Builder in a new tab. 
-4. Now sit back and relax for a few minutes while Code Builder creates and configures your workspace. Code Builder might take a minute (well, currently  x-y minutes) to start up when it initially sets up.
+4. Now sit back and relax for a few minutes while Code Builder creates and configures your workspace. Code Builder might take a fews minutes to start up when it initially sets up.
 
 **Tip**: Once you have created your Code Builder environment, launch your Code Builder environment from the dashboard at any time, or bookmark it for fast access.
 
