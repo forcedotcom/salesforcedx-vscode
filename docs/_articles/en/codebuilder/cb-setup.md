@@ -5,7 +5,7 @@ lang: en
 
 ## Install the Code Builder Managed Package
 
-Salesforce Code Builder is a second-generation (2GP) managed package that you can install in any supported Salesforce org edition. Before you install, make sure you have enabled **Unlocked Packages and Second-Generation Managed Packages** in your Dev Hub.
+Salesforce Code Builder is a second-generation (2GP) managed package that you can install in any supported Salesforce org edition.
 
 1. Click the install [link](https://appexchange.salesforce.com/appxListingDetail?listingId=a0N4V00000HddeKUAR)
 2. Click **Get It Now**.
