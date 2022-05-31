@@ -11,7 +11,7 @@
 #### salesforcedx-vscode-lightning
 #### salesforcedx-vscode-lwc
 
-- You can now use **Ctrl+Space** to re-trigger autocomplete within code braces ({}) in an HTML file. Earlier, moving away from, or deleting content within code braces resulted in loss of autocompletion. ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
+- You can now use **Ctrl+Space** to retrigger autocomplete within code braces ({}) in an HTML file. Previously, if you moved away from or deleted content within code braces, you lost autocompletion. ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
 
 
 # 54.12.0 - May 14, 2022
