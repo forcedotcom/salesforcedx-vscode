@@ -4,15 +4,15 @@
 
 #### salesforcedx-vscode-core
 
-- "SFDX: Rename Component" now guard user's input of new component name based on LWC/Aura naming rules ([PR #4145](https://github.com/forcedotcom/salesforcedx-vscode/pull/4145))
+- The **SFDX: Rename Component** command now prevents you from renaming an LWC or Aura component if the new name breaks any naming rules. New LWC component names are automatically revised to start with a lower-case letter if they don't already. ([PR #4145](https://github.com/forcedotcom/salesforcedx-vscode/pull/4145))
+
+
 
 #### salesforcedx-vscode-lightning
-
-- Ctrl+space now re-trigger autocomplete within {} in HTML file ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
-
 #### salesforcedx-vscode-lwc
 
-- Ctrl+space now re-trigger autocomplete within {} in HTML file ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
+- You can now use **Ctrl+Space** to retrigger autocomplete within code braces ({}) in an HTML file. Previously, if you moved away from or deleted content within code braces, you lost autocompletion. ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
+
 
 # 54.12.0 - May 14, 2022
 
