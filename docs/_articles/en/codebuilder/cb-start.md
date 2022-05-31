@@ -211,7 +211,7 @@ Created  newCBComponent  LightningComponentBundle  force-app/main/default/lwc/ne
 
 ```
 2. Select **SFDX: Open Default Org** to log into your org.
-3. Navigate to **Setup:Lightning Components** to confirm that a new lightning component named `newCBComponent` is now available in your org. 
+3. Navigate to **Setup:Lightning Components** to confirm that a new Lightning Web Component named `newCBComponent` is now available in your org. 
 
 
 Congratulations on successfully creating and deploying a new Lightning Web Component.
