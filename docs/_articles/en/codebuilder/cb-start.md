@@ -93,11 +93,8 @@ To log into another org:
 1. From the Command Palette run **SFDX: Authorize an Org**.
 2. Select either sandbox or a developer org.
 3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
-
-The Ouput panel displays an eight digit user code and a verification URL.
-4. Copy the code and click to open the URL.
-5. Paste the code in the textbox and click **Connect**.
-6. Click **Allow** and log in with the relevant username and password.
+4. A code is displayed in a text box. click **Connect**.
+6. Log in with the relevant username and password. Click **Allow** 
 7. Click **Continue**. You’re now connected to a different org, and its name is visible in the status bar at the bottom.
 8. Once you authorize an org, we create a connected app that takes care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.	
 
