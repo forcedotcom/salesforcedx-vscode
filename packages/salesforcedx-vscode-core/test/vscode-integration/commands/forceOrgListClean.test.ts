@@ -6,13 +6,13 @@
  */
 
 import { expect } from 'chai';
-import { ForceOrgListExecutor } from '../../../src/commands/forceOrgList';
+import { ForceOrgListCleanExecutor } from '../../../src/commands/forceOrgListClean';
 import { nls } from '../../../src/messages';
 
-describe('Force Org List', () => {
+describe('Force Org List Clean', () => {
   it('Should build the list command with --clean option', async () => {
-    const forceOrgList = new ForceOrgListExecutor();
-    const listCommand = forceOrgList.build({});
+    const forceOrgListCleanExecutor = new ForceOrgListCleanExecutor();
+    const listCommand = forceOrgListCleanExecutor.build({});
     expect(listCommand.toCommand()).to.equal(
       'sfdx force:org:list --clean --noprompt'
     );

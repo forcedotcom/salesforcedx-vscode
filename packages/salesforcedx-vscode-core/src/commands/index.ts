@@ -151,6 +151,7 @@ export {
 } from './forceSourceDiff';
 export { forceCreateManifest } from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
+export { forceOrgListClean } from './forceOrgListClean';
 export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';

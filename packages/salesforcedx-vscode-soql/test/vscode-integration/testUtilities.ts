@@ -369,7 +369,7 @@ export class MockTextDocumentProvider
 
 export class TestSoqlEditorInstance extends SOQLEditorInstance {
   public mockReceiveEvent(event: SoqlEditorEvent) {
-    this.onDidRecieveMessageHandler(event);
+    this.onDidReceiveMessageHandler(event);
   }
 
   public updateWebview(document: vscode.TextDocument) {
@@ -394,7 +394,7 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
 
 export class TestQueryDataViewService extends QueryDataViewService {
   public mockReceiveEvent(event: DataViewEvent) {
-    this.onDidRecieveMessageHandler(event);
+    this.onDidReceiveMessageHandler(event);
   }
 
   public createOrShowWebView() {

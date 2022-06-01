@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -7,39 +7,141 @@
 
 import {
   Command,
-  SfdxCommandBuilder
+  SfdxCommandBuilder,
+
+  CliCommandExecutor,
+  CommandOutput,
+
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+
+
+
 import { nls } from '../messages';
 import {
+  EmptyParametersGatherer,
   PromptConfirmGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
 
+// import { workspaceContextInstance } from '../context'
+import { OrgListPanel } from '../panels/orgListPanel';
+
+// import { extensionUri, getExtensionUri } from '../index'
+import { extensionUri } from '../index'
+
+
 export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
   public build(data: { choice?: string }): Command {
     return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_org_list_clean_text'))
+      // .withDescription(nls.localize('force_org_list_clean_text'))
       .withArg('force:org:list')
-      .withArg('--clean')
-      .withArg('--noprompt')
-      .withLogName('force_org_list_clean')
+      // .withArg('--clean')
+      // .withArg('--noprompt')
+      // .withLogName('force_org_list_clean')
+      .withArg('--json')
       .build();
   }
 }
 
-const workspaceChecker = new SfdxWorkspaceChecker();
+export async function forceOrgList(arg1: any, arg2: any, arg3: any) {
+  if (extensionUri) {
+    OrgListPanel.render(extensionUri);
+  }
 
-export async function forceOrgList() {
-  const parameterGatherer = new PromptConfirmGatherer(
-    nls.localize('parameter_gatherer_placeholder_org_list_clean')
-  );
+
+
+  /*
+  // const parameterGatherer = new PromptConfirmGatherer(
+  //   // nls.localize('parameter_gatherer_placeholder_org_list_clean')
+  //   nls.localize('parameter_gatherer_placeholder_org_list')
+  // );
+
+
+  // checker: PreconditionChecker,
+  // gatherer: ParametersGatherer<T>,
+  // executor: CommandletExecutor<T>,
+  // postchecker = new EmptyPostChecker()
+
+
+  const checker = new SfdxWorkspaceChecker();
+  const gatherer = new EmptyParametersGatherer(),
   const executor = new ForceOrgListExecutor();
+
   const commandlet = new SfdxCommandlet(
-    workspaceChecker,
-    parameterGatherer,
+    checker,
+    gatherer,
     executor
   );
   await commandlet.run();
+  */
+
+
+  // debugger;
+
+  const sfdxCommandBuilder = new SfdxCommandBuilder()
+    // .withArg('force:data:record:create')
+    // .withFlag('--sobjecttype', 'ApexDebuggerBreakpoint')
+    // .withFlag(
+    //   '--values',
+    //   `SessionId='${sessionId}' FileName='${typeref}' Line=${line} IsEnabled='true' Type='Line'`
+    // )
+    // .withArg('--usetoolingapi')
+    // .withJson()
+    // .build(),
+    // {
+    //   cwd: projectPath,
+    //   env: this.requestService.getEnvVars()
+    // };
+    .withArg('force:org:list')
+    .withArg('--json')
+    .build();
+
+  const cliCommandExecutor = new CliCommandExecutor(
+    sfdxCommandBuilder,
+    {
+      cwd: process.cwd(),
+    }
+  );
+
+  const cliCommandExecution = cliCommandExecutor.execute();
+
+  const commandOutput = new CommandOutput();
+  const jsonCommandResult = await commandOutput.getCmdResult(cliCommandExecution);
+  try {
+
+    // debugger;
+
+    const commandResult = JSON.parse(jsonCommandResult);
+    if (commandResult.status === 0) {
+
+      /*
+        TODO: also need to get the data from sfdx force:org:list --all
+        Either:
+          a) embed a second call here
+          b) call CliCommandExecutor with two commands?
+          c) don't use CLI and get the lists from a library
+      */
+
+      OrgListPanel.setData(commandResult.result);
+    } else {
+      // TODO: report error
+    }
+
+    // const breakpointId = JSON.parse(result).result.id as string;
+    // if (this.isApexDebuggerBreakpointId(breakpointId)) {
+    //   return Promise.resolve(breakpointId);
+    // } else {
+    //   return Promise.reject(result);
+    // }
+  } catch (e) {
+
+    // debugger;
+
+    // TODO: report error
+    return Promise.reject(jsonCommandResult);
+  }
+
+  // debugger;
 }

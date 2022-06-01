@@ -33,6 +33,7 @@
     "@salesforce/source-deploy-retrieve": "5.12.2",
     "@salesforce/templates": "^54.8.0",
     "@salesforce/ts-types": "1.5.13",
+    "@vscode/webview-ui-toolkit": "^1.0.0",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
@@ -949,6 +950,10 @@
       {
         "command": "sfdx.lightning.rename",
         "title": "%force_lightning_rename_component_text%"
+      },
+      {
+        "command": "sfdx.force.org.list",
+        "title": "SFDX: View Org List"
       }
     ],
     "configuration": {

@@ -101,9 +101,9 @@ export class SOQLEditorInstance {
       this.subscriptions
     );
 
-    // Update the text document when message recieved
+    // Update the text document when message received
     webviewPanel.webview.onDidReceiveMessage(
-      this.onDidRecieveMessageHandler,
+      this.onDidReceiveMessageHandler,
       this,
       this.subscriptions
     );
@@ -161,7 +161,7 @@ export class SOQLEditorInstance {
     }
   }
 
-  protected onDidRecieveMessageHandler(event: SoqlEditorEvent): void {
+  protected onDidReceiveMessageHandler(event: SoqlEditorEvent): void {
     switch (event.type) {
       case MessageType.UI_ACTIVATED: {
         this.updateWebview(this.document);

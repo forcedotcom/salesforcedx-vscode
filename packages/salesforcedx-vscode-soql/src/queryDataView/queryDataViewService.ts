@@ -118,7 +118,7 @@ export class QueryDataViewService {
     );
 
     this.currentPanel.webview.onDidReceiveMessage(
-      this.onDidRecieveMessageHandler,
+      this.onDidReceiveMessageHandler,
       this,
       this.subscriptions
     );
@@ -126,7 +126,7 @@ export class QueryDataViewService {
     return this.currentPanel.webview;
   }
 
-  protected onDidRecieveMessageHandler(message: DataViewEvent): void {
+  protected onDidReceiveMessageHandler(message: DataViewEvent): void {
     const { type, format } = message;
     switch (type) {
       case 'activate':

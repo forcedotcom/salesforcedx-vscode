@@ -43,11 +43,12 @@ import {
   forceOrgDelete,
   forceOrgDisplay,
   forceOrgList,
+  forceOrgListClean,
   forceOrgOpen,
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
-  forceRenameLightningComponent,
+  // forceRenameLightningComponent,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
@@ -331,9 +332,13 @@ function registerCommands(
     forceOrgDisplay,
     { flag: '--targetusername' }
   );
+  const forceOrgListCmd = vscode.commands.registerCommand(
+    'sfdx.force.org.list',
+    forceOrgList
+  );
   const forceOrgListCleanCmd = vscode.commands.registerCommand(
     'sfdx.force.org.list.clean',
-    forceOrgList
+    forceOrgListClean
   );
   const forceDataSoqlQueryInputCmd = vscode.commands.registerCommand(
     'sfdx.force.data.soql.query.input',
@@ -427,10 +432,10 @@ function registerCommands(
     forceRefreshSObjects
   );
 
-  const forceRenameComponentCmd = vscode.commands.registerCommand(
-    'sfdx.lightning.rename',
-    forceRenameLightningComponent
-  );
+  // const forceRenameComponentCmd = vscode.commands.registerCommand(
+  //   'sfdx.lightning.rename',
+  //   forceRenameLightningComponent
+  // );
 
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
@@ -451,6 +456,7 @@ function registerCommands(
     forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
     forceOrgDeleteUsernameCmd,
+    forceOrgListCmd,
     forceOrgListCleanCmd,
     forceRefreshSObjectsCmd,
     forceSourceDeleteCmd,
@@ -585,8 +591,13 @@ async function setupOrgBrowser(
   );
 }
 
+export let extensionUri: vscode.Uri | undefined = undefined;
+
 export async function activate(context: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
+
+  extensionUri = context.extensionUri;
+
   const { name, aiKey, version } = require(context.asAbsolutePath(
     './package.json'
   ));
