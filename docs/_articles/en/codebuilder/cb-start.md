@@ -47,13 +47,17 @@ You’re now in your developer environment in Code Builder. Code Builder has VS 
 The Code Builder user interface is divided into five main areas.
 
 **Activity Bar**: Located on the left-hand side, it contains iconic buttons to switch between different views. In our example, the Explorer view is active.
+
 **Side Bar**: Contains different views to assist you while working on your project. For example, you can see the Explorer view in our example. It lists the files in DX project structure in your project.
+
 **Editors**: The main areas to edit your files. You can open as many editors as you like side by side, vertically and horizontally.
+
 **Panel**: Shows output or debug information, errors and warnings, or an integrated terminal. You can choose the output to display.
+
 **Status Bar**: Shows information about the opened project and the files you’re editing. The Status Bar displays the org that you're connected to. 
 
 ## Get To Know Your Org – Use the Org Browser
-Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. The Org Browser is available only in non source-tracked orgs such as sandboxes or Developer Edition orgs. You can retrieve the metadata source into your local project. 
+Take a closer look at the activity bar and notice a cloud icon. This icon represents the Org Browser. It’s a part of the Salesforce Extension pack. It helps you browse and retrieve metadata from your org without having to use a manifest file. The Org Browser is available only in non source-tracked orgs such as sandboxes or Developer Edition orgs. User Org Browser to retrieve the metadata source into your local project. 
 
 **More Information**: You can find more information about the [Org Browser](https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) in the Salesforce Extension Pack documentation.
 
@@ -65,7 +69,6 @@ Click Org Browser and scroll down to **Custom Objects**. The first object you se
 ## Use SOQL Builder to Build and Run your First Query
 
 Code Builder comes preloaded with everything you need to build and run a SOQL query. 
-
 Let’s build and run a simple SOQL query on the Account object:
 
 1. Press Ctrl+Shift+P (⇧⌘P)  to view the Command Palette.
@@ -83,7 +86,7 @@ You’re prompted to save your changes if you close the untitled file.
 6. Let’s rerun the saved query – Right click the file and select **Open With…** then select SOQL Builder.
 The file opens in SOQL Builder and you can rerun or edit the query as you wish.
 
-**More Information**: For more information about building complex queries and much more see the  [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder) in the Salesforce Extensions for Visual Studio Code documentation.
+**More Information**: For more information on building complex queries see the [SOQL Builder](https://developer.salesforce.com/tools/vscode/en/soql/soql-builder) in the Salesforce Extensions for Visual Studio Code documentation.
 
 ## Connect to a Different Org
 During the course of development, you'll use different types of orgs for different stages. For example, it's common to use a Developer sandbox or Development Edition org during the development phase, and move to other sandbox types for integration, testing, and staging. Eventually, you'll deploy your changes to a production org. You can connect Code Builder to any of these orgs to deploy or retrieve metadata.
@@ -94,7 +97,7 @@ To log into another org:
 2. Select either sandbox or a developer org.
 3. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
 4. A code is displayed in a text box. click **Connect**.
-6. Log in with the relevant username and password. Click **Allow** 
+6. Log in with the relevant username and password. Click **Allow**. 
 7. Click **Continue**. You’re now connected to a different org, and its name is visible in the status bar at the bottom.
 8. Once you authorize an org, we create a connected app that takes care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.	
 
