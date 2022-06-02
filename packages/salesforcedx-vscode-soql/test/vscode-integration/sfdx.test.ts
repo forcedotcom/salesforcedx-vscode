@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as sfdx from '../../src/sfdx';
-import { telemetryService } from '../../src/telemetry';
 
 describe('sfdx utils', () => {
   let sandbox: sinon.SinonSandbox;
@@ -17,7 +16,6 @@ describe('sfdx utils', () => {
 
   it('should display an error, channel log, and send telemetry if can not get connection to org', async () => {
     sandbox.stub(sfdx.workspaceContext, 'getConnection').throws();
-    const telemetryStub = sandbox.stub(telemetryService, 'sendException');
     const vscodeErrorMessageSpy = sandbox.spy(
       vscode.window,
       'showErrorMessage'
@@ -27,6 +25,5 @@ describe('sfdx utils', () => {
     sfdx.debouncedShowChannelAndErrorMessage.flush();
     expect(vscodeErrorMessageSpy.callCount).to.equal(1);
     expect(channelServiceSpy.callCount).to.equal(1);
-    expect(telemetryStub.callCount).to.equal(1);
   });
 });

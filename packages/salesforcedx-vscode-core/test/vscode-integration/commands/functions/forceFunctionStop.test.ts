@@ -7,10 +7,9 @@
 import * as library from '@heroku/functions-core';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import Sinon = require('sinon');
 import { Uri } from 'vscode';
 import { channelService } from '../../../../src/channels';
-import { forceFunctionStart } from '../../../../src/commands/functions/forceFunctionStart';
+import { forceFunctionContainerStartCommand } from '../../../../src/commands/functions/forceFunctionContainerStartCommand';
 import { forceFunctionStop } from '../../../../src/commands/functions/forceFunctionStop';
 import { FunctionService } from '../../../../src/commands/functions/functionService';
 import { nls } from '../../../../src/messages';
@@ -18,7 +17,7 @@ import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
 
-describe('Force Function Stop', () => {
+describe('Force Function Stop Integration Tests', () => {
   let sandbox: SinonSandbox;
   const functionsBinaryStub: {
     [key: string]: SinonStub;
@@ -77,7 +76,7 @@ describe('Force Function Stop', () => {
       path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
     );
 
-    await forceFunctionStart(srcUri);
+    await forceFunctionContainerStartCommand(srcUri);
 
     const mockStartTime = [1234, 5678];
     hrtimeStub.returns(mockStartTime);
@@ -118,7 +117,7 @@ describe('Force Function Stop', () => {
       path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
     );
 
-    await forceFunctionStart(srcUri);
+    await forceFunctionContainerStartCommand(srcUri);
 
     const mockStartTime = [1234, 5678];
     hrtimeStub.returns(mockStartTime);

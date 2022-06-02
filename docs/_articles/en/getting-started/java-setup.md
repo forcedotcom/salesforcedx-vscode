@@ -3,27 +3,26 @@ title: Java Setup
 lang: en
 ---
 
-The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code depends upon the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of either JDK version 11 (Recommended) or JDK version 8. By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension cannot find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
+The Apex Language Server, shipped as part of the Salesforce Apex Extension for VS Code, depends on the Java Platform, Standard Edition Development Kit (JDK). It requires an installation of either JDK version 17 (Recommended), JDK version 11, or JDK version 8. By default, the extension attempts to locate your local Java installation by looking for a `JAVA_HOME` or `JDK_HOME` environment variable on your computer. If the extension can't find your Java installation, or if you want it to use a different installation, change the `salesforcedx-vscode-apex.java.home` setting.
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-1. Search for `apex`.
-1. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself.
+2. Search for `apex`.
+3. Change the `salesforcedx-vscode-apex.java.home` setting to the full pathname of your Java Runtime. Do **not** set it to the Java executable itself. Note that this pathname can't point to a location inside your project folder.
 
-![Apex Java Setting](./images/apex-java-home-setting.png)
+![Apex Java Setting](../../../images/apex-java-home-setting.png)
 
-Below you will find instructions on how to download and configure different versions of Java.
+Below you'll find instructions on how to download and configure different versions of Java.
 
-## AdoptOpenJDK
+## Adoptium
 
-[AdoptOpenJDK](https://adoptopenjdk.net/) provides prebuilt OpenJDK binaries for free without authentication or complications.
+[Adoptium](https://adoptium.net) provides prebuilt OpenJDK binaries for free without authentication or complications.
 
-1. Navigate to [AdoptOpenJDK](https://adoptopenjdk.net/?variant=openjdk11&jvmVariant=hotspot)
-1. Select **OpenJDK 11 (LTS)**
-1. Select **HotSpot**
-1. Click the **Latest Release** button to download.
-1. Once the file is downloaded open it and complete the installation steps.
+1. Navigate to [Adoptium](https://adoptium.net/?variant=openjdk17)
+2. Select **Temurin 17 (LTS)**
+3. Click the **Latest Release** button to download.
+4. After the file has downloaded, open it and complete the installation steps.
 
-Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
+Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values or to wherever your have installed JDK 17. For example:
 
 MacOS:
 
@@ -31,7 +30,7 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home"
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home"
 }
 ```
 
@@ -39,7 +38,7 @@ Windows:
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\AdoptOpenJDK\\jdk-11.0.3.7-hotspot"
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.2.8-hotspot"
 }
 ```
 
@@ -47,7 +46,7 @@ Linux (Pop! OS 20.04, installation via aptitude):
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-11-openjdk-amd64"
+  "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-17-openjdk-amd64"
 }
 ```
 
@@ -56,45 +55,15 @@ Linux (Pop! OS 20.04, installation via aptitude):
 Zulu Java builds are TCK-tested and free to download and use without restrictions.
 
 1. Navigate to the [Zulu download page](https://www.azul.com/downloads/zulu/)
-1. Select version **11**
-1. Select your OS
-1. Download the installer
-1. For macOS download the zip or dmg version.
-1. For Windows Download the "11", "JDK", "Client" version.
-1. Once the file is downloaded open it and complete the installation steps.
+2. Click the **Choose Your Download** button.
+3. Select Java Version **Java 17 (LTS)**.
+4. Select your OS.
+5. Select your Architecture.
+6. Select your Java Package (JDK).
+7. Download the installer.
+8.  Once the file is downloaded open it and complete the installation steps.
 
-Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
-
-MacOS:
-
-For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
-
-```json
-{
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-11.jdk/Contents/Home"
-}
-```
-
-Windows:
-
-```json
-{
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Zulu\\zulu-11"
-}
-```
-
-## Oracle Java 11 (Officially Test)
-
-1. Navigate to the [download page](https://www.oracle.com/technetwork/java/javase/downloads/jdk11-downloads-5066655.html)
-1. Click the **Download** button for **Java SE 11.x.y (LTS)**
-1. Accept the license agreement
-1. Click the download link that applies to your OS
-1. For macOS download the dmg version.
-1. For Windows Download exe version.
-1. If prompted to login, you will need to login with your Oracle account.
-1. Once the file is downloaded open it and complete the installation steps.
-
-Inside Visual Studio Code, you will need to set the `salesforcedx-vscode-apex.java.home` to one of the following values.
+Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
 
 MacOS:
 
@@ -102,7 +71,7 @@ For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk-11.0.3.jdk/Contents/Home"
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
 }
 ```
 
@@ -110,7 +79,35 @@ Windows:
 
 ```json
 {
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk11.0.3"
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Zulu\\zulu-17"
+}
+```
+
+## Oracle Java 17 (Officially Tested)
+
+1. Navigate to the [download page](https://www.oracle.com/java/technologies/downloads/)
+2. Navigate to **Java SE Development Kit 17.0.2 downloads**.
+3. Click the download link that applies to your OS
+4. If prompted to log in, use your Oracle account.
+5. Once the file is downloaded open it and complete the installation steps.
+
+Inside Visual Studio Code, set `salesforcedx-vscode-apex.java.home` to one of the following values.
+
+MacOS:
+
+For Mac OS X 10.5 or later, run `/usr/libexec/java_home` in your Terminal to get the default JDK location. To find all installed JDKs, use `/usr/libexec/java_home -V`.
+
+```json
+{
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/jdk-17.0.2.jdk/Contents/Home"
+}
+```
+
+Windows:
+
+```json
+{
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk17.0.2"
 }
 ```
 

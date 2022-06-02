@@ -18,7 +18,7 @@ import { forceApexClassCreate } from '../../../../src/commands/templates/forceAp
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
@@ -30,6 +30,7 @@ describe('Force Apex Class Create', () => {
   let openTextDocumentStub: SinonStub;
   let sendCommandEventStub: SinonStub;
   let sendExceptionStub: SinonStub;
+  let getConfigValue: SinonStub;
 
   beforeEach(() => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
@@ -44,6 +45,8 @@ describe('Force Apex Class Create', () => {
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
     sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
     sendExceptionStub = stub(telemetryService, 'sendException');
+    getConfigValue = stub(ConfigUtil, 'getConfigValue');
+    getConfigValue.returns(undefined);
   });
 
   afterEach(() => {
@@ -55,6 +58,7 @@ describe('Force Apex Class Create', () => {
     openTextDocumentStub.restore();
     sendCommandEventStub.restore();
     sendExceptionStub.restore();
+    getConfigValue.restore();
   });
 
   it('Should create Apex Class', async () => {
@@ -104,7 +108,8 @@ describe('Force Apex Class Create', () => {
       sinon.match.array,
       {
         dirType: 'defaultDir',
-        commandExecutor: 'library'
+        commandExecutor: 'library',
+        isUsingCustomOrgMetadataTemplates: 'false'
       }
     );
 

@@ -29,6 +29,11 @@ export {
   Properties,
   Measurements
 } from './telemetry/telemetry';
+export {
+  getRelativeProjectPath,
+  fileExtensionsMatch
+} from './helpers';
+export { TraceFlags } from './helpers/traceFlags';
 export { TelemetryReporter } from './telemetry/telemetryReporter';
 export {
   hasRootWorkspace,
@@ -36,4 +41,3 @@ export {
   getRootWorkspacePath,
   getRootWorkspaceSfdxPath
 } from './workspaces';
-export { getRelativeProjectPath } from './helpers';

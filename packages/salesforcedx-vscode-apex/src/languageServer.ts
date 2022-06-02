@@ -31,7 +31,7 @@ async function createServer(
   context: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
-    deleteDbIfExists();
+    setupDB();
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
     const javaExecutable = path.resolve(
@@ -60,6 +60,11 @@ async function createServer(
     if (jvmMaxHeap) {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
+    telemetryService.sendEventData(
+      'apexLSPSettings',
+      undefined,
+      { maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0 }
+    );
 
     if (DEBUG) {
       args.push(
@@ -88,7 +93,7 @@ async function createServer(
   }
 }
 
-function deleteDbIfExists(): void {
+export function setupDB(): void {
   if (
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
@@ -101,6 +106,15 @@ function deleteDbIfExists(): void {
     );
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
+    }
+
+    try {
+      const systemDb = path.join(__dirname, '..', '..', 'resources', 'apex.db');
+      if (fs.existsSync(systemDb)) {
+        fs.copyFileSync(systemDb, dbPath);
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
 }
@@ -158,12 +172,16 @@ export function buildClientOptions(): LanguageClientOptions {
 
   return {
     // Register the server for Apex documents
-    documentSelector: [{ language: 'apex', scheme: 'file' }],
+    documentSelector: [
+      { language: 'apex', scheme: 'file' },
+      { language: 'apex-anon', scheme: 'file' }
+    ],
     synchronize: {
       configurationSection: 'apex',
       fileEvents: [
         vscode.workspace.createFileSystemWatcher('**/*.cls'), // Apex classes
         vscode.workspace.createFileSystemWatcher('**/*.trigger'), // Apex triggers
+        vscode.workspace.createFileSystemWatcher('**/*.apex'), // Apex anonymous scripts
         vscode.workspace.createFileSystemWatcher('**/sfdx-project.json') // SFDX workspace configuration file
       ]
     },

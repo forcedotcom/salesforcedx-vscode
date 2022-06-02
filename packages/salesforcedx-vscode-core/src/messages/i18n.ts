@@ -46,7 +46,11 @@ export const messages = {
     'SFDX: Authorize an Org using Session ID',
   force_auth_access_token_login_bad_oauth_token_message:
     'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
-
+  force_auth_web_login_device_code_parse_error:
+    'There was an unexpected error authorizing to your org in a container environment.',
+  force_auth_device_login_enter_code:
+    'Enter %s user code in the verification URL %s',
+  action_required: '=== Action Required!',
   parameter_directory_strict_not_available:
     'A required metadata folder named "%s" does not exist in this workspace.',
 
@@ -103,11 +107,24 @@ export const messages = {
     'SFDX: Pull Source from Default Scratch Org',
   force_source_pull_force_default_scratch_org_text:
     'SFDX: Pull Source from Default Scratch Org and Override Conflicts',
+  force_source_legacy_pull_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org (Legacy)',
+  force_source_legacy_pull_force_default_scratch_org_text:
+    'SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)',
 
   force_source_push_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org',
   force_source_push_force_default_scratch_org_text:
     'SFDX: Push Source to Default Scratch Org and Override Conflicts',
+  force_source_legacy_push_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org (Legacy)',
+  force_source_legacy_push_force_default_scratch_org_text:
+    'SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)',
+
+  force_source_status_text:
+    'View All Changes (Local and in Default Scratch Org)',
+  force_source_legacy_status_text:
+    'View All Changes (Local and in Default Scratch Org) (Legacy)',
 
   force_source_deploy_text: 'SFDX: Deploy Source to Org',
   force_source_deploy_select_file_or_directory:
@@ -130,10 +147,6 @@ export const messages = {
     'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
   confirm_delete_source_button_text: 'Delete Source',
   cancel_delete_source_button_text: 'Cancel',
-
-  force_source_status_text:
-    'View All Changes (Local and in Default Scratch Org)',
-
   force_analytics_template_create_text:
     'SFDX: Create Sample Analytics Template',
   force_analytics_template_name_text: 'template name',
@@ -145,7 +158,9 @@ export const messages = {
   force_lightning_event_create_text: 'SFDX: Create Aura Event',
   force_lightning_interface_create_text: 'SFDX: Create Aura Interface',
   force_function_create_text: 'SFDX: Create Function',
-  force_function_start_text: 'SFDX: Start Function',
+  force_function_container_start_text: 'SFDX: Start Container Function',
+  force_function_containerless_start_text: 'SFDX: Start Local Function',
+  force_create_manifest: 'SFDX: Generate Manifest File',
   force_function_start_no_org_auth:
     'No default org is set. We recommend that you select an active scratch org (SFDX: Set a Default Org) or create a new scratch org (SFDX: Authorize a Dev Hub, then SFDX: Create a Default Scratch Org).',
   force_function_start_warning_no_toml:
@@ -153,7 +168,7 @@ export const messages = {
   force_function_start_warning_not_in_function_folder:
     'Open a function file to run SFDX: Start Function',
   force_function_start_warning_plugin_not_installed:
-    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://dev.beta.developer.salesforce.com/docs/platform/functions/guide/vs-intro.html#prerequisites).',
+    'To run this command, install the Salesforce Functions plugin. For more info, see [Getting Started with Salesforce Functions](https://developer.salesforce.com/docs/platform/functions/guide/set-up.html).',
   force_function_start_warning_docker_not_installed_or_not_started:
     'It looks like Docker is not installed or running. To run this command, install and start Docker Desktop from [https://www.docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop)',
   force_function_start_unexpected_error:
@@ -194,9 +209,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: Execute SOQL Query with Currently Selected Text',
   parameter_gatherer_enter_soql_query: 'Enter the SOQL query',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: Execute Anonymous Apex with Editor Contents',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: Execute Anonymous Apex with Currently Selected Text',
   force_package_install_text: 'SFDX: Install Package',
   force_project_create_text: 'SFDX: Create Project',
@@ -251,7 +266,12 @@ export const messages = {
     'Authorizing a business or production org is not recommended on a demo or shared machine. If you continue with the authentication, be sure to run "SFDX: Log Out from All Authorized Orgs" when you\'re done using this org.',
   force_auth_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
   force_auth_logout_default_text: 'SFDX: Log Out from Default Org',
-  manifest_editor_title_message: 'Manifest Editor',
+  manifest_input_dupe_error:
+    'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_input_save_placeholder:
+    'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt:
+    'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
   REST_API: 'REST API',
   tooling_API: 'Tooling API',
   REST_API_description: 'Execute the query with REST API',
@@ -548,7 +568,7 @@ export const messages = {
   conflict_detect_error:
     'An error was encountered during conflict detection. %s',
   conflict_detect_initialization_error:
-    'Unexpected error initiliazing metadata cache',
+    'Unexpected error initializing metadata cache',
   conflict_detect_conflicts_during_deploy:
     'Conflicts were detected while deploying metadata. Choose how to proceed.',
   conflict_detect_conflicts_during_retrieve:
@@ -608,5 +628,18 @@ export const messages = {
   force_sobjects_refresh: 'SFDX: Refresh SObject Definitions',
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
-  sobject_refresh_standard: 'Standard SObjects'
+  sobject_refresh_standard: 'Standard SObjects',
+  force_rename_lightning_component: 'SFDX: Rename Component',
+  rename_component_input_dup_error:
+    'Component name is already in use in LWC or Aura',
+  rename_component_input_dup_file_name_error:
+    'This file name is already in use in the current component directory. Choose a different name and try again.',
+  rename_component_input_placeholder: 'Enter a unique component name',
+  rename_component_input_prompt:
+    'Press Enter to confirm your input or Escape to cancel',
+  rename_component_warning:
+    'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
+  error_function_type: 'Unable to determine type of executing function.',
+  error_unable_to_get_started_function:
+    'Unable to access the function in "{0}".'
 };

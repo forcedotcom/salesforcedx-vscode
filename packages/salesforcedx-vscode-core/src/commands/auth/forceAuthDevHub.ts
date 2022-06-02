@@ -25,6 +25,7 @@ import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
+import { CLI } from '../../constants';
 import {
   DEFAULT_DEV_HUB_USERNAME_KEY,
   SFDX_CONFIG_FILE
@@ -34,22 +35,36 @@ import { isDemoMode } from '../../modes/demo-mode';
 import { isSFDXContainerMode } from '../../util';
 import { ConfigSource, OrgAuthInfo } from '../../util/index';
 import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
+import { ForceAuthWebLoginContainerExecutor } from './forceAuthWebLogin';
+
+export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainerExecutor {
+  public build(data: {}): Command {
+    const command = new SfdxCommandBuilder().withDescription(
+      nls.localize('force_auth_web_login_authorize_dev_hub_text')
+    );
+
+    command
+      .withArg(CLI.AUTH_DEVICE_LOGIN)
+      .withArg('--setdefaultdevhubusername')
+      .withLogName('force_auth_device_dev_hub')
+      .withJson();
+
+    return command.build();
+  }
+}
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
-  protected showChannelOutput = isSFDXContainerMode();
+  protected showChannelOutput = false;
 
   public build(data: {}): Command {
     const command = new SfdxCommandBuilder().withDescription(
       nls.localize('force_auth_web_login_authorize_dev_hub_text')
     );
-    if (isSFDXContainerMode()) {
-      command
-        .withArg('force:auth:device:login')
-        .withLogName('force_auth_device_dev_hub');
-    } else {
-      command.withArg('force:auth:web:login').withLogName('force_auth_dev_hub');
-    }
-    command.withArg('--setdefaultdevhubusername');
+
+    command
+      .withArg(CLI.AUTH_WEB_LOGIN)
+      .withLogName('force_auth_dev_hub')
+      .withArg('--setdefaultdevhubusername');
     return command.build();
   }
 
@@ -106,7 +121,7 @@ export class ForceAuthDevHubDemoModeExecutor extends ForceAuthDemoModeExecutor<{
       .withDescription(
         nls.localize('force_auth_web_login_authorize_dev_hub_text')
       )
-      .withArg('force:auth:web:login')
+      .withArg(CLI.AUTH_WEB_LOGIN)
       .withArg('--setdefaultdevhubusername')
       .withArg('--noprompt')
       .withJson()
@@ -119,9 +134,14 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export function createAuthDevHubExecutor(): SfdxCommandletExecutor<{}> {
-  return isDemoMode()
-    ? new ForceAuthDevHubDemoModeExecutor()
-    : new ForceAuthDevHubExecutor();
+  switch (true) {
+    case isSFDXContainerMode():
+      return new ForceAuthDevHubContainerExecutor();
+    case isDemoMode():
+      return new ForceAuthDevHubDemoModeExecutor();
+    default:
+      return new ForceAuthDevHubExecutor();
+  }
 }
 
 export async function forceAuthDevHub() {

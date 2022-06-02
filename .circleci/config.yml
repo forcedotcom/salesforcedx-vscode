@@ -13,6 +13,7 @@ orbs:
   win: circleci/windows@2.4.0
   release-management: salesforce/npm-release-management@4
   slack: circleci/slack@3.4.2
+  github-cli: circleci/github-cli@2.1.0
 
 parameters:
   # Configurable Versions
@@ -24,7 +25,9 @@ parameters:
     default: '3.13.1'
   node-version:
     type: string
-    default: '12.4.0'
+    # node > 16.13 doesn't exist on legacy CircleCI image https://hub.docker.com/r/circleci/node/tags
+    # Need to migrate from legacy CircleCI image (W-11027467)
+    default: '16.13.0'
   # Constants
   cache-version:
     type: string
@@ -135,7 +138,7 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run: npm install
+      - run: npm ci
       - run: npm --version
       - run: node --version
 
@@ -341,7 +344,9 @@ jobs:
       - run:
           name: 'Run SOQL UI Tests if Needed'
           shell: bash.exe
-          command: npm run test:ui
+          command: |
+            set -e
+            npm run test:ui
 
   integration-tests:
     description: 'Run tests on Windows'
@@ -379,7 +384,7 @@ jobs:
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
             $failure = $results.SelectSingleNode("//failure")
-            if ($failure -ne $null) { 
+            if ($failure -ne $null) {
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }
@@ -449,6 +454,11 @@ jobs:
             git tag v${RELEASE_VERSION}
             git push origin v${RELEASE_VERSION}
             git push origin main
+      - github-cli/setup
+      - run:
+          name: 'Create release on git tag'
+          command: |
+            gh release create v${RELEASE_VERSION} ./packages/**/*.vsix --title "Release v${RELEASE_VERSION}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
@@ -540,6 +550,7 @@ workflows:
     when: << pipeline.parameters.pre-publish >>
     jobs:
       - slack/approval-notification:
+          context: IEAT_keys
           message: Pending Approval for merge of release branch into main
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -547,7 +558,7 @@ workflows:
           type: approval
       - merge-release-branch:
           e: default-executor
-          context: pdt-publish-restricted-context
+          context: IEAT_keys
           requires:
             - hold
           filters:
@@ -559,6 +570,7 @@ workflows:
     when: << pipeline.parameters.publish >>
     jobs:
       - slack/approval-notification:
+          context: IEAT_keys
           message: Pending Approval for Publish
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -570,7 +582,7 @@ workflows:
       - publish:
           e: default-executor
           context:
-            - pdt-publish-restricted-context
+            - IEAT_keys
             - CLI_CTC
           requires:
             - build-all
@@ -586,6 +598,7 @@ workflows:
     when: << pipeline.parameters.create-release >>
     jobs:
       - slack/approval-notification:
+          context: IEAT_keys
           message: Pending Approval for Creation of Release Branch
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -593,7 +606,7 @@ workflows:
           type: approval
       - create-release-branch:
           e: default-executor
-          context: pdt-publish-restricted-context
+          context: IEAT_keys
           requires:
             - hold
           filters:
@@ -620,7 +633,7 @@ workflows:
   cut-release:
     triggers:
       - schedule:
-          cron: '0 4 * * 2'
+          cron: '0 13 * * 1'
           filters:
             branches:
               only:
@@ -628,3 +641,20 @@ workflows:
     jobs:
       - create-release-branch:
           e: default-executor
+  # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
+  # dependabot-automerge:
+  #   triggers:
+  #     - schedule:
+  #         # Every hour after regular working hours (8pm-4am) specified in UTC
+  #         # on Thu to Fri, giving time before and after release cutoff for changes to get tested
+  #         # Ref: https://circleci.com/docs/2.0/workflows/#scheduling-a-workflow
+  #         cron: '0 4,6,8,10,12 * * 4,5'
+  #         filters:
+  #           branches:
+  #             only:
+  #               - develop
+  #   jobs:
+  #     # Merges 1 mergeable PR created by dependabot containing minor, patch updates
+  #     # Requires "repository" property in package.json to be a string of 'owner/repo'
+  #     - release-management/dependabot-automerge:
+  #         merge-method: squash

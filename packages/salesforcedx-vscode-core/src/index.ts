@@ -19,12 +19,14 @@ import {
   forceAuthWebLogin,
   forceConfigList,
   forceConfigSet,
+  forceCreateManifest,
   forceDataSoqlQuery,
   forceDebuggerStop,
+  forceFunctionContainerlessStartCommand,
+  forceFunctionContainerStartCommand,
   forceFunctionCreate,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
-  forceFunctionStart,
   forceFunctionStop,
   forceInternalLightningAppCreate,
   forceInternalLightningComponentCreate,
@@ -45,18 +47,18 @@ import {
   forcePackageInstall,
   forceProjectWithManifestCreate,
   forceRefreshSObjects,
+  forceRenameLightningComponent,
   forceSfdxProjectCreate,
   forceSourceDelete,
   forceSourceDeployManifest,
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
+  forceSourceDeploySourcePaths,
   forceSourceDiff,
   forceSourceFolderDiff,
   forceSourcePull,
   forceSourcePush,
   forceSourceRetrieveCmp,
   forceSourceRetrieveManifest,
-  forceSourceRetrieveSourcePath,
+  forceSourceRetrieveSourcePaths,
   forceSourceStatus,
   forceStartApexDebugLogging,
   forceStopApexDebugLogging,
@@ -65,6 +67,7 @@ import {
   forceVisualforcePageCreate,
   initSObjectDefinitions,
   registerFunctionInvokeCodeLensProvider,
+  SourceStatusFlags,
   turnOffLogging
 } from './commands';
 import { RetrieveMetadataTrigger } from './commands/forceSourceRetrieveMetadata';
@@ -72,8 +75,10 @@ import { getUserId } from './commands/forceStartApexDebugLogging';
 import { FunctionService } from './commands/functions/functionService';
 import { isvDebugBootstrap } from './commands/isvdebugging';
 import {
+  CommandVersion,
   CompositeParametersGatherer,
   EmptyParametersGatherer,
+  FlagParameter,
   SelectFileName,
   SelectOutputDir,
   SfdxCommandlet,
@@ -102,6 +107,23 @@ import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+
+const flagOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite'
+};
+const flagLegacy: FlagParameter<null> = {
+  commandVersion: CommandVersion.Legacy
+};
+const flagLegacyOverwrite: FlagParameter<string> = {
+  flag: '--forceoverwrite',
+  commandVersion: CommandVersion.Legacy
+};
+const flagStatusLocal: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Local
+};
+const flagStatusRemote: FlagParameter<SourceStatusFlags> = {
+  flag: SourceStatusFlags.Remote
+};
 
 function registerCommands(
   extensionContext: vscode.ExtensionContext
@@ -145,7 +167,7 @@ function registerCommands(
   );
   const forceSourceDeployCurrentSourceFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.current.source.file',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeployInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.in.manifest',
@@ -153,11 +175,11 @@ function registerCommands(
   );
   const forceSourceDeployMultipleSourcePathsCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.multiple.source.paths',
-    forceSourceDeployMultipleSourcePaths
+    forceSourceDeploySourcePaths
   );
   const forceSourceDeploySourcePathCmd = vscode.commands.registerCommand(
     'sfdx.force.source.deploy.source.path',
-    forceSourceDeploySourcePath
+    forceSourceDeploySourcePaths
   );
   const forceSourcePullCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull',
@@ -166,7 +188,17 @@ function registerCommands(
   const forceSourcePullForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.pull.force',
     forceSourcePull,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
+  );
+  const forceSourceLegacyPullCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull',
+    forceSourcePull,
+    flagLegacy
+  );
+  const forceSourceLegacyPullForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.pull.force',
+    forceSourcePull,
+    flagLegacyOverwrite
   );
   const forceSourcePushCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push',
@@ -175,15 +207,25 @@ function registerCommands(
   const forceSourcePushForceCmd = vscode.commands.registerCommand(
     'sfdx.force.source.push.force',
     forceSourcePush,
-    { flag: '--forceoverwrite' }
+    flagOverwrite
+  );
+  const forceSourceLegacyPushCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push',
+    forceSourcePush,
+    flagLegacy
+  );
+  const forceSourceLegacyPushForceCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.push.force',
+    forceSourcePush,
+    flagLegacyOverwrite
   );
   const forceSourceRetrieveCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.source.path',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveCurrentFileCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.current.source.file',
-    forceSourceRetrieveSourcePath
+    forceSourceRetrieveSourcePaths
   );
   const forceSourceRetrieveInManifestCmd = vscode.commands.registerCommand(
     'sfdx.force.source.retrieve.in.manifest',
@@ -196,12 +238,17 @@ function registerCommands(
   const forceSourceStatusLocalCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.local',
     forceSourceStatus,
-    { flag: '--local' }
+    flagStatusLocal
   );
   const forceSourceStatusRemoteCmd = vscode.commands.registerCommand(
     'sfdx.force.source.status.remote',
     forceSourceStatus,
-    { flag: '--remote' }
+    flagStatusRemote
+  );
+  const forceSourceLegacyStatusCmd = vscode.commands.registerCommand(
+    'sfdx.force.source.legacy.status',
+    forceSourceStatus,
+    flagLegacy
   );
   const forceTaskStopCmd = vscode.commands.registerCommand(
     'sfdx.force.task.stop',
@@ -351,8 +398,13 @@ function registerCommands(
   );
 
   const forceFunctionStartCmd = vscode.commands.registerCommand(
-    'sfdx.force.function.start',
-    forceFunctionStart
+    'sfdx.force.function.containerless.start',
+    forceFunctionContainerlessStartCommand
+  );
+
+  const forceFunctionContainerStartCmd = vscode.commands.registerCommand(
+    'sfdx.force.function.container.start',
+    forceFunctionContainerStartCommand
   );
 
   const forceFunctionInvokeCmd = vscode.commands.registerCommand(
@@ -375,6 +427,11 @@ function registerCommands(
     forceRefreshSObjects
   );
 
+  const forceRenameComponentCmd = vscode.commands.registerCommand(
+    'sfdx.lightning.rename',
+    forceRenameLightningComponent
+  );
+
   return vscode.Disposable.from(
     forceAuthAccessTokenCmd,
     forceAuthWebLoginCmd,
@@ -388,6 +445,7 @@ function registerCommands(
     forceFunctionInvokeCmd,
     forceFunctionDebugInvokeCmd,
     forceFunctionStartCmd,
+    forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
@@ -403,12 +461,19 @@ function registerCommands(
     forceSourceDeploySourcePathCmd,
     forceSourcePullCmd,
     forceSourcePullForceCmd,
+    forceSourceLegacyPullCmd,
+    forceSourceLegacyPullForceCmd,
     forceSourcePushCmd,
     forceSourcePushForceCmd,
+    forceSourceLegacyPushCmd,
+    forceSourceLegacyPushForceCmd,
     forceSourceRetrieveCmd,
     forceSourceRetrieveCurrentFileCmd,
     forceSourceRetrieveInManifestCmd,
     forceSourceStatusCmd,
+    forceSourceStatusLocalCmd,
+    forceSourceStatusRemoteCmd,
+    forceSourceLegacyStatusCmd,
     forceTaskStopCmd,
     forceApexClassCreateCmd,
     forceAnalyticsTemplateCreateCmd,
@@ -420,8 +485,6 @@ function registerCommands(
     forceLightningInterfaceCreateCmd,
     forceLightningLwcCreateCmd,
     forceLightningLwcTestCreateCmd,
-    forceSourceStatusLocalCmd,
-    forceSourceStatusRemoteCmd,
     forceDebuggerStopCmd,
     forceConfigListCmd,
     forceAliasListCmd,
@@ -514,6 +577,11 @@ async function setupOrgBrowser(
     async (trigger: RetrieveMetadataTrigger) => {
       await forceSourceRetrieveCmp(trigger, true);
     }
+  );
+
+  vscode.commands.registerCommand(
+    'sfdx.create.manifest',
+    forceCreateManifest
   );
 }
 

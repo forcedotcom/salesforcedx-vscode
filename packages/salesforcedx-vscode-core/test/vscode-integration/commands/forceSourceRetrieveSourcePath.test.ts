@@ -19,40 +19,27 @@ import {
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
-  ForceSourceRetrieveSourcePathExecutor,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from '../../../src/commands';
+import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourceRetrieveSourcePath';
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
-  describe('CLI Executor', () => {
-    it('Should build the source retrieve command', () => {
-      const sourcePath = path.join('path', 'to', 'sourceFile');
-      const sourceRetrieve = new ForceSourceRetrieveSourcePathExecutor();
-      const sourceRetrieveCommand = sourceRetrieve.build(sourcePath);
-      expect(sourceRetrieveCommand.toCommand()).to.equal(
-        `sfdx force:source:retrieve --sourcepath ${sourcePath}`
-      );
-      expect(sourceRetrieveCommand.description).to.equal(
-        nls.localize('force_source_retrieve_text')
-      );
-    });
-  });
-
   describe('Library Executor', () => {
     let mockConnection: Connection;
     let retrieveStub: SinonStub;
-    let startStub: SinonStub;
+    let pollStatusStub: SinonStub;
 
     const defaultPackage = 'test-app';
 
@@ -61,16 +48,23 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
+
+      const authInfo = await AuthInfo.create({
+        username: testData.username
       });
+
+      mockConnection = await Connection.create({
+        authInfo
+      });
+
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+      sb.stub(workspaceContext, 'username').get(() => testData.username);
+
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').resolves(
         defaultPackage
       );
-      startStub = sb.stub();
+      sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
+      pollStatusStub = sb.stub();
     });
 
     afterEach(() => {
@@ -88,14 +82,18 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           xml: fsPath
         })
       ]);
+
       sb.stub(ComponentSet, 'fromSource')
-        .withArgs(fsPath)
+        .withArgs([fsPath])
         .returns(toRetrieve);
       retrieveStub = sb
         .stub(toRetrieve, 'retrieve')
-        .returns({ start: startStub });
+        .returns({ pollStatus: pollStatusStub });
 
-      await executor.run({ data: fsPath, type: 'CONTINUE' });
+      await executor.run({
+        type: 'CONTINUE',
+        data: [fsPath]
+      });
 
       expect(retrieveStub.calledOnce).to.equal(true);
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
@@ -103,7 +101,121 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         output: path.join(getRootWorkspacePath(), defaultPackage),
         merge: true
       });
-      expect(startStub.calledOnce).to.equal(true);
+      expect(pollStatusStub.calledOnce).to.equal(true);
+    });
+
+    it('componentSet has sourceApiVersion set', async () => {
+      const executor = new LibraryRetrieveSourcePathExecutor();
+      const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
+      const continueResponse = {
+        type: 'CONTINUE',
+        data: [data]
+      } as ContinueResponse<string[]>;
+      const componentSet = executor.getComponents(continueResponse);
+      expect((await componentSet).sourceApiVersion).to.equal('11.0');
+    });
+
+    it('should retrieve multiple files', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const filePath2 = path.join('classes', 'MyClass2.cls');
+      const filePath3 = path.join('lwc', 'myBundle', 'myBundle');
+      const uris = [
+        vscode.Uri.file(filePath1),
+        vscode.Uri.file(filePath2),
+        vscode.Uri.file(filePath3)
+      ];
+      const filePaths = uris.map(uri => {
+        return uri.fsPath;
+      });
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
+        uris[0],
+        uris
+      );
+
+      expect(sourcePathCheckerCheckStub.called).to.equal(true);
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+    });
+
+    it('should retrieve a single file', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const uris = [
+        vscode.Uri.file(filePath1)
+      ];
+      const filePaths = uris.map(uri => {
+        return uri.fsPath;
+      });
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
+        uris[0],
+        uris
+      );
+
+      expect(sourcePathCheckerCheckStub.called).to.equal(true);
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+    });
+
+    it('should retrieve when editing a single file and "Retrieve This Source from Org" is executed', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+      const uris = [
+        vscode.Uri.file(filePath1)
+      ];
+      const filePaths = uris.map(uri => {
+        return uri.fsPath;
+      });
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
+        uris[0],
+        undefined
+      );
+
+      expect(sourcePathCheckerCheckStub.called).to.equal(true);
+      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+    });
+
+    it('should retrieve when using the command palette', async () => {
+      const filePath1 = path.join('classes', 'MyClass1.cls');
+
+      // When retrieving via the command palette,
+      // sourceUri is undefined, and uris is undefined as well,
+      // and the path is obtained from the active editor
+      // (and calling getUriFromActiveEditor())
+      const sourceUri = undefined;
+      const uris = undefined;
+
+      const filePaths = [ filePath1 ];
+      const sourcePathCheckerCheckStub = sb.stub(
+        SourcePathChecker.prototype, 'check').returns({
+        type: 'CONTINUE',
+        data: filePaths
+      });
+
+      const getUriFromActiveEditorStub = sb.stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor').returns(filePath1);
+
+      await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
+        sourceUri,
+        uris
+      );
+
+      expect(getUriFromActiveEditorStub.called).to.equal(true);
     });
   });
 });
@@ -135,12 +247,12 @@ describe('SourcePathChecker', () => {
     const sourcePath = path.join(workspacePath, 'package');
     const continueResponse = (await pathChecker.check({
       type: 'CONTINUE',
-      data: sourcePath
-    })) as ContinueResponse<string>;
+      data: [ sourcePath ]
+    })) as ContinueResponse<string[]>;
 
     expect(isInPackageDirectoryStub.getCall(0).args[0]).to.equal(sourcePath);
     expect(continueResponse.type).to.equal('CONTINUE');
-    expect(continueResponse.data).to.equal(sourcePath);
+    expect(continueResponse.data[0]).to.equal(sourcePath);
 
     isInPackageDirectoryStub.restore();
   });
@@ -152,7 +264,7 @@ describe('SourcePathChecker', () => {
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
-      data: path.join('not', 'in', 'package', 'directory')
+      data: [ path.join('not', 'in', 'package', 'directory') ]
     })) as CancelResponse;
 
     const errorMessage = nls.localize(
@@ -171,7 +283,7 @@ describe('SourcePathChecker', () => {
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
-      data: 'test/path'
+      data: [ 'test/path' ]
     })) as CancelResponse;
 
     const errorMessage = nls.localize(
