@@ -201,10 +201,12 @@ export class SelectLwcComponentDir
         lwcNames,
         'parameter_gatherer_enter_lwc_name'
       );
-      const filePathToXml = namePathMap.get(chosenLwcName);
-      fileName = path.basename(filePathToXml, '.js-meta.xml');
-      // Path strategy expects a relative path to the output folder
-      outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
+      if (chosenLwcName) {
+        const filePathToXml = namePathMap.get(chosenLwcName);
+        fileName = path.basename(filePathToXml, '.js-meta.xml');
+        // Path strategy expects a relative path to the output folder
+        outputdir = path.dirname(filePathToXml).replace(pathToPkg, packageDir);
+      }
     }
 
     return outputdir && fileName
