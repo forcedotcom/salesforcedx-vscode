@@ -44,7 +44,7 @@ import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
-import { MockContext } from '../telemetry/MockContext';
+import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -243,8 +243,8 @@ describe('Base Deploy Retrieve Commands', () => {
       ]);
 
       deployQueueStub = sb.stub(DeployQueue.prototype, 'unlock');
-      const mockContext = new MockContext(false);
-      PersistentStorageService.initialize(mockContext);
+      const mockExtensionContext = new MockExtensionContext(false);
+      PersistentStorageService.initialize(mockExtensionContext);
     });
 
     class TestDeploy extends DeployExecutor<{}> {
@@ -525,8 +525,8 @@ describe('Base Deploy Retrieve Commands', () => {
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         packageDir
       ]);
-      const mockContext = new MockContext(false);
-      PersistentStorageService.initialize(mockContext);
+      const mockExtensionContext = new MockExtensionContext(false);
+      PersistentStorageService.initialize(mockExtensionContext);
     });
 
     it('should call retrieve on component set', async () => {

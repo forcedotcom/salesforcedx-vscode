@@ -20,8 +20,10 @@ import { HtmlUtils } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
 export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
-  public static register(context: vscode.ExtensionContext): vscode.Disposable {
-    const provider = new SOQLEditorProvider(context);
+  public static register(
+    extensionContext: vscode.ExtensionContext
+  ): vscode.Disposable {
+    const provider = new SOQLEditorProvider(extensionContext);
     const providerRegistration = vscode.window.registerCustomEditorProvider(
       BUILDER_VIEW_TYPE,
       provider
@@ -31,7 +33,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private instances: SOQLEditorInstance[] = [];
 
-  constructor(private readonly context: vscode.ExtensionContext) {}
+  constructor(private readonly extensionContext: vscode.ExtensionContext) {}
 
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
@@ -43,7 +45,10 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       localResourceRoots: [
         vscode.Uri.file(
-          path.join(this.context.extensionPath, SOQL_BUILDER_WEB_ASSETS_PATH)
+          path.join(
+            this.extensionContext.extensionPath,
+            SOQL_BUILDER_WEB_ASSETS_PATH
+          )
         )
       ]
     };
@@ -53,7 +58,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     const instance = new SOQLEditorInstance(document, webviewPanel, _token);
     this.instances.push(instance);
     instance.onDispose(this.disposeInstance.bind(this));
-    this.context.subscriptions.push(...instance.subscriptions);
+    this.extensionContext.subscriptions.push(...instance.subscriptions);
 
     if (!isDefaultOrgSet()) {
       const message = nls.localize('info_no_default_org');
@@ -64,7 +69,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
 
   private getWebViewContent(webview: vscode.Webview): string {
     const pathToLwcDist = path.join(
-      this.context.extensionPath,
+      this.extensionContext.extensionPath,
       SOQL_BUILDER_UI_PATH
     );
     const pathToHtml = path.join(pathToLwcDist, HTML_FILE);

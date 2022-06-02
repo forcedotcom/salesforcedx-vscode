@@ -66,7 +66,7 @@ class MockEnvironmentVariableCollection
   }
 }
 
-export class MockContext implements ExtensionContext {
+export class MockExtensionContext implements ExtensionContext {
   constructor(mm: boolean) {
     this.globalState = new MockMemento(mm);
   }

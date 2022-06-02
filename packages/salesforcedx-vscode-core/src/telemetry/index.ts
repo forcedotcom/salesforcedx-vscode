@@ -8,10 +8,11 @@ import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src'
 import { commands, ExtensionContext, Uri, window } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../constants';
 import { nls } from '../messages';
+
 export const telemetryService = TelemetryService.getInstance();
 
-export function showTelemetryMessage(context: ExtensionContext) {
-  const messageAlreadyPrompted = context.globalState.get(
+export function showTelemetryMessage(extensionContext: ExtensionContext) {
+  const messageAlreadyPrompted = extensionContext.globalState.get(
     TELEMETRY_GLOBAL_VALUE
   );
   if (!messageAlreadyPrompted) {
@@ -32,6 +33,6 @@ export function showTelemetryMessage(context: ExtensionContext) {
           );
         }
       });
-    context.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
+    extensionContext.globalState.update(TELEMETRY_GLOBAL_VALUE, true);
   }
 }

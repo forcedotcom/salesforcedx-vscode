@@ -7,7 +7,6 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
   ContinueResponse,
   LocalComponent
@@ -23,7 +22,6 @@ import {
   MetadataApiRetrieveStatus,
   RequestStatus
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
-import { LazyCollection } from '@salesforce/source-deploy-retrieve/lib/src/collections';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';

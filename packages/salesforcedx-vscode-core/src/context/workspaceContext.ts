@@ -22,8 +22,8 @@ export class WorkspaceContext {
     this.onOrgChange(this.handleCliConfigChange);
   }
 
-  public async initialize(context: vscode.ExtensionContext) {
-    await WorkspaceContextUtil.getInstance().initialize(context);
+  public async initialize(extensionContext: vscode.ExtensionContext) {
+    await WorkspaceContextUtil.getInstance().initialize(extensionContext);
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {

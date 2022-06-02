@@ -1,5 +1,4 @@
-import { AuthInfo, Connection } from '@salesforce/core';
-import { OrgInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
@@ -7,7 +6,7 @@ import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import * as wsContext from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const env = createSandbox();
 
@@ -110,12 +109,12 @@ describe('WorkspaceContext', () => {
     usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
 
-    const context = ({
+    const extensionContext = ({
       subscriptions: []
     } as unknown) as vscode.ExtensionContext;
 
     workspaceContext = WorkspaceContext.getInstance(true);
-    await workspaceContext.initialize(context);
+    await workspaceContext.initialize(extensionContext);
   });
 
   afterEach(() => env.restore());

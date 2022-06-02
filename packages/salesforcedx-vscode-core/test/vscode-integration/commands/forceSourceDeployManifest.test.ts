@@ -13,7 +13,6 @@ import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
 import { workspaceContext } from '../../../src/context';
-import { nls } from '../../../src/messages';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 

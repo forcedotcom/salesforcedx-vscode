@@ -16,11 +16,11 @@ class WorkspaceService {
 
   /**
    * Setup current workspace type
-   * @param context extension context
+   * @param extensionContext extension context
    * @param workspaceType
    */
   public register(
-    context: vscode.ExtensionContext,
+    extensionContext: vscode.ExtensionContext,
     workspaceType: lspCommon.WorkspaceType
   ) {
     this.setCurrentWorkspaceType(workspaceType);

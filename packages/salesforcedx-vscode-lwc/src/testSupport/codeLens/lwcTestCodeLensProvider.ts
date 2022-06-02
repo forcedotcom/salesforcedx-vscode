@@ -48,10 +48,10 @@ export const lwcTestCodeLensProvider = new LwcTestCodeLensProvider();
 
 /**
  * Register Code Lens Provider with the extension context
- * @param context Extension context
+ * @param extensionContext Extension context
  */
-export function registerLwcTestCodeLensProvider(context: ExtensionContext) {
-  context.subscriptions.push(
+export function registerLwcTestCodeLensProvider(extensionContext: ExtensionContext) {
+  extensionContext.subscriptions.push(
     languages.registerCodeLensProvider(
       LWC_TEST_DOCUMENT_SELECTOR,
       lwcTestCodeLensProvider

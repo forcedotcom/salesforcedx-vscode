@@ -14,7 +14,7 @@ import {
 } from '../../../../src/commands/functions/types/constants';
 import { nls } from '../../../../src/messages';
 import { getRootWorkspace, getRootWorkspacePath } from '../../../../src/util';
-import { MockContext } from '../../telemetry/MockContext';
+import { MockExtensionContext } from '../../telemetry/MockExtensionContext';
 
 describe('Function Service', () => {
   let sandbox: SinonSandbox;
@@ -156,10 +156,10 @@ describe('Function Service', () => {
         port: FUNCTION_DEFAULT_PORT,
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT
       });
-      const mockContext = new MockContext(false);
+      const mockExtensionContext = new MockExtensionContext(false);
 
       FunctionService.instance.handleDidStartTerminateDebugSessions(
-        mockContext
+        mockExtensionContext
       );
       mockEventEmitter.fire(mockDebugSession);
 
@@ -193,10 +193,10 @@ describe('Function Service', () => {
         debugPort: FUNCTION_DEFAULT_DEBUG_PORT,
         debugSession: mockDebugSession
       });
-      const mockContext = new MockContext(false);
+      const mockExtensionContext = new MockExtensionContext(false);
 
       FunctionService.instance.handleDidStartTerminateDebugSessions(
-        mockContext
+        mockExtensionContext
       );
       mockEventEmitter.fire(mockDebugSession);
 

@@ -239,10 +239,10 @@ export class FunctionService {
 
   /**
    * Register listeners for debug session start/stop events and keep track of active debug sessions
-   * @param context extension context
+   * @param extensionContext extension context
    */
   public handleDidStartTerminateDebugSessions(
-    context: vscode.ExtensionContext
+    extensionContext: vscode.ExtensionContext
   ) {
     const handleDidStartDebugSession = vscode.debug.onDidStartDebugSession(
       session => {
@@ -271,7 +271,7 @@ export class FunctionService {
         });
       }
     );
-    context.subscriptions.push(
+    extensionContext.subscriptions.push(
       handleDidStartDebugSession,
       handleDidTerminateDebugSession
     );

@@ -585,20 +585,20 @@ async function setupOrgBrowser(
   );
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const { name, aiKey, version } = require(context.asAbsolutePath(
+  const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
     './package.json'
   ));
-  await telemetryService.initializeService(context, name, aiKey, version);
-  showTelemetryMessage(context);
+  await telemetryService.initializeService(extensionContext, name, aiKey, version);
+  showTelemetryMessage(extensionContext);
 
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider(
     'sfdx.force.tasks.view',
     taskViewService
   );
-  context.subscriptions.push(treeDataProvider);
+  extensionContext.subscriptions.push(treeDataProvider);
 
   // Set internal dev context
   const internalDev = sfdxCoreSettings.getInternalDev();
@@ -611,8 +611,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (internalDev) {
     // Internal Dev commands
-    const internalCommands = registerInternalDevCommands(context);
-    context.subscriptions.push(internalCommands);
+    const internalCommands = registerInternalDevCommands(extensionContext);
+    extensionContext.subscriptions.push(internalCommands);
 
     // Api
     const internalApi: any = {
@@ -634,7 +634,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  FunctionService.instance.handleDidStartTerminateDebugSessions(context);
+  FunctionService.instance.handleDidStartTerminateDebugSessions(extensionContext);
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
@@ -661,16 +661,16 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   if (sfdxProjectOpened) {
-    await workspaceContext.initialize(context);
+    await workspaceContext.initialize(extensionContext);
 
     // register org picker commands
     const orgList = new OrgList();
-    context.subscriptions.push(registerOrgPickerCommands(orgList));
+    extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
 
-    await setupOrgBrowser(context);
-    await setupConflictView(context);
+    await setupOrgBrowser(extensionContext);
+    await setupConflictView(extensionContext);
 
-    PersistentStorageService.initialize(context);
+    PersistentStorageService.initialize(extensionContext);
 
     // Register filewatcher for push or deploy on save
 
@@ -685,9 +685,9 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   // Commands
-  const commands = registerCommands(context);
-  context.subscriptions.push(commands);
-  context.subscriptions.push(registerConflictView());
+  const commands = registerCommands(extensionContext);
+  extensionContext.subscriptions.push(commands);
+  extensionContext.subscriptions.push(registerConflictView());
 
   const api: any = {
     channelService,
@@ -710,7 +710,7 @@ export async function activate(context: vscode.ExtensionContext) {
     telemetryService
   };
 
-  registerFunctionInvokeCodeLensProvider(context);
+  registerFunctionInvokeCodeLensProvider(extensionContext);
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
   console.log('SFDX CLI Extension Activated');

@@ -19,7 +19,6 @@ import {
   TextDocument
 } from 'vscode';
 import {
-  BaseLanguageClient,
   LanguageClient,
   LanguageClientOptions,
   RequestType,

@@ -21,10 +21,10 @@ class TestResultsWatcher implements vscode.Disposable {
 
   /**
    * Register test result watcher with extension context
-   * @param context extension context
+   * @param extensionContext extension context
    */
-  public register(context: vscode.ExtensionContext) {
-    context.subscriptions.push(this);
+  public register(extensionContext: vscode.ExtensionContext) {
+    extensionContext.subscriptions.push(this);
   }
 
   /**
