@@ -29,7 +29,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { workspaceContextInstance } from '../context';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
 interface ApexExecuteParameters {
@@ -96,7 +96,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   public async run(
     response: ContinueResponse<ApexExecuteParameters>
   ): Promise<boolean> {
-    const connection = await workspaceContextInstance.getConnection();
+    const connection = await workspaceContext.getConnection();
     if (this.isDebugging) {
       if (!(await this.setUpTraceFlags(connection))) {
         return false;

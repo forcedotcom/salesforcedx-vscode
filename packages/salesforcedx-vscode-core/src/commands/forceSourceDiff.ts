@@ -13,7 +13,7 @@ import {
   PathType
 } from '../conflict';
 import * as differ from '../conflict/directoryDiffer';
-import { workspaceContextInstance } from '../context';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -36,7 +36,7 @@ export async function forceSourceDiff(sourceUri?: vscode.Uri) {
     }
   }
 
-  const defaultUsernameorAlias = workspaceContextInstance.username;
+  const defaultUsernameorAlias = workspaceContext.username;
   if (!defaultUsernameorAlias) {
     notificationService.showErrorMessage(nls.localize('missing_default_org'));
     return;
@@ -70,7 +70,7 @@ export async function forceSourceFolderDiff(explorerPath: vscode.Uri) {
     }
   }
 
-  const username = workspaceContextInstance.username;
+  const username = workspaceContext.username;
   if (!username) {
     notificationService.showErrorMessage(nls.localize('missing_default_org'));
     return;

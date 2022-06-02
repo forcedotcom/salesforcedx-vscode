@@ -27,7 +27,7 @@ import {
   forceLaunchApexReplayDebuggerWithCurrentFile
 } from './commands';
 import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
-import { workspaceContextInstance } from './context';
+import { workspaceContext } from './context';
 import {
   ClientStatus,
   enableJavaDocSymbols,
@@ -69,7 +69,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   // Workspace Context
-  await workspaceContextInstance.initialize(extensionContext);
+  await workspaceContext.initialize(extensionContext);
 
   // Telemetry
   const extensionPackage = require(extensionContext.asAbsolutePath('./package.json'));

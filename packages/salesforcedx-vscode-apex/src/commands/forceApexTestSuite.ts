@@ -20,7 +20,7 @@ import { readFileSync } from 'fs';
 import { basename } from 'path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
-import { workspaceContextInstance } from '../context';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import {
   ApexLibraryTestRunExecutor,
@@ -49,7 +49,7 @@ async function listApexClassItems(): Promise<ApexTestQuickPickItem[]> {
 }
 
 async function listApexTestSuiteItems(): Promise<ApexTestQuickPickItem[]> {
-  const connection = await workspaceContextInstance.getConnection();
+  const connection = await workspaceContext.getConnection();
   const testService = new TestService(connection);
   const testSuites = await testService.retrieveAllSuites();
 
@@ -164,7 +164,7 @@ export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<
   public async run(
     response: ContinueResponse<ApexTestSuiteOptions>
   ): Promise<boolean> {
-    const connection = await workspaceContextInstance.getConnection();
+    const connection = await workspaceContext.getConnection();
     const testService = new TestService(connection);
     await testService.buildSuite(response.data.suitename, response.data.tests);
     return true;

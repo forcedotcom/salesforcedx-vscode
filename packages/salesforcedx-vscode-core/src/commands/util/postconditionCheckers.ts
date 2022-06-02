@@ -19,7 +19,7 @@ import {
   MetadataCacheService
 } from '../../conflict';
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
-import { workspaceContextInstance } from '../../context';
+import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
@@ -235,7 +235,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
         )}\n`
       );
 
-      const { username } = workspaceContextInstance;
+      const { username } = workspaceContext;
       if (!username) {
         return {
           type: 'CANCEL',

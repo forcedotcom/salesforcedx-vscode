@@ -30,7 +30,7 @@ import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveM
 import {
   LibraryRetrieveSourcePathExecutor
 } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
-import { workspaceContextInstance } from '../../../../src/context';
+import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';
 
@@ -68,7 +68,7 @@ describe('Force Source Retrieve Component(s)', () => {
           username: testData.username
         })
       });
-      sb.stub(workspaceContextInstance, 'getConnection').returns(mockConnection);
+      sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').returns(
         defaultPackageDir

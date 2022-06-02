@@ -15,7 +15,7 @@ import {
   TestsSelector,
   TestType
 } from '../../../src/commands/forceApexTestRun';
-import { workspaceContextInstance } from '../../../src/context';
+import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import * as settings from '../../../src/settings';
 
@@ -34,7 +34,7 @@ describe('Apex Library Test Run Executor', async () => {
   beforeEach(async () => {
     sb.stub(settings, 'retrieveTestCodeCoverage').returns(true);
     runTestStub = sb.stub(TestService.prototype, 'runTestAsynchronous');
-    sb.stub(workspaceContextInstance, 'getConnection');
+    sb.stub(workspaceContext, 'getConnection');
     buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
     sb.stub(HumanReporter.prototype, 'format');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');

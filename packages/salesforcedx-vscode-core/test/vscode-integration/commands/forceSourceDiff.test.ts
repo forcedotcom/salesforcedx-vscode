@@ -28,7 +28,7 @@ import {
   FilePathGatherer,
   SfdxWorkspaceChecker
 } from '../../../src/commands/util';
-import { workspaceContextInstance } from '../../../src/context';
+import { workspaceContext } from '../../../src/context';
 import { telemetryService } from '../../../src/telemetry';
 
 const sandbox = createSandbox();
@@ -56,12 +56,12 @@ describe('Force Source Diff', () => {
 
     beforeEach(() => {
       workspaceContextUsernameStub = sandbox
-        .stub(workspaceContextInstance, 'username')
+        .stub(workspaceContext, 'username')
         .get(() => {
           return mockUsername;
         });
       workspaceContextAliasStub = sandbox
-        .stub(workspaceContextInstance, 'alias')
+        .stub(workspaceContext, 'alias')
         .get(() => {
           return mockAlias;
         });

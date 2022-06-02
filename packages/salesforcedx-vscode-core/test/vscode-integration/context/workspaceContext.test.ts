@@ -98,16 +98,16 @@ describe('WorkspaceContext', () => {
   let orgTypeStub: SinonStub;
   let usernameStub: SinonStub;
   let aliasStub: SinonStub;
-  let workspaceContextUtilInstance: WorkspaceContextUtil;
+  let workspaceContextUtil: WorkspaceContextUtil;
   let workspaceContext: WorkspaceContext;
 
   beforeEach(async () => {
     orgTypeStub = env.stub(wsContext, 'setupWorkspaceOrgType').resolves();
 
-    workspaceContextUtilInstance = TestWorkspaceContextUtil.getInstance();
-    env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtilInstance);
-    usernameStub = env.stub(workspaceContextUtilInstance, 'username').get(() => testUser);
-    aliasStub = env.stub(workspaceContextUtilInstance, 'alias').get(() => testAlias);
+    workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
+    env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtil);
+    usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
+    aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
 
     const extensionContext = ({
       subscriptions: []
@@ -129,7 +129,7 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(testUser2);
@@ -140,7 +140,7 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(undefined);
@@ -154,9 +154,9 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('change');
-    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('create');
-    await (workspaceContextUtilInstance as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
+    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
 
     expect(someLogic.callCount).to.equal(3);
   });
@@ -166,7 +166,7 @@ describe('WorkspaceContext', () => {
     const mockConnection = { authInfo: mockAuthInfo };
 
     beforeEach(() => {
-      env.stub(workspaceContextUtilInstance, 'getConnection').returns(mockConnection);
+      env.stub(workspaceContextUtil, 'getConnection').returns(mockConnection);
     });
 
     it('should return connection for the default org', async () => {

@@ -39,7 +39,7 @@ import {
   RetrieveExecutor
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
-import { workspaceContextInstance } from '../../../src/context';
+import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
@@ -64,7 +64,7 @@ describe('Base Deploy Retrieve Commands', () => {
         username: testData.username
       })
     });
-    sb.stub(workspaceContextInstance, 'getConnection').resolves(mockConnection);
+    sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
   });
 
   afterEach(() => sb.restore());
