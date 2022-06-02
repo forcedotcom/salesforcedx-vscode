@@ -64,6 +64,7 @@
   "refresh_components_text": "コンポーネントを更新",
   "force_source_retrieve_display_text": "組織からソースを取得",
   "force_source_retrieve_and_open_display_text": "ソースを取得して開く",
+  "force_diff_against_org": "SFDX: ファイルと組織の差分を表示",
   "force_diff_folder_against_org": "SFDX: フォルダと組織の差分を表示",
   "force_analytics_template_create_text": "SFDX: サンプルの Analytics テンプレートを作成",
   "experimental_deploy_retrieve_description": "デプロイおよび取得中のパフォーマンス改善を有効化します。",
@@ -73,7 +74,5 @@
   "force_function_debug_invoke": "SFDX: Function をデバッグ",
   "force_function_stop": "SFDX: Function を停止",
   "force_sobjects_refresh": "SFDX: SObject 定義を更新",
-  "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。",
-  "org_browser_enabled_description": "(ベータ) デフォルトの組織が非スクラッチ組織の場合に、組織ブラウザビューを表示するかどうかを指定します。組織ブラウザの [ドキュメント] (https://developer.salesforce.com/tools/vscode/en/user-guide/org-browser) を参照してください。",
-  "force_diff_against_org": "組織のファイルとの差分を表示"
+  "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。"
 }
