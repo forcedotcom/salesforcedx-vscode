@@ -67,7 +67,6 @@
   "force_diff_against_org": "SFDX: ファイルと組織の差分を表示",
   "force_diff_folder_against_org": "SFDX: フォルダと組織の差分を表示",
   "force_analytics_template_create_text": "SFDX: サンプルの Analytics テンプレートを作成",
-  "experimental_deploy_retrieve_description": "デプロイおよび取得中のパフォーマンス改善を有効化します。",
   "force_function_create": "SFDX: Function を作成",
   "force_function_start": "SFDX: Function を開始",
   "force_function_invoke": "SFDX: Function を呼び出す",
