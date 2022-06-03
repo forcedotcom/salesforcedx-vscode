@@ -23,10 +23,10 @@ export class ConfigUtil {
       projectPath,
       defaultUserNameKey
     )) as string;
-    const info = await GlobalInfo.create();
-    const username = info.aliases.getUsername(defaultUserName);
+    const info = await GlobalInfo.getInstance();
+    const username = info.aliases.resolveValue(defaultUserName);
     // const username = await Aliases.fetch(defaultUserName);
-    return Promise.resolve(username);
+    return username;
   }
 
   public static async getConfigValue(

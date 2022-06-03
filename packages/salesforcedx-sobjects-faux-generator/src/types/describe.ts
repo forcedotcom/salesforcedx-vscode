@@ -5,8 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ChildRelationship, DescribeSObjectResult, Field } from 'jsforce';
-export { ChildRelationship };
+import { DescribeSObjectResult, Field } from 'jsforce';
+
+export type ChildRelationship = {
+  cascadeDelete: boolean;
+  childSObject: string;
+  deprecatedAndHidden: boolean;
+  field: string;
+  junctionIdListNames: string[];
+  junctionReferenceTo: string[];
+  relationshipName: string | null | undefined;
+  restrictedDelete: boolean;
+};
 
 export type SObjectField = Pick<
   Field,

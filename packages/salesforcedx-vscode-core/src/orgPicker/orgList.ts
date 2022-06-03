@@ -58,12 +58,12 @@ export class OrgList implements vscode.Disposable {
       return null;
     }
     const authInfoObjects: FileInfo[] = [];
-    for (const username of authFilesArray) {
+    for (const authFile of authFilesArray) {
       try {
         const filePath = path.join(
           await GlobalInfo.resolveRootFolder(true),
           '.sf',
-          username
+          authFile.username
         );
         const fileData = readFileSync(filePath, 'utf8');
         authInfoObjects.push(JSON.parse(fileData));
