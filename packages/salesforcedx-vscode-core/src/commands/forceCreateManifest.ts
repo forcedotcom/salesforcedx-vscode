@@ -14,6 +14,7 @@ import { format } from 'util';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
+import { SfdxProjectConfig } from '../sfdxProject';
 import { getRootWorkspacePath } from '../util';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
@@ -38,7 +39,9 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
                    progress?: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>,
                    token?: vscode.CancellationToken): Promise<boolean> {
     if (this.sourcePaths) {
+      const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
       const componentSet = ComponentSet.fromSource(this.sourcePaths);
+      componentSet.sourceApiVersion = sourceApiVersion;
       if (this.responseText === undefined) {
         // Canceled and declined to name the document
         openUntitledDocument(componentSet);
