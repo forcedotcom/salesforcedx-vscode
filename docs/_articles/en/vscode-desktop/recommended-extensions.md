@@ -6,7 +6,7 @@ lang: en
 #  Extensions We Recommend
 In addition to the extension pack shipped by Salesforce, the following extensions are useful for Salesforce developers. We also package the Extension pack with some of the most-used community extensions in the [expanded extension pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode-expanded).
 
-> **_NOTE:_** Because Code Builder is a web-based and comes with pre-installed extensions, this list is not of relevance if Code Builder is your development environment of choice.
+> **_NOTE:_** Code Builder comes with pre-installed extensions, this list is not of relevance if Code Builder is your development environment of choice.
 
 
 ## Apex PMD

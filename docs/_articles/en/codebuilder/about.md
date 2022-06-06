@@ -15,6 +15,11 @@ You can install Code Builder as a managed package in any supported Salesforce or
 
 > **_NOTE:_**  This feature is a Beta Service. Customer may opt to try such Beta Service in its sole discretion. Any use of the Beta Service is subject to the applicable Beta Services Terms provided at [Agreements and Terms]( https://www.salesforce.com/company/legal/agreements/).
 
+### Important Considerations for Code Builder Beta
+* We've capped usage for beta at 20 hours for a maximum of 30 days. 
+* We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using Code Builder.
+* Code Builder is in open beta and is available to try on a first-come, first-served basis. Once you join beta, you might be added to a waitlist, and will receive an email when a spot opens up for you.
+
 ## Additional Resources
 
 - Trailhead: [Code Builder Quick Look](https://trailhead.salesforce.com/content/learn/modules/code-builder-quick-look)

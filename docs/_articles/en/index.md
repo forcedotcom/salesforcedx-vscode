@@ -5,13 +5,34 @@ permalink: /
 ---
 
 
-![GIF showing the Code Builder interface and a Salesforce function being created](../../images/cb-intro.gif)
+The Salesforce Extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
 
-Salesforce Extensions for Visual Studio Code are a set of open-source extensions that come with rich tools for developing on the Salesforce platform. To make our extensions accessible across different machine specs and developer experiences, we offer two ways for you to leverage their power:
-1. A desktop version of the extension pack that is available on the Visual Studio Code extensions marketplace. Requires downloading and installation of Visual Studio Code and the Salesforce extension pack.
+![GIF showing Org Browser](../../../images/index_intro_small.gif)
 
-2. Code Builder, a browser based development environment that is optimized for Salesforce and has everything you need to build applications on the platform without downloads and installations. It provides you the flexibility to work anywhere, from any computer, but with some limitations. Code Builder is currently in beta.
 
-### Important Considerations for Code Builder Beta
-* We've capped usage for beta at 20 hours for a maximum of 30 days. 
-* We highly recommend that you save your work and close the browser tab that is running Code Builder to stop the usage clock when you aren’t using Code Builder.
+### Salesforce Extensions for Desktop
+
+Want to develop locally? Already using VS Code? Install Salesforce Extensions and Salesforce CLI to develop quickly and more productively on Salesforce platform. See [installation instructions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install).
+
+<span>Download using the links below, or read the [installation instructions](./en/getting-started/install).<span><br/><a class="slds-button slds-button_neutral landing__header-cta slds-m-vertical--x-large" href="https://code.visualstudio.com">Download Visual Studio Code</a><a class="slds-button slds-button_brand landing__header-cta slds-m-vertical--x-large" href="https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode">Install the Salesforce Extensions</a>
+
+### Code Builder (Beta)
+
+Code Builder is a browser-based version of Salesforce Extensions, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. Code Builder is currently in beta and is available for a test-drive on a first-come-first-serve basis. See [Code Builder Overview](https://developer.salesforce.com/tools/vscode/en/codebuilder/about) for more information. 
+
+
+## Additional Resources
+
+- Trailhead: [Build Apps Together with Package Development](https://trailhead.salesforce.com/trails/sfdx_get_started)
+- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
+- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
+
+## Videos
+
+- [Quick Tour of the Extensions](https://www.youtube.com/watch?v=njKzjOTzEjo&list=PLgIMQe2PKPSIVPDsaiYIMGnFxtcrUus6M&index=6&t=0s)
+- [Language Support](https://youtu.be/s5X4yGBRWTM)
+- [Accessing Orgs and Source](https://youtu.be/pi5Zho9ft3s)
+- [Test and Debug](https://youtu.be/f6OacBmQk1g)
+- [LWC Local Development](https://www.youtube.com/watch?v=8eRFE4t2VyU&list=PLgIMQe2PKPSJdFGHjGpjd1FbCsOqq5H8t&index=4)
+- [Best Practices for Building with VS Code](https://www.youtube.com/watch?v=jn91h69qC-o)
+- [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=9)
