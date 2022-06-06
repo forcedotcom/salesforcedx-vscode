@@ -5,10 +5,19 @@ permalink: /
 ---
 
 
-Salesforce Extensions for Visual Studio Code are a set of open-source extensions that come with rich tools for developing on the Salesforce platform. To make our extensions accessible across different machine specs and developer experiences, we offer two ways for you to leverage their power:
-1. A desktop version of the extension pack that is available on the Visual Studio Code extensions marketplace. Requires downloading and installation of Visual Studio Code and the Salesforce extension pack.
+The Salesforce Extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
 
-2. Code Builder(Beta), a browser based development environment that is optimized for Salesforce and has everything you need to build applications on the platform without downloads and installations. It provides you the flexibility to work anywhere, from any computer, but with some limitations.
+![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](../../../images/overview.gif)
+
+
+### Salesforce Extensions for Desktop
+
+Want to develop locally? Already using VS Code? Install Salesforce Extensions and Salesforce CLI to develop quickly and more productively on Salesforce platform. See [installation instructions](https://developer.salesforce.com/tools/vscode/en/vscode-desktop/install).
+
+### Code Builder (Beta)
+
+Code Builder is a browser-based version of Salesforce Extensions, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. Code Builder is currently in beta and is available for a test-drive on a first-come-first-serve basis. See [Code Builder Overview](https://developer.salesforce.com/tools/vscode/en/codebuilder/about) for more information. 
+
 
 ## Additional Resources
 
