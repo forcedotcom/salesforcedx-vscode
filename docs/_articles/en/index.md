@@ -7,7 +7,7 @@ permalink: /
 
 The Salesforce Extension pack includes tools for developing on the Salesforce platform in the lightweight, extensible VS Code editor. These tools provide features for working with development orgs (scratch orgs, sandboxes, and DE orgs), Apex, Aura components, and Visualforce.
 
-![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](../../../images/overview.gif)
+![GIF showing Apex code completion, pushing source to a scratch org, and running Apex tests](../../../images/index_intro_small.gif)
 
 
 ### Salesforce Extensions for Desktop
