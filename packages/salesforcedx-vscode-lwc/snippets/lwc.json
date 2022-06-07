@@ -58,8 +58,8 @@
     ]
   },
   "lwc-wire-get-records-property": {
-    "prefix": "lwc-wire-get-record-property",
-    "description": "Creates a @wire'd property for getRecord",
+    "prefix": "lwc-wire-get-records-property",
+    "description": "Creates a @wire'd property for getRecords",
     "body": [
       "@api recordId;",
       "",
