@@ -12,8 +12,8 @@ import * as vscode from 'vscode';
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
 
-  public async initialize(context: vscode.ExtensionContext) {
-    await WorkspaceContextUtil.getInstance().initialize(context);
+  public async initialize(extensionContext: vscode.ExtensionContext) {
+    await WorkspaceContextUtil.getInstance().initialize(extensionContext);
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {

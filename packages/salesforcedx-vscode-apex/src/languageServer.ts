@@ -28,12 +28,16 @@ declare var v8debug: any;
 const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 async function createServer(
-  context: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext
 ): Promise<Executable> {
   try {
     setupDB();
     const requirementsData = await requirements.resolveRequirements();
-    const uberJar = path.resolve(context.extensionPath, 'out', UBER_JAR_NAME);
+    const uberJar = path.resolve(
+      extensionContext.extensionPath,
+      'out',
+      UBER_JAR_NAME
+    );
     const javaExecutable = path.resolve(
       `${requirementsData.java_home}/bin/java`
     );
@@ -149,9 +153,9 @@ function protocol2CodeConverter(value: string) {
 }
 
 export async function createLanguageServer(
-  context: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext
 ): Promise<LanguageClient> {
-  const server = await createServer(context);
+  const server = await createServer(extensionContext);
   const client = new LanguageClient(
     'apex',
     nls.localize('client_name'),

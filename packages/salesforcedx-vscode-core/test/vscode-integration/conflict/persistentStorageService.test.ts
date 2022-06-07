@@ -10,7 +10,7 @@ import { MetadataApiDeployStatus, RequestStatus} from '@salesforce/source-deploy
 import { expect } from 'chai';
 import { basename, dirname, join} from 'path';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
-import { MockContext } from '../telemetry/MockContext';
+import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 describe('Persistent Storage Service', () => {
   const props: FileProperties[] = [
@@ -77,8 +77,8 @@ describe('Persistent Storage Service', () => {
   );
 
   beforeEach(() => {
-    const mockContext = new MockContext(false);
-    PersistentStorageService.initialize(mockContext);
+    const mockExtensionContext = new MockExtensionContext(false);
+    PersistentStorageService.initialize(mockExtensionContext);
   });
 
   it('Should store and retrieve file properties in Memento cache for Retrieve', () => {

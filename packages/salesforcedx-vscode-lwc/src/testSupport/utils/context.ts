@@ -35,10 +35,10 @@ function setLwcJestFileFocusedContext(textEditor?: vscode.TextEditor) {
 /**
  * Sets up handlers for active text editor change
  * and make sure the correct context is set.
- * @param context extension context
+ * @param extensionContext extension context
  */
 export function startWatchingEditorFocusChange(
-  context: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext
 ) {
   setLwcJestFileFocusedContext(vscode.window.activeTextEditor);
   const handleDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor(
@@ -46,5 +46,5 @@ export function startWatchingEditorFocusChange(
       setLwcJestFileFocusedContext(textEditor);
     }
   );
-  context.subscriptions.push(handleDidChangeActiveTextEditor);
+  extensionContext.subscriptions.push(handleDidChangeActiveTextEditor);
 }
