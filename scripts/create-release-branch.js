@@ -86,6 +86,10 @@ shell.exec(
 // Add all package.json version update changes
 shell.exec(`git add "**/package.json"`);
 
+// Execute an npm install so that we update the package-lock.json file with the new version 
+// found in the packages for each submodule.
+shell.exec(`npm install --ignore-scripts --package-lock-only --no-audit`);
+
 // Add change to package lockfile that includes version bump
 shell.exec('git add package-lock.json');
 
