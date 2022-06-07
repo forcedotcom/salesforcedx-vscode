@@ -514,6 +514,10 @@ jobs:
       - checkout
       - restore_dependency_cache
       - gh-config
+      - run:
+          name: 'Install latest npm'
+          shell: bash.exe
+          command: nvm install-latest-npm
       - install
       - run:
           name: Install Lerna
