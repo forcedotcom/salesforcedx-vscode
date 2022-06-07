@@ -1,5 +1,5 @@
 ---
-title: VS Code Extensions for Salesforce Development
+title: Develop with Ease with Salesforce Extensions
 lang: en
 permalink: /
 ---
