@@ -50,7 +50,7 @@ checkVSCodeVersion();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
-checkBaseBranch('develop');
+// checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
 
@@ -86,14 +86,20 @@ shell.exec(
 // Add all package.json version update changes
 shell.exec(`git add "**/package.json"`);
 
+// Execute an npm install so that we update the package-lock.json file with the new version 
+// found in the packages for each submodule.
+shell.exec(`npm install --ignore-scripts --package-lock-only --no-audit`);
+
 // Add change to package lockfile that includes version bump
 shell.exec('git add package-lock.json');
 
 // Add change to lerna.json
 shell.exec('git add lerna.json');
 
+process.exit();
 // Git commit
 shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
+
 
 // Merge release branch to develop as soon as it is cut.
 // In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
