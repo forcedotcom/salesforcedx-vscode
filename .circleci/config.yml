@@ -515,8 +515,8 @@ jobs:
       - restore_dependency_cache
       - gh-config
       - run:
-          name: 'Install latest npm'
-          command: nvm install-latest-npm
+          name: 'Install npm 8.12'
+          command: npm install npm@8.12.1
       - install
       - run:
           name: Install Lerna
