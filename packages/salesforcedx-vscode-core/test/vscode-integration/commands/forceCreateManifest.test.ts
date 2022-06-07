@@ -8,6 +8,7 @@
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { fail } from 'assert';
 import { expect } from 'chai';
+
 import * as fs from 'fs';
 import util = require('util');
 import * as sinon from 'sinon';
@@ -15,6 +16,8 @@ import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { ManifestCreateExecutor } from '../../../src/commands/forceCreateManifest';
 import { nls } from '../../../src/messages';
+import { SfdxProjectConfig } from '../../../src/sfdxProject';
+import * as Sinon from 'sinon';
 
 const classPath = '/force-app/main/default/classes/';
 const CLASS_1 = 'Apex1';
@@ -184,6 +187,45 @@ describe('Force Create Manifest', () => {
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
 
+  });
+
+  describe.only('Verify manifest version.', () => {
+    const fakeVersion = '54.0';
+    let getValueStub: Sinon.SinonStub;
+
+    beforeEach(() => {
+      getValueStub = env
+        .stub(SfdxProjectConfig, 'getValue')
+        .resolves(fakeVersion as unknown);
+    });
+
+    it('Should set the sourceApiVersion on the component set.', async () => {
+      const fakeObj = {
+        sourceApiVersion: '',
+        getPackageXml: () => {
+          return packageXML;
+        }
+      };
+
+      const packageXML = util.format(EMPTY_MANIFEST, '');
+      env.stub(ComponentSet, 'fromSource').returns(fakeObj);
+      env
+        .stub(fs, 'existsSync')
+        .onFirstCall()
+        .returns(true)
+        .onSecondCall()
+        .returns(false);
+      const executor = new ManifestCreateExecutor(
+        [URI_1.fsPath, URI_2.fsPath],
+        undefined
+      );
+      await executor.run({
+        type: 'CONTINUE',
+        data: ''
+      });
+
+      expect(fakeObj.sourceApiVersion).to.equal(fakeVersion);
+    });
   });
 
   describe('Exception Handling Unit Tests', () => {
