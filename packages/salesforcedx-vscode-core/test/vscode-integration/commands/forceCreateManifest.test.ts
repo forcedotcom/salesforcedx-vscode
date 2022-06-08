@@ -11,7 +11,7 @@ import { expect } from 'chai';
 
 import * as fs from 'fs';
 import util = require('util');
-import * as sinon from 'sinon';
+import * as sinon from 'sinon'; //comment
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { ManifestCreateExecutor } from '../../../src/commands/forceCreateManifest';
