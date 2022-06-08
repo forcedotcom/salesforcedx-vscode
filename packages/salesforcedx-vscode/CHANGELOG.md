@@ -1,3 +1,19 @@
+# 55.0.0 - June 10, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Update Japanese commands ([PR #4186](https://github.com/forcedotcom/salesforcedx-vscode/pull/4186))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Renamed context to extensionContext ([PR #4165](https://github.com/forcedotcom/salesforcedx-vscode/pull/4165))
+
+- Allow for escaping lwc test create command ([PR #4143](https://github.com/forcedotcom/salesforcedx-vscode/pull/4143))
+
 # 54.15.0 - June 1, 2022
 
 ## Added
