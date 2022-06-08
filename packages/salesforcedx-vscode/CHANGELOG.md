@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We love our Open Source community, and thanks to a contribution from @shunkosa, we updated our Japanese commands. ([PR #4186](https://github.com/forcedotcom/salesforcedx-vscode/pull/4186))
+- Thanks to a contribution from @shunkosa, we updated our Japanese commands. We love our Open Source community.  ([PR #4186](https://github.com/forcedotcom/salesforcedx-vscode/pull/4186))
 
 ## Fixed
 
