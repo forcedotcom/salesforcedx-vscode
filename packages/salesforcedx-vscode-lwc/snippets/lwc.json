@@ -63,16 +63,16 @@
     "body": [
       "@api recordId;",
       "",
-      "@wire(getRecords, { records:[ { recordIds: [ ], fields: [ ] } ] } )",
-      "${2:records-property-name}"
+      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
+      "${1:records-property-name}"
     ]
   },
   "lwc-wire-get-records-function": {
     "prefix": "lwc-wire-get-records-function",
     "description": "Creates a @wire'd function for getRecords",
     "body": [
-      "@wire(getRecords, { records:[ { recordIds: [ ], fields: [ ] } ] } )",
-      "${2:records-function-name} ({error, data}) {",
+      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
+      "${1:records-function-name} ({error, data}) {",
       "    if (error) {",
       "        // TODO: Error handling",
       "    } else if (data) {",
