@@ -17,7 +17,6 @@ import * as vscode from 'vscode';
 import { ManifestCreateExecutor } from '../../../src/commands/forceCreateManifest';
 import { nls } from '../../../src/messages';
 import { SfdxProjectConfig } from '../../../src/sfdxProject';
-import * as Sinon from 'sinon';
 
 const classPath = '/force-app/main/default/classes/';
 const CLASS_1 = 'Apex1';
@@ -189,9 +188,9 @@ describe('Force Create Manifest', () => {
 
   });
 
-  describe.only('Verify manifest version.', () => {
+  describe('Verify manifest version.', () => {
     const fakeVersion = '54.0';
-    let getValueStub: Sinon.SinonStub;
+    let getValueStub: sinon.SinonStub;
 
     beforeEach(() => {
       getValueStub = env
