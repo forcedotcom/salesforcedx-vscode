@@ -186,45 +186,46 @@ describe('Force Create Manifest', () => {
       expect(openTextDocumentSpy.calledOnce).to.equal(true);
     });
 
-  });
-
-  describe('Verify manifest version.', () => {
-    const fakeVersion = '54.0';
-    let getValueStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      getValueStub = env
-        .stub(SfdxProjectConfig, 'getValue')
-        .resolves(fakeVersion as unknown);
-    });
-
-    it('Should set the sourceApiVersion on the component set.', async () => {
-      const fakeObj = {
-        sourceApiVersion: '',
-        getPackageXml: () => {
-          return packageXML;
-        }
-      };
-
-      const packageXML = util.format(EMPTY_MANIFEST, '');
-      env.stub(ComponentSet, 'fromSource').returns(fakeObj);
-      env
-        .stub(fs, 'existsSync')
-        .onFirstCall()
-        .returns(true)
-        .onSecondCall()
-        .returns(false);
-      const executor = new ManifestCreateExecutor(
-        [URI_1.fsPath, URI_2.fsPath],
-        undefined
-      );
-      await executor.run({
-        type: 'CONTINUE',
-        data: ''
+    describe('Verify manifest version.', () => {
+      const fakeVersion = '54.0';
+      let getValueStub: sinon.SinonStub;
+  
+      beforeEach(() => {
+        getValueStub = env
+          .stub(SfdxProjectConfig, 'getValue')
+          .resolves(fakeVersion as unknown);
       });
-
-      expect(fakeObj.sourceApiVersion).to.equal(fakeVersion);
+  
+      it('Should set the sourceApiVersion on the component set.', async () => {
+        const fakeObj = {
+          apiVersion: '53.0',
+          sourceApiVersion: '',
+          getPackageXml: () => {
+            return packageXML;
+          }
+        };
+  
+        const packageXML = util.format(EMPTY_MANIFEST, '');
+        env.stub(ComponentSet, 'fromSource').returns(fakeObj);
+        env
+          .stub(fs, 'existsSync')
+          .onFirstCall()
+          .returns(true)
+          .onSecondCall()
+          .returns(false);
+        const executor = new ManifestCreateExecutor(
+          [URI_1.fsPath, URI_2.fsPath],
+          undefined
+        );
+        await executor.run({
+          type: 'CONTINUE',
+          data: ''
+        });
+  
+        expect(fakeObj.sourceApiVersion).to.equal(fakeVersion);
+      });
     });
+
   });
 
   describe('Exception Handling Unit Tests', () => {
