@@ -189,13 +189,13 @@ describe('Force Create Manifest', () => {
     describe('Verify manifest version.', () => {
       const fakeVersion = '54.0';
       let getValueStub: sinon.SinonStub;
-  
+
       beforeEach(() => {
         getValueStub = env
           .stub(SfdxProjectConfig, 'getValue')
           .resolves(fakeVersion as unknown);
       });
-  
+
       it('Should set the sourceApiVersion on the component set.', async () => {
         const fakeObj = {
           apiVersion: '53.0',
@@ -204,7 +204,7 @@ describe('Force Create Manifest', () => {
             return packageXML;
           }
         };
-  
+
         const packageXML = util.format(EMPTY_MANIFEST, '');
         env.stub(ComponentSet, 'fromSource').returns(fakeObj);
         env
@@ -221,7 +221,7 @@ describe('Force Create Manifest', () => {
           type: 'CONTINUE',
           data: ''
         });
-  
+
         expect(fakeObj.sourceApiVersion).to.equal(fakeVersion);
       });
     });
