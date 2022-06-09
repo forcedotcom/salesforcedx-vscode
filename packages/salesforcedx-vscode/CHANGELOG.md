@@ -1,3 +1,19 @@
+# 55.0.0 - June 10, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Thanks to a contribution from @shunkosa, we updated our Japanese commands. We love our Open Source community.  ([PR #4186](https://github.com/forcedotcom/salesforcedx-vscode/pull/4186))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some updates under the hood. ([PR #4165](https://github.com/forcedotcom/salesforcedx-vscode/pull/4165))
+
+- We fixed an issue where the `SFDX: Create Lightning Web Component Test` command threw an error when you exited out of the command prematurely. ([PR #4143](https://github.com/forcedotcom/salesforcedx-vscode/pull/4143))
+
 # 54.15.0 - June 1, 2022
 
 ## Added
