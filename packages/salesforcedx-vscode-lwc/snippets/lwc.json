@@ -57,6 +57,30 @@
       "}"
     ]
   },
+  "lwc-wire-get-records-property": {
+    "prefix": "lwc-wire-get-records-property",
+    "description": "Creates a @wire'd property for getRecords",
+    "body": [
+      "@api recordId;",
+      "",
+      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
+      "${1:records-property-name}"
+    ]
+  },
+  "lwc-wire-get-records-function": {
+    "prefix": "lwc-wire-get-records-function",
+    "description": "Creates a @wire'd function for getRecords",
+    "body": [
+      "@wire(getRecords, { records:[ { recordIds: [ $2 ], fields: [ $0 ] } ] } )",
+      "${1:records-function-name} ({error, data}) {",
+      "    if (error) {",
+      "        // TODO: Error handling",
+      "    } else if (data) {",
+      "        // TODO: Data handling",
+      "    }",
+      "}"
+    ]
+  },
   "lwc-wire-apex-function": {
     "prefix": "lwc-wire-apex-function",
     "description": "Creates a @wire'd function for Apex with data modification",
