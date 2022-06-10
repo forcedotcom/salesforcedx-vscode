@@ -31,7 +31,7 @@
     "@salesforce/salesforcedx-utils-vscode": "55.0.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "5.12.2",
-    "@salesforce/templates": "^54.8.0",
+    "@salesforce/templates": "^55.0.0",
     "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
