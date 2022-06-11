@@ -303,7 +303,7 @@
         },
         {
           "command": "sfdx.create.manifest",
-          "when": "sfdx:project_opened"
+          "when": "resource =~ /force-app/ && sfdx:project_opened"
         },
         {
           "command": "sfdx.lightning.rename",
