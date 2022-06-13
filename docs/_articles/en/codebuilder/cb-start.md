@@ -38,7 +38,7 @@ Your new Code Builder environment is now available on your dashboard.
 3. Click **Launch** to launch Code Builder in a new tab. 
 4. Now sit back and relax for a few minutes while Code Builder creates and configures your workspace. Code Builder might take a fews minutes to start up when it initially sets up.
 
-**Tip**: Once you have created your Code Builder environment, launch your Code Builder environment from the dashboard at any time, or bookmark it for fast access.
+**Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
 
 ## Let's Take A Quick Tour
 You’re now in your developer environment in Code Builder. Code Builder has VS Code’s rich IDE plus it gives you easy access to cool Salesforce development-specific tools through the Salesforce extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
@@ -152,8 +152,8 @@ Let’s create a Lightning Web Component –
 
 1. Press Ctrl+Shift+P (⇧⌘P) run **SFDX: Create Lightning Web Component** to create a New Lightning Web Component. 
 2. Give the component a name, say, `newCBComponent`.
-3. Press Enter to accept the default file location (`force-app/main/default/lwc`).
-4. Press Enter.
+3. Press **Enter** to accept the default file location (`force-app/main/default/lwc`).
+4. Press **Enter**.
 
 Three new files are created in the `force-app/main/default/lwc/newCBComponent` folder.
 
