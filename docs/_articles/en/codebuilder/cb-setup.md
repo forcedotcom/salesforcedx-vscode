@@ -15,7 +15,7 @@ Salesforce Code Builder is a second-generation (2GP) managed package that you ca
 
 ![Install Button](../../../images/install_button.png)
 
-5. Grant access and click **Continue**.
+Grant access and click **Continue**.
 
 
 
@@ -23,7 +23,7 @@ Salesforce Code Builder is a second-generation (2GP) managed package that you ca
 
 
 
-6. Click **Done**.
+Click **Done**.
 
 
 ## Assign Permissions
