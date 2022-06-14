@@ -514,6 +514,9 @@ jobs:
       - checkout
       - restore_dependency_cache
       - gh-config
+      - run:
+          name: 'Install npm 8.12'
+          command: sudo npm install -g npm@8.12.1
       - install
       - run:
           name: Install Lerna

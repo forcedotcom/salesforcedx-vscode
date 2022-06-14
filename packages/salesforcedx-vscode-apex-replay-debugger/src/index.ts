@@ -36,6 +36,7 @@ import { setupAndDebugTests } from './commands/quickLaunch';
 import { workspaceContext } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
+
 let extContext: vscode.ExtensionContext;
 
 export enum VSCodeWindowTypeEnum {
@@ -172,11 +173,11 @@ function registerDebugHandlers(): vscode.Disposable {
   return vscode.Disposable.from(customEventHandler);
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   console.log('Apex Replay Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
 
-  extContext = context;
+  extContext = extensionContext;
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
@@ -192,7 +193,7 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   // Workspace Context
-  await workspaceContext.initialize(context);
+  await workspaceContext.initialize(extensionContext);
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand(
@@ -211,7 +212,7 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   );
 
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(
     commands,
     debugHandlers,
     debugConfigProvider,
