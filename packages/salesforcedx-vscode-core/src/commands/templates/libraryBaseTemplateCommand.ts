@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config } from '@salesforce/core';
+import { Config, OrgConfigProperties } from '@salesforce/core';
 import {
   TemplateOptions,
   TemplateService,
@@ -133,7 +133,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     let customOrgMetadataTemplates;
 
     const configValue = await ConfigUtil.getConfigValue(
-      Config.CUSTOM_ORG_METADATA_TEMPLATES
+      OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     );
     if (configValue === undefined) {
       customOrgMetadataTemplates = undefined;
