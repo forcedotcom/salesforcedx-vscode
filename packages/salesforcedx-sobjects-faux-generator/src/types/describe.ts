@@ -6,17 +6,8 @@
  */
 
 import { DescribeSObjectResult, Field } from 'jsforce';
-
-export type ChildRelationship = {
-  cascadeDelete: boolean;
-  childSObject: string;
-  deprecatedAndHidden: boolean;
-  field: string;
-  junctionIdListNames: string[];
-  junctionReferenceTo: string[];
-  relationshipName: string | null | undefined;
-  restrictedDelete: boolean;
-};
+import { ChildRelationship } from 'jsforce/lib/api/soap/schema';
+export { ChildRelationship};
 
 export type SObjectField = Pick<
   Field,
