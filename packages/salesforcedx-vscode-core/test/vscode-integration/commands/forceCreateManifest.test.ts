@@ -196,6 +196,10 @@ describe('Force Create Manifest', () => {
           .resolves(fakeVersion as unknown);
       });
 
+      afterEach(() => {
+        env.restore();
+      });
+
       it('Should set the sourceApiVersion on the component set.', async () => {
         const fakeObj = {
           apiVersion: '53.0',
