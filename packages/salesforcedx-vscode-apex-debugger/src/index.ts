@@ -237,7 +237,7 @@ function notifyDebuggerSessionFileChanged(): void {
   }
 }
 
-function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
+function registerIsvAuthWatcher(extensionContext: vscode.ExtensionContext) {
   if (
     vscode.workspace.workspaceFolders instanceof Array &&
     vscode.workspace.workspaceFolders.length > 0
@@ -251,17 +251,17 @@ function registerIsvAuthWatcher(context: vscode.ExtensionContext) {
     isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
     isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
-    context.subscriptions.push(isvAuthWatcher);
+    extensionContext.subscriptions.push(isvAuthWatcher);
   }
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   console.log('Apex Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
   const commands = registerCommands();
   const fileWatchers = registerFileWatchers();
-  context.subscriptions.push(commands, fileWatchers);
-  context.subscriptions.push(
+  extensionContext.subscriptions.push(commands, fileWatchers);
+  extensionContext.subscriptions.push(
     vscode.debug.registerDebugConfigurationProvider(
       'apex',
       new DebugConfigurationProvider()
@@ -275,7 +275,7 @@ export async function activate(context: vscode.ExtensionContext) {
       // this is done in core because it shares access to GlobalCliEnvironment with the commands
       // (VS Code does not seem to allow sharing npm modules between extensions)
       try {
-        registerIsvAuthWatcher(context);
+        registerIsvAuthWatcher(extensionContext);
         console.log('Configured file watcher for .sfdx/sfdx-config.json');
         await setupGlobalDefaultUserIsvAuth();
       } catch (e) {

@@ -361,6 +361,45 @@ describe('Parameter Gatherers', () => {
         getLwcsStub.restore();
       }
     });
+
+    it('Should gracefully cancel if LWC is not selected', async () => {
+      const selector = new SelectLwcComponentDir();
+      const packageDirs = ['force-app'];
+      const filePath = path.join('force-app', 'main', 'default', 'lwc', 'test');
+      const component = SourceComponent.createVirtualComponent(
+        {
+          name: 'test',
+          type: registry.types.lightningcomponentbundle,
+          xml: path.join(filePath, 'test.js-meta.xml')
+        },
+        []
+      );
+      const mockComponents = new ComponentSet([component]);
+      const getPackageDirPathsStub = sinon.stub(
+        SfdxPackageDirectories,
+        'getPackageDirectoryPaths'
+      );
+      const getLwcsStub = sinon.stub(ComponentSet, 'fromSource');
+      getLwcsStub
+        .withArgs(path.join(getRootWorkspacePath(), packageDirs[0]))
+        .returns(mockComponents);
+      const showMenuStub = sinon.stub(selector, 'showMenu');
+      getPackageDirPathsStub.returns(packageDirs);
+      const dirChoice = packageDirs[0];
+      showMenuStub.onFirstCall().returns(dirChoice);
+      showMenuStub.onSecondCall().returns('');
+
+      const response = await selector.gather();
+      try {
+        expect(response).to.eql({
+          type: 'CANCEL'
+        });
+      } finally {
+        getPackageDirPathsStub.restore();
+        showMenuStub.restore();
+        getLwcsStub.restore();
+      }
+    });
   });
 
   describe('SimpleGatherer', () => {
