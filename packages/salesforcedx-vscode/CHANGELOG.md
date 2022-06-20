@@ -1,3 +1,17 @@
+# 55.2.0 - June 22, 2022
+
+## Fixed
+
+#### docs
+
+- Docs/Gemfile.lock to reduce vulnerabilities ([PR #4147](https://github.com/forcedotcom/salesforcedx-vscode/pull/4147))
+
+#### salesforcedx-vscode-core
+
+- Add additional context for scope of generate manifest command ([PR #4208](https://github.com/forcedotcom/salesforcedx-vscode/pull/4208))
+
+- Updated @salesforce/templates to 55.0.0.  The LWC template now adds a unit test ([PR #4203](https://github.com/forcedotcom/salesforcedx-vscode/pull/4203))
+
 # 55.0.0 - June 10, 2022
 
 ## Added
