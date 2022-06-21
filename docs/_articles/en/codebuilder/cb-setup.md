@@ -36,7 +36,7 @@ As an admin, assign user permissions:
 5. Select the checkboxes next to the names of the users you want assigned to the permission set, and click **Assign**.
 
 
-Your users can now go to the App Launcher and launch **Code Builder(Beta)**.
+Your users can now go to the App Launcher and launch **Code Builder (Beta)**.
 
 ## See Also
 [Install a Package](https://help.salesforce.com/s/articleView?id=sf.distribution_installing_packages.htm&type=5)
