@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {inputGuard, isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
+import {getParentDirectoryOfTestFolder, inputGuard, isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
 import { nls } from '../../../src/messages';
 
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
@@ -398,6 +398,26 @@ describe('Force Rename Lightning Component', () => {
       }
       expect(exceptionThrownLwc).to.equal(true);
       expect(exceptionThrownAura).to.equal(true);
+    });
+
+  });
+
+  describe('getParentDirectoryOfTestFolder function', () => {
+    beforeEach(() => {
+      statStub = env.stub(fs.promises, 'stat').resolves({
+        isFile: () => {
+          return false;
+        }
+      });
+    });
+    afterEach(() => {
+      env.restore();
+    });
+    it('should correctly return parent component directory of __tests__ directory', async () => {
+      const pathWithoutTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent).toString();
+      const pathWithTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent, testFolder).toString();
+      const result2 = await getParentDirectoryOfTestFolder(pathWithTestDirectory);
+      expect(result2).to.equal(pathWithoutTestDirectory);
     });
   });
 });
