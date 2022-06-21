@@ -403,21 +403,18 @@ describe('Force Rename Lightning Component', () => {
   });
 
   describe('getParentDirectoryOfTestFolder function', () => {
-    beforeEach(() => {
-      statStub = env.stub(fs.promises, 'stat').resolves({
-        isFile: () => {
-          return false;
-        }
-      });
+    it('should return parent component directory of __tests__ directory on windows', async () => {
+      const windowsPathWithoutTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent).toString().replace(/\//g, '\\');
+      const windowsPathWithTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent, testFolder).toString().replace(/\//g, '\\');
+      const windowsResult = getParentDirectoryOfTestFolder(windowsPathWithTestDirectory, '\\');
+      expect(windowsResult).to.equal(windowsPathWithoutTestDirectory);
     });
-    afterEach(() => {
-      env.restore();
-    });
-    it('should correctly return parent component directory of __tests__ directory', async () => {
-      const pathWithoutTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent).toString();
-      const pathWithTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent, testFolder).toString();
-      const result2 = await getParentDirectoryOfTestFolder(pathWithTestDirectory);
-      expect(result2).to.equal(pathWithoutTestDirectory);
+
+    it('should return parent component directory of __tests__ directory on linux', async () => {
+      const linuxPathWithoutTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent).toString();
+      const linuxPathWithTestDirectory = vscode.Uri.joinPath(lwcPath, lwcComponent, testFolder).toString();
+      const linuxResult = getParentDirectoryOfTestFolder(linuxPathWithTestDirectory, '/');
+      expect(linuxResult).to.equal(linuxPathWithoutTestDirectory);
     });
   });
 });

@@ -307,7 +307,7 @@
         },
         {
           "command": "sfdx.lightning.rename",
-          "when": "sfdx:project_opened && resource =~ /.*/(lwc|aura)/[^/]+(/[^/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
+          "when": "sfdx:project_opened && resource =~ /.*/(lwc|aura)/.*(/[^/]+\\.(html|css|js|xml|svg|cmp|app|design|auradoc))?$/"
         }
       ],
       "commandPalette": [

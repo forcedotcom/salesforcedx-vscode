@@ -132,17 +132,17 @@ async function renameComponent(sourceFsPath: string, newName: string) {
   notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
 }
 
-export function getParentDirectoryOfTestFolder(sourceFsPath: string): string {
-  const directories = sourceFsPath.split(path.sep);
+export function getParentDirectoryOfTestFolder(sourceFsPath: string, pathSeparator: string): string {
+  const directories = sourceFsPath.split(pathSeparator);
   directories.splice(directories.length - 1);
-  return directories.join(path.sep);
+  return directories.join(pathSeparator);
 }
 
 async function getComponentPath(sourceFsPath: string): Promise<string> {
   const stats = await fs.promises.stat(sourceFsPath);
   let dirname = stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
   if (dirname.endsWith(TEST_FOLDER)) {
-    dirname = getParentDirectoryOfTestFolder(dirname);
+    dirname = getParentDirectoryOfTestFolder(dirname, path.sep);
   }
   return dirname;
 }
