@@ -18,7 +18,7 @@ Want to develop locally? Already using VS Code? Install Salesforce Extensions an
 
 ### Code Builder (Beta)
 
-Code Builder is a browser-based version of Salesforce Extensions, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. Code Builder is currently in beta and is available for a test-drive on a first-come-first-serve basis. See [Code Builder Overview](https://developer.salesforce.com/tools/vscode/en/codebuilder/about) for more information. 
+Code Builder is a browser-based version of the desktop experience, with everything installed and pre-configured for you. It's provides all the goodness of the desktop experience, but provides you the flexibility to work anywhere, from any computer. Code Builder is currently in beta and is available for a test-drive on a first-come-first-serve basis. See [Code Builder Overview](https://developer.salesforce.com/tools/vscode/en/codebuilder/about) for more information. 
 
 
 ## Additional Resources
