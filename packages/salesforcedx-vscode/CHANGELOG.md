@@ -8,7 +8,7 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue where you could run the `SFDX Generate Manifest File` command to create a manifest file from any folder in your project. The command is now only available by right clicking on the `force-app`, package directory folder.  ([PR #4208](https://github.com/forcedotcom/salesforcedx-vscode/pull/4208))
+- We fixed an issue where you could run the `SFDX Generate Manifest File` command to create a manifest file from any folder in your project. The command is now only available by right clicking on any folder or file in the `force-app`, package directory folder.  ([PR #4208](https://github.com/forcedotcom/salesforcedx-vscode/pull/4208))
 
 - We updated @salesforce/templates to 55.0.0 to give you a default unit test in addition to the other component files when you create a new LWC component using the template. ([PR #4203](https://github.com/forcedotcom/salesforcedx-vscode/pull/4203))
 
