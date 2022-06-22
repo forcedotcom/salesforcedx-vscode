@@ -79,7 +79,7 @@ function openUntitledDocument(componentSet: ComponentSet) {
   vscode.workspace.openTextDocument({
     content: componentSet.getPackageXml(),
     language: 'xml'
-  }).then(newManifest => {
+  }).then((newManifest: any) => {
     vscode.window.showTextDocument(newManifest);
   });
 }
@@ -95,7 +95,7 @@ function saveDocument(response: string, componentSet: ComponentSet) {
   checkForDuplicateManifest(saveLocation, fileName);
 
   fs.writeFileSync(saveLocation, componentSet.getPackageXml());
-  vscode.workspace.openTextDocument(saveLocation).then(newManifest => {
+  vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
     vscode.window.showTextDocument(newManifest);
   });
 }

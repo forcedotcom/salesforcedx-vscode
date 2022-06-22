@@ -9,7 +9,7 @@ import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import * as fs from 'fs';
-import util = require('util');
+import * as util from 'util';
 import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
