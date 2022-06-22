@@ -215,7 +215,7 @@
         },
         {
           "command": "sfdx.force.apex.class.create",
-          "when": "explorerResourceIsFolder && resourceFilename == classes && sfdx:project_opened"
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sfdx:project_opened"
         },
         {
           "command": "sfdx.force.folder.diff",
