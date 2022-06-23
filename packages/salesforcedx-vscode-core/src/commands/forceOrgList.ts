@@ -47,7 +47,6 @@ export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
 }
 
 export async function forceOrgList(arg1: any, arg2: any, arg3: any) {
-  
   if (extensionUri) {
     OrgListPanel.render(extensionUri);
   }
@@ -101,11 +100,10 @@ export async function forceOrgList(arg1: any, arg2: any, arg3: any) {
     .withArg('--json')
     .build();
 
-  const cwd = getRootWorkspacePath();
   const cliCommandExecutor = new CliCommandExecutor(
     sfdxCommandBuilder,
     {
-      cwd
+      cwd: getRootWorkspacePath()
     }
   );
 
