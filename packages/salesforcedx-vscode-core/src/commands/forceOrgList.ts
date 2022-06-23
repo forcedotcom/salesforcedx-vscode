@@ -37,7 +37,7 @@ export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
     return new SfdxCommandBuilder()
       // .withDescription(nls.localize('force_org_list_clean_text'))
       .withArg('force:org:list')
-      // .withArg('--clean')
+      .withArg('--all')
       // .withArg('--noprompt')
       // .withLogName('force_org_list_clean')
       .withArg('--json')
@@ -95,6 +95,7 @@ export async function forceOrgList(arg1: any, arg2: any, arg3: any) {
     //   env: this.requestService.getEnvVars()
     // };
     .withArg('force:org:list')
+    .withArg('--all')
     .withArg('--json')
     .build();
 
@@ -124,9 +125,10 @@ export async function forceOrgList(arg1: any, arg2: any, arg3: any) {
           c) don't use CLI and get the lists from a library
       */
 
-      OrgListPanel.setData(commandResult.result);
+      OrgListPanel.setViewOrgListData(commandResult.result);
     } else {
       // TODO: report error
+      debugger;
     }
 
     // const breakpointId = JSON.parse(result).result.id as string;

@@ -50,6 +50,20 @@ export class OrgListPanel {
           <script type="module" src="${toolkitUri}"></script>
           <script type="module" src="${mainUri}"></script>
           <title>Org List</title>
+          <style>
+            .connected-text {
+              color: #6BDB4F;
+              background-color: #FFFFFF;
+            }
+
+            .active-text {
+              color: #6BDB4F;
+            }
+
+            .deleted-text {
+              color: #EE907C;
+            }
+          </style>
         </head>
         <body>
           <h1>
@@ -141,7 +155,7 @@ export class OrgListPanel {
 
                 <vscode-data-grid
                   class='all-scratch-orgs-data-grid'
-                  grid-template-columns='80px 240px 320px 200px 100px 200px'
+                  grid-template-columns='240px 320px 200px 200px 200px 200px'
                   aria-label='All Scratch Orgs'
                 >
                 </vscode-data-grid>
@@ -154,7 +168,11 @@ export class OrgListPanel {
             window.addEventListener('message', event => {
               const eventData = event.data;
               switch (eventData.command) {
-                case 'setData':
+                case 'setViewOrgListData':
+
+                  // jab
+                  debugger;
+
                   var result = eventData.result;
 
                   var retrievingDataEl = document.getElementById('retrieving-data');
@@ -162,7 +180,7 @@ export class OrgListPanel {
 
 
 
-                  // this is for "current" (sfdx force:org:list --json) and not "all
+                  // this is for "current" (sfdx force:org:list --json) and not "all"
                   var nonScratchOrgs = result.nonScratchOrgs;
 
                   const nonScratchOrgsDataGrid = document.querySelector('.non-scratch-orgs-data-grid');
@@ -175,11 +193,14 @@ export class OrgListPanel {
 
                   const nonScratchOrgsRowsData = [];
                   nonScratchOrgs.forEach(nonScratchOrg => {
+                    const connectedStatus = (nonScratchOrg.connectedStatus === 'Connected')
+                      ? '<span style="connected-text">Connected</span>'
+                      : nonScratchOrg.connectedStatus;
                     nonScratchOrgsRowsData.push({
                       columnKey0: nonScratchOrg.alias,
                       columnKey1: nonScratchOrg.username,
                       columnKey2: nonScratchOrg.orgId,
-                      columnKey3: nonScratchOrg.connectedStatus
+                      columnKey3: connectedStatus
                     });
                   });
                   nonScratchOrgsDataGrid.rowsData = nonScratchOrgsRowsData;
@@ -197,17 +218,85 @@ export class OrgListPanel {
 
                   const scratchOrgsRowsData = [];
                   scratchOrgs.forEach(scratchOrg => {
-                    scratchOrgsRowsData.push({
-                      columnKey0: scratchOrg.alias,
-                      columnKey1: scratchOrg.username,
-                      columnKey2: scratchOrg.orgId,
-                      columnKey3: scratchOrg.expirationDate
-                    });
+                    if(scratchOrg.isExpired === false) {
+                      scratchOrgsRowsData.push({
+                        columnKey0: scratchOrg.alias,
+                        columnKey1: scratchOrg.username,
+                        columnKey2: scratchOrg.orgId,
+                        columnKey3: scratchOrg.expirationDate
+                      });
+                    }
                   });
                   scratchOrgsDataGrid.rowsData = scratchOrgsRowsData;
 
 
+
+
+
+
+                  // jab
+                  debugger;
+
                   // Now need to set the data for sfdx force:org:list --all
+
+
+                  //var nonScratchOrgs = result.nonScratchOrgs;
+
+                  const allNonScratchOrgsDataGrid = document.querySelector('.all-non-scratch-orgs-data-grid');
+                  allNonScratchOrgsDataGrid.columnDefinitions = [
+                    { columnDataKey: 'columnKey0', title: 'ALIAS' },
+                    { columnDataKey: 'columnKey1', title: 'USERNAME' },
+                    { columnDataKey: 'columnKey2', title: 'ORG ID' },
+                    { columnDataKey: 'columnKey3', title: 'CONNECTED STATUS' }
+                  ];
+
+                  const allNonScratchOrgsRowsData = [];
+                  nonScratchOrgs.forEach(nonScratchOrg => {
+                    const connectedStatus = (nonScratchOrg.connectedStatus === 'Connected')
+                      ? '<span style="connected-text">Connected</span>'
+                      : nonScratchOrg.connectedStatus;
+                    allNonScratchOrgsRowsData.push({
+                      columnKey0: nonScratchOrg.alias,
+                      columnKey1: nonScratchOrg.username,
+                      columnKey2: nonScratchOrg.orgId,
+                      columnKey3: connectedStatus
+                    });
+                  });
+                  allNonScratchOrgsDataGrid.rowsData = allNonScratchOrgsRowsData;
+
+                  //
+                  debugger;
+
+                  //var scratchOrgs = result.scratchOrgs;
+
+                  const allScratchOrgsDataGrid = document.querySelector('.all-scratch-orgs-data-grid');
+                  allScratchOrgsDataGrid.columnDefinitions = [
+                    { columnDataKey: 'columnKey0', title: 'ALIAS' },
+                    { columnDataKey: 'columnKey1', title: 'USERNAME' },
+                    { columnDataKey: 'columnKey2', title: 'ORG ID' },
+                    { columnDataKey: 'columnKey3', title: 'STATUS' },
+                    { columnDataKey: 'columnKey4', title: 'EXPIRATION DATE' }
+                  ];
+
+                  //
+                  debugger;
+
+                  const allScratchOrgsRowsData = [];
+                  scratchOrgs.forEach(scratchOrg => {
+                    allScratchOrgsRowsData.push({
+                      columnKey0: scratchOrg.alias,
+                      columnKey1: scratchOrg.username,
+                      columnKey2: scratchOrg.orgId,
+                      columnKey3: scratchOrg.status,
+                      columnKey4: scratchOrg.expirationDate
+                    });
+                  });
+                  allScratchOrgsDataGrid.rowsData = allScratchOrgsRowsData;
+                  /*
+                  */
+
+
+
 
 
                   // Now display the the content (the panel and the grids)
@@ -268,13 +357,13 @@ export class OrgListPanel {
     }
   }
 
-  public static setData(result: any) {
+  public static setViewOrgListData(result: any) {
     if (!OrgListPanel.current) {
       return;
     }
 
     OrgListPanel.current._webviewPanel.webview.postMessage({
-      command: 'setData',
+      command: 'setViewOrgListData',
       result
     });
   }
