@@ -10,7 +10,6 @@ const COMMIT = 'COMMIT';
 const TYPE = 'TYPE';
 const MESSAGE = 'MESSAGE';
 const FILES_CHANGED = 'FILES_CHANGED';
-const RELEASE_DATE_ARG = '-t';
 const PACKAGES = 'PACKAGES';
 const TYPE_HEADER = '\n## %s\n';
 const SECTION_HEADER = '\n#### %s\n';
@@ -47,7 +46,7 @@ function getPreviousReleaseBranch(releaseBranch) {
  function getReleaseBranches() {
   return shell
     .exec(
-      `git branch --remotes --list --sort='-creatordate' '${constants.RELEASE_BRANCH_PREFIX}*'`,
+      `git branch --remotes --list --sort='-creatordate' '${constants.REMOTE_RELEASE_BRANCH_PREFIX}*'`,
       { silent: false }
     )
     .replace(/\n/g, ',')
@@ -264,7 +263,7 @@ function filterPackageNames(packageHeaders) {
  */
 function generateKey(packageName, type, packagesToIgnore) {
   if (
-    typesToIgnore.includes(type) ||
+    typesToIgnore.some(typeToIgnore => !type || type.startsWith(typeToIgnore)) ||
     packagesToIgnore.includes(packageName)
   ) {
     return '';
@@ -274,26 +273,16 @@ function generateKey(packageName, type, packagesToIgnore) {
 }
 
 function getReleaseDate() {
-  const dateArg = getArgumentValue(RELEASE_DATE_ARG);
-  return dateArg
-    ? dateArg
-    : new Intl.DateTimeFormat('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric'
-      }).format(new Date());
+  // We want to ideally release two days from the day the release branch is cut
+  // (typically branch cut happens Monday and release on Wednesday)
+  let releaseDate = new Date();
+  releaseDate.setDate(releaseDate.getDate() + 2);
+  return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    }).format(releaseDate);
 }
-
-function getArgumentValue(arg) {
-  const argIndex = process.argv.indexOf(arg);
-  if (argIndex > -1) {
-    const argValue = process.argv[argIndex + 1];
-    return argValue && !argValue.startsWith('-') ? argValue : '';
-  } else {
-    return '';
-  }
-}
-
 
 module.exports = {
   getPreviousReleaseBranch, parseCommits, getMessagesGroupedByPackage, getChangeLogText, getCommits, writeChangeLog

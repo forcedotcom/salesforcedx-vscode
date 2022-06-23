@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { LocalRunProcess } from '@heroku/functions-core';
 import { vscodeStub } from '@salesforce/salesforcedx-utils-vscode/out/test/unit/commands/mocks';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
@@ -216,19 +217,14 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
   });
 
   it('Should be able to call methods that are no-ops for containerless mode.', async () => {
-    const disposable = { dispose: stub() };
     const executor = new ForceFunctionContainerlessStartExecutor(
       START_KEY,
       LOG_NAME
     );
     const listenerResult = await executor.setupFunctionListeners(
-      'funDirPath',
-      disposable
+      'funDirPath'
     );
     expect(listenerResult).to.equal(undefined);
-    const cancelResult = await executor.cancelFunction(disposable);
-    expect(cancelResult).to.equal(undefined);
-    assert.calledOnce(disposable.dispose);
     const buildResult = await executor.buildFunction('nameMe', 'funDirPath');
     expect(buildResult).to.equal(undefined);
   });
@@ -260,7 +256,32 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
     assert.calledOnce(fakeLocalRunInst.exec);
   });
 
-  it('Should call telementry when localRun fails.', async () => {
+  it('Should be able to cancel running function.', async () => {
+    const fakeProcess = { cancel: stub().resolves() };
+    const fakeLocalRunInst = {
+      exec: stub().resolves(fakeProcess)
+    };
+    const disposable = {
+      dispose: stub()
+    };
+    const executor = new ForceFunctionContainerlessStartExecutor(
+      START_KEY,
+      LOG_NAME
+    );
+    localRunConstructorStub.returns(fakeLocalRunInst);
+
+    // Sets the local process
+    await executor.startFunction('foo', 'bar');
+
+    // have to wait for the unawaited promise in exec().then() to resolve
+    await Promise.resolve();
+
+    await executor.cancelFunction(disposable);
+    assert.calledOnce(fakeProcess.cancel);
+    assert.calledOnce(disposable.dispose);
+  });
+
+  it('Should call telemetry when localRun fails.', async () => {
     const fakeType = 'typescript';
     getFunctionTypeStub.returns(fakeType);
     const errMessage = 'oh noes. FAIL';

@@ -6,6 +6,7 @@
  */
 import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce';
 import * as path from 'path';
@@ -20,6 +21,10 @@ const validManageableStates = new Set([
   'deprecatedEditable',
   undefined // not part of a package
 ]);
+
+const STANDARDVALUESET_FULLNAME = 'StandardValueSet';
+
+export const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 
 export class ComponentUtils {
   public async getComponentsPath(
@@ -157,18 +162,19 @@ export class ComponentUtils {
       defaultOrg,
       folderName
     );
-
     let componentsList: string[];
+    const freshFetch = (forceRefresh || !fs.existsSync(componentsPath));
     const connection = await workspaceContext.getConnection();
-
-    if (metadataType === 'CustomObject' && folderName) {
-      if (forceRefresh || !fs.existsSync(componentsPath)) {
+    if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
+      if (freshFetch) {
         componentsList = await this.fetchCustomObjectsFields(connection, componentsPath, folderName);
       } else {
         componentsList = this.fetchExistingCustomObjectsFields(componentsPath);
       }
+    } else if (metadataType === STANDARDVALUESET_FULLNAME) {
+      componentsList = standardValueSet.fullnames;
     } else {
-      if (forceRefresh || !fs.existsSync(componentsPath)) {
+      if (freshFetch) {
         componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);
       } else {
         componentsList = this.fetchExistingMetadataComponents(metadataType, componentsPath);

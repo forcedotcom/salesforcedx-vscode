@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
 import { workspaceContext } from '../../context';
+import { nls } from '../../messages';
 import { getRootWorkspace, getRootWorkspacePath } from '../../util';
 
 /**
@@ -52,10 +53,11 @@ export interface FunctionExecution extends Terminable {
    * Active debug session attached
    */
   debugSession?: vscode.DebugSession;
+  /**
+   * Flag to determine whether running in a container
+   */
+  isContainerLess: boolean;
 }
-
-export const FUNCTION_TYPE_ERROR =
-  'Unable to determine type of executing function.';
 
 export class FunctionService {
   private static _instance: FunctionService;
@@ -110,7 +112,7 @@ export class FunctionService {
     };
   }
 
-  public updateFunction(rootDir: string, debugType: string): void {
+  public updateFunction(rootDir: string, debugType: string, isContainerLess: boolean): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const type = debugType.toLowerCase();
@@ -119,6 +121,8 @@ export class FunctionService {
       } else if (type.startsWith('java') || type.startsWith('jvm')) {
         functionExecution.debugType = 'java';
       }
+
+      functionExecution.isContainerLess = isContainerLess;
     }
   }
 
@@ -155,8 +159,10 @@ export class FunctionService {
 
       return functionType.JAVA;
     }
-    throw new Error(FUNCTION_TYPE_ERROR);
+
+    throw new Error(nls.localize('error_function_type'));
   }
+
   /**
    * Stop all started function containers
    */
@@ -180,27 +186,43 @@ export class FunctionService {
    */
   public async debugFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
-    if (functionExecution) {
-      const { debugPort, debugType } = functionExecution;
-      const debugConfiguration: vscode.DebugConfiguration = {
-        type: debugType,
-        request: 'attach',
-        name: 'Debug Invoke', // This name doesn't surface in UI
-        resolveSourceMapLocations: ['**', '!**/node_modules/**'],
-        console: 'integratedTerminal',
-        internalConsoleOptions: 'openOnSessionStart',
-        localRoot: rootDir,
-        remoteRoot: '/workspace',
-        hostName: '127.0.0.1',
-        port: debugPort
-      };
-      if (!functionExecution.debugSession) {
-        await vscode.debug.startDebugging(
-          getRootWorkspace(),
-          debugConfiguration
-        );
-      }
+    if (!functionExecution) {
+      throw new Error(nls.localize('error_unable_to_get_started_function').replace('{0}', rootDir));
     }
+
+    if (!functionExecution.debugSession) {
+      const debugConfiguration = this.getDebugConfiguration(functionExecution, rootDir);
+
+      await vscode.debug.startDebugging(
+        getRootWorkspace(),
+        debugConfiguration
+      );
+    }
+  }
+
+  /***
+   * Create a DebugConfiguration object
+   */
+  public getDebugConfiguration(functionExecution: FunctionExecution, rootDir: string): vscode.DebugConfiguration {
+    const { debugPort, debugType } = functionExecution;
+    const debugConfiguration: vscode.DebugConfiguration = {
+      type: debugType,
+      request: 'attach',
+      name: 'Debug Invoke', // This name doesn't surface in UI
+      resolveSourceMapLocations: ['**', '!**/node_modules/**'],
+      console: 'integratedTerminal',
+      internalConsoleOptions: 'openOnSessionStart',
+      localRoot: rootDir,
+      remoteRoot: '/workspace',
+      hostName: '127.0.0.1',
+      port: debugPort
+    };
+
+    if (functionExecution.isContainerLess) {
+      delete debugConfiguration.remoteRoot;
+    }
+
+    return debugConfiguration;
   }
 
   /**
@@ -217,10 +239,10 @@ export class FunctionService {
 
   /**
    * Register listeners for debug session start/stop events and keep track of active debug sessions
-   * @param context extension context
+   * @param extensionContext extension context
    */
   public handleDidStartTerminateDebugSessions(
-    context: vscode.ExtensionContext
+    extensionContext: vscode.ExtensionContext
   ) {
     const handleDidStartDebugSession = vscode.debug.onDidStartDebugSession(
       session => {
@@ -249,7 +271,7 @@ export class FunctionService {
         });
       }
     );
-    context.subscriptions.push(
+    extensionContext.subscriptions.push(
       handleDidStartDebugSession,
       handleDidTerminateDebugSession
     );
