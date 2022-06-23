@@ -53,7 +53,6 @@ export class OrgListPanel {
           <style>
             .connected-text {
               color: #6BDB4F;
-              background-color: #FFFFFF;
             }
 
             .active-text {
@@ -106,7 +105,7 @@ export class OrgListPanel {
                 <div>
                   <vscode-data-grid
                     class='non-scratch-orgs-data-grid'
-                    grid-template-columns='240px 320px 200px 200px'
+                    grid-template-columns='50px 1fr 2fr 1fr 1fr'
                     aria-label='Non Scratch Orgs'
                   >
                   </vscode-data-grid>
@@ -123,7 +122,7 @@ export class OrgListPanel {
                 <div>
                   <vscode-data-grid
                     class='scratch-orgs-data-grid'
-                    grid-template-columns='240px 320px 200px 200px'
+                    grid-template-columns='50px 1fr 2fr 1fr 1fr'
                     aria-label='Scratch Orgs'
                   >
                   </vscode-data-grid>
@@ -140,7 +139,7 @@ export class OrgListPanel {
 
                 <vscode-data-grid
                   class='all-non-scratch-orgs-data-grid'
-                  grid-template-columns='240px 320px 200px 200px'
+                  grid-template-columns='50px 1fr 2fr 1fr 1fr'
                   aria-label='All Non Scratch Orgs'
                 >
                 </vscode-data-grid>
@@ -155,7 +154,7 @@ export class OrgListPanel {
 
                 <vscode-data-grid
                   class='all-scratch-orgs-data-grid'
-                  grid-template-columns='240px 320px 200px 200px 200px 200px'
+                  grid-template-columns='50px 1fr 2fr 1fr 1fr'
                   aria-label='All Scratch Orgs'
                 >
                 </vscode-data-grid>
@@ -185,22 +184,21 @@ export class OrgListPanel {
 
                   const nonScratchOrgsDataGrid = document.querySelector('.non-scratch-orgs-data-grid');
                   nonScratchOrgsDataGrid.columnDefinitions = [
-                    { columnDataKey: 'columnKey0', title: 'ALIAS' },
-                    { columnDataKey: 'columnKey1', title: 'USERNAME' },
-                    { columnDataKey: 'columnKey2', title: 'ORG ID' },
-                    { columnDataKey: 'columnKey3', title: 'CONNECTED STATUS' }
+                    { columnDataKey: 'columnKey0', title: '' },
+                    { columnDataKey: 'columnKey1', title: 'ALIAS' },
+                    { columnDataKey: 'columnKey2', title: 'USERNAME' },
+                    { columnDataKey: 'columnKey3', title: 'ORG ID' },
+                    { columnDataKey: 'columnKey4', title: 'CONNECTED STATUS' }
                   ];
 
                   const nonScratchOrgsRowsData = [];
                   nonScratchOrgs.forEach(nonScratchOrg => {
-                    const connectedStatus = (nonScratchOrg.connectedStatus === 'Connected')
-                      ? '<span style="connected-text">Connected</span>'
-                      : nonScratchOrg.connectedStatus;
                     nonScratchOrgsRowsData.push({
-                      columnKey0: nonScratchOrg.alias,
-                      columnKey1: nonScratchOrg.username,
-                      columnKey2: nonScratchOrg.orgId,
-                      columnKey3: connectedStatus
+                      columnKey0: nonScratchOrg.isDefaultDevHubUsername ? '(D)' : '',
+                      columnKey1: nonScratchOrg.alias,
+                      columnKey2: nonScratchOrg.username,
+                      columnKey3: nonScratchOrg.orgId,
+                      columnKey4: nonScratchOrg.connectedStatus
                     });
                   });
                   nonScratchOrgsDataGrid.rowsData = nonScratchOrgsRowsData;
@@ -210,20 +208,22 @@ export class OrgListPanel {
 
                   const scratchOrgsDataGrid = document.querySelector('.scratch-orgs-data-grid');
                   scratchOrgsDataGrid.columnDefinitions = [
-                    { columnDataKey: 'columnKey0', title: 'ALIAS' },
-                    { columnDataKey: 'columnKey1', title: 'USERNAME' },
-                    { columnDataKey: 'columnKey2', title: 'ORG ID' },
-                    { columnDataKey: 'columnKey3', title: 'EXPIRATION DATE' }
+                    { columnDataKey: 'columnKey0', title: '' },
+                    { columnDataKey: 'columnKey1', title: 'ALIAS' },
+                    { columnDataKey: 'columnKey2', title: 'USERNAME' },
+                    { columnDataKey: 'columnKey3', title: 'ORG ID' },
+                    { columnDataKey: 'columnKey4', title: 'EXPIRATION DATE' }
                   ];
 
                   const scratchOrgsRowsData = [];
                   scratchOrgs.forEach(scratchOrg => {
                     if(scratchOrg.isExpired === false) {
                       scratchOrgsRowsData.push({
-                        columnKey0: scratchOrg.alias,
-                        columnKey1: scratchOrg.username,
-                        columnKey2: scratchOrg.orgId,
-                        columnKey3: scratchOrg.expirationDate
+                        columnKey0: scratchOrg.isDefaultUsername ? '(U)' : '',
+                        columnKey1: scratchOrg.alias,
+                        columnKey2: scratchOrg.username,
+                        columnKey3: scratchOrg.orgId,
+                        columnKey4: scratchOrg.expirationDate
                       });
                     }
                   });
@@ -244,22 +244,21 @@ export class OrgListPanel {
 
                   const allNonScratchOrgsDataGrid = document.querySelector('.all-non-scratch-orgs-data-grid');
                   allNonScratchOrgsDataGrid.columnDefinitions = [
-                    { columnDataKey: 'columnKey0', title: 'ALIAS' },
-                    { columnDataKey: 'columnKey1', title: 'USERNAME' },
-                    { columnDataKey: 'columnKey2', title: 'ORG ID' },
-                    { columnDataKey: 'columnKey3', title: 'CONNECTED STATUS' }
+                    { columnDataKey: 'columnKey0', title: '' },
+                    { columnDataKey: 'columnKey1', title: 'ALIAS' },
+                    { columnDataKey: 'columnKey2', title: 'USERNAME' },
+                    { columnDataKey: 'columnKey3', title: 'ORG ID' },
+                    { columnDataKey: 'columnKey4', title: 'CONNECTED STATUS' }
                   ];
 
                   const allNonScratchOrgsRowsData = [];
                   nonScratchOrgs.forEach(nonScratchOrg => {
-                    const connectedStatus = (nonScratchOrg.connectedStatus === 'Connected')
-                      ? '<span style="connected-text">Connected</span>'
-                      : nonScratchOrg.connectedStatus;
                     allNonScratchOrgsRowsData.push({
-                      columnKey0: nonScratchOrg.alias,
-                      columnKey1: nonScratchOrg.username,
-                      columnKey2: nonScratchOrg.orgId,
-                      columnKey3: connectedStatus
+                      columnKey0: nonScratchOrg.isDefaultDevHubUsername ? '(D)' : '',
+                      columnKey1: nonScratchOrg.alias,
+                      columnKey2: nonScratchOrg.username,
+                      columnKey3: nonScratchOrg.orgId,
+                      columnKey4: nonScratchOrg.connectedStatus
                     });
                   });
                   allNonScratchOrgsDataGrid.rowsData = allNonScratchOrgsRowsData;
@@ -271,11 +270,12 @@ export class OrgListPanel {
 
                   const allScratchOrgsDataGrid = document.querySelector('.all-scratch-orgs-data-grid');
                   allScratchOrgsDataGrid.columnDefinitions = [
-                    { columnDataKey: 'columnKey0', title: 'ALIAS' },
-                    { columnDataKey: 'columnKey1', title: 'USERNAME' },
-                    { columnDataKey: 'columnKey2', title: 'ORG ID' },
-                    { columnDataKey: 'columnKey3', title: 'STATUS' },
-                    { columnDataKey: 'columnKey4', title: 'EXPIRATION DATE' }
+                    { columnDataKey: 'columnKey0', title: '' },
+                    { columnDataKey: 'columnKey1', title: 'ALIAS' },
+                    { columnDataKey: 'columnKey2', title: 'USERNAME' },
+                    { columnDataKey: 'columnKey3', title: 'ORG ID' },
+                    { columnDataKey: 'columnKey4', title: 'STATUS' },
+                    { columnDataKey: 'columnKey5', title: 'EXPIRATION DATE' }
                   ];
 
                   //
@@ -284,11 +284,12 @@ export class OrgListPanel {
                   const allScratchOrgsRowsData = [];
                   scratchOrgs.forEach(scratchOrg => {
                     allScratchOrgsRowsData.push({
-                      columnKey0: scratchOrg.alias,
-                      columnKey1: scratchOrg.username,
-                      columnKey2: scratchOrg.orgId,
-                      columnKey3: scratchOrg.status,
-                      columnKey4: scratchOrg.expirationDate
+                      columnKey0: scratchOrg.isDefaultUsername ? '(U)' : '',
+                      columnKey1: scratchOrg.alias,
+                      columnKey2: scratchOrg.username,
+                      columnKey3: scratchOrg.orgId,
+                      columnKey4: scratchOrg.status,
+                      columnKey5: scratchOrg.expirationDate
                     });
                   });
                   allScratchOrgsDataGrid.rowsData = allScratchOrgsRowsData;
@@ -302,6 +303,19 @@ export class OrgListPanel {
                   // Now display the the content (the panel and the grids)
                   var orgListContentEl = document.getElementById('org-list-content');
                   orgListContentEl.style.display = 'contents';
+
+                  setTimeout(() => {
+                    document.querySelectorAll('.non-scratch-orgs-data-grid [grid-column="5"]').forEach(el => {
+                      if (el.textContent === 'Connected') {
+                        el.classList.add('connected-text');
+                      }
+                    });
+                    document.querySelectorAll('vscode-data-grid [grid-column="1"]').forEach(el => {
+                      if (el.textContent === '(D)' || el.textContent === '(U)') {
+                        el.classList.add('connected-text');
+                      }
+                    });
+                  }, 250);
                   break;
               }
 
