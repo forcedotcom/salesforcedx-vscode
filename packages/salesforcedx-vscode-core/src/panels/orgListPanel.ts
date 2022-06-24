@@ -139,7 +139,7 @@ export class OrgListPanel {
 
                 <vscode-data-grid
                   class='all-non-scratch-orgs-data-grid'
-                  grid-template-columns='50px 1fr 2fr 1fr 1fr'
+                  grid-template-columns='50px 1fr 2fr 1fr 2fr'
                   aria-label='All Non Scratch Orgs'
                 >
                 </vscode-data-grid>
@@ -154,7 +154,7 @@ export class OrgListPanel {
 
                 <vscode-data-grid
                   class='all-scratch-orgs-data-grid'
-                  grid-template-columns='50px 1fr 2fr 1fr 1fr'
+                  grid-template-columns='50px 1fr 2fr 1fr 1fr 1fr'
                   aria-label='All Scratch Orgs'
                 >
                 </vscode-data-grid>
@@ -248,7 +248,7 @@ export class OrgListPanel {
                     { columnDataKey: 'columnKey1', title: 'ALIAS' },
                     { columnDataKey: 'columnKey2', title: 'USERNAME' },
                     { columnDataKey: 'columnKey3', title: 'ORG ID' },
-                    { columnDataKey: 'columnKey4', title: 'CONNECTED STATUS' }
+                    { columnDataKey: 'columnKey4', title: 'STATUS' }
                   ];
 
                   const allNonScratchOrgsRowsData = [];
@@ -275,7 +275,7 @@ export class OrgListPanel {
                     { columnDataKey: 'columnKey2', title: 'USERNAME' },
                     { columnDataKey: 'columnKey3', title: 'ORG ID' },
                     { columnDataKey: 'columnKey4', title: 'STATUS' },
-                    { columnDataKey: 'columnKey5', title: 'EXPIRATION DATE' }
+                    { columnDataKey: 'columnKey5', title: 'EXPIRATION' }
                   ];
 
                   //
