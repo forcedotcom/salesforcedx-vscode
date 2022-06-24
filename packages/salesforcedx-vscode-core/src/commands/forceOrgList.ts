@@ -30,6 +30,7 @@ import { OrgListPanel } from '../panels/orgListPanel';
 
 // import { extensionUri, getExtensionUri } from '../index'
 import { extensionUri } from '../index'
+import { getRootWorkspacePath } from '../util';
 
 
 export class ForceOrgListExecutor extends SfdxCommandletExecutor<{}> {
@@ -102,7 +103,7 @@ export async function forceOrgList(arg1: any, arg2: any, arg3: any) {
   const cliCommandExecutor = new CliCommandExecutor(
     sfdxCommandBuilder,
     {
-      cwd: process.cwd(),
+      cwd: getRootWorkspacePath()
     }
   );
 
