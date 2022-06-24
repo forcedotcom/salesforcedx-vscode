@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  flushFilePath
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
   CancelResponse,
   ContinueResponse,
   LocalComponent,
@@ -53,8 +56,9 @@ export class EmptyParametersGatherer implements ParametersGatherer<{}> {
 
 export class FilePathGatherer implements ParametersGatherer<string> {
   private filePath: string;
+
   public constructor(uri: vscode.Uri) {
-    this.filePath = uri.fsPath;
+    this.filePath = flushFilePath(uri.fsPath);
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {

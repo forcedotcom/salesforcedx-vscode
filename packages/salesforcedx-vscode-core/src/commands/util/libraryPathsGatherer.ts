@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  flushFilePaths
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -16,7 +19,9 @@ export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
     this.uris = uris;
   }
   public async gather(): Promise<ContinueResponse<string[]>> {
-    const sourcePaths = this.uris.map(uri => uri.fsPath);
+    let sourcePaths = this.uris.map(uri => uri.fsPath);
+    sourcePaths = flushFilePaths(sourcePaths);
+
     return {
       type: 'CONTINUE',
       data: sourcePaths

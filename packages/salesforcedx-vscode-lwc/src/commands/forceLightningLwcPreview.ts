@@ -17,6 +17,9 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  flushFilePath
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -123,7 +126,7 @@ export async function forceLightningLwcPreview(sourceUri: vscode.Uri) {
     }
   }
 
-  const resourcePath = sourceUri.fsPath;
+  const resourcePath = flushFilePath(sourceUri.fsPath);
   if (!resourcePath) {
     const message = nls.localize(
       'force_lightning_lwc_preview_file_undefined',

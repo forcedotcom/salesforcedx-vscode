@@ -19,6 +19,9 @@ import {
 import {
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  flushFilePath
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import {
@@ -89,7 +92,10 @@ async function getApexTestClassName(sourceUri: vscode.Uri): Promise<string | und
   }
 
   await testOutlineProvider.refresh();
-  const testClassName = testOutlineProvider.getTestClassName(sourceUri);
+  let testClassName = testOutlineProvider.getTestClassName(sourceUri);
+  if (testClassName) {
+    testClassName = flushFilePath(testClassName);
+  }
 
   return testClassName;
 }
