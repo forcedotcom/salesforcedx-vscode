@@ -35,9 +35,9 @@ export function flushFilePath(filePath: string): string {
 }
 
 export function flushFilePaths(filePaths: string[]): string[] {
-  for(let i=0; i<filePaths.length; i++) {
+  for (let i = 0; i < filePaths.length; i++) {
     filePaths[i] = flushFilePath(filePaths[i]);
-  };
+  }
 
   return filePaths;
 }
