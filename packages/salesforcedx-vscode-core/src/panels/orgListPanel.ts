@@ -62,6 +62,12 @@ export class OrgListPanel {
             .deleted-text {
               color: #EE907C;
             }
+
+            vscode-data-grid,
+            vscode-panels {
+              border: 2px dashed #7b61ff;
+              border-radius: 5px;
+            }
           </style>
         </head>
         <body>
@@ -315,13 +321,25 @@ export class OrgListPanel {
                         el.classList.add('connected-text');
                       }
                     });
+
+                    document.querySelectorAll('.all-non-scratch-orgs-data-grid [grid-column="5"]').forEach(el => {
+                      if (el.textContent === 'Connected') {
+                        el.classList.add('connected-text');
+                      }
+                    });
+                    document.querySelectorAll('vscode-data-grid [grid-column="5"]').forEach(el => {
+                      if (el.textContent === 'Active') {
+                        el.classList.add('active-text');
+                      } else if (el.textContent === 'Deleted') {
+                        el.classList.add('deleted-text');
+                      }
+                    });
                   }, 250);
                   break;
               }
 
               /*
                 TODO: still need to:
-                1) add results for sfdx force:org:list --all
                 2) color the results of all grids (at the very least, the status should be green or red)
                 3) add borders to the tab control, the tab panels, and/or the grid?
                 4) Add a warning to each scratch org which is about to expire.  Maybe when <= 5 days, display a waring icon with a tool tip, or maybe animate on/off every second
