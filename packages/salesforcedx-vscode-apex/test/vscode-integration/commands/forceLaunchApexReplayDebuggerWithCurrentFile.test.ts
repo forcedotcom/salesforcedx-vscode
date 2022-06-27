@@ -7,6 +7,7 @@
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
@@ -138,6 +139,9 @@ describe('Force Launch Replay Debugger', () => {
       .returns(undefined);
 
     sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName')
+      .returns('foo.cls');
+
+    sb.stub(helpers, 'flushFilePath')
       .returns('foo.cls');
 
     sb.stub(SfdxCommandlet.prototype, 'run')
