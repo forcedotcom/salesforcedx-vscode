@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import {
   BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
+  ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
@@ -81,5 +82,9 @@ export class SfdxCoreSettings {
 
   private async setConfigValue(key: string, value: any) {
     await this.getConfiguration().update(key, value);
+  }
+
+  public getEnableClearOutputBeforeEachCommand(): boolean {
+    return this.getConfigValue<boolean>(ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND, false);
   }
 }

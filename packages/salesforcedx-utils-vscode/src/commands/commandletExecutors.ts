@@ -18,6 +18,7 @@ import { CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
 import { notificationService, ProgressNotification } from './index';
+import { getSfdxSettingsService } from './sfdxSettingsService';
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
@@ -42,6 +43,10 @@ export abstract class SfdxCommandletExecutor<T>
     let channel;
     if (this.outputChannel) {
       channel = new ChannelService(this.outputChannel);
+      const sfdxSettingsService = getSfdxSettingsService();
+      if (sfdxSettingsService && sfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
+        channel.clear();
+      }
       channel.streamCommandOutput(execution);
       if (this.showChannelOutput) {
         channel.showChannelOutput();
@@ -161,7 +166,10 @@ export abstract class LibraryCommandletExecutor<T>
     const startTime = process.hrtime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
-
+    const sfdxSettingsService = getSfdxSettingsService();
+    if (sfdxSettingsService && sfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
+      channelService.clear();
+    }
     channelService.showCommandWithTimestamp(
       `${nls.localize('channel_starting_message')}${this.executionName}\n`
     );

@@ -101,4 +101,8 @@ export class ChannelService {
   public appendLine(text: string) {
     this.channel.appendLine(text);
   }
+
+  public clear() {
+    this.channel.clear();
+  }
 }
