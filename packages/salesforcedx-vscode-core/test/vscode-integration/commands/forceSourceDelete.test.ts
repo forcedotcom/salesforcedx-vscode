@@ -53,24 +53,28 @@ describe('ManifestChecker', () => {
     );
     const manifestUri = { fsPath: manifestFilePath } as vscode.Uri;
 
-    sinon.stub(helpers, 'flushFilePath')
+    const flushFilePathStub = sinon.stub(helpers, 'flushFilePath')
       .returns(manifestFilePath);
 
     const checker = new ManifestChecker(manifestUri);
     const response = checker.check();
     expect(response).to.be.false;
+
+    flushFilePathStub.restore();
   });
 
   it('passes the check if the selected resource is not in the manifest directory', () => {
     const sourcePath = path.join(workspaceFolderPath, 'src', 'exampleFile.js');
     const sourceUri = { fsPath: sourcePath } as vscode.Uri;
 
-    sinon.stub(helpers, 'flushFilePath')
+    const flushFilePathStub = sinon.stub(helpers, 'flushFilePath')
       .returns(sourcePath);
 
     const checker = new ManifestChecker(sourceUri);
     const response = checker.check();
     expect(response).to.be.true;
+
+    flushFilePathStub.restore();
   });
 });
 
@@ -96,6 +100,9 @@ describe('ConfirmationAndSourcePathGatherer', () => {
       nls.localize('cancel_delete_source_button_text')
     );
 
+    sinon.stub(helpers, 'flushFilePath')
+      .returns(explorerPath);
+
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
     const response = await gatherer.gather();
     expect(informationMessageStub.calledOnce).to.be.true;
@@ -106,6 +113,9 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     informationMessageStub.returns(
       nls.localize('confirm_delete_source_button_text')
     );
+
+    sinon.stub(helpers, 'flushFilePath')
+      .returns(explorerPath);
 
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
     const response = (await gatherer.gather()) as ContinueResponse<{
