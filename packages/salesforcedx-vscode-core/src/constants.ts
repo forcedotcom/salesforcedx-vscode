@@ -39,6 +39,8 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
 export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
   'enableDeployAndRetrieveForSourceTrackedOrgs.enabled';
+export const ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND =
+  'enable_clear_output_before_each_command_description.enabled';
 export const CLI = {
   AUTH_DEVICE_LOGIN: 'force:auth:device:login',
   AUTH_WEB_LOGIN: 'force:auth:web:login'

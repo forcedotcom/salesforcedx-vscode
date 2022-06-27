@@ -82,5 +82,6 @@
   "force_function_stop": "SFDX: Stop Function",
   "force_sobjects_refresh": "SFDX: Refresh SObject Definitions",
   "enable_sobject_refresh_on_startup_description": "If a project has no sObject definitions, specifies whether to automatically refresh sObject definitions on extension activation (true) or not (false).",
-  "force_launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File"
+  "force_launch_apex_replay_debugger_with_current_file": "SFDX: Launch Apex Replay Debugger with Current File",
+  "enable_clear_output_before_each_command_description": "Specifies whether to automatically clear the output tab before each command is executed"
 }
