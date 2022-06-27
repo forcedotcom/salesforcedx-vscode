@@ -1,3 +1,11 @@
+# 55.3.0 - June 29, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Use regex to match sub-directories in when clause ([PR #4224](https://github.com/forcedotcom/salesforcedx-vscode/pull/4224))
+
 # 55.2.0 - June 22, 2022
 
 ## Fixed
