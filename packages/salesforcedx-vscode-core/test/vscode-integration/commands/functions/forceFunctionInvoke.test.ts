@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { runFunction } from '@heroku/functions-core';
-
 import * as fs from 'fs';
-import { run } from 'mocha';
 import * as path from 'path';
 import {
   assert,
@@ -31,6 +28,7 @@ import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 
 const demoPayload = {
   id: 2345,
@@ -38,7 +36,7 @@ const demoPayload = {
 };
 
 describe('Force Function Invoke', () => {
-  let sandbox: SinonSandbox;
+  let sb: SinonSandbox;
   let runFunctionLibraryStub: SinonStub;
   let functionInvokeSpy: SinonSpy;
   const notificationServiceStubs: {
@@ -51,37 +49,40 @@ describe('Force Function Invoke', () => {
     [key: string]: SinonStub;
   } = {};
   let readFileSyncStub: SinonStub;
+
   beforeEach(() => {
-    sandbox = createSandbox();
-    runFunctionLibraryStub = sandbox.stub(library, 'runFunction');
+    sb = createSandbox();
+    runFunctionLibraryStub = sb.stub(library, 'runFunction');
     runFunctionLibraryStub.returns(Promise.resolve(true));
-    functionInvokeSpy = sandbox.spy(ForceFunctionInvoke.prototype, 'run');
-    readFileSyncStub = sandbox.stub(fs, 'readFileSync');
+    functionInvokeSpy = sb.spy(ForceFunctionInvoke.prototype, 'run');
+    readFileSyncStub = sb.stub(fs, 'readFileSync');
     readFileSyncStub.returns(demoPayload);
-    notificationServiceStubs.showWarningMessageStub = sandbox.stub(
+    notificationServiceStubs.showWarningMessageStub = sb.stub(
       notificationService,
       'showWarningMessage'
     );
-    telemetryServiceStubs.sendCommandEventStub = sandbox.stub(
+    telemetryServiceStubs.sendCommandEventStub = sb.stub(
       telemetryService,
       'sendCommandEvent'
     );
-    telemetryServiceStubs.sendExceptionStub = sandbox.stub(
+    telemetryServiceStubs.sendExceptionStub = sb.stub(
       telemetryService,
       'sendException'
     );
-    functionServiceStubs.debugFunctionStub = sandbox.stub(
+    functionServiceStubs.debugFunctionStub = sb.stub(
       FunctionService.prototype,
       'debugFunction'
     );
-    functionServiceStubs.stopDebuggingFunctionStub = sandbox.stub(
+    functionServiceStubs.stopDebuggingFunctionStub = sb.stub(
       FunctionService.prototype,
       'stopDebuggingFunction'
     );
   });
+
   afterEach(() => {
-    sandbox.restore();
+    sb.restore();
   });
+
   describe('Debug Invoke', () => {
     it('Should call library with proper args and log telemetry', async () => {
       const srcUri = Uri.file(
@@ -90,6 +91,10 @@ describe('Force Function Invoke', () => {
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionDebugInvoke(srcUri);
       const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(
         false
@@ -114,6 +119,10 @@ describe('Force Function Invoke', () => {
         getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionDebugInvoke(srcUri);
 
       assert.calledOnce(functionServiceStubs.debugFunctionStub);
@@ -127,7 +136,11 @@ describe('Force Function Invoke', () => {
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
-      const existsSyncStub = sandbox.stub(fs, 'existsSync');
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
+      const existsSyncStub = sb.stub(fs, 'existsSync');
       existsSyncStub.returns(false);
       await forceFunctionDebugInvoke(srcUri);
 
@@ -147,7 +160,7 @@ describe('Force Function Invoke', () => {
 
     it('Should stop debugging and log telemetry when invoke finishes', async () => {
       const FUNCTION_LANGUAGE = 'node';
-      functionServiceStubs.getFunctionLanguage = sandbox.stub(
+      functionServiceStubs.getFunctionLanguage = sb.stub(
         FunctionService.prototype,
         'getFunctionLanguage'
       );
@@ -158,6 +171,9 @@ describe('Force Function Invoke', () => {
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
 
       await forceFunctionDebugInvoke(srcUri);
 
@@ -179,7 +195,7 @@ describe('Force Function Invoke', () => {
   describe('Regular Invoke', () => {
     it('Should call library with proper args and log telemetry', async () => {
       const FUNCTION_LANGUAGE = 'node';
-      functionServiceStubs.getFunctionLanguage = sandbox.stub(
+      functionServiceStubs.getFunctionLanguage = sb.stub(
         FunctionService.prototype,
         'getFunctionLanguage'
       );
@@ -191,6 +207,10 @@ describe('Force Function Invoke', () => {
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionInvoke(srcUri);
       const defaultUsername = await OrgAuthInfo.getDefaultUsernameOrAlias(
         false

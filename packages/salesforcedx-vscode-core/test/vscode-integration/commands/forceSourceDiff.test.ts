@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -23,7 +24,6 @@ import {
 } from '../../../src/conflict/metadataCacheService';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import Sinon = require('sinon');
 import {
   FilePathGatherer,
   SfdxWorkspaceChecker
@@ -31,7 +31,7 @@ import {
 import { workspaceContext } from '../../../src/context';
 import { telemetryService } from '../../../src/telemetry';
 
-const sandbox = createSandbox();
+const sb = createSandbox();
 
 describe('Force Source Diff', () => {
   describe('Force Source File Diff', () => {
@@ -55,54 +55,54 @@ describe('Force Source Diff', () => {
     let telemetryServiceSendExceptionStub: SinonStub;
 
     beforeEach(() => {
-      workspaceContextUsernameStub = sandbox
+      workspaceContextUsernameStub = sb
         .stub(workspaceContext, 'username')
         .get(() => {
           return mockUsername;
         });
-      workspaceContextAliasStub = sandbox
+      workspaceContextAliasStub = sb
         .stub(workspaceContext, 'alias')
         .get(() => {
           return mockAlias;
         });
-      workspaceCheckerStub = sandbox.stub(
+      workspaceCheckerStub = sb.stub(
         SfdxWorkspaceChecker.prototype,
         'check'
       );
       workspaceCheckerStub.returns(true);
-      filePathGathererStub = sandbox.stub(FilePathGatherer.prototype, 'gather');
+      filePathGathererStub = sb.stub(FilePathGatherer.prototype, 'gather');
       filePathGathererStub.returns({ type: 'CONTINUE', data: mockFilePath });
-      operationStub = sandbox.stub(
+      operationStub = sb.stub(
         MetadataCacheService.prototype,
         'createRetrieveOperation'
       );
-      componentStub = sandbox.stub(
+      componentStub = sb.stub(
         MetadataCacheService.prototype,
         'getSourceComponents'
       );
-      processStub = sandbox.stub(
+      processStub = sb.stub(
         MetadataCacheService.prototype,
         'processResults'
       );
-      mockComponentWalkContentStub = sandbox.stub(
+      mockComponentWalkContentStub = sb.stub(
         SourceComponent.prototype,
         'walkContent'
       );
-      notificationStub = sandbox.stub(notificationService, 'showErrorMessage');
-      channelAppendLineStub = sandbox.stub(channelService, 'appendLine');
-      channelShowChannelOutputStub = sandbox.stub(
+      notificationStub = sb.stub(notificationService, 'showErrorMessage');
+      channelAppendLineStub = sb.stub(channelService, 'appendLine');
+      channelShowChannelOutputStub = sb.stub(
         channelService,
         'showChannelOutput'
       );
-      telemetryServiceSendExceptionStub = sandbox.stub(
+      telemetryServiceSendExceptionStub = sb.stub(
         telemetryService,
         'sendException'
       );
-      vscodeExecuteCommandStub = sandbox.stub(commands, 'executeCommand');
+      vscodeExecuteCommandStub = sb.stub(commands, 'executeCommand');
     });
 
     afterEach(() => {
-      sandbox.restore();
+      sb.restore();
     });
 
     it('Should execute VS Code diff command', async () => {
@@ -137,6 +137,9 @@ describe('Force Source Diff', () => {
       mockComponentWalkContentStub.returns([remoteFsPath]);
       processStub.returns(mockResult);
 
+      sb.stub(helpers, 'flushFilePath')
+        .returns(mockFilePath);
+
       await forceSourceDiff(Uri.file(mockFilePath));
 
       assert.calledOnce(vscodeExecuteCommandStub);
@@ -161,7 +164,7 @@ describe('Force Source Diff', () => {
           languageId: 'forcesourcemanifest'
         }
       };
-      sandbox.stub(vscode.window, 'activeTextEditor').get(() => {
+      sb.stub(vscode.window, 'activeTextEditor').get(() => {
         return mockActiveTextEditor;
       });
 

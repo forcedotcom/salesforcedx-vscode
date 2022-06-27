@@ -83,25 +83,31 @@ describe('ConfirmationAndSourcePathGatherer', () => {
   const explorerPath = { fsPath: examplePath } as vscode.Uri;
 
   let informationMessageStub: sinon.SinonStub;
+  let flushFilePathStub: sinon.SinonStub;
 
   beforeEach(() => {
     informationMessageStub = sinon.stub(
       vscode.window,
       'showInformationMessage'
     );
+
+    flushFilePathStub = sinon.stub(
+      helpers,
+      'flushFilePath'
+    );
+
+    flushFilePathStub.returns(explorerPath);
   });
 
   afterEach(() => {
     informationMessageStub.restore();
+    flushFilePathStub.restore();
   });
 
   it('Should return cancel if the user cancels the command', async () => {
     informationMessageStub.returns(
       nls.localize('cancel_delete_source_button_text')
     );
-
-    sinon.stub(helpers, 'flushFilePath')
-      .returns(explorerPath);
 
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
     const response = await gatherer.gather();
@@ -114,9 +120,6 @@ describe('ConfirmationAndSourcePathGatherer', () => {
       nls.localize('confirm_delete_source_button_text')
     );
 
-    sinon.stub(helpers, 'flushFilePath')
-      .returns(explorerPath);
-
     const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
     const response = (await gatherer.gather()) as ContinueResponse<{
       filePath: string;
@@ -124,5 +127,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     expect(informationMessageStub.calledOnce).to.be.true;
     expect(response.type).to.equal('CONTINUE');
     expect(response.data).to.eql({ filePath: examplePath });
+
+    flushFilePathStub.restore();
   });
 });

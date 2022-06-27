@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getFunctionsBinary } from '@heroku/functions-core';
 import * as library from '@heroku/functions-core';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -26,7 +26,7 @@ import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
 
 describe('Force Function Start Integration Tests.', () => {
   describe('execute', () => {
-    let sandbox: SinonSandbox;
+    let sb: SinonSandbox;
     const functionsBinaryStub: {
       [key: string]: SinonStub;
     } = {};
@@ -47,75 +47,76 @@ describe('Force Function Start Integration Tests.', () => {
     let logMetricStub: SinonStub;
     let hrtimeStub: SinonStub;
     let getDefaultUsernameOrAliasStub: SinonStub;
+
     beforeEach(() => {
-      sandbox = createSandbox();
-      functionsBinaryStub.run = sandbox.stub();
+      sb = createSandbox();
+      functionsBinaryStub.run = sb.stub();
       functionsBinaryStub.run.returns(Promise.resolve(true));
-      functionsBinaryStub.build = sandbox.stub();
+      functionsBinaryStub.build = sb.stub();
       functionsBinaryStub.build.returns(Promise.resolve(true));
-      functionsBinaryStub.on = sandbox.stub();
+      functionsBinaryStub.on = sb.stub();
       emitter = new EventEmitter();
       functionsBinaryStub.on.callsFake(
         (event: string | symbol, listener: (...args: any[]) => void) => {
           emitter.on(event, listener);
         }
       );
-      sandbox.stub(library, 'getFunctionsBinary').returns(functionsBinaryStub);
+      sb.stub(library, 'getFunctionsBinary').returns(functionsBinaryStub);
 
-      channelServiceStubs.streamCommandOutputStub = sandbox.stub(
+      channelServiceStubs.streamCommandOutputStub = sb.stub(
         channelService,
         'streamCommandOutput'
       );
-      channelServiceStubs.showChannelOutputStub = sandbox.stub(
+      channelServiceStubs.showChannelOutputStub = sb.stub(
         channelService,
         'showChannelOutput'
       );
-      taskViewServiceStubs.addCommandExecutionStub = sandbox.stub(
+      taskViewServiceStubs.addCommandExecutionStub = sb.stub(
         taskViewService,
         'addCommandExecution'
       );
-      taskViewServiceStubs.removeTaskStub = sandbox.stub(
+      taskViewServiceStubs.removeTaskStub = sb.stub(
         taskViewService,
         'removeTask'
       );
-      notificationServiceStubs.showSuccessfulExecutionStub = sandbox.stub(
+      notificationServiceStubs.showSuccessfulExecutionStub = sb.stub(
         notificationService,
         'showSuccessfulExecution'
       );
       notificationServiceStubs.showSuccessfulExecutionStub.returns(
         Promise.resolve()
       );
-      notificationServiceStubs.showInformationMessageStub = sandbox.stub(
+      notificationServiceStubs.showInformationMessageStub = sb.stub(
         notificationService,
         'showInformationMessage'
       );
-      notificationServiceStubs.showWarningMessageStub = sandbox.stub(
+      notificationServiceStubs.showWarningMessageStub = sb.stub(
         notificationService,
         'showWarningMessage'
       );
-      notificationServiceStubs.showErrorMessageStub = sandbox.stub(
+      notificationServiceStubs.showErrorMessageStub = sb.stub(
         notificationService,
         'showErrorMessage'
       );
-      notificationServiceStubs.reportCommandExecutionStatus = sandbox.stub(
+      notificationServiceStubs.reportCommandExecutionStatus = sb.stub(
         notificationService,
         'reportCommandExecutionStatus'
       );
-      notificationServiceStubs.progressNotificationShowStub = sandbox.stub(
+      notificationServiceStubs.progressNotificationShowStub = sb.stub(
         ProgressNotification,
         'show'
       );
-      telemetryServiceStubs.sendExceptionStub = sandbox.stub(
+      telemetryServiceStubs.sendExceptionStub = sb.stub(
         telemetryService,
         'sendException'
       );
-      activeTextEditorStub = sandbox.stub(window, 'activeTextEditor');
-      logMetricStub = sandbox.stub(
+      activeTextEditorStub = sb.stub(window, 'activeTextEditor');
+      logMetricStub = sb.stub(
         TelemetryService.prototype,
         'sendCommandEvent'
       );
-      hrtimeStub = sandbox.stub(process, 'hrtime');
-      getDefaultUsernameOrAliasStub = sandbox.stub(
+      hrtimeStub = sb.stub(process, 'hrtime');
+      getDefaultUsernameOrAliasStub = sb.stub(
         OrgAuthInfo,
         'getDefaultUsernameOrAlias'
       );
@@ -125,13 +126,16 @@ describe('Force Function Start Integration Tests.', () => {
     });
 
     afterEach(() => {
-      sandbox.restore();
+      sb.restore();
     });
 
     it('Should start function from folder', async () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
 
       await forceFunctionContainerStartCommand(srcUri);
       assert.calledOnce(functionsBinaryStub.build);
@@ -148,6 +152,9 @@ describe('Force Function Start Integration Tests.', () => {
         )
       );
 
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand(srcUri);
 
       assert.calledOnce(functionsBinaryStub.build);
@@ -163,6 +170,7 @@ describe('Force Function Start Integration Tests.', () => {
           'index.js'
         )
       );
+
       activeTextEditorStub.get(() => {
         return {
           document: {
@@ -171,6 +179,10 @@ describe('Force Function Start Integration Tests.', () => {
           }
         };
       });
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand();
 
       assert.calledOnce(functionsBinaryStub.build);
@@ -195,6 +207,9 @@ describe('Force Function Start Integration Tests.', () => {
         };
       });
 
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand();
 
       assert.notCalled(functionsBinaryStub.build);
@@ -215,6 +230,10 @@ describe('Force Function Start Integration Tests.', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'force-app/main/default/lwc')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand(srcUri);
 
       assert.notCalled(functionsBinaryStub.build);
@@ -235,6 +254,10 @@ describe('Force Function Start Integration Tests.', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand(srcUri);
 
       assert.calledOnce(channelServiceStubs.showChannelOutputStub);
@@ -246,6 +269,10 @@ describe('Force Function Start Integration Tests.', () => {
       );
       const mockStartTime = [1234, 5678];
       hrtimeStub.returns(mockStartTime);
+
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
 
       await forceFunctionContainerStartCommand(srcUri);
 
@@ -265,6 +292,10 @@ describe('Force Function Start Integration Tests.', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand(srcUri);
       emitter.emit('error', {
         text:
@@ -293,6 +324,9 @@ describe('Force Function Start Integration Tests.', () => {
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
 
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand(srcUri);
 
       emitter.emit('error', { text: '' });
@@ -319,6 +353,9 @@ describe('Force Function Start Integration Tests.', () => {
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
 
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand(srcUri);
 
       assert.notCalled(notificationServiceStubs.showInformationMessageStub);
@@ -330,6 +367,10 @@ describe('Force Function Start Integration Tests.', () => {
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
+
       await forceFunctionContainerStartCommand(srcUri);
 
       assert.calledOnce(notificationServiceStubs.showInformationMessageStub);
@@ -338,14 +379,18 @@ describe('Force Function Start Integration Tests.', () => {
         nls.localize('force_function_start_no_org_auth')
       );
     });
+
     it('Should not capture debug language type for random pattern', async () => {
-      const functionServiceStub = sandbox.stub(
+      const functionServiceStub = sb.stub(
         FunctionService.prototype,
         'updateFunction'
       );
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
 
       hrtimeStub.returns([1234, 5678]);
 
@@ -356,13 +401,16 @@ describe('Force Function Start Integration Tests.', () => {
     });
 
     it('Should capture debug language type for Java runtime', async () => {
-      const functionServiceStub = sandbox.stub(
+      const functionServiceStub = sb.stub(
         FunctionService.prototype,
         'updateFunction'
       );
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
 
       hrtimeStub.returns([1234, 5678]);
 
@@ -374,13 +422,16 @@ describe('Force Function Start Integration Tests.', () => {
     });
 
     it('Should capture debug language type for Node runtime', async () => {
-      const functionServiceStub = sandbox.stub(
+      const functionServiceStub = sb.stub(
         FunctionService.prototype,
         'updateFunction'
       );
       const srcUri = Uri.file(
         path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
       );
+
+      sb.stub(helpers, 'flushFilePath')
+        .returns(srcUri.path);
 
       hrtimeStub.returns([1234, 5678]);
 

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as library from '@heroku/functions-core';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { Uri } from 'vscode';
@@ -18,7 +19,7 @@ import { telemetryService } from '../../../../src/telemetry';
 import { getRootWorkspacePath } from '../../../../src/util';
 
 describe('Force Function Stop Integration Tests', () => {
-  let sandbox: SinonSandbox;
+  let sb: SinonSandbox;
   const functionsBinaryStub: {
     [key: string]: SinonStub;
   } = {};
@@ -35,39 +36,40 @@ describe('Force Function Stop Integration Tests', () => {
     [key: string]: SinonStub;
   } = {};
   let hrtimeStub: SinonStub;
+
   beforeEach(() => {
-    sandbox = createSandbox();
-    functionsBinaryStub.cancel = sandbox.stub();
-    sandbox.stub(library, 'getFunctionsBinary').returns(functionsBinaryStub);
-    channelServiceStubs.appendLineStub = sandbox.stub(
+    sb = createSandbox();
+    functionsBinaryStub.cancel = sb.stub();
+    sb.stub(library, 'getFunctionsBinary').returns(functionsBinaryStub);
+    channelServiceStubs.appendLineStub = sb.stub(
       channelService,
       'appendLine'
     );
-    notificationServiceStubs.showSuccessfulExecutionStub = sandbox.stub(
+    notificationServiceStubs.showSuccessfulExecutionStub = sb.stub(
       notificationService,
       'showSuccessfulExecution'
     );
     notificationServiceStubs.showSuccessfulExecutionStub.returns(
       Promise.resolve()
     );
-    notificationServiceStubs.showWarningMessageStub = sandbox.stub(
+    notificationServiceStubs.showWarningMessageStub = sb.stub(
       notificationService,
       'showWarningMessage'
     );
-    telemetryServiceStubs.sendCommandEventStub = sandbox.stub(
+    telemetryServiceStubs.sendCommandEventStub = sb.stub(
       telemetryService,
       'sendCommandEvent'
     );
-    hrtimeStub = sandbox.stub(process, 'hrtime');
+    hrtimeStub = sb.stub(process, 'hrtime');
   });
 
   afterEach(() => {
-    sandbox.restore();
+    sb.restore();
   });
 
   it('Should stop function, show notification and send telemetry', async () => {
     const FUNCTION_LANGUAGE = 'node';
-    functionServiceStubs.getFunctionLanguage = sandbox.stub(
+    functionServiceStubs.getFunctionLanguage = sb.stub(
       FunctionService.prototype,
       'getFunctionLanguage'
     );
@@ -75,6 +77,9 @@ describe('Force Function Stop Integration Tests', () => {
     const srcUri = Uri.file(
       path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
     );
+
+    sb.stub(helpers, 'flushFilePath')
+      .returns(srcUri.path);
 
     await forceFunctionContainerStartCommand(srcUri);
 
@@ -116,6 +121,9 @@ describe('Force Function Stop Integration Tests', () => {
     const srcUri = Uri.file(
       path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
     );
+
+    sb.stub(helpers, 'flushFilePath')
+      .returns(srcUri.path);
 
     await forceFunctionContainerStartCommand(srcUri);
 

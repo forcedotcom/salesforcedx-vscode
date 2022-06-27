@@ -151,7 +151,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([filePath1, filePath2, filePath3]);
+        .returns([uris[0].path, uris[1].path, uris[2].path]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -182,7 +182,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([filePath1]);
+        .returns([uris[0].path]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -213,7 +213,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([filePath1]);
+        .returns([uris[0].path]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -236,8 +236,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const uris = undefined;
 
       const filePaths = [ filePath1 ];
-      const timestampConflictCheckerCheckStub = sb
-        .stub(TimestampConflictChecker.prototype, 'check')
+      sb.stub(TimestampConflictChecker.prototype, 'check')
         .returns({
           type: 'CONTINUE',
           data: filePaths
@@ -246,7 +245,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([filePath1]);
+        .returns(undefined);
 
       const getUriFromActiveEditorStub = sb
         .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
@@ -265,12 +264,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
       // When the push-or-deploy-on-save setting is on,
       // sourceUri is an array, and uris is undefined.
-      const sourceUri: vscode.Uri[] = [
+      const sourceUris: vscode.Uri[] = [
         vscode.Uri.file(filePath1)
       ];
       const uris = undefined;
 
-      const filePaths = sourceUri.map(uri => {
+      const filePaths = sourceUris.map(uri => {
         return uri.fsPath;
       });
       const timestampConflictCheckerCheckStub = sb
@@ -283,13 +282,13 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([filePath1]);
+        .returns([sourceUris[0].path]);
 
       sb.stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
         .returns(filePath1);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
-        sourceUri,
+        sourceUris,
         uris
       );
 
