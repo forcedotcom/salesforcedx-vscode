@@ -15,6 +15,10 @@ import { commands, Uri } from 'vscode';
 import { channelService } from '../../../src/channels';
 import { forceSourceDiff } from '../../../src/commands';
 import * as conflictCommands from '../../../src/commands';
+import {
+  FilePathGatherer,
+  SfdxWorkspaceChecker
+} from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import {
   MetadataCacheResult,
@@ -22,13 +26,9 @@ import {
   MetadataContext,
   PathType
 } from '../../../src/conflict/metadataCacheService';
+import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import {
-  FilePathGatherer,
-  SfdxWorkspaceChecker
-} from '../../../src/commands/util';
-import { workspaceContext } from '../../../src/context';
 import { telemetryService } from '../../../src/telemetry';
 
 const sb = createSandbox();

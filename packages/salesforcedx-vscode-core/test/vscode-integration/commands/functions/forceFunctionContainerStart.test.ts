@@ -270,7 +270,6 @@ describe('Force Function Start Integration Tests.', () => {
       const mockStartTime = [1234, 5678];
       hrtimeStub.returns(mockStartTime);
 
-
       sb.stub(helpers, 'flushFilePath')
         .returns(srcUri.path);
 
