@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -51,6 +52,10 @@ describe('ManifestChecker', () => {
       'package.xml'
     );
     const manifestUri = { fsPath: manifestFilePath } as vscode.Uri;
+
+    sinon.stub(helpers, 'flushFilePath')
+      .returns(manifestFilePath);
+
     const checker = new ManifestChecker(manifestUri);
     const response = checker.check();
     expect(response).to.be.false;
@@ -59,6 +64,10 @@ describe('ManifestChecker', () => {
   it('passes the check if the selected resource is not in the manifest directory', () => {
     const sourcePath = path.join(workspaceFolderPath, 'src', 'exampleFile.js');
     const sourceUri = { fsPath: sourcePath } as vscode.Uri;
+
+    sinon.stub(helpers, 'flushFilePath')
+      .returns(sourcePath);
+
     const checker = new ManifestChecker(sourceUri);
     const response = checker.check();
     expect(response).to.be.true;

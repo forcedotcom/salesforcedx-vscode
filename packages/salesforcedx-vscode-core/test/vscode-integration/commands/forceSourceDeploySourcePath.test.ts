@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   ComponentSet,
@@ -146,9 +147,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           type: 'CONTINUE',
           data: filePaths
         });
-      const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      sb.stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+
+      sb.stub(helpers, 'flushFilePaths')
+        .returns([filePath1, filePath2, filePath3]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -174,9 +177,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           type: 'CONTINUE',
           data: filePaths
         });
-      const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+
+      sb.stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+
+      sb.stub(helpers, 'flushFilePaths')
+        .returns([filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -202,9 +208,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           type: 'CONTINUE',
           data: filePaths
         });
-      const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+
+      sb.stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+
+      sb.stub(helpers, 'flushFilePaths')
+        .returns([filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -233,9 +242,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           type: 'CONTINUE',
           data: filePaths
         });
-      const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      sb.stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+
+      sb.stub(helpers, 'flushFilePaths')
+        .returns([filePath1]);
 
       const getUriFromActiveEditorStub = sb
         .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
@@ -268,9 +279,14 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
           type: 'CONTINUE',
           data: filePaths
         });
-      const isInPackageDirectoryStub = sb
-        .stub(SfdxPackageDirectories, 'isInPackageDirectory')
+      sb.stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+
+      sb.stub(helpers, 'flushFilePaths')
+        .returns([filePath1]);
+
+      sb.stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
+        .returns(filePath1);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         sourceUri,
