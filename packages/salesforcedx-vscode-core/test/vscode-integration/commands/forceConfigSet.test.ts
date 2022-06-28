@@ -6,34 +6,35 @@
  */
 
 import { expect } from 'chai';
+import * as sinon from 'sinon';
+import { createSandbox } from 'sinon';
+import * as vscode from 'vscode';
 import { ForceConfigSetExecutor } from '../../../src/commands';
-import { nls } from '../../../src/messages';
+
+const env = createSandbox();
+let openTextDocumentSpy: sinon.SinonSpy;
 
 describe('Force Config Set', () => {
+  beforeEach(() => {
+    openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
+  });
+
+  afterEach(() => {
+    env.restore();
+  });
+
   it('should build the force config set command', async () => {
     const usernameOrAlias = 'test-username1@gmail.com';
     const forceConfigSet = new ForceConfigSetExecutor(usernameOrAlias);
-    const forceConfigSetCommand = forceConfigSet.build({});
-    expect(forceConfigSetCommand.toCommand()).to.equal(
-      `sfdx force:config:set defaultusername=${usernameOrAlias}`
-    );
-    expect(forceConfigSetCommand.description).to.equal(
-      nls.localize('force_config_set_org_text')
-    );
+    env.stub(forceConfigSet, 'run').returns(true);
+    expect(forceConfigSet.getUsernameOrAlias()).to.equal(usernameOrAlias);
   });
-});
-
-describe('Force Config Set using multiple aliases for a single username', () => {
+  
   it('should build the force config set command with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
     const forceConfigSet = new ForceConfigSetExecutor(aliases.join(','));
-    const forceConfigSetCommand = forceConfigSet.build({});
-    expect(forceConfigSetCommand.toCommand()).to.equal(
-      `sfdx force:config:set defaultusername=${expectedAlias}`
-    );
-    expect(forceConfigSetCommand.description).to.equal(
-      nls.localize('force_config_set_org_text')
-    );
+    env.stub(forceConfigSet, 'run').returns(true);
+    expect(forceConfigSet.getUsernameOrAlias()).to.equal(expectedAlias);
   });
 });
