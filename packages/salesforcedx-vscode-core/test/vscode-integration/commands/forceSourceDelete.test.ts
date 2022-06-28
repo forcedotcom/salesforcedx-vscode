@@ -81,7 +81,7 @@ describe('ManifestChecker', () => {
 
 describe('ConfirmationAndSourcePathGatherer', () => {
   const examplePath = path.join('example', 'path');
-  const explorerPath = { fsPath: examplePath } as vscode.Uri;
+  const explorerPathUri = { fsPath: examplePath } as vscode.Uri;
 
   let informationMessageStub: sinon.SinonStub;
   let flushFilePathStub: sinon.SinonStub;
@@ -97,7 +97,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
       'flushFilePath'
     );
 
-    flushFilePathStub.returns(explorerPath);
+    flushFilePathStub.returns(examplePath);
   });
 
   afterEach(() => {
@@ -110,7 +110,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
       nls.localize('cancel_delete_source_button_text')
     );
 
-    const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
+    const gatherer = new ConfirmationAndSourcePathGatherer(explorerPathUri);
     const response = await gatherer.gather();
     expect(informationMessageStub.calledOnce).to.be.true;
     expect(response.type).to.equal('CANCEL');
@@ -121,10 +121,10 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     expect('C:\\Users', 'jab-first-test-on windows, and this XXX').to.equal(originalPath);
   });
 
-  it('jab test2', async () => {
-    const originalPath = 'C:\\Users';
-    expect('C:/Users', 'jab-second-test-on windows, and this XXX').to.equal(originalPath);
-  });
+  // it('jab test2', async () => {
+  //   const originalPath = 'C:\\Users';
+  //   expect('C:/Users', 'jab-second-test-on windows, and this XXX').to.equal(originalPath);
+  // });
 
   it('jab test3', async () => {
     const originalPath = 'C:\\Users';
@@ -132,23 +132,30 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     expect(newPath, 'jab-third-test-on windows, and this XXX').to.equal('C:\\Users');
   });
 
-  it('jab test4', async () => {
-    const originalPath = 'C:\\Users';
-    const newPath = fs.realpathSync.native(originalPath);
-    expect(newPath, 'jab-fourth-test-on windows, and this XXX').to.equal('C:/Users');
-  });
+  // it('jab test4', async () => {
+  //   const originalPath = 'C:\\Users';
+  //   const newPath = fs.realpathSync.native(originalPath);
+  //   expect(newPath, 'jab-fourth-test-on windows, and this XXX').to.equal('C:/Users');
+  // });
 
   it('Should return Continue if the user chooses to proceed', async () => {
     informationMessageStub.returns(
       nls.localize('confirm_delete_source_button_text')
     );
 
-    const gatherer = new ConfirmationAndSourcePathGatherer(explorerPath);
+    const gatherer = new ConfirmationAndSourcePathGatherer(explorerPathUri);
     const response = (await gatherer.gather()) as ContinueResponse<{
       filePath: string;
     }>;
     expect(informationMessageStub.calledOnce).to.be.true;
     expect(response.type).to.equal('CONTINUE');
+
+    // jab
+    debugger;
+
     expect(response.data).to.eql({ filePath: examplePath });
+    //
+    // toEqual
+    // { filePath: examplePath }
   });
 });
