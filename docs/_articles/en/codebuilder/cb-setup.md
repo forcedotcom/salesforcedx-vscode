@@ -33,7 +33,7 @@ As an admin, assign user permissions:
 2. Click **CodeBuilder**.
 3. Click **Manage Assignments** 
 4. Click **Add Assignments**.
-5. Select the checkboxes next to the names of the users you want assigned to the permission set, and click **Assign**.
+5. Select the checkboxes next to the names of the users to assign the permission set, and click **Assign**.
 
 
 Your users can now go to the App Launcher and launch **Code Builder (Beta)**.
