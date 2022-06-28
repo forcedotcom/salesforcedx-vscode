@@ -16,7 +16,7 @@ Code Builder unleashes the power of Salesforce Extensions for VS Code and offers
 * Because your Code Builder instance runs in the cloud, authorizing an org from it follows a different (device) flow than the desktop IDE. See [Connect to Different Org](https://developer.salesforce.com/tools/vscode/en/codebuilder/cb-start/#connect-to-a-different-org) for steps.
 
 ## Known Gaps and Issues
-Code Builder is currently in beta, and we are actively collecting feedback from our customers as we continue to work on improving our project. See [Known Gaps and Issues](https://github.com/forcedotcom/try-code-builder-feedback/wiki/Known-Gaps-and-Issues) for a list of issues we are aware of. 
+Code Builder is currently in beta, and we're actively collecting feedback from you, our customers, as we continue to work on improving our project. See [Known Gaps and Issues](https://github.com/forcedotcom/try-code-builder-feedback/wiki/Known-Gaps-and-Issues) for a list of issues we're aware of. 
 
 If you notice any issues that haven't made our list, or want to provide other types of feedback, such as initial impressions or feature requests, [file an issue](https://github.com/forcedotcom/try-code-builder-feedback/issues) in the GitHub repo. We want to understand what features and enhancements are important to you.
 
