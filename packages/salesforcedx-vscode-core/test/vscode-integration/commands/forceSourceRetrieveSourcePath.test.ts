@@ -222,7 +222,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         .returns(filePath1);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns(undefined);
+        .returns([undefined]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         sourceUri,

@@ -245,7 +245,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns(undefined);
+        .returns([undefined]);
 
       const getUriFromActiveEditorStub = sb
         .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
