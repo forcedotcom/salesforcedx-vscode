@@ -24,6 +24,7 @@ import * as vscode from 'vscode';
 import { EmptyPostChecker } from '.';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
+import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
@@ -66,6 +67,10 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
+
+    if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
+      channelService.clear();
+    }
     channelService.streamCommandOutput(execution);
 
     if (this.showChannelOutput) {
