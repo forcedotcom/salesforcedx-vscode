@@ -135,7 +135,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       });
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([uris[0].path, uris[1].path, uris[2].path]);
+        // .returns([uris[0].path, uris[1].path, uris[2].path]);
+        .returns([path.sep + filePath1, path.sep + filePath2, path.sep + filePath3]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
@@ -162,7 +163,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       });
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([uris[0].path]);
+        // .returns([uris[0].path]);
+        .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
@@ -189,7 +191,8 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       });
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([uris[0].path]);
+        // .returns([uris[0].path]);
+        .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],

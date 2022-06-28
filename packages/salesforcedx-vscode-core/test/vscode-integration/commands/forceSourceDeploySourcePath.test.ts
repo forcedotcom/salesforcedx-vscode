@@ -155,9 +155,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         // .returns([uris[0].path, uris[1].path, uris[2].path]);
         // expected ["/classes/MyClass1.cls","/classes/MyClass2.cls","/lwc/myBundle/myBundle"]
         // actual   ["\\classes\\MyClass1.cls","\\classes\\MyClass2.cls","\\lwc\\myBundle\\myBundle"]
+        //
         // .returns([filePath1, filePath2, filePath3]);
         // expected ["classes\\MyClass1.cls","classes\\MyClass2.cls","lwc\\myBundle\\myBundle"]
         // actual   ["\\classes\\MyClass1.cls","\\classes\\MyClass2.cls","\\lwc\\myBundle\\myBundle"]
+        //
         .returns([path.sep + filePath1, path.sep + filePath2, path.sep + filePath3]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
@@ -189,7 +191,8 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([uris[0].path]);
+        // .returns([uris[0].path]);
+        .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -220,7 +223,8 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([uris[0].path]);
+        // .returns([uris[0].path]);
+        .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -291,7 +295,8 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       sb.stub(helpers, 'flushFilePaths')
-        .returns([sourceUris[0].path]);
+        // .returns([sourceUris[0].path]);
+        .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         sourceUris,
