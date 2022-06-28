@@ -15,7 +15,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-import * as vscode from 'vscode';
+import { getRootWorkspacePath } from '../util/rootWorkspace';
 
 const CONFIG_SET_EXECUTOR = 'force_config_set_org_text';
 const CONFIG_NAME = 'defaultusername'; // todo: localize
@@ -33,17 +33,29 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
-    const path = vscode.workspace.workspaceFolders![0].uri.path;
-    process.chdir(path);
+    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
+    const path = getRootWorkspacePath(); // Get current workspace path
+    process.chdir(path); // Set process directory
+
     const config = await Config.create(Config.getDefaultOptions());
 
     config.set(CONFIG_NAME, this.usernameOrAlias);
-    this.responses.push({name: CONFIG_NAME, val: this.usernameOrAlias, success: String(true) });
-    const title = 'Set Config'; // todo: localize
     await config.write();
+    this.responses.push({name: CONFIG_NAME, val: this.usernameOrAlias, success: String(true) });
+    const outputTable = this.formatOutput(this.responses);
+    channelService.appendLine(outputTable);
+    return true;
+  }
+
+  public getUsernameOrAlias() {
+    return this.usernameOrAlias;
+  }
+
+  private formatOutput(input: Row[]): string {
+    const title = 'Set Config'; // todo: localize
     const table = new Table();
     const outputTable = table.createTable(
-      this.responses,
+      input,
       [
         { key: 'name', label: 'Name'},
         {key: 'val', label: 'Value'},
@@ -51,8 +63,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       ], 
       title
     ); // todo: localize and potentially create helper function
-    channelService.appendLine(outputTable);
-    return true;
+    return outputTable;
   }
 }
 
