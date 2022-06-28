@@ -26,6 +26,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
+
+// jab
+// import * as mocha from 'mocha';
+// import * as chai from 'chai';
+
 import { SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import URI from 'vscode-uri';
@@ -1103,6 +1108,30 @@ describe('forceLightningLwcPreview', () => {
       '-a',
       'browser'
     ]);
+
+    // jab
+    // debugger;
+    console.log('jab-test1');
+    // expect(1, 'jab-test2').to.equal(2);
+
+    // mocha.utils.
+    // chai.util.
+    // sinon.server.
+    // import * as sinon from 'sinon';
+    // import * as mocha from 'mocha';
+    // import * as chai from 'chai';
+
+    console.log('jab-test2');
+    const lhs = JSON.stringify(cmdWithFlagSpy.getCall(5).args);
+    console.log(lhs);
+
+    console.log('jab-test3');
+    const rhs = JSON.stringify([
+      '-d',
+      mockLwcFileDirectory
+    ]);
+    console.log(rhs);
+
     expect(cmdWithFlagSpy.getCall(5).args).to.have.same.members([
       '-d',
       mockLwcFileDirectory
