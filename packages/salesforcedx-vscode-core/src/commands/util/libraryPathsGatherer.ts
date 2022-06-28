@@ -27,7 +27,8 @@ export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
     //   debugger;
     // }
 
-    let sourcePaths = this.uris.map(uri => uri.fsPath);
+    const sourcePaths = this.uris.map(uri => uri.fsPath);
+    // let sourcePaths = this.uris.map(uri => uri.fsPath);
     // sourcePaths = flushFilePaths(sourcePaths);
 
     return {
