@@ -221,5 +221,5 @@ Congratulations on successfully creating and deploying a new Lightning Web Compo
 ## To Learn More
 You can take your time and use these resources to learn more about what you can do in Code Builder:
 
-* [Visual Studio Code User Interface](https://code.visualstudio.com/docs/getstarted/userinterface) to get to know the Visual Studio code user interface 
+* [Visual Studio Code User Interface](https://code.visualstudio.com/docs/getstarted/userinterface) to get to know the Visual Studio code user interface.
 * [Salesforce Extensions](https://developer.salesforce.com/tools/vscode) to learn about all the powerful features of the Salesforce Extension for VS Code. 
