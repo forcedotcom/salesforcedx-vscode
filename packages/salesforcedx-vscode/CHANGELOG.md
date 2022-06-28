@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- Use regex to match sub-directories in when clause ([PR #4224](https://github.com/forcedotcom/salesforcedx-vscode/pull/4224))
+- You can now access the `SFDX Create Apex Class` command when you right-click on a sub-folder of the `classes` project folder. ([PR #4224](https://github.com/forcedotcom/salesforcedx-vscode/pull/4224))
 
 # 55.2.0 - June 22, 2022
 
