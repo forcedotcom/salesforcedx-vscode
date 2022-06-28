@@ -37,14 +37,15 @@ export function handleDiagnosticErrors(
   const defaultErrorPath = sourcePathOrPaths.includes(',')
     ? workspacePath
     : sourcePathOrPaths;
+
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
   if (errors.hasOwnProperty('result')) {
     errors.result.forEach(error => {
-      // source:deploy sometimes returns N/A as filePath
-      const fileUri =
-        error.filePath === 'N/A'
-          ? defaultErrorPath
-          : path.join(workspacePath, error.filePath);
+      const fileUri = getFileUri(
+        workspacePath,
+        error.filePath,
+        defaultErrorPath
+      );
       const range = getRange(
         error.lineNumber || '1',
         error.columnNumber || '1'
@@ -82,6 +83,17 @@ export function handleDiagnosticErrors(
   }
 
   return errorCollection;
+}
+
+export function getFileUri(
+  workspacePath: string,
+  filePath: string,
+  defaultErrorPath: string
+): string {
+  // source:deploy sometimes returns N/A as filePath
+  return filePath === 'N/A'
+    ? defaultErrorPath
+    : path.join(workspacePath, filePath);
 }
 
 export function handleDeployDiagnostics(

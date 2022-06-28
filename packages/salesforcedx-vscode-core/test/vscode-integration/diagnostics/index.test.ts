@@ -9,7 +9,11 @@ import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-v
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
-import { getRange, handleDiagnosticErrors } from '../../../src/diagnostics';
+import {
+  getFileUri,
+  getRange,
+  handleDiagnosticErrors
+} from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
   let deployErrorResult: ForceSourceDeployErrorResponse;
@@ -71,6 +75,7 @@ describe('Diagnostics', () => {
     const testDiagnostics = languages.getDiagnostics(
       Uri.file(path.join(workspacePath, resultItem.filePath))
     );
+    console.log(testDiagnostics);
 
     expect(testDiagnostics)
       .to.be.an('array')
@@ -226,5 +231,13 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[1].range).to.be.an('object');
     const testRange1 = getRange('1', '1');
     expect(testDiagnostics[1].range).to.deep.equal(testRange1);
+  });
+
+  it('Should not duplicate the workspace path when constructing the fileUri', () => {
+    const absoluteFilePath = `${workspacePath}/src/classes/Testing.cls`;
+    const fileUri = getFileUri(workspacePath, absoluteFilePath, '');
+    const regEx = new RegExp(workspacePath, 'g');
+    const count = (fileUri.match(regEx) || []).length;
+    expect(count).to.equal(1);
   });
 });
