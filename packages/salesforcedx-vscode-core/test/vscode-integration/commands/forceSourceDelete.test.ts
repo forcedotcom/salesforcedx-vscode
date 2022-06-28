@@ -149,13 +149,6 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     }>;
     expect(informationMessageStub.calledOnce).to.be.true;
     expect(response.type).to.equal('CONTINUE');
-
-    // jab
-    debugger;
-
     expect(response.data).to.eql({ filePath: examplePath });
-    //
-    // toEqual
-    // { filePath: examplePath }
   });
 });
