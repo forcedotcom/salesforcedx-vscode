@@ -7,6 +7,7 @@
 import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -126,8 +127,15 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     }>;
     expect(informationMessageStub.calledOnce).to.be.true;
     expect(response.type).to.equal('CONTINUE');
-    expect(response.data).to.eql({ filePath: examplePath });
 
-    flushFilePathStub.restore();
+    // 'C:\Users\';
+    const originalPath = 'C:\\Users\\';
+    const newPath = fs.realpathSync.native(originalPath);
+
+    // first test
+    expect(newPath, 'first test').to.equal(originalPath);
+
+
+    // expect(response.data).to.eql({ filePath: examplePath });
   });
 });
