@@ -116,6 +116,30 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     expect(response.type).to.equal('CANCEL');
   });
 
+  it('jab test1', async () => {
+    const originalPath = 'C:\\Users\\';
+    expect('C:\\Users\\', 'jab-first-test-on windows, and this XXX').to.equal(originalPath);
+  });
+
+  it('jab test2', async () => {
+    const originalPath = 'C:\\Users\\';
+    expect('C:/Users/', 'jab-second-test-on windows, and this XXX').to.equal(originalPath);
+  });
+
+  it('jab test3', async () => {
+    const originalPath = 'C:\\Users\\';
+    const newPath = fs.realpathSync.native(originalPath);
+    expect(newPath, 'jab-third-test-on windows, and this XXX').to.equal('C:\\Users\\');
+  });
+
+  it('jab test4', async () => {
+    const originalPath = 'C:\\Users\\';
+    const newPath = fs.realpathSync.native(originalPath);
+    expect(newPath, 'jab-fourth-test-on windows, and this XXX').to.equal('C:/Users/');
+  });
+
+
+
   it('Should return Continue if the user chooses to proceed', async () => {
 
     // 'C:\Users\';
