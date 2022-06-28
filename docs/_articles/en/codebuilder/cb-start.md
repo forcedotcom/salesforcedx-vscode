@@ -101,7 +101,7 @@ To log into another org:
 6. Log in with the relevant username and password. Click **Allow**. 
 7. Click **Continue**. You’re now connected to a different org, and its name is visible in the status bar at the bottom.
 
-Once you authorize an org, we take care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.	
+After you authorize an org, we take care of future authorizations so you don't have to continually log in. Just click the org’s name and then choose the org from the list.	
 
 ## Create, Retrieve, and Deploy a Custom Field
 Let’s add a custom field to an object in our org and pull its metadata into our Code Builder project.
