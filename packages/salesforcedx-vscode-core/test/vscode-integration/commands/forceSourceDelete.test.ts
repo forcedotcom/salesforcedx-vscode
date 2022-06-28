@@ -138,22 +138,7 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     expect(newPath, 'jab-fourth-test-on windows, and this XXX').to.equal('C:/Users/');
   });
 
-
-
   it('Should return Continue if the user chooses to proceed', async () => {
-
-    // 'C:\Users\';
-    const originalPath = 'C:\\Users\\';
-    const newPath = fs.realpathSync.native(originalPath);
-
-    // first test
-    expect(newPath, 'jab-first-test-on windows this XXX').to.equal(originalPath);
-
-    // second test
-    // expect(newPath, 'jab-second-test-on windows this XXX').to.equal(originalPath);
-
-
-
     informationMessageStub.returns(
       nls.localize('confirm_delete_source_button_text')
     );
