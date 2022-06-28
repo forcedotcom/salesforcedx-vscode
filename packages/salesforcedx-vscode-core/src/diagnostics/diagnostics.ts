@@ -13,6 +13,18 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+export function getFileUri(
+  workspacePath: string,
+  filePath: string,
+  defaultErrorPath: string
+): string {
+  const resolvedFilePath = filePath.includes(workspacePath)
+    ? filePath
+    : path.join(workspacePath, filePath);
+  // source:deploy sometimes returns N/A as filePath
+  return filePath === 'N/A' ? defaultErrorPath : resolvedFilePath;
+}
+
 export function getRange(
   lineNumber: string,
   columnNumber: string
@@ -83,17 +95,6 @@ export function handleDiagnosticErrors(
   }
 
   return errorCollection;
-}
-
-export function getFileUri(
-  workspacePath: string,
-  filePath: string,
-  defaultErrorPath: string
-): string {
-  // source:deploy sometimes returns N/A as filePath
-  return filePath === 'N/A'
-    ? defaultErrorPath
-    : path.join(workspacePath, filePath);
 }
 
 export function handleDeployDiagnostics(
