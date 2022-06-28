@@ -18,7 +18,7 @@ import { CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
 import { notificationService, ProgressNotification } from './index';
-import { getSfdxSettingsFromCoreExtension } from './sfdxSettingsService';
+import { getSfdxSettingsFromCoreExtension } from './sfdxCoreSettingsService';
 
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {

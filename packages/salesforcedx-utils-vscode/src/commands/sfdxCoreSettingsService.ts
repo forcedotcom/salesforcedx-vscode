@@ -15,6 +15,6 @@ export function getSfdxSettingsFromCoreExtension(): LocalSfdxCoreSettings | unde
     return coreExtension.exports.sfdxCoreSettings;
   } else {
     // Send telemetry here.  Core extension not loaded.
-    throw new Error(`${coreExtensionName} not loaded`);
+    return undefined;
   }
 }
