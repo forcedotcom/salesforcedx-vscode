@@ -4,33 +4,55 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { Config } from '@salesforce/core';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { Row, Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
+import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
+import * as vscode from 'vscode';
 
-export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
+const CONFIG_SET_EXECUTOR = 'force_config_set_org_text';
+const CONFIG_NAME = 'defaultusername'; // todo: localize
+
+export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
+  private responses: Row[] = [];
 
-  public constructor(usernameOrAlias: string) {
-    super();
+  constructor(
+    usernameOrAlias: string
+  ) {
+    super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
-  public build(data: {}): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_config_set_org_text'))
-      .withArg('force:config:set')
-      .withArg(`defaultusername=${this.usernameOrAlias}`)
-      .build();
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
+    const path = vscode.workspace.workspaceFolders![0].uri.path;
+    process.chdir(path);
+    const config = await Config.create(Config.getDefaultOptions());
+
+    config.set(CONFIG_NAME, this.usernameOrAlias);
+    this.responses.push({name: CONFIG_NAME, val: this.usernameOrAlias, success: String(true) });
+    const title = 'Set Config'; // todo: localize
+    await config.write();
+    const table = new Table();
+    const outputTable = table.createTable(
+      this.responses,
+      [
+        { key: 'name', label: 'Name'},
+        {key: 'val', label: 'Value'},
+        {key: 'success', label: 'Success'}
+      ], 
+      title
+    ); // todo: localize and potentially create helper function
+    channelService.appendLine(outputTable);
+    return true;
   }
 }
 
