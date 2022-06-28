@@ -402,10 +402,9 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(desktopQuickPick);
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(mockLwcFilePathUri.path);
 
     await forceLightningLwcPreview(mockLwcFilePathUri);
-
     sinon.assert.calledWith(
       devServiceStub.getComponentPreviewUrl,
       sinon.match('c/foo')
@@ -463,7 +462,7 @@ describe('forceLightningLwcPreview', () => {
     const commandletStub = sb.stub(SfdxCommandlet.prototype, 'run');
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(mockLwcFilePathUri.path);
 
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
@@ -496,7 +495,7 @@ describe('forceLightningLwcPreview', () => {
     const commandletStub = sb.stub(SfdxCommandlet.prototype, 'run');
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(mockLwcFilePathUri.path);
 
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
@@ -564,7 +563,7 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(desktopQuickPick);
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(notLwcModulePathUri.path);
 
     await forceLightningLwcPreview(notLwcModulePathUri);
 
@@ -586,7 +585,7 @@ describe('forceLightningLwcPreview', () => {
     showQuickPickStub.resolves(desktopQuickPick);
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(nonExistentPathUri.path);
 
     await forceLightningLwcPreview(nonExistentPathUri);
 
@@ -642,7 +641,7 @@ describe('forceLightningLwcPreview', () => {
     showInputBoxStub.resolves('');
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(mockLwcFilePathUri.path);
 
     await forceLightningLwcPreview(mockLwcFilePathUri);
     mockExecution.stdoutSubject.next(androidSuccessString);
@@ -758,7 +757,7 @@ describe('forceLightningLwcPreview', () => {
     showInputBoxStub.resolves('test');
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(notLwcModulePathUri.path);
 
     await forceLightningLwcPreview(notLwcModulePathUri);
 
@@ -784,7 +783,7 @@ describe('forceLightningLwcPreview', () => {
     showInputBoxStub.resolves(undefined);
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectoryUri.path);
+      .returns(nonExistentPathUri.path);
 
     await forceLightningLwcPreview(nonExistentPathUri);
 
@@ -950,7 +949,7 @@ describe('forceLightningLwcPreview', () => {
     showInputBoxStub.resolves(undefined);
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFilePath);
+      .returns(mockLwcFilePathUri.path);
 
     await forceLightningLwcPreview(mockLwcFilePathUri);
 
@@ -1147,7 +1146,7 @@ describe('forceLightningLwcPreview', () => {
     );
 
     sb.stub(helpers, 'flushFilePath')
-      .returns(mockLwcFileDirectory);
+      .returns(mockLwcFileDirectoryUri.path);
 
     await forceLightningLwcPreview(mockLwcFileDirectoryUri);
 

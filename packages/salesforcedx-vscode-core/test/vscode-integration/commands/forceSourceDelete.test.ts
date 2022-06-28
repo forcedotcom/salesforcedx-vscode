@@ -7,7 +7,6 @@
 import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
-import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
@@ -115,28 +114,6 @@ describe('ConfirmationAndSourcePathGatherer', () => {
     expect(informationMessageStub.calledOnce).to.be.true;
     expect(response.type).to.equal('CANCEL');
   });
-
-  it('jab test1', async () => {
-    const originalPath = 'C:\\Users';
-    expect('C:\\Users', 'jab-first-test-on windows, and this XXX').to.equal(originalPath);
-  });
-
-  // it('jab test2', async () => {
-  //   const originalPath = 'C:\\Users';
-  //   expect('C:/Users', 'jab-second-test-on windows, and this XXX').to.equal(originalPath);
-  // });
-
-  it('jab test3', async () => {
-    const originalPath = 'C:\\Users';
-    const newPath = fs.realpathSync.native(originalPath);
-    expect(newPath, 'jab-third-test-on windows, and this XXX').to.equal('C:\\Users');
-  });
-
-  // it('jab test4', async () => {
-  //   const originalPath = 'C:\\Users';
-  //   const newPath = fs.realpathSync.native(originalPath);
-  //   expect(newPath, 'jab-fourth-test-on windows, and this XXX').to.equal('C:/Users');
-  // });
 
   it('Should return Continue if the user chooses to proceed', async () => {
     informationMessageStub.returns(
