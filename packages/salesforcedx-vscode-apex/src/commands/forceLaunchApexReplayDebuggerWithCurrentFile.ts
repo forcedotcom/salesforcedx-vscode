@@ -93,9 +93,8 @@ async function getApexTestClassName(sourceUri: vscode.Uri): Promise<string | und
 
   await testOutlineProvider.refresh();
   let testClassName = testOutlineProvider.getTestClassName(sourceUri);
-  if (testClassName) {
-    testClassName = flushFilePath(testClassName);
-  }
+  testClassName = flushFilePath(testClassName);
+
   return testClassName;
 }
 

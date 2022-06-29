@@ -30,13 +30,17 @@ export function extractJsonObject(str: string): any {
 //
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
-export function flushFilePath(filePath: string): string {
+export function flushFilePath(filePath: string | undefined): string | undefined {
+  if (!filePath) {
+    return filePath;
+  }
+
   return fs.realpathSync.native(filePath);
 }
 
 export function flushFilePaths(filePaths: string[]): string[] {
   for (let i = 0; i < filePaths.length; i++) {
-    filePaths[i] = flushFilePath(filePaths[i]);
+    filePaths[i] = flushFilePath(filePaths[i])!;
   }
 
   return filePaths;
