@@ -13,6 +13,8 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+const notApplicable = 'N/A';
+
 export function getFileUri(
   workspacePath: string,
   filePath: string,
@@ -22,7 +24,7 @@ export function getFileUri(
     ? filePath
     : path.join(workspacePath, filePath);
   // source:deploy sometimes returns N/A as filePath
-  return filePath === 'N/A' ? defaultErrorPath : resolvedFilePath;
+  return filePath === notApplicable ? defaultErrorPath : resolvedFilePath;
 }
 
 export function getRange(

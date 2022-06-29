@@ -75,7 +75,6 @@ describe('Diagnostics', () => {
     const testDiagnostics = languages.getDiagnostics(
       Uri.file(path.join(workspacePath, resultItem.filePath))
     );
-    console.log(testDiagnostics);
 
     expect(testDiagnostics)
       .to.be.an('array')
