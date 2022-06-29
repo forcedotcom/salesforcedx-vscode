@@ -585,6 +585,26 @@ async function setupOrgBrowser(
   );
 }
 
+// This is the actual exported api
+// export type SalesforcedxVscodeCoreExtensionApi = {
+//   channelService: ChannelService,
+//   CompositeParametersGatherer: typeof CompositeParametersGatherer,
+//   EmptyParametersGatherer: typeof EmptyParametersGatherer,
+//   getDefaultUsernameOrAlias: typeof getDefaultUsernameOrAlias,
+//   getUserId: typeof getUserId,
+//   isCLIInstalled: typeof isCLIInstalled,
+//   notificationService: typeof notificationService,
+//   OrgAuthInfo: OrgAuthInfo,
+//   ProgressNotification: ProgressNotification,
+//   SelectFileName: typeof SelectFileName,
+//   SelectOutputDir: typeof SelectOutputDir,
+//   sfdxCoreSettings: SfdxCoreSettings,
+//   SfdxWorkspaceChecker: typeof SfdxWorkspaceChecker,
+//   workspaceContext: typeof workspaceContext,
+//   taskViewService: typeof taskViewService,
+//   telemetryService: typeof telemetryService
+// };
+
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   const { name, aiKey, version } = require(extensionContext.asAbsolutePath(

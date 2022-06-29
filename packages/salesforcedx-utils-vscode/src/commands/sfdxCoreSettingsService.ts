@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 
-// This is not exported as a type from salesforcedx-vscode-core
-// Just a quick hack to make typescript happy until we get this type definition exported correctly.
+// define the simple type rather than declare a dev dependency on salesforcedx-vscode-core
 export declare type LocalSfdxCoreSettings = {
   getEnableClearOutputBeforeEachCommand(): boolean;
 };
