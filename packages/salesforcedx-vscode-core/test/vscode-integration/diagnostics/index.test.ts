@@ -239,4 +239,11 @@ describe('Diagnostics', () => {
     const count = (fileUri.match(regEx) || []).length;
     expect(count).to.equal(1);
   });
+
+  it('Should use the default error path as fileUri when N/A is returned as filePath', () => {
+    const defaultErrorPath = 'default/error/path';
+    const filePath = 'N/A';
+    const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
+    expect(fileUri).to.equal(defaultErrorPath);
+  });
 });
