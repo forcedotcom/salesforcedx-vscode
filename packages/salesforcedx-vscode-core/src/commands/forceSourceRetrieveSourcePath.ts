@@ -7,10 +7,10 @@
 import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
   CancelResponse,
-  ContinueResponse
+  ContinueResponse,
+  PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
