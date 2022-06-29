@@ -11,6 +11,9 @@ import {
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  flushFilePath
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
@@ -18,7 +21,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
 import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
-
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -43,7 +45,7 @@ export class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = uri.fsPath;
+    this.explorerPath = flushFilePath(uri.fsPath);
   }
 
   public check(): boolean {
@@ -70,7 +72,7 @@ export class ConfirmationAndSourcePathGatherer
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = uri.fsPath;
+    this.explorerPath = flushFilePath(uri.fsPath);
   }
 
   public async gather(): Promise<

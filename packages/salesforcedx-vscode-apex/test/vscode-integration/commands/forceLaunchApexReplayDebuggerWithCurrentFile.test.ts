@@ -7,6 +7,7 @@
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
@@ -142,6 +143,9 @@ describe('Force Launch Replay Debugger', () => {
 
     sb.stub(SfdxCommandlet.prototype, 'run')
       .returns(undefined);
+
+    sb.stub(helpers, 'flushFilePath')
+      .returns('foo.cls');
 
     const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
 
