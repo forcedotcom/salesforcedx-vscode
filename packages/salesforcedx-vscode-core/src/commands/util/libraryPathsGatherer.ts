@@ -15,17 +15,14 @@ import * as vscode from 'vscode';
 
 export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
   private uris: vscode.Uri[];
+
   public constructor(uris: vscode.Uri[]) {
     this.uris = uris;
   }
-  public async gather(): Promise<ContinueResponse<string[]>> {
 
+  public async gather(): Promise<ContinueResponse<string[]>> {
     const sourcePaths = this.uris.map(uri => uri.fsPath);
     const flushedSourcePaths = flushFilePaths(sourcePaths);
-
-    // if (JSON.stringify(sourcePaths) !== JSON.stringify(flushedSourcePaths)) {
-    //   debugger;
-    // }
 
     return {
       type: 'CONTINUE',
