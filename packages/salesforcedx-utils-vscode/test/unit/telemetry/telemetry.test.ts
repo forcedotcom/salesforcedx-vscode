@@ -15,7 +15,7 @@ import {
   SinonStub,
   stub
 } from 'sinon';
-import { MockContext } from './MockContext';
+import { MockExtensionContext } from './MockExtensionContext';
 
 const mShowInformation = stub();
 mShowInformation.returns(Promise.resolve());
@@ -52,7 +52,7 @@ describe('Telemetry production mode', () => {
   let telemetryService: any;
   let telemetryBuilder: any;
   let sb: SinonSandbox;
-  let mockContext: MockContext;
+  let mockExtensionContext: MockExtensionContext;
   let teleStub: SinonStub;
   let cliStub: SinonStub;
   let vscodeFlagStub: SinonStub;
@@ -93,7 +93,7 @@ describe('Telemetry production mode', () => {
     );
     cliStub = sb.stub(telemetryService, 'checkCliTelemetry');
     // create vscode extensionContext
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
     cliStub.returns(Promise.resolve(true));
     vscodeFlagStub.returns(true);
   });
@@ -103,7 +103,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('Should send telemetry data', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     telemetryService.sendExtensionActivationEvent([0, 678]);
     assert.calledOnce(reporter);
@@ -113,7 +113,7 @@ describe('Telemetry production mode', () => {
   xit('Should not send telemetry data', async () => {
     cliStub.returns(Promise.resolve(false));
     vscodeFlagStub.returns(false);
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     const telemetryEnabled = await telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(false);
@@ -124,7 +124,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('Should send correct data format on sendExtensionActivationEvent', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     telemetryService.sendExtensionActivationEvent([0, 678]);
     assert.calledOnce(reporter);
@@ -143,7 +143,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('Should send correct data format on sendExtensionDeactivationEvent', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     telemetryService.sendExtensionDeactivationEvent();
     assert.calledOnce(reporter);
@@ -156,7 +156,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('Should send correct data format on sendCommandEvent', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     telemetryService.sendCommandEvent('create_apex_class_command', [0, 678]);
     assert.calledOnce(reporter);
@@ -176,7 +176,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('Should send correct data format on sendCommandEvent with additional props', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
     const additionalProps = {
       dirType: 'testDirectoryType',
       secondParam: 'value'
@@ -206,7 +206,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('Should send correct data format on sendCommandEvent with additional measurements', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
     const additionalMeasures = {
       value: 3,
       count: 10
@@ -239,7 +239,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('should send correct data format on sendEventData', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     const eventName = 'eventName';
     const property = { property: 'property for event' };
@@ -251,7 +251,7 @@ describe('Telemetry production mode', () => {
   });
 
   xit('Should send data sendExceptionEvent', async () => {
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     telemetryService.sendException(
       'error_name',
@@ -269,7 +269,7 @@ describe('Telemetry production mode', () => {
   xit('Should not send telemetry data when CLI telemetry is disabled', async () => {
     cliStub.returns(Promise.resolve(false));
     vscodeFlagStub.returns(false);
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     const telemetryEnabled = await telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(false);
@@ -281,9 +281,9 @@ describe('Telemetry production mode', () => {
 
   xit('Should show telemetry info message', async () => {
     // create vscode extensionContext in which telemetry msg has never been previously shown
-    mockContext = new MockContext(false);
+    mockExtensionContext = new MockExtensionContext(false);
 
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     const telemetryEnabled = telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(true);
@@ -295,9 +295,9 @@ describe('Telemetry production mode', () => {
 
   xit('Should not show telemetry info message', async () => {
     // create vscode extensionContext in which telemetry msg has been previously shown
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
 
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     const telemetryEnabled = telemetryService.isTelemetryEnabled();
     expect(telemetryEnabled).to.be.eql(true);

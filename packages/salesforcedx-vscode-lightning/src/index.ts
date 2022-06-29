@@ -45,7 +45,7 @@ function getActivationMode(): string {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
-export async function activate(context: ExtensionContext) {
+export async function activate(extensionContext: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -86,9 +86,9 @@ export async function activate(context: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Initialize telemetry service
-  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  const extensionPackage = require(extensionContext.asAbsolutePath('./package.json'));
   await TelemetryService.getInstance().initializeService(
-    context,
+    extensionContext,
     EXTENSION_NAME,
     extensionPackage.aiKey,
     extensionPackage.version
@@ -97,7 +97,7 @@ export async function activate(context: ExtensionContext) {
   // Start the Aura Language Server
 
   // Setup the language server
-  const serverModule = context.asAbsolutePath(
+  const serverModule = extensionContext.asAbsolutePath(
     path.join(
       'node_modules',
       '@salesforce',
@@ -188,7 +188,7 @@ export async function activate(context: ExtensionContext) {
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
-  context.subscriptions.push(disp);
+  extensionContext.subscriptions.push(disp);
 
   // Notify telemetry that our extension is now active
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);
