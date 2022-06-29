@@ -16,7 +16,7 @@ import {
   TestRunIdResult
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, SfdxError } from '@salesforce/core';
+import { Messages, SfError } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import {
   buildOutputDirConfig,
@@ -31,7 +31,34 @@ import {
 } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'run');
+const messages = Messages.load('@salesforce/plugin-apex', 'run', [
+  'apexLibErr',
+  'apexTestReportFormatHint',
+  'classNamesDescription',
+  'classSuiteTestErr',
+  'codeCoverageDescription',
+  'commandDescription',
+  'detailedCoverageDescription',
+  'jsonDescription',
+  'logLevelDescription',
+  'logLevelLongDescription',
+  'longDescription',
+  'missingReporterErr',
+  'outputDirectoryDescription',
+  'outputDirHint',
+  'resultFormatLongDescription',
+  'runTestReportCommand',
+  'suiteNamesDescription',
+  'syncClassErr',
+  'synchronousDescription',
+  'testLevelDescription',
+  'testLevelErr',
+  'testResultProcessErr',
+  'testsDescription',
+  'verboseDescription',
+  'waitDescription',
+  'warningMessage'
+]);
 
 export const TestLevelValues = [
   'RunLocalTests',
@@ -124,7 +151,7 @@ export default class Run extends SfdxCommand {
     // add listener for errors
     process.on('uncaughtException', err => {
       const formattedErr = this.formatError(
-        new SfdxError(messages.getMessage('apexLibErr', [err.message]))
+        new SfError(messages.getMessage('apexLibErr', [err.message]))
       );
       this.ux.error(...formattedErr);
       process.exit();
@@ -142,6 +169,7 @@ export default class Run extends SfdxCommand {
     const testLevel = this.getTestLevelfromFlags();
 
     // org is guaranteed by requiresUsername field
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const conn = this.org!.getConnection();
     const testService = new TestService(conn);
     let result: TestResult | TestRunIdResult;
@@ -245,7 +273,7 @@ export default class Run extends SfdxCommand {
             this.ux.log(
               messages.getMessage('runTestReportCommand', [
                 id,
-                this.org!.getUsername()
+                this.org?.getUsername()
               ])
             );
           }

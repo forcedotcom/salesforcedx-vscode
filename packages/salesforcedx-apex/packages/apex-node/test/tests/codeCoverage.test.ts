@@ -23,14 +23,17 @@ const $$ = testSetup();
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
 let toolingQueryStub: SinonStub;
-let toolingAutoQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
 describe('Get code coverage results', () => {
   beforeEach(async () => {
     sandboxStub = createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
+    $$.setConfigStubContents('GlobalInfo', {
+      contents: {
+        orgs: {
+          [testData.username]: await testData.getConfig()
+        }
+      }
     });
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
     sandboxStub
@@ -42,10 +45,6 @@ describe('Get code coverage results', () => {
       })
     });
     toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
-    toolingAutoQueryStub = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
   });
 
   afterEach(() => {
@@ -140,7 +139,7 @@ describe('Get code coverage results', () => {
         uncoveredLines: [8, 9, 10]
       }
     ];
-    toolingAutoQueryStub.resolves({
+    toolingQueryStub.resolves({
       done: true,
       totalSize: 3,
       records: codeCoverageQueryResult
@@ -203,7 +202,7 @@ describe('Get code coverage results', () => {
         }
       }
     ];
-    toolingAutoQueryStub.resolves({
+    toolingQueryStub.resolves({
       done: true,
       totalSize: 3,
       records: perClassCodeCovResult
@@ -277,7 +276,7 @@ describe('Get code coverage results', () => {
         Coverage: { coveredLines: [1, 2, 3, 4, 5, 6], uncoveredLines: [7, 8] }
       }
     ];
-    toolingAutoQueryStub.resolves({
+    toolingQueryStub.resolves({
       done: true,
       totalSize: 2,
       records: perClassCodeCovResult
@@ -346,19 +345,19 @@ describe('Get code coverage results', () => {
       records.push(record);
     }
 
-    toolingAutoQueryStub.onFirstCall().resolves({
+    toolingQueryStub.onFirstCall().resolves({
       done: true,
       totalSize: 1,
       records: records.splice(0, QUERY_RECORD_LIMIT)
     });
 
-    toolingAutoQueryStub.onSecondCall().resolves({
+    toolingQueryStub.onSecondCall().resolves({
       done: true,
       totalSize: 1,
       records: records.splice(QUERY_RECORD_LIMIT, 2 * QUERY_RECORD_LIMIT)
     });
 
-    toolingAutoQueryStub.onThirdCall().resolves({
+    toolingQueryStub.onThirdCall().resolves({
       done: true,
       totalSize: 1,
       records: records.splice(2 * QUERY_RECORD_LIMIT, recordCount)
@@ -372,20 +371,20 @@ describe('Get code coverage results', () => {
     const codeCoverage = new CodeCoverage(mockConnection);
     await codeCoverage.getPerClassCodeCoverage(apexTestClassSet);
 
-    expect(toolingAutoQueryStub.args.length).to.equal(3);
+    expect(toolingQueryStub.args.length).to.equal(3);
 
     const idCountOfFirstCall =
-      toolingAutoQueryStub.getCall(0).args[0].split(',').length -
+      toolingQueryStub.getCall(0).args[0].split(',').length -
       queryStartSeparatorCount;
     expect(idCountOfFirstCall).to.equal(QUERY_RECORD_LIMIT);
 
     const idCountOfSecondCall =
-      toolingAutoQueryStub.getCall(1).args[0].split(',').length -
+      toolingQueryStub.getCall(1).args[0].split(',').length -
       queryStartSeparatorCount;
     expect(idCountOfSecondCall).to.equal(QUERY_RECORD_LIMIT);
 
     const idCountOfThirdCall =
-      toolingAutoQueryStub.getCall(2).args[0].split(',').length -
+      toolingQueryStub.getCall(2).args[0].split(',').length -
       queryStartSeparatorCount;
     expect(idCountOfThirdCall).to.equal(400);
 
@@ -417,19 +416,19 @@ describe('Get code coverage results', () => {
       records.push(record);
     }
 
-    toolingAutoQueryStub.onFirstCall().resolves({
+    toolingQueryStub.onFirstCall().resolves({
       done: true,
       totalSize: 1,
       records: records.splice(0, QUERY_RECORD_LIMIT)
     });
 
-    toolingAutoQueryStub.onSecondCall().resolves({
+    toolingQueryStub.onSecondCall().resolves({
       done: true,
       totalSize: 1,
       records: records.splice(QUERY_RECORD_LIMIT, 2 * QUERY_RECORD_LIMIT)
     });
 
-    toolingAutoQueryStub.onThirdCall().resolves({
+    toolingQueryStub.onThirdCall().resolves({
       done: true,
       totalSize: 1,
       records: records.splice(2 * QUERY_RECORD_LIMIT, recordCount)
@@ -443,20 +442,20 @@ describe('Get code coverage results', () => {
     const codeCoverage = new CodeCoverage(mockConnection);
     await codeCoverage.getAggregateCodeCoverage(apexTestClassSet);
 
-    expect(toolingAutoQueryStub.args.length).to.equal(3);
+    expect(toolingQueryStub.args.length).to.equal(3);
 
     const idCountOfFirstCall =
-      toolingAutoQueryStub.getCall(0).args[0].split(',').length -
+      toolingQueryStub.getCall(0).args[0].split(',').length -
       queryStartSeparatorCount;
     expect(idCountOfFirstCall).to.equal(QUERY_RECORD_LIMIT);
 
     const idCountOfSecondCall =
-      toolingAutoQueryStub.getCall(1).args[0].split(',').length -
+      toolingQueryStub.getCall(1).args[0].split(',').length -
       queryStartSeparatorCount;
     expect(idCountOfSecondCall).to.equal(QUERY_RECORD_LIMIT);
 
     const idCountOfThirdCall =
-      toolingAutoQueryStub.getCall(2).args[0].split(',').length -
+      toolingQueryStub.getCall(2).args[0].split(',').length -
       queryStartSeparatorCount;
     expect(idCountOfThirdCall).to.equal(300);
 

@@ -19,6 +19,7 @@ import {
   TestResult
 } from './types';
 import { calculatePercentage } from './utils';
+import { HttpRequest } from 'jsforce';
 
 export class SyncTests {
   public readonly connection: Connection;
@@ -42,7 +43,7 @@ export class SyncTests {
   ): Promise<TestResult> {
     try {
       const url = `${this.connection.tooling._baseUrl()}/runTestsSynchronous`;
-      const request = {
+      const request: HttpRequest = {
         method: 'POST',
         url,
         body: JSON.stringify(options),

@@ -13,7 +13,7 @@ import {
   ApexTestRunResultStatus
 } from '@salesforce/apex-node';
 import { flags, SfdxCommand } from '@salesforce/command';
-import { Messages, SfdxError } from '@salesforce/core';
+import { Messages, SfError } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import {
   JsonReporter,
@@ -28,7 +28,24 @@ import {
 } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'report');
+const messages = Messages.load('@salesforce/plugin-apex', 'report', [
+  'apexLibErr',
+  'apexTestReportFormatHint',
+  'codeCoverageDescription',
+  'commandDescription',
+  'jsonDescription',
+  'logLevelDescription',
+  'logLevelLongDescription',
+  'longDescription',
+  'outputDirectoryDescription',
+  'outputDirHint',
+  'resultFormatLongDescription',
+  'testResultProcessErr',
+  'testRunIdDescription',
+  'verboseDescription',
+  'waitDescription',
+  'warningMessage'
+]);
 
 export default class Report extends SfdxCommand {
   protected static requiresUsername = true;
@@ -92,14 +109,17 @@ export default class Report extends SfdxCommand {
     // add listener for errors
     process.on('uncaughtException', err => {
       const formattedErr = this.formatError(
-        new SfdxError(messages.getMessage('apexLibErr', [err.message]))
+        new SfError(messages.getMessage('apexLibErr', [err.message]))
       );
       this.ux.error(...formattedErr);
       process.exit();
     });
 
+    if (!this.org) {
+      throw Error('Unable to get connection from Org.');
+    }
     // org is guaranteed by requiresUsername field
-    const conn = this.org!.getConnection();
+    const conn = this.org.getConnection();
     const testService = new TestService(conn);
     const result = await testService.reportAsyncResults(
       this.flags.testrunid,

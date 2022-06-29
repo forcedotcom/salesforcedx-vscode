@@ -94,7 +94,7 @@ export class CoverageReporter {
   public generateReports(): void {
     try {
       this.coverageMap = this.buildCoverageMap();
-      const reportDirStat = fs.statSync(this.reportDir);
+      fs.statSync(this.reportDir);
       const context = libReport.createContext({
         dir: this.reportDir,
         defaultSummarizer: 'nested',

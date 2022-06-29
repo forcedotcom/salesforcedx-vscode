@@ -12,7 +12,7 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { expect, test } from '@salesforce/command/lib/test';
-import { Messages, SfdxProject } from '@salesforce/core';
+import { Connection, Messages, Org, SfProject } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as stream from 'stream';
@@ -28,7 +28,24 @@ import {
 } from './testData';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'report');
+const messages = Messages.load('@salesforce/plugin-apex', 'report', [
+  'apexLibErr',
+  'apexTestReportFormatHint',
+  'codeCoverageDescription',
+  'commandDescription',
+  'jsonDescription',
+  'logLevelDescription',
+  'logLevelLongDescription',
+  'longDescription',
+  'outputDirectoryDescription',
+  'outputDirHint',
+  'resultFormatLongDescription',
+  'testResultProcessErr',
+  'testRunIdDescription',
+  'verboseDescription',
+  'waitDescription',
+  'warningMessage'
+]);
 
 const SFDX_PROJECT_PATH = 'test-sfdx-project';
 const TEST_USERNAME = 'test@example.com';
@@ -45,12 +62,18 @@ describe('force:apex:test:report', () => {
 
   beforeEach(async () => {
     sandboxStub = createSandbox();
-    sandboxStub.stub(SfdxProject, 'resolve').returns(
+    sandboxStub.stub(SfProject, 'resolve').returns(
       Promise.resolve(({
         getPath: () => projectPath,
         resolveProjectConfig: () => sfdxProjectJson
-      } as unknown) as SfdxProject)
+      } as unknown) as SfProject)
     );
+    sandboxStub.stub(Org, 'create').resolves(Org.prototype);
+    sandboxStub
+      .stub(Org.prototype, 'getConnection')
+      .returns(Connection.prototype);
+    sandboxStub.stub(Org.prototype, 'getUsername').returns(TEST_USERNAME);
+    sandboxStub.stub(Org.prototype, 'getOrgId').returns('abc123');
   });
 
   afterEach(() => {

@@ -31,6 +31,7 @@ import { createFile } from '../utils';
 import { TraceFlags } from '../utils/traceFlags';
 
 type StreamingLogMessage = {
+  errorName?: string;
   sobject: { Id: string };
 };
 
@@ -151,7 +152,7 @@ export class LogService {
     }
   }
 
-  private streamingCallback(message: any): StatusResult {
+  private streamingCallback(message: StreamingLogMessage): StatusResult {
     if (message.errorName === LISTENER_ABORTED_ERROR_NAME) {
       return { completed: true };
     }

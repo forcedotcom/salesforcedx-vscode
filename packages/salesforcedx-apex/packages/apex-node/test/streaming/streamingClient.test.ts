@@ -11,7 +11,7 @@ import { assert, createSandbox, SinonSandbox } from 'sinon';
 import { StreamingClient } from '../../src/streaming';
 import { Deferred } from '../../src/streaming/streamingClient';
 import { expect } from 'chai';
-import { Client as FayeClient, Subscription } from 'faye';
+import { Client, Subscription } from 'faye';
 import { fail } from 'assert';
 import { Progress } from '../../src';
 import { StreamMessage, TestResultMessage } from '../../src/streaming/types';
@@ -21,6 +21,10 @@ import {
 } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import { EventEmitter } from 'events';
+
+// The type defined in jsforce doesn't have all Faye client methods.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ApexFayeClient: any = Client;
 
 const $$ = testSetup();
 let mockConnection: Connection;
@@ -38,8 +42,12 @@ const testResultMsg: TestResultMessage = {
 describe('Streaming API Client', () => {
   beforeEach(async () => {
     sandboxStub = createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
+    $$.setConfigStubContents('GlobalInfo', {
+      contents: {
+        orgs: {
+          [testData.username]: await testData.getConfig()
+        }
+      }
     });
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
     sandboxStub
@@ -63,9 +71,9 @@ describe('Streaming API Client', () => {
   });
 
   it('should initialize Faye Client', () => {
-    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
+    const stubOn = sandboxStub.stub(ApexFayeClient.prototype, 'on');
     const stubAddExtension = sandboxStub.stub(
-      FayeClient.prototype,
+      ApexFayeClient.prototype,
       'addExtension'
     );
     new StreamingClient(mockConnection);
@@ -76,7 +84,10 @@ describe('Streaming API Client', () => {
   });
 
   it('should initialize Faye Client header', async () => {
-    const stubSetHeader = sandboxStub.stub(FayeClient.prototype, 'setHeader');
+    const stubSetHeader = sandboxStub.stub(
+      ApexFayeClient.prototype,
+      'setHeader'
+    );
     const streamClient = new StreamingClient(mockConnection);
     await streamClient.init();
     expect(stubSetHeader.calledOnce).to.equal(true);
@@ -110,9 +121,12 @@ describe('Streaming API Client', () => {
 
   it('should disconnect when subscribe throws an error', async () => {
     const stubSubscribe = sandboxStub
-      .stub(FayeClient.prototype, 'subscribe')
+      .stub(ApexFayeClient.prototype, 'subscribe')
       .throwsException('custom subscribe error');
-    const stubDisconnect = sandboxStub.stub(FayeClient.prototype, 'disconnect');
+    const stubDisconnect = sandboxStub.stub(
+      ApexFayeClient.prototype,
+      'disconnect'
+    );
     const streamClient = new StreamingClient(mockConnection);
     try {
       await streamClient.subscribe(() => Promise.resolve('707xx0000AGQ3jbQQD'));
@@ -126,9 +140,13 @@ describe('Streaming API Client', () => {
 
   it('should disconnect when subscribe action throws an error', async () => {
     const stubSubscribe = sandboxStub
-      .stub(FayeClient.prototype, 'subscribe')
-      .returns({});
-    const stubDisconnect = sandboxStub.stub(FayeClient.prototype, 'disconnect');
+      .stub(ApexFayeClient.prototype, 'subscribe')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .returns({} as any);
+    const stubDisconnect = sandboxStub.stub(
+      ApexFayeClient.prototype,
+      'disconnect'
+    );
     const streamClient = new StreamingClient(mockConnection);
 
     try {
@@ -143,9 +161,16 @@ describe('Streaming API Client', () => {
 
   it.skip('should capture test run ID in subscribe', async () => {
     const stubSubscribe = sandboxStub
-      .stub(FayeClient.prototype, 'subscribe')
-      .returns(new Subscription());
-    const stubDisconnect = sandboxStub.stub(FayeClient.prototype, 'disconnect');
+      .stub(ApexFayeClient.prototype, 'subscribe')
+      .returns(
+        new Subscription(() => {
+          return;
+        })
+      );
+    const stubDisconnect = sandboxStub.stub(
+      ApexFayeClient.prototype,
+      'disconnect'
+    );
     const streamClient = new StreamingClient(mockConnection);
 
     const result = await streamClient.subscribe(() =>
@@ -158,10 +183,7 @@ describe('Streaming API Client', () => {
   });
 
   it('should throw error if handler can not find test records', async () => {
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.resolves({
       done: true,
       totalSize: 0,
@@ -184,10 +206,7 @@ describe('Streaming API Client', () => {
   });
 
   it('should not run a query if the subscribed test run id does not match the message test run id', async () => {
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     const streamClient = new StreamingClient(mockConnection);
     streamClient.subscribedTestRunId = '707xx0000gtQ3jx3x5';
     const streamHandlerResult = await streamClient.handler(testResultMsg);
@@ -208,10 +227,7 @@ describe('Streaming API Client', () => {
         }
       ]
     };
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.resolves(queryResponse);
     const streamClient = new StreamingClient(mockConnection);
     streamClient.subscribedTestRunId = '707xx0000AGQ3jbQQD';
@@ -240,10 +256,7 @@ describe('Streaming API Client', () => {
       ]
     };
 
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.resolves(queryResponse);
     const streamClient = new StreamingClient(mockConnection);
     streamClient.subscribedTestRunId = '707xx0000AGQ3jbQQD';
@@ -257,12 +270,12 @@ describe('Streaming API Client', () => {
     const progressReporter: Progress<ApexTestProgressValue> = {
       report: reportStub
     };
-    const mockFayeClient = new EventEmitter();
-    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
-    stubOn.callsFake(mockFayeClient.on.bind(mockFayeClient));
+    const mockApexFayeClient = new EventEmitter();
+    const stubOn = sandboxStub.stub(ApexFayeClient.prototype, 'on');
+    stubOn.callsFake(mockApexFayeClient.on.bind(mockApexFayeClient));
 
     new StreamingClient(mockConnection, progressReporter);
-    mockFayeClient.emit('transport:up');
+    mockApexFayeClient.emit('transport:up');
 
     assert.calledOnce(reportStub);
     assert.calledWith(reportStub, {
@@ -277,12 +290,12 @@ describe('Streaming API Client', () => {
     const progressReporter: Progress<ApexTestProgressValue> = {
       report: reportStub
     };
-    const mockFayeClient = new EventEmitter();
-    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
-    stubOn.callsFake(mockFayeClient.on.bind(mockFayeClient));
+    const mockApexFayeClient = new EventEmitter();
+    const stubOn = sandboxStub.stub(ApexFayeClient.prototype, 'on');
+    stubOn.callsFake(mockApexFayeClient.on.bind(mockApexFayeClient));
 
     new StreamingClient(mockConnection, progressReporter);
-    mockFayeClient.emit('transport:down');
+    mockApexFayeClient.emit('transport:down');
 
     assert.calledOnce(reportStub);
     assert.calledWith(reportStub, {
@@ -293,10 +306,7 @@ describe('Streaming API Client', () => {
   });
 
   it('should report streamingProcessingTestRun progress', async () => {
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.resolves({
       done: true,
       totalSize: 0,
@@ -326,10 +336,7 @@ describe('Streaming API Client', () => {
   });
 
   it('should report test queue progress', async () => {
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.resolves({
       done: true,
       totalSize: 0,
@@ -369,14 +376,14 @@ describe('Streaming API Client', () => {
 
   it('should handle 401::Authentication invalid error', async () => {
     const deferred = new Deferred();
-    const mockFayeClient = new EventEmitter();
-    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
+    const mockApexFayeClient = new EventEmitter();
+    const stubOn = sandboxStub.stub(ApexFayeClient.prototype, 'on');
     const stubInit = sandboxStub.stub(StreamingClient.prototype, 'init');
-    stubOn.callsFake(mockFayeClient.on.bind(mockFayeClient));
+    stubOn.callsFake(mockApexFayeClient.on.bind(mockApexFayeClient));
 
     const mockFayeIncomingMessage = new EventEmitter();
     const stubAddExtension = sandboxStub.stub(
-      FayeClient.prototype,
+      ApexFayeClient.prototype,
       'addExtension'
     );
     const stubCallback = sandboxStub.stub();
@@ -407,13 +414,13 @@ describe('Streaming API Client', () => {
 
   it('should handle handshake advice', async () => {
     const deferred = new Deferred();
-    const mockFayeClient = new EventEmitter();
-    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
-    stubOn.callsFake(mockFayeClient.on.bind(mockFayeClient));
+    const mockApexFayeClient = new EventEmitter();
+    const stubOn = sandboxStub.stub(ApexFayeClient.prototype, 'on');
+    stubOn.callsFake(mockApexFayeClient.on.bind(mockApexFayeClient));
 
     const mockFayeIncomingMessage = new EventEmitter();
     const stubAddExtension = sandboxStub.stub(
-      FayeClient.prototype,
+      ApexFayeClient.prototype,
       'addExtension'
     );
     const stubCallback = sandboxStub.stub();
@@ -450,13 +457,13 @@ describe('Streaming API Client', () => {
 
   it('should handle other 403 errors', async () => {
     const deferred = new Deferred();
-    const mockFayeClient = new EventEmitter();
-    const stubOn = sandboxStub.stub(FayeClient.prototype, 'on');
-    stubOn.callsFake(mockFayeClient.on.bind(mockFayeClient));
+    const mockApexFayeClient = new EventEmitter();
+    const stubOn = sandboxStub.stub(ApexFayeClient.prototype, 'on');
+    stubOn.callsFake(mockApexFayeClient.on.bind(mockApexFayeClient));
 
     const mockFayeIncomingMessage = new EventEmitter();
     const stubAddExtension = sandboxStub.stub(
-      FayeClient.prototype,
+      ApexFayeClient.prototype,
       'addExtension'
     );
     const stubCallback = sandboxStub.stub();
@@ -485,7 +492,7 @@ describe('Streaming API Client', () => {
   });
 
   it('should call query test queue items at an interval', async () => {
-    sandboxStub.stub(FayeClient.prototype, 'subscribe');
+    sandboxStub.stub(ApexFayeClient.prototype, 'subscribe');
     const queryResponse = {
       done: true,
       totalSize: 1,
@@ -498,10 +505,7 @@ describe('Streaming API Client', () => {
         }
       ]
     };
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.resolves(queryResponse);
 
     const setIntervalStub = sandboxStub.stub(global, 'setInterval');
@@ -515,8 +519,11 @@ describe('Streaming API Client', () => {
   });
 
   it('should return the results, disconnect and clear interval on test completion', async () => {
-    sandboxStub.stub(FayeClient.prototype, 'subscribe');
-    const disconnectStub = sandboxStub.stub(FayeClient.prototype, 'disconnect');
+    sandboxStub.stub(ApexFayeClient.prototype, 'subscribe');
+    const disconnectStub = sandboxStub.stub(
+      ApexFayeClient.prototype,
+      'disconnect'
+    );
     const mockRunId = '707xx0000AGQ3jbQQD';
     const queryResponse = {
       done: true,
@@ -530,10 +537,7 @@ describe('Streaming API Client', () => {
         }
       ]
     };
-    const mockToolingQuery = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
+    const mockToolingQuery = sandboxStub.stub(mockConnection.tooling, 'query');
     mockToolingQuery.resolves(queryResponse);
     const setIntervalStub = sandboxStub.stub(global, 'setInterval');
     setIntervalStub.callsFake((callback: Function) => callback.call(null));

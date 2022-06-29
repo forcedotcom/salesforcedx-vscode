@@ -12,7 +12,18 @@ import { AnyJson } from '@salesforce/ts-types';
 import { buildDescription, colorLogs, logLevels } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'get');
+const messages = Messages.load('@salesforce/plugin-apex', 'get', [
+  'commandDescription',
+  'jsonDescription',
+  'logIDDescription',
+  'logLevelDescription',
+  'logLevelLongDescription',
+  'longDescription',
+  'noResultsFound',
+  'numberDescription',
+  'outputDirDescription',
+  'outputDirLongDescription'
+]);
 
 export default class Get extends SfdxCommand {
   protected static requiresUsername = true;
@@ -60,8 +71,11 @@ export default class Get extends SfdxCommand {
 
   public async run(): Promise<AnyJson> {
     try {
+      if (!this.org) {
+        throw Error('Unable to get connection from Org.');
+      }
       // org is guaranteed by requiresUsername field
-      const conn = this.org!.getConnection();
+      const conn = this.org.getConnection();
       const logService = new LogService(conn);
 
       if (!this.flags.logid && !this.flags.number) {

@@ -11,7 +11,24 @@ import { Messages } from '@salesforce/core';
 import { buildDescription, logLevels } from '../../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'list');
+const messages = Messages.load('@salesforce/plugin-apex', 'list', [
+  'appColHeader',
+  'commandDescription',
+  'durationColHeader',
+  'idColHeader',
+  'jsonDescription',
+  'locationColHeader',
+  'logLevelDescription',
+  'logLevelLongDescription',
+  'longDescription',
+  'noDebugLogsFound',
+  'operationColHeader',
+  'requestColHeader',
+  'sizeColHeader',
+  'statusColHeader',
+  'timeColHeader',
+  'userColHeader'
+]);
 
 export default class List extends SfdxCommand {
   protected static requiresUsername = true;
@@ -42,8 +59,11 @@ export default class List extends SfdxCommand {
 
   public async run(): Promise<LogRecord[]> {
     try {
+      if (!this.org) {
+        throw Error('Unable to get connection from Org.');
+      }
       // org is guaranteed by requiresUsername field
-      const conn = this.org!.getConnection();
+      const conn = this.org.getConnection();
       const logService = new LogService(conn);
       const logRecords = await logService.getLogRecords();
 

@@ -8,6 +8,8 @@ import * as path from 'path';
 import { test } from '@salesforce/command/lib/test';
 import { expect } from 'chai';
 import { ExecuteService } from '@salesforce/apex-node';
+import { createSandbox, SinonSandbox } from 'sinon';
+import { Connection, Org } from '@salesforce/core';
 
 describe('force:apex:execute', () => {
   const log =
@@ -90,6 +92,24 @@ describe('force:apex:execute', () => {
   const compileResponse =
     'Error: Line: 11, Column: 1\nError: problem compiling\n\n';
   const runtimeResponse = `Compiled successfully.\nError: problem at runtime\nError: Issue in mock file\n\n${log}\n`;
+  const TEST_USERNAME = 'test@org.com';
+
+  let sandboxStub: SinonSandbox;
+
+  beforeEach(() => {
+    sandboxStub = createSandbox();
+
+    sandboxStub.stub(Org, 'create').resolves(Org.prototype);
+    sandboxStub
+      .stub(Org.prototype, 'getConnection')
+      .returns(Connection.prototype);
+    sandboxStub.stub(Org.prototype, 'getUsername').returns(TEST_USERNAME);
+    sandboxStub.stub(Org.prototype, 'getOrgId').returns('abc123');
+  });
+
+  afterEach(() => {
+    sandboxStub.restore();
+  });
 
   test
     .withOrg({ username: 'test@org.com' }, true)

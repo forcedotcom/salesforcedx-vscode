@@ -10,7 +10,6 @@ import { tmpdir } from 'os';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
-import mkdirp = require('mkdirp');
 
 const multipleCoverageAggregate = {
   done: true,

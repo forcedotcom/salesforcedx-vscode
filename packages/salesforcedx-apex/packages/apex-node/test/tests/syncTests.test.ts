@@ -54,8 +54,12 @@ describe('Run Apex tests synchronously', () => {
   let formatSpy: SinonSpy;
   beforeEach(async () => {
     sandboxStub = createSandbox();
-    $$.setConfigStubContents('AuthInfoConfig', {
-      contents: await testData.getConfig()
+    $$.setConfigStubContents('GlobalInfo', {
+      contents: {
+        orgs: {
+          [testData.username]: await testData.getConfig()
+        }
+      }
     });
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
     sandboxStub
@@ -178,7 +182,19 @@ describe('Run Apex tests synchronously', () => {
 
   it('should run a test with code coverage', async () => {
     toolingRequestStub.withArgs(testRequest).returns(syncTestResultSimple);
-    sandboxStub.stub(mockConnection.tooling, 'query').resolves({
+    const queryStub = sandboxStub.stub(mockConnection.tooling, 'query');
+
+    queryStub.onCall(0).resolves({
+      done: true,
+      totalSize: 3,
+      records: perClassCodeCoverage
+    } as ApexCodeCoverage);
+    queryStub.onCall(1).resolves({
+      done: true,
+      totalSize: 3,
+      records: codeCoverageQueryResult
+    } as ApexCodeCoverageAggregate);
+    queryStub.onCall(2).resolves({
       done: true,
       totalSize: 1,
       records: [
@@ -187,20 +203,6 @@ describe('Run Apex tests synchronously', () => {
         }
       ]
     } as ApexOrgWideCoverage);
-    const toolingAutoQueryStub = sandboxStub.stub(
-      mockConnection.tooling,
-      'autoFetchQuery'
-    );
-    toolingAutoQueryStub.onCall(0).resolves({
-      done: true,
-      totalSize: 3,
-      records: perClassCodeCoverage
-    } as ApexCodeCoverage);
-    toolingAutoQueryStub.onCall(1).resolves({
-      done: true,
-      totalSize: 3,
-      records: codeCoverageQueryResult
-    } as ApexCodeCoverageAggregate);
 
     const testSrv = new TestService(mockConnection);
     const testResult = (await testSrv.runTestSynchronous(

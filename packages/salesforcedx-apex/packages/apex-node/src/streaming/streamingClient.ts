@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Client as FayeClient } from 'faye';
+import { Client } from 'faye';
 import { Connection } from '@salesforce/core';
 import {
   RetreiveResultsInterval,
@@ -19,6 +19,7 @@ import { refreshAuth } from '../utils';
 import {
   ApexTestProgressValue,
   ApexTestQueueItem,
+  ApexTestQueueItemRecord,
   ApexTestQueueItemStatus
 } from '../tests/types';
 
@@ -39,7 +40,10 @@ export class Deferred<T> {
 }
 
 export class StreamingClient {
-  private client: FayeClient;
+  // This should be a Client from Faye, but I'm not sure how to get around the type
+  // that is exported from jsforce.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private client: any;
   private conn: Connection;
   private progress?: Progress<ApexTestProgressValue>;
   private apiVersion = '36.0';
@@ -69,7 +73,7 @@ export class StreamingClient {
     this.conn = connection;
     this.progress = progress;
     const streamUrl = this.getStreamURL(this.conn.instanceUrl);
-    this.client = new FayeClient(streamUrl, {
+    this.client = new Client(streamUrl, {
       timeout: DEFAULT_STREAMING_TIMEOUT_MS
     });
 
@@ -273,9 +277,12 @@ export class StreamingClient {
     testRunId: string
   ): Promise<ApexTestQueueItem> {
     const queryApexTestQueueItem = `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`;
-    const result = (await this.conn.tooling.autoFetchQuery(
-      queryApexTestQueueItem
-    )) as ApexTestQueueItem;
+    const result = await this.conn.tooling.query<ApexTestQueueItemRecord>(
+      queryApexTestQueueItem,
+      {
+        autoFetch: true
+      }
+    );
 
     if (result.records.length === 0) {
       throw new Error(nls.localize('noTestQueueResults', testRunId));

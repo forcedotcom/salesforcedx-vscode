@@ -13,13 +13,13 @@ import {
   soapEnv,
   soapBody,
   soapHeader,
-  RequestData,
   action
 } from './types';
 import { nls } from '../i18n';
 import { refreshAuth } from '../utils';
 import { encodeBody } from './utils';
 import * as readline from 'readline';
+import { HttpRequest } from 'jsforce';
 
 export class ExecuteService {
   public readonly connection: Connection;
@@ -106,7 +106,7 @@ export class ExecuteService {
 
   // Tooling API execute anonymous apex REST endpoint was not used because
   // it requires multiple api calls to turn on trace flag, execute anonymous apex, and get the generated debug log
-  private buildExecRequest(data: string): RequestData {
+  private buildExecRequest(data: string): HttpRequest {
     const body = encodeBody(this.connection.accessToken, data);
     const postEndpoint = `${this.connection.instanceUrl}/services/Soap/s/${
       this.connection.version
@@ -115,7 +115,7 @@ export class ExecuteService {
       'content-type': 'text/xml',
       soapaction: action
     };
-    const request = {
+    const request: HttpRequest = {
       method: 'POST',
       url: postEndpoint,
       body,
@@ -160,7 +160,7 @@ export class ExecuteService {
   }
 
   public async connectionRequest(
-    requestData: RequestData
+    requestData: HttpRequest
   ): Promise<SoapResponse> {
     return (await this.connection.request(requestData)) as SoapResponse;
   }

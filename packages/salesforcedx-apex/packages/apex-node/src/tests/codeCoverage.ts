@@ -9,6 +9,8 @@ import { Connection } from '@salesforce/core';
 import {
   ApexCodeCoverage,
   ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
+  ApexCodeCoverageRecord,
   ApexOrgWideCoverage,
   CodeCoverageResult,
   PerClassCoverage
@@ -174,10 +176,22 @@ export class CodeCoverage {
     const queries = this.createQueries(selectQuery, idSet);
 
     const queryPromises = queries.map(query => {
-      return this.connection.tooling.autoFetchQuery(query) as Promise<T>;
+      // The query method returns a type QueryResult from jsforce
+      // that has takes a type that extends the jsforce Record.
+      // ApexCodeCoverageRecord and ApexCodeCoverageAggregateRecord
+      // are the Records compatible types defined in this project.
+      return this.connection.tooling.query<
+        ApexCodeCoverageRecord | ApexCodeCoverageAggregateRecord
+      >(query, {
+        autoFetch: true
+      });
     });
 
-    return await Promise.all(queryPromises);
+    // Note here the result of the .all call is of type QueryResult<ApexCodeCoverageAggregateRecord | ApexCodeCoverageRecord>[]
+    // Since QueryResult is compatible with ApexCodeCoverage and ApexCodeCoverageAggregate we can cast to T[]
+    // and things work out.
+    //TODO: figure out how to use the provided types from core instead of having to work around typescript here.
+    return (await Promise.all(queryPromises)) as T[];
   }
 
   private createQueries(selectQuery: string, idSet: Set<string>): string[] {

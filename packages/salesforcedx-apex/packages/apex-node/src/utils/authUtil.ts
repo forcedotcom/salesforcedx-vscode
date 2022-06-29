@@ -7,11 +7,12 @@
 import { Connection } from '@salesforce/core';
 import { JsonCollection } from '@salesforce/ts-types';
 import { xmlCharMap } from './types';
+import { HttpRequest } from 'jsforce';
 
 export async function refreshAuth(
   connection: Connection
 ): Promise<JsonCollection> {
-  const requestInfo = { url: connection.baseUrl(), method: 'GET' };
+  const requestInfo: HttpRequest = { url: connection.baseUrl(), method: 'GET' };
   return await connection.request(requestInfo);
 }
 

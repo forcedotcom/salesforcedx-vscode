@@ -20,7 +20,15 @@ import {
 } from '../../../utils';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'execute');
+const messages = Messages.load('@salesforce/plugin-apex', 'execute', [
+  'apexCodeFileDescription',
+  'commandDescription',
+  'executeCompileSuccess',
+  'executeRuntimeSuccess',
+  'logLevelDescription',
+  'logLevelLongDescription',
+  'longDescription'
+]);
 
 export default class Execute extends SfdxCommand {
   public static description = buildDescription(
@@ -53,7 +61,10 @@ export default class Execute extends SfdxCommand {
   public async run(): Promise<AnyJson> {
     try {
       // org is guaranteed by requiresUsername field
-      const conn = this.org!.getConnection();
+      if (!this.org) {
+        throw Error('Unable to get connection from Org.');
+      }
+      const conn = this.org.getConnection();
       const exec = new ExecuteService(conn);
 
       const execAnonOptions: ApexExecuteOptions = {
@@ -81,7 +92,10 @@ export default class Execute extends SfdxCommand {
       )}\n`;
       outputText += `\n${response.logs}`;
     } else {
-      const diagnostic = response.diagnostic![0];
+      if (!response.diagnostic) {
+        throw Error('No diagnostic property found on response.');
+      }
+      const diagnostic = response.diagnostic[0];
 
       if (!response.compiled) {
         outputText += colorError(
@@ -103,6 +117,8 @@ export default class Execute extends SfdxCommand {
   private formatJson(response: ExecuteAnonymousResponse): AnyJson {
     const diagnostic = typeof response.diagnostic !== 'undefined';
 
+    // Allow assumption below that diagnostic array is populated.
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
     const formattedResponse = {
       success: response.success,
       compiled: response.compiled,
@@ -117,6 +133,7 @@ export default class Execute extends SfdxCommand {
       column: diagnostic ? response.diagnostic![0].columnNumber : -1,
       logs: response.logs
     };
+    /* eslint-emable @typescript-eslint/no-non-null-assertion */
     return formattedResponse;
   }
 }

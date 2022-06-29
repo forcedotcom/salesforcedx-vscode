@@ -7,7 +7,7 @@
 
 import { Connection } from '@salesforce/core';
 import { CLASS_ID_PREFIX, TEST_RUN_ID_PREFIX } from './constants';
-import { NamespaceInfo, NamespaceQueryResult } from './types';
+import { NamespaceInfo } from './types';
 
 export function isValidTestRunID(testRunId: string): boolean {
   return (
@@ -40,13 +40,9 @@ export async function queryNamespaces(
   connection: Connection
 ): Promise<NamespaceInfo[]> {
   const installedNsQuery = 'SELECT NamespacePrefix FROM PackageLicense';
-  const installedNsPromise = connection.query(installedNsQuery) as Promise<
-    NamespaceQueryResult
-  >;
+  const installedNsPromise = connection.query(installedNsQuery);
   const orgNsQuery = 'SELECT NamespacePrefix FROM Organization';
-  const orgNsPromise = connection.query(orgNsQuery) as Promise<
-    NamespaceQueryResult
-  >;
+  const orgNsPromise = connection.query(orgNsQuery);
 
   const allNamespaces = await Promise.all([installedNsPromise, orgNsPromise]);
   const installedNamespaces = allNamespaces[0].records.map(record => {

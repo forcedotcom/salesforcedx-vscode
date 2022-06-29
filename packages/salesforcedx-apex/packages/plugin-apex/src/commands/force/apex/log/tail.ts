@@ -12,7 +12,17 @@ import { buildDescription, logLevels } from '../../../../utils';
 import { colorizeLog } from '../../../../legacyColorization';
 
 Messages.importMessagesDirectory(__dirname);
-const messages = Messages.loadMessages('@salesforce/plugin-apex', 'tail');
+const messages = Messages.load('@salesforce/plugin-apex', 'tail', [
+  'colorDescription',
+  'commandDescription',
+  'debugLevelDescription',
+  'finishedTailing',
+  'jsonDescription',
+  'logLevelDescription',
+  'logLevelLongDescription',
+  'longDescription',
+  'skipTraceFlagDescription'
+]);
 
 export default class Tail extends SfdxCommand {
   protected static requiresUsername = true;
