@@ -9,7 +9,11 @@ import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-v
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
-import { getRange, handleDiagnosticErrors } from '../../../src/diagnostics';
+import {
+  getFileUri,
+  getRange,
+  handleDiagnosticErrors
+} from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
   let deployErrorResult: ForceSourceDeployErrorResponse;
@@ -226,5 +230,20 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[1].range).to.be.an('object');
     const testRange1 = getRange('1', '1');
     expect(testDiagnostics[1].range).to.deep.equal(testRange1);
+  });
+
+  it('Should not duplicate the workspace path when constructing the fileUri', () => {
+    const absoluteFilePath = `${workspacePath}/src/classes/Testing.cls`;
+    const fileUri = getFileUri(workspacePath, absoluteFilePath, '');
+    const regEx = new RegExp(workspacePath, 'g');
+    const count = (fileUri.match(regEx) || []).length;
+    expect(count).to.equal(1);
+  });
+
+  it('Should use the default error path as fileUri when N/A is returned as filePath', () => {
+    const defaultErrorPath = 'default/error/path';
+    const filePath = 'N/A';
+    const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
+    expect(fileUri).to.equal(defaultErrorPath);
   });
 });
