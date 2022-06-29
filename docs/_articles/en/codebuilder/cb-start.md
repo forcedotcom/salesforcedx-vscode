@@ -168,7 +168,7 @@ Update the files –
     <lightning-input label="Name" value={greeting} onchange={handleChange}></lightning-input>
 </template>
 ```
-2. In the HTML file, `newCBComponent.js`, copy, and paste the following code:
+2. In `newCBComponent.js`, copy, and paste the following code:
 
 ```
 import { LightningElement } from 'lwc';
