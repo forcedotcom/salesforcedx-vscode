@@ -97,7 +97,7 @@ To log into another org:
 2. Run **SFDX: Authorize an Org**.
 3. Enter the login URL or select the org you want to log into.
 4. Enter an alias for the org, for example, dev_pro_sandbox or my_playground.
-5. A code is displayed in a text box. click **Connect**.
+5. A code is displayed in a text box. Click **Connect**.
 6. Log in with the relevant username and password. Click **Allow**. 
 7. Click **Continue**. You’re now connected to a different org, and its name is visible in the status bar at the bottom.
 
