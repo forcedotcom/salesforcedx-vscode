@@ -129,7 +129,8 @@ export function handleDeployDiagnostics(
       source: type
     };
 
-    const filePath = getAbsoluteFilePath(fileResponse.filePath);
+    const workspacePath = getRootWorkspacePath();
+    const filePath = getAbsoluteFilePath(fileResponse.filePath, workspacePath);
 
     if (!diagnosticMap.has(filePath)) {
       diagnosticMap.set(filePath, []);
@@ -144,8 +145,10 @@ export function handleDeployDiagnostics(
   return errorCollection;
 }
 
-function getAbsoluteFilePath(filePath: string | undefined): string {
-  const workspacePath = getRootWorkspacePath();
+export function getAbsoluteFilePath(
+  filePath: string | undefined,
+  workspacePath: string
+): string {
   let absoluteFilePath = filePath ?? workspacePath;
   if (!absoluteFilePath.includes(workspacePath)) {
     // Build the absolute filePath so that errors in the Problems
