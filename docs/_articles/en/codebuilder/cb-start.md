@@ -41,7 +41,7 @@ Your new Code Builder environment is now available on your dashboard.
 **Tip**: Once you have created your Code Builder environment, launch it from the dashboard at any time, or bookmark it for fast access.
 
 ## Let's Take A Quick Tour
-You’re now in your developer environment in Code Builder. Code Builder has VS Code’s rich IDE plus it gives you easy access to cool Salesforce development-specific tools through the Salesforce extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
+You’re now in your developer environment in Code Builder. Code Builder has a rich IDE by VS Code, plus it gives you easy access to cool Salesforce development-specific tools through the Salesforce extension pack. Let’s take a quick tour and get to know the lay of the land. Your screen looks something like this:
 
 ![code_builder_ui](../../../images/code_builder_ui.jpg)
 The Code Builder user interface is divided into five main areas.
