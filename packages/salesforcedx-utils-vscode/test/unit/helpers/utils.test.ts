@@ -78,7 +78,7 @@ describe('flushFilePaths', () => {
     const filePaths = [
       'file.js',
       'file.js',
-      'file.js',
+      'file.js'
     ];
     const realpathSyncNativeStub = sinon.stub(
       fs.realpathSync,
