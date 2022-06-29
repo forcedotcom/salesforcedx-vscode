@@ -26,7 +26,7 @@ export function extractJsonObject(str: string): any {
 
 // There's a bug in VS Code where, after a file has been renamed,
 // the URI that VS Code passes to the command is stale and is the
-// original URL.  See https://github.com/microsoft/vscode/issues/152993.
+// original URI.  See https://github.com/microsoft/vscode/issues/152993.
 //
 // To get around this, fs.realpathSync.native() is called to get the
 // URI with the actual file name.
