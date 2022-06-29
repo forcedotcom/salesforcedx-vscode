@@ -20,12 +20,12 @@ import {
   PreconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as vscode from 'vscode';
-import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;
