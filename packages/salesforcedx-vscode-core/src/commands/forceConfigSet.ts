@@ -10,12 +10,12 @@ import { Row, Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
+import { getRootWorkspacePath } from '../util/rootWorkspace';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-import { getRootWorkspacePath } from '../util/rootWorkspace';
 
 const CONFIG_SET_EXECUTOR = 'force_config_set_org_text';
 const CONFIG_NAME = 'defaultusername'; // todo: localize
@@ -60,7 +60,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
         { key: 'name', label: 'Name'},
         {key: 'val', label: 'Value'},
         {key: 'success', label: 'Success'}
-      ], 
+      ],
       title
     ); // todo: localize and potentially create helper function
     return outputTable;

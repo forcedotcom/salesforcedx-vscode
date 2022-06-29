@@ -29,7 +29,7 @@ describe('Force Config Set', () => {
     env.stub(forceConfigSet, 'run').returns(true);
     expect(forceConfigSet.getUsernameOrAlias()).to.equal(usernameOrAlias);
   });
-  
+
   it('should build the force config set command with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
