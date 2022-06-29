@@ -85,6 +85,9 @@ describe('Force Launch Replay Debugger', () => {
     sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName')
       .returns(undefined);
 
+    sb.stub(helpers, 'flushFilePath')
+      .returns(undefined);
+
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
