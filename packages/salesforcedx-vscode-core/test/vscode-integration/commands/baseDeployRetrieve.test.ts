@@ -455,14 +455,12 @@ describe('Base Deploy Retrieve Commands', () => {
 
         expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
         failedRows.forEach((row, index) => {
-          const [fileDesc, reportedError] = setDiagnosticsStub.getCall(
-            index
-          ).args;
-          const expectedFile = vscode.Uri.file(
+          const [fileUri, diagnostics] = setDiagnosticsStub.getCall(index).args;
+          const expectedFileUri = vscode.Uri.file(
             getAbsoluteFilePath(row.filePath, getRootWorkspacePath())
           );
-          expect(fileDesc).to.deep.equal(expectedFile);
-          expect(reportedError).to.deep.equal([
+          expect(fileUri).to.deep.equal(expectedFileUri);
+          expect(diagnostics).to.deep.equal([
             {
               message: row.error,
               range: new vscode.Range(
