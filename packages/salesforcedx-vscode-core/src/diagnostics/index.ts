@@ -6,6 +6,7 @@
  */
 
 export {
+  getAbsoluteFilePath,
   getFileUri,
   getRange,
   handleDiagnosticErrors,

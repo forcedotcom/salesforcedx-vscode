@@ -129,7 +129,7 @@ export function handleDeployDiagnostics(
       source: type
     };
 
-    const filePath = fileResponse.filePath ?? getRootWorkspacePath();
+    const filePath = getAbsoluteFilePath(fileResponse.filePath);
 
     if (!diagnosticMap.has(filePath)) {
       diagnosticMap.set(filePath, []);
@@ -142,4 +142,18 @@ export function handleDeployDiagnostics(
   );
 
   return errorCollection;
+}
+
+// TODO: move to some type of file service or utility
+export function getAbsoluteFilePath(
+  filePath: string | undefined,
+  workspacePath: string = getRootWorkspacePath()
+): string {
+  let absoluteFilePath = filePath ?? workspacePath;
+  if (!absoluteFilePath.includes(workspacePath)) {
+    // Build the absolute filePath so that errors in the Problems
+    // tab correctly link to the problem location in the file
+    absoluteFilePath = [workspacePath, filePath].join('/');
+  }
+  return absoluteFilePath;
 }
