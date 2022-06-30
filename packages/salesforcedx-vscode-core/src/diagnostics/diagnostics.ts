@@ -129,7 +129,6 @@ export function handleDeployDiagnostics(
       source: type
     };
 
-    const workspacePath = getRootWorkspacePath();
     const filePath = getAbsoluteFilePath(fileResponse.filePath);
 
     if (!diagnosticMap.has(filePath)) {
@@ -145,6 +144,7 @@ export function handleDeployDiagnostics(
   return errorCollection;
 }
 
+// TODO: move to some type of file service or utility
 export function getAbsoluteFilePath(
   filePath: string | undefined,
   workspacePath: string = getRootWorkspacePath()
