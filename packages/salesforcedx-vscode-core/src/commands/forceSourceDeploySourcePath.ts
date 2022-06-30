@@ -52,7 +52,7 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
 }
 
 export const forceSourceDeploySourcePaths = async (
-  sourceUri: vscode.Uri | vscode.Uri[] |undefined,
+  sourceUri: vscode.Uri | vscode.Uri[] | undefined,
   uris: vscode.Uri[] | undefined
 ) => {
   if (!sourceUri) {
