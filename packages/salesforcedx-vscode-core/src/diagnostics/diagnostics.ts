@@ -130,7 +130,7 @@ export function handleDeployDiagnostics(
     };
 
     const workspacePath = getRootWorkspacePath();
-    const filePath = getAbsoluteFilePath(fileResponse.filePath, workspacePath);
+    const filePath = getAbsoluteFilePath(fileResponse.filePath);
 
     if (!diagnosticMap.has(filePath)) {
       diagnosticMap.set(filePath, []);
@@ -147,7 +147,7 @@ export function handleDeployDiagnostics(
 
 export function getAbsoluteFilePath(
   filePath: string | undefined,
-  workspacePath: string
+  workspacePath: string = getRootWorkspacePath()
 ): string {
   let absoluteFilePath = filePath ?? workspacePath;
   if (!absoluteFilePath.includes(workspacePath)) {
