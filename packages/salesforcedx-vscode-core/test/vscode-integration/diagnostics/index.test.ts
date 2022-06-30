@@ -10,6 +10,7 @@ import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
 import {
+  getAbsoluteFilePath,
   getFileUri,
   getRange,
   handleDiagnosticErrors
@@ -245,5 +246,23 @@ describe('Diagnostics', () => {
     const filePath = 'N/A';
     const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
     expect(fileUri).to.equal(defaultErrorPath);
+  });
+
+  it('Should build the absolute file path when constructing the fileUri', () => {
+    const filePath = 'src/classes/Testing.cls';
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(workspacePath + '/' + filePath);
+  });
+
+  it('Should not duplicate the workspace path when filePath is already absolute', () => {
+    const filePath = `${workspacePath}/src/classes/Testing.cls`;
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(filePath);
+  });
+
+  it('Should use the workspace path as fileUri when filePath is undefined', () => {
+    const filePath = undefined;
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(workspacePath);
   });
 });
