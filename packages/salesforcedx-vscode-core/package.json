@@ -26,11 +26,11 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "^0.3.0",
-    "@salesforce/core": "^3.13.0",
+    "@salesforce/core": "^3.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "54.12.0",
     "@salesforce/salesforcedx-utils-vscode": "54.12.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "6.0.3",
+    "@salesforce/source-deploy-retrieve": "6.0.4",
     "@salesforce/templates": "^54.5.0",
     "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",

@@ -118,7 +118,10 @@ export class StreamingClientInfoBuilder {
 }
 
 export class StreamingClient {
-  private client: Client;
+  // The Client type defined in jsforce doesn't cover all the
+  // methods implemented in Faye client for the streaming client.
+  // TODO: migrate away from a custom streamingClient utilizing the one in core
+  private client: any;
   private connected = false;
   private shouldDisconnect = false;
   private isReplaySupported = false;
