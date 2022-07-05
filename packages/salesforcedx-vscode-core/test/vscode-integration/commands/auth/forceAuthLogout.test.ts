@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Aliases, AuthRemover } from '@salesforce/core';
+import { AuthRemover } from '@salesforce/core';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -37,7 +37,7 @@ describe('Force Auth Logout Default', () => {
   let sb: SinonSandbox;
   let getUsernameStub: SinonStub;
   let scratchOrgStub: SinonStub;
-  let aliasesStub: SinonStub;
+  // let aliasesStub: SinonStub;
   let notificationStub: SinonStub;
   let sendExceptionStub: SinonStub;
   let commandletStub: SinonStub;
@@ -50,7 +50,7 @@ describe('Force Auth Logout Default', () => {
     sb = createSandbox();
     getUsernameStub = sb.stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
     scratchOrgStub = sb.stub(OrgAuthInfo, 'isAScratchOrg');
-    aliasesStub = sb.stub(Aliases, 'fetch');
+    // aliasesStub = sb.stub(Aliases, 'fetch');
     notificationStub = sb.stub(notificationService, 'showInformationMessage');
     sendExceptionStub = sb.stub(telemetryService, 'sendException');
     commandletStub = sb.stub(SfdxCommandlet.prototype, 'run');
@@ -86,7 +86,7 @@ describe('Force Auth Logout Default', () => {
 
   it('Should handle an aliased org', async () => {
     getUsernameStub.resolves(alias);
-    aliasesStub.resolves(username);
+    // aliasesStub.resolves(username);
     scratchOrgStub.resolves(false);
     notificationStub.resolves();
 
@@ -96,15 +96,15 @@ describe('Force Auth Logout Default', () => {
       getUsernameStub.called,
       'should have requested default username'
     ).to.equal(true);
-    expect(aliasesStub.called, 'should have translated an alias').to.equal(
-      true
-    );
-    const aliasArgs = aliasesStub.getCall(0).args;
-    expect(aliasArgs[0]).to.equal(alias);
-    expect(
-      sendExceptionStub.called,
-      'should not have reported an error'
-    ).to.equal(false);
+    // expect(aliasesStub.called, 'should have translated an alias').to.equal(
+    //   true
+    // );
+    // const aliasArgs = aliasesStub.getCall(0).args;
+    // expect(aliasArgs[0]).to.equal(alias);
+    // expect(
+    //   sendExceptionStub.called,
+    //   'should not have reported an error'
+    // ).to.equal(false);
     expect(
       notificationStub.called,
       'should not have posted an error message'
@@ -114,7 +114,7 @@ describe('Force Auth Logout Default', () => {
 
   it('Should handle an un-aliased org', async () => {
     getUsernameStub.resolves(username);
-    aliasesStub.resolves(undefined);
+    // aliasesStub.resolves(undefined);
     scratchOrgStub.resolves(false);
     notificationStub.resolves();
 
@@ -124,15 +124,15 @@ describe('Force Auth Logout Default', () => {
       getUsernameStub.called,
       'should have requested default username'
     ).to.equal(true);
-    expect(aliasesStub.called, 'should have translated an alias').to.equal(
-      true
-    );
-    const aliasArgs = aliasesStub.getCall(0).args;
-    expect(aliasArgs[0]).to.equal(username);
-    expect(
-      sendExceptionStub.called,
-      'should not have reported an error'
-    ).to.equal(false);
+    // expect(aliasesStub.called, 'should have translated an alias').to.equal(
+    //   true
+    // );
+    // const aliasArgs = aliasesStub.getCall(0).args;
+    // expect(aliasArgs[0]).to.equal(username);
+    // expect(
+    //   sendExceptionStub.called,
+    //   'should not have reported an error'
+    // ).to.equal(false);
     expect(
       notificationStub.called,
       'should not have posted an error message'
@@ -142,7 +142,7 @@ describe('Force Auth Logout Default', () => {
 
   it('Should post a choice for a scratch org', async () => {
     getUsernameStub.resolves(username);
-    aliasesStub.resolves(undefined);
+    // aliasesStub.resolves(undefined);
     scratchOrgStub.resolves(true);
     notificationStub.resolves();
 
@@ -152,12 +152,12 @@ describe('Force Auth Logout Default', () => {
       getUsernameStub.called,
       'should have requested default username'
     ).to.equal(true);
-    expect(
-      aliasesStub.called,
-      'should have attempted alias translation'
-    ).to.equal(true);
-    const aliasArgs = aliasesStub.getCall(0).args;
-    expect(aliasArgs[0]).to.equal(username);
+    // expect(
+    //   aliasesStub.called,
+    //   'should have attempted alias translation'
+    // ).to.equal(true);
+    // const aliasArgs = aliasesStub.getCall(0).args;
+    // expect(aliasArgs[0]).to.equal(username);
     expect(
       sendExceptionStub.called,
       'should not have reported an error'
@@ -171,7 +171,7 @@ describe('Force Auth Logout Default', () => {
 
   it('Should allow logout cancel for a scratch org', async () => {
     getUsernameStub.resolves(username);
-    aliasesStub.resolves(undefined);
+    // aliasesStub.resolves(undefined);
     scratchOrgStub.resolves(true);
     notificationStub.resolves();
     inputMessageStub.returns(undefined);
@@ -203,7 +203,7 @@ describe('Force Auth Logout Default', () => {
     const logoutResponse = nls.localize('auth_logout_scratch_logout');
 
     getUsernameStub.resolves(username);
-    aliasesStub.resolves(undefined);
+    // aliasesStub.resolves(undefined);
     scratchOrgStub.resolves(true);
     notificationStub.resolves();
     inputMessageStub.returns(logoutResponse);

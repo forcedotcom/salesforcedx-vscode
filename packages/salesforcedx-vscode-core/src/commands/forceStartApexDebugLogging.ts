@@ -101,7 +101,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       developerLogTraceFlag.turnOnLogging();
       executionWrapper.successfulExit();
     } catch (e) {
-      executionWrapper.failureExit(e);
+      executionWrapper.failureExit(e as Error);
     }
   }
 
@@ -120,7 +120,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 
 export async function getUserId(projectPath: string): Promise<string> {
   const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+  if (defaultUsernameOrAlias === undefined) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendException('replay_debugger_undefined_username', err);
     throw new Error(err);
