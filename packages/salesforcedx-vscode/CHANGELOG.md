@@ -1,3 +1,57 @@
+# 55.3.0 - June 29, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- You can now access the `SFDX Create Apex Class` command when you right-click on a sub-folder of the `classes` project folder. ([PR #4224](https://github.com/forcedotcom/salesforcedx-vscode/pull/4224))
+
+# 55.2.0 - June 22, 2022
+
+## Fixed
+
+#### docs
+
+- We made some updates under the hood. ([PR #4147](https://github.com/forcedotcom/salesforcedx-vscode/pull/4147))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue where you could run the `SFDX Generate Manifest File` command to create a manifest file from any folder in your project. The command is now only available by right clicking on any folder or file in the `force-app` package directory folder.  ([PR #4208](https://github.com/forcedotcom/salesforcedx-vscode/pull/4208))
+
+- We updated @salesforce/templates to 55.0.0 to give you a default unit test in addition to the other component files when you create a new LWC component using the template. ([PR #4203](https://github.com/forcedotcom/salesforcedx-vscode/pull/4203))
+
+# 55.0.0 - June 10, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Thanks to a contribution from @shunkosa, we updated our Japanese commands. We love our Open Source community.  ([PR #4186](https://github.com/forcedotcom/salesforcedx-vscode/pull/4186))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some updates under the hood. ([PR #4165](https://github.com/forcedotcom/salesforcedx-vscode/pull/4165))
+
+- We fixed an issue where the `SFDX: Create Lightning Web Component Test` command threw an error when you exited out of the command prematurely. ([PR #4143](https://github.com/forcedotcom/salesforcedx-vscode/pull/4143))
+
+# 54.15.0 - June 1, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- The **SFDX: Rename Component** command now prevents you from renaming an LWC or Aura component if the new name breaks any naming rules. New LWC component names are automatically revised to start with a lower-case letter if they don't already. ([PR #4145](https://github.com/forcedotcom/salesforcedx-vscode/pull/4145))
+
+
+
+#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lwc
+
+- You can now use **Ctrl+Space** to retrigger autocomplete within code braces ({}) in an HTML file. Previously, if you moved away from or deleted content within code braces, you lost autocompletion. ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
+
+
 # 54.12.0 - May 14, 2022
 
 ## Fixed

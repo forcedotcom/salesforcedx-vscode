@@ -133,7 +133,7 @@ describe('WorkspaceContext', () => {
 
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
-  let workspaceContextUtil: any;
+  let workspaceContextUtil: typeof WorkspaceContextUtil;
   let authUtil: any;
 
   beforeEach(async () => {
