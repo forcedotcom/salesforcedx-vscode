@@ -41,7 +41,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 
     config.set(CONFIG_NAME, this.usernameOrAlias);
     await config.write();
-    this.responses.push({name: CONFIG_NAME, val: this.usernameOrAlias, success: String(true) });
+    this.responses.push({ name: CONFIG_NAME, val: this.usernameOrAlias, success: String(true) });
     const outputTable = this.formatOutput(this.responses);
     channelService.appendLine(outputTable);
     return true;
@@ -57,9 +57,9 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     const outputTable = table.createTable(
       input,
       [
-        { key: 'name', label: 'Name'},
-        {key: 'val', label: 'Value'},
-        {key: 'success', label: 'Success'}
+        { key: 'name', label: 'Name' },
+        { key: 'val', label: 'Value' },
+        { key: 'success', label: 'Success' }
       ],
       title
     ); // todo: localize and potentially create helper function

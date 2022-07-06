@@ -7,26 +7,25 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';
 import { ForceConfigSetExecutor } from '../../../src/commands';
 
-const env = createSandbox();
+const sandbox = sinon.createSandbox();
 let openTextDocumentSpy: sinon.SinonSpy;
 
 describe('Force Config Set', () => {
   beforeEach(() => {
-    openTextDocumentSpy = env.spy(vscode.workspace, 'openTextDocument');
+    openTextDocumentSpy = sandbox.spy(vscode.workspace, 'openTextDocument');
   });
 
   afterEach(() => {
-    env.restore();
+    sandbox.restore();
   });
 
   it('should build the force config set command', async () => {
     const usernameOrAlias = 'test-username1@gmail.com';
     const forceConfigSet = new ForceConfigSetExecutor(usernameOrAlias);
-    env.stub(forceConfigSet, 'run').returns(true);
+    sandbox.stub(forceConfigSet, 'run').returns(true);
     expect(forceConfigSet.getUsernameOrAlias()).to.equal(usernameOrAlias);
   });
 
@@ -34,7 +33,7 @@ describe('Force Config Set', () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
     const forceConfigSet = new ForceConfigSetExecutor(aliases.join(','));
-    env.stub(forceConfigSet, 'run').returns(true);
+    sandbox.stub(forceConfigSet, 'run').returns(true);
     expect(forceConfigSet.getUsernameOrAlias()).to.equal(expectedAlias);
   });
 });
