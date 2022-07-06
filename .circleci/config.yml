@@ -553,7 +553,8 @@ workflows:
     when: << pipeline.parameters.pre-publish >>
     jobs:
       - slack/approval-notification:
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           message: Pending Approval for merge of release branch into main
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -561,7 +562,8 @@ workflows:
           type: approval
       - merge-release-branch:
           e: default-executor
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           requires:
             - hold
           filters:
@@ -573,7 +575,8 @@ workflows:
     when: << pipeline.parameters.publish >>
     jobs:
       - slack/approval-notification:
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           message: Pending Approval for Publish
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -585,7 +588,8 @@ workflows:
       - publish:
           e: default-executor
           context:
-            - IEAT_keys
+            - salesforce-ide
+            - NPM_Salesforce-Releases
             - CLI_CTC
           requires:
             - build-all
@@ -601,7 +605,8 @@ workflows:
     when: << pipeline.parameters.create-release >>
     jobs:
       - slack/approval-notification:
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           message: Pending Approval for Creation of Release Branch
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -609,7 +614,8 @@ workflows:
           type: approval
       - create-release-branch:
           e: default-executor
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           requires:
             - hold
           filters:
