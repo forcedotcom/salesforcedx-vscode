@@ -163,7 +163,7 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue with the _SFDX: Diff Folder Against Org_ command so that it now diffs objects against orgs correctly. ([PR #3876](https://github.com/forcedotcom/salesforcedx-vscode/pull/3876))
+- We fixed an issue with the *SFDX: Diff Folder Against Org* command so that it now diffs objects against orgs correctly. ([PR #3876](https://github.com/forcedotcom/salesforcedx-vscode/pull/3876))
 
 # 54.3.0 - March 3, 2022
 
@@ -173,28 +173,25 @@
 
 - We’ve made the functionality of older versions of some commands available for you to use with your existing scratch orgs. Use these legacy commands so you don’t run into issues with their newer versions:
 
-  _SFDX: Pull Source from Default Scratch Org (Legacy)_
+    *SFDX: Pull Source from Default Scratch Org (Legacy)*
 
-  _SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)_
+    *SFDX: Pull Source from Default Scratch Org and Override Conflicts (Legacy)*
 
-  _SFDX: Push Source to Default Scratch Org (Legacy)_
+    *SFDX: Push Source to Default Scratch Org (Legacy)*
 
-  _SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)_ and
+    *SFDX: Push Source to Default Scratch Org and Override Conflicts (Legacy)*  and
 
-  _SFDX: View All Changes (Local and in Default Scratch Org) (Legacy)_ ([PR #3839](https://github.com/forcedotcom/salesforcedx-vscode/pull/3839))
+    *SFDX: View All Changes (Local and in Default Scratch Org) (Legacy)* ([PR #3839](https://github.com/forcedotcom/salesforcedx-vscode/pull/3839))
 
 #### salesforcedx-vscode-lightning & salesforcedx-vscode-lwc
 
-- Autocompletion is now available for bracket syntax `'{}'` in HTML files.([PR #3865](https://github.com/forcedotcom/salesforcedx-vscode/pull/3865))
+- Autocompletion is now available for bracket syntax ```'{}'``` in HTML files.([PR #3865](https://github.com/forcedotcom/salesforcedx-vscode/pull/3865))
 
 ## Fixed
 
 #### docs
-
 #### salesforcedx-vscode-expanded
-
 #### salesforcedx-vscode-apex
-
 #### salesforcedx-vscode
 
 - We now support JDK version 17 in addition to versions 8 and 11. ([PR #3860](https://github.com/forcedotcom/salesforcedx-vscode/pull/3860))
@@ -203,23 +200,25 @@
 
 - We made some changes under the hood. ([PR #3869](https://github.com/forcedotcom/salesforcedx-vscode/pull/3869))
 
+
 # 54.2.0 - February 24, 2022
 
 ## Added
 
 #### salesforcedx-vscode
 
-- Run the new _Start Function in Container_ command to run a Salesforce Function in a Docker container. The old command, _Start Function_ now runs a function locally. ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838), [PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
+- Run the new *Start Function in Container* command to run a Salesforce Function in a Docker container. The old command, *Start Function* now runs a function locally. ([PR #3838](https://github.com/forcedotcom/salesforcedx-vscode/pull/3838), [PR #3856](https://github.com/forcedotcom/salesforcedx-vscode/pull/3856))
 
 ## Fixed
 
 #### salesforcedx-vscode
 
-- We resolved the issue with the _Diff Folder Against Org_ command being visible from the command palette even when an SFDX project wasn’t open. ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843)).
+- We resolved the issue with the *Diff Folder Against Org* command being visible from the command palette even when an SFDX project wasn’t open. ([PR #3843](https://github.com/forcedotcom/salesforcedx-vscode/pull/3843)).
 
 #### salesforcedx-vscode-apex
 
 - We removed some unessential Apex classes from the Apex LSP .jar file. ([PR #3844](https://github.com/forcedotcom/salesforcedx-vscode/pull/3844))
+
 
 # 54.0.0 - February 15, 2022
 
@@ -227,13 +226,13 @@
 
 #### salesforcedx-vscode
 
-- Run the updated _Launch Apex Replay Debugger with Current File_ to launch the Apex Replay Debugger from an Apex test file, an Anonymous Apex file, or an Apex log file. Previously, you could launch the Apex Replay Debugger only from an Apex log file. Also, we’ve simplified both the setup and execution of the command. You’re no longer required to create a launch configuration (launch.json) to run the Apex Replay Debugger, and you can debug your code with fewer steps. ([PR #3779](https://github.com/forcedotcom/salesforcedx-vscode/pull/3779), [PR #3827](https://github.com/forcedotcom/salesforcedx-vscode/pull/3827)).
+- Run the updated *Launch Apex Replay Debugger with Current File* to launch the Apex Replay Debugger from an Apex test file, an Anonymous Apex file, or an Apex log file. Previously, you could launch the Apex Replay Debugger only from an Apex log file. Also, we’ve simplified both the setup and execution of the command. You’re no longer required to create a launch configuration (launch.json) to run the Apex Replay Debugger, and you can debug your code with fewer steps. ([PR #3779](https://github.com/forcedotcom/salesforcedx-vscode/pull/3779), [PR #3827](https://github.com/forcedotcom/salesforcedx-vscode/pull/3827)).
 
 ## Fixed
 
 #### salesforcedx-vscode
 
-- The Generate Manifest File doesn’t show up as an option when you right-click on components within metadata types. Previously, the command showed up incorrectly even though it wasn’t executable ([PR #3818](https://github.com/forcedotcom/salesforcedx-vscode/pull/3818)).
+- The Generate Manifest File  doesn’t show up as an option when you right-click on components within metadata types. Previously, the command showed up incorrectly even though it wasn’t executable ([PR #3818](https://github.com/forcedotcom/salesforcedx-vscode/pull/3818)).
 
 - The Execute Anonymous Apex code lens is now working as expected ([PR #3819](https://github.com/forcedotcom/salesforcedx-vscode/pull/3819)).
 
