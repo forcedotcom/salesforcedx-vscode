@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -28,22 +28,13 @@ const testData = new MockTestOrgData();
 describe('Get code coverage results', () => {
   beforeEach(async () => {
     sandboxStub = createSandbox();
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: {
-          [testData.username]: await testData.getConfig()
-        }
-      }
-    });
+
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
     sandboxStub
       .stub(Connection.prototype, 'retrieveMaxApiVersion')
       .resolves('50.0');
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    await $$.stubAuths(testData);
+    mockConnection = await testData.getConnection();
     toolingQueryStub = sandboxStub.stub(mockConnection.tooling, 'query');
   });
 

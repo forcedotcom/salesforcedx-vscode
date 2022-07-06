@@ -170,13 +170,13 @@
     mv "~2"
     safe-json-stringify "~1"
 
-"@salesforce/core@^3.13.0":
-  version "3.18.2"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-3.18.2.tgz#2e11dce0ecdc3028e6f8e69f673d6ee293ba2e9e"
-  integrity sha512-dbNZYHWLgV5ejP6F0dnQk2DPO3W3Q1deta/1S2N1bvJzb925lUxJdI4klKw/K2YwPbiUulhJE8phMkSGWR41NQ==
+"@salesforce/core@^3.23.3":
+  version "3.23.4"
+  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-3.23.4.tgz#89c348c5573f30dd3d23a266de928464f534c7bc"
+  integrity sha512-gJB2NbWjxcN0SqOy3GLyzwUytYR1bmXZvUi7r8j0Eeu2L7qJFoYBgtkXBfIk7F/urFqYd4VRlXCeJj6ZQEWImw==
   dependencies:
     "@salesforce/bunyan" "^2.0.0"
-    "@salesforce/kit" "^1.5.34"
+    "@salesforce/kit" "^1.5.41"
     "@salesforce/schemas" "^1.1.0"
     "@salesforce/ts-types" "^1.5.20"
     "@types/graceful-fs" "^4.1.5"
@@ -190,15 +190,15 @@
     form-data "^4.0.0"
     graceful-fs "^4.2.9"
     js2xmlparser "^4.0.1"
-    jsforce "2.0.0-beta.9"
+    jsforce "2.0.0-beta.14"
     jsonwebtoken "8.5.1"
     mkdirp "1.0.4"
     ts-retry-promise "^0.6.0"
 
-"@salesforce/kit@^1.5.34":
-  version "1.5.41"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.5.41.tgz#3248d4d28fe24ed47827716cfe416c21a2a90651"
-  integrity sha512-nhi7jw3LNITl7rHSnCLnEDTaq6nvolSMFBg7poniG84Q7kJPezgTEj5OKAyQ9hJoRE4u59n5M5bUFvwRoXmJzQ==
+"@salesforce/kit@^1.5.41":
+  version "1.5.44"
+  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-1.5.44.tgz#f070257679f40750e67919020c7e8240b219bf26"
+  integrity sha512-QHwmJFgvF0YyBAvPkSMy2opyIgKzATF8lwYHewCr2obyqDiVi9OJkYWgQETkKTpfLzSjWqdsfiVAdlnRcj+xQQ==
   dependencies:
     "@salesforce/ts-types" "^1.5.20"
     shx "^0.3.3"
@@ -1423,10 +1423,10 @@ jsesc@^2.5.1:
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-2.5.2.tgz#80564d2e483dacf6e8ef209650a67df3f0c283a4"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
 
-jsforce@2.0.0-beta.9:
-  version "2.0.0-beta.9"
-  resolved "https://registry.yarnpkg.com/jsforce/-/jsforce-2.0.0-beta.9.tgz#692f205151551a601cb17fc6b891ecbb230eff58"
-  integrity sha512-DsmjBiLaAL4ECmpNjwcMuYoA2o7v42cnokmTvNtnsOoABb7goIZp/PIXRHhmN44HJxNw2RpEpjMv0rJNOkrAtg==
+jsforce@2.0.0-beta.14:
+  version "2.0.0-beta.14"
+  resolved "https://registry.yarnpkg.com/jsforce/-/jsforce-2.0.0-beta.14.tgz#237753bdabb7e80447b5b266eaefc4abf8b6c951"
+  integrity sha512-j66PaKroshB4VZbfKBAx9+lJy8etFfGG1hGFsI7ufwxvacXxLTAxZwOEZPkYPMigiHrPlEMtIwh5NqwBsIn9HA==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@babel/runtime-corejs3" "^7.12.5"
