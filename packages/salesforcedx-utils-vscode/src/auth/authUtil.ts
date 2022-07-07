@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GlobalInfo } from '@salesforce/core';
+import { StateAggregator } from '@salesforce/core';
 import { ConfigUtil } from '..';
 import { TelemetryService } from '../telemetry/telemetry';
 import { DEFAULT_USERNAME_KEY } from '../types';
@@ -43,7 +43,7 @@ export class AuthUtil {
   }
 
   public async getUsername(usernameOrAlias: string): Promise<string> {
-    const info = await GlobalInfo.create();
+    const info = await StateAggregator.getInstance();
     return (info.aliases.getUsername(usernameOrAlias)) || usernameOrAlias;
     // return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
   }
