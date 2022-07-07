@@ -1,3 +1,15 @@
+# 55.4.0 - July 9, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Build absolute filePath so problems tab links to error location correctly ([PR #4246](https://github.com/forcedotcom/salesforcedx-vscode/pull/4246))
+
+- Added flushFilePath() ([PR #4240](https://github.com/forcedotcom/salesforcedx-vscode/pull/4240))
+
+- Correctly link errors in problems tab to problem location in file ([PR #4241](https://github.com/forcedotcom/salesforcedx-vscode/pull/4241))
+
 # 55.3.0 - June 29, 2022
 
 ## Fixed
