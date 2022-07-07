@@ -18,12 +18,16 @@ import {
 } from './util';
 
 const CONFIG_SET_EXECUTOR = 'force_config_set_org_text';
-const CONFIG_NAME = 'defaultusername'; // todo: localize
+const CONFIG_SET_NAME = 'force_config_set_title';
+const CONFIG_NAME = 'force_config_set_name';
+const TABLE_NAME_COL = 'table_header_name';
+const TABLE_VAL_COL = 'table_header_value';
+const TABLE_SUCCESS_COL = 'table_header_success';
 
 export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
-  private responses: Row[] = [];
+  private outputTableRow: Row;
 
   constructor(
     usernameOrAlias: string
@@ -39,10 +43,10 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 
     const config = await Config.create(Config.getDefaultOptions());
 
-    config.set(CONFIG_NAME, this.usernameOrAlias);
+    config.set(nls.localize(CONFIG_NAME), this.usernameOrAlias);
     await config.write();
-    this.responses.push({ name: CONFIG_NAME, val: this.usernameOrAlias, success: String(true) });
-    const outputTable = this.formatOutput(this.responses);
+    this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(true) };
+    const outputTable = this.formatOutput(this.outputTableRow);
     channelService.appendLine(outputTable);
     return true;
   }
@@ -51,18 +55,18 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     return this.usernameOrAlias;
   }
 
-  private formatOutput(input: Row[]): string {
-    const title = 'Set Config'; // todo: localize
+  private formatOutput(input: Row): string {
+    const title = nls.localize(CONFIG_SET_NAME);
     const table = new Table();
     const outputTable = table.createTable(
-      input,
+      [input],
       [
-        { key: 'name', label: 'Name' },
-        { key: 'val', label: 'Value' },
-        { key: 'success', label: 'Success' }
+        { key: 'name', label: nls.localize(TABLE_NAME_COL) },
+        { key: 'val', label: nls.localize(TABLE_VAL_COL) },
+        { key: 'success', label: nls.localize(TABLE_SUCCESS_COL) }
       ],
       title
-    ); // todo: localize and potentially create helper function
+    );
     return outputTable;
   }
 }
