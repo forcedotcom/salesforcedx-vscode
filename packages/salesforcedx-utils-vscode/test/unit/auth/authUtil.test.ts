@@ -32,29 +32,32 @@ const vscodeStub = {
   }
 };
 
-const { AuthUtil } = proxyquire.noCallThru()(
-  '../../../src/index',
-  {
-    vscode: vscodeStub
-  }
-);
+const { AuthUtil } = proxyquire.noCallThru()('../../../src/index', {
+  vscode: vscodeStub
+});
 
 describe('AuthUtil', () => {
   let env: SinonSandbox;
   beforeEach(async () => {
     env = createSandbox();
-    StateAggregator.create();
+    await StateAggregator.create();
   });
-  afterEach(() => env.restore());
-  StateAggregator.clearInstance()
+  afterEach(() => {
+    StateAggregator.clearInstance();
+    env.restore();
+  });
 
   describe('getUsername', () => {
     const username = 'user@test.test';
     const alias = 'TestOrg';
 
     it('should return the given username or alias if there is no alias', async () => {
-      expect(await AuthUtil.getInstance().getUsername(username)).to.equal(username);
-      expect(await AuthUtil.getInstance().getUsername(undefined!)).to.equal(undefined);
+      expect(await AuthUtil.getInstance().getUsername(username)).to.equal(
+        username
+      );
+      expect(await AuthUtil.getInstance().getUsername(undefined!)).to.equal(
+        undefined
+      );
     });
 
     it('should return the username for the matching alias', async () => {
@@ -63,8 +66,9 @@ describe('AuthUtil', () => {
         .stub(info.aliases, 'getUsername')
         .withArgs(alias)
         .returns(username);
-      expect(await AuthUtil.getInstance().getUsername(alias)).to.equal(username);
+      expect(await AuthUtil.getInstance().getUsername(alias)).to.equal(
+        username
+      );
     });
   });
-
 });
