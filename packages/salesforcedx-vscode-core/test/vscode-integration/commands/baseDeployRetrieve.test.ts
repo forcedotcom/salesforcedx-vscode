@@ -40,6 +40,7 @@ import {
 } from '../../../src/commands/baseDeployRetrieve';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
 import { workspaceContext } from '../../../src/context';
+import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
@@ -454,21 +455,23 @@ describe('Base Deploy Retrieve Commands', () => {
 
         expect(setDiagnosticsStub.callCount).to.equal(failedRows.length);
         failedRows.forEach((row, index) => {
-          expect(setDiagnosticsStub.getCall(index).args).to.deep.equal([
-            vscode.Uri.file(row.filePath),
-            [
-              {
-                message: row.error,
-                range: new vscode.Range(
-                  row.lineNumber - 1,
-                  row.columnNumber - 1,
-                  row.lineNumber - 1,
-                  row.columnNumber - 1
-                ),
-                severity: vscode.DiagnosticSeverity.Error,
-                source: row.type
-              }
-            ]
+          const [fileUri, diagnostics] = setDiagnosticsStub.getCall(index).args;
+          const expectedFileUri = vscode.Uri.file(
+            getAbsoluteFilePath(row.filePath, getRootWorkspacePath())
+          );
+          expect(fileUri).to.deep.equal(expectedFileUri);
+          expect(diagnostics).to.deep.equal([
+            {
+              message: row.error,
+              range: new vscode.Range(
+                row.lineNumber - 1,
+                row.columnNumber - 1,
+                row.lineNumber - 1,
+                row.columnNumber - 1
+              ),
+              severity: vscode.DiagnosticSeverity.Error,
+              source: row.type
+            }
           ]);
         });
       });
@@ -511,7 +514,10 @@ describe('Base Deploy Retrieve Commands', () => {
         this.retrieveStub = sb
           .stub(this.components, 'retrieve')
           .returns({ pollStatus: this.pollStatusStub });
-        this.cacheSpy = sb.spy(PersistentStorageService.getInstance(), 'setPropertiesForFilesRetrieve');
+        this.cacheSpy = sb.spy(
+          PersistentStorageService.getInstance(),
+          'setPropertiesForFilesRetrieve'
+        );
       }
 
       protected async getComponents(
@@ -556,8 +562,12 @@ describe('Base Deploy Retrieve Commands', () => {
         {
           status: RequestStatus.Succeeded,
           fileProperties: [
-            {fullName: 'one', type: 'ApexClass', lastModifiedDate: 'Today'},
-            {fullName: 'two', type: 'CustomObject', lastModifiedDate: 'Yesterday'}
+            { fullName: 'one', type: 'ApexClass', lastModifiedDate: 'Today' },
+            {
+              fullName: 'two',
+              type: 'CustomObject',
+              lastModifiedDate: 'Yesterday'
+            }
           ]
         } as MetadataApiRetrieveStatus,
         new ComponentSet()
@@ -565,12 +575,18 @@ describe('Base Deploy Retrieve Commands', () => {
       const cache = PersistentStorageService.getInstance();
       executor.pollStatusStub.resolves(mockRetrieveResult);
 
-      await executor.run({data: {}, type: 'CONTINUE' });
+      await executor.run({ data: {}, type: 'CONTINUE' });
 
       expect(executor.cacheSpy.callCount).to.equal(1);
       expect(executor.cacheSpy.args[0][0].length).to.equal(2);
-      expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'one'))?.lastModifiedDate).to.equal('Today');
-      expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'two'))?.lastModifiedDate).to.equal('Yesterday');
+      expect(
+        cache.getPropertiesForFile(cache.makeKey('ApexClass', 'one'))
+          ?.lastModifiedDate
+      ).to.equal('Today');
+      expect(
+        cache.getPropertiesForFile(cache.makeKey('CustomObject', 'two'))
+          ?.lastModifiedDate
+      ).to.equal('Yesterday');
     });
 
     it('should not store any properties in metadata cache on failed retrieve', async () => {
@@ -584,7 +600,7 @@ describe('Base Deploy Retrieve Commands', () => {
       );
       executor.pollStatusStub.resolves(mockRetrieveResult);
 
-      await executor.run({data: {}, type: 'CONTINUE' });
+      await executor.run({ data: {}, type: 'CONTINUE' });
 
       expect(executor.cacheSpy.callCount).to.equal(1);
       expect(executor.cacheSpy.args[0][0].length).to.equal(0);
