@@ -7,7 +7,6 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse
@@ -134,9 +133,6 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         data: filePaths
       });
 
-      sb.stub(helpers, 'flushFilePaths')
-        .returns([path.sep + filePath1, path.sep + filePath2, path.sep + filePath3]);
-
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
         uris
@@ -160,9 +156,6 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         type: 'CONTINUE',
         data: filePaths
       });
-
-      sb.stub(helpers, 'flushFilePaths')
-        .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
@@ -188,9 +181,6 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         data: filePaths
       });
 
-      sb.stub(helpers, 'flushFilePaths')
-        .returns([path.sep + filePath1]);
-
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
         undefined
@@ -212,19 +202,13 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const uris = undefined;
 
       const filePaths = [ filePath1 ];
-      sb.stub(
+      const sourcePathCheckerCheckStub = sb.stub(
         SourcePathChecker.prototype, 'check').returns({
         type: 'CONTINUE',
         data: filePaths
       });
 
-      const getUriFromActiveEditorStub = sb.stub(
-        forceSourceRetrieveSourcePath,
-        'getUriFromActiveEditor'
-      ).returns(filePath1);
-
-      sb.stub(helpers, 'flushFilePaths')
-        .returns([undefined]);
+      const getUriFromActiveEditorStub = sb.stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor').returns(filePath1);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         sourceUri,
