@@ -6,7 +6,7 @@
 
 - We reverted changes assoicated with PR #4240 due to issues with deploy/retrieve on windows.
 
-# 55.4.0 - July 9, 2022
+# 55.4.0 - July 7, 2022
 
 ## Fixed
 
