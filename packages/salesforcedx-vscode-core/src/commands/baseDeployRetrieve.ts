@@ -68,7 +68,7 @@ export abstract class DeployRetrieveExecutor<
       // check the SFDX configuration to see if there is an overridden api version
       // Run sfdx config:list to enlist all confif values
       // Project level local sfdx-config takes precedence over global sfdx-config at system level.
-      // getComponents uses ComponentSet from SDR which assigns 
+      // getComponents uses ComponentSet from SDR which assigns
       // the default latest value to components.apiversion
 
       const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as

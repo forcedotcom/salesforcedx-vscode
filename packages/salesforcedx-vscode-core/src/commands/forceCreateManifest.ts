@@ -47,7 +47,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
       const componentSet = ComponentSet.fromSource(this.sourcePaths);
       if (this.responseText === undefined) {
         // Canceled and declined to name the document
-        openUntitledDocument(componentSet);
+        await openUntitledDocument(componentSet);
       } else {
         saveDocument(this.responseText, componentSet);
       }
