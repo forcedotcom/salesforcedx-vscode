@@ -43,11 +43,11 @@ describe('AuthUtil', () => {
   let env: SinonSandbox;
   beforeEach(async () => {
     env = createSandbox();
-    StateAggregator.create();
+    await StateAggregator.create();
   });
   afterEach(() => {
     StateAggregator.clearInstance();
-    env.restore()
+    env.restore();
   });
 
   describe('getUsername', () => {
