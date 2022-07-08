@@ -27,7 +27,7 @@ const TABLE_SUCCESS_COL = 'table_header_success';
 export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
-  private outputTableRow: Row;
+  private outputTableRow: Row = {};
 
   constructor(
     usernameOrAlias: string
