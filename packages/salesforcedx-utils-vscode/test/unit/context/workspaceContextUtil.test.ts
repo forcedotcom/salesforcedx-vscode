@@ -239,7 +239,7 @@ describe('getLogDirPath', () => {
     const dirPath = getRootWorkspacePath();
     const result = getLogDirPath();
     expect(result).to.equal(
-      join(dirPath, '.sf', 'tools', 'debug', 'logs')
+      join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
     );
   });
 });
