@@ -39,7 +39,8 @@
     "jsforce": "1.11.0",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.5"
+    "shelljs": "0.8.5",
+    "@octokit/plugin-paginate-rest": "2.21.1"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "55.4.1",
