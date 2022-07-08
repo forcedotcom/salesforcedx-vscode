@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If omitted, we will assume _message.
+ * If ommitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
