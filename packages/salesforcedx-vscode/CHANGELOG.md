@@ -1,3 +1,14 @@
+# 55.4.0 - July 9, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- The links in the problems tab now correctly point to error locations in a file. ([PR #4246](https://github.com/forcedotcom/salesforcedx-vscode/pull/4246), [PR #4241](https://github.com/forcedotcom/salesforcedx-vscode/pull/4241))
+
+- Fixed an issue where making only a case change when renaming an Apex class caused an error. ([PR #4240](https://github.com/forcedotcom/salesforcedx-vscode/pull/4240))
+
+
 # 55.3.0 - June 29, 2022
 
 ## Fixed
