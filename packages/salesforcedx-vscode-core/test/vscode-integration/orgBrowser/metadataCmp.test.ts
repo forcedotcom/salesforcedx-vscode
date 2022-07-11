@@ -86,7 +86,7 @@ describe('get metadata components path', () => {
   function expectedPath(fileName: string) {
     return path.join(
       rootWorkspacePath,
-      '.sfdx',
+      '.sf',
       'orgs',
       username,
       'metadata',

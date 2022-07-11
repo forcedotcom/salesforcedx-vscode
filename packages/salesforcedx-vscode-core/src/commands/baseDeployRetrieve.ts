@@ -65,15 +65,16 @@ export abstract class DeployRetrieveExecutor<
     try {
       const components = await this.getComponents(response);
 
-      // concrete classes may have purposefully changed the api version.
-      // if there's an indication they didn't, check the SFDX configuration to see
-      // if there is an overridden api version.
-      if (components.apiVersion === registry.apiVersion) {
-        const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
-          | string
-          | undefined;
-        components.apiVersion = apiVersion ?? components.apiVersion;
-      }
+      // check the SFDX configuration to see if there is an overridden api version
+      // Run sfdx config:list to enlist all confif values
+      // Project level local sfdx-config takes precedence over global sfdx-config at system level.
+      // getComponents uses ComponentSet from SDR which assigns
+      // the default latest value to components.apiversion
+
+      const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
+        | string
+        | undefined;
+      components.apiVersion = apiVersion ?? components.apiVersion;
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -124,7 +125,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
     const operation = await components.deploy({
-      usernameOrConnection: await workspaceContext.getConnection()
+      usernameOrConnection: (await workspaceContext.getConnection()) as unknown as string
     });
 
     this.setupCancellation(operation, token);

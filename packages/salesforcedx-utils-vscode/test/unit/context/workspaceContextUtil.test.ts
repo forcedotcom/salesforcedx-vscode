@@ -126,8 +126,8 @@ describe('WorkspaceContext', () => {
   const testUser2 = 'test2@test.com';
   const cliConfigPath = join(
     '/user/dev',
-    '.sfdx',
-    'sfdx-config.json'
+    '.sf',
+    'config.json'
   );
   let mockFileWatcher: MockFileWatcher;
 

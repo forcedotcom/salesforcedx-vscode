@@ -26,21 +26,21 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "^0.3.0",
-    "@octokit/plugin-paginate-rest": "2.21.1",
-    "@salesforce/core": "^2.35.0",
+    "@salesforce/core": "^3.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "55.5.0",
     "@salesforce/salesforcedx-utils-vscode": "55.5.0",
     "@salesforce/schemas": "^1",
-    "@salesforce/source-deploy-retrieve": "5.12.2",
+    "@salesforce/source-deploy-retrieve": "6.0.4",
     "@salesforce/templates": "^55.0.0",
     "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
-    "jsforce": "1.11.0",
+    "jsforce": "2.0.0-beta.10",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
-    "shelljs": "0.8.5"
+    "shelljs": "0.8.5",
+    "@octokit/plugin-paginate-rest": "2.21.1"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-test-utils-vscode": "55.5.0",
@@ -1038,5 +1038,11 @@
         "path": "./syntaxes/manifestXML.tmLanguage.json"
       }
     ]
+  },
+  "__metadata": {
+    "id": "1d9d0701-6f65-4174-a1a6-5720ffa59b61",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
+    "isPreReleaseVersion": false
   }
 }

@@ -6,10 +6,10 @@
  */
 
 import {
-  Aliases,
   ConfigAggregator,
   ConfigFile,
-  ConfigValue
+  ConfigValue,
+  GlobalInfo
 } from '@salesforce/core';
 import * as path from 'path';
 
@@ -23,8 +23,10 @@ export class ConfigUtil {
       projectPath,
       defaultUserNameKey
     )) as string;
-    const username = await Aliases.fetch(defaultUserName);
-    return Promise.resolve(username);
+    const info = await GlobalInfo.getInstance();
+    const username = info.aliases.resolveValue(defaultUserName);
+    // const username = await Aliases.fetch(defaultUserName);
+    return username;
   }
 
   public static async getConfigValue(
@@ -34,8 +36,8 @@ export class ConfigUtil {
     try {
       const myLocalConfig = await ConfigFile.create({
         isGlobal: false,
-        rootFolder: path.join(projectPath, '.sfdx'),
-        filename: 'sfdx-config.json'
+        rootFolder: path.join(projectPath, '.sf'),
+        filename: 'config.json'
       });
       const localValue = myLocalConfig.get(key);
       if (localValue) {
