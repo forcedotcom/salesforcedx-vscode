@@ -108,7 +108,7 @@ Let’s add a custom field to an object in our org and pull its metadata into ou
 
 First let’s add a custom field  – 
 
-1. From **Setup**, go to **Object Manager** | **Account**.
+1. From **Setup**, go to **Object Manager** and select **Account**.
 2. Click **Fields & Relationships**.
 3. Click **New**.
 4. For data type, select **Date**, then click **Next**.
