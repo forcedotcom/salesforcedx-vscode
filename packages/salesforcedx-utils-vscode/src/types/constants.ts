@@ -9,8 +9,8 @@ export const CLIENT_ID = 'sfdx-vscode';
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
 export const DEFAULT_USERNAME_KEY = 'defaultusername';
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
-export const SFDX_CONFIG_FILE = 'sfdx-config.json';
-export const SFDX_FOLDER = '.sfdx';
+export const SFDX_CONFIG_FILE = 'config.json';
+export const SFDX_FOLDER = '.sf';
 
 export const ENV_SFDX_DEFAULTUSERNAME = 'SFDX_DEFAULTUSERNAME';
 export const ENV_SFDX_INSTANCE_URL = 'SFDX_INSTANCE_URL';

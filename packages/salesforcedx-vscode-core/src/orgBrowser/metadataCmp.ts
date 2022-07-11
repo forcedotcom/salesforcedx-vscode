@@ -8,7 +8,7 @@ import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'fs';
-import { ListMetadataQuery } from 'jsforce';
+import { ListMetadataQuery } from 'jsforce/api/metadata';
 import * as path from 'path';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -44,7 +44,7 @@ export class ComponentUtils {
     }.json`;
     const componentsPath = path.join(
       getRootWorkspacePath(),
-      '.sfdx',
+      '.sf',
       'orgs',
       username,
       'metadata',

@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 
-import { AuthInfo } from '@salesforce/core';
+import { AuthInfo, AuthSideEffects } from '@salesforce/core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
@@ -38,6 +38,12 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
     token?: vscode.CancellationToken
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
+    // Do we want to set the alias as default devhub  here? right after login
+    // const sideEffects: AuthSideEffects = {
+    //   alias: alias,
+    //   setDefault: true,
+    //   setDefaultDevHub: false
+    // }
 
     try {
       const authInfo = await AuthInfo.create({
@@ -46,8 +52,10 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
       await authInfo.save();
       await authInfo.setAlias(alias);
       await authInfo.setAsDefault({
-        defaultUsername: true
+        org: true,
+        devHub: true
       });
+      // await authInfo.handleAliasAndDefaultSettings(sideEffects)
     } catch (error) {
       if (error.message && error.message.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID

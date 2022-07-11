@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@salesforce/aura-language-server": "3.10.0",
-    "@salesforce/core": "^2.35.0",
+    "@salesforce/core": "^3.23.2",
     "@salesforce/lightning-lsp-common": "3.10.0",
     "@salesforce/salesforcedx-utils-vscode": "55.5.0",
     "applicationinsights": "1.0.7",
@@ -116,5 +116,11 @@
         }
       }
     }
+  },
+  "__metadata": {
+    "id": "72747198-3a76-4040-9fc0-a6fe07b25a0d",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
+    "isPreReleaseVersion": false
   }
 }

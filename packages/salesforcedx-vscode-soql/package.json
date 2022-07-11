@@ -33,13 +33,12 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core": "^2.35.0",
+    "@salesforce/core": "^3.23.2",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3",
-    "@types/jsforce": "1.9.41",
-    "jsforce": "1.11.0"
+    "jsforce": "2.0.0-beta.10"
   },
   "devDependencies": {
     "@salesforce/salesforcedx-sobjects-faux-generator": "55.5.0",
@@ -172,5 +171,11 @@
         }
       }
     }
+  },
+  "__metadata": {
+    "id": "e51a0546-dfbb-4d74-9826-207c122ced51",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
+    "isPreReleaseVersion": false
   }
 }

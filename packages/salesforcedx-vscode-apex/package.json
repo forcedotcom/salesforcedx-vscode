@@ -25,11 +25,11 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.10.0",
+    "@salesforce/apex-node": "^1.0.0",
     "@salesforce/apex-tmlanguage": "1.4.0",
-    "@salesforce/core": "^2.35.0",
+    "@salesforce/core": "^3.23.2",
     "@salesforce/salesforcedx-utils-vscode": "55.5.0",
-    "@salesforce/source-deploy-retrieve": "5.12.2",
+    "@salesforce/source-deploy-retrieve": "6.0.4",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
     "path-exists": "3.0.0",
@@ -363,5 +363,11 @@
         "path": "./snippets/apex.json"
       }
     ]
+  },
+  "__metadata": {
+    "id": "fb928002-4623-4d99-b7e0-4a1d473e77a3",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
+    "isPreReleaseVersion": false
   }
 }

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Aliases, AuthInfo } from '@salesforce/core';
+import { AuthInfo, GlobalInfo } from '@salesforce/core';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
@@ -21,7 +21,7 @@ describe('getAuthInfoObjects', () => {
       'test-username2@example.com'
     ];
     const orgList = new OrgList();
-    const listAuthFilesStub = getAuthInfoListAuthFilesStub(authFilesArray);
+    const listAllAuthorizationsStub = getAuthInfoListAllAuthorizationsStub(authFilesArray);
     const readFileStub = sinon
       .stub(fs, 'readFileSync')
       .onFirstCall()
@@ -54,29 +54,29 @@ describe('getAuthInfoObjects', () => {
         'test-username2@example.com'
       );
     }
-    listAuthFilesStub.restore();
+    listAllAuthorizationsStub.restore();
     readFileStub.restore();
   });
 
   it('should return null when no auth files are present', async () => {
     const orgList = new OrgList();
-    const listAuthFilesStub = getAuthInfoListAuthFilesStub(null);
+    const listAllAuthorizationsStub = getAuthInfoListAllAuthorizationsStub(null);
     const authInfoObjects = await orgList.getAuthInfoObjects();
     expect(authInfoObjects).to.equal(null);
-    listAuthFilesStub.restore();
+    listAllAuthorizationsStub.restore();
   });
 
-  const getAuthInfoListAuthFilesStub = (returnValue: any) =>
+  const getAuthInfoListAllAuthorizationsStub = (returnValue: any) =>
     sinon
-      .stub(AuthInfo, 'listAllAuthFiles')
+      .stub(AuthInfo, 'listAllAuthorizations')
       .returns(Promise.resolve(returnValue));
 });
 
 describe('Filter Authorization Info', async () => {
   let defaultDevHubStub: sinon.SinonStub;
   let getUsernameStub: sinon.SinonStub;
-  let aliasCreateStub: sinon.SinonStub;
-  let aliasKeysStub: sinon.SinonStub;
+  let globalInfoCreateStub: sinon.SinonStub;
+  let globalInfoKeysStub: sinon.SinonStub;
   const orgList = new OrgList();
 
   beforeEach(() => {
@@ -85,15 +85,15 @@ describe('Filter Authorization Info', async () => {
       'getDefaultDevHubUsernameOrAlias'
     );
     getUsernameStub = sinon.stub(OrgAuthInfo, 'getUsername');
-    aliasCreateStub = sinon.stub(Aliases, 'create');
-    aliasKeysStub = sinon.stub(Aliases.prototype, 'getKeysByValue');
+    globalInfoCreateStub = sinon.stub(GlobalInfo, 'create');
+    globalInfoKeysStub = sinon.stub(GlobalInfo.prototype, 'getKeysByValue');
   });
 
   afterEach(() => {
     defaultDevHubStub.restore();
     getUsernameStub.restore();
-    aliasCreateStub.restore();
-    aliasKeysStub.restore();
+    globalInfoCreateStub.restore();
+    globalInfoKeysStub.restore();
   });
 
   it('should filter the list for users other than admins when scratchadminusername field is present', async () => {
@@ -117,8 +117,8 @@ describe('Filter Authorization Info', async () => {
       )
     ];
     defaultDevHubStub.returns(null);
-    aliasCreateStub.returns(Aliases.prototype);
-    aliasKeysStub.returns([]);
+    globalInfoCreateStub.returns(GlobalInfo.prototype);
+    globalInfoKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
     expect(authList[0]).to.equal('test-username2@example.com');
   });
@@ -142,8 +142,8 @@ describe('Filter Authorization Info', async () => {
     ];
     defaultDevHubStub.returns('test-devhub1@example.com');
     getUsernameStub.returns('test-devhub1@example.com');
-    aliasCreateStub.returns(Aliases.prototype);
-    aliasKeysStub.returns([]);
+    globalInfoCreateStub.returns(GlobalInfo.prototype);
+    globalInfoKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
     expect(authList[0]).to.equal('test-scratchorg1@example.com');
   });
@@ -167,8 +167,8 @@ describe('Filter Authorization Info', async () => {
     ];
     defaultDevHubStub.returns('dev hub alias');
     getUsernameStub.returns('test-devhub1@example.com');
-    aliasCreateStub.returns(Aliases.prototype);
-    aliasKeysStub.returns([]);
+    globalInfoCreateStub.returns(GlobalInfo.prototype);
+    globalInfoKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
     expect(authList[0]).to.equal('test-scratchorg1@example.com');
   });
@@ -193,9 +193,9 @@ describe('Filter Authorization Info', async () => {
       )
     ];
     defaultDevHubStub.returns(null);
-    aliasCreateStub.returns(Aliases.prototype);
-    aliasKeysStub.onFirstCall().returns(['alias1']);
-    aliasKeysStub.returns([]);
+    globalInfoCreateStub.returns(GlobalInfo.prototype);
+    globalInfoKeysStub.onFirstCall().returns(['alias1']);
+    globalInfoKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
     expect(authList[0]).to.equal('alias1 - test-username1@example.com');
   });
@@ -234,8 +234,8 @@ describe('Filter Authorization Info', async () => {
     ];
     defaultDevHubStub.returns('test-devhub1@example.com');
     getUsernameStub.returns('test-devhub1@example.com');
-    aliasCreateStub.returns(Aliases.prototype);
-    aliasKeysStub.returns([]);
+    globalInfoCreateStub.returns(GlobalInfo.prototype);
+    globalInfoKeysStub.returns([]);
     const authList = await orgList.filterAuthInfo(authInfoObjects);
     expect(authList[0]).to.equal(
       'test-scratchorg-today@example.com - ' +

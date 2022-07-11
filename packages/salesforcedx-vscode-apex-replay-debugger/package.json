@@ -24,8 +24,8 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "0.10.0",
-    "@salesforce/core": "^2.35.0",
+    "@salesforce/apex-node": "^1.0.0",
+    "@salesforce/core": "^3.23.2",
     "@salesforce/salesforcedx-apex-replay-debugger": "55.5.0",
     "@salesforce/salesforcedx-utils-vscode": "55.5.0",
     "async-lock": "1.0.0",
@@ -241,5 +241,11 @@
         }
       }
     ]
+  },
+  "__metadata": {
+    "id": "96eedf2b-6b4f-49c5-a31d-bed9be8dfd64",
+    "publisherDisplayName": "Salesforce",
+    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
+    "isPreReleaseVersion": false
   }
 }
