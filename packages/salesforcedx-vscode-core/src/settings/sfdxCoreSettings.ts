@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/src';
+import { ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import {
   CONFLICT_DETECTION_ENABLED,
@@ -75,6 +75,8 @@ export class SfdxCoreSettings {
   }
 
   public getEnableClearOutputBeforeEachCommand(): boolean {
+    const trueValue = this.getConfigValue(ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND, undefined);
+    console.log('getEnableClearOutputBeforeEachCommand: ', trueValue);
     return this.getConfigValue(ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND, false);
   }
 
