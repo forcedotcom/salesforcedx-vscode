@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import {inputGuard, isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
+import {getLightningComponentDirectory, inputGuard, isNameMatch, RenameLwcComponentExecutor} from '../../../src/commands/forceRenameLightningComponent';
 import { nls } from '../../../src/messages';
 
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
@@ -399,5 +399,58 @@ describe('Force Rename Lightning Component', () => {
       expect(exceptionThrownLwc).to.equal(true);
       expect(exceptionThrownAura).to.equal(true);
     });
+
+  });
+
+  describe('getLightningComponentDirectory function', () => {
+
+    it('works with simple component folder', () => {
+      const folders = ['src', 'main', 'default', 'lwc', 'cmp'];
+      const folderPath = folders.join(path.sep);
+      const parentDirectory = getLightningComponentDirectory(folderPath);
+      expect(parentDirectory).to.equal(folderPath);
+    });
+
+    it('works with __tests__ folder in the path', () => {
+      const folders = ['src', 'main', 'default', 'lwc', 'cmp', '__tests__'];
+      const folderPath = folders.join(path.sep);
+
+      const parentFolder = folders.slice(0, -1);
+      const parentFolderPath = parentFolder.join(path.sep);
+
+      const parentDirectory = getLightningComponentDirectory(folderPath);
+      expect(parentDirectory).to.equal(parentFolderPath);
+    });
+
+    it('works with child folder of __tests__ folder', () => {
+      const folders = ['lwc', 'cmp', '__tests__', 'data'];
+      const folderPath = folders.join(path.sep);
+
+      const parentFolder = folders.slice(0, -2);
+      const parentFolderPath = parentFolder.join(path.sep);
+
+      const parentDirectory = getLightningComponentDirectory(folderPath);
+      expect(parentDirectory).to.equal(parentFolderPath);
+    });
+
+    it('works with templates folder of component', () => {
+      const folders = ['lwc', 'cmp', 'templates'];
+      const folderPath = folders.join(path.sep);
+
+      const parentFolder = folders.slice(0, -1);
+      const parentFolderPath = parentFolder.join(path.sep);
+
+      const parentDirectory = getLightningComponentDirectory(folderPath);
+      expect(parentDirectory).to.equal(parentFolderPath);
+    });
+
+    it('works with nested lwc folder of component', () => {
+      const folders = ['src', 'main', 'default', 'lwc', 'other', 'lwc', 'cmp'];
+      const folderPath = folders.join(path.sep);
+
+      const parentDirectory = getLightningComponentDirectory(folderPath);
+      expect(parentDirectory).to.equal(folderPath);
+    });
+
   });
 });
