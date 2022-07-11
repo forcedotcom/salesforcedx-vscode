@@ -639,6 +639,8 @@ export const messages = {
     'Press Enter to confirm your input or Escape to cancel',
   rename_component_warning:
     'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
+  rename_component_error:
+    'Unable to rename the component. Try renaming the component manually and then redeploying your changes.',
   error_function_type: 'Unable to determine type of executing function.',
   error_unable_to_get_started_function:
     'Unable to access the function in "{0}".'
