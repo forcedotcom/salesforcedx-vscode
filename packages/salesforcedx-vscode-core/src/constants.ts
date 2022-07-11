@@ -32,15 +32,12 @@ export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS = 'push-or-deploy-on-save.overrideConflictsOnPush';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
-export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
   'enable-sobject-refresh-on-startup';
 export const ENABLE_DEPLOY_AND_RETRIEVE_FOR_SOURCE_TRACKED_ORGS =
   'enableDeployAndRetrieveForSourceTrackedOrgs.enabled';
-export const ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND =
-  'enable-clear-output-before-each-command';
 export const CLI = {
   AUTH_DEVICE_LOGIN: 'force:auth:device:login',
   AUTH_WEB_LOGIN: 'force:auth:web:login'
