@@ -54,7 +54,7 @@ const expectDefaultUsernameHasNoChangeTracking = (
   ]);
 };
 
-describe.only('workspaceOrgType unit tests', () => {
+describe('workspaceOrgType unit tests', () => {
   const devHubUser = 'dev@hub.com';
   const scratchOrgUser = 'scratch@org.com';
   let getUsernameStub: Sinon.SinonStub;
