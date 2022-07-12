@@ -12,8 +12,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 
-// tslint:disable: no-unused-expression
-describe.only('OrgAuthInfo', () => {
+describe('OrgAuthInfo', () => {
   let sandbox: SinonSandbox;
   beforeEach(async () => {
     sandbox = createSandbox();
@@ -50,7 +49,7 @@ describe.only('OrgAuthInfo', () => {
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(infoMessageStub.calledOnce).to.be.true;
+      expect(infoMessageStub.calledOnce).to.equal(true);
       configUtilStub.restore();
       infoMessageStub.restore();
     });
@@ -70,9 +69,10 @@ describe.only('OrgAuthInfo', () => {
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.be
-        .true;
-      expect(showMessageStub.calledOnce).to.be.true;
+      expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.equal(
+        true
+      );
+      expect(showMessageStub.calledOnce).to.equal(true);
 
       configUtilStub.restore();
       showMessageStub.restore();
@@ -89,7 +89,7 @@ describe.only('OrgAuthInfo', () => {
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(infoMessageStub.calledOnce).to.be.false;
+      expect(infoMessageStub.calledOnce).to.equal(false);
       configUtilStub.restore();
       infoMessageStub.restore();
     });
