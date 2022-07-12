@@ -17,7 +17,7 @@ import { nls } from '../../../../src/messages';
 
 const sandbox = createSandbox();
 
-describe.only('Force Auth Access Token Login', () => {
+describe('Force Auth Access Token Login', () => {
   let workspaceCheckerStub: SinonStub;
   let accessTokenParamsGathererStub: SinonStub;
   let authInfoCreateStub: SinonStub;

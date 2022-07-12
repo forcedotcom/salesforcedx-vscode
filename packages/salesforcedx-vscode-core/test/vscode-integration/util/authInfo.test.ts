@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
@@ -23,9 +23,14 @@ describe('OrgAuthInfo', () => {
     const username = 'user@test.test';
     const alias = 'TestOrg';
 
-    it('should return the given username or alias if there is no alias', async () => {
-      expect(await OrgAuthInfo.getUsername(username)).to.equal(username);
-      expect(await OrgAuthInfo.getUsername(undefined!)).to.equal(undefined);
+    it('should return the given username if there is no alias', async () => {
+      const actualUsername = await OrgAuthInfo.getUsername(username);
+      expect(actualUsername).to.equal(username);
+    });
+
+    it('should return the given value if there is no alias', async () => {
+      const result = await OrgAuthInfo.getUsername(undefined!);
+      expect(result).to.equal(undefined);
     });
 
     it('should return the username for the matching alias', async () => {
@@ -98,18 +103,41 @@ describe('OrgAuthInfo', () => {
   describe('getConnection', () => {
     const username = 'user@test.test';
     const alias = 'TestOrg';
+    const fakeAuthInfo = {
+      authy: true
+    };
+    const fakeConnection = {
+      connected: true
+    };
+    const defaultUsername = 'defaultUsername';
+
+    let authinfoCreateStub: SinonStub;
+    let connectionCreateStub: SinonStub;
+
+    beforeEach(() => {
+      authinfoCreateStub = sandbox
+        .stub(AuthInfo, 'create')
+        .resolves(fakeAuthInfo);
+      connectionCreateStub = sandbox
+        .stub(Connection, 'create')
+        .resolves(fakeConnection);
+    });
 
     it('should use username/alias when passed as argument', async () => {
       const connection = await OrgAuthInfo.getConnection(username);
-      expect(connection.getUsername()).to.equal(username);
+      expect(connection).to.equal(fakeConnection);
+      expect(authinfoCreateStub).calledWith({ username });
+      expect(connectionCreateStub).calledWith(fakeAuthInfo);
     });
 
     it('should use default username/alias when invoked without argument', async () => {
       const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns('defaultUsername');
+      configUtilStub.returns(defaultUsername);
 
       const connection = await OrgAuthInfo.getConnection();
-      expect(connection.getUsername()).to.equal('defaultUsername');
+      expect(connection).to.equal(fakeConnection);
+      expect(authinfoCreateStub).calledWith({ username: defaultUsername });
+      expect(connectionCreateStub).calledWith(fakeAuthInfo);
 
       configUtilStub.restore();
     });
