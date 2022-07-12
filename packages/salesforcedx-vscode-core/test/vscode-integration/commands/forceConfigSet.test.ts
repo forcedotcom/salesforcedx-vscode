@@ -5,35 +5,47 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Config } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import * as vscode from 'vscode';
-import { ForceConfigSetExecutor } from '../../../src/commands';
+import { channelService } from '../../../src/channels';
+import { forceConfigSet, ForceConfigSetExecutor } from '../../../src/commands';
+import { nls } from '../../../src/messages';
+
+const CONFIG_KEY = nls.localize('force_config_set_name');
 
 const sandbox = sinon.createSandbox();
-let openTextDocumentSpy: sinon.SinonSpy;
+let channelSpy: sinon.SinonSpy;
+let configSetSpy: sinon.SinonSpy;
+let configWriteSpy: sinon.SinonSpy;
 
 describe('Force Config Set', () => {
   beforeEach(() => {
-    openTextDocumentSpy = sandbox.spy(vscode.workspace, 'openTextDocument');
+    channelSpy = sandbox.spy(channelService, 'appendLine');
+    configSetSpy = sandbox.spy(Config.prototype, 'set');
+    configWriteSpy = sandbox.spy(Config.prototype, 'write');
   });
 
   afterEach(() => {
     sandbox.restore();
   });
 
-  it('should build the force config set command', async () => {
+  it('should set config with given username or alias', async () => {
     const usernameOrAlias = 'test-username1@gmail.com';
-    const forceConfigSet = new ForceConfigSetExecutor(usernameOrAlias);
-    sandbox.stub(forceConfigSet, 'run').returns(true);
-    expect(forceConfigSet.getUsernameOrAlias()).to.equal(usernameOrAlias);
+    const expectedOutput = '';
+    sandbox.stub(ForceConfigSetExecutor.prototype as any, 'formatOutput').returns(expectedOutput);
+    await forceConfigSet(usernameOrAlias);
+    expect(configSetSpy.calledOnce);
+    expect(configSetSpy.calledWith(CONFIG_KEY, usernameOrAlias)).to.equal(true);
+    expect(configWriteSpy.calledOnce);
+    expect(channelSpy.calledWith(expectedOutput)).to.equal(true);
   });
 
-  it('should build the force config set command with first alias', async () => {
+  it('should set config with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
-    const forceConfigSet = new ForceConfigSetExecutor(aliases.join(','));
-    sandbox.stub(forceConfigSet, 'run').returns(true);
-    expect(forceConfigSet.getUsernameOrAlias()).to.equal(expectedAlias);
+    await forceConfigSet(aliases.join(','));
+    expect(configSetSpy.callCount).to.equal(1);
+    expect(configSetSpy.calledWith(CONFIG_KEY, expectedAlias)).to.equal(true);
   });
 });

@@ -51,10 +51,6 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     return true;
   }
 
-  public getUsernameOrAlias() {
-    return this.usernameOrAlias;
-  }
-
   private formatOutput(input: Row): string {
     const title = nls.localize(CONFIG_SET_NAME);
     const table = new Table();
