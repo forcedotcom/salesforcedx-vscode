@@ -324,14 +324,12 @@ export function getMockConnection(
 
   const mockConnection = ({
     authInfo: mockAuthInfo,
-    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
-      callback(undefined, mockDescribeGlobalResponse),
-    describe$: (
-      name: string,
-      callback: (err: Error | undefined, resp: any) => void
-    ) => {
+    describeGlobal$: () => {
+      return Promise.resolve(mockDescribeGlobalResponse);
+    },
+    describe$: (name: string) => {
       const sobjectMetadata = mockSObjects.find(s => s.name === name);
-      callback(undefined, sobjectMetadata);
+      return Promise.resolve(sobjectMetadata);
     },
     query: () => Promise.resolve(mockQueryData)
   } as unknown) as Connection;
@@ -346,12 +344,12 @@ export function getFailingMockConnection(
   const mockAuthInfo = { test: 'test' };
   const mockConnection = {
     authInfo: mockAuthInfo,
-    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
-      callback(new Error('Unexpected error'), undefined),
-    describe$: (
-      name: string,
-      callback: (err: Error | undefined, resp: any) => void
-    ) => callback(new Error('Unexpected error'), undefined),
+    describeGlobal$: () => {
+      return Promise.reject(new Error('Unexpected error'));
+    },
+    describe$: (name: string) => {
+      return Promise.reject(new Error('Unexpected error'));
+    },
     query: () => Promise.reject(new Error('Unexpected error'))
   };
   return (mockConnection as unknown) as Connection;
