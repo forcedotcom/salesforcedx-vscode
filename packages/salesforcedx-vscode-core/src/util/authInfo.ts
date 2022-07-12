@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, GlobalInfo } from '@salesforce/core';
-import { isUndefined } from 'util';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
@@ -24,7 +23,7 @@ export class OrgAuthInfo {
       const defaultUserName = await ConfigUtil.getConfigValue(
         DEFAULT_USERNAME_KEY
       );
-      if (isUndefined(defaultUserName)) {
+      if (defaultUserName === undefined) {
         displayMessage(
           nls.localize('error_no_default_username'),
           enableWarning,
@@ -47,7 +46,12 @@ export class OrgAuthInfo {
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendException('get_default_username_alias', err.message);
+      if (err instanceof Error) {
+        telemetryService.sendException(
+          'get_default_username_alias',
+          err.message
+        );
+      }
       return undefined;
     }
   }
@@ -61,7 +65,7 @@ export class OrgAuthInfo {
         DEFAULT_DEV_HUB_USERNAME_KEY,
         configSource
       );
-      if (isUndefined(defaultDevHubUserName)) {
+      if (defaultDevHubUserName === undefined) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
           nls.localize('error_no_default_devhubusername'),
@@ -77,30 +81,28 @@ export class OrgAuthInfo {
       return JSON.stringify(defaultDevHubUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      telemetryService.sendException(
-        'get_default_devhub_username_alias',
-        err.message
-      );
+      if (err instanceof Error) {
+        telemetryService.sendException(
+          'get_default_devhub_username_alias',
+          err.message
+        );
+      }
       return undefined;
     }
   }
 
   public static async getUsername(usernameOrAlias: string): Promise<string> {
-    const info = await GlobalInfo.create();
-    return (info.aliases.getUsername(usernameOrAlias)) || usernameOrAlias;
+    const info = await StateAggregator.getInstance();
+    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
     // return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
   }
 
   public static async isAScratchOrg(username: string): Promise<boolean> {
-    try {
-      const authInfo = await AuthInfo.create({ username });
-      const authInfoFields = authInfo.getFields();
-      return Promise.resolve(
-        typeof authInfoFields.devHubUsername !== 'undefined'
-      );
-    } catch (e) {
-      throw e;
-    }
+    const authInfo = await AuthInfo.create({ username });
+    const authInfoFields = authInfo.getFields();
+    return Promise.resolve(
+      typeof authInfoFields.devHubUsername !== 'undefined'
+    );
   }
 
   public static async getConnection(
@@ -138,7 +140,7 @@ function displayMessage(
   vsCodeWindowType?: VSCodeWindowTypeEnum,
   items?: string[]
 ) {
-  if (!isUndefined(enableWarning) && !enableWarning) {
+  if (enableWarning !== undefined && !enableWarning) {
     return;
   }
   const buttons = items || [];
