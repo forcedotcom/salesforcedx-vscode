@@ -17,7 +17,7 @@ import { nls } from '../../../../src/messages';
 
 const sandbox = createSandbox();
 
-describe('Force Auth Access Token Login', () => {
+describe.only('Force Auth Access Token Login', () => {
   let workspaceCheckerStub: SinonStub;
   let accessTokenParamsGathererStub: SinonStub;
   let authInfoCreateStub: SinonStub;
@@ -78,9 +78,7 @@ describe('Force Auth Access Token Login', () => {
     assert.calledOnce(authInfoSetAliasStub);
     assert.calledWith(authInfoSetAliasStub, mockAlias);
     assert.calledOnce(authInfoSetAsDefaultStub);
-    assert.calledWith(authInfoSetAsDefaultStub, {
-      defaultUsername: true
-    });
+    assert.calledWith(authInfoSetAsDefaultStub, { org: true, devHub: true });
   });
 
   it('Should show a user friendly message on Bad_OAuth_Token', async () => {
