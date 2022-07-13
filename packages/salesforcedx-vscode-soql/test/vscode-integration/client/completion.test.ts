@@ -72,7 +72,7 @@ describe('Should do completion', async () => {
   before(() => {
     // Populate filesystem with sobject's metadata. This is for the embedded-soql case
     const workspaceDir = path.normalize(
-      __dirname + '/../../../../../system-tests/assets/sfdx-simple/.sfdx'
+      __dirname + '/../../../../../system-tests/assets/sfdx-simple/.sf'
     );
     const targetDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
     const soqlMetadataDir = path.normalize(
@@ -575,7 +575,7 @@ function testCompletion(
         }
 
         if (expectChannelMsg) {
-          expect(channelServiceSpy.called).to.be.true;
+          expect(channelServiceSpy.called).to.equal(true);
           console.log(channelServiceSpy.getCalls());
           expect(channelServiceSpy.lastCall.args[0].toLowerCase()).to.equal(
             expectChannelMsg.toLowerCase()
