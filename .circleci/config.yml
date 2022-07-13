@@ -302,6 +302,7 @@ jobs:
   unit-tests:
     description: 'Run tests on Windows'
     executor: win/default
+    resource_class: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
@@ -335,6 +336,7 @@ jobs:
   soql-ui-tests:
     description: 'Run E2E SOQL UI Tests'
     executor: win/default
+    resource_class: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
@@ -351,6 +353,7 @@ jobs:
   integration-tests:
     description: 'Run tests on Windows'
     executor: win/default
+    resource_class: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
