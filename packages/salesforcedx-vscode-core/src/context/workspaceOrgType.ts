@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -17,7 +16,7 @@ export enum OrgType {
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {
-  if (defaultUsernameOrAlias === null || defaultUsernameOrAlias === undefined) {
+  if (!defaultUsernameOrAlias) {
     const e = new Error();
     e.name = 'NoDefaultusernameSet';
     throw e;
