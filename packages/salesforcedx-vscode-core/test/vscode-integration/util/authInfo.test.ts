@@ -126,8 +126,10 @@ describe('OrgAuthInfo', () => {
     it('should use username/alias when passed as argument', async () => {
       const connection = await OrgAuthInfo.getConnection(username);
       expect(connection).to.equal(fakeConnection);
-      expect(authinfoCreateStub).calledWith({ username });
-      expect(connectionCreateStub).calledWith(fakeAuthInfo);
+      expect(authinfoCreateStub.calledWith({ username })).to.equal(true);
+      expect(
+        connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
+      ).to.equal(true);
     });
 
     it('should use default username/alias when invoked without argument', async () => {
@@ -136,8 +138,14 @@ describe('OrgAuthInfo', () => {
 
       const connection = await OrgAuthInfo.getConnection();
       expect(connection).to.equal(fakeConnection);
-      expect(authinfoCreateStub).calledWith({ username: defaultUsername });
-      expect(connectionCreateStub).calledWith(fakeAuthInfo);
+      expect(
+        authinfoCreateStub.calledWith({
+          username: defaultUsername
+        })
+      ).to.equal(true);
+      expect(
+        connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
+      ).to.equal(true);
 
       configUtilStub.restore();
     });
