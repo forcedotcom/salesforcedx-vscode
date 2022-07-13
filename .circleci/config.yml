@@ -10,7 +10,7 @@
 version: 2.1
 
 orbs:
-  win: circleci/windows@2.4.0
+  win: circleci/windows@4.1.0
   release-management: salesforce/npm-release-management@4
   slack: circleci/slack@3.4.2
   github-cli: circleci/github-cli@2.1.0
