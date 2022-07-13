@@ -14,6 +14,7 @@ import { forceConfigSet, ForceConfigSetExecutor } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
 const CONFIG_KEY = nls.localize('force_config_set_name');
+const CONFIG_TITLE = nls.localize('force_config_set_title');
 
 const sandbox = sinon.createSandbox();
 let channelSpy: sinon.SinonSpy;
@@ -33,7 +34,7 @@ describe('Force Config Set', () => {
     sandbox.restore();
   });
 
-  it('should set config with given username or alias', async () => {
+  it('should set config with the given username or alias', async () => {
     const usernameOrAlias = 'test-username1@gmail.com';
     await forceConfigSet(usernameOrAlias);
     expect(configSetSpy.calledOnce);
@@ -57,12 +58,13 @@ describe('Force Config Set', () => {
     expect(channelSpy.calledWith(expectedOutput)).to.equal(true);
   });
 
-  it('should format output correctly', async () => {
+  it('should display correct output to user', async () => {
     const usernameOrAlias = 'test-username1@gmail.com';
     const outputTableRow = { name: CONFIG_KEY, val: usernameOrAlias, success: String(true) };
     const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
     const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);
     expect(tableSpy.calledOnce);
-    expect(formatOutput).to.equal('=== Set Config\nName             Value                     Success\n───────────────  ────────────────────────  ───────\ndefaultusername  test-username1@gmail.com  true   \n');
+    expect(formatOutput).to.contain(CONFIG_TITLE, CONFIG_KEY);
+    expect(formatOutput).to.contain(usernameOrAlias, String(true));
   });
 });
