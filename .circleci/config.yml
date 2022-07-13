@@ -70,8 +70,6 @@ commands:
     steps:
       - run: git config --global core.autocrlf false
       - checkout
-      - restore_dependency_cache:
-          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Install node'
           shell: bash.exe
@@ -91,8 +89,6 @@ commands:
           name: 'Compile'
           shell: bash.exe
           command: npm run compile
-      - save_dependency_cache:
-          base-cache-path: << pipeline.parameters.cache-version >>-win
       - run:
           name: 'Run lint'
           shell: bash.exe
@@ -200,8 +196,6 @@ commands:
             echo "RELEASE_VERSION is: ${RELEASE_VERSION}"
 
   restore_dependency_cache:
-    # This logic cannot be done within the node orb currently. This is due to the fact that we use
-    # the package.json instead of the package-lock.json for our checksum.
     parameters:
       base-cache-path:
         type: string
@@ -209,7 +203,7 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - << parameters.base-cache-path >>{{ checksum "package.json" }}
+            - << parameters.base-cache-path >>{{ checksum "package-lock.json" }}
 
   save_dependency_cache:
     parameters:
@@ -221,7 +215,7 @@ commands:
         default: 'node_modules'
     steps:
       - save_cache:
-          key: << parameters.base-cache-path >>{{ checksum "package.json" }}
+          key: << parameters.base-cache-path >>{{ checksum "package-lock.json" }}
           paths:
             - << parameters.path-to-save >>
 
