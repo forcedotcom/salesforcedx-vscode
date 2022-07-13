@@ -49,7 +49,7 @@ describe('Force Config Set', () => {
     expect(configSetSpy.calledWith(CONFIG_KEY, expectedAlias)).to.equal(true);
   });
 
-  it('should display return value in output channel', async () => {
+  it('should display formatted output in output channel', async () => {
     const usernameOrAlias = 'test-username1@gmail.com';
     const expectedOutput = 'Successful table row';
     sandbox.stub(ForceConfigSetExecutor.prototype as any, 'formatOutput').returns(expectedOutput);
@@ -60,8 +60,8 @@ describe('Force Config Set', () => {
   it('should format output correctly', async () => {
     const usernameOrAlias = 'test-username1@gmail.com';
     const outputTableRow = { name: CONFIG_KEY, val: usernameOrAlias, success: String(true) };
-    const forceConfigSet = new ForceConfigSetExecutor(usernameOrAlias);
-    const formatOutput = (forceConfigSet as any).formatOutput(outputTableRow);
+    const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
+    const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);
     expect(tableSpy.calledOnce);
     expect(formatOutput).to.equal('=== Set Config\nName             Value                     Success\n───────────────  ────────────────────────  ───────\ndefaultusername  test-username1@gmail.com  true   \n');
   });
