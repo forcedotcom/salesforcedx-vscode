@@ -84,7 +84,7 @@ commands:
           shell: bash.exe
           command: |
             npm config set scripts-prepend-node-path true
-            npm ci
+            npm list @heroku/functions-core || npm install
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
       - run:
@@ -138,7 +138,7 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run: npm ci
+      - run: npm install
       - run: npm --version
       - run: node --version
 
@@ -222,7 +222,26 @@ commands:
           key: << parameters.base-cache-path >>{{ checksum "package-lock.json" }}
           paths:
             - << parameters.path-to-save >>
-            - C:\Users\circleci\AppData\Local\npm-cache\
+            - node_modules
+            - packages/salesforcedx-apex-debugger/node_modules
+            - packages/salesforcedx-visualforce-language-server/node_modules
+            - packages/salesforcedx-vscode-apex-replay-debugger/node_modules
+            - packages/salesforcedx-vscode-soql/node_modules
+            - packages/salesforcedx-apex-replay-debugger/node_modules
+            - packages/salesforcedx-visualforce-markup-language-server/node_modules
+            - packages/salesforcedx-vscode-core/node_modules
+            - packages/salesforcedx-vscode-visualforce/node_modules
+            - packages/salesforcedx-sobjects-faux-generator/node_modules
+            - packages/salesforcedx-vscode/node_modules
+            - packages/salesforcedx-vscode-expanded/node_modules
+            - packages/salesforcedx-webview-ui/node_modules
+            - packages/salesforcedx-test-utils-vscode/node_modules
+            - packages/salesforcedx-vscode-apex/node_modules
+            - packages/salesforcedx-vscode-lightning/node_modules
+            - packages/system-tests/node_modules
+            - packages/salesforcedx-utils-vscode/node_modules
+            - packages/salesforcedx-vscode-apex-debugger/node_modules
+            - packages/salesforcedx-vscode-lwc/node_modules
 
   ssh-config:
     steps:
