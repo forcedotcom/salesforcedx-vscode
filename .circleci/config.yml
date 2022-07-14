@@ -84,7 +84,7 @@ commands:
           shell: bash.exe
           command: |
             npm config set scripts-prepend-node-path true
-            npm install
+            npm ci
             npm install -g sfdx-cli@<< pipeline.parameters.cli-version >>
             npm install -g junit-merge
       - run:
