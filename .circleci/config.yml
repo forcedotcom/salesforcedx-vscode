@@ -81,7 +81,10 @@ commands:
           command: |
             nvm install $NODE_VERSION
             nvm use $NODE_VERSION
-            npm install -g npm@<< pipeline.parameters.npm-version >>
+      - run:
+          name: 'Install npm'
+          shell: bash.exe
+          command: (set -x; npm install -g npm@<< pipeline.parameters.npm-version >>)
       - run:
           name: 'Install dependent modules'
           shell: bash.exe
@@ -219,14 +222,10 @@ commands:
       base-cache-path:
         type: string
         default: << pipeline.parameters.cache-version >>
-      path-to-save:
-        type: string
-        default: 'node_modules'
     steps:
       - save_cache:
           key: << parameters.base-cache-path >>{{ checksum "package-lock.json" }}
           paths:
-            - << parameters.path-to-save >>
             - node_modules
             - packages/salesforcedx-apex-debugger/node_modules
             - packages/salesforcedx-visualforce-language-server/node_modules
