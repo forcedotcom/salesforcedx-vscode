@@ -13,10 +13,6 @@ import {
 } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  DEFAULT_DEV_HUB_USERNAME_KEY,
-  DEFAULT_USERNAME_KEY
-} from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -39,7 +35,7 @@ export class OrgAuthInfo {
         return undefined;
       } else {
         const configSource = await ConfigUtil.getConfigSource(
-          DEFAULT_USERNAME_KEY
+          OrgConfigProperties.TARGET_ORG
         );
         if (configSource === ConfigSource.Global) {
           displayMessage(
@@ -69,7 +65,7 @@ export class OrgAuthInfo {
   ): Promise<string | undefined> {
     try {
       const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_DEV_HUB_USERNAME_KEY,
+        OrgConfigProperties.TARGET_DEV_HUB,
         configSource
       );
       if (defaultDevHubUserName === undefined) {

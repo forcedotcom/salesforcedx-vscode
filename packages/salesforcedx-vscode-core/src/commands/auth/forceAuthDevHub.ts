@@ -20,16 +20,13 @@ import {
 
 import { getRootWorkspacePath } from '../../util';
 
-import { ConfigFile } from '@salesforce/core';
+import { ConfigFile, OrgConfigProperties } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
 import { CLI } from '../../constants';
-import {
-  DEFAULT_DEV_HUB_USERNAME_KEY,
-  SFDX_CONFIG_FILE
-} from '../../constants';
+import { SFDX_CONFIG_FILE } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
 import { isSFDXContainerMode } from '../../util';
@@ -110,7 +107,7 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
       filename: SFDX_CONFIG_FILE
     });
 
-    globalConfig.set(DEFAULT_DEV_HUB_USERNAME_KEY, newUsername);
+    globalConfig.set(OrgConfigProperties.TARGET_DEV_HUB, newUsername);
     await globalConfig.write();
   }
 }
