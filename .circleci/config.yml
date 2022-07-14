@@ -236,9 +236,6 @@ commands:
             - packages/salesforcedx-vscode-core/node_modules
             - packages/salesforcedx-vscode-visualforce/node_modules
             - packages/salesforcedx-sobjects-faux-generator/node_modules
-            - packages/salesforcedx-vscode/node_modules
-            - packages/salesforcedx-vscode-expanded/node_modules
-            - packages/salesforcedx-webview-ui/node_modules
             - packages/salesforcedx-test-utils-vscode/node_modules
             - packages/salesforcedx-vscode-apex/node_modules
             - packages/salesforcedx-vscode-lightning/node_modules
