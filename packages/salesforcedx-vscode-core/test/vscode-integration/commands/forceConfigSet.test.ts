@@ -23,6 +23,8 @@ let configWriteSpy: sinon.SinonSpy;
 let tableSpy: sinon.SinonSpy;
 
 describe('Force Config Set', () => {
+  const usernameOrAlias = 'test-username1@gmail.com';
+
   beforeEach(() => {
     channelSpy = sandbox.spy(channelService, 'appendLine');
     configSetSpy = sandbox.spy(Config.prototype, 'set');
@@ -35,7 +37,6 @@ describe('Force Config Set', () => {
   });
 
   it('should set config with the given username or alias', async () => {
-    const usernameOrAlias = 'test-username1@gmail.com';
     await forceConfigSet(usernameOrAlias);
     expect(configSetSpy.calledOnce);
     expect(configSetSpy.calledWith(CONFIG_KEY, usernameOrAlias)).to.equal(true);
@@ -51,7 +52,6 @@ describe('Force Config Set', () => {
   });
 
   it('should display formatted output in output channel', async () => {
-    const usernameOrAlias = 'test-username1@gmail.com';
     const expectedOutput = 'Successful table row';
     sandbox.stub(ForceConfigSetExecutor.prototype as any, 'formatOutput').returns(expectedOutput);
     await forceConfigSet(usernameOrAlias);
@@ -59,7 +59,6 @@ describe('Force Config Set', () => {
   });
 
   it('should display correct output to user', async () => {
-    const usernameOrAlias = 'test-username1@gmail.com';
     const outputTableRow = { name: CONFIG_KEY, val: usernameOrAlias, success: String(true) };
     const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
     const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);
