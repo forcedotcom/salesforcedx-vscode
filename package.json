@@ -48,7 +48,7 @@
   },
   "scripts": {
     "postinstall": "npm run bootstrap && npm run reformat && npm run check:peer-deps && npm run check:typescript-project-references",
-    "bootstrap": "lerna bootstrap -- --no-package-lock",
+    "bootstrap": "lerna bootstrap --no-ci -- --no-package-lock",
     "circleci:artifacts": "node scripts/download-vsix-from-circleci.js",
     "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
