@@ -4,7 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import {
+  AuthInfo,
+  ConfigAggregator,
+  Connection,
+  OrgConfigProperties,
+  StateAggregator
+} from '@salesforce/core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
@@ -20,8 +26,9 @@ export class OrgAuthInfo {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
+      const configAggregator = await ConfigAggregator.create();
+      const defaultUserName = configAggregator.getPropertyValue(
+        OrgConfigProperties.TARGET_ORG
       );
       if (defaultUserName === undefined) {
         displayMessage(
