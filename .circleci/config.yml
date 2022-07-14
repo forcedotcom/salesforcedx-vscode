@@ -28,6 +28,9 @@ parameters:
     # node > 16.13 doesn't exist on legacy CircleCI image https://hub.docker.com/r/circleci/node/tags
     # Need to migrate from legacy CircleCI image (W-11027467)
     default: '16.13.0'
+  npm-version:
+    type: string
+    default: '8.12.1'
   # Constants
   cache-version:
     type: string
@@ -78,10 +81,12 @@ commands:
           command: |
             nvm install $NODE_VERSION
             nvm use $NODE_VERSION
-            nvm install-latest-npm
+            npm install -g npm@<< pipeline.parameters.npm-version >>
       - run:
           name: 'Install dependent modules'
           shell: bash.exe
+          # Only run the npm install if the npm list command fails to find the module locally installed
+          # Note I picked a random module.
           command: |
             npm config set scripts-prepend-node-path true
             npm list @heroku/functions-core || npm install
@@ -539,8 +544,8 @@ jobs:
       - restore_dependency_cache
       - gh-config
       - run:
-          name: 'Install npm 8.12'
-          command: sudo npm install -g npm@8.12.1
+          name: 'Install npm'
+          command: sudo npm install -g npm@<< pipeline.parameters.npm-version >>
       - install
       - run:
           name: Install Lerna
