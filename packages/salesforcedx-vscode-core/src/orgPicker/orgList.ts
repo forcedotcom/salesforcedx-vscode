@@ -43,7 +43,7 @@ export class OrgList implements vscode.Disposable {
   }
 
   public displayDefaultUsername(defaultUsernameorAlias?: string) {
-    if (!defaultUsernameorAlias) {
+    if (defaultUsernameorAlias) {
       this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
