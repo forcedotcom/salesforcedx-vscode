@@ -34,7 +34,7 @@ parameters:
   # Constants
   cache-version:
     type: string
-    default: 'dependency-cache-v4-'
+    default: 'dependency-cache-v5-'
   domain-retry:
     description: 'SFDX Domain Retry Wait in Seconds'
     type: integer
