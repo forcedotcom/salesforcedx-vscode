@@ -308,6 +308,7 @@ jobs:
     executor:
       name: default-executor
       working-dir: ~/project
+      resource_class: large
     environment:
       - SFDX_URL_LINUX: https://developer.salesforce.com/media/salesforce-cli/sfdx-linux-amd64.tar.xz
       - SFDX_AUTOUPDATE_DISABLE: true
