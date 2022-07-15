@@ -138,8 +138,6 @@ describe('OrgAuthInfo', () => {
 
     it('should use default username/alias when invoked without argument', async () => {
       // Arrange
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(defaultUsername);
       sandbox
         .stub(OrgAuthInfo, 'getDefaultUsernameOrAlias')
         .returns(defaultUsername);
@@ -157,8 +155,6 @@ describe('OrgAuthInfo', () => {
       expect(
         connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
       ).to.equal(true);
-
-      configUtilStub.restore();
     });
   });
 });
