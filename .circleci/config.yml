@@ -61,12 +61,10 @@ commands:
     description: 'Building and archiving extension artifacts.'
     steps:
       - checkout
-      - restore_dependency_cache
       - install
       - compile
       - package-extensions
       - stage-and-store-artifacts
-      - save_dependency_cache
 
   build-win:
     description: 'Build for Windows.'
