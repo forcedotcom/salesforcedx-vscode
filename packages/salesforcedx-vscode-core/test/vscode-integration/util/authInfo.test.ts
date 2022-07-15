@@ -136,7 +136,7 @@ describe('OrgAuthInfo', () => {
       ).to.equal(true);
     });
 
-    it.only('should use default username/alias when invoked without argument', async () => {
+    it('should use default username/alias when invoked without argument', async () => {
       // Arrange
       const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns(defaultUsername);
