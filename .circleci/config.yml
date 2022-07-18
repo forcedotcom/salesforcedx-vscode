@@ -3,7 +3,7 @@
 #
 # The following environment variables are required in the 'vscode-test' context
 # when running tests for Windows:
-#     SFDX_CI_DEVHUB_CLIENTID  -- connected app client ID for the dev hub
+#       SFDX_CI_DEVHUB_CLIENTID  -- connected app client ID for the dev hub
 #     SFDX_CI_DEVHUB_JWT_KEY   -- private key for the connected app (base64 encoded)
 #     SFDX_CI_DEVHUB_USERNAME  -- username of an authorized user of the dev hub
 #
