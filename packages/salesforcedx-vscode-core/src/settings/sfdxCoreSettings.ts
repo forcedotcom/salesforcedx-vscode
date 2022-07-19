@@ -75,8 +75,6 @@ export class SfdxCoreSettings {
   }
 
   public getEnableClearOutputBeforeEachCommand(): boolean {
-    const trueValue = this.getConfigValue(ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND, undefined);
-    console.log('getEnableClearOutputBeforeEachCommand: ', trueValue);
     return this.getConfigValue(ENABLE_CLEAR_OUTPUT_BEFORE_EACH_COMMAND, false);
   }
 

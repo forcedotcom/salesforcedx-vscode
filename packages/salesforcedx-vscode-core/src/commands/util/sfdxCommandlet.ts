@@ -172,6 +172,9 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
+    if (SfdxCoreSettings.getInstance().getEnableClearOutputBeforeEachCommand()) {
+      channelService.clear();
+    }
     if (await this.prechecker.check()) {
       let inputs = await this.gatherer.gather();
       inputs = await this.postchecker.check(inputs);
