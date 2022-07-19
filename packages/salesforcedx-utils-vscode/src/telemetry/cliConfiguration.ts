@@ -6,7 +6,7 @@
  */
 
 import { GlobalCliEnvironment } from '../cli';
-import { ConfigUtil } from './configUtil';
+import { ConfigUtil } from '../config/configUtil';
 
 export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
 export const SFDX_CONFIG_DISABLE_TELEMETRY = 'disableTelemetry';

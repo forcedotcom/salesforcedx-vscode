@@ -10,12 +10,15 @@ import {
   OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
+import {
+  ConfigSource,
+  ConfigUtil
+} from '@salesforce/salesforcedx-utils-vscode/src/config/configUtil';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil } from './index';
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
