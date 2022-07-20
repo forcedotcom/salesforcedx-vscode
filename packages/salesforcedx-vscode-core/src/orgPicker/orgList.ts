@@ -4,13 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, ConfigFile, StateAggregator } from '@salesforce/core';
+import { AuthInfo, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { readFileSync } from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { OrgInfo, workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -50,29 +48,16 @@ export class OrgList implements vscode.Disposable {
     }
   }
 
-  public async getAuthInfoObjects() {
-    const authFilesArray = await AuthInfo.listAllAuthorizations().catch(
+  public async getOrgAuthorizations(): Promise<OrgAuthorization[] | null> {
+    const orgAuthorizations = await AuthInfo.listAllAuthorizations().catch(
       err => null
     );
 
-    if (authFilesArray === null || authFilesArray.length === 0) {
+    if (orgAuthorizations === null || orgAuthorizations.length === 0) {
       return null;
     }
-    const authInfoObjects: FileInfo[] = [];
-    for (const authFile of authFilesArray) {
-      try {
-        const filePath = path.join(
-          await ConfigFile.resolveRootFolder(true),
-          '.sfdx',
-          authFile.username + '.json'
-        );
-        const fileData = readFileSync(filePath, 'utf8');
-        authInfoObjects.push(JSON.parse(fileData));
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    return authInfoObjects;
+
+    return orgAuthorizations;
   }
 
   public async filterAuthInfo(authInfoObjects: FileInfo[]) {
@@ -123,11 +108,11 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async updateOrgList() {
-    const authInfoObjects = await this.getAuthInfoObjects();
-    if (!authInfoObjects) {
+    const orgAuthorizations = await this.getOrgAuthorizations();
+    if (!orgAuthorizations) {
       return null;
     }
-    const authUsernameList = await this.filterAuthInfo(authInfoObjects);
+    const authUsernameList = await this.filterAuthInfo(orgAuthorizations);
     return authUsernameList;
   }
 

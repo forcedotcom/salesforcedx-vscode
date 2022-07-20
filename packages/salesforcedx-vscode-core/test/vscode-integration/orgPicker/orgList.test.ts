@@ -66,14 +66,14 @@ describe('orgList Tests', () => {
       readFileStub.callThrough();
       const orgList = new OrgList();
 
-      const authInfoObjects = await orgList.getAuthInfoObjects();
-      if (authInfoObjects) {
-        expect(authInfoObjects.length).to.equal(2);
+      const orgAuthorizations = await orgList.getOrgAuthorizations();
+      if (orgAuthorizations) {
+        expect(orgAuthorizations.length).to.equal(2);
 
-        expect(authInfoObjects[0].username).to.equal(
+        expect(orgAuthorizations[0].username).to.equal(
           'test-username1@example.com'
         );
-        expect(authInfoObjects[1].username).to.equal(
+        expect(orgAuthorizations[1].username).to.equal(
           'test-username2@example.com'
         );
       } else {
@@ -84,8 +84,8 @@ describe('orgList Tests', () => {
     it('should return null when no auth files are present', async () => {
       const orgList = new OrgList();
       getAuthInfoListAllAuthorizationsStub.resolves(null);
-      const authInfoObjects = await orgList.getAuthInfoObjects();
-      expect(authInfoObjects).to.equal(null);
+      const orgAuthorizations = await orgList.getOrgAuthorizations();
+      expect(orgAuthorizations).to.equal(null);
     });
 
     describe('Filter Authorization Info', async () => {
