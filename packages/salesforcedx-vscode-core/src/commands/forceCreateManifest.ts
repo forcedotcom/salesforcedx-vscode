@@ -12,7 +12,6 @@ import * as fs from 'fs';
 import { join, parse } from 'path';
 import { format } from 'util';
 import * as vscode from 'vscode';
-import { TextDocument } from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util';
