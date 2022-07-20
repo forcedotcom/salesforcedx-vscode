@@ -98,6 +98,7 @@ import {
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
+import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -108,6 +109,7 @@ import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
+
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
@@ -757,7 +759,8 @@ async function setUpOrgExpirationWatcher() {
 
 async function checkForExpiredOrgs() {
   try {
-    const daysBeforeExpire = 5;
+    // const daysBeforeExpire = 5;
+    const daysBeforeExpire = 45;
     const today = new Date();
     const fiveDaysFromNow = new Date();
     fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + daysBeforeExpire);
@@ -795,18 +798,14 @@ async function checkForExpiredOrgs() {
     const formattedOrgsToDisplay = orgsAboutToExpire.map((org: any) => {
       const alias = aliases.getKeysByValue(org.username);
       let aliasName = alias.length > 0
-        ? alias
+        ? alias.toString()
         : org.username;
 
-      return `${aliasName}\n(expires on ${org.expirationDate})`;
+      return nls.localize('pending_org_expiration_expires_on_message', aliasName, org.expirationDate);
     }).join('\n\n');
 
-    // TODO: localize
-    const notificationMessage  = `Warning: One or more of your orgs expire in the next ${daysBeforeExpire} days. For more details, review the Output panel.`;
-    notificationService.showWarningMessage(notificationMessage);
-
-    const outputChannelMessage = `Warning: The following orgs expire in the next ${daysBeforeExpire} days:\n\n${formattedOrgsToDisplay}\n\nIf these orgs contain critical data or settings, back them up before the org expires.`;
-    OUTPUT_CHANNEL.appendLine(outputChannelMessage);
+    notificationService.showWarningMessage(nls.localize('pending_org_expiration_notification_message', daysBeforeExpire));
+    OUTPUT_CHANNEL.appendLine(nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay));
     OUTPUT_CHANNEL.show(true);
   } catch(err) {
     console.error(err);
