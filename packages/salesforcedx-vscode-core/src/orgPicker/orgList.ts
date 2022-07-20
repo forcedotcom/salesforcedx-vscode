@@ -80,29 +80,12 @@ export class OrgList implements vscode.Disposable {
       });
       const authFields: AuthFields = authInfoType.getFields();
       if (authFields.scratchAdminUsername) {
-        // authInfoObjects = authInfoObjects.filter(
-        // fileData => !fileData.scratchAdminUsername
-        // );
         continue;
       }
       if (
         authFields.devHubUsername &&
         authFields.devHubUsername !== defaultDevHubUsername
       ) {
-        // authInfoObjects = authInfoObjects.filter(
-        //   async (orgAuth: OrgAuthorization) => {
-        //     const authInfoType: AuthInfo = await AuthInfo.create({
-        //       username: orgAuth.username
-        //     });
-        //     const authFields: AuthFields = authInfoType.getFields();
-        //     const isNullOrUndefined = !authFields.devHubUsername;
-        //     return (
-        //       isNullOrUndefined ||
-        //       (!isNullOrUndefined &&
-        //         authFields.devHubUsername === defaultDevHubUsername)
-        //     );
-        //   }
-        // );
         continue;
       }
       const aliases = authInfo.aliases;
