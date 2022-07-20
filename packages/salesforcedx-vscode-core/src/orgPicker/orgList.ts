@@ -74,15 +74,16 @@ export class OrgList implements vscode.Disposable {
     const authList = [];
     const today = new Date();
     for (const authInfo of authInfoObjects as OrgAuthorization[]) {
-      // TODO: Does this do the same thing as info.getKeysByValue(authInfo.username)
       const authInfoType: AuthInfo = await AuthInfo.create({
         username: authInfo.username
       });
       const authFields: AuthFields = authInfoType.getFields();
       if (authFields.scratchAdminUsername) {
+        // non-Admin scratch org users
         continue;
       }
       if (
+        // scratch orgs parented by other (non-default) devHub orgs
         authFields.devHubUsername &&
         authFields.devHubUsername !== defaultDevHubUsername
       ) {
