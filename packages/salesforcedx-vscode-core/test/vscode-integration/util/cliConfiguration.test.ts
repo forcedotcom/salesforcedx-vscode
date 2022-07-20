@@ -6,6 +6,7 @@
  */
 
 import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/src/config/configUtil';
 import { expect } from 'chai';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -15,7 +16,6 @@ import {
   SFDX_CONFIG_DISABLE_TELEMETRY
 } from '../../../src/constants';
 import {
-  ConfigUtil,
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,

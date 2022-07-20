@@ -16,7 +16,8 @@ import {
   ForceAuthDevHubExecutor
 } from '../../../../src/commands';
 import { nls } from '../../../../src/messages';
-import { ConfigSource, OrgAuthInfo } from '../../../../src/util';
+import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode/src/config/configUtil';
+import { OrgAuthInfo } from '../../../../src/util';
 
 class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
   public getShowChannelOutput() {

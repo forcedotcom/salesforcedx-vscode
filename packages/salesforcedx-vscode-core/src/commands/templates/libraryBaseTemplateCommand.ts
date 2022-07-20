@@ -19,11 +19,11 @@ import {
 } from '../util';
 
 import { Properties } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/src/config/configUtil';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
-  ConfigUtil,
   getRootWorkspacePath,
   hasRootWorkspace,
   MetadataDictionary,

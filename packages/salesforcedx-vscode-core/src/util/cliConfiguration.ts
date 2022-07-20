@@ -6,9 +6,9 @@
  */
 
 import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/src/config/configUtil';
 import { which } from 'shelljs';
 import { window } from 'vscode';
-import { ConfigUtil } from '.';
 import {
   ENV_SFDX_DISABLE_TELEMETRY,
   SFDX_CLI_DOWNLOAD_LINK,

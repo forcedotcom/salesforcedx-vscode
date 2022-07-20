@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/src/config/configUtil';
 import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
@@ -18,7 +19,7 @@ import { forceApexClassCreate } from '../../../../src/commands/templates/forceAp
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
+import { getRootWorkspacePath } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
