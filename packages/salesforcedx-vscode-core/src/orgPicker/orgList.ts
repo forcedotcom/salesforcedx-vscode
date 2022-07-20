@@ -60,9 +60,14 @@ export class OrgList implements vscode.Disposable {
     return orgAuthorizations;
   }
 
-  public async filterAuthInfo(
-    authInfoObjects: OrgAuthorization[] | FileInfo[]
-  ) {
+  public async getAuthFieldsFor(username: string): Promise<AuthFields> {
+    const authInfoType: AuthInfo = await AuthInfo.create({
+      username
+    });
+    return authInfoType.getFields();
+  }
+
+  public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]) {
     const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
     let defaultDevHubUsername: string | undefined;
     if (defaultDevHubUsernameorAlias) {
@@ -73,30 +78,30 @@ export class OrgList implements vscode.Disposable {
 
     const authList = [];
     const today = new Date();
-    for (const authInfo of authInfoObjects as OrgAuthorization[]) {
-      const authInfoType: AuthInfo = await AuthInfo.create({
-        username: authInfo.username
-      });
-      const authFields: AuthFields = authInfoType.getFields();
-      if (authFields.scratchAdminUsername) {
+    //references:
+    for (const orgAuth of orgAuthorizations) {
+      const authFields: AuthFields = await this.getAuthFieldsFor(
+        orgAuth.username
+      );
+      if (authFields?.scratchAdminUsername) {
         // non-Admin scratch org users
         continue;
       }
       if (
         // scratch orgs parented by other (non-default) devHub orgs
-        authFields.devHubUsername &&
+        authFields?.devHubUsername &&
         authFields.devHubUsername !== defaultDevHubUsername
       ) {
         continue;
       }
-      const aliases = authInfo.aliases;
-      const isExpired = authFields.expirationDate
+      const aliases = orgAuth.aliases;
+      const isExpired = authFields?.expirationDate
         ? today >= new Date(authFields.expirationDate)
         : false;
       let authListItem =
         aliases && aliases?.length > 0
-          ? `${aliases} - ${authInfo.username}`
-          : authInfo.username;
+          ? `${aliases} - ${orgAuth.username}`
+          : orgAuth.username;
 
       if (isExpired) {
         authListItem += ` - ${nls.localize(
