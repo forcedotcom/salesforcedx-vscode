@@ -5,11 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Aliases } from '@salesforce/core';
-import {
-  SfdxCommandBuilder,
-  CliCommandExecutor,
-  CommandOutput
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from './channels';
 import {
@@ -761,150 +756,60 @@ async function setUpOrgExpirationWatcher() {
 }
 
 async function checkForExpiredOrgs() {
-  const sfdxCommandBuilder = new SfdxCommandBuilder()
-    .withArg('force:org:list')
-    .withArg('--json')
-    .build();
-
-  const cliCommandExecutor = new CliCommandExecutor(
-    sfdxCommandBuilder,
-    {
-      cwd: process.cwd(),
-    }
-  );
-
-  const cliCommandExecution = cliCommandExecutor.execute();
-  const commandOutput = new CommandOutput();
-  const jsonCommandResult = await commandOutput.getCmdResult(cliCommandExecution);
   try {
-    const commandResult = JSON.parse(jsonCommandResult);
-    if (commandResult.status === 0) {
-      // const daysBeforeExpire = 5;
-      const daysBeforeExpire = 40;
-      const today = new Date();
+    const daysBeforeExpire = 5;
+    const today = new Date();
+    const fiveDaysFromNow = new Date();
+    fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + daysBeforeExpire);
 
-      const fiveDaysFromNow = new Date();
-      fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + daysBeforeExpire);
+    const aliases = await Aliases.create(Aliases.getDefaultOptions());
 
-      // const orgsAboutToExpire = commandResult.result.scratchOrgs.filter((scratchOrg: any) => {
-      //   const expirationDate = new Date(scratchOrg.expirationDate);
+    const orgList = new OrgList();
+    const authInfoObjects = await orgList.getAuthInfoObjects();
 
-      //   return (expirationDate.getFullYear() <= fiveDaysFromNow.getFullYear()
-      //     && expirationDate.getMonth() <= fiveDaysFromNow.getMonth()
-      //     && expirationDate.getDate() <= fiveDaysFromNow.getDate());
-      // });
-
-      // debugger;
-      // orgsAboutToExpire = [
-      //   {
-      //     alias: 'dreamhouse-org-2022-06--03-take-b',
-      //     expirationDate: new Date(2022, 7-1, 3)
-      //   },
-      //   {
-      //     alias: 'lwc-recipes-2022-06-03-take-b',
-      //     expirationDate: new Date(2022, 7-1, 3)
-      //   }
-      // ];
-
-      const aliases = await Aliases.create(Aliases.getDefaultOptions());
-
-      const orgList = new OrgList();
-      const authInfoObjects = await orgList.getAuthInfoObjects();
-
-      const orgsAboutToExpire = authInfoObjects!.filter((authInfoObject: FileInfo) => {
-        // Filter out the dev hubs.
-        if (authInfoObject.isDevHub) {
-          return false;
-        }
-
-        // Some dev hubs have isDevHub=false, but no expiration date, so filter them out.
-        if (!authInfoObject.expirationDate) {
-          return false;
-        }
-
-        // Filter out the expired orgs.
-        const expirationDate = new Date(authInfoObject.expirationDate);
-        if (expirationDate < today) {
-          return false;
-        }
-
-        // Now filter and only return the results that are within the 5 day window.
-        return expirationDate <= fiveDaysFromNow;
-      });
-
-      /*
-      const filteredItems1 = authInfoObjects!.filter((foo: FileInfo) => {
-        return foo.isDevHub === false;
-      });
-
-      const filteredItems2 = filteredItems1.filter((bar: FileInfo) => {
-        if (!bar.expirationDate) {
-          return false;
-        }
-
-        const expirationDate = new Date(bar.expirationDate);
-        // expirationDate = new Date('2022-07-18')
-        // should be true
-
-        // expirationDate = new Date('2022-07-19')
-        // should be true
-
-        // expirationDate = new Date('2022-07-20')
-        // should be false
-
-        // Filter out if the org has already expired.
-        if (expirationDate < today) {
-          return false;
-        }
-
-        return expirationDate <= fiveDaysFromNow;
-      });
-      */
-
-      if (orgsAboutToExpire.length < 1) {
-        return;
+    const orgsAboutToExpire = authInfoObjects!.filter((authInfoObject: FileInfo) => {
+      // Filter out the dev hubs.
+      if (authInfoObject.isDevHub) {
+        return false;
       }
 
-      const formattedOrgsToDisplay = orgsAboutToExpire.map((org: any) => {
+      // Some dev hubs have isDevHub=false, but no expiration date, so filter them out.
+      if (!authInfoObject.expirationDate) {
+        return false;
+      }
 
-        // return `${org.alias}\n(expires on ${org.expirationDate})`;
+      // Filter out the expired orgs.
+      const expirationDate = new Date(authInfoObject.expirationDate);
+      if (expirationDate < today) {
+        return false;
+      }
 
-        const alias = aliases.getKeysByValue(org.username);
-        let aliasName = alias.length > 0
-          ? alias
-          : org.username;
+      // Now filter and only return the results that are within the 5 day window.
+      return expirationDate <= fiveDaysFromNow;
+    });
 
-        return `${aliasName}\n(expires on ${org.expirationDate})`;
-      }).join('\n\n');
-
-      // let formattedOrgsToDisplay = '';
-      // orgsAboutToExpire.forEach((org: any) => {
-      //   formattedOrgsToDisplay += `${org.alias} (expires on ${org.expirationDate})`;
-      // });
-
-      // notificationService.showWarningMessage('one', ['two', 'three', 'four']);
-      // notificationService.showWarningMessage('one', ...['two', 'three', 'four']);
-      // const message = ['two', 'three', 'four'];
-      // notificationService.showWarningMessage('one', ...message);
-      // notificationService.showWarningMessage('oneB', 'twoB', 'threeB', 'fourB');
-
-      const message  = `Warning: The following orgs will expire in the next ${daysBeforeExpire} days:\n\n${formattedOrgsToDisplay}\n\nBe sure to back up your data and settings before the orgs expires.`;
-
-      // version A
-      // notificationService.showWarningMessage(message);
-
-      // version B
-      // notificationService.showWarningModal(message);
-
-      // version C
-      const message2  = `Warning: One or more of your orgs will expire in the next ${daysBeforeExpire} days.  For more information, please review the details logged in the Output panel.`;
-      notificationService.showWarningMessage(message2);
-
-      OUTPUT_CHANNEL.appendLine(message);
-      OUTPUT_CHANNEL.show(true);
+    if (orgsAboutToExpire.length < 1) {
+      return;
     }
-  } catch(e) {
-    debugger;
+
+    const formattedOrgsToDisplay = orgsAboutToExpire.map((org: any) => {
+      const alias = aliases.getKeysByValue(org.username);
+      let aliasName = alias.length > 0
+        ? alias
+        : org.username;
+
+      return `${aliasName}\n(expires on ${org.expirationDate})`;
+    }).join('\n\n');
+
+    // TODO: localize
+    const notificationMessage  = `Warning: One or more of your orgs expire in the next ${daysBeforeExpire} days. For more details, review the Output panel.`;
+    notificationService.showWarningMessage(notificationMessage);
+
+    const outputChannelMessage = `Warning: The following orgs expire in the next ${daysBeforeExpire} days:\n\n${formattedOrgsToDisplay}\n\nIf these orgs contain critical data or settings, back them up before the org expires.`;
+    OUTPUT_CHANNEL.appendLine(outputChannelMessage);
+    OUTPUT_CHANNEL.show(true);
+  } catch(err) {
+    console.error(err);
   }
 }
 
