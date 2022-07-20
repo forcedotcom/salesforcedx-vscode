@@ -759,8 +759,7 @@ async function setUpOrgExpirationWatcher() {
 
 async function checkForExpiredOrgs() {
   try {
-    // const daysBeforeExpire = 5;
-    const daysBeforeExpire = 45;
+    const daysBeforeExpire = 5;
     const today = new Date();
     const fiveDaysFromNow = new Date();
     fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + daysBeforeExpire);
