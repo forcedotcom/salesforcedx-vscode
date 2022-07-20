@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgConfigProperties, StateAggregator } from '@salesforce/core';
+import { StateAggregator } from '@salesforce/core';
 import { ConfigUtil } from '..';
 import { TelemetryService } from '../telemetry/telemetry';
+import { DEFAULT_USERNAME_KEY } from '../types';
 
 export class AuthUtil {
   private static instance?: AuthUtil;
@@ -24,7 +25,7 @@ export class AuthUtil {
   ): Promise<string | undefined> {
     try {
       const defaultUserName = await ConfigUtil.getConfigValue(
-        OrgConfigProperties.TARGET_ORG
+        DEFAULT_USERNAME_KEY
       );
       if (defaultUserName === undefined) {
         return undefined;
@@ -43,7 +44,7 @@ export class AuthUtil {
 
   public async getUsername(usernameOrAlias: string): Promise<string> {
     const info = await StateAggregator.getInstance();
-    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
+    return (info.aliases.getUsername(usernameOrAlias)) || usernameOrAlias;
     // return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
   }
 }
