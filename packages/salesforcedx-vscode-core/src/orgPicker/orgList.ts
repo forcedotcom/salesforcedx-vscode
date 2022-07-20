@@ -42,9 +42,9 @@ export class OrgList implements vscode.Disposable {
     this.displayDefaultUsername(alias || username);
   }
 
-  public displayDefaultUsername(defaultUsernameorAlias?: string) {
-    if (!defaultUsernameorAlias) {
-      this.statusBarItem.text = `$(plug) ${defaultUsernameorAlias}`;
+  public displayDefaultUsername(defaultUsernameOrAlias?: string) {
+    if (defaultUsernameOrAlias) {
+      this.statusBarItem.text = `$(plug) ${defaultUsernameOrAlias}`;
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
     }
@@ -63,8 +63,8 @@ export class OrgList implements vscode.Disposable {
       try {
         const filePath = path.join(
           await ConfigFile.resolveRootFolder(true),
-          '.sf',
-          authFile.username
+          '.sfdx',
+          authFile.username + '.json'
         );
         const fileData = readFileSync(filePath, 'utf8');
         authInfoObjects.push(JSON.parse(fileData));

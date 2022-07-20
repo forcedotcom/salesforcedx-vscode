@@ -4,13 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import {
+  AuthInfo,
+  Connection,
+  OrgConfigProperties,
+  StateAggregator
+} from '@salesforce/core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  DEFAULT_DEV_HUB_USERNAME_KEY,
-  DEFAULT_USERNAME_KEY
-} from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -21,7 +22,7 @@ export class OrgAuthInfo {
   ): Promise<string | undefined> {
     try {
       const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
+        OrgConfigProperties.TARGET_ORG
       );
       if (defaultUserName === undefined) {
         displayMessage(
@@ -32,7 +33,7 @@ export class OrgAuthInfo {
         return undefined;
       } else {
         const configSource = await ConfigUtil.getConfigSource(
-          DEFAULT_USERNAME_KEY
+          OrgConfigProperties.TARGET_ORG
         );
         if (configSource === ConfigSource.Global) {
           displayMessage(
@@ -62,7 +63,7 @@ export class OrgAuthInfo {
   ): Promise<string | undefined> {
     try {
       const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_DEV_HUB_USERNAME_KEY,
+        OrgConfigProperties.TARGET_DEV_HUB,
         configSource
       );
       if (defaultDevHubUserName === undefined) {

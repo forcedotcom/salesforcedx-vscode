@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigFile } from '@salesforce/core';
+import { ConfigFile, OrgConfigProperties } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
@@ -15,7 +15,6 @@ import {
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../../src/commands';
-import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
 import { ConfigSource, OrgAuthInfo } from '../../../../src/util';
 
@@ -112,7 +111,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
 
     expect(configCreateSpy.getCall(0).args[0].isGlobal).to.be.true;
     expect(
-      configSetStub.calledWith(DEFAULT_DEV_HUB_USERNAME_KEY, testUsername)
+      configSetStub.calledWith(OrgConfigProperties.TARGET_DEV_HUB, testUsername)
     ).to.equal(true);
     expect(configWriteStub.calledOnce).to.equal(true);
     expect(configSetStub.calledOnce).to.equal(true);
