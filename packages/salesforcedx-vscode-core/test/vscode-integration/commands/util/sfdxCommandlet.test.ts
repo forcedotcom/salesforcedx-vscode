@@ -10,13 +10,20 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import { createSandbox, SinonSandbox } from 'sinon';
+import { channelService } from '../../../../src/channels';
 import {
   CommandletExecutor,
   SfdxCommandlet
 } from '../../../../src/commands/util';
+import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
 // tslint:disable:no-unused-expression
 describe('SfdxCommandlet', () => {
+  let sandbox: SinonSandbox;
+  beforeEach(() => {
+    sandbox = createSandbox();
+  });
   it('Should not proceed if checker fails', async () => {
     const commandlet = new SfdxCommandlet(
       new class {
@@ -84,5 +91,33 @@ describe('SfdxCommandlet', () => {
     await commandlet.run();
 
     expect(executed).to.be.true;
+  });
+
+  it.only('Should clear channel if user preference is set', async () => {
+    sandbox
+        .stub(
+          SfdxCoreSettings.prototype,
+          'getEnableClearOutputBeforeEachCommand'
+        )
+      .returns(false);
+    const clearStub = sandbox.stub(channelService, 'clear');
+    const commandlet = new SfdxCommandlet(
+      new class {
+        public check(): boolean {
+          return true;
+        }
+      }(),
+      new class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
+        }
+      }(),
+      new class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {
+        }
+      }()
+    );
+    await commandlet.run();
+    expect(clearStub.called).to.be.false;
   });
 });

@@ -135,4 +135,12 @@ describe('Channel Service', () => {
     channelService.streamCommandOutput(execution);
     expect(ensureDoubleDigitsStub.called).equals(true);
   });
+
+  it('should clear channel', async () => {
+    const clearStub = sb.stub(mChannel, 'clear');
+    sb.stub(vscodeStub.window, 'createOutputChannel').returns(mChannel);
+    // @ts-ignore
+    channelService.clear();
+    expect(clearStub.called).equals(true);
+  });
 });
