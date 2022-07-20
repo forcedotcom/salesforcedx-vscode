@@ -14,10 +14,6 @@ export {
   showCLINotInstalledMessage
 } from './cliConfiguration';
 export {
-  ConfigSource,
-  ConfigUtil
-} from '@salesforce/salesforcedx-utils-vscode/src/config/configUtil';
-export {
   getRootWorkspace,
   getRootWorkspacePath,
   hasRootWorkspace
