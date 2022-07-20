@@ -4,8 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Aliases } from '@salesforce/core';
+import {
+  SfdxCommandBuilder,
+  CliCommandExecutor,
+  CommandOutput
+} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import * as vscode from 'vscode';
-import { channelService } from './channels';
+import { channelService, OUTPUT_CHANNEL } from './channels';
 import {
   checkSObjectsAndRefresh,
   forceAliasList,
@@ -100,7 +106,7 @@ import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
-import { OrgList } from './orgPicker';
+import { OrgList, FileInfo } from './orgPicker';
 import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
@@ -661,27 +667,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   if (sfdxProjectOpened) {
-    await workspaceContext.initialize(extensionContext);
-
-    // register org picker commands
-    const orgList = new OrgList();
-    extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
-
-    await setupOrgBrowser(extensionContext);
-    await setupConflictView(extensionContext);
-
-    PersistentStorageService.initialize(extensionContext);
-
-    // Register filewatcher for push or deploy on save
-
-    await registerPushOrDeployOnSave();
-    decorators.showOrg();
-    decorators.monitorOrgConfigChanges();
-
-    // Demo mode Decorator
-    if (isDemoMode()) {
-      decorators.showDemoMode();
-    }
+    await processPostProjectOpened(extensionContext);
   }
 
   // Commands
@@ -731,6 +717,195 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   return api;
+}
+
+async function processPostProjectOpened(extensionContext: vscode.ExtensionContext) {
+  await workspaceContext.initialize(extensionContext);
+
+  // Register org picker commands
+  const orgList = new OrgList();
+  extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
+
+  await setupOrgBrowser(extensionContext);
+  await setupConflictView(extensionContext);
+
+  PersistentStorageService.initialize(extensionContext);
+
+  // Register file watcher for push or deploy on save
+  await registerPushOrDeployOnSave();
+  decorators.showOrg();
+  decorators.monitorOrgConfigChanges();
+
+  setUpOrgExpirationWatcher();
+
+  // Demo mode decorator
+  if (isDemoMode()) {
+    decorators.showDemoMode();
+  }
+}
+
+async function setUpOrgExpirationWatcher() {
+  // Run once to start off with.
+  await checkForExpiredOrgs();
+
+  /*
+  Comment this out for now.  For now, we are only going to check once on activation,
+  however it would be helpful if we also checked once a day.  If we decide to also
+  check once a day, uncomment the following code.
+
+  // And run again once every 24 hours.
+  setInterval(async () => {
+    await checkForExpiredOrgs();
+  }, 1000 * 60 * 60 * 24);
+  */
+}
+
+async function checkForExpiredOrgs() {
+  const sfdxCommandBuilder = new SfdxCommandBuilder()
+    .withArg('force:org:list')
+    .withArg('--json')
+    .build();
+
+  const cliCommandExecutor = new CliCommandExecutor(
+    sfdxCommandBuilder,
+    {
+      cwd: process.cwd(),
+    }
+  );
+
+  const cliCommandExecution = cliCommandExecutor.execute();
+  const commandOutput = new CommandOutput();
+  const jsonCommandResult = await commandOutput.getCmdResult(cliCommandExecution);
+  try {
+    const commandResult = JSON.parse(jsonCommandResult);
+    if (commandResult.status === 0) {
+      // const daysBeforeExpire = 5;
+      const daysBeforeExpire = 40;
+      const today = new Date();
+
+      const fiveDaysFromNow = new Date();
+      fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + daysBeforeExpire);
+
+      // const orgsAboutToExpire = commandResult.result.scratchOrgs.filter((scratchOrg: any) => {
+      //   const expirationDate = new Date(scratchOrg.expirationDate);
+
+      //   return (expirationDate.getFullYear() <= fiveDaysFromNow.getFullYear()
+      //     && expirationDate.getMonth() <= fiveDaysFromNow.getMonth()
+      //     && expirationDate.getDate() <= fiveDaysFromNow.getDate());
+      // });
+
+      // debugger;
+      // orgsAboutToExpire = [
+      //   {
+      //     alias: 'dreamhouse-org-2022-06--03-take-b',
+      //     expirationDate: new Date(2022, 7-1, 3)
+      //   },
+      //   {
+      //     alias: 'lwc-recipes-2022-06-03-take-b',
+      //     expirationDate: new Date(2022, 7-1, 3)
+      //   }
+      // ];
+
+      const aliases = await Aliases.create(Aliases.getDefaultOptions());
+
+      const orgList = new OrgList();
+      const authInfoObjects = await orgList.getAuthInfoObjects();
+
+      const orgsAboutToExpire = authInfoObjects!.filter((authInfoObject: FileInfo) => {
+        // Filter out the dev hubs.
+        if (authInfoObject.isDevHub) {
+          return false;
+        }
+
+        // Some dev hubs have isDevHub=false, but no expiration date, so filter them out.
+        if (!authInfoObject.expirationDate) {
+          return false;
+        }
+
+        // Filter out the expired orgs.
+        const expirationDate = new Date(authInfoObject.expirationDate);
+        if (expirationDate < today) {
+          return false;
+        }
+
+        // Now filter and only return the results that are within the 5 day window.
+        return expirationDate <= fiveDaysFromNow;
+      });
+
+      /*
+      const filteredItems1 = authInfoObjects!.filter((foo: FileInfo) => {
+        return foo.isDevHub === false;
+      });
+
+      const filteredItems2 = filteredItems1.filter((bar: FileInfo) => {
+        if (!bar.expirationDate) {
+          return false;
+        }
+
+        const expirationDate = new Date(bar.expirationDate);
+        // expirationDate = new Date('2022-07-18')
+        // should be true
+
+        // expirationDate = new Date('2022-07-19')
+        // should be true
+
+        // expirationDate = new Date('2022-07-20')
+        // should be false
+
+        // Filter out if the org has already expired.
+        if (expirationDate < today) {
+          return false;
+        }
+
+        return expirationDate <= fiveDaysFromNow;
+      });
+      */
+
+      if (orgsAboutToExpire.length < 1) {
+        return;
+      }
+
+      const formattedOrgsToDisplay = orgsAboutToExpire.map((org: any) => {
+
+        // return `${org.alias}\n(expires on ${org.expirationDate})`;
+
+        const alias = aliases.getKeysByValue(org.username);
+        let aliasName = alias.length > 0
+          ? alias
+          : org.username;
+
+        return `${aliasName}\n(expires on ${org.expirationDate})`;
+      }).join('\n\n');
+
+      // let formattedOrgsToDisplay = '';
+      // orgsAboutToExpire.forEach((org: any) => {
+      //   formattedOrgsToDisplay += `${org.alias} (expires on ${org.expirationDate})`;
+      // });
+
+      // notificationService.showWarningMessage('one', ['two', 'three', 'four']);
+      // notificationService.showWarningMessage('one', ...['two', 'three', 'four']);
+      // const message = ['two', 'three', 'four'];
+      // notificationService.showWarningMessage('one', ...message);
+      // notificationService.showWarningMessage('oneB', 'twoB', 'threeB', 'fourB');
+
+      const message  = `Warning: The following orgs will expire in the next ${daysBeforeExpire} days:\n\n${formattedOrgsToDisplay}\n\nBe sure to back up your data and settings before the orgs expires.`;
+
+      // version A
+      // notificationService.showWarningMessage(message);
+
+      // version B
+      // notificationService.showWarningModal(message);
+
+      // version C
+      const message2  = `Warning: One or more of your orgs will expire in the next ${daysBeforeExpire} days.  For more information, please review the details logged in the Output panel.`;
+      notificationService.showWarningMessage(message2);
+
+      OUTPUT_CHANNEL.appendLine(message);
+      OUTPUT_CHANNEL.show(true);
+    }
+  } catch(e) {
+    debugger;
+  }
 }
 
 export function deactivate(): Promise<void> {
