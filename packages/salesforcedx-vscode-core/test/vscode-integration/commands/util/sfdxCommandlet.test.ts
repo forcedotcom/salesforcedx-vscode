@@ -18,11 +18,13 @@ import {
 } from '../../../../src/commands/util';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
 
-// tslint:disable:no-unused-expression
 describe('SfdxCommandlet', () => {
   let sandbox: SinonSandbox;
   beforeEach(() => {
     sandbox = createSandbox();
+  });
+  afterEach(() => {
+    sandbox.restore();
   });
   it('Should not proceed if checker fails', async () => {
     const commandlet = new SfdxCommandlet(
@@ -93,7 +95,35 @@ describe('SfdxCommandlet', () => {
     expect(executed).to.be.true;
   });
 
-  it.only('Should clear channel if user preference is set', async () => {
+  it('Should clear channel if user preference is set to true', async () => {
+    sandbox
+        .stub(
+          SfdxCoreSettings.prototype,
+          'getEnableClearOutputBeforeEachCommand'
+        )
+      .returns(false);
+    const clearStub = sandbox.stub(channelService, 'clear');
+    const commandlet = new SfdxCommandlet(
+      new class {
+        public check(): boolean {
+          return true;
+        }
+      }(),
+      new class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
+        }
+      }(),
+      new class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {
+        }
+      }()
+    );
+    await commandlet.run();
+    expect(clearStub.called).to.be.false;
+  });
+
+  it('Should not clear channel if user preference is set to false', async () => {
     sandbox
         .stub(
           SfdxCoreSettings.prototype,
