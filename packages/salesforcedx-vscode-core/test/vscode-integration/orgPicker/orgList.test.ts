@@ -135,21 +135,36 @@ describe('orgList Tests', () => {
         return fakeOrgAuth;
       }
 
+      const dummyOrgAuth1 = getFakeOrgAuthorization({
+        orgId: '000',
+        username: 'test-username1@example.com'
+      });
+      const dummyOrgAuth2 = getFakeOrgAuthorization({
+        orgId: '111',
+        username: 'test-username2@example.com'
+      });
+
+      const dummyScratchOrgAuth1 = getFakeOrgAuthorization({
+        orgId: '000',
+        username: 'test-scratchorg1@example.com'
+      });
+      const dummyScratchOrgAuth2 = getFakeOrgAuthorization({
+        orgId: '111',
+        username: 'test-scratchorg2@example.com'
+      });
+
+      const dummyDevHubUsername1 = 'test-devhub1@example.com';
+      const dummyDevHubUsername2 = 'test-devhub2@example.com';
+
       it('should filter the list for users other than admins when scratchadminusername field is present', async () => {
         // Arrange
         const authInfoObjects: OrgAuthorization[] = [
-          getFakeOrgAuthorization({
-            orgId: '000',
-            username: 'test-username1@example.com'
-          }),
-          getFakeOrgAuthorization({
-            orgId: '111',
-            username: 'test-username2@example.com'
-          })
+          dummyOrgAuth1,
+          dummyOrgAuth2
         ];
         const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
         getAuthFieldsForStub
-          .withArgs('test-username1@example.com')
+          .withArgs(dummyOrgAuth1.username)
           .returns({ scratchAdminUsername: 'nonadmin@user.com' });
         defaultDevHubStub.resolves(null);
         getAllStub.returns([]);
@@ -163,24 +178,18 @@ describe('orgList Tests', () => {
 
       it('should filter the list to only show scratch orgs associated with current default dev hub without an alias', async () => {
         const authInfoObjects: OrgAuthorization[] = [
-          getFakeOrgAuthorization({
-            orgId: '000',
-            username: 'test-scratchorg1@example.com'
-          }),
-          getFakeOrgAuthorization({
-            orgId: '111',
-            username: 'test-scratchorg2@example.com'
-          })
+          dummyScratchOrgAuth1,
+          dummyScratchOrgAuth2
         ];
         const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
-        getAuthFieldsForStub.withArgs('test-scratchorg1@example.com').returns({
-          devHubUsername: 'test-devhub1@example.com'
+        getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
+          devHubUsername: dummyDevHubUsername1
         });
         getAuthFieldsForStub
-          .withArgs('test-scratchorg2@example.com')
-          .returns({ devHubUsername: 'test-devhub2@example.com' });
-        defaultDevHubStub.resolves('test-devhub1@example.com');
-        getUsernameStub.resolves('test-devhub1@example.com');
+          .withArgs(dummyScratchOrgAuth2.username)
+          .returns({ devHubUsername: dummyDevHubUsername2 });
+        defaultDevHubStub.resolves(dummyDevHubUsername1);
+        getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
         const authList = await orgList.filterAuthInfo(authInfoObjects);
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
@@ -188,40 +197,31 @@ describe('orgList Tests', () => {
 
       it('should filter the list to only show scratch orgs associated with current default dev hub with an alias', async () => {
         const authInfoObjects: OrgAuthorization[] = [
-          getFakeOrgAuthorization({
-            orgId: '000',
-            username: 'test-scratchorg1@example.com'
-          }),
-          getFakeOrgAuthorization({
-            orgId: '111',
-            username: 'test-scratchorg2@example.com'
-          })
+          dummyScratchOrgAuth1,
+          dummyScratchOrgAuth2
         ];
         const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
-        getAuthFieldsForStub.withArgs('test-scratchorg1@example.com').returns({
-          devHubUsername: 'test-devhub1@example.com'
+        getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
+          devHubUsername: dummyDevHubUsername1
         });
         getAuthFieldsForStub
-          .withArgs('test-scratchorg2@example.com')
-          .returns({ devHubUsername: 'test-devhub2@example.com' });
+          .withArgs(dummyScratchOrgAuth2.username)
+          .returns({ devHubUsername: dummyDevHubUsername2 });
         defaultDevHubStub.returns('dev hub alias');
-        getUsernameStub.resolves('test-devhub1@example.com');
+        getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
         const authList = await orgList.filterAuthInfo(authInfoObjects);
-        expect(authList[0]).to.equal('test-scratchorg1@example.com');
+        expect(authList[0]).to.equal(dummyScratchOrgAuth1.username);
       });
 
       it('should display alias with username when alias is available', async () => {
         const authInfoObjects: OrgAuthorization[] = [
-          getFakeOrgAuthorization({
-            orgId: '000',
-            username: 'test-username1@example.com',
-            aliases: ['alias1']
-          }),
-          getFakeOrgAuthorization({
-            orgId: '111',
-            username: 'test-username2@example.com'
-          })
+          getFakeOrgAuthorization(
+            Object.assign(dummyOrgAuth1, {
+              aliases: ['alias1']
+            })
+          ),
+          dummyOrgAuth2
         ];
         defaultDevHubStub.resolves(null);
         getAllStub.returns([]);
@@ -254,23 +254,23 @@ describe('orgList Tests', () => {
         getAuthFieldsForStub
           .withArgs('test-scratchorg-today@example.com')
           .returns({
-            devHubUsername: 'test-devhub1@example.com',
+            devHubUsername: dummyDevHubUsername1,
             expirationDate: today.toISOString().split('T')[0]
           });
         getAuthFieldsForStub
           .withArgs('test-scratchorg-yesterday@example.com')
           .returns({
-            devHubUsername: 'test-devhub1@example.com',
+            devHubUsername: dummyDevHubUsername1,
             expirationDate: yesterday.toISOString().split('T')[0]
           });
         getAuthFieldsForStub
           .withArgs('test-scratchorg-tomorrow@example.com')
           .returns({
-            devHubUsername: 'test-devhub1@example.com',
+            devHubUsername: dummyDevHubUsername1,
             expirationDate: tomorrow.toISOString().split('T')[0]
           });
-        defaultDevHubStub.resolves('test-devhub1@example.com');
-        getUsernameStub.resolves('test-devhub1@example.com');
+        defaultDevHubStub.resolves(dummyDevHubUsername1);
+        getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
         const authList = await orgList.filterAuthInfo(authInfoObjects);
         expect(authList[0]).to.equal(
