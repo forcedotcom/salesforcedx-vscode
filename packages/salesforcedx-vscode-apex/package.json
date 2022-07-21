@@ -363,11 +363,5 @@
         "path": "./snippets/apex.json"
       }
     ]
-  },
-  "__metadata": {
-    "id": "fb928002-4623-4d99-b7e0-4a1d473e77a3",
-    "publisherDisplayName": "Salesforce",
-    "publisherId": "656b996d-3c70-47b4-937e-e77c013faeea",
-    "isPreReleaseVersion": false
   }
 }

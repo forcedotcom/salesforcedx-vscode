@@ -66,7 +66,7 @@ export abstract class DeployRetrieveExecutor<
       const components = await this.getComponents(response);
 
       // check the SFDX configuration to see if there is an overridden api version
-      // Run sfdx config:list to enlist all confif values
+      // Run sfdx config:list to enlist all config values
       // Project level local sfdx-config takes precedence over global sfdx-config at system level.
       // getComponents uses ComponentSet from SDR which assigns
       // the default latest value to components.apiversion
@@ -125,7 +125,7 @@ export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
     token: vscode.CancellationToken
   ): Promise<DeployResult | undefined> {
     const operation = await components.deploy({
-      usernameOrConnection: (await workspaceContext.getConnection()) as unknown as string
+      usernameOrConnection: await workspaceContext.getConnection()
     });
 
     this.setupCancellation(operation, token);
@@ -232,7 +232,9 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
-      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
+      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
+        result.response.fileProperties
+      );
     }
   }
 
