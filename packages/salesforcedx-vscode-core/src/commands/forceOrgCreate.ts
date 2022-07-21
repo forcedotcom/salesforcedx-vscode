@@ -27,8 +27,6 @@ import { channelService } from '../channels';
 import { OrgType, setWorkspaceOrgTypeWithOrgType } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { SfdxCoreSettings } from '../settings/sfdxCoreSettings';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
 import {
@@ -80,10 +78,6 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
       cwd: getRootWorkspacePath(),
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
-
-    if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
-      channelService.clear();
-    }
 
     channelService.streamCommandStartStop(execution);
 
