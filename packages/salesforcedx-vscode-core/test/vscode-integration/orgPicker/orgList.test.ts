@@ -140,12 +140,10 @@ describe('orgList Tests', () => {
         const authInfoObjects: OrgAuthorization[] = [
           getFakeOrgAuthorization({
             orgId: '000',
-            accessToken: '000',
             username: 'test-username1@example.com'
           }),
           getFakeOrgAuthorization({
             orgId: '111',
-            accessToken: '111',
             username: 'test-username2@example.com'
           })
         ];
@@ -217,13 +215,11 @@ describe('orgList Tests', () => {
         const authInfoObjects: OrgAuthorization[] = [
           getFakeOrgAuthorization({
             orgId: '000',
-            accessToken: '000',
             username: 'test-username1@example.com',
             aliases: ['alias1']
           }),
           getFakeOrgAuthorization({
             orgId: '111',
-            accessToken: '111',
             username: 'test-username2@example.com'
           })
         ];
