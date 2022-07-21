@@ -661,7 +661,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   if (sfdxProjectOpened) {
-    await processPostProjectOpened(extensionContext);
+    await initializeProject(extensionContext);
   }
 
   // Commands
@@ -713,7 +713,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   return api;
 }
 
-async function processPostProjectOpened(extensionContext: vscode.ExtensionContext) {
+async function initializeProject(extensionContext: vscode.ExtensionContext) {
   await workspaceContext.initialize(extensionContext);
 
   // Register org picker commands
