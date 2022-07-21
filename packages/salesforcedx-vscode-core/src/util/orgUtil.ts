@@ -31,8 +31,8 @@ export async function checkForExpiredOrgs() {
   try {
     const daysBeforeExpire = 5;
     const today = new Date();
-    const fiveDaysFromNow = new Date();
-    fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + daysBeforeExpire);
+    const daysUntilExpiration = new Date();
+    daysUntilExpiration.setDate(daysUntilExpiration.getDate() + daysBeforeExpire);
 
     const orgList = new OrgList();
     const authInfoObjects = await orgList.getAuthInfoObjects();
@@ -55,7 +55,7 @@ export async function checkForExpiredOrgs() {
       }
 
       // Now filter and only return the results that are within the 5 day window.
-      return expirationDate <= fiveDaysFromNow;
+      return expirationDate <= daysUntilExpiration;
     });
 
     if (orgsAboutToExpire.length < 1) {
