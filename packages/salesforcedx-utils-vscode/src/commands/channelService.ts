@@ -38,6 +38,9 @@ export class ChannelService {
   }
 
   public streamCommandStartStop(execution: CommandExecution) {
+    if (SfdxSettings.getEnableClearOutputBeforeEachCommand()) {
+        this.channel.clear();
+    }
     this.channel.append(nls.localize('channel_starting_message'));
     this.channel.appendLine(execution.command.toString());
     this.channel.appendLine('');

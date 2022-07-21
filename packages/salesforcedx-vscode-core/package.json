@@ -953,7 +953,7 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%feature_previews_title%",
+      "title": "%core_settings_title%",
       "properties": {
         "salesforcedx-vscode-core.clearOutputTab": {
           "type": "boolean",
