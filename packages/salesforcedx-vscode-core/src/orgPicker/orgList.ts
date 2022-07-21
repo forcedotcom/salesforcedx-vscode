@@ -87,10 +87,10 @@ export class OrgList implements vscode.Disposable {
         continue;
       }
       if (
-        // scratch orgs parented by other (non-default) devHub orgs
         authFields?.devHubUsername &&
         authFields.devHubUsername !== defaultDevHubUsername
       ) {
+        // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
       const aliases = orgAuth.aliases;
