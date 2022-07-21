@@ -7,7 +7,7 @@ Apex extension allows you to run Apex tests to verify the functionality of your 
 
 ## Explore Your Apex Tests
 
-The Test view in the Side Bar provides several features such as LWC Tests and Apex Tests. To access the Test view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory. If the Test view is empty, check if the [Java setup](./en/getting-started/java-setup) is configured correctly.
+The Test view in the Side Bar provides several features such as LWC Tests and Apex Tests. To access the Test view, click the beaker icon ({% octicon beaker %}) in the Activity Bar on the left side of the VS Code editor. If you don’t see this icon, make sure that the project contains an `sfdx-project.json` file in its root directory. If the Test view is empty, check if the [Java setup](./en/vscode-desktop/java-setup) is configured correctly.
 
 Use the Apex Tests feature to run one test method, test methods in one class, or all your Apex tests.
 
