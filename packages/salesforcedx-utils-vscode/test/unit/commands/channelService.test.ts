@@ -11,6 +11,7 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import {
   CliCommandExecutor,
   CommandBuilder,
+  CommandExecution,
   SfdxCommandBuilder
 } from '../../../src/cli';
 import { nls } from '../../../src/messages';
@@ -141,6 +142,21 @@ describe('Channel Service', () => {
     sb.stub(vscodeStub.window, 'createOutputChannel').returns(mChannel);
     // @ts-ignore
     channelService.clear();
+    expect(clearStub.called).equals(true);
+  });
+
+  it('should clear channel when streamCommandStartStop is executed', () => {
+    const clearStub = sb.stub(mChannel, 'clear');
+    sb.stub(vscodeStub.window, 'createOutputChannel').returns(mChannel);
+    const execution = new CliCommandExecutor(
+      new SfdxCommandBuilder()
+        .withArg('force')
+        .withArg('--help')
+        .build(),
+      {}
+    ).execute();
+    // @ts-ignore
+    channelService.streamCommandStartStop(execution);
     expect(clearStub.called).equals(true);
   });
 });
