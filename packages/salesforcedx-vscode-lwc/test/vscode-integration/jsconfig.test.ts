@@ -45,6 +45,8 @@ describe('jsconfig Test Suite', () => {
     }
   });
 
+  // This was moved due to a failing race condition in CircleCI Tests
+  // causing a flapping test and sporadic build failures. Do not move.
   beforeEach(async () => {
     await createComponent(TEST_COMPONENT_NAME, lwcDir);
     await waitForConfigUpdate(configPath);
