@@ -53,7 +53,7 @@ export class TelemetryBuilder {
 
 export class TelemetryService {
   private static instance: TelemetryService;
-  private context: ExtensionContext | undefined;
+  private extensionContext: ExtensionContext | undefined;
   private reporter: TelemetryReporter | undefined;
   private aiKey: string = '';
   private version: string = '';
@@ -72,16 +72,16 @@ export class TelemetryService {
 
   /**
    * Initialize Telemetry Service during extension activation.
-   * @param context extension context
+   * @param extensionContext extension context
    * @param extensionName extension name
    */
   public async initializeService(
-    context: ExtensionContext,
+    extensionContext: ExtensionContext,
     extensionName: string,
     aiKey: string,
     version: string
   ): Promise<void> {
-    this.context = context;
+    this.extensionContext = extensionContext;
     this.extensionName = extensionName;
     this.aiKey = aiKey;
     this.version = version;
@@ -111,7 +111,7 @@ export class TelemetryService {
         this.aiKey,
         true
       );
-      this.context.subscriptions.push(this.reporter);
+      this.extensionContext.subscriptions.push(this.reporter);
     }
   }
 

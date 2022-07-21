@@ -8,7 +8,7 @@
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { SinonStub, stub } from 'sinon';
-import { MockContext } from './MockContext';
+import { MockExtensionContext } from './MockExtensionContext';
 
 const mShowInformation = stub();
 mShowInformation.returns(Promise.resolve());
@@ -38,7 +38,7 @@ const vscodeStub = {
 describe('Telemetry dev mode', () => {
   const extensionName = 'salesforcedx-test';
   let telemetryService: any;
-  let mockContext: MockContext;
+  let mockExtensionContext: MockExtensionContext;
   let teleStub: SinonStub;
   let cliStub: SinonStub;
 
@@ -78,9 +78,9 @@ describe('Telemetry dev mode', () => {
 
   it('Should not initialize telemetry reporter', async () => {
     // create vscode extensionContext
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
 
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     const telemetryReporter = telemetryService.getReporter();
     expect(typeof telemetryReporter).to.be.eql('undefined');
@@ -88,10 +88,10 @@ describe('Telemetry dev mode', () => {
   });
 
   it('Should disable CLI telemetry', async () => {
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
 
     cliStub.returns(Promise.resolve(false));
-    await telemetryService.initializeService(mockContext, extensionName);
+    await telemetryService.initializeService(mockExtensionContext, extensionName);
 
     expect(teleStub.firstCall.args).to.eql([false]);
   });

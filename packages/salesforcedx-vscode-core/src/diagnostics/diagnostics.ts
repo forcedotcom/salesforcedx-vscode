@@ -13,6 +13,20 @@ import {
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+const notApplicable = 'N/A';
+
+export function getFileUri(
+  workspacePath: string,
+  filePath: string,
+  defaultErrorPath: string
+): string {
+  const resolvedFilePath = filePath.includes(workspacePath)
+    ? filePath
+    : path.join(workspacePath, filePath);
+  // source:deploy sometimes returns N/A as filePath
+  return filePath === notApplicable ? defaultErrorPath : resolvedFilePath;
+}
+
 export function getRange(
   lineNumber: string,
   columnNumber: string
@@ -37,14 +51,15 @@ export function handleDiagnosticErrors(
   const defaultErrorPath = sourcePathOrPaths.includes(',')
     ? workspacePath
     : sourcePathOrPaths;
+
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
   if (errors.hasOwnProperty('result')) {
     errors.result.forEach(error => {
-      // source:deploy sometimes returns N/A as filePath
-      const fileUri =
-        error.filePath === 'N/A'
-          ? defaultErrorPath
-          : path.join(workspacePath, error.filePath);
+      const fileUri = getFileUri(
+        workspacePath,
+        error.filePath,
+        defaultErrorPath
+      );
       const range = getRange(
         error.lineNumber || '1',
         error.columnNumber || '1'
@@ -114,7 +129,7 @@ export function handleDeployDiagnostics(
       source: type
     };
 
-    const filePath = fileResponse.filePath ?? getRootWorkspacePath();
+    const filePath = getAbsoluteFilePath(fileResponse.filePath);
 
     if (!diagnosticMap.has(filePath)) {
       diagnosticMap.set(filePath, []);
@@ -127,4 +142,18 @@ export function handleDeployDiagnostics(
   );
 
   return errorCollection;
+}
+
+// TODO: move to some type of file service or utility
+export function getAbsoluteFilePath(
+  filePath: string | undefined,
+  workspacePath: string = getRootWorkspacePath()
+): string {
+  let absoluteFilePath = filePath ?? workspacePath;
+  if (!absoluteFilePath.includes(workspacePath)) {
+    // Build the absolute filePath so that errors in the Problems
+    // tab correctly link to the problem location in the file
+    absoluteFilePath = [workspacePath, filePath].join('/');
+  }
+  return absoluteFilePath;
 }

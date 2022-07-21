@@ -55,8 +55,8 @@ export class WorkspaceContextUtil {
     return AuthUtil.getInstance();
   }
 
-  public async initialize(context: vscode.ExtensionContext) {
-    context.subscriptions.push(
+  public async initialize(extensionContext: vscode.ExtensionContext) {
+    extensionContext.subscriptions.push(
       this.cliConfigWatcher,
       this.onOrgChangeEmitter,
       this.cliConfigWatcher

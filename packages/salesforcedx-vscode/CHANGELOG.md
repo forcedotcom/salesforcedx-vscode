@@ -1,3 +1,85 @@
+# 55.6.0 - July 21, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fixed an issue where users were unable to rename an LWC component inside of the `__tests__` directory. ([PR #4225](https://github.com/forcedotcom/salesforcedx-vscode/pull/4225))
+
+#### docs
+
+- We made some updates under the hood. ([PR #4277](https://github.com/forcedotcom/salesforcedx-vscode/pull/4277))
+
+# 55.4.1 - July 8, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core, salesforcedx-vscode-apex
+
+- We reverted changes assoicated with PR #4240 due to issues with deploy/retrieve on windows.
+
+# 55.4.0 - July 7, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- The links in the problems tab now correctly point to error locations in a file. ([PR #4246](https://github.com/forcedotcom/salesforcedx-vscode/pull/4246), [PR #4241](https://github.com/forcedotcom/salesforcedx-vscode/pull/4241))
+
+- Fixed an issue where making only a case change when renaming an Apex class caused an error. ([PR #4240](https://github.com/forcedotcom/salesforcedx-vscode/pull/4240))
+
+# 55.3.0 - June 29, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- You can now access the `SFDX Create Apex Class` command when you right-click on a sub-folder of the `classes` project folder. ([PR #4224](https://github.com/forcedotcom/salesforcedx-vscode/pull/4224))
+
+# 55.2.0 - June 22, 2022
+
+## Fixed
+
+#### docs
+
+- We made some updates under the hood. ([PR #4147](https://github.com/forcedotcom/salesforcedx-vscode/pull/4147))
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue where you could run the `SFDX Generate Manifest File` command to create a manifest file from any folder in your project. The command is now only available by right clicking on any folder or file in the `force-app` package directory folder. ([PR #4208](https://github.com/forcedotcom/salesforcedx-vscode/pull/4208))
+
+- We updated @salesforce/templates to 55.0.0 to give you a default unit test in addition to the other component files when you create a new LWC component using the template. ([PR #4203](https://github.com/forcedotcom/salesforcedx-vscode/pull/4203))
+
+# 55.0.0 - June 10, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Thanks to a contribution from @shunkosa, we updated our Japanese commands. We love our Open Source community. ([PR #4186](https://github.com/forcedotcom/salesforcedx-vscode/pull/4186))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some updates under the hood. ([PR #4165](https://github.com/forcedotcom/salesforcedx-vscode/pull/4165))
+
+- We fixed an issue where the `SFDX: Create Lightning Web Component Test` command threw an error when you exited out of the command prematurely. ([PR #4143](https://github.com/forcedotcom/salesforcedx-vscode/pull/4143))
+
+# 54.15.0 - June 1, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- The **SFDX: Rename Component** command now prevents you from renaming an LWC or Aura component if the new name breaks any naming rules. New LWC component names are automatically revised to start with a lower-case letter if they don't already. ([PR #4145](https://github.com/forcedotcom/salesforcedx-vscode/pull/4145))
+
+#### salesforcedx-vscode-lightning
+
+#### salesforcedx-vscode-lwc
+
+- You can now use **Ctrl+Space** to retrigger autocomplete within code braces ({}) in an HTML file. Previously, if you moved away from or deleted content within code braces, you lost autocompletion. ([PR #4144](https://github.com/forcedotcom/salesforcedx-vscode/pull/4144))
+
 # 54.12.0 - May 14, 2022
 
 ## Fixed
@@ -24,8 +106,6 @@
 - We fixed an issue with the _SFDX: Rename Component_ command so that it now correctly renames the file in the `__tests__` folder for LWC components that has the same name as the component being renamed ([PR #4020](https://github.com/forcedotcom/salesforcedx-vscode/pull/4020)).
 - We added support for debugging JavaScript in containerless functions ([PR#4001](https://github.com/forcedotcom/salesforcedx-vscode/pull/4001)).
 - We fixed an issue that prevented `Standard Value Sets` from being displayed in the Org Browser([PR # 3992](https://github.com/forcedotcom/salesforcedx-vscode/pull/3992)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/1579
-
-
 
 # 54.8.0 - April 13, 2022
 

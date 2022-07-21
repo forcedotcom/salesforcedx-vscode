@@ -13,7 +13,7 @@ import {
 } from 'vscode';
 
 export class WorkspaceUtils {
-  private context: ExtensionContext | undefined;
+  private extensionContext: ExtensionContext | undefined;
   private static _instance: WorkspaceUtils;
 
   public static get instance() {
@@ -24,11 +24,11 @@ export class WorkspaceUtils {
   }
 
   public init(extensionContext: ExtensionContext) {
-    this.context = extensionContext;
+    this.extensionContext = extensionContext;
   }
 
   public getGlobalStore(): Memento | undefined {
-    return this.context && this.context.globalState;
+    return this.extensionContext && this.extensionContext.globalState;
   }
 
   public getWorkspaceSettings(): WorkspaceConfiguration {
