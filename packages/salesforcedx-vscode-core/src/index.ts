@@ -102,14 +102,13 @@ import { nls } from './messages';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
-import { OrgList, FileInfo } from './orgPicker';
+import { FileInfo, OrgList } from './orgPicker';
 import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled } from './util';
 import { OrgAuthInfo } from './util/authInfo';
-
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
@@ -733,7 +732,7 @@ async function processPostProjectOpened(extensionContext: vscode.ExtensionContex
   decorators.showOrg();
   decorators.monitorOrgConfigChanges();
 
-  setUpOrgExpirationWatcher();
+  await setUpOrgExpirationWatcher();
 
   // Demo mode decorator
   if (isDemoMode()) {
@@ -796,7 +795,7 @@ async function checkForExpiredOrgs() {
 
     const formattedOrgsToDisplay = orgsAboutToExpire.map((org: any) => {
       const alias = aliases.getKeysByValue(org.username);
-      let aliasName = alias.length > 0
+      const aliasName = alias.length > 0
         ? alias.toString()
         : org.username;
 
@@ -806,7 +805,7 @@ async function checkForExpiredOrgs() {
     notificationService.showWarningMessage(nls.localize('pending_org_expiration_notification_message', daysBeforeExpire));
     OUTPUT_CHANNEL.appendLine(nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay));
     OUTPUT_CHANNEL.show(true);
-  } catch(err) {
+  } catch (err) {
     console.error(err);
   }
 }
