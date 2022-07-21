@@ -22,6 +22,7 @@ const RENAME_INPUT_PLACEHOLDER = 'rename_component_input_placeholder';
 const RENAME_INPUT_PROMPT = 'rename_component_input_prompt';
 const RENAME_INPUT_DUP_ERROR = 'rename_component_input_dup_error';
 const RENAME_INPUT_DUP_FILE_NAME_ERROR = 'rename_component_input_dup_file_name_error';
+const RENAME_ERROR = 'rename_component_error';
 const RENAME_WARNING = 'rename_component_warning';
 const LWC = 'lwc';
 const AURA = 'aura';
@@ -44,8 +45,14 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
       let newComponentName = response.data.name?.trim();
       if (newComponentName && this.sourceFsPath) {
         newComponentName = await inputGuard(this.sourceFsPath, newComponentName);
-        await renameComponent(this.sourceFsPath, newComponentName);
-        return true;
+        try {
+          await renameComponent(this.sourceFsPath, newComponentName);
+          return true;
+        } catch (err) {
+          const errorMessage = nls.localize(RENAME_ERROR);
+          notificationService.showErrorMessage(errorMessage);
+          throw err;
+        }
       }
       return false;
   }
@@ -132,9 +139,21 @@ async function renameComponent(sourceFsPath: string, newName: string) {
   notificationService.showWarningMessage(nls.localize(RENAME_WARNING));
 }
 
+export function getLightningComponentDirectory(sourceFsPath: string): string {
+  const directories = sourceFsPath.split(path.sep);
+  const rootDir = directories.includes(LWC) ? LWC : AURA;
+  const lwcDirectoryIndex = directories.lastIndexOf(rootDir);
+  if (lwcDirectoryIndex > -1) {
+    directories.splice(lwcDirectoryIndex + 2);
+  }
+  return directories.join(path.sep);
+}
+
 async function getComponentPath(sourceFsPath: string): Promise<string> {
   const stats = await fs.promises.stat(sourceFsPath);
-  return stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
+  let dirname = stats.isFile() ? path.dirname(sourceFsPath) : sourceFsPath;
+  dirname = getLightningComponentDirectory(dirname);
+  return dirname;
 }
 
 function getComponentName(componentPath: string): string {
