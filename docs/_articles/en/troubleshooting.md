@@ -14,7 +14,7 @@ If you donâ€™t see any SFDX commands in the command palette, make sure that youâ
 
 ## Set Your Java Version
 
-See: [Java Configuration](./en/getting-started/java-setup)
+See: [Java Configuration](./en/vscode-desktop/java-setup)
 
 ## Set Salesforce CLI Path (Windows)
 
