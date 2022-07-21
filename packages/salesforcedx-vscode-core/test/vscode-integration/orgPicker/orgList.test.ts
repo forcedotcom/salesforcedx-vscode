@@ -213,7 +213,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
       });
 
-      it.only('should display alias with username when alias is available', async () => {
+      it('should display alias with username when alias is available', async () => {
         const authInfoObjects: OrgAuthorization[] = [
           getFakeOrgAuthorization({
             orgId: '000',
