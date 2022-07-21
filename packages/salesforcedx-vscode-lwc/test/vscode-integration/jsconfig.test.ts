@@ -27,12 +27,6 @@ describe('jsconfig Test Suite', () => {
   const configPath = path.join(lwcDir, CONFIG_FILENAME);
   let config: object;
 
-  beforeEach(async () => {
-    await createComponent(TEST_COMPONENT_NAME, lwcDir);
-    await waitForConfigUpdate(configPath);
-    config = await parseConfig(configPath);
-  });
-
   afterEach(async () => {
     if (fs.existsSync(path.join(lwcDir, TEST_COMPONENT_NAME))) {
       await workspace.fs.delete(
@@ -49,6 +43,12 @@ describe('jsconfig Test Suite', () => {
       );
       await waitForConfigUpdate(configPath);
     }
+  });
+
+  beforeEach(async () => {
+    await createComponent(TEST_COMPONENT_NAME, lwcDir);
+    await waitForConfigUpdate(configPath);
+    config = await parseConfig(configPath);
   });
 
   it('Should keep a generic c/* field in jsconfig after creating a new component', async () => {
