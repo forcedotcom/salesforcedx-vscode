@@ -16,7 +16,7 @@ import {
   CommandletExecutor,
   SfdxCommandlet
 } from '../../../../src/commands/util';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
+import { sfdxCoreSettings } from '../../../../src/settings';
 
 describe('SfdxCommandlet', () => {
   let sandbox: SinonSandbox;
@@ -92,13 +92,14 @@ describe('SfdxCommandlet', () => {
 
     await commandlet.run();
 
+    // tslint:disable-next-line:no-unused-expression
     expect(executed).to.be.true;
   });
 
   it('Should clear channel if user preference is set to true', async () => {
     sandbox
         .stub(
-          SfdxCoreSettings.prototype,
+          sfdxCoreSettings,
           'getEnableClearOutputBeforeEachCommand'
         )
       .returns(false);
@@ -120,13 +121,14 @@ describe('SfdxCommandlet', () => {
       }()
     );
     await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.false;
   });
 
   it('Should not clear channel if user preference is set to false', async () => {
     sandbox
         .stub(
-          SfdxCoreSettings.prototype,
+          sfdxCoreSettings,
           'getEnableClearOutputBeforeEachCommand'
         )
       .returns(false);
@@ -148,6 +150,7 @@ describe('SfdxCommandlet', () => {
       }()
     );
     await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
     expect(clearStub.called).to.be.false;
   });
 });
