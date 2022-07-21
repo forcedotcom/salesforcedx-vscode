@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { Aliases } from '@salesforce/core';
-import { OUTPUT_CHANNEL } from '../channels';
+import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService, ProgressNotification } from '../notifications';
+import { notificationService } from '../notifications';
 import { FileInfo, OrgList } from '../orgPicker';
 
 export async function setUpOrgExpirationWatcher() {
@@ -32,8 +33,6 @@ export async function checkForExpiredOrgs() {
     const today = new Date();
     const fiveDaysFromNow = new Date();
     fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + daysBeforeExpire);
-
-    const aliases = await Aliases.create(Aliases.getDefaultOptions());
 
     const orgList = new OrgList();
     const authInfoObjects = await orgList.getAuthInfoObjects();
@@ -63,18 +62,25 @@ export async function checkForExpiredOrgs() {
       return;
     }
 
-    const formattedOrgsToDisplay = orgsAboutToExpire.map((org: any) => {
-      const alias = aliases.getKeysByValue(org.username);
+    const defaultOptions = Aliases.getDefaultOptions();
+    const aliases = await Aliases.create(defaultOptions);
+
+    const formattedOrgsToDisplay = orgsAboutToExpire.map((orgAboutToExpire: any) => {
+      const alias = aliases.getKeysByValue(orgAboutToExpire.username);
       const aliasName = alias.length > 0
         ? alias.toString()
-        : org.username;
+        : orgAboutToExpire.username;
 
-      return nls.localize('pending_org_expiration_expires_on_message', aliasName, org.expirationDate);
+      return nls.localize('pending_org_expiration_expires_on_message', aliasName, orgAboutToExpire.expirationDate);
     }).join('\n\n');
 
-    notificationService.showWarningMessage(nls.localize('pending_org_expiration_notification_message', daysBeforeExpire));
-    OUTPUT_CHANNEL.appendLine(nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay));
-    OUTPUT_CHANNEL.show(true);
+    notificationService.showWarningMessage(
+      nls.localize('pending_org_expiration_notification_message', daysBeforeExpire)
+    );
+    channelService.appendLine(
+      nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay)
+    );
+    channelService.showChannelOutput();
   } catch (err) {
     console.error(err);
   }
