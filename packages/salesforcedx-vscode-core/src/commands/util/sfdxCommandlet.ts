@@ -67,10 +67,6 @@ export abstract class SfdxCommandletExecutor<T>
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
-
-    if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
-      channelService.clear();
-    }
     channelService.streamCommandOutput(execution);
 
     if (this.showChannelOutput) {
