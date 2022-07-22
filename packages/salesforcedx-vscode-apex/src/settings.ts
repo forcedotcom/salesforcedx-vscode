@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/src';
 import * as vscode from 'vscode';
 
 export function retrieveTestCodeCoverage(): boolean {
   return vscode.workspace
-    .getConfiguration('salesforcedx-vscode-core')
+    .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
     .get<boolean>('retrieve-test-code-coverage', false);
 }

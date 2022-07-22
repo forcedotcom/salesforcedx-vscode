@@ -41,4 +41,4 @@ export {
   getRootWorkspacePath,
   getRootWorkspaceSfdxPath
 } from './workspaces';
-export * from './constants';
+export { SETTING_CLEAR_OUTPUT_TAB, SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME } from './constants';
