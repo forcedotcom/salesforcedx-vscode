@@ -14,7 +14,7 @@ lang: ja
 
 ## Java バージョンの設定
 
-関連資料: [Java の設定](./ja/getting-started/java-setup)
+関連資料: [Java の設定](./ja/vscode-desktop/java-setup)
 
 ## Apex 言語サーバの出力の監視
 
