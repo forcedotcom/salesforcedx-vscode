@@ -78,7 +78,7 @@ describe('Force Auth Access Token Login', () => {
     assert.calledOnce(authInfoSetAliasStub);
     assert.calledWith(authInfoSetAliasStub, mockAlias);
     assert.calledOnce(authInfoSetAsDefaultStub);
-    assert.calledWith(authInfoSetAsDefaultStub, { org: true, devHub: true });
+    assert.calledWith(authInfoSetAsDefaultStub, { org: true });
   });
 
   it('Should show a user friendly message on Bad_OAuth_Token', async () => {

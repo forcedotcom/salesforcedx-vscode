@@ -94,7 +94,6 @@ export class OrgAuthInfo {
   public static async getUsername(usernameOrAlias: string): Promise<string> {
     const info = await StateAggregator.getInstance();
     return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
-    // return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
   }
 
   public static async isAScratchOrg(username: string): Promise<boolean> {

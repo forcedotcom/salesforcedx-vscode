@@ -96,12 +96,10 @@ export class OrgList implements vscode.Disposable {
       });
     }
 
-    // const aliases = await Aliases.create(Aliases.getDefaultOptions());
     const info = await StateAggregator.create();
     const authList = [];
     const today = new Date();
     for (const authInfo of authInfoObjects) {
-      // TODO: Does this do the same thing as info.getKeysByValue(authInfo.username)
       const aliases = info.aliases.getAll(authInfo.username);
       const isExpired = authInfo.expirationDate
         ? today >= new Date(authInfo.expirationDate)
