@@ -35,7 +35,7 @@
   "force_data_soql_query_input_text": "SFDX: SOQL クエリを実行...",
   "force_data_soql_query_selection_text": "SFDX: 現在選択されているテキストを使用して SOQL クエリを実行",
   "force_package_install_text": "SFDX: パッケージをインストール",
-  "feature_previews_title": "Salesforce 機能のプレビュー",
+  "core_settings_title": "Salesforce 機能のプレビュー",
   "force_project_create_text": "SFDX: プロジェクトを作成",
   "force_project_with_manifest_create_text": "SFDX: マニフェストファイルを使用してプロジェクトを作成",
   "force_apex_trigger_create_text": "SFDX: Apex トリガを作成",
@@ -73,5 +73,6 @@
   "force_function_debug_invoke": "SFDX: Function をデバッグ",
   "force_function_stop": "SFDX: Function を停止",
   "force_sobjects_refresh": "SFDX: SObject 定義を更新",
-  "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。"
+  "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。",
+  "setting_clear_output_tab_description": "When a new command is run, clear the output content from the previous command."
 }
