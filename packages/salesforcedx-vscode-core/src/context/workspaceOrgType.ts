@@ -42,6 +42,7 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
     const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
     setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
+    console.error(e);
     if (e instanceof Error) {
       telemetryService.sendException('send_workspace_org_type', e.message);
       switch (e.name) {
