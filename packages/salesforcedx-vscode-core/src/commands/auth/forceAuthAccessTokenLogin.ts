@@ -38,24 +38,16 @@ export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
     token?: vscode.CancellationToken
   ): Promise<boolean> {
     const { instanceUrl, accessToken, alias } = response.data;
-    // Do we want to set the alias as default devhub  here? right after login
-    // const sideEffects: AuthSideEffects = {
-    //   alias: alias,
-    //   setDefault: true,
-    //   setDefaultDevHub: false
-    // }
-
     try {
       const authInfo = await AuthInfo.create({
         accessTokenOptions: { accessToken, instanceUrl }
       });
-      await authInfo.save();
-      await authInfo.setAlias(alias);
-      await authInfo.setAsDefault({
-        org: true,
-        devHub: true
-      });
-      // await authInfo.handleAliasAndDefaultSettings(sideEffects)
+      const sideEffects: AuthSideEffects = {
+        alias,
+        setDefault: true,
+        setDefaultDevHub: false
+      };
+      await authInfo.handleAliasAndDefaultSettings(sideEffects);
     } catch (error) {
       if (error.message && error.message.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID
