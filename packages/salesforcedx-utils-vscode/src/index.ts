@@ -41,3 +41,4 @@ export {
   getRootWorkspacePath,
   getRootWorkspaceSfdxPath
 } from './workspaces';
+export * from './constants';
