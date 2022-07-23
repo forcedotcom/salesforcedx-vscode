@@ -211,9 +211,9 @@ export class SelectLwcComponentDir
 
     return outputdir && fileName
       ? {
-          type: 'CONTINUE',
-          data: { fileName, outputdir }
-        }
+        type: 'CONTINUE',
+        data: { fileName, outputdir }
+      }
       : { type: 'CANCEL' };
   }
 
