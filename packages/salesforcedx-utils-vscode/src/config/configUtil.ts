@@ -99,8 +99,12 @@ export function disableCLITelemetry() {
 async function getConfigAggregator(): Promise<ConfigAggregator> {
   const origCurrentWorkingDirectory = process.cwd();
   const rootWorkspacePath = getRootWorkspacePath();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
   process.chdir(rootWorkspacePath);
   const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
   process.chdir(origCurrentWorkingDirectory);
   return configAggregator;
 }
