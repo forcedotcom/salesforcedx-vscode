@@ -38,9 +38,6 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
-    if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
-      // channelService.clear();
-    }
     if (await this.prechecker.check()) {
       let inputs = await this.gatherer.gather();
       inputs = await this.postchecker.check(inputs);
