@@ -6,8 +6,6 @@
  */
 
 import { StateAggregator } from '@salesforce/core';
-import { getDefaultUsernameOrAlias } from '../config/configUtil';
-import { TelemetryService } from '../telemetry/telemetry';
 
 export class AuthUtil {
   private static instance?: AuthUtil;
@@ -17,26 +15,6 @@ export class AuthUtil {
       AuthUtil.instance = new AuthUtil();
     }
     return AuthUtil.instance;
-  }
-
-  public async getDefaultUsernameOrAlias(
-    enableWarning: boolean
-  ): Promise<string | undefined> {
-    try {
-      const defaultUserName = await getDefaultUsernameOrAlias();
-      if (defaultUserName === undefined) {
-        return undefined;
-      }
-
-      return JSON.stringify(defaultUserName).replace(/\"/g, '');
-    } catch (err) {
-      console.error(err);
-      TelemetryService.getInstance().sendException(
-        'get_default_username_alias',
-        err.message
-      );
-      return undefined;
-    }
   }
 
   public async getUsername(usernameOrAlias: string): Promise<string> {
