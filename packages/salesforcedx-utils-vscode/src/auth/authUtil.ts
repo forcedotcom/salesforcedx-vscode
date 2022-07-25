@@ -6,9 +6,8 @@
  */
 
 import { StateAggregator } from '@salesforce/core';
-import { ConfigUtil } from '..';
+import { getDefaultUsernameOrAlias } from '../config/configUtil';
 import { TelemetryService } from '../telemetry/telemetry';
-import { DEFAULT_USERNAME_KEY } from '../types';
 
 export class AuthUtil {
   private static instance?: AuthUtil;
@@ -24,9 +23,7 @@ export class AuthUtil {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
-      );
+      const defaultUserName = await getDefaultUsernameOrAlias();
       if (defaultUserName === undefined) {
         return undefined;
       }
@@ -44,7 +41,7 @@ export class AuthUtil {
 
   public async getUsername(usernameOrAlias: string): Promise<string> {
     const info = await StateAggregator.getInstance();
-    return (info.aliases.getUsername(usernameOrAlias)) || usernameOrAlias;
+    return info.aliases.getUsername(usernameOrAlias) || usernameOrAlias;
     // return (await Aliases.fetch(usernameOrAlias)) || usernameOrAlias;
   }
 }
