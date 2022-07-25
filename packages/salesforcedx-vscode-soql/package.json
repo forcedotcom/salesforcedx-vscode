@@ -38,7 +38,7 @@
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "0.2.3",
-    "@types/jsforce": "1.9.41",
+    "@types/jsforce": "1.9.43",
     "jsforce": "1.11.0"
   },
   "devDependencies": {
