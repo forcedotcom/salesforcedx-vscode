@@ -1,3 +1,15 @@
+# 55.7.0 - July 27, 2022
+
+## Fixed
+
+#### docs
+
+- Cleanup of other java setup urls ([PR #4305](https://github.com/forcedotcom/salesforcedx-vscode/pull/4305))
+
+#### salesforcedx-vscode-apex
+
+- Cleanup of other java setup urls ([PR #4305](https://github.com/forcedotcom/salesforcedx-vscode/pull/4305))
+
 # 55.6.0 - July 21, 2022
 
 ## Fixed
