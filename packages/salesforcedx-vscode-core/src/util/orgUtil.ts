@@ -28,6 +28,10 @@ export async function setUpOrgExpirationWatcher(orgList: OrgList) {
 }
 
 export async function checkForExpiredOrgs(orgList: OrgList) {
+  if (!orgList) {
+    return;
+  }
+
   try {
     const daysBeforeExpire = 5;
     const today = new Date();
@@ -37,6 +41,9 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
     );
 
     const authInfoObjects = await orgList.getAuthInfoObjects();
+    if (!authInfoObjects) {
+      return;
+    }
 
     const orgsAboutToExpire = authInfoObjects!.filter((authInfoObject: FileInfo) => {
       // Filter out the dev hubs.
@@ -59,7 +66,7 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
       return expirationDate <= daysUntilExpiration;
     });
 
-    if (orgsAboutToExpire.length < 1) {
+    if (!orgsAboutToExpire || orgsAboutToExpire.length < 1) {
       return;
     }
 
