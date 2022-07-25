@@ -9,13 +9,13 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
+  OrgConfigProperties,
   SfConfigProperties
 } from '@salesforce/core';
 import * as path from 'path';
 import { GlobalCliEnvironment } from '../cli';
 import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
-import { DEFAULT_USERNAME_KEY } from '../types';
 
 export enum ConfigSource {
   Local,
@@ -126,14 +126,14 @@ export async function isCLITelemetryAllowed(): Promise<boolean> {
 
 export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
   try {
-    const defaultUserName = await ConfigUtil.getConfigValue(
-      DEFAULT_USERNAME_KEY
+    const configAggregator = await getConfigAggregator();
+    const defaultUserNameOrAlias = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
     );
-    if (defaultUserName === undefined) {
+    if (defaultUserNameOrAlias === undefined) {
       return undefined;
     }
-
-    return JSON.stringify(defaultUserName).replace(/\"/g, '');
+    return JSON.stringify(defaultUserNameOrAlias).replace(/\"/g, '');
   } catch (err) {
     console.error(err);
     TelemetryService.getInstance().sendException(
