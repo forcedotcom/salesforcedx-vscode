@@ -9,9 +9,8 @@ import { ConfigAggregator, SfConfigProperties } from '@salesforce/core';
 import { GlobalCliEnvironment } from '../cli';
 import { getRootWorkspacePath } from '../workspaces';
 
-export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
-
 export function disableCLITelemetry() {
+  const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
   GlobalCliEnvironment.environmentVariables.set(
     ENV_SFDX_DISABLE_TELEMETRY,
     'true'
