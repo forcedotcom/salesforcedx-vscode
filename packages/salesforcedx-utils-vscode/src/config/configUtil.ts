@@ -15,6 +15,7 @@ import * as path from 'path';
 import { GlobalCliEnvironment } from '../cli';
 import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
+import { DEFAULT_USERNAME_KEY } from '../types';
 
 export enum ConfigSource {
   Local,
@@ -110,4 +111,24 @@ export async function isCLITelemetryAllowed(): Promise<boolean> {
     console.log('Error checking cli settings: ' + e);
   }
   return true;
+}
+
+export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
+  try {
+    const defaultUserName = await ConfigUtil.getConfigValue(
+      DEFAULT_USERNAME_KEY
+    );
+    if (defaultUserName === undefined) {
+      return undefined;
+    }
+
+    return JSON.stringify(defaultUserName).replace(/\"/g, '');
+  } catch (err) {
+    console.error(err);
+    TelemetryService.getInstance().sendException(
+      'get_default_username_alias',
+      err.message
+    );
+    return undefined;
+  }
 }

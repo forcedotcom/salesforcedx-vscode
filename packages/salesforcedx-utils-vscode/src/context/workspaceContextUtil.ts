@@ -9,6 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil } from '..';
+import { getDefaultUsernameOrAlias } from '../config/configUtil';
 import { nls } from '../messages';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
@@ -88,9 +89,7 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
-    const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
-      false
-    );
+    const usernameOrAlias = await getDefaultUsernameOrAlias();
 
     if (usernameOrAlias) {
       this._username = await this.getAuthUtil().getUsername(usernameOrAlias);
