@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { SfdxSettingsService } from '../settings';
 import {
   CommandletExecutor,
   ParametersGatherer,
@@ -37,6 +38,9 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
+    if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
+      // channelService.clear();
+    }
     if (await this.prechecker.check()) {
       let inputs = await this.gatherer.gather();
       inputs = await this.postchecker.check(inputs);

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { channelService } from './channels';
 import {
   checkSObjectsAndRefresh,
@@ -92,7 +93,6 @@ import {
 } from './conflict';
 import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-  SFDX_CORE_CONFIGURATION_NAME
 } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
