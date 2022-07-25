@@ -97,9 +97,12 @@ export function disableCLITelemetry() {
 }
 
 async function getConfigAggregator(): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
   const rootWorkspacePath = getRootWorkspacePath();
   process.chdir(rootWorkspacePath);
-  return await ConfigAggregator.create();
+  const configAggregator = await ConfigAggregator.create();
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
 }
 
 export async function isCLITelemetryAllowed(): Promise<boolean> {
