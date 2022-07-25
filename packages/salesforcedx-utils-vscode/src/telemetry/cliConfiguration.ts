@@ -10,7 +10,6 @@ import { GlobalCliEnvironment } from '../cli';
 import { getRootWorkspacePath } from '../workspaces';
 
 export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
-export const SFDX_CONFIG_DISABLE_TELEMETRY = 'disableTelemetry';
 
 export function disableCLITelemetry() {
   GlobalCliEnvironment.environmentVariables.set(
