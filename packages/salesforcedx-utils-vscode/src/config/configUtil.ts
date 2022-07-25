@@ -5,8 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  SfConfigProperties
+} from '@salesforce/core';
 import * as path from 'path';
+import { GlobalCliEnvironment } from '../cli';
 import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
 
@@ -79,4 +85,29 @@ export class ConfigUtil {
     }
     return undefined;
   }
+}
+
+export function disableCLITelemetry() {
+  const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
+  GlobalCliEnvironment.environmentVariables.set(
+    ENV_SFDX_DISABLE_TELEMETRY,
+    'true'
+  );
+}
+
+export async function isCLITelemetryAllowed(): Promise<boolean> {
+  try {
+    const rootWorkspacePath = getRootWorkspacePath();
+    process.chdir(rootWorkspacePath);
+    const configAggregator: ConfigAggregator = await ConfigAggregator.create();
+    const disableTelemetry:
+      | string
+      | undefined = configAggregator.getPropertyValue(
+      SfConfigProperties.DISABLE_TELEMETRY
+    );
+    return disableTelemetry !== 'true';
+  } catch (e) {
+    console.log('Error checking cli settings: ' + e);
+  }
+  return true;
 }

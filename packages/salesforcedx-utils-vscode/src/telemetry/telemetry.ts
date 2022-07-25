@@ -7,7 +7,10 @@
 
 import * as util from 'util';
 import { env, ExtensionContext, workspace } from 'vscode';
-import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
+import {
+  disableCLITelemetry,
+  isCLITelemetryAllowed
+} from '../config/configUtil';
 import { TelemetryReporter } from './telemetryReporter';
 
 interface CommandMetric {
@@ -102,7 +105,7 @@ export class TelemetryService {
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
-      this.isTelemetryEnabled() &&
+      (await this.isTelemetryEnabled()) &&
       !isDevMode
     ) {
       this.reporter = new TelemetryReporter(
