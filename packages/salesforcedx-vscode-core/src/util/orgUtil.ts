@@ -11,9 +11,9 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { FileInfo, OrgList } from '../orgPicker';
 
-export async function setUpOrgExpirationWatcher() {
+export async function setUpOrgExpirationWatcher(orgList: OrgList) {
   // Run once to start off with.
-  await checkForExpiredOrgs();
+  await checkForExpiredOrgs(orgList);
 
   /*
   Comment this out for now.  For now, we are only going to check once on activation,
@@ -22,19 +22,20 @@ export async function setUpOrgExpirationWatcher() {
 
   // And run again once every 24 hours.
   setInterval(async () => {
-    await checkForExpiredOrgs();
+    await checkForExpiredOrgs(orgList);
   }, 1000 * 60 * 60 * 24);
   */
 }
 
-export async function checkForExpiredOrgs() {
+export async function checkForExpiredOrgs(orgList: OrgList) {
   try {
     const daysBeforeExpire = 5;
     const today = new Date();
     const daysUntilExpiration = new Date();
-    daysUntilExpiration.setDate(daysUntilExpiration.getDate() + daysBeforeExpire);
+    daysUntilExpiration.setDate(
+      daysUntilExpiration.getDate() + daysBeforeExpire
+    );
 
-    const orgList = new OrgList();
     const authInfoObjects = await orgList.getAuthInfoObjects();
 
     const orgsAboutToExpire = authInfoObjects!.filter((authInfoObject: FileInfo) => {
@@ -71,14 +72,25 @@ export async function checkForExpiredOrgs() {
         ? alias.toString()
         : orgAboutToExpire.username;
 
-      return nls.localize('pending_org_expiration_expires_on_message', aliasName, orgAboutToExpire.expirationDate);
+      return nls.localize(
+        'pending_org_expiration_expires_on_message',
+        aliasName,
+        orgAboutToExpire.expirationDate
+      );
     }).join('\n\n');
 
     notificationService.showWarningMessage(
-      nls.localize('pending_org_expiration_notification_message', daysBeforeExpire)
+      nls.localize(
+        'pending_org_expiration_notification_message',
+        daysBeforeExpire
+      )
     );
     channelService.appendLine(
-      nls.localize('pending_org_expiration_output_channel_message', daysBeforeExpire, formattedOrgsToDisplay)
+      nls.localize(
+        'pending_org_expiration_output_channel_message',
+        daysBeforeExpire,
+        formattedOrgsToDisplay
+      )
     );
     channelService.showChannelOutput();
   } catch (err) {

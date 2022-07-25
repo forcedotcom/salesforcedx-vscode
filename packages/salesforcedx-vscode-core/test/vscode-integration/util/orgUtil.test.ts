@@ -51,7 +51,8 @@ describe('orgUtil tests', () => {
         .stub(OrgList.prototype, 'getAuthInfoObjects')
         .resolves([]);
 
-      await checkForExpiredOrgs();
+      const orgList = new OrgList();
+      await checkForExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
@@ -73,7 +74,8 @@ describe('orgUtil tests', () => {
           }
         ]);
 
-      await checkForExpiredOrgs();
+      const orgList = new OrgList();
+      await checkForExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
@@ -92,7 +94,8 @@ describe('orgUtil tests', () => {
           }
         ]);
 
-      await checkForExpiredOrgs();
+      const orgList = new OrgList();
+      await checkForExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
@@ -128,7 +131,8 @@ describe('orgUtil tests', () => {
           }
         });
 
-      await checkForExpiredOrgs();
+      const orgList = new OrgList();
+      await checkForExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(true);
       expect(appendLineSpy.called).to.equal(true);
@@ -173,7 +177,8 @@ describe('orgUtil tests', () => {
           }
         });
 
-      await checkForExpiredOrgs();
+      const orgList = new OrgList();
+      await checkForExpiredOrgs(orgList);
 
       expect(showWarningMessageSpy.called).to.equal(true);
       expect(appendLineSpy.called).to.equal(true);

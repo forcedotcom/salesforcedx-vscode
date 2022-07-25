@@ -590,7 +590,12 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
     './package.json'
   ));
-  await telemetryService.initializeService(extensionContext, name, aiKey, version);
+  await telemetryService.initializeService(
+    extensionContext,
+    name,
+    aiKey,
+    version
+  );
   showTelemetryMessage(extensionContext);
 
   // Task View
@@ -634,7 +639,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  FunctionService.instance.handleDidStartTerminateDebugSessions(extensionContext);
+  FunctionService.instance.handleDidStartTerminateDebugSessions(
+    extensionContext
+  );
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
@@ -730,7 +737,7 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   decorators.showOrg();
   decorators.monitorOrgConfigChanges();
 
-  await setUpOrgExpirationWatcher();
+  await setUpOrgExpirationWatcher(orgList);
 
   // Demo mode decorator
   if (isDemoMode()) {
