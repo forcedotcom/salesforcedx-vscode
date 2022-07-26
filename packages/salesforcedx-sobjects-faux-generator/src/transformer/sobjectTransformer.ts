@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Global } from '@salesforce/core';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -11,7 +12,6 @@ import {
   ERROR_EVENT,
   EXIT_EVENT,
   FAILURE_CODE,
-  SFDX_DIR,
   SFDX_PROJECT_FILE,
   STDERR_EVENT,
   STDOUT_EVENT,
@@ -133,7 +133,7 @@ export class SObjectTransformer {
         this.result.error = { message, stack };
       },
 
-      sfdxPath: path.join(projectPath, SFDX_DIR),
+      sfdxPath: path.join(projectPath, Global.SFDX_STATE_FOLDER),
 
       typeNames: [],
       custom: [],

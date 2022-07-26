@@ -6,7 +6,6 @@
  */
 
 export const CLIENT_ID = 'sfdx-vscode';
-export const SFDX_DIR = '.sfdx';
 export const TOOLS_DIR = 'tools';
 export const SOBJECTS_DIR = 'sobjects';
 export const STANDARDOBJECTS_DIR = 'standardObjects';
