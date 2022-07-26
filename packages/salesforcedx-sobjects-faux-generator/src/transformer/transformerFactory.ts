@@ -93,7 +93,7 @@ export class SObjectTransformerFactory {
   ): Promise<Connection> {
     const connection = await Connection.create({
       authInfo: await AuthInfo.create({
-        username: await ConfigUtil.getUsername(projectPath)
+        username: (await ConfigUtil.getUsername(projectPath)) as string
       })
     });
     return connection;
