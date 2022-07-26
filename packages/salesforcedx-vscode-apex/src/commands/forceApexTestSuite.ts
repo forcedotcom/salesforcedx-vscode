@@ -16,6 +16,7 @@ import {
   ContinueResponse,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { CreateUtil } from '@salesforce/templates';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
 import * as vscode from 'vscode';
@@ -120,7 +121,15 @@ export class TestSuiteCreator
     CancelResponse | ContinueResponse<ApexTestSuiteOptions>
   > {
     const testSuiteInput = {
-      prompt: 'Enter desired Apex test suite name:'
+      prompt: 'Enter desired Apex test suite name:',
+      validateInput: value => {
+        try {
+          CreateUtil.checkInputs(value);
+        } catch (error) {
+          return error.message;
+        }
+        return null;
+      }
     } as vscode.InputBoxOptions;
     const testSuiteName = await vscode.window.showInputBox(testSuiteInput);
 
