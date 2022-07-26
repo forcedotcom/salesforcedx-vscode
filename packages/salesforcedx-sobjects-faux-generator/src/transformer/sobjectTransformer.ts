@@ -21,7 +21,6 @@ import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
 import {
   SObject,
-  SObjectDefinition,
   SObjectDefinitionRetriever,
   SObjectGenerator,
   SObjectRefreshOutput as SObjectRefreshData,
