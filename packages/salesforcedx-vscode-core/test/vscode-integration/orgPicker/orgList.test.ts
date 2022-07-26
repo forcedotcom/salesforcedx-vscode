@@ -216,11 +216,7 @@ describe('orgList Tests', () => {
 
       it('should display alias with username when alias is available', async () => {
         const authInfoObjects: OrgAuthorization[] = [
-          getFakeOrgAuthorization(
-            Object.assign(dummyOrgAuth1, {
-              aliases: ['alias1']
-            })
-          ),
+          dummyOrgAuth1,
           dummyOrgAuth2
         ];
         defaultDevHubStub.resolves(null);
