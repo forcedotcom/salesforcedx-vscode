@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, ConfigFile, StateAggregator } from '@salesforce/core';
+import {
+  AuthInfo,
+  ConfigFile,
+  Global,
+  StateAggregator
+} from '@salesforce/core';
 import {
   CancelResponse,
   ContinueResponse
@@ -63,7 +68,7 @@ export class OrgList implements vscode.Disposable {
       try {
         const filePath = path.join(
           await ConfigFile.resolveRootFolder(true),
-          '.sfdx',
+          Global.SFDX_STATE_FOLDER,
           authFile.username + '.json'
         );
         const fileData = readFileSync(filePath, 'utf8');

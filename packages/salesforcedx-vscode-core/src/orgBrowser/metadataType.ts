@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
 import * as fs from 'fs';
@@ -47,7 +48,7 @@ export class TypeUtils {
     const username = await OrgAuthInfo.getUsername(usernameOrAlias);
     const metadataTypesPath = path.join(
       workspaceRootPath,
-      '.sfdx',
+      Global.SFDX_STATE_FOLDER,
       'orgs',
       username,
       'metadata'
