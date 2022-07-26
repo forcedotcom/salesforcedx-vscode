@@ -8,7 +8,7 @@
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforce/salesforcedx-utils-vscode/src/types';
-import {CreateUtil} from '@salesforce/templates';
+import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'util';
@@ -41,20 +41,20 @@ export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<Compon
 
   public async run(
     response: ContinueResponse<ComponentName>
-    ): Promise<boolean> {
-      let newComponentName = response.data.name?.trim();
-      if (newComponentName && this.sourceFsPath) {
-        newComponentName = await inputGuard(this.sourceFsPath, newComponentName);
-        try {
-          await renameComponent(this.sourceFsPath, newComponentName);
-          return true;
-        } catch (err) {
-          const errorMessage = nls.localize(RENAME_ERROR);
-          notificationService.showErrorMessage(errorMessage);
-          throw err;
-        }
+  ): Promise<boolean> {
+    let newComponentName = response.data.name?.trim();
+    if (newComponentName && this.sourceFsPath) {
+      newComponentName = await inputGuard(this.sourceFsPath, newComponentName);
+      try {
+        await renameComponent(this.sourceFsPath, newComponentName);
+        return true;
+      } catch (err) {
+        const errorMessage = nls.localize(RENAME_ERROR);
+        notificationService.showErrorMessage(errorMessage);
+        throw err;
       }
-      return false;
+    }
+    return false;
   }
 }
 
