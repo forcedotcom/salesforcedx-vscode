@@ -6,17 +6,14 @@
  */
 
 import { ConfigAggregator, OrgConfigProperties } from '@salesforce/core';
-import * as vscode from 'vscode';
 
 async function getConfigAggregator(
-  projectPath?: string
+  projectPath: string
 ): Promise<ConfigAggregator> {
   const origCurrentWorkingDirectory = process.cwd();
-  const pathForConfigAggregator =
-    projectPath || vscode.workspace.workspaceFolders![0].uri.fsPath;
   // Change the current working directory to the project path,
   // so that ConfigAggregator reads the local project values
-  process.chdir(pathForConfigAggregator);
+  process.chdir(projectPath);
   const configAggregator = await ConfigAggregator.create();
   // Change the current working directory back to what it was
   // before returning
@@ -25,9 +22,7 @@ async function getConfigAggregator(
 }
 
 export class ConfigUtil {
-  public static async getUsername(
-    projectPath?: string
-  ): Promise<string | null> {
+  public static async getUsername(projectPath: string): Promise<string | null> {
     const configAggregator = await getConfigAggregator(projectPath);
     const defaultUserNameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
