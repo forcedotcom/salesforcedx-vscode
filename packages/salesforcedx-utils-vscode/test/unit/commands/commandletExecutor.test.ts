@@ -112,7 +112,6 @@ describe('LibraryCommandletExecutor', () => {
     expect(clearStub.called).not.to.be.true;
   });
 
-
   it('should show failed execution notification if run returns false', async () => {
     const showErrStub = sb
       .stub(vscodeStub.window, 'showErrorMessage')
