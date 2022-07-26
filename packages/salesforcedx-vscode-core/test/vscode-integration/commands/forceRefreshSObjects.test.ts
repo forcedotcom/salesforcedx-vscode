@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* tslint:disable:no-unused-expression */
+import { Global } from '@salesforce/core';
 import {
-  SFDX_DIR,
   SOBJECTS_DIR,
   SObjectTransformer,
   SObjectTransformerFactory,
@@ -51,7 +51,7 @@ describe('ForceGenerateFauxClasses', () => {
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
       projectPath,
-      SFDX_DIR,
+      Global.SFDX_STATE_FOLDER,
       TOOLS_DIR,
       SOBJECTS_DIR
     );
@@ -117,7 +117,7 @@ describe('ForceGenerateFauxClasses', () => {
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
       projectPath,
-      SFDX_DIR,
+      Global.SFDX_STATE_FOLDER,
       TOOLS_DIR,
       SOBJECTS_DIR,
       STANDARDOBJECTS_DIR

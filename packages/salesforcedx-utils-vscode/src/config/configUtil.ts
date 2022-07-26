@@ -76,3 +76,10 @@ export async function getDefaultUsernameOrAlias(): Promise<string | undefined> {
     return undefined;
   }
 }
+
+export async function getApiVersion(): Promise<string> {
+  const configAggregator = await getConfigAggregator();
+  return configAggregator.getPropertyValue(
+    OrgConfigProperties.ORG_API_VERSION
+  ) as string;
+}
