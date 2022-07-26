@@ -20,7 +20,7 @@ class MockFileWatcher implements vscode.Disposable {
     this.watchUri = vscode.Uri.file(fsPath);
   }
 
-  public dispose() { }
+  public dispose() {}
 
   public onDidChange(f: (uri: vscode.Uri) => void): vscode.Disposable {
     this.changeSubscribers.push(f);
@@ -68,7 +68,11 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     super();
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(getRootWorkspacePath(), SFDX_FOLDER, SFDX_CONFIG_FILE);
+    const cliConfigPath = join(
+      getRootWorkspacePath(),
+      SFDX_FOLDER,
+      SFDX_CONFIG_FILE
+    );
     this.cliConfigWatcher = new MockFileWatcher(cliConfigPath);
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
@@ -82,7 +86,9 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     return TestWorkspaceContextUtil.testInstance;
   }
 
-  public getFileWatcher(): MockFileWatcher { return this.cliConfigWatcher as MockFileWatcher; }
+  public getFileWatcher(): MockFileWatcher {
+    return this.cliConfigWatcher as MockFileWatcher;
+  }
 }
 
 describe('WorkspaceContext', () => {
@@ -106,7 +112,9 @@ describe('WorkspaceContext', () => {
 
     workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
     env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtil);
-    usernameStub = env.stub(workspaceContextUtil, 'username').get(() => testUser);
+    usernameStub = env
+      .stub(workspaceContextUtil, 'username')
+      .get(() => testUser);
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
 
     const extensionContext = ({
@@ -129,7 +137,9 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => testUser2);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(testUser2);
@@ -140,7 +150,9 @@ describe('WorkspaceContext', () => {
     usernameStub.get(() => undefined);
     aliasStub.get(() => undefined);
 
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('change');
 
     expect(orgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(undefined);
@@ -154,9 +166,15 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('change');
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
-    await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('change');
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('create');
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('delete');
 
     expect(someLogic.callCount).to.equal(3);
   });
