@@ -6,6 +6,12 @@
  */
 import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
 import {
+  AuthInfo,
+  ConfigFile,
+  Global,
+  StateAggregator
+} from '@salesforce/core';
+import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
