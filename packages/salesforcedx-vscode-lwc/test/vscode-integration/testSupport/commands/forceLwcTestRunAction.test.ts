@@ -27,6 +27,7 @@ import {
   unmockTestResultWatcher
 } from '../mocks';
 import { InputBuffer } from 'uuid/interfaces';
+import { Global } from '@salesforce/core';
 
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
@@ -124,7 +125,7 @@ describe('Force LWC Test Run - Code Action', () => {
             '--outputFile',
             path.join(
               expectedCwd,
-              '.sfdx',
+              Global.SFDX_STATE_FOLDER,
               'tools',
               'testresults',
               'lwc',
