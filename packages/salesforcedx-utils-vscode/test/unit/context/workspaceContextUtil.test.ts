@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, Global } from '@salesforce/core';
 import { expect } from 'chai';
 import { join } from 'path';
 import * as proxyquire from 'proxyquire';
@@ -227,6 +227,8 @@ describe('getLogDirPath', () => {
   it('should return a path to debug log folder', () => {
     const dirPath = getRootWorkspacePath();
     const result = getLogDirPath();
-    expect(result).to.equal(join(dirPath, '.sfdx', 'tools', 'debug', 'logs'));
+    expect(result).to.equal(
+      join(dirPath, Global.SFDX_STATE_FOLDER, 'tools', 'debug', 'logs')
+    );
   });
 });
