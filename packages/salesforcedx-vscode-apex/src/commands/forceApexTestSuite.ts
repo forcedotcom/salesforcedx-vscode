@@ -105,9 +105,9 @@ export class TestSuiteBuilder
 
       return apexClassSelection
         ? {
-            type: 'CONTINUE',
-            data: { suitename: testSuiteName.label, tests: apexClassNames }
-          }
+          type: 'CONTINUE',
+          data: { suitename: testSuiteName.label, tests: apexClassNames }
+        }
         : { type: 'CANCEL' };
     }
     return { type: 'CANCEL' };
@@ -137,9 +137,9 @@ export class TestSuiteCreator
 
       return apexClassSelection
         ? {
-            type: 'CONTINUE',
-            data: { suitename: testSuiteName, tests: apexClassNames }
-          }
+          type: 'CONTINUE',
+          data: { suitename: testSuiteName, tests: apexClassNames }
+        }
         : { type: 'CANCEL' };
     }
     return { type: 'CANCEL' };
