@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, Global } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil } from '..';
@@ -116,5 +116,11 @@ export class WorkspaceContextUtil {
 }
 
 export function getLogDirPath(): string {
-  return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
+  return join(
+    getRootWorkspacePath(),
+    Global.SFDX_STATE_FOLDER,
+    'tools',
+    'debug',
+    'logs'
+  );
 }
