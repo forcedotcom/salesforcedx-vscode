@@ -32,6 +32,7 @@ import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 import { generateFunction, Language } from '@heroku/functions-core';
 import { getRootWorkspacePath } from '../../util';
+import { CreateUtil } from '@salesforce/templates';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';
@@ -116,7 +117,17 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     CancelResponse | ContinueResponse<FunctionInfo>
   > {
     const nameInputOptions = {
-      prompt: nls.localize('force_function_enter_function')
+      prompt: nls.localize('force_function_enter_function'),
+      validateInput: value => {
+        try {
+          CreateUtil.checkInputs(value);
+        } catch (error) {
+          return error.message;
+        }
+        return null;
+      } // this code repeats what SelectFileName does
+      // maybe we should create a new class that implements ParametersGatherer
+      // and calls the showInputBox etc inside there
     } as vscode.InputBoxOptions;
     const name = await vscode.window.showInputBox(nameInputOptions);
     if (name === undefined) {
