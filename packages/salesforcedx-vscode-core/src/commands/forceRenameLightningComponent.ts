@@ -84,7 +84,15 @@ export class GetComponentName
     const inputOptions = {
       value: getComponentName(await getComponentPath(this.sourceFsPath)),
       placeHolder: nls.localize(RENAME_INPUT_PLACEHOLDER),
-      promopt: nls.localize(RENAME_INPUT_PROMPT)
+      promopt: nls.localize(RENAME_INPUT_PROMPT),
+      validateInput: value => {
+        try {
+          CreateUtil.checkInputs(value);
+        } catch (error) {
+          return error.message;
+        }
+        return null;
+      }
     } as vscode.InputBoxOptions;
     const inputResult = await vscode.window.showInputBox(inputOptions);
     return inputResult
