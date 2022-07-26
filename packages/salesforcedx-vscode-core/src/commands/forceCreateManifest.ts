@@ -8,6 +8,7 @@
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import { CreateUtil } from '@salesforce/templates';
 import * as fs from 'fs';
 import { join, parse } from 'path';
 import { format } from 'util';
@@ -25,7 +26,7 @@ const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string | undefined;
-  constructor(sourcePaths: string[], responseText: string | undefined) {
+  constructor(sourcePaths: string[], responseText?: string | undefined) {
     super(
       nls.localize(CREATE_MANIFEST_EXECUTOR),
       CREATE_MANIFEST_EXECUTOR,
@@ -34,9 +35,7 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
   }
-  public async run(response: ContinueResponse<string>,
-                   progress?: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>,
-                   token?: vscode.CancellationToken): Promise<boolean> {
+  public async run(response: ContinueResponse<string>): Promise<boolean> {
     if (this.sourcePaths) {
       const componentSet = ComponentSet.fromSource(this.sourcePaths);
       if (this.responseText === undefined) {
@@ -62,7 +61,15 @@ export async function forceCreateManifest(
   const sourcePaths = uris.map(uri => uri.fsPath);
   const inputOptions = {
     placeHolder: nls.localize(MANIFEST_SAVE_PLACEHOLDER),
-    prompt: nls.localize(MANIFEST_SAVE_PROMPT)
+    prompt: nls.localize(MANIFEST_SAVE_PROMPT),
+    validateInput: value => {
+      try {
+        CreateUtil.checkInputs(value);
+      } catch (error) {
+        return error.message;
+      }
+      return null;
+    }
   } as vscode.InputBoxOptions;
   const responseText = await vscode.window.showInputBox(inputOptions);
   if (sourcePaths) {
