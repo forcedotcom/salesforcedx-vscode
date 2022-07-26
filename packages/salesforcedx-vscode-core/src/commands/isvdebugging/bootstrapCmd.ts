@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import {
   CliCommandExecutor,
   Command,
@@ -55,7 +56,7 @@ export interface InstalledPackageInfo {
 
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
-    '.sfdx',
+    Global.SFDX_STATE_FOLDER,
     'tools',
     'isvdebuggermdapitmp'
   );
@@ -64,7 +65,7 @@ export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
     'package.xml'
   );
   public readonly relativeInstalledPackagesPath = path.join(
-    '.sfdx',
+    Global.SFDX_STATE_FOLDER,
     'tools',
     'installed-packages'
   );
