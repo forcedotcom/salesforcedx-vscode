@@ -9,7 +9,7 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
-  GlobalInfo
+  StateAggregator
 } from '@salesforce/core';
 import * as path from 'path';
 
@@ -23,9 +23,8 @@ export class ConfigUtil {
       projectPath,
       defaultUserNameKey
     )) as string;
-    const info = await GlobalInfo.getInstance();
+    const info = await StateAggregator.getInstance();
     const username = info.aliases.resolveValue(defaultUserName);
-    // const username = await Aliases.fetch(defaultUserName);
     return username;
   }
 

@@ -7,7 +7,7 @@ lang: en
 
 Salesforce Code Builder is a second-generation (2GP) managed package that a user with requisite permissions can install in any supported Salesforce org edition.
 
-1. Go to  App Exchange and search for the Code Builder managed package.
+1.  Click the install [link](https://appexchange.salesforce.com/appxListingDetail?listingId=a0N4V00000HddeKUAR) to access the Code Builder managed package on AppExchange.
 2. Click **Get It Now**.
 3. Select the org in which you want to install Code Builder.
 4. Check terms and conditions and click **Confirm and Install**.

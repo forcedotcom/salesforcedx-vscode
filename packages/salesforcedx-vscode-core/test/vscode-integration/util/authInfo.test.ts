@@ -14,13 +14,14 @@ import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 
 describe('OrgAuthInfo', () => {
   let sandbox: SinonSandbox;
+  const username = 'user@test.test';
+
   beforeEach(async () => {
     sandbox = createSandbox();
   });
   afterEach(() => sandbox.restore());
 
   describe('getUsername', () => {
-    const username = 'user@test.test';
     const alias = 'TestOrg';
 
     it('should return the given username if there is no alias', async () => {
@@ -101,8 +102,6 @@ describe('OrgAuthInfo', () => {
   });
 
   describe('getConnection', () => {
-    const username = 'user@test.test';
-    const alias = 'TestOrg';
     const fakeAuthInfo = {
       authy: true
     };
