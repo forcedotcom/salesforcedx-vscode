@@ -225,6 +225,10 @@ describe('orgList Tests', () => {
         ];
         defaultDevHubStub.resolves(null);
         getAllStub.returns([]);
+        sandbox
+          .stub(orgList, 'getAuthFieldsFor')
+          .onFirstCall()
+          .returns({ alias: 'alias1' });
         const authList = await orgList.filterAuthInfo(authInfoObjects);
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
       });
