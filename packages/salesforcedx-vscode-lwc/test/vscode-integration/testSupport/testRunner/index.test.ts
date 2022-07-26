@@ -22,6 +22,7 @@ import {
   TestRunType
 } from '../../../../src/testSupport/testRunner';
 import { InputBuffer } from 'uuid/interfaces';
+import { Global } from '@salesforce/core';
 
 describe('LWC Test Runner', () => {
   describe('Jest Execution Info Unit Tests', () => {
@@ -36,7 +37,13 @@ describe('LWC Test Runner', () => {
       uuidStub.returns(mockUuid);
       getTempFolderStub = stub(pathUtils, 'getTestResultsFolder');
       getTempFolderStub.callsFake((vscodePath: string, testType: string) => {
-        return path.join(vscodePath, '.sfdx', 'tools', 'testresults', testType);
+        return path.join(
+          vscodePath,
+          Global.SFDX_STATE_FOLDER,
+          'tools',
+          'testresults',
+          testType
+        );
       });
     });
     afterEach(() => {
