@@ -227,7 +227,7 @@ describe('orgList Tests', () => {
         getAllStub.returns([]);
         sandbox
           .stub(orgList, 'getAuthFieldsFor')
-          .onFirstCall()
+          .withArgs(authInfoObjects[0].username)
           .returns({ alias: 'alias1' });
         const authList = await orgList.filterAuthInfo(authInfoObjects);
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
