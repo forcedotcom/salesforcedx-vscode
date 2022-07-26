@@ -121,7 +121,7 @@ export class TestSuiteCreator
     CancelResponse | ContinueResponse<ApexTestSuiteOptions>
   > {
     const testSuiteInput = {
-      prompt: 'Enter desired Apex test suite name:',
+      prompt: nls.localize('force_apex_test_suite_prompt_test'),
       validateInput: value => {
         try {
           CreateUtil.checkInputs(value);
