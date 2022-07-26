@@ -11,14 +11,16 @@ import {
   ParametersGatherer,
   PostconditionChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { ProjectOptions, TemplateType } from '@salesforce/templates';
+import {
+  CreateUtil,
+  ProjectOptions,
+  TemplateType
+} from '@salesforce/templates';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { sfdxCoreSettings } from '../settings';
-import { InputUtils } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import {
   CompositeParametersGatherer,
@@ -158,9 +160,21 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<ProjectName>
   > {
-    const prompt = nls.localize('parameter_gatherer_enter_project_name');
-    const prefillValue = this.prefillValueProvider ? this.prefillValueProvider() : '';
-    const projectName = await InputUtils.getFormattedString(prompt, prefillValue);
+    const projectNameInputOptions = {
+      prompt: nls.localize('parameter_gatherer_enter_project_name'),
+      value: this.prefillValueProvider
+        ? this.prefillValueProvider()
+        : '',
+      validateInput: value => {
+        try {
+          CreateUtil.checkInputs(value);
+        } catch (error) {
+          return error.message;
+        }
+        return null;
+      }
+    } as vscode.InputBoxOptions;
+    const projectName = await vscode.window.showInputBox(projectNameInputOptions);
     return projectName
       ? { type: 'CONTINUE', data: { projectName } }
       : { type: 'CANCEL' };
