@@ -12,7 +12,6 @@ import {
   Global
 } from '@salesforce/core';
 import * as path from 'path';
-import { isNullOrUndefined, isUndefined } from 'util';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from './index';
 
