@@ -6,6 +6,7 @@
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
+import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import { join, sep } from 'path';
 import {
@@ -25,7 +26,7 @@ import { StatusBarToggle } from './statusBarToggle';
 
 const apexDirPath = join(
   workspace!.workspaceFolders![0].uri.fsPath,
-  '.sfdx',
+  Global.SFDX_STATE_FOLDER,
   'tools',
   'testresults',
   'apex'
