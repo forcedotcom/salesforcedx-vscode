@@ -12,6 +12,7 @@ import {
   FunctionInfo,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { CreateUtil } from '@salesforce/templates';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -28,7 +29,6 @@ import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 import { generateFunction, Language } from '@heroku/functions-core';
 import { getRootWorkspacePath } from '../../util';
-import { CreateUtil } from '@salesforce/templates';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';
