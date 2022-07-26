@@ -17,6 +17,14 @@ export enum ConfigSource {
   None
 }
 
+function isNullOrUndefined(value: any) {
+  return value === null || value === undefined;
+}
+
+function isUndefined(value: any) {
+  return value === undefined;
+}
+
 // This class should be reworked or removed once the ConfigAggregator correctly checks
 // local as well as global configs. It's also worth noting that ConfigAggregator, according
 // to its docs checks local, global and environment and, for our purposes, environment may
