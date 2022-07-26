@@ -7,10 +7,6 @@
 
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
   CancelResponse,
   ContinueResponse,
   FunctionInfo,
