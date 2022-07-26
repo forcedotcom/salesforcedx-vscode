@@ -11,6 +11,7 @@ import { join } from 'path';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonStub, stub } from 'sinon';
 import { getDefaultUsernameOrAlias } from '../../../src/config/configUtil';
+import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/types/constants';
 
 class EventEmitter {
   private listeners: any[] = [];
@@ -116,7 +117,7 @@ describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
-  const cliConfigPath = join('/user/dev', '.sf', 'config.json');
+  const cliConfigPath = join('/user/dev', SFDX_FOLDER, SFDX_CONFIG_FILE);
   let mockFileWatcher: MockFileWatcher;
 
   let getUsernameStub: SinonStub;
