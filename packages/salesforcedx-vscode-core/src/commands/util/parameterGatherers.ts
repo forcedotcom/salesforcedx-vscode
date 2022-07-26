@@ -11,6 +11,7 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
+import { CreateUtil } from '@salesforce/templates';
 import glob = require('glob');
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -120,7 +121,15 @@ export class SelectFileName
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
     const fileNameInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_file_name')
+      prompt: nls.localize('parameter_gatherer_enter_file_name'),
+      validateInput: value => {
+        try {
+          CreateUtil.checkInputs(value);
+        } catch (error) {
+          return error.message;
+        }
+        return null;
+      }
     } as vscode.InputBoxOptions;
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
     return fileName
