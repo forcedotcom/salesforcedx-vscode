@@ -10,10 +10,11 @@ import { expect } from 'chai';
 import { join } from 'path';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonStub, stub } from 'sinon';
+import { getDefaultUsernameOrAlias } from '../../../src/config/configUtil';
 
 class EventEmitter {
   private listeners: any[] = [];
-  constructor() { }
+  constructor() {}
   public event = (listener: any) => this.listeners.push(listener);
   public dispose = stub();
   public fire = (e: any) => this.listeners.forEach(listener => listener(e));
@@ -36,11 +37,11 @@ const vscodeStub = {
   workspace: {
     createFileSystemWatcher: () => {
       return {
-        dispose: () => { },
-        onDidChange: () => { },
-        onDidCreate: () => { },
-        onDidDelete: () => { },
-        fire: () => { }
+        dispose: () => {},
+        onDidChange: () => {},
+        onDidCreate: () => {},
+        onDidDelete: () => {},
+        fire: () => {}
       };
     },
     getConfiguration: () => {
@@ -62,7 +63,7 @@ export class MockFileWatcher {
     this.watchUri = vscodeStub.Uri.file(fsPath);
   }
 
-  public dispose() { }
+  public dispose() {}
 
   public onDidChange(f: (uri: any) => void) {
     this.changeSubscribers.push(f);
@@ -97,26 +98,17 @@ export class MockFileWatcher {
   }
 }
 
-const { WorkspaceContextUtil } = proxyquire.noCallThru()(
-  '../../../src/index',
-  {
-    vscode: vscodeStub
-  }
-);
+const { WorkspaceContextUtil } = proxyquire.noCallThru()('../../../src/index', {
+  vscode: vscodeStub
+});
 
-const { getLogDirPath } = proxyquire.noCallThru()(
-  '../../../src/index',
-  {
-    vscode: vscodeStub
-  }
-);
+const { getLogDirPath } = proxyquire.noCallThru()('../../../src/index', {
+  vscode: vscodeStub
+});
 
-const { getRootWorkspacePath } = proxyquire.noCallThru()(
-  '../../../src/index',
-  {
-    vscode: vscodeStub
-  }
-);
+const { getRootWorkspacePath } = proxyquire.noCallThru()('../../../src/index', {
+  vscode: vscodeStub
+});
 
 const env = createSandbox();
 
@@ -124,11 +116,7 @@ describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
-  const cliConfigPath = join(
-    '/user/dev',
-    '.sf',
-    'config.json'
-  );
+  const cliConfigPath = join('/user/dev', '.sf', 'config.json');
   let mockFileWatcher: MockFileWatcher;
 
   let getUsernameStub: SinonStub;
@@ -151,7 +139,7 @@ describe('WorkspaceContext', () => {
 
     authUtil = workspaceContextUtil.getAuthUtil();
     getUsernameOrAliasStub = env
-      .stub(authUtil, 'getDefaultUsernameOrAlias')
+      .stub(getDefaultUsernameOrAlias)
       .returns(testAlias);
     getUsernameStub = env
       .stub(authUtil, 'getUsername')
@@ -238,8 +226,6 @@ describe('getLogDirPath', () => {
   it('should return a path to debug log folder', () => {
     const dirPath = getRootWorkspacePath();
     const result = getLogDirPath();
-    expect(result).to.equal(
-      join(dirPath, '.sfdx', 'tools', 'debug', 'logs')
-    );
+    expect(result).to.equal(join(dirPath, '.sfdx', 'tools', 'debug', 'logs'));
   });
 });
