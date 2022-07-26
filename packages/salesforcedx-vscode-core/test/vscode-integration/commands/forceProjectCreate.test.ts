@@ -124,13 +124,6 @@ describe('Force Project Create', () => {
       expect(response.type).to.equal('CONTINUE');
       expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
     });
-
-    it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
-      inputBoxStub.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
-      const response = await gatherer.gather();
-      expect(response.type).to.equal('CONTINUE');
-      expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
-    });
   });
 
   describe('SelectProjectFolder Gatherer', () => {
