@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -21,7 +20,7 @@ export function ensureDirectoryExists(filePath: string): void {
 export function getTestResultsFolder(vscodePath: string, testType: string) {
   const dirPath = path.join(
     vscodePath,
-    Global.SFDX_STATE_FOLDER,
+    '.sfdx',
     'tools',
     'testresults',
     testType
@@ -59,13 +58,7 @@ export function getRelativeProjectPath(
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 }
 
-export function fileExtensionsMatch(
-  sourceUri: vscode.Uri,
-  targetExtension: string
-): boolean {
-  const extension = sourceUri.path
-    .split('.')
-    .pop()
-    ?.toLowerCase();
+export function fileExtensionsMatch(sourceUri: vscode.Uri, targetExtension: string): boolean {
+  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 }

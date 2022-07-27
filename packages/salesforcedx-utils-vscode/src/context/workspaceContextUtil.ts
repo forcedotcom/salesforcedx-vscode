@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Global } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil } from '..';
-import { getDefaultUsernameOrAlias } from '../config/configUtil';
 import { nls } from '../messages';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
@@ -89,7 +88,9 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
-    const usernameOrAlias = await getDefaultUsernameOrAlias();
+    const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
+      false
+    );
 
     if (usernameOrAlias) {
       this._username = await this.getAuthUtil().getUsername(usernameOrAlias);
@@ -116,11 +117,5 @@ export class WorkspaceContextUtil {
 }
 
 export function getLogDirPath(): string {
-  return join(
-    getRootWorkspacePath(),
-    Global.SFDX_STATE_FOLDER,
-    'tools',
-    'debug',
-    'logs'
-  );
+  return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
 }

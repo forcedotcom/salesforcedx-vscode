@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -61,13 +60,7 @@ describe('paths utils', () => {
 
       expect(existsStub.called).to.equal(true);
       expect(result).to.equal(
-        path.join(
-          dirPath,
-          Global.SFDX_STATE_FOLDER,
-          'tools',
-          'testresults',
-          'apex'
-        )
+        path.join(dirPath, '.sfdx', 'tools', 'testresults', 'apex')
       );
     });
   });
