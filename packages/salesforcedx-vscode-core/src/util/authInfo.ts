@@ -10,6 +10,7 @@ import {
   OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
+import { getDefaultUsernameOrAlias } from '@salesforce/salesforcedx-utils-vscode/out/src/config/configUtil';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -21,10 +22,8 @@ export class OrgAuthInfo {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        OrgConfigProperties.TARGET_ORG
-      );
-      if (defaultUserName === undefined) {
+      const defaultUserNameOrAlias = await getDefaultUsernameOrAlias();
+      if (defaultUserNameOrAlias === undefined) {
         displayMessage(
           nls.localize('error_no_default_username'),
           enableWarning,
@@ -44,7 +43,7 @@ export class OrgAuthInfo {
         }
       }
 
-      return JSON.stringify(defaultUserName).replace(/\"/g, '');
+      return JSON.stringify(defaultUserNameOrAlias).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
