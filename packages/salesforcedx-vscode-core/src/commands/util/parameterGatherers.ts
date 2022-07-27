@@ -138,8 +138,7 @@ export class SelectFileName
   }
 }
 
-export class SelectUsername
-  implements ParametersGatherer<{ username: string }> {
+export class SelectUsername implements ParametersGatherer<{ username: string }> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ username: string }>
   > {
@@ -171,8 +170,10 @@ export class DemoModePromptGatherer implements ParametersGatherer<{}> {
   }
 }
 
-export class SelectLwcComponentDir
-  implements ParametersGatherer<{ fileName: string; outputdir: string }> {
+export class SelectLwcComponentDir implements ParametersGatherer<{
+  fileName: string;
+  outputdir: string
+}> {
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string; outputdir: string }>
   > {
@@ -236,8 +237,7 @@ export class SelectLwcComponentDir
   }
 }
 
-export class SelectOutputDir
-  implements ParametersGatherer<{ outputdir: string }> {
+export class SelectOutputDir implements ParametersGatherer<{ outputdir: string }> {
   private typeDir: string;
   private typeDirRequired: boolean | undefined;
   public static readonly defaultOutput = path.join('main', 'default');
