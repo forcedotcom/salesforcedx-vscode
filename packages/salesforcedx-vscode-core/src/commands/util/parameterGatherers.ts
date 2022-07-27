@@ -115,22 +115,27 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
   }
 }
 
-export class SelectFileName
-  implements ParametersGatherer<{ fileName: string }> {
+export class SelectFileName implements ParametersGatherer<{ fileName: string }> {
+  private options: vscode.InputBoxOptions;
+  constructor(options?: vscode.InputBoxOptions) {
+    this.options = options
+      ? options
+      : {
+        prompt: nls.localize('parameter_gatherer_enter_file_name'),
+        validateInput: value => {
+          try {
+            CreateUtil.checkInputs(value);
+          } catch (error) {
+            return error.message;
+          }
+          return null;
+        }
+      }
+  }
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
-    const fileNameInputOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_file_name'),
-      validateInput: value => {
-        try {
-          CreateUtil.checkInputs(value);
-        } catch (error) {
-          return error.message;
-        }
-        return null;
-      }
-    } as vscode.InputBoxOptions;
+    const fileNameInputOptions = this.options;
     const fileName = await vscode.window.showInputBox(fileNameInputOptions);
     return fileName
       ? { type: 'CONTINUE', data: { fileName } }
