@@ -1,3 +1,23 @@
+# 55.7.0 - July 27, 2022
+
+## Fixed
+
+#### docs, #### salesforcedx-vscode-apex
+
+- We updated some Java installation links in our docs. ([PR #4305](https://github.com/forcedotcom/salesforcedx-vscode/pull/4305))
+
+# 55.6.0 - July 21, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- Fixed an issue where users were unable to rename an LWC component inside of the `__tests__` directory. ([PR #4225](https://github.com/forcedotcom/salesforcedx-vscode/pull/4225))
+
+#### docs
+
+- We made some updates under the hood. ([PR #4277](https://github.com/forcedotcom/salesforcedx-vscode/pull/4277))
+
 # 55.4.1 - July 8, 2022
 
 ## Fixed
