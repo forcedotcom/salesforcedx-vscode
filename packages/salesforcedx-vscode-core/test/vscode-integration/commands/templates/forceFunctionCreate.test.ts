@@ -5,21 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from 'chai';
 import * as cp from 'child_process';
 import * as path from 'path';
-import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { assert, createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import {
   forceFunctionCreate,
-  ForceFunctionCreateExecutor,
-  FunctionInfoGatherer
-} from '../../../../src/commands/templates/forceFunctionCreate';
-import {
-  FUNCTION_TYPE_JAVA,
-  FUNCTION_TYPE_JS
-} from '../../../../src/commands/templates/metadataTypeConstants';
-import { SfdxWorkspaceChecker } from '../../../../src/commands/util/preconditionCheckers';
+  ForceFunctionCreateExecutor
+} from '../../../../src/commands/templates';
+import { CompositeParametersGatherer, SfdxWorkspaceChecker } from '../../../../src/commands/util';
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
@@ -81,7 +75,7 @@ describe('Force Function Create', () => {
       })
     );
 
-    gatherStub = sandbox.stub(FunctionInfoGatherer.prototype, 'gather');
+    gatherStub = sandbox.stub(CompositeParametersGatherer.prototype, 'gather');
     sandbox.stub(SfdxWorkspaceChecker.prototype, 'check').returns(true);
   });
 

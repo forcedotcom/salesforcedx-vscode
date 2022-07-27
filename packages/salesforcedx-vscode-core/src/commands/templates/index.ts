@@ -36,3 +36,7 @@ export {
   FileInternalPathGatherer,
   InternalDevWorkspaceChecker
 } from './internalCommandUtils';
+export {
+  forceFunctionCreate,
+  ForceFunctionCreateExecutor
+} from './forceFunctionCreate';
