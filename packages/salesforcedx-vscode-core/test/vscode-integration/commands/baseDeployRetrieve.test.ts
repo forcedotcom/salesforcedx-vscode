@@ -30,7 +30,7 @@ import { Test } from 'mocha';
 import { basename, dirname, join, sep } from 'path';
 import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
-import { getApiVersion } from '../../../../salesforcedx-utils-vscode/src/config/configUtil';
+import { getApiVersion } from '../../../../salesforcedx-utils-vscode/out/src/config/configUtil';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
 import {
