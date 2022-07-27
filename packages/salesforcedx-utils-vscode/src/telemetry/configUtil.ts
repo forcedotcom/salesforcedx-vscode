@@ -7,8 +7,9 @@
 
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
-import { TelemetryService } from '../telemetry/telemetry';
+import { isNullOrUndefined, isUndefined } from 'util';
 import { getRootWorkspacePath } from '../workspaces';
+import { TelemetryService } from './telemetry';
 
 export enum ConfigSource {
   Local,
@@ -24,11 +25,11 @@ export enum ConfigSource {
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
     let value = await ConfigUtil.getConfigValue(key, ConfigSource.Local);
-    if (!(value === null || value === undefined)) {
+    if (!isNullOrUndefined(value)) {
       return ConfigSource.Local;
     }
     value = await ConfigUtil.getConfigValue(key, ConfigSource.Global);
-    if (!(value === null || value === undefined)) {
+    if (!isNullOrUndefined(value)) {
       return ConfigSource.Global;
     }
     return ConfigSource.None;
@@ -38,42 +39,38 @@ export class ConfigUtil {
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
   ): Promise<ConfigValue | undefined> {
-    if (source === undefined || source === ConfigSource.Local) {
+    if (isUndefined(source) || source === ConfigSource.Local) {
       try {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
-          rootFolder: path.join(rootPath, '.sfdx'),
-          filename: 'sfdx-config.json'
+          rootFolder: path.join(rootPath, '.sf'),
+          filename: 'config.json'
         });
         const localValue = myLocalConfig.get(key);
-        if (!(localValue === null || localValue === undefined)) {
+        if (!isNullOrUndefined(localValue)) {
           return localValue;
         }
       } catch (err) {
-        if (err instanceof Error) {
-          TelemetryService.getInstance().sendException(
-            'get_config_value_local',
-            err.message
-          );
-        }
+        TelemetryService.getInstance().sendException(
+          'get_config_value_local',
+          err.message
+        );
         return undefined;
       }
     }
-    if (source === undefined || source === ConfigSource.Global) {
+    if (isUndefined(source) || source === ConfigSource.Global) {
       try {
         const aggregator = await ConfigAggregator.create();
         const globalValue = aggregator.getPropertyValue(key);
-        if (!(globalValue === null || globalValue === undefined)) {
+        if (!isNullOrUndefined(globalValue)) {
           return globalValue;
         }
       } catch (err) {
-        if (err instanceof Error) {
-          TelemetryService.getInstance().sendException(
-            'get_config_value_global',
-            err.message
-          );
-        }
+        TelemetryService.getInstance().sendException(
+          'get_config_value_global',
+          err.message
+        );
         return undefined;
       }
     }

@@ -20,12 +20,8 @@ export {
   LibraryCommandletExecutor
 } from './commands/commandletExecutors';
 export { SfdxCommandlet } from './commands/sfdxCommandlet';
-export { ConfigSource } from './config/configUtil';
-export {
-  OrgInfo,
-  WorkspaceContextUtil,
-  getLogDirPath
-} from './context/workspaceContextUtil';
+export { ConfigSource, ConfigUtil } from './config/configUtil';
+export { OrgInfo, WorkspaceContextUtil, getLogDirPath } from './context/workspaceContextUtil';
 export {
   TelemetryService,
   TelemetryBuilder,
@@ -33,7 +29,10 @@ export {
   Properties,
   Measurements
 } from './telemetry/telemetry';
-export { getRelativeProjectPath, fileExtensionsMatch } from './helpers';
+export {
+  getRelativeProjectPath,
+  fileExtensionsMatch
+} from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
 export { TelemetryReporter } from './telemetry/telemetryReporter';
 export {
