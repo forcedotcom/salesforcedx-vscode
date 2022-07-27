@@ -12,7 +12,6 @@ import {
   FunctionInfo,
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { CreateUtil } from '@salesforce/templates';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -22,6 +21,7 @@ import { notificationService } from '../../notifications';
 import { MetadataDictionary, MetadataInfo } from '../../util';
 import {
   CompositeParametersGatherer,
+  SelectFileName,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '../util';
@@ -108,28 +108,10 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
   }
 }
 
-export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
+export class FunctionInfoGatherer implements ParametersGatherer<{ language: string }> {
   public async gather(): Promise<
-    CancelResponse | ContinueResponse<FunctionInfo>
+    CancelResponse | ContinueResponse<{ language: string }>
   > {
-    const nameInputOptions = {
-      prompt: nls.localize('force_function_enter_function'),
-      validateInput: value => {
-        try {
-          CreateUtil.checkInputs(value);
-        } catch (error) {
-          return error.message;
-        }
-        return null;
-      } // this code repeats what SelectFileName does
-      // maybe we should create a new class that implements ParametersGatherer
-      // and calls the showInputBox etc inside there
-    } as vscode.InputBoxOptions;
-    const name = await vscode.window.showInputBox(nameInputOptions);
-    if (name === undefined) {
-      return { type: 'CANCEL' };
-    }
-
     const language = await vscode.window.showQuickPick(
       [LANGUAGE_JAVA, LANGUAGE_JAVASCRIPT, LANGUAGE_TYPESCRIPT],
       {
@@ -144,7 +126,6 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
     return {
       type: 'CONTINUE',
       data: {
-        fileName: name,
         language
       }
     };
@@ -152,6 +133,7 @@ export class FunctionInfoGatherer implements ParametersGatherer<FunctionInfo> {
 }
 
 const parameterGatherer = new CompositeParametersGatherer(
+  new SelectFileName({ prompt: nls.localize('force_function_enter_function') }),
   new FunctionInfoGatherer()
 );
 
