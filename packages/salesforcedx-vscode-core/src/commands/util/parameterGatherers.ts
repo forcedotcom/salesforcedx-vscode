@@ -118,7 +118,7 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 export class SelectFileName implements ParametersGatherer<{ fileName: string }> {
   private options: vscode.InputBoxOptions;
   constructor(options?: vscode.InputBoxOptions) {
-    this.options = options || { prompt: nls.localize('parameter_gatherer_enter_file_name') }
+    this.options = options || { prompt: nls.localize('parameter_gatherer_enter_file_name') };
     this.options.validateInput = value => {
       try {
         CreateUtil.checkInputs(value);
