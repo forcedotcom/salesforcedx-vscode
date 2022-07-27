@@ -20,3 +20,7 @@ export {
   hasRootWorkspace
 } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
+export {
+  checkForExpiredOrgs,
+  setUpOrgExpirationWatcher
+} from './orgUtil';
