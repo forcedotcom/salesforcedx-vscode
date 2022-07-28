@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  Global
+} from '@salesforce/core';
 import * as path from 'path';
 import { getRootWorkspacePath } from '../workspaces';
 import { TelemetryService } from './telemetry';
@@ -51,7 +56,7 @@ export class ConfigUtil {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
-          rootFolder: path.join(rootPath, '.sf'),
+          rootFolder: path.join(rootPath, Global.SF_STATE_FOLDER),
           filename: 'config.json'
         });
         const localValue = myLocalConfig.get(key);
