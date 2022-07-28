@@ -96,9 +96,11 @@ export class OrgList implements vscode.Disposable {
       const isExpired = authFields?.expirationDate
         ? today >= new Date(authFields.expirationDate)
         : false;
-      let authListItem = authFields?.alias
-        ? `${authFields.alias} - ${orgAuth.username}`
-        : orgAuth.username;
+
+      let authListItem =
+        orgAuth.aliases && orgAuth.aliases.length > 0
+          ? `${orgAuth.aliases} - ${orgAuth.username}`
+          : orgAuth.username;
 
       if (isExpired) {
         authListItem += ` - ${nls.localize(
