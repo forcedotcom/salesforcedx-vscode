@@ -160,7 +160,7 @@ Three new files are created in the `force-app/main/default/lwc/newCBComponent` f
 
 Update the files –
 
-1. In `newCBComponent.html`, copy and paste the following code:
+In `newCBComponent.html`, copy and paste the following code:
 
 ```
 <template>
@@ -168,7 +168,10 @@ Update the files –
     <lightning-input label="Name" value={greeting} onchange={handleChange}></lightning-input>
 </template>
 ```
-2. In `newCBComponent.js`, copy, and paste the following code:
+
+    
+
+In `newCBComponent.js`, copy, and paste the following code:
 
 ```
 import { LightningElement } from 'lwc';
@@ -179,9 +182,16 @@ export default class NewCBComponent extends LightningElement {
        this.greeting = event.target.value;
    }
 }
+
 ```
-3. In `newCBComponent.js-meta.xml`, copy and paste the following code:
-```
+
+    
+
+In `newCBComponent.js-meta.xml`, copy and paste the following code:
+
+<!-- prettier-ignore -->
+```html
+
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
    <apiVersion>54.0</apiVersion>
@@ -192,12 +202,16 @@ export default class NewCBComponent extends LightningElement {
    <target>lightning__HomePage</target>
  </targets>
 </LightningComponentBundle>
+
 ```
-4. Save all the files.
+
+
+    
+Save all the files.
 
 Let’s deploy this new component to our org – 
 
-1. Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org** 
+Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org** 
 
 Your output window shows this message:
 
@@ -213,6 +227,8 @@ Created  newCBComponent  LightningComponentBundle  force-app/main/default/lwc/ne
 10:22:27.340 ended SFDX: Deploy Source to Org
 
 ```
+    
+
 2. Select **SFDX: Open Default Org** to log into your org.
 3. Navigate to **Setup:Lightning Components** to confirm that a new Lightning Web Component named `newCBComponent` is now available in your org. 
 
