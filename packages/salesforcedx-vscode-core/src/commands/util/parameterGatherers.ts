@@ -117,10 +117,11 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 
 export class SelectFileName implements ParametersGatherer<{ fileName: string }> {
   private options: vscode.InputBoxOptions;
-  private checker: Function = () => { };
+  private checker: (value: string) => string;
 
-  constructor(options?: vscode.InputBoxOptions, additionalVerification?: Function) {
-    this.checker = additionalVerification || this.checker;
+  constructor(options?: vscode.InputBoxOptions, additionalVerification?: (value: string) => string) {
+    const emptyChecker = (_value: string) => '';
+    this.checker = additionalVerification || emptyChecker;
     const defaultValidation = (value: string) => {
       try {
         this.checker(value);
@@ -390,11 +391,3 @@ export class PromptConfirmGatherer
     } as vscode.QuickPickOptions);
   }
 }
-function foo1(): Function {
-  throw new Error('Function not implemented.');
-}
-
-function verify(value: any, string: any) {
-  throw new Error('Function not implemented.');
-}
-
