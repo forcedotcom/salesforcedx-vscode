@@ -10,7 +10,7 @@ import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/reg
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce/api/metadata';
 import * as path from 'path';
-import { SFDX_FOLDER } from '../../src/constants';
+import { SFDX_STATE_FOLDER } from '../../src/constants';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
@@ -45,7 +45,7 @@ export class ComponentUtils {
     }.json`;
     const componentsPath = path.join(
       getRootWorkspacePath(),
-      SFDX_FOLDER,
+      SFDX_STATE_FOLDER,
       'orgs',
       username,
       'metadata',

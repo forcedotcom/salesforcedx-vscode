@@ -7,8 +7,8 @@
 import { Global } from '@salesforce/core';
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
-export const SFDX_CONFIG_FILE = 'config.json';
-export const SFDX_FOLDER = Global.SF_STATE_FOLDER;
+export const SFDX_STATE_FOLDER = Global.SFDX_STATE_FOLDER;
+export const SFDX_CONFIG_FILE = 'sfdx-config.json';
 export const CLIENT_ID = 'sfdx-vscode';
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';

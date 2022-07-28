@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
+import { SFDX_CONFIG_FILE, SFDX_STATE_FOLDER } from '../../../src/constants';
 import * as wsContext from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { getRootWorkspacePath } from '../../../src/util';
@@ -70,7 +70,7 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
     const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = join(
       getRootWorkspacePath(),
-      SFDX_FOLDER,
+      SFDX_STATE_FOLDER,
       SFDX_CONFIG_FILE
     );
     this.cliConfigWatcher = new MockFileWatcher(cliConfigPath);
@@ -97,7 +97,7 @@ describe('WorkspaceContext', () => {
   const testUser2 = 'test2@test.com';
   const cliConfigPath = join(
     getRootWorkspacePath(),
-    SFDX_FOLDER,
+    SFDX_STATE_FOLDER,
     SFDX_CONFIG_FILE
   );
 

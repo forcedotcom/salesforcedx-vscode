@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { createSandbox, SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
-import { SFDX_FOLDER } from '../../../src/constants';
+import { SFDX_STATE_FOLDER } from '../../../src/constants';
 import { workspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
 import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
@@ -87,7 +87,7 @@ describe('get metadata components path', () => {
   function expectedPath(fileName: string) {
     return path.join(
       rootWorkspacePath,
-      SFDX_FOLDER,
+      SFDX_STATE_FOLDER,
       'orgs',
       username,
       'metadata',
