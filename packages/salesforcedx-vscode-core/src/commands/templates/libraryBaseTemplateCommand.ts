@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, OrgConfigProperties } from '@salesforce/core';
+import { OrgConfigProperties } from '@salesforce/core';
 import {
   TemplateOptions,
   TemplateService,
@@ -23,6 +23,7 @@ import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
+  ConfigUtil,
   getRootWorkspacePath,
   hasRootWorkspace,
   MetadataDictionary,
@@ -131,7 +132,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
 
-    const configValue = await ConfigUtil.getConfigValue(
+    const configValue = await ConfigUtil.getSfConfigValue(
       OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     );
     if (configValue === undefined) {
