@@ -23,6 +23,7 @@ import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
+  ConfigUtil,
   getRootWorkspacePath,
   hasRootWorkspace,
   MetadataDictionary,
