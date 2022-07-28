@@ -5,9 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  Global
+} from '@salesforce/core';
 import * as path from 'path';
-import { isNullOrUndefined, isUndefined } from 'util';
 import { getRootWorkspacePath } from '../workspaces';
 import { TelemetryService } from './telemetry';
 
@@ -15,6 +19,14 @@ export enum ConfigSource {
   Local,
   Global,
   None
+}
+
+function isNullOrUndefined(value: any) {
+  return value === null || value === undefined;
+}
+
+function isUndefined(value: any) {
+  return value === undefined;
 }
 
 // This class should be reworked or removed once the ConfigAggregator correctly checks
@@ -44,7 +56,7 @@ export class ConfigUtil {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
-          rootFolder: path.join(rootPath, '.sf'),
+          rootFolder: path.join(rootPath, Global.SF_STATE_FOLDER),
           filename: 'config.json'
         });
         const localValue = myLocalConfig.get(key);

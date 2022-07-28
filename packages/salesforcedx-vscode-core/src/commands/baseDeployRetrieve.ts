@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ConfigAggregator, OrgConfigProperties } from '@salesforce/core';
 import {
-  ConfigUtil,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
@@ -43,6 +43,18 @@ import { createComponentCount, formatException } from './util';
 type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
+async function getApiVersion(): Promise<string | undefined> {
+  const origP = process.cwd();
+  const p = getRootWorkspacePath();
+  process.chdir(p);
+  const aggregator = await ConfigAggregator.create();
+  const apiVersion = aggregator.getPropertyValue(
+    OrgConfigProperties.ORG_API_VERSION
+  );
+  process.chdir(origP);
+  return apiVersion as string;
+}
+
 export abstract class DeployRetrieveExecutor<
   T
 > extends LibraryCommandletExecutor<T> {
@@ -71,9 +83,7 @@ export abstract class DeployRetrieveExecutor<
       // getComponents uses ComponentSet from SDR which assigns
       // the default latest value to components.apiversion
 
-      const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
-        | string
-        | undefined;
+      const apiVersion = await getApiVersion();
       components.apiVersion = apiVersion ?? components.apiVersion;
 
       this.telemetry.addProperty(
