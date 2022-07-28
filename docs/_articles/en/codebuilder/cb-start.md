@@ -167,6 +167,7 @@ Update the files –
     <p>Hello, {greeting}!</p>
     <lightning-input label="Name" value={greeting} onchange={handleChange}></lightning-input>
 </template>
+
 ```
 2. In `newCBComponent.js`, copy, and paste the following code:
 
@@ -179,10 +180,13 @@ export default class NewCBComponent extends LightningElement {
        this.greeting = event.target.value;
    }
 }
+
 ```
 3. In `newCBComponent.js-meta.xml`, copy and paste the following code:
+
 <!-- prettier-ignore -->
 ```html
+
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
    <apiVersion>54.0</apiVersion>
@@ -193,6 +197,7 @@ export default class NewCBComponent extends LightningElement {
    <target>lightning__HomePage</target>
  </targets>
 </LightningComponentBundle>
+
 ```
 4. Save all the files.
 
