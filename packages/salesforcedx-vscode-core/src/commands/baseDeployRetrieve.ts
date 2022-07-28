@@ -9,12 +9,12 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { getApiVersion } from '@salesforce/salesforcedx-utils-vscode/out/src/config/configUtil';
 import {
   Row,
   Table
 } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { getApiVersion } from '@salesforce/salesforcedx-utils-vscode/src/config';
 import {
   ComponentSet,
   DeployResult,

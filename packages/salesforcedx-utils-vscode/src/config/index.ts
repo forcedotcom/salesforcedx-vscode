@@ -9,3 +9,4 @@
  * This file is intentionally left blank. ConfigSource and ConfigUtil are exported
  * in the root of salesforcedx-utils-vscode.
  */
+export { getApiVersion } from './configUtil';
