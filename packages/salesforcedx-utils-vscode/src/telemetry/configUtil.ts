@@ -7,7 +7,6 @@
 
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
-import { isNullOrUndefined, isUndefined } from 'util';
 import { getRootWorkspacePath } from '../workspaces';
 import { TelemetryService } from './telemetry';
 
@@ -15,6 +14,14 @@ export enum ConfigSource {
   Local,
   Global,
   None
+}
+
+function isNullOrUndefined(value: any) {
+  return value === null || value === undefined;
+}
+
+function isUndefined(value: any) {
+  return value === undefined;
 }
 
 // This class should be reworked or removed once the ConfigAggregator correctly checks
