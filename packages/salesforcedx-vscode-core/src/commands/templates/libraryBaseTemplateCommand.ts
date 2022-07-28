@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgConfigProperties } from '@salesforce/core';
+import {
+  Config,
+  ConfigAggregator,
+  OrgConfigProperties
+} from '@salesforce/core';
 import {
   TemplateOptions,
   TemplateService,
@@ -123,7 +127,18 @@ export abstract class LibraryBaseTemplateCommand<T>
       notificationService.showFailedExecution(commandName);
     }
   }
-
+  private async getConfigAggregator(): Promise<ConfigAggregator> {
+    const origCurrentWorkingDirectory = process.cwd();
+    const rootWorkspacePath = getRootWorkspacePath();
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values
+    process.chdir(rootWorkspacePath);
+    const configAggregator = await ConfigAggregator.create();
+    // Change the current working directory back to what it was
+    // before returning
+    process.chdir(origCurrentWorkingDirectory);
+    return configAggregator;
+  }
   private async createTemplate(
     templateType: TemplateType,
     templateOptions: TemplateOptions
@@ -131,8 +146,8 @@ export abstract class LibraryBaseTemplateCommand<T>
     const cwd = getRootWorkspacePath();
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
-
-    const configValue = await ConfigUtil.getConfigValue(
+    const configAggregator = await this.getConfigAggregator();
+    const configValue: string | undefined = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     );
     if (configValue === undefined) {
