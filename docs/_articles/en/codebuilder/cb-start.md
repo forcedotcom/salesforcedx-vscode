@@ -169,7 +169,7 @@ Update the files –
 </template>
 ```
 
-
+    
 
 2. In `newCBComponent.js`, copy, and paste the following code:
 
@@ -185,7 +185,7 @@ export default class NewCBComponent extends LightningElement {
 
 ```
 
-
+    
 
 3. In `newCBComponent.js-meta.xml`, copy and paste the following code:
 
@@ -206,7 +206,7 @@ export default class NewCBComponent extends LightningElement {
 ```
 
 
-
+    
 4. Save all the files.
 
 Let’s deploy this new component to our org – 
@@ -227,7 +227,7 @@ Created  newCBComponent  LightningComponentBundle  force-app/main/default/lwc/ne
 10:22:27.340 ended SFDX: Deploy Source to Org
 
 ```
-
+    
 
 2. Select **SFDX: Open Default Org** to log into your org.
 3. Navigate to **Setup:Lightning Components** to confirm that a new Lightning Web Component named `newCBComponent` is now available in your org. 
