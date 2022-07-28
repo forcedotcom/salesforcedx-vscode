@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigAggregator, SfConfigProperties } from '@salesforce/core';
 import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { which } from 'shelljs';
 import { window } from 'vscode';
-import { ConfigUtil } from '.';
+import { getRootWorkspacePath } from '.';
 import {
   ENV_SFDX_DISABLE_TELEMETRY,
   SFDX_CLI_DOWNLOAD_LINK,
@@ -48,11 +49,28 @@ export function disableCLITelemetry() {
   );
 }
 
+async function getConfigAggregator(): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
+  process.chdir(rootWorkspacePath);
+  const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
+}
+
 export async function isCLITelemetryAllowed(): Promise<boolean> {
   try {
-    const disabledConfig =
-      (await ConfigUtil.getConfigValue(SFDX_CONFIG_DISABLE_TELEMETRY)) || '';
-    return disabledConfig !== 'true';
+    const configAggregator = await getConfigAggregator();
+    const disableTelemetry:
+      | string
+      | undefined = configAggregator.getPropertyValue(
+      SfConfigProperties.DISABLE_TELEMETRY
+    );
+    return disableTelemetry !== 'true';
   } catch (e) {
     console.log('Error checking cli settings: ' + e);
   }
