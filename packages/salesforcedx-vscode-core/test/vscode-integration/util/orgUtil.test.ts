@@ -150,12 +150,12 @@ describe('orgUtil tests', () => {
         .resolves([
           {
             isDevHub: false,
-            expirationDate: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() + 3}`,
+            expirationDate: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() + 2}`,
             username: 'foo'
           },
           {
             isDevHub: false,
-            expirationDate: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() + 4}`,
+            expirationDate: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() + 3}`,
             username: 'bar'
           }
         ]);
