@@ -160,7 +160,7 @@ Three new files are created in the `force-app/main/default/lwc/newCBComponent` f
 
 Update the files –
 
-1. In `newCBComponent.html`, copy and paste the following code:
+In `newCBComponent.html`, copy and paste the following code:
 
 ```
 <template>
@@ -171,7 +171,7 @@ Update the files –
 
     
 
-2. In `newCBComponent.js`, copy, and paste the following code:
+In `newCBComponent.js`, copy, and paste the following code:
 
 ```
 import { LightningElement } from 'lwc';
@@ -187,7 +187,7 @@ export default class NewCBComponent extends LightningElement {
 
     
 
-3. In `newCBComponent.js-meta.xml`, copy and paste the following code:
+In `newCBComponent.js-meta.xml`, copy and paste the following code:
 
 <!-- prettier-ignore -->
 ```html
@@ -207,11 +207,11 @@ export default class NewCBComponent extends LightningElement {
 
 
     
-4. Save all the files.
+Save all the files.
 
 Let’s deploy this new component to our org – 
 
-1. Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org** 
+Right-click the `force-app/main/default/lwc/newCBComponent` folder and click **SFDX: Deploy Source to Org** 
 
 Your output window shows this message:
 
