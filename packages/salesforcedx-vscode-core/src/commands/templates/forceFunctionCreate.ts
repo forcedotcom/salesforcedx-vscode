@@ -132,8 +132,33 @@ export class FunctionInfoGatherer implements ParametersGatherer<{ language: stri
   }
 }
 
+function nameVerification(value: string) {
+  if (value.length > 47) {
+    throw new Error('Function names cannot contain more than 47 characters.');
+  }
+  const functionNameRegex = /^[a-z0-9]+$/;
+  if (!functionNameRegex.test(value)) {
+    throw new Error('Name must contain only lowercase letters and numbers.');
+  }
+  const functionNameStartRegex = /^[a-z]/;
+  if (!functionNameStartRegex.test(value)) {
+    throw new Error('Name must start with a letter.');
+  }
+  return '';
+} // TODO move to appropriate class/package and/or localize strings
+
 const parameterGatherer = new CompositeParametersGatherer(
-  new SelectFileName({ prompt: nls.localize('force_function_enter_function') }),
+  new SelectFileName({
+    prompt: nls.localize('force_function_enter_function'),
+    validateInput: value => {
+      try {
+        nameVerification(value);
+      } catch (error) {
+        return error.message;
+      }
+      return null;
+    }
+  }),
   new FunctionInfoGatherer()
 );
 
