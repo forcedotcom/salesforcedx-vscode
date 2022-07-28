@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgConfigProperties } from '@salesforce/core';
+import { ConfigAggregator, OrgConfigProperties } from '@salesforce/core';
 import {
   TemplateOptions,
   TemplateService,
@@ -23,7 +23,6 @@ import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
-  ConfigUtil,
   getRootWorkspacePath,
   hasRootWorkspace,
   MetadataDictionary,
