@@ -21,7 +21,7 @@ export class OrgAuthInfo {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
+      const defaultUserName = await ConfigUtil.getSfConfigValue(
         OrgConfigProperties.TARGET_ORG
       );
       if (defaultUserName === undefined) {
@@ -62,7 +62,7 @@ export class OrgAuthInfo {
     configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
     try {
-      const defaultDevHubUserName = await ConfigUtil.getConfigValue(
+      const defaultDevHubUserName = await ConfigUtil.getSfConfigValue(
         OrgConfigProperties.TARGET_DEV_HUB,
         configSource
       );

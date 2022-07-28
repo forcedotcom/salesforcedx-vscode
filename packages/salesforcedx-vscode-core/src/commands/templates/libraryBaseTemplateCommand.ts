@@ -141,8 +141,8 @@ export abstract class LibraryBaseTemplateCommand<T>
     const cwd = getRootWorkspacePath();
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
-    const configAggregator = await this.getConfigAggregator();
-    const configValue: string | undefined = configAggregator.getPropertyValue(
+
+    const configValue = await ConfigUtil.getSfConfigValue(
       OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     );
     if (configValue === undefined) {
