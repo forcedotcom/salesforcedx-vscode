@@ -181,7 +181,8 @@ export default class NewCBComponent extends LightningElement {
 }
 ```
 3. In `newCBComponent.js-meta.xml`, copy and paste the following code:
-```
+<!-- prettier-ignore -->
+```html
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
    <apiVersion>54.0</apiVersion>
