@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ConfigAggregator,
-  ConfigFile,
-  ConfigValue,
-  Global
-} from '@salesforce/core';
+import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../src/constants';
 import { telemetryService } from '../telemetry';
