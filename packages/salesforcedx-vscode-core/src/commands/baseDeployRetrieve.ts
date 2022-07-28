@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ConfigUtil,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { getApiVersion } from '@salesforce/salesforcedx-utils-vscode/out/src/config/configUtil';
 import {
   Row,
   Table
@@ -71,9 +71,7 @@ export abstract class DeployRetrieveExecutor<
       // getComponents uses ComponentSet from SDR which assigns
       // the default latest value to components.apiversion
 
-      const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
-        | string
-        | undefined;
+      const apiVersion = (await getApiVersion()) as string | undefined;
       components.apiVersion = apiVersion ?? components.apiVersion;
 
       this.telemetry.addProperty(

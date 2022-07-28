@@ -6,7 +6,7 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { getApiVersion } from '@salesforce/salesforcedx-utils-vscode/out/src/config/configUtil';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
@@ -191,9 +191,7 @@ describe('Base Deploy Retrieve Commands', () => {
     it('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
       const configApiVersion = '30.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      sb.stub(getApiVersion).returns(configApiVersion);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
@@ -209,9 +207,7 @@ describe('Base Deploy Retrieve Commands', () => {
       executor.lifecycle.getComponentsStub.returns(getComponentsResult);
 
       const configApiVersion = '45.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      sb.stub(getApiVersion).returns(configApiVersion);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
@@ -219,18 +215,18 @@ describe('Base Deploy Retrieve Commands', () => {
       expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
     });
 
-  //   xit('should use the registry api version by default', async () => {
-  //     const executor = new TestDeployRetrieve();
-  //     const registryApiVersion = registry.apiVersion;
-  //     sb.stub(ConfigUtil, 'getConfigValue')
-  //       .withArgs('apiVersion')
-  //       .returns(undefined);
+    //   xit('should use the registry api version by default', async () => {
+    //     const executor = new TestDeployRetrieve();
+    //     const registryApiVersion = registry.apiVersion;
+    //     sb.stub(ConfigUtil, 'getConfigValue')
+    //       .withArgs('apiVersion')
+    //       .returns(undefined);
 
-  //     await executor.run({ data: {}, type: 'CONTINUE' });
-  //     const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+    //     await executor.run({ data: {}, type: 'CONTINUE' });
+    //     const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
-  //     expect(components.apiVersion).to.equal(registryApiVersion);
-  //   });
+    //     expect(components.apiVersion).to.equal(registryApiVersion);
+    //   });
   });
 
   describe('DeployExecutor', () => {
