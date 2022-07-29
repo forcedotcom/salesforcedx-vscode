@@ -108,7 +108,14 @@ export class ConfigUtil {
     if (isUndefined(source) || source === ConfigSource.Global) {
       try {
         const aggregator = await ConfigAggregator.create();
-        const globalValue = aggregator.getPropertyValue(key);
+        let globalValue;
+        try {
+          globalValue = aggregator.getPropertyValue(key);
+        } catch (error) {
+          // catch only this type of error here?
+          // "org-custom-metadata-templates" throws "UnknownConfigKeyError"
+          console.log(error);
+        }
         if (!isNullOrUndefined(globalValue)) {
           return globalValue;
         }
