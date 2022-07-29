@@ -57,8 +57,8 @@ export class ConfigUtil {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
-          rootFolder: path.join(rootPath, SF_STATE_FOLDER),
-          filename: SF_CONFIG_FILE
+          rootFolder: path.join(rootPath, SFDX_STATE_FOLDER),
+          filename: SFDX_CONFIG_FILE
         });
         const localValue = myLocalConfig.get(key);
         if (!isNullOrUndefined(localValue)) {
@@ -108,14 +108,7 @@ export class ConfigUtil {
     if (isUndefined(source) || source === ConfigSource.Global) {
       try {
         const aggregator = await ConfigAggregator.create();
-        let globalValue;
-        try {
-          globalValue = aggregator.getPropertyValue(key);
-        } catch (error) {
-          // catch only this type of error here?
-          // "org-custom-metadata-templates" throws "UnknownConfigKeyError"
-          console.log(error);
-        }
+        const globalValue = aggregator.getPropertyValue(key);
         if (!isNullOrUndefined(globalValue)) {
           return globalValue;
         }
