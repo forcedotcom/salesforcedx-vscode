@@ -44,14 +44,14 @@ type DeployRetrieveResult = DeployResult | RetrieveResult;
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 async function getApiVersion(): Promise<string | undefined> {
-  const origP = process.cwd();
-  const p = getRootWorkspacePath();
-  process.chdir(p);
+  const originalPath = process.cwd();
+  const workspacePath = getRootWorkspacePath();
+  process.chdir(workspacePath);
   const aggregator = await ConfigAggregator.create();
   const apiVersion = aggregator.getPropertyValue(
     OrgConfigProperties.ORG_API_VERSION
   );
-  process.chdir(origP);
+  process.chdir(originalPath);
   return apiVersion as string;
 }
 
