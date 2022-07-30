@@ -22,7 +22,9 @@ async function getConfigAggregator(
 }
 
 export class ConfigUtil {
-  public static async getUsername(projectPath: string): Promise<string | null> {
+  public static async getUsername(
+    projectPath: string
+  ): Promise<string | undefined> {
     const configAggregator = await getConfigAggregator(projectPath);
     const defaultUserNameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
