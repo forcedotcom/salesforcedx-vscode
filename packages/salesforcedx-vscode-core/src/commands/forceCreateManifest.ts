@@ -25,6 +25,8 @@ const MANIFEST_SAVE_PROMPT = 'manifest_input_save_prompt';
 export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
   private sourcePaths: string[];
   private responseText: string | undefined;
+  protected showChannelOutput = true;
+
   constructor(sourcePaths: string[], responseText: string | undefined) {
     super(
       nls.localize(CREATE_MANIFEST_EXECUTOR),

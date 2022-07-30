@@ -54,7 +54,6 @@ export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainer
 }
 
 export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
-  protected showChannelOutput = false;
 
   public build(data: {}): Command {
     const command = new SfdxCommandBuilder().withDescription(

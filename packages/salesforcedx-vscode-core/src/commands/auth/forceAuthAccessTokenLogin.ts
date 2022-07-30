@@ -21,6 +21,9 @@ import {
 export class ForceAuthAccessTokenExecutor extends LibraryCommandletExecutor<
   AccessTokenParams
 > {
+
+  protected showChannelOutput = true;
+
   constructor() {
     super(
       nls.localize('force_auth_access_token_authorize_org_text'),

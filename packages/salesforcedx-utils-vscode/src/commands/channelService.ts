@@ -17,6 +17,7 @@ export class ChannelService {
 
   public constructor(channel: OutputChannel) {
     this.channel = channel;
+    this.channel.show(true);
   }
 
   public static getInstance(channelName: string) {

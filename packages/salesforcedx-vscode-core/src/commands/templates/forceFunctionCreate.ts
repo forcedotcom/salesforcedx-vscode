@@ -41,6 +41,9 @@ const LOG_NAME = 'force_function_create';
 export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
   any
 > {
+
+  protected showChannelOutput = true;
+
   constructor() {
     super(nls.localize('force_function_create_text'), LOG_NAME, OUTPUT_CHANNEL);
   }

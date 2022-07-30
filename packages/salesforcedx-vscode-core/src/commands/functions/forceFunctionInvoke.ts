@@ -27,6 +27,9 @@ import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/
 import * as fs from 'fs';
 
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {
+
+  protected showChannelOutput = true;
+
   constructor(debug: boolean = false) {
     super(
       nls.localize('force_function_invoke_text'),
