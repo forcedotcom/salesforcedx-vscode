@@ -114,13 +114,6 @@ describe('SFDX CLI Configuration utility', () => {
       expect(response).to.equal(false);
     });
 
-    // it('Should return true if telemetry setting is undefined', async () => {
-    //   getConfigValueStub.withArgs(SFDX_CONFIG_DISABLE_TELEMETRY).returns('');
-
-    //   const response = await isCLITelemetryAllowed();
-    //   expect(response).to.equal(true);
-    // });
-
     it('Should return true if telemetry setting is enabled', async () => {
       sandboxStub
         .stub(ConfigAggregator.prototype, 'getPropertyValue')
@@ -130,13 +123,6 @@ describe('SFDX CLI Configuration utility', () => {
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
     });
-
-    // it("Should return true if CLI doesn't support telemetry setting", async () => {
-    //   getConfigValueStub.withArgs(SFDX_CONFIG_DISABLE_TELEMETRY).returns('');
-
-    //   const response = await isCLITelemetryAllowed();
-    //   expect(response).to.equal(true);
-    // });
 
     it('Should set an environment variable', async () => {
       const cliEnvSpy = sandboxStub.stub(
