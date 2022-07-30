@@ -11,7 +11,6 @@ import {
   OrgConfigProperties
 } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
