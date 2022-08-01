@@ -4,9 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
+import {
+  AuthInfo,
+  ConfigAggregator,
+  Connection,
+  OrgConfigProperties
+} from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
@@ -191,8 +195,8 @@ describe('Base Deploy Retrieve Commands', () => {
     it('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
       const configApiVersion = '30.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
+      sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
+        .withArgs(OrgConfigProperties.ORG_API_VERSION)
         .returns(configApiVersion);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
@@ -209,8 +213,8 @@ describe('Base Deploy Retrieve Commands', () => {
       executor.lifecycle.getComponentsStub.returns(getComponentsResult);
 
       const configApiVersion = '45.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
+      sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
+        .withArgs(OrgConfigProperties.ORG_API_VERSION)
         .returns(configApiVersion);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
@@ -218,19 +222,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
     });
-
-  //   xit('should use the registry api version by default', async () => {
-  //     const executor = new TestDeployRetrieve();
-  //     const registryApiVersion = registry.apiVersion;
-  //     sb.stub(ConfigUtil, 'getConfigValue')
-  //       .withArgs('apiVersion')
-  //       .returns(undefined);
-
-  //     await executor.run({ data: {}, type: 'CONTINUE' });
-  //     const components = executor.lifecycle.doOperationStub.firstCall.args[0];
-
-  //     expect(components.apiVersion).to.equal(registryApiVersion);
-  //   });
   });
 
   describe('DeployExecutor', () => {

@@ -5,52 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ConfigAggregator,
-  ConfigFile,
-  ConfigValue,
-  StateAggregator
-} from '@salesforce/core';
-import * as path from 'path';
+import { ConfigAggregator, OrgConfigProperties } from '@salesforce/core';
 
-const defaultUserNameKey = 'defaultusername';
+async function getConfigAggregator(
+  projectPath: string
+): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
+  process.chdir(projectPath);
+  const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
+}
 
 export class ConfigUtil {
   public static async getUsername(
     projectPath: string
   ): Promise<string | undefined> {
-    const defaultUserName = (await this.getConfigValue(
-      projectPath,
-      defaultUserNameKey
-    )) as string;
-    const info = await StateAggregator.getInstance();
-    const username = info.aliases.resolveValue(defaultUserName);
-    return username;
-  }
-
-  public static async getConfigValue(
-    projectPath: string,
-    key: string
-  ): Promise<ConfigValue | undefined> {
-    try {
-      const myLocalConfig = await ConfigFile.create({
-        isGlobal: false,
-        rootFolder: path.join(projectPath, '.sf'),
-        filename: 'config.json'
-      });
-      const localValue = myLocalConfig.get(key);
-      if (localValue) {
-        return localValue;
-      } else {
-        const aggregator = await ConfigAggregator.create();
-        const globalValue = aggregator.getPropertyValue(key);
-        if (globalValue) {
-          return globalValue;
-        }
-      }
-    } catch (err) {
-      return undefined;
-    }
-    return undefined;
+    const configAggregator = await getConfigAggregator(projectPath);
+    const defaultUserNameOrAlias = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
+    );
+    return defaultUserNameOrAlias as string;
   }
 }

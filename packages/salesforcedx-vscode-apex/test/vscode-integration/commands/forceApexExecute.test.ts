@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteService } from '@salesforce/apex-node';
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import {
+  AuthInfo,
+  ConfigAggregator,
+  Connection,
+  Global
+} from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
@@ -43,7 +48,7 @@ describe('Force Apex Execute', () => {
       .withArgs('salesforcedx-vscode-core')
       .returns({
         get: settingStub
-    });
+      });
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -55,23 +60,22 @@ describe('Force Apex Execute', () => {
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
       .withArgs('defaultusername')
       .returns(testData.username);
-    sb.stub(workspaceContext, 'getConnection')
-      .returns(mockConnection);
+    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
-    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags')
+    traceFlagsStub = sb
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
 
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('/test')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('/test')
+      }
+    }));
 
-    writeFileStub = sb.stub(fs, 'writeFileSync')
-      .returns(true);
+    writeFileStub = sb.stub(fs, 'writeFileSync').returns(true);
 
-    executeCommandStub = sb.stub(vscode.commands, 'executeCommand')
+    executeCommandStub = sb
+      .stub(vscode.commands, 'executeCommand')
       .withArgs('sfdx.launch.replay.debugger.logfile.path')
       .returns(true);
   });
@@ -84,7 +88,7 @@ describe('Force Apex Execute', () => {
     it('should return the selected file to execute anonymous apex', async () => {
       const fileName = path.join(
         getRootWorkspacePath(),
-        '.sfdx',
+        Global.SFDX_STATE_FOLDER,
         'tools',
         'tempApex.input'
       );
@@ -111,7 +115,7 @@ describe('Force Apex Execute', () => {
       const text = 'System.assert(true);';
       const fileName = path.join(
         getRootWorkspacePath(),
-        '.sfdx',
+        Global.SFDX_STATE_FOLDER,
         'tools',
         'tempApex.input'
       );

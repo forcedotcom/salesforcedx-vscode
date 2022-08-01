@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import {
-  SFDX_DIR,
   SOBJECTS_DIR,
   STANDARDOBJECTS_DIR,
   TOOLS_DIR
@@ -229,13 +229,18 @@ export async function initSObjectDefinitions(projectPath: string) {
 }
 
 function getSObjectsDirectory(projectPath: string) {
-  return path.join(projectPath, SFDX_DIR, TOOLS_DIR, SOBJECTS_DIR);
+  return path.join(
+    projectPath,
+    Global.SFDX_STATE_FOLDER,
+    TOOLS_DIR,
+    SOBJECTS_DIR
+  );
 }
 
 function getStandardSObjectsDirectory(projectPath: string) {
   return path.join(
     projectPath,
-    SFDX_DIR,
+    Global.SFDX_STATE_FOLDER,
     TOOLS_DIR,
     SOBJECTS_DIR,
     STANDARDOBJECTS_DIR

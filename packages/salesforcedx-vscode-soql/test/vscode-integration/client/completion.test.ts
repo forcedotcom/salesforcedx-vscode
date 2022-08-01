@@ -4,22 +4,31 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Connection, Global } from '@salesforce/core';
 import { expect } from 'chai';
-import { Connection } from '@salesforce/core';
-import * as path from 'path';
 import * as fsExtra from 'fs-extra';
+import * as path from 'path';
 import * as sinon from 'sinon';
-import * as vscode from 'vscode';
 
-import { CompletionItem, CompletionItemKind } from 'vscode';
-import { extensions, Position, Uri, workspace, commands } from 'vscode';
 import {
-  stubMockConnection,
+  commands,
+  CompletionItem,
+  CompletionItemKind,
+  CompletionList,
+  extensions,
+  Position,
+  TextDocument,
+  Uri,
+  window,
+  workspace
+} from 'vscode';
+import {
   spyChannelService,
-  stubFailingMockConnection
+  stubFailingMockConnection,
+  stubMockConnection
 } from '../testUtilities';
 
-let doc: vscode.TextDocument;
+let doc: TextDocument;
 let soqlFileUri: Uri;
 let workspacePath: string;
 let sandbox: sinon.SinonSandbox;
@@ -67,7 +76,7 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
       .then(content => content.toLocaleString());
   }
 });
-const configDir = '.sf';
+const configDir = Global.SFDX_STATE_FOLDER;
 
 describe('Should do completion', async () => {
   before(() => {
@@ -547,11 +556,11 @@ function testCompletion(
     let passed = false;
     for (let tries = 3; !passed && tries > 0; tries--) {
       try {
-        const actualCompletionItems = ((await vscode.commands.executeCommand(
+        const actualCompletionItems = ((await commands.executeCommand(
           'vscode.executeCompletionItemProvider',
           docUri,
           position
-        )) as vscode.CompletionList).items;
+        )) as CompletionList).items;
 
         const pickMainItemKeys = (item: CompletionItem) => ({
           label: item.label,
@@ -602,12 +611,12 @@ async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function activate(docUri: vscode.Uri) {
+export async function activate(docUri: Uri) {
   const ext = extensions.getExtension('salesforce.salesforcedx-vscode-soql')!;
   await ext.activate();
   try {
-    doc = await vscode.workspace.openTextDocument(docUri);
-    await vscode.window.showTextDocument(doc);
+    doc = await workspace.openTextDocument(docUri);
+    await window.showTextDocument(doc);
   } catch (e) {
     console.error(e);
   }
@@ -615,9 +624,9 @@ export async function activate(docUri: vscode.Uri) {
 
 async function prepareSOQLFileAndGetCursorPosition(
   soqlTextWithCursorMarker: string,
-  fileUri: vscode.Uri,
-  cursorChar: string = '|'
-): Promise<vscode.Position> {
+  fileUri: Uri,
+  cursorChar = '|'
+): Promise<Position> {
   const position = getCursorPosition(soqlTextWithCursorMarker, cursorChar);
   const soqlText = soqlTextWithCursorMarker.replace(cursorChar, '');
 
@@ -627,7 +636,7 @@ async function prepareSOQLFileAndGetCursorPosition(
   return position;
 }
 
-function getCursorPosition(text: string, cursorChar: string = '|'): Position {
+function getCursorPosition(text: string, cursorChar = '|'): Position {
   for (const [line, lineText] of text.split('\n').entries()) {
     const column = lineText.indexOf(cursorChar);
     if (column >= 0) return new Position(line, column);

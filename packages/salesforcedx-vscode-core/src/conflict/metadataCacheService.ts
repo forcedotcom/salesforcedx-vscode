@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Global } from '@salesforce/core';
 import {
   ComponentSet,
   FileProperties,
@@ -56,7 +57,7 @@ interface RecomposedComponent {
 }
 
 export class MetadataCacheService {
-  private static CACHE_FOLDER = ['.sfdx', 'diff'];
+  private static CACHE_FOLDER = [Global.SFDX_STATE_FOLDER, 'diff'];
   private static PROPERTIES_FOLDER = ['prop'];
   private static PROPERTIES_FILE = 'file-props.json';
 
@@ -263,7 +264,9 @@ export class MetadataCacheService {
    * @param result A MetadataCacheResult
    * @returns An array with one entry per retrieved component, with all corresponding information about the component included
    */
-  public static correlateResults(result: MetadataCacheResult): CorrelatedComponent[] {
+  public static correlateResults(
+    result: MetadataCacheResult
+  ): CorrelatedComponent[] {
     const components: CorrelatedComponent[] = [];
 
     const projectIndex = new Map<string, RecomposedComponent>();
@@ -274,7 +277,10 @@ export class MetadataCacheService {
 
     const fileIndex = new Map<string, FileProperties>();
     for (const fileProperty of result.properties) {
-      fileIndex.set(MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
+      fileIndex.set(
+        MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName),
+        fileProperty
+      );
     }
 
     fileIndex.forEach((fileProperties, key) => {
@@ -310,12 +316,18 @@ export class MetadataCacheService {
    * @param index The map which is mutated by this function
    * @param components The parent and/or child components to add to the map
    */
-  private static pairParentsAndChildren(index: Map<string, RecomposedComponent>, components: SourceComponent[]) {
+  private static pairParentsAndChildren(
+    index: Map<string, RecomposedComponent>,
+    components: SourceComponent[]
+  ) {
     for (const comp of components) {
       const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
       // If the component has a parent it is assumed to be a child
       if (comp.parent) {
-        const parentKey = MetadataCacheService.makeKey(comp.parent.type.name, comp.parent.fullName);
+        const parentKey = MetadataCacheService.makeKey(
+          comp.parent.type.name,
+          comp.parent.fullName
+        );
         const parentEntry = index.get(parentKey);
         if (parentEntry) {
           // Add the child component if we have an entry for the parent

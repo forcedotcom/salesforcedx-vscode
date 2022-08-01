@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { Global } from '@salesforce/core';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -34,7 +35,7 @@ describe('get metadata types folder', () => {
     getUsernameStub.returns('test-username1@example.com');
     const filePath = path.join(
       rootWorkspacePath,
-      '.sfdx',
+      Global.SFDX_STATE_FOLDER,
       'orgs',
       'test-username1@example.com',
       'metadata'
@@ -89,9 +90,9 @@ describe('build metadata types list', () => {
     const data = JSON.stringify({
       status: 0,
       result: {
-        metadataObjects: Array.from(TypeUtils.UNSUPPORTED_TYPES).map(
-          xmlName => ({ xmlName })
-        )
+        metadataObjects: Array.from(
+          TypeUtils.UNSUPPORTED_TYPES
+        ).map(xmlName => ({ xmlName }))
       }
     });
     const types = await typeUtil.buildTypesList(data, undefined);

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgConfigProperties } from '@salesforce/core';
 import {
   TemplateOptions,
   TemplateService,
@@ -132,13 +131,21 @@ export abstract class LibraryBaseTemplateCommand<T>
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
 
-    const configValue = await ConfigUtil.getConfigValue(
-      OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
+    const sfdxConfigValue = await ConfigUtil.getConfigValue(
+      'customOrgMetadataTemplates'
     );
-    if (configValue === undefined) {
+    // See W-11445939
+    // this key should be updated to use
+    // OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
+    // once Templates library is updated and compatible like so:
+    // const sfConfigValue = await ConfigUtil.getSfConfigValue(
+    //   OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
+    // );
+
+    if (sfdxConfigValue === undefined) {
       customOrgMetadataTemplates = undefined;
     } else {
-      customOrgMetadataTemplates = String(configValue);
+      customOrgMetadataTemplates = String(sfdxConfigValue);
     }
 
     this.telemetryProperties.isUsingCustomOrgMetadataTemplates = String(

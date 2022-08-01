@@ -4,11 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ConfigAggregator, OrgConfigProperties } from '@salesforce/core';
 import { ExtensionContext, TreeView, window } from 'vscode';
 import { nls } from '../messages';
 import { BrowserNode, MetadataOutlineProvider } from '../orgBrowser';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo } from '../util';
+import { getRootWorkspacePath, OrgAuthInfo } from '../util';
 
 export class OrgBrowser {
   private static VIEW_ID = 'metadata';
@@ -40,8 +41,24 @@ export class OrgBrowser {
     throw this.initError();
   }
 
+  private async getConfigAggregator(): Promise<ConfigAggregator> {
+    const origCurrentWorkingDirectory = process.cwd();
+    const rootWorkspacePath = getRootWorkspacePath();
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values
+    process.chdir(rootWorkspacePath);
+    const configAggregator = await ConfigAggregator.create();
+    // Change the current working directory back to what it was
+    // before returning
+    process.chdir(origCurrentWorkingDirectory);
+    return configAggregator;
+  }
+
   public async init(extensionContext: ExtensionContext) {
-    const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
+    const configAggregator = await this.getConfigAggregator();
+    const username: string | undefined = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
+    );
     this._dataProvider = new MetadataOutlineProvider(username);
     this._treeView = window.createTreeView(OrgBrowser.VIEW_ID, {
       treeDataProvider: this._dataProvider,

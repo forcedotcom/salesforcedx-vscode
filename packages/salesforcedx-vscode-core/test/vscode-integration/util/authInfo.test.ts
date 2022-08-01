@@ -86,7 +86,7 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should not show a message if there is a dev hub set', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getSfConfigValue');
       configUtilStub.returns('username');
       const infoMessageStub = sandbox.stub(
         vscode.window,
@@ -132,7 +132,7 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getSfConfigValue');
       configUtilStub.returns(defaultUsername);
 
       const connection = await OrgAuthInfo.getConnection();
