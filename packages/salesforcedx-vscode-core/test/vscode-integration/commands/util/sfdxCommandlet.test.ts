@@ -10,13 +10,22 @@ import {
   ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
+import { createSandbox, SinonSandbox } from 'sinon';
+import { channelService } from '../../../../src/channels';
 import {
   CommandletExecutor,
   SfdxCommandlet
 } from '../../../../src/commands/util';
+import { sfdxCoreSettings } from '../../../../src/settings';
 
-// tslint:disable:no-unused-expression
 describe('SfdxCommandlet', () => {
+  let sandbox: SinonSandbox;
+  beforeEach(() => {
+    sandbox = createSandbox();
+  });
+  afterEach(() => {
+    sandbox.restore();
+  });
   it('Should not proceed if checker fails', async () => {
     const commandlet = new SfdxCommandlet(
       new class {
@@ -83,6 +92,65 @@ describe('SfdxCommandlet', () => {
 
     await commandlet.run();
 
+    // tslint:disable-next-line:no-unused-expression
     expect(executed).to.be.true;
+  });
+
+  it('Should clear channel if user preference is set to true', async () => {
+    sandbox
+        .stub(
+          sfdxCoreSettings,
+          'getEnableClearOutputBeforeEachCommand'
+        )
+      .returns(false);
+    const clearStub = sandbox.stub(channelService, 'clear');
+    const commandlet = new SfdxCommandlet(
+      new class {
+        public check(): boolean {
+          return true;
+        }
+      }(),
+      new class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
+        }
+      }(),
+      new class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {
+        }
+      }()
+    );
+    await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
+    expect(clearStub.called).to.be.false;
+  });
+
+  it('Should not clear channel if user preference is set to false', async () => {
+    sandbox
+        .stub(
+          sfdxCoreSettings,
+          'getEnableClearOutputBeforeEachCommand'
+        )
+      .returns(false);
+    const clearStub = sandbox.stub(channelService, 'clear');
+    const commandlet = new SfdxCommandlet(
+      new class {
+        public check(): boolean {
+          return true;
+        }
+      }(),
+      new class implements ParametersGatherer<{}> {
+        public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+          return { type: 'CONTINUE', data: {} };
+        }
+      }(),
+      new class implements CommandletExecutor<{}> {
+        public execute(response: ContinueResponse<{}>): void {
+        }
+      }()
+    );
+    await commandlet.run();
+    // tslint:disable-next-line:no-unused-expression
+    expect(clearStub.called).to.be.false;
   });
 });
