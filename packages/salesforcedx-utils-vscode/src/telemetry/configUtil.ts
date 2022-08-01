@@ -12,6 +12,7 @@ import {
   Global
 } from '@salesforce/core';
 import * as path from 'path';
+import { SFDX_CONFIG_FILE } from '../types/constants';
 import { getRootWorkspacePath } from '../workspaces';
 import { TelemetryService } from './telemetry';
 
@@ -37,11 +38,11 @@ function isUndefined(value: any) {
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
     let value = await ConfigUtil.getConfigValue(key, ConfigSource.Local);
-    if (!isNullOrUndefined(value)) {
+    if (value !== null && value !== undefined) {
       return ConfigSource.Local;
     }
     value = await ConfigUtil.getConfigValue(key, ConfigSource.Global);
-    if (!isNullOrUndefined(value)) {
+    if (value !== null && value !== undefined) {
       return ConfigSource.Global;
     }
     return ConfigSource.None;
@@ -51,16 +52,16 @@ export class ConfigUtil {
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
   ): Promise<ConfigValue | undefined> {
-    if (isUndefined(source) || source === ConfigSource.Local) {
+    if (source === undefined || source === ConfigSource.Local) {
       try {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
           rootFolder: path.join(rootPath, Global.SFDX_STATE_FOLDER),
-          filename: 'sfdx-config.json'
+          filename: SFDX_CONFIG_FILE
         });
         const localValue = myLocalConfig.get(key);
-        if (!isNullOrUndefined(localValue)) {
+        if (localValue !== null && localValue !== undefined) {
           return localValue;
         }
       } catch (err) {
@@ -71,11 +72,11 @@ export class ConfigUtil {
         return undefined;
       }
     }
-    if (isUndefined(source) || source === ConfigSource.Global) {
+    if (source === undefined || source === ConfigSource.Global) {
       try {
         const aggregator = await ConfigAggregator.create();
         const globalValue = aggregator.getPropertyValue(key);
-        if (!isNullOrUndefined(globalValue)) {
+        if (globalValue !== null && globalValue !== undefined) {
           return globalValue;
         }
       } catch (err) {
