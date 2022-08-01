@@ -112,9 +112,8 @@ export class NotificationService {
       'notification_successful_execution_text',
       executionName
     );
-    const showCLISuccessMsg = vscode.workspace
-      .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-      .get<boolean>('show-cli-success-msg', true);
+    const coreConfigurationName = vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME); 
+    const showCLISuccessMsg = coreConfigurationName.get<boolean>('show-cli-success-msg', true);
     if (showCLISuccessMsg) {
       const showButtonText = nls.localize('notification_show_button_text');
       const showOnlyStatusBarButtonText = nls.localize(
@@ -129,9 +128,7 @@ export class NotificationService {
         if (selection === showButtonText && channelService) {
           channelService.showChannelOutput();
         } else if (selection === showOnlyStatusBarButtonText) {
-          await vscode.workspace
-            .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
-            .update('show-cli-success-msg', false);
+          await coreConfigurationName.update('show-cli-success-msg', false);
         }
       }
     } else {

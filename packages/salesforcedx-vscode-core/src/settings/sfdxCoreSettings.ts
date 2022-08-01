@@ -77,6 +77,7 @@ export class SfdxCoreSettings {
   public getEnableClearOutputBeforeEachCommand(): boolean {
     return this.getConfigValue(SETTING_CLEAR_OUTPUT_TAB, false);
   }
+  
   private getConfigValue<T>(key: string, defaultValue: T): T {
     return this.getConfiguration().get<T>(key, defaultValue);
   }

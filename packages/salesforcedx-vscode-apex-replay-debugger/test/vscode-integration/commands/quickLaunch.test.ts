@@ -12,7 +12,6 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as utils from '@salesforce/salesforcedx-utils-vscode/out/src/index';
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src/index';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -51,7 +50,7 @@ describe('Quick launch apex tests', () => {
     sb = createSandbox();
     settingStub = sb.stub();
     sb.stub(vscode.workspace, 'getConfiguration')
-      .withArgs(SFDX_CORE_CONFIGURATION_NAME)
+      .withArgs(utils.SFDX_CORE_CONFIGURATION_NAME)
       .returns({
         get: settingStub
     });
