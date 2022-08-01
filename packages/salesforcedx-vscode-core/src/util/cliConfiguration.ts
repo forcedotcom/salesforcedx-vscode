@@ -12,8 +12,7 @@ import { window } from 'vscode';
 import { getRootWorkspacePath } from '.';
 import {
   ENV_SFDX_DISABLE_TELEMETRY,
-  SFDX_CLI_DOWNLOAD_LINK,
-  SFDX_CONFIG_DISABLE_TELEMETRY
+  SFDX_CLI_DOWNLOAD_LINK
 } from '../constants';
 import { nls } from '../messages';
 

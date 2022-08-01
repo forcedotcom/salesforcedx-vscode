@@ -11,12 +11,8 @@ import { expect } from 'chai';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
+import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
 import {
-  ENV_SFDX_DISABLE_TELEMETRY,
-  SFDX_CONFIG_DISABLE_TELEMETRY
-} from '../../../src/constants';
-import {
-  ConfigUtil,
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
@@ -82,43 +78,28 @@ describe('SFDX CLI Configuration utility', () => {
   });
 
   describe('CLI Telemetry', () => {
-    let getConfigValueStub: SinonStub;
+    let getDisableTelemetryConfigValue: SinonStub;
 
     beforeEach(() => {
       sandboxStub = createSandbox();
-      getConfigValueStub = sandboxStub.stub(ConfigUtil, 'getConfigValue');
+      getDisableTelemetryConfigValue = sandboxStub
+        .stub(ConfigAggregator.prototype, 'getPropertyValue')
+        .withArgs(SfConfigProperties.DISABLE_TELEMETRY);
     });
 
     afterEach(() => {
       sandboxStub.restore();
     });
 
-    it('Should return true if cli is not installed', async () => {
-      getConfigValueStub.withArgs(SFDX_CONFIG_DISABLE_TELEMETRY).returns('');
-      sandboxStub
-        .stub(ConfigAggregator.prototype, 'getPropertyValue')
-        .withArgs(SfConfigProperties.DISABLE_TELEMETRY)
-        .returns('false');
-
-      const response = await isCLITelemetryAllowed();
-      expect(response).to.equal(true);
-    });
-
     it('Should return false if telemetry setting is disabled', async () => {
-      sandboxStub
-        .stub(ConfigAggregator.prototype, 'getPropertyValue')
-        .withArgs(SfConfigProperties.DISABLE_TELEMETRY)
-        .returns('true');
+      getDisableTelemetryConfigValue.returns('true');
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(false);
     });
 
     it('Should return true if telemetry setting is enabled', async () => {
-      sandboxStub
-        .stub(ConfigAggregator.prototype, 'getPropertyValue')
-        .withArgs(SfConfigProperties.DISABLE_TELEMETRY)
-        .returns('false');
+      getDisableTelemetryConfigValue.returns('false');
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
