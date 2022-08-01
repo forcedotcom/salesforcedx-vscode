@@ -82,7 +82,7 @@ Because COUNT() is an aggregate function, all other selected fields are removed.
 - SOQL Builder currently supports interactively building simple queries. However, you can still open a more complex `.soql` file and run the query from within SOQL Builder, but you must use a text editor to update it.
 - When selecting fields, you can select (click) only one at a time.
 - Every time you click Run Query, a SOQL Query Results tab appears. There’s no way to associate the results with the specific query statements. The SOQL Builder editor reflects your most-recent updates.
-- You can retrieve a maximum number of 2000 records in a single SOQL query.
+- You can retrieve a maximum of 2000 records in a single SOQL query.
 
 **Next:**
 
