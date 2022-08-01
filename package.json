@@ -38,7 +38,7 @@
     "shelljs": "0.8.5",
     "shx": "0.3.4",
     "snyk": "^1.364.0",
-    "ts-loader": "5.4.5",
+    "ts-loader": "9.2.1",
     "tslint": "5.5.0",
     "typescript": "3.8.3",
     "vsce": "1.103.1",
