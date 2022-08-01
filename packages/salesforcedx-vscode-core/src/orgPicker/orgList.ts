@@ -4,13 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, ConfigFile, StateAggregator } from '@salesforce/core';
+import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
 import {
   CancelResponse,
   ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import { readFileSync } from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { OrgInfo, workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -50,64 +48,59 @@ export class OrgList implements vscode.Disposable {
     }
   }
 
-  public async getAuthInfoObjects() {
-    const authFilesArray = await AuthInfo.listAllAuthorizations().catch(
+  public async getOrgAuthorizations(): Promise<OrgAuthorization[] | null> {
+    const orgAuthorizations = await AuthInfo.listAllAuthorizations().catch(
       err => null
     );
 
-    if (authFilesArray === null || authFilesArray.length === 0) {
+    if (orgAuthorizations === null || orgAuthorizations.length === 0) {
       return null;
     }
-    const authInfoObjects: FileInfo[] = [];
-    for (const authFile of authFilesArray) {
-      try {
-        const filePath = path.join(
-          await ConfigFile.resolveRootFolder(true),
-          '.sfdx',
-          authFile.username + '.json'
-        );
-        const fileData = readFileSync(filePath, 'utf8');
-        authInfoObjects.push(JSON.parse(fileData));
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    return authInfoObjects;
+
+    return orgAuthorizations;
   }
 
-  public async filterAuthInfo(authInfoObjects: FileInfo[]) {
-    authInfoObjects = authInfoObjects.filter(
-      fileData => !fileData.scratchAdminUsername
-    );
+  public async getAuthFieldsFor(username: string): Promise<AuthFields> {
+    const authInfo: AuthInfo = await AuthInfo.create({
+      username
+    });
+    return authInfo.getFields();
+  }
 
+  public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]) {
     const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
+    let defaultDevHubUsername: string | undefined;
     if (defaultDevHubUsernameorAlias) {
-      const defaultDevHubUsername = await OrgAuthInfo.getUsername(
+      defaultDevHubUsername = await OrgAuthInfo.getUsername(
         defaultDevHubUsernameorAlias
       );
-
-      authInfoObjects = authInfoObjects.filter(fileData => {
-        const isNullOrUndefined = !fileData.devHubUsername;
-        return (
-          isNullOrUndefined ||
-          (!isNullOrUndefined &&
-            fileData.devHubUsername === defaultDevHubUsername)
-        );
-      });
     }
 
-    const info = await StateAggregator.create();
     const authList = [];
     const today = new Date();
-    for (const authInfo of authInfoObjects) {
-      const aliases = info.aliases.getAll(authInfo.username);
-      const isExpired = authInfo.expirationDate
-        ? today >= new Date(authInfo.expirationDate)
+    for (const orgAuth of orgAuthorizations) {
+      const authFields: AuthFields = await this.getAuthFieldsFor(
+        orgAuth.username
+      );
+      if (authFields?.scratchAdminUsername) {
+        // non-Admin scratch org users
+        continue;
+      }
+      if (
+        authFields?.devHubUsername &&
+        authFields.devHubUsername !== defaultDevHubUsername
+      ) {
+        // scratch orgs parented by other (non-default) devHub orgs
+        continue;
+      }
+      const isExpired = authFields?.expirationDate
+        ? today >= new Date(authFields.expirationDate)
         : false;
+
       let authListItem =
-        aliases.length > 0
-          ? `${aliases} - ${authInfo.username}`
-          : authInfo.username;
+        orgAuth.aliases && orgAuth.aliases.length > 0
+          ? `${orgAuth.aliases} - ${orgAuth.username}`
+          : orgAuth.username;
 
       if (isExpired) {
         authListItem += ` - ${nls.localize(
@@ -121,11 +114,15 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async updateOrgList() {
-    const authInfoObjects = await this.getAuthInfoObjects();
-    if (!authInfoObjects) {
+    const orgAuthorizations:
+      | OrgAuthorization[]
+      | null = await this.getOrgAuthorizations();
+    if (!orgAuthorizations) {
       return null;
     }
-    const authUsernameList = await this.filterAuthInfo(authInfoObjects);
+    const authUsernameList = await this.filterAuthInfo(
+      orgAuthorizations as OrgAuthorization[]
+    );
     return authUsernameList;
   }
 
