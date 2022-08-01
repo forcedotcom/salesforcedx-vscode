@@ -28,13 +28,7 @@ describe('Trace Flags', () => {
 
   beforeEach(async () => {
     sb = createSandbox();
-    $$.setConfigStubContents('GlobalInfo', {
-      contents: {
-        orgs: {
-          [testData.username]: await testData.getConfig()
-        }
-      }
-    });
+    await $$.stubAuths(testData);
     mockConnection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: testData.username
