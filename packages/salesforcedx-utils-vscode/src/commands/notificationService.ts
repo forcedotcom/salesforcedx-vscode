@@ -112,7 +112,7 @@ export class NotificationService {
       'notification_successful_execution_text',
       executionName
     );
-    const coreConfigurationName = vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME); 
+    const coreConfigurationName = vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME);
     const showCLISuccessMsg = coreConfigurationName.get<boolean>('show-cli-success-msg', true);
     if (showCLISuccessMsg) {
       const showButtonText = nls.localize('notification_show_button_text');
