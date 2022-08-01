@@ -76,7 +76,7 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
       .then(content => content.toLocaleString());
   }
 });
-const configDir = Global.SF_STATE_FOLDER;
+const configDir = Global.SFDX_STATE_FOLDER;
 
 describe('Should do completion', async () => {
   before(() => {
