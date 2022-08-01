@@ -142,11 +142,9 @@ export abstract class LibraryBaseTemplateCommand<T>
     //   OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     // );
 
-    if (sfdxConfigValue === undefined) {
-      customOrgMetadataTemplates = undefined;
-    } else {
-      customOrgMetadataTemplates = String(sfdxConfigValue);
-    }
+    customOrgMetadataTemplates = sfdxConfigValue
+      ? String(sfdxConfigValue)
+      : undefined;
 
     this.telemetryProperties.isUsingCustomOrgMetadataTemplates = String(
       customOrgMetadataTemplates !== undefined
