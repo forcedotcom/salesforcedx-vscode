@@ -954,8 +954,13 @@
     ],
     "configuration": {
       "type": "object",
-      "title": "%feature_previews_title%",
+      "title": "%core_settings_title%",
       "properties": {
+        "salesforcedx-vscode-core.clearOutputTab": {
+          "type": "boolean",
+          "default": false,
+          "description": "%setting_clear_output_tab_description%"
+        },
         "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": {
           "type": "boolean",
           "default": false,

@@ -135,4 +135,27 @@ describe('Channel Service', () => {
     channelService.streamCommandOutput(execution);
     expect(ensureDoubleDigitsStub.called).equals(true);
   });
+
+  it('should clear channel', async () => {
+    const clearStub = sb.stub(mChannel, 'clear');
+    sb.stub(vscodeStub.window, 'createOutputChannel').returns(mChannel);
+    // @ts-ignore
+    channelService.clear();
+    expect(clearStub.called).equals(true);
+  });
+
+  it('should clear channel when streamCommandStartStop is executed', () => {
+    const clearStub = sb.stub(mChannel, 'clear');
+    sb.stub(vscodeStub.window, 'createOutputChannel').returns(mChannel);
+    const execution = new CliCommandExecutor(
+      new SfdxCommandBuilder()
+        .withArg('force')
+        .withArg('--help')
+        .build(),
+      {}
+    ).execute();
+    // @ts-ignore
+    channelService.streamCommandStartStop(execution);
+    expect(clearStub.called).equals(true);
+  });
 });

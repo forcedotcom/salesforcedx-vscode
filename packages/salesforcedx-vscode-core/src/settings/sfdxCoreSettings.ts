@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SETTING_CLEAR_OUTPUT_TAB, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import {
-  BETA_DEPLOY_RETRIEVE,
   CONFLICT_DETECTION_ENABLED,
   INTERNAL_DEVELOPMENT_FLAG,
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
   RETRIEVE_TEST_CODE_COVERAGE,
-  SFDX_CORE_CONFIGURATION_NAME,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED
 } from '../constants';
@@ -73,6 +72,10 @@ export class SfdxCoreSettings {
 
   public getConflictDetectionEnabled(): boolean {
     return this.getConfigValue(CONFLICT_DETECTION_ENABLED, false);
+  }
+
+  public getEnableClearOutputBeforeEachCommand(): boolean {
+    return this.getConfigValue(SETTING_CLEAR_OUTPUT_TAB, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

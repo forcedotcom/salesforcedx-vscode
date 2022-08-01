@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SFDX_CORE_EXTENSION_NAME, TelemetryReporter } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { expect } from 'chai';
 import { assert, match, SinonStub, stub } from 'sinon';
 import { window } from 'vscode';
@@ -234,7 +234,7 @@ describe('Telemetry', () => {
       assert.calledOnce(reporter);
 
       const expectedProps = {
-        extensionName: 'salesforcedx-vscode-core'
+        extensionName: SFDX_CORE_EXTENSION_NAME
       };
       const expectedMeasures = match({ startupTime: match.number });
       assert.calledWith(
@@ -261,7 +261,7 @@ describe('Telemetry', () => {
       assert.calledOnce(reporter);
 
       const expectedData = {
-        extensionName: 'salesforcedx-vscode-core'
+        extensionName: SFDX_CORE_EXTENSION_NAME
       };
       assert.calledWith(reporter, 'deactivationEvent', expectedData);
       expect(teleStub.firstCall.args).to.eql([true]);
@@ -282,7 +282,7 @@ describe('Telemetry', () => {
       assert.calledOnce(reporter);
 
       const expectedProps = {
-        extensionName: 'salesforcedx-vscode-core',
+        extensionName: SFDX_CORE_EXTENSION_NAME,
         commandName: 'create_apex_class_command'
       };
       const expectedMeasures = { executionTime: match.number };
@@ -318,7 +318,7 @@ describe('Telemetry', () => {
       assert.calledOnce(reporter);
 
       const expectedProps = {
-        extensionName: 'salesforcedx-vscode-core',
+        extensionName: SFDX_CORE_EXTENSION_NAME,
         commandName: 'create_apex_class_command',
         dirType: 'testDirectoryType',
         secondParam: 'value'
@@ -357,7 +357,7 @@ describe('Telemetry', () => {
       assert.calledOnce(reporter);
 
       const expectedProps = {
-        extensionName: 'salesforcedx-vscode-core',
+        extensionName: SFDX_CORE_EXTENSION_NAME,
         commandName: 'create_apex_class_command'
       };
       const expectedMeasures = {

@@ -50,7 +50,7 @@ describe('Quick launch apex tests', () => {
     sb = createSandbox();
     settingStub = sb.stub();
     sb.stub(vscode.workspace, 'getConfiguration')
-      .withArgs('salesforcedx-vscode-core')
+      .withArgs(utils.SFDX_CORE_CONFIGURATION_NAME)
       .returns({
         get: settingStub
     });

@@ -7,7 +7,7 @@
 import { ExecuteService } from '@salesforce/apex-node';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { getRootWorkspacePath, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
@@ -40,7 +40,7 @@ describe('Force Apex Execute', () => {
     sb = createSandbox();
     settingStub = sb.stub();
     sb.stub(vscode.workspace, 'getConfiguration')
-      .withArgs('salesforcedx-vscode-core')
+      .withArgs(SFDX_CORE_CONFIGURATION_NAME)
       .returns({
         get: settingStub
     });
