@@ -30,22 +30,30 @@ function isUndefined(value: any) {
   return value === undefined;
 }
 
+async function getConfigAggregator(): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
+  process.chdir(rootWorkspacePath);
+  const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
+}
+
 // This class should be reworked or removed once the ConfigAggregator correctly checks
 // local as well as global configs. It's also worth noting that ConfigAggregator, according
 // to its docs checks local, global and environment and, for our purposes, environment may
 // not be viable.
 
 export class ConfigUtil {
-  public static async getConfigSource(key: string): Promise<ConfigSource> {
-    let value = await ConfigUtil.getSfConfigValue(key, ConfigSource.Local);
-    if (!isNullOrUndefined(value)) {
-      return ConfigSource.Local;
-    }
-    value = await ConfigUtil.getSfConfigValue(key, ConfigSource.Global);
-    if (!isNullOrUndefined(value)) {
-      return ConfigSource.Global;
-    }
-    return ConfigSource.None;
+  public static async getConfigSource(
+    key: string
+  ): Promise<ConfigAggregator.Location | undefined> {
+    const configAggregator = await getConfigAggregator();
+    return configAggregator.getLocation(key);
   }
 
   public static async getConfigValue(

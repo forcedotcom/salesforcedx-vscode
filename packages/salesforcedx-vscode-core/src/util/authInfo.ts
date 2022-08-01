@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ConfigAggregator } from '@salesforce/core';
 import {
   AuthInfo,
   Connection,
@@ -16,6 +17,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { ConfigSource, ConfigUtil } from './index';
+
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
@@ -35,7 +37,7 @@ export class OrgAuthInfo {
         const configSource = await ConfigUtil.getConfigSource(
           OrgConfigProperties.TARGET_ORG
         );
-        if (configSource === ConfigSource.Global) {
+        if (configSource === ConfigAggregator.Location.GLOBAL) {
           displayMessage(
             nls.localize('warning_using_global_username'),
             enableWarning,
