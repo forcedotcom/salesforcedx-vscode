@@ -12,6 +12,7 @@ import {
   Global
 } from '@salesforce/core';
 import * as path from 'path';
+import { SFDX_CONFIG_FILE } from '../types/constants';
 import { getRootWorkspacePath } from '../workspaces';
 import { TelemetryService } from './telemetry';
 
@@ -49,7 +50,7 @@ export class ConfigUtil {
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
           rootFolder: path.join(rootPath, Global.SFDX_STATE_FOLDER),
-          filename: 'sfdx-config.json'
+          filename: SFDX_CONFIG_FILE
         });
         const localValue = myLocalConfig.get(key);
         if (localValue !== null && localValue !== undefined) {
