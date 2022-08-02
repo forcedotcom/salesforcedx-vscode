@@ -1,3 +1,11 @@
+# 55.8.0 - August 4, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Added notification when scratch org is about to expire ([PR #4304](https://github.com/forcedotcom/salesforcedx-vscode/pull/4304))
+
 # 55.7.0 - July 27, 2022
 
 ## Fixed
