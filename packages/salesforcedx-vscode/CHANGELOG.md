@@ -4,13 +4,17 @@
 
 #### salesforcedx-vscode-core
 
-- Added notification when scratch org is about to expire ([PR #4304](https://github.com/forcedotcom/salesforcedx-vscode/pull/4304))
+- We added a notification that warns you about scratch org expiration in advance so that you can back up any relevant data  or settings. ([PR #4304](https://github.com/forcedotcom/salesforcedx-vscode/pull/4304))
+
+#### salesforcedx-vscode-core, salesforcedx-vscode-apex, salesforcedx-utils-vscode, salesforcedx-vscode-apex-replay-debugger
+
+-  We added a setting that lets you choose the option to clear the current content of the output tab before a new command is executed. ([PR #4318](https://github.com/forcedotcom/salesforcedx-vscode/pull/4318))
 
 # 55.7.0 - July 27, 2022
 
 ## Fixed
 
-#### docs, #### salesforcedx-vscode-apex
+#### docs, salesforcedx-vscode-apex
 
 - We updated some Java installation links in our docs. ([PR #4305](https://github.com/forcedotcom/salesforcedx-vscode/pull/4305))
 
