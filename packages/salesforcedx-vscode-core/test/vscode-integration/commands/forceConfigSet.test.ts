@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config } from '@salesforce/core';
+import { Config, Org } from '@salesforce/core';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -21,6 +21,7 @@ let channelSpy: sinon.SinonSpy;
 let configSetSpy: sinon.SinonSpy;
 let configWriteSpy: sinon.SinonSpy;
 let tableSpy: sinon.SinonSpy;
+let orgStub: sinon.SinonStub;
 
 describe('Force Config Set', () => {
   const usernameOrAlias = 'test-username1@gmail.com';
@@ -30,6 +31,7 @@ describe('Force Config Set', () => {
     configSetSpy = sandbox.spy(Config.prototype, 'set');
     configWriteSpy = sandbox.spy(Config.prototype, 'write');
     tableSpy = sandbox.spy(Table.prototype, 'createTable');
+    orgStub = sandbox.stub(Org, 'create');
   });
 
   afterEach(() => {
@@ -37,6 +39,7 @@ describe('Force Config Set', () => {
   });
 
   it('should set config with the given username or alias', async () => {
+    orgStub.resolves(true);
     await forceConfigSet(usernameOrAlias);
     expect(configSetSpy.calledOnce);
     expect(configSetSpy.calledWith(CONFIG_KEY, usernameOrAlias)).to.equal(true);
@@ -46,6 +49,7 @@ describe('Force Config Set', () => {
   it('should set config with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
+    orgStub.resolves(true);
     await forceConfigSet(aliases.join(','));
     expect(configSetSpy.callCount).to.equal(1);
     expect(configSetSpy.calledWith(CONFIG_KEY, expectedAlias)).to.equal(true);
