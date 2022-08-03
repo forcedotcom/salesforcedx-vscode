@@ -203,7 +203,7 @@ describe('orgList Tests', () => {
           })
         ];
 
-        const getAuthFieldsForStub = sandbox.stub(util, 'getAuthFieldsFor')
+        const getAuthFieldsForStub = sandbox.stub(util, 'getAuthFieldsFor');
         getAuthFieldsForStub
           .withArgs('test-scratchorg-today@example.com')
           .returns({
