@@ -15,6 +15,7 @@ import {
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../../src/commands';
+import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
 import { ConfigSource, OrgAuthInfo } from '../../../../src/util';
 
@@ -111,7 +112,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
 
     expect(configCreateSpy.getCall(0).args[0].isGlobal).to.be.true;
     expect(
-      configSetStub.calledWith(OrgConfigProperties.TARGET_DEV_HUB, testUsername)
+      configSetStub.calledWith(DEFAULT_DEV_HUB_USERNAME_KEY, testUsername)
     ).to.equal(true);
     expect(configWriteStub.calledOnce).to.equal(true);
     expect(configSetStub.calledOnce).to.equal(true);
