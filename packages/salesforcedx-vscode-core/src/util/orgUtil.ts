@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
-import { asyncFilter } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { AuthFields, AuthInfo } from '@salesforce/core';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -47,46 +46,47 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
       return;
     }
 
-    const orgsAboutToExpire = await asyncFilter(orgAuthorizations, async (orgAuthorization: OrgAuthorization) => {
+    let results: string[] = [];
+    for (let i=0; i<orgAuthorizations.length; i++) {
+      const orgAuthorization = orgAuthorizations[i];
+
       // Filter out the dev hubs.
       if (orgAuthorization.isDevHub) {
-        return false;
+        continue;
       }
 
       const authFields = await getAuthFieldsFor(orgAuthorization.username);
 
       // Some dev hubs have isDevHub=false but no expiration date, so filter them out.
       if (!authFields.expirationDate) {
-        return false;
+        continue;
       }
 
       // Filter out the expired orgs.
       const expirationDate = new Date(authFields.expirationDate);
       if (expirationDate < today) {
-        return false;
+        continue;
       }
 
       // Now filter and only return the results that are within the 5 day window.
-      return expirationDate <= daysUntilExpiration;
-    });
+      if (expirationDate <= daysUntilExpiration) {
+        const aliasName = orgAuthorization.aliases && orgAuthorization.aliases.length > 0
+          ? orgAuthorization.aliases[0]
+          : orgAuthorization.username;
 
-    if (!orgsAboutToExpire || orgsAboutToExpire.length < 1) {
-      return;
+        results.push(
+          nls.localize(
+            'pending_org_expiration_expires_on_message',
+            aliasName,
+            authFields.expirationDate
+          )
+        );
+      }
     }
 
-    const formattedOrgsToDisplay = (await Promise.all(orgsAboutToExpire.map(async orgAboutToExpire => {
-      const aliasName = orgAboutToExpire.aliases && orgAboutToExpire.aliases.length > 0
-        ? orgAboutToExpire.aliases[0]
-        : orgAboutToExpire.username;
-
-      const authFields = await getAuthFieldsFor(orgAboutToExpire.username);
-
-      return nls.localize(
-        'pending_org_expiration_expires_on_message',
-        aliasName,
-        authFields.expirationDate
-      );
-    }))).join('\n\n');
+    if (results.length < 1) {
+      return;
+    }
 
     notificationService.showWarningMessage(
       nls.localize(
@@ -95,6 +95,7 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
       )
     );
 
+    const formattedOrgsToDisplay = results.join('\n\n');
     channelService.appendLine(
       nls.localize(
         'pending_org_expiration_output_channel_message',
