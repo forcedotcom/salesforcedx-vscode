@@ -7,10 +7,12 @@
 import { AuthInfo, StateAggregator } from '@salesforce/core';
 import { fail } from 'assert';
 import { expect } from 'chai';
+import * as fs from 'fs';
+import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { OrgList } from '../../../src/orgPicker';
+import { FileInfo, OrgList } from '../../../src/orgPicker';
 import * as util from '../../../src/util';
 
 const sandbox = createSandbox();
@@ -164,8 +166,6 @@ describe('orgList Tests', () => {
         const authList = await orgList.filterAuthInfo(authInfoObjects);
 
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
-
-        getAuthFieldsForStub.restore();
       });
 
       it('should filter the list to only show scratch orgs associated with current default dev hub with an alias', async () => {
@@ -218,8 +218,6 @@ describe('orgList Tests', () => {
         const authList = await orgList.filterAuthInfo(authInfoObjects);
 
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
-
-        getAuthFieldsForStub.restore();
       });
 
       it('should flag the org as expired if expiration date has passed', async () => {
@@ -273,8 +271,6 @@ describe('orgList Tests', () => {
             String.fromCodePoint(0x274c)
         );
         expect(authList[2]).to.equal('test-scratchorg-tomorrow@example.com');
-
-        getAuthFieldsForStub.restore();
       });
     });
 
@@ -308,7 +304,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.auth.web.login')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.auth.web.login')
+        ).to.equal(true);
       });
 
       it('should return Continue and call force:org:create command if SFDX: Create a Default Scratch Org is selected', async () => {
@@ -318,7 +316,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.org.create')).to.equal(true);
+        expect(executeCommandStub.calledWith('sfdx.force.org.create')).to.equal(
+          true
+        );
       });
 
       it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
@@ -329,7 +329,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.auth.dev.hub')
+        ).to.equal(true);
       });
 
       it('should return Continue and call sfdx:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
@@ -340,7 +342,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.auth.accessToken')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.auth.accessToken')
+        ).to.equal(true);
       });
 
       it('should return Continue and call force:org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
@@ -350,7 +354,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.org.list.clean')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.org.list.clean')
+        ).to.equal(true);
       });
 
       it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
@@ -358,7 +364,9 @@ describe('orgList Tests', () => {
         quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.config.set')).to.equal(true);
+        expect(executeCommandStub.calledWith('sfdx.force.config.set')).to.equal(
+          true
+        );
       });
     });
   });

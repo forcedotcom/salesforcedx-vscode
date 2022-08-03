@@ -14,7 +14,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { OrgInfo, workspaceContext } from '../context';
 import { nls } from '../messages';
-import { getAuthFieldsFor, getDefaultDevHubUsernameOrAlias, OrgAuthInfo } from '../util';
+import { getDefaultDevHubUsernameOrAlias, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -80,7 +80,7 @@ export class OrgList implements vscode.Disposable {
       fileData => !fileData.scratchAdminUsername
     );
 
-    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
+    const defaultDevHubUsernameorAlias = await getDefaultDevHubUsernameOrAlias();
     if (defaultDevHubUsernameorAlias) {
       const defaultDevHubUsername = await OrgAuthInfo.getUsername(
         defaultDevHubUsernameorAlias
