@@ -12,7 +12,7 @@ import {
 import * as vscode from 'vscode';
 import { OrgInfo, workspaceContext } from '../context';
 import { nls } from '../messages';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { getAuthFieldsFor, getDefaultDevHubUsernameOrAlias, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -48,26 +48,19 @@ export class OrgList implements vscode.Disposable {
     }
   }
 
-  public async getAuthFieldsFor(username: string): Promise<AuthFields> {
-    const authInfo: AuthInfo = await AuthInfo.create({
-      username
-    });
-    return authInfo.getFields();
-  }
-
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]) {
-    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
+    const defaultDevHubUsernameOrAlias = await getDefaultDevHubUsernameOrAlias();
     let defaultDevHubUsername: string | undefined;
-    if (defaultDevHubUsernameorAlias) {
+    if (defaultDevHubUsernameOrAlias) {
       defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameorAlias
+        defaultDevHubUsernameOrAlias
       );
     }
 
     const authList = [];
     const today = new Date();
     for (const orgAuth of orgAuthorizations) {
-      const authFields: AuthFields = await this.getAuthFieldsFor(
+      const authFields: AuthFields = await getAuthFieldsFor(
         orgAuth.username
       );
       if (authFields?.scratchAdminUsername) {
@@ -166,12 +159,6 @@ export class OrgList implements vscode.Disposable {
         );
         return { type: 'CONTINUE', data: {} };
       }
-    }
-  }
-
-  public async getDefaultDevHubUsernameorAlias(): Promise<string | undefined> {
-    if (hasRootWorkspace()) {
-      return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
     }
   }
 

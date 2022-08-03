@@ -5,15 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, OrgAuthorization, StateAggregator } from '@salesforce/core';
-import { fail } from 'assert';
 import { expect } from 'chai';
-import * as fs from 'fs';
-import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { FileInfo, OrgList } from '../../../src/orgPicker';
-import { OrgAuthInfo } from '../../../src/util';
+import { OrgList } from '../../../src/orgPicker';
+import * as util from '../../../src/util';
 
 const sandbox = createSandbox();
 
@@ -43,10 +40,10 @@ describe('orgList Tests', () => {
 
       beforeEach(() => {
         defaultDevHubStub = sandbox.stub(
-          OrgAuthInfo,
+          util.OrgAuthInfo,
           'getDefaultDevHubUsernameOrAlias'
         );
-        getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
+        getUsernameStub = sandbox.stub(util.OrgAuthInfo, 'getUsername');
 
         getAllStub = sandbox.stub();
         fakeStateAggregator = {
@@ -106,9 +103,8 @@ describe('orgList Tests', () => {
           dummyOrgAuth1,
           dummyOrgAuth2
         ];
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
-        getAuthFieldsForStub
-          .withArgs(dummyOrgAuth1.username)
+        const getAuthFieldsForStub = sandbox.stub(util, 'getAuthFieldsFor');
+        getAuthFieldsForStub.withArgs(dummyOrgAuth1.username)
           .returns({ scratchAdminUsername: 'nonadmin@user.com' });
         defaultDevHubStub.resolves(null);
         getAllStub.returns([]);
@@ -118,6 +114,8 @@ describe('orgList Tests', () => {
 
         // Assert
         expect(authList[0]).to.equal('test-username2@example.com');
+
+        getAuthFieldsForStub.restore();
       });
 
       it('should filter the list to only show scratch orgs associated with current default dev hub without an alias', async () => {
@@ -125,7 +123,7 @@ describe('orgList Tests', () => {
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
         ];
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
+        const getAuthFieldsForStub = sandbox.stub(util, 'getAuthFieldsFor');
         getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
           devHubUsername: dummyDevHubUsername1
         });
@@ -135,8 +133,12 @@ describe('orgList Tests', () => {
         defaultDevHubStub.resolves(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
+
+        getAuthFieldsForStub.restore();
       });
 
       it('should filter the list to only show scratch orgs associated with current default dev hub with an alias', async () => {
@@ -144,7 +146,7 @@ describe('orgList Tests', () => {
           dummyScratchOrgAuth1,
           dummyScratchOrgAuth2
         ];
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
+        const getAuthFieldsForStub = sandbox.stub(util, 'getAuthFieldsFor');
         getAuthFieldsForStub.withArgs(dummyScratchOrgAuth1.username).returns({
           devHubUsername: dummyDevHubUsername1
         });
@@ -154,8 +156,12 @@ describe('orgList Tests', () => {
         defaultDevHubStub.returns('dev hub alias');
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal(dummyScratchOrgAuth1.username);
+
+        getAuthFieldsForStub.restore();
       });
 
       it('should display alias with username when alias is available', async () => {
@@ -165,12 +171,15 @@ describe('orgList Tests', () => {
         ];
         defaultDevHubStub.resolves(null);
         getAllStub.returns([]);
-        sandbox
-          .stub(orgList, 'getAuthFieldsFor')
-          .withArgs(authInfoObjects[0].username)
+        const getAuthFieldsForStub = sandbox.stub(util, 'getAuthFieldsFor');
+        getAuthFieldsForStub.withArgs(authInfoObjects[0].username)
           .returns({});
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
+
+        getAuthFieldsForStub.restore();
       });
 
       it('should flag the org as expired if expiration date has passed', async () => {
@@ -194,7 +203,7 @@ describe('orgList Tests', () => {
           })
         ];
 
-        const getAuthFieldsForStub = sandbox.stub(orgList, 'getAuthFieldsFor');
+        const getAuthFieldsForStub = sandbox.stub(util, 'getAuthFieldsFor');
         getAuthFieldsForStub
           .withArgs('test-scratchorg-today@example.com')
           .returns({
@@ -216,7 +225,9 @@ describe('orgList Tests', () => {
         defaultDevHubStub.resolves(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal(
           'test-scratchorg-today@example.com - ' +
             nls.localize('org_expired') +
@@ -230,8 +241,11 @@ describe('orgList Tests', () => {
             String.fromCodePoint(0x274c)
         );
         expect(authList[2]).to.equal('test-scratchorg-tomorrow@example.com');
+
+        getAuthFieldsForStub.restore();
       });
     });
+
     describe('Set Default Org', () => {
       let orgListStub: SinonStub;
       let quickPickStub: SinonStub;
