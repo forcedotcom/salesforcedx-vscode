@@ -24,6 +24,7 @@ import * as vscode from 'vscode';
 import { EmptyPostChecker } from '.';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
+import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
 import { getRootWorkspacePath } from '../../util';
@@ -165,6 +166,9 @@ export class SfdxCommandlet<T> {
   }
 
   public async run(): Promise<void> {
+    if (sfdxCoreSettings.getEnableClearOutputBeforeEachCommand()) {
+      channelService.clear();
+    }
     if (await this.prechecker.check()) {
       let inputs = await this.gatherer.gather();
       inputs = await this.postchecker.check(inputs);
