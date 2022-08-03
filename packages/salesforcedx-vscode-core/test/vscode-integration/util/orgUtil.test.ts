@@ -12,13 +12,13 @@ import * as vscode from 'vscode';
 import { checkForExpiredOrgs } from '../../../src/util';
 
 // Imports from the target source file
-import { Aliases } from '@salesforce/core';
+// import { Aliases } from '@salesforce/core';
 import { channelService } from '../../../src/channels';
 import { OrgList } from '../../../src/orgPicker';
 
 describe('orgUtil tests', () => {
-  let sb: SinonSandbox;
-
+  // let sb: SinonSandbox;
+  /*
   beforeEach(() => {
     sb = createSandbox();
   });
@@ -191,4 +191,5 @@ describe('orgUtil tests', () => {
       createStub.restore();
     });
   });
+  */
 });
