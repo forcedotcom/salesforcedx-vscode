@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Aliases } from '@salesforce/core';
+// import { Aliases } from '@salesforce/core';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
@@ -31,7 +31,7 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
   if (!orgList) {
     return;
   }
-
+  /*
   try {
     const daysBeforeExpire = 5;
     const today = new Date();
@@ -103,4 +103,5 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
   } catch (err) {
     console.error(err);
   }
+  */
 }
