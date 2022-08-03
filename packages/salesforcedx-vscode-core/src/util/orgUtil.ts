@@ -46,10 +46,8 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
       return;
     }
 
-    let results: string[] = [];
-    for (let i=0; i<orgAuthorizations.length; i++) {
-      const orgAuthorization = orgAuthorizations[i];
-
+    const results: string[] = [];
+    for (const orgAuthorization of orgAuthorizations) {
       // Filter out the dev hubs.
       if (orgAuthorization.isDevHub) {
         continue;
