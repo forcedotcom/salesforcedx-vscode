@@ -17,8 +17,7 @@ import { channelService } from '../../../src/channels';
 import { OrgList } from '../../../src/orgPicker';
 
 describe('orgUtil tests', () => {
-  // let sb: SinonSandbox;
-  /*
+  let sb: SinonSandbox;
   beforeEach(() => {
     sb = createSandbox();
   });
@@ -62,7 +61,7 @@ describe('orgUtil tests', () => {
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
       expect(showChannelOutputSpy.called).to.equal(false);
-   });
+    });
 
     it('should not display a notification when the scratch org has already expired', async () => {
       const orgList = new OrgList();
@@ -81,21 +80,18 @@ describe('orgUtil tests', () => {
           {
             isDevHub: false,
             username: 'foo',
-            aliases: [
-              orgName
-            ]
+            aliases: [orgName]
           }
         ]);
 
-      const authInfoCreateStub = sb
-        .stub(AuthInfo, 'create')
-        .resolves({
-          getFields: () => {
-            return {
-              expirationDate: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() + 3}`
-            };
-          }
-        });
+      const authInfoCreateStub = sb.stub(AuthInfo, 'create').resolves({
+        getFields: () => {
+          return {
+            expirationDate: `${today.getFullYear()}-${today.getMonth() +
+              1}-${today.getDate() + 3}`
+          };
+        }
+      });
 
       const orgList = new OrgList();
       await checkForExpiredOrgs(orgList);
@@ -118,28 +114,23 @@ describe('orgUtil tests', () => {
           {
             isDevHub: false,
             username: 'foo',
-            aliases: [
-              orgName1
-            ]
+            aliases: [orgName1]
           },
           {
             isDevHub: false,
             username: 'bar',
-            aliases: [
-              orgName2
-            ]
+            aliases: [orgName2]
           }
         ]);
 
-      const authInfoCreateStub = sb
-        .stub(AuthInfo, 'create')
-        .resolves({
-          getFields: () => {
-            return {
-              expirationDate: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate() + 3}`
-            };
-          }
-        });
+      const authInfoCreateStub = sb.stub(AuthInfo, 'create').resolves({
+        getFields: () => {
+          return {
+            expirationDate: `${today.getFullYear()}-${today.getMonth() +
+              1}-${today.getDate() + 3}`
+          };
+        }
+      });
 
       const orgList = new OrgList();
       await checkForExpiredOrgs(orgList);
@@ -154,5 +145,4 @@ describe('orgUtil tests', () => {
       listAllAuthorizationsStub.restore();
     });
   });
-  */
 });

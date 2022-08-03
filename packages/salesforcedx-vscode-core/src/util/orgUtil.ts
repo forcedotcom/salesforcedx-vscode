@@ -32,7 +32,7 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
   if (!orgList) {
     return;
   }
-  /*
+
   try {
     const daysBeforeExpire = 5;
     const today = new Date();
@@ -106,7 +106,6 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
   } catch (err) {
     console.error(err);
   }
-  */
 }
 
 export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
