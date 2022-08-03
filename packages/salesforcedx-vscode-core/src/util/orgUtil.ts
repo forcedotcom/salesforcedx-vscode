@@ -30,20 +30,6 @@ export async function setUpOrgExpirationWatcher(orgList: OrgList) {
   */
 }
 
-export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
-  const authInfo: AuthInfo = await AuthInfo.create({
-    username
-  });
-
-  return authInfo.getFields();
-}
-
-export async function getDefaultDevHubUsernameOrAlias(): Promise<string | undefined> {
-  if (hasRootWorkspace()) {
-    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
-  }
-}
-
 export async function checkForExpiredOrgs(orgList: OrgList) {
   if (!orgList) {
     return;
@@ -57,7 +43,7 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
       daysUntilExpiration.getDate() + daysBeforeExpire
     );
 
-    const orgAuthorizations = await AuthInfo.listAllAuthorizations()
+    const orgAuthorizations = await AuthInfo.listAllAuthorizations();
     if (!orgAuthorizations) {
       return;
     }
@@ -120,5 +106,19 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
     channelService.showChannelOutput();
   } catch (err) {
     console.error(err);
+  }
+}
+
+export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
+  const authInfo: AuthInfo = await AuthInfo.create({
+    username
+  });
+
+  return authInfo.getFields();
+}
+
+export async function getDefaultDevHubUsernameOrAlias(): Promise<string | undefined> {
+  if (hasRootWorkspace()) {
+    return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
   }
 }
