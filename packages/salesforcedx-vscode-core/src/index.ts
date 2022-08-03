@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -91,8 +92,7 @@ import {
   setupConflictView
 } from './conflict';
 import {
-  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
-  SFDX_CORE_CONFIGURATION_NAME
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP
 } from './constants';
 import { getDefaultUsernameOrAlias } from './context';
 import { workspaceContext } from './context';
@@ -105,7 +105,7 @@ import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { isCLIInstalled } from './util';
+import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
 const flagOverwrite: FlagParameter<string> = {
@@ -590,7 +590,12 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
     './package.json'
   ));
-  await telemetryService.initializeService(extensionContext, name, aiKey, version);
+  await telemetryService.initializeService(
+    extensionContext,
+    name,
+    aiKey,
+    version
+  );
   showTelemetryMessage(extensionContext);
 
   // Task View
@@ -634,7 +639,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     return internalApi;
   }
 
-  FunctionService.instance.handleDidStartTerminateDebugSessions(extensionContext);
+  FunctionService.instance.handleDidStartTerminateDebugSessions(
+    extensionContext
+  );
 
   // Context
   const sfdxProjectOpened = isSfdxProjectOpened.apply(vscode.workspace).result;
@@ -661,27 +668,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   );
 
   if (sfdxProjectOpened) {
-    await workspaceContext.initialize(extensionContext);
-
-    // register org picker commands
-    const orgList = new OrgList();
-    extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
-
-    await setupOrgBrowser(extensionContext);
-    await setupConflictView(extensionContext);
-
-    PersistentStorageService.initialize(extensionContext);
-
-    // Register filewatcher for push or deploy on save
-
-    await registerPushOrDeployOnSave();
-    decorators.showOrg();
-    decorators.monitorOrgConfigChanges();
-
-    // Demo mode Decorator
-    if (isDemoMode()) {
-      decorators.showDemoMode();
-    }
+    await initializeProject(extensionContext);
   }
 
   // Commands
@@ -731,6 +718,31 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   return api;
+}
+
+async function initializeProject(extensionContext: vscode.ExtensionContext) {
+  await workspaceContext.initialize(extensionContext);
+
+  // Register org picker commands
+  const orgList = new OrgList();
+  extensionContext.subscriptions.push(registerOrgPickerCommands(orgList));
+
+  await setupOrgBrowser(extensionContext);
+  await setupConflictView(extensionContext);
+
+  PersistentStorageService.initialize(extensionContext);
+
+  // Register file watcher for push or deploy on save
+  await registerPushOrDeployOnSave();
+  decorators.showOrg();
+  decorators.monitorOrgConfigChanges();
+
+  await setUpOrgExpirationWatcher(orgList);
+
+  // Demo mode decorator
+  if (isDemoMode()) {
+    decorators.showDemoMode();
+  }
 }
 
 export function deactivate(): Promise<void> {

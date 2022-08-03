@@ -643,5 +643,11 @@ export const messages = {
     'Unable to rename the component. Try renaming the component manually and then redeploying your changes.',
   error_function_type: 'Unable to determine type of executing function.',
   error_unable_to_get_started_function:
-    'Unable to access the function in "{0}".'
+    'Unable to access the function in "{0}".',
+  pending_org_expiration_expires_on_message:
+    '%s\n(expires on %s)',
+  pending_org_expiration_notification_message:
+    'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
+  pending_org_expiration_output_channel_message:
+    'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.'
 };
