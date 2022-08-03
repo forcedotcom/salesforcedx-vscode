@@ -6,8 +6,8 @@
  */
 
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
-export const SFDX_CONFIG_FILE = 'config.json';
-export const SFDX_FOLDER = '.sf';
+export const SFDX_CONFIG_FILE = 'sfdx-config.json';
+export const SFDX_FOLDER = '.sfdx';
 export const CLIENT_ID = 'sfdx-vscode';
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 export const APEX_CODE_DEBUG_LEVEL = 'FINEST';
@@ -16,6 +16,8 @@ export const SFDX_CONFIG_DISABLE_TELEMETRY = 'disableTelemetry';
 export const ENV_SFDX_DISABLE_TELEMETRY = 'SFDX_DISABLE_TELEMETRY';
 export const SFDX_CLI_DOWNLOAD_LINK =
   'https://developer.salesforce.com/tools/sfdxcli';
+export const DEFAULT_USERNAME_KEY = 'defaultusername';
+export const DEFAULT_DEV_HUB_USERNAME_KEY = 'defaultdevhubusername';
 export const PKG_ID_PREFIX = '04t';
 
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
@@ -31,7 +33,6 @@ export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
 export const PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS =
   'push-or-deploy-on-save.overrideConflictsOnPush';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
-export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =

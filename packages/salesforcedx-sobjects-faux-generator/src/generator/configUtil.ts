@@ -35,8 +35,8 @@ export class ConfigUtil {
     try {
       const myLocalConfig = await ConfigFile.create({
         isGlobal: false,
-        rootFolder: path.join(projectPath, '.sf'),
-        filename: 'config.json'
+        rootFolder: path.join(projectPath, '.sfdx'),
+        filename: 'sfdx-config.json'
       });
       const localValue = myLocalConfig.get(key);
       if (localValue) {
