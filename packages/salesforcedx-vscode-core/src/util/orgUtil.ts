@@ -68,9 +68,10 @@ export async function checkForExpiredOrgs(orgList: OrgList) {
 
       // Now filter and only return the results that are within the 5 day window.
       if (expirationDate <= daysUntilExpiration) {
-        const aliasName = orgAuthorization.aliases && orgAuthorization.aliases.length > 0
-          ? orgAuthorization.aliases[0]
-          : orgAuthorization.username;
+        const aliasName =
+          orgAuthorization.aliases && orgAuthorization.aliases.length > 0
+            ? orgAuthorization.aliases[0]
+            : orgAuthorization.username;
 
         results.push(
           nls.localize(
@@ -115,7 +116,9 @@ export async function getAuthFieldsFor(username: string): Promise<AuthFields> {
   return authInfo.getFields();
 }
 
-export async function getDefaultDevHubUsernameOrAlias(): Promise<string | undefined> {
+export async function getDefaultDevHubUsernameOrAlias(): Promise<
+  string | undefined
+> {
   if (hasRootWorkspace()) {
     return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
   }
