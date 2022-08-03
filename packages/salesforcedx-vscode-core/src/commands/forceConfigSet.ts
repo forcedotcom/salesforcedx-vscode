@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Config } from '@salesforce/core';
+import { Config, Org } from '@salesforce/core';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Row, Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
@@ -37,18 +37,34 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   }
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
+    let result: boolean;
+
     // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
     const path = getRootWorkspacePath(); // Get current workspace path
     process.chdir(path); // Set process directory
 
     const config = await Config.create(Config.getDefaultOptions());
 
-    config.set(nls.localize(CONFIG_NAME), this.usernameOrAlias);
-    await config.write();
-    this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(true) };
-    const outputTable = this.formatOutput(this.outputTableRow);
-    channelService.appendLine(outputTable);
-    return true;
+    try {
+      await Org.create({ aliasOrUsername: this.usernameOrAlias });
+
+      result = true;
+      config.set(nls.localize(CONFIG_NAME), this.usernameOrAlias);
+      await config.write();
+
+      this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(result) };
+      const outputTable = this.formatOutput(this.outputTableRow);
+      channelService.appendLine(outputTable);
+    } catch (error) {
+      result = false;
+
+      this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(result) };
+      const outputTable = this.formatOutput(this.outputTableRow);
+      channelService.appendLine(outputTable);
+
+      throw error as Error;
+    }
+    return result;
   }
 
   private formatOutput(input: Row): string {
