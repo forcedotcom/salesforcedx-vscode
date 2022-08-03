@@ -13,7 +13,6 @@ import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
 
-
 export async function setUpOrgExpirationWatcher(orgList: OrgList) {
   // Run once to start off with.
   await checkForExpiredOrgs(orgList);
