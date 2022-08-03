@@ -19,8 +19,8 @@ export function extractJsonObject(str: string): any {
   return JSON.parse(jsonString);
 }
 
-export async function asyncFilter<T>(arr: T[], predicate: any) {
-  const results = await Promise.all(arr.map(predicate));
+export async function asyncFilter<T>(arr: T[], callback: (value: T, index: number, array: T[]) => unknown) {
+  const results = await Promise.all(arr.map(callback));
 
   return arr.filter((_v, index) => results[index]);
 }
