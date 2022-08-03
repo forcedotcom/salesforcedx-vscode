@@ -38,6 +38,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 
   public async run(response: ContinueResponse<string>): Promise<boolean> {
     let result: boolean;
+    let message: string | undefined;
 
     // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
     const path = getRootWorkspacePath(); // Get current workspace path
@@ -51,18 +52,18 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       result = true;
       config.set(nls.localize(CONFIG_NAME), this.usernameOrAlias);
       await config.write();
-
-      this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(result) };
-      const outputTable = this.formatOutput(this.outputTableRow);
-      channelService.appendLine(outputTable);
     } catch (error) {
+      error instanceof Error
+        ? message = error.message
+        : message = String(error);
       result = false;
-
-      this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(result) };
-      const outputTable = this.formatOutput(this.outputTableRow);
-      channelService.appendLine(outputTable);
-
-      throw error as Error;
+    }
+    this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(result) };
+    const outputTable = this.formatOutput(this.outputTableRow);
+    channelService.appendLine(outputTable);
+    if (message) {
+      channelService.appendLine(`Error: ${message}`);
+      channelService.showChannelOutput();
     }
     return result;
   }
