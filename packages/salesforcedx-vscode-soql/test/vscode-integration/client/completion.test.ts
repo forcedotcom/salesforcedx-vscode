@@ -126,7 +126,7 @@ describe('Should do completion', async () => {
   // Test the case of "embedded-soql" scheme:
   // SOQL LSP should read sobject metadata from the workspace's filesystem instead of
   // using jsforce lib (which invokes the remote SF remote API).
-  // See test data at `packages/system-tests/assets/sfdx-simple/.sf/tools/soqlMetadata`
+  // See test data at `packages/system-tests/assets/sfdx-simple/.sfdx/tools/soqlMetadata`
   testCompletion(
     'SELECT id FROM |',
     [

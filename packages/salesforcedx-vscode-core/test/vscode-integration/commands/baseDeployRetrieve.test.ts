@@ -218,19 +218,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
     });
-
-  //   xit('should use the registry api version by default', async () => {
-  //     const executor = new TestDeployRetrieve();
-  //     const registryApiVersion = registry.apiVersion;
-  //     sb.stub(ConfigUtil, 'getConfigValue')
-  //       .withArgs('apiVersion')
-  //       .returns(undefined);
-
-  //     await executor.run({ data: {}, type: 'CONTINUE' });
-  //     const components = executor.lifecycle.doOperationStub.firstCall.args[0];
-
-  //     expect(components.apiVersion).to.equal(registryApiVersion);
-  //   });
   });
 
   describe('DeployExecutor', () => {
