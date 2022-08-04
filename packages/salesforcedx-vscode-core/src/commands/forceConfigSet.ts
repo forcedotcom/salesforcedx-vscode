@@ -9,6 +9,14 @@ import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode
 import { Row, Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
+import {
+  CONFIG_SET_EXECUTOR,
+  CONFIG_SET_NAME,
+  DEFAULT_USERNAME_KEY,
+  TABLE_NAME_COL,
+  TABLE_SUCCESS_COL,
+  TABLE_VAL_COL
+} from '../constants';
 import { nls } from '../messages';
 import { getRootWorkspacePath } from '../util/rootWorkspace';
 import {
@@ -17,12 +25,7 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-const CONFIG_SET_EXECUTOR = 'force_config_set_org_text';
-const CONFIG_SET_NAME = 'force_config_set_title';
-const CONFIG_NAME = 'force_config_set_name';
-const TABLE_NAME_COL = 'table_header_name';
-const TABLE_VAL_COL = 'table_header_value';
-const TABLE_SUCCESS_COL = 'table_header_success';
+
 
 export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
@@ -53,7 +56,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       }
 
       result = true;
-      config.set(nls.localize(CONFIG_NAME), this.usernameOrAlias);
+      config.set(DEFAULT_USERNAME_KEY, this.usernameOrAlias);
       await config.write();
     } catch (error) {
       error instanceof Error
@@ -61,7 +64,7 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
         : message = String(error);
       result = false;
     }
-    this.outputTableRow = { name: nls.localize(CONFIG_NAME), val: this.usernameOrAlias, success: String(result) };
+    this.outputTableRow = { name: DEFAULT_USERNAME_KEY, val: this.usernameOrAlias, success: String(result) };
     const outputTable = this.formatOutput(this.outputTableRow);
     channelService.appendLine(outputTable);
     if (message) {

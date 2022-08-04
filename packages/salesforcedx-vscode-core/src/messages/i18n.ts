@@ -309,7 +309,6 @@ export const messages = {
   missing_default_org: 'No Default Org Set',
   force_config_set_org_text: 'SFDX: Set a Default Org',
   force_config_set_title: 'Set Config',
-  force_config_set_name: 'defaultusername',
   table_header_name: 'Name',
   table_header_value: 'Value',
   table_header_success: 'Success',

@@ -11,10 +11,8 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { channelService } from '../../../src/channels';
 import { forceConfigSet, ForceConfigSetExecutor } from '../../../src/commands';
+import { CONFIG_SET_NAME, DEFAULT_USERNAME_KEY } from '../../../src/constants';
 import { nls } from '../../../src/messages';
-
-const CONFIG_KEY = nls.localize('force_config_set_name');
-const CONFIG_TITLE = nls.localize('force_config_set_title');
 
 const sandbox = sinon.createSandbox();
 let channelSpy: sinon.SinonSpy;
@@ -43,7 +41,7 @@ describe('Force Config Set', () => {
     orgStub.resolves();
     await forceConfigSet(usernameOrAlias);
     expect(configSetSpy.callCount).to.equal(1);
-    expect(configSetSpy.calledWith(CONFIG_KEY, usernameOrAlias)).to.equal(true);
+    expect(configSetSpy.calledWith(DEFAULT_USERNAME_KEY, usernameOrAlias)).to.equal(true);
     expect(configWriteSpy.callCount).to.equal(1);
   });
 
@@ -53,7 +51,7 @@ describe('Force Config Set', () => {
     orgStub.resolves();
     await forceConfigSet(aliases.join(','));
     expect(configSetSpy.callCount).to.equal(1);
-    expect(configSetSpy.calledWith(CONFIG_KEY, expectedAlias)).to.equal(true);
+    expect(configSetSpy.calledWith(DEFAULT_USERNAME_KEY, expectedAlias)).to.equal(true);
   });
 
   it('should display formatted output in output channel', async () => {
@@ -65,11 +63,11 @@ describe('Force Config Set', () => {
   });
 
   it('should display correct output to user', async () => {
-    const outputTableRow = { name: CONFIG_KEY, val: usernameOrAlias, success: String(true) };
+    const outputTableRow = { name: DEFAULT_USERNAME_KEY, val: usernameOrAlias, success: String(true) };
     const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
     const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);
     expect(tableSpy.callCount).to.equal(1);
-    expect(formatOutput).to.contain(CONFIG_TITLE, CONFIG_KEY);
+    expect(formatOutput).to.contain(nls.localize(CONFIG_SET_NAME), DEFAULT_USERNAME_KEY);
     expect(formatOutput).to.contain(usernameOrAlias, String(true));
   });
 
