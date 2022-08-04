@@ -24,6 +24,7 @@ let tableSpy: sinon.SinonSpy;
 let orgStub: sinon.SinonStub;
 
 describe('Force Config Set', () => {
+  const errorMessage = "An error occurred.";
   const usernameOrAlias = 'test-username1@gmail.com';
 
   beforeEach(() => {
@@ -70,5 +71,20 @@ describe('Force Config Set', () => {
     expect(tableSpy.callCount).to.equal(1);
     expect(formatOutput).to.contain(CONFIG_TITLE, CONFIG_KEY);
     expect(formatOutput).to.contain(usernameOrAlias, String(true));
+  });
+
+  it('should not set config with an invalid username or alias', async () => {
+    orgStub.throwsException();
+    await forceConfigSet(usernameOrAlias);
+    expect(configSetSpy.callCount).to.equal(0);
+    expect(configWriteSpy.callCount).to.equal(0);
+  });
+
+  it('should display error message in output channel', async () => {
+    orgStub.throws(new Error(errorMessage));
+    await forceConfigSet(usernameOrAlias);
+    expect(channelSpy.callCount).to.equal(2);
+    expect(channelSpy.lastCall.args.length).to.equal(1);
+    expect(channelSpy.lastCall.args[0]).to.contain(errorMessage);
   });
 });
