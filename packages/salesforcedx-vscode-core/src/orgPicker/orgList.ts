@@ -96,7 +96,7 @@ export class OrgList implements vscode.Disposable {
       });
     }
 
-    const info = await StateAggregator.create();
+    const info = await StateAggregator.getInstance();
     const authList = [];
     const today = new Date();
     for (const authInfo of authInfoObjects) {
