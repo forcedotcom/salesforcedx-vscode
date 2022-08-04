@@ -47,7 +47,9 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     const config = await Config.create(Config.getDefaultOptions());
 
     try {
-      await Org.create({ aliasOrUsername: this.usernameOrAlias });
+      if (this.usernameOrAlias) {
+        await Org.create({ aliasOrUsername: this.usernameOrAlias });
+      }
 
       result = true;
       config.set(nls.localize(CONFIG_NAME), this.usernameOrAlias);
