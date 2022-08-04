@@ -24,7 +24,7 @@ let tableSpy: sinon.SinonSpy;
 let orgStub: sinon.SinonStub;
 
 describe('Force Config Set', () => {
-  const errorMessage = "An error occurred.";
+  const errorMessage = 'An error occurred.';
   const usernameOrAlias = 'test-username1@gmail.com';
 
   beforeEach(() => {
