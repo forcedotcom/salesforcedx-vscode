@@ -25,8 +25,6 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 
-
-
 export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
   protected showChannelOutput = false;
