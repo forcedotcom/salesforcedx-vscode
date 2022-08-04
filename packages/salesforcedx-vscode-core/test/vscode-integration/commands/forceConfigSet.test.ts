@@ -41,9 +41,9 @@ describe('Force Config Set', () => {
   it('should set config with the given username or alias', async () => {
     orgStub.resolves(true);
     await forceConfigSet(usernameOrAlias);
-    expect(configSetSpy.calledOnce);
+    expect(configSetSpy.callCount).to.equal(1);
     expect(configSetSpy.calledWith(CONFIG_KEY, usernameOrAlias)).to.equal(true);
-    expect(configWriteSpy.calledOnce);
+    expect(configWriteSpy.callCount).to.equal(1);
   });
 
   it('should set config with first alias', async () => {
@@ -59,6 +59,7 @@ describe('Force Config Set', () => {
     const expectedOutput = 'Successful table row';
     sandbox.stub(ForceConfigSetExecutor.prototype as any, 'formatOutput').returns(expectedOutput);
     await forceConfigSet(usernameOrAlias);
+    expect(channelSpy.callCount).to.equal(1);
     expect(channelSpy.calledWith(expectedOutput)).to.equal(true);
   });
 
@@ -66,7 +67,7 @@ describe('Force Config Set', () => {
     const outputTableRow = { name: CONFIG_KEY, val: usernameOrAlias, success: String(true) };
     const forceConfigSetInstance = new ForceConfigSetExecutor(usernameOrAlias);
     const formatOutput = (forceConfigSetInstance as any).formatOutput(outputTableRow);
-    expect(tableSpy.calledOnce);
+    expect(tableSpy.callCount).to.equal(1);
     expect(formatOutput).to.contain(CONFIG_TITLE, CONFIG_KEY);
     expect(formatOutput).to.contain(usernameOrAlias, String(true));
   });
