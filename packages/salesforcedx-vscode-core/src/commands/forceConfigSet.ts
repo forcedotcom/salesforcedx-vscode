@@ -47,8 +47,9 @@ export class ForceConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     const config = await Config.create(Config.getDefaultOptions());
 
     try {
-      if (this.usernameOrAlias) {
-        await Org.create({ aliasOrUsername: this.usernameOrAlias });
+      // should only set if username is valid or an empty string (unset)
+      if (this.usernameOrAlias) { // check if username is an empty string
+        await Org.create({ aliasOrUsername: this.usernameOrAlias }); // check username is valid
       }
 
       result = true;
