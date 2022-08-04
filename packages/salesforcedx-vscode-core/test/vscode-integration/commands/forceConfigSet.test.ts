@@ -40,7 +40,7 @@ describe('Force Config Set', () => {
   });
 
   it('should set config with the given username or alias', async () => {
-    orgStub.resolves(true);
+    orgStub.resolves();
     await forceConfigSet(usernameOrAlias);
     expect(configSetSpy.callCount).to.equal(1);
     expect(configSetSpy.calledWith(CONFIG_KEY, usernameOrAlias)).to.equal(true);
@@ -50,7 +50,7 @@ describe('Force Config Set', () => {
   it('should set config with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
-    orgStub.resolves(true);
+    orgStub.resolves();
     await forceConfigSet(aliases.join(','));
     expect(configSetSpy.callCount).to.equal(1);
     expect(configSetSpy.calledWith(CONFIG_KEY, expectedAlias)).to.equal(true);
