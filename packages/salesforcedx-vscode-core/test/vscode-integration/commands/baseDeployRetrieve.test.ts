@@ -188,12 +188,17 @@ describe('Base Deploy Retrieve Commands', () => {
       }
     });
 
-    it('should use the api version from SFDX configuration', async () => {
+    it.only('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
+      //todo: stub out getOrgApiVersion instead - won't need a username and
+      // wont have to change this test file when switch to not use getConfigValue
       const configApiVersion = '30.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      const getUserConfiguredApiVersionStub = sb
+        .stub(executor, 'getUserConfiguredApiVersion')
+        .resolves(configApiVersion);
+      const getOrgApiVersionStub = sb
+        .stub(executor, 'getOrgApiVersion')
+        .resolves('40.0');
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
