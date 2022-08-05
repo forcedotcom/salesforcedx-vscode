@@ -203,7 +203,7 @@ describe('Base Deploy Retrieve Commands', () => {
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
-      expect(getOrgApiVersionSpy.called).to.be.false;
+      expect(getOrgApiVersionSpy.called).to.equal(false);
     });
 
     it('should use the api version from the Org when no User-configured api version is set', async () => {

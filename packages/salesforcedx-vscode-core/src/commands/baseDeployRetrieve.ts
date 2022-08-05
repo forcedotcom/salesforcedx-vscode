@@ -36,7 +36,7 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { ConfigUtil, getDefaultDevHubUsernameOrAlias, OrgAuthInfo } from '../util';
+import { ConfigUtil, OrgAuthInfo } from '../util';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -85,13 +85,16 @@ export abstract class DeployRetrieveExecutor<
     }
   }
 
-  async setApiVersionOn(components: ComponentSet) {
+  private async setApiVersionOn(components: ComponentSet) {
     // Check the SFDX configuration to see if there is an overridden api version.
     // Project level local sfdx-config takes precedence over global sfdx-config at system level.
-    const userConfiguredApiVersion: string | undefined = await ConfigUtil.getUserConfiguredApiVersion();
-    
+    const userConfiguredApiVersion:
+      | string
+      | undefined = await ConfigUtil.getUserConfiguredApiVersion();
+
     // If no user-configured Api Version is present, then get the version from the Org.
-    components.apiVersion = userConfiguredApiVersion ?? await OrgAuthInfo.getOrgApiVersion();
+    components.apiVersion =
+      userConfiguredApiVersion ?? (await OrgAuthInfo.getOrgApiVersion());
   }
 
   protected setupCancellation(
