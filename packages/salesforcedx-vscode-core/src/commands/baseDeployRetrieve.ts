@@ -63,7 +63,7 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-      this.setApiVersionOn(components);
+      void this.setApiVersionOn(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
