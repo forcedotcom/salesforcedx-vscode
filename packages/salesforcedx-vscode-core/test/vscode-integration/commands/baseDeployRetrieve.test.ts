@@ -6,7 +6,6 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
@@ -44,7 +43,11 @@ import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import {
+  ConfigUtil,
+  getRootWorkspacePath,
+  OrgAuthInfo
+} from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const sb = createSandbox();
@@ -188,22 +191,33 @@ describe('Base Deploy Retrieve Commands', () => {
       }
     });
 
-    it.only('should use the api version from SFDX configuration', async () => {
+    it('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
       //todo: stub out getOrgApiVersion instead - won't need a username and
       // wont have to change this test file when switch to not use getConfigValue
       const configApiVersion = '30.0';
-      const getUserConfiguredApiVersionStub = sb
-        .stub(executor, 'getUserConfiguredApiVersion')
-        .resolves(configApiVersion);
-      const getOrgApiVersionStub = sb
-        .stub(executor, 'getOrgApiVersion')
-        .resolves('40.0');
+      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves(
+        configApiVersion
+      );
+      const getOrgApiVersionSpy = sb.spy(OrgAuthInfo, 'getOrgApiVersion');
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
+      expect(getOrgApiVersionSpy.called).to.be.false;
+    });
+
+    it('should use the api version from the Org when no User-configured api version is set', async () => {
+      const executor = new TestDeployRetrieve();
+      const orgApiVersion = '40.0';
+      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves(undefined);
+      sb.stub(OrgAuthInfo, 'getOrgApiVersion').resolves(orgApiVersion);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(orgApiVersion);
     });
 
     it('should not override api version if getComponents set it already', async () => {

@@ -125,6 +125,10 @@ export class OrgAuthInfo {
       authInfo: await AuthInfo.create({ username })
     });
   }
+
+  public static async getOrgApiVersion() {
+    return await (await OrgAuthInfo.getConnection()).getApiVersion();
+  }
 }
 
 enum VSCodeWindowTypeEnum {

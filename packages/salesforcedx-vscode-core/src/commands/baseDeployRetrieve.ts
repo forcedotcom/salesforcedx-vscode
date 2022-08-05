@@ -4,9 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Org } from '@salesforce/core';
 import {
-  ConfigUtil,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
@@ -21,7 +19,6 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  registry,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
@@ -39,7 +36,7 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { getDefaultDevHubUsernameOrAlias } from '../util';
+import { ConfigUtil, getDefaultDevHubUsernameOrAlias, OrgAuthInfo } from '../util';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -91,22 +88,10 @@ export abstract class DeployRetrieveExecutor<
   async setApiVersionOn(components: ComponentSet) {
     // Check the SFDX configuration to see if there is an overridden api version.
     // Project level local sfdx-config takes precedence over global sfdx-config at system level.
-    const userConfiguredApiVersion = await this.getUserConfiguredApiVersion();
+    const userConfiguredApiVersion: string | undefined = await ConfigUtil.getUserConfiguredApiVersion();
     
     // If no user-configured Api Version is present, then get the version from the Org.
-    const orgApiVersion = await this.getOrgApiVersion();
-    components.apiVersion = userConfiguredApiVersion ?? orgApiVersion;
-  }
-
-  async getUserConfiguredApiVersion() {
-    return await ConfigUtil.getConfigValue('apiVersion') as
-    | string
-    | undefined;
-  }
-
-  async getOrgApiVersion() {
-    const aliasOrUsername = await getDefaultDevHubUsernameOrAlias();
-    return await (await Org.create({ aliasOrUsername })).getConnection().getApiVersion();
+    components.apiVersion = userConfiguredApiVersion ?? await OrgAuthInfo.getOrgApiVersion();
   }
 
   protected setupCancellation(
