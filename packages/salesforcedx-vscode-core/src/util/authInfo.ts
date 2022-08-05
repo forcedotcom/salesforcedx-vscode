@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import { AuthUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import {
@@ -127,7 +128,15 @@ export class OrgAuthInfo {
   }
 
   public static async getOrgApiVersion() {
-    const connection = await OrgAuthInfo.getConnection();
+    const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
+      false
+    );
+    const username = defaultUsernameOrAlias
+      ? await AuthUtil.getInstance().getUsername(defaultUsernameOrAlias)
+      : undefined;
+    const connection = await Connection.create({
+      authInfo: await AuthInfo.create({ username })
+    });
     const apiVersion = connection.getApiVersion();
     return apiVersion;
   }
