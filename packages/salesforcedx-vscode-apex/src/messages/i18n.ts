@@ -56,8 +56,6 @@ export const messages = {
   force_apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
   force_apex_test_run_text: 'SFDX: Run Apex Tests',
-  force_sobjects_no_refresh_if_already_active_error_text:
-    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_test_view_loading_message: 'Loading Apex tests ...',
   force_test_view_no_tests_message: 'No Apex Tests Found',
   force_test_view_show_error_title: 'Show Error',
