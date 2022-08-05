@@ -127,7 +127,9 @@ export class OrgAuthInfo {
   }
 
   public static async getOrgApiVersion() {
-    return await (await OrgAuthInfo.getConnection()).getApiVersion();
+    const connection = await OrgAuthInfo.getConnection();
+    const apiVersion = connection.getApiVersion();
+    return apiVersion;
   }
 }
 
