@@ -19,7 +19,6 @@ import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
 import { OrgAuthInfo } from '../../../../src/util';
 
-// tslint:disable:no-unused-expression
 describe('Force Auth Logout All', () => {
   it('Should build the auth logout all command', async () => {
     const authLogoutAll = new ForceAuthLogoutAll();
