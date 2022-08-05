@@ -194,28 +194,35 @@ describe('Base Deploy Retrieve Commands', () => {
     it('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
       const configApiVersion = '30.0';
-      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves(
-        configApiVersion
-      );
+      const getUserConfiguredApiVersionStub = sb
+        .stub(ConfigUtil, 'getUserConfiguredApiVersion')
+        .resolves(configApiVersion);
       const getOrgApiVersionSpy = sb.spy(OrgAuthInfo, 'getOrgApiVersion');
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
+      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
       expect(getOrgApiVersionSpy.called).to.equal(false);
     });
 
     it('should use the api version from the Org when no User-configured api version is set', async () => {
       const executor = new TestDeployRetrieve();
       const orgApiVersion = '40.0';
-      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves(undefined);
-      sb.stub(OrgAuthInfo, 'getOrgApiVersion').resolves(orgApiVersion);
+      const getUserConfiguredApiVersionStub = sb
+        .stub(ConfigUtil, 'getUserConfiguredApiVersion')
+        .resolves(undefined);
+      const getOrgApiVersionSpy = sb
+        .stub(OrgAuthInfo, 'getOrgApiVersion')
+        .resolves(orgApiVersion);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(orgApiVersion);
+      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getOrgApiVersionSpy.calledOnce).to.equal(true);
     });
 
     it('should not override api version if getComponents set it already', async () => {
