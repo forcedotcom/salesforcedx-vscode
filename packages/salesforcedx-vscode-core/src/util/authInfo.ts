@@ -131,6 +131,9 @@ export class OrgAuthInfo {
     const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
       false
     );
+    if (!defaultUsernameOrAlias) {
+      return undefined;
+    }
     const username = defaultUsernameOrAlias
       ? await AuthUtil.getInstance().getUsername(defaultUsernameOrAlias)
       : undefined;
