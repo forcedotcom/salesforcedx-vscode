@@ -92,10 +92,14 @@ export abstract class DeployRetrieveExecutor<
       | string
       | undefined = await ConfigUtil.getUserConfiguredApiVersion();
 
+    if (userConfiguredApiVersion) {
+      components.apiVersion = userConfiguredApiVersion;
+      return;
+    }
+
     // If no user-configured Api Version is present, then get the version from the Org.
     const orgApiVersion = await OrgAuthInfo.getOrgApiVersion();
-    components.apiVersion =
-      userConfiguredApiVersion ?? orgApiVersion ?? components.apiVersion;
+    components.apiVersion = orgApiVersion ?? components.apiVersion;
   }
 
   protected setupCancellation(
