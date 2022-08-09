@@ -70,4 +70,9 @@ export class ConfigUtil {
     }
     return undefined;
   }
+
+  public static async getUserConfiguredApiVersion() {
+    const apiVersion = await ConfigUtil.getConfigValue('apiVersion');
+    return apiVersion ? String(apiVersion) : undefined;
+  }
 }
