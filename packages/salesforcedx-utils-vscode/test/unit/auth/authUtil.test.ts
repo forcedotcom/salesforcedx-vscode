@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GlobalInfo, StateAggregator } from '@salesforce/core';
+import { StateAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, stub } from 'sinon';

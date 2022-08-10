@@ -13,7 +13,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { FileInfo, OrgList } from '../../../src/orgPicker';
-import { OrgAuthInfo } from '../../../src/util';
+import * as util from '../../../src/util';
 
 const sandbox = createSandbox();
 
@@ -99,10 +99,10 @@ describe('orgList Tests', () => {
 
       beforeEach(() => {
         defaultDevHubStub = sandbox.stub(
-          OrgAuthInfo,
+          util.OrgAuthInfo,
           'getDefaultDevHubUsernameOrAlias'
         );
-        getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
+        getUsernameStub = sandbox.stub(util.OrgAuthInfo, 'getUsername');
 
         getAllStub = sandbox.stub();
         fakeStateAggregator = {
@@ -162,7 +162,9 @@ describe('orgList Tests', () => {
         defaultDevHubStub.resolves('test-devhub1@example.com');
         getUsernameStub.resolves('test-devhub1@example.com');
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
       });
 
@@ -186,6 +188,7 @@ describe('orgList Tests', () => {
         defaultDevHubStub.returns('dev hub alias');
         getUsernameStub.resolves('test-devhub1@example.com');
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
       });
@@ -213,6 +216,7 @@ describe('orgList Tests', () => {
         getAllStub.onFirstCall().returns(['alias1']);
         getAllStub.returns([]);
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
       });
 
@@ -251,7 +255,9 @@ describe('orgList Tests', () => {
         defaultDevHubStub.resolves('test-devhub1@example.com');
         getUsernameStub.resolves('test-devhub1@example.com');
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal(
           'test-scratchorg-today@example.com - ' +
             nls.localize('org_expired') +
@@ -298,7 +304,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.auth.web.login')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.auth.web.login')
+        ).to.equal(true);
       });
 
       it('should return Continue and call force:org:create command if SFDX: Create a Default Scratch Org is selected', async () => {
@@ -308,7 +316,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.org.create')).to.equal(true);
+        expect(executeCommandStub.calledWith('sfdx.force.org.create')).to.equal(
+          true
+        );
       });
 
       it('should return Continue and call force:auth:dev:hub command if SFDX: Authorize a Dev Hub is selected', async () => {
@@ -319,7 +329,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.auth.dev.hub')
+        ).to.equal(true);
       });
 
       it('should return Continue and call sfdx:force:auth:accessToken command if SFDX: Authorize an Org using Session ID', async () => {
@@ -330,7 +342,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.auth.accessToken')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.auth.accessToken')
+        ).to.equal(true);
       });
 
       it('should return Continue and call force:org:list:clean command if SFDX: Remove Deleted and Expired Orgs is selected', async () => {
@@ -340,7 +354,9 @@ describe('orgList Tests', () => {
         );
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.org.list.clean')).to.equal(true);
+        expect(
+          executeCommandStub.calledWith('sfdx.force.org.list.clean')
+        ).to.equal(true);
       });
 
       it('should return Continue and call force:config:set command if a username/alias is selected', async () => {
@@ -348,7 +364,9 @@ describe('orgList Tests', () => {
         quickPickStub.returns('$(plus)' + orgsList[0].split(' ', 1));
         const response = await orgList.setDefaultOrg();
         expect(response.type).to.equal('CONTINUE');
-        expect(executeCommandStub.calledWith('sfdx.force.config.set')).to.equal(true);
+        expect(executeCommandStub.calledWith('sfdx.force.config.set')).to.equal(
+          true
+        );
       });
     });
   });
