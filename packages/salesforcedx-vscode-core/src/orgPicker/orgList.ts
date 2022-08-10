@@ -12,7 +12,7 @@ import {
 import * as vscode from 'vscode';
 import { OrgInfo, workspaceContext } from '../context';
 import { nls } from '../messages';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { getDefaultDevHubUsernameOrAlias, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -180,12 +180,6 @@ export class OrgList implements vscode.Disposable {
         );
         return { type: 'CONTINUE', data: {} };
       }
-    }
-  }
-
-  public async getDefaultDevHubUsernameorAlias(): Promise<string | undefined> {
-    if (hasRootWorkspace()) {
-      return OrgAuthInfo.getDefaultDevHubUsernameOrAlias(false);
     }
   }
 

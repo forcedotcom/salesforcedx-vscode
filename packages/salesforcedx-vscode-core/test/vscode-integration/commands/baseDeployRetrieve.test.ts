@@ -6,7 +6,6 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import {
@@ -44,7 +43,11 @@ import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import {
+  ConfigUtil,
+  getRootWorkspacePath,
+  OrgAuthInfo
+} from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const sb = createSandbox();
@@ -54,6 +57,8 @@ type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
 describe('Base Deploy Retrieve Commands', () => {
   let mockConnection: Connection;
+  const dummyOrgApiVersion = '55.0';
+  let getOrgApiVersionStub: SinonStub;
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
@@ -66,6 +71,9 @@ describe('Base Deploy Retrieve Commands', () => {
       })
     });
     sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
+    getOrgApiVersionStub = sb
+      .stub(OrgAuthInfo, 'getOrgApiVersion')
+      .resolves(dummyOrgApiVersion);
   });
 
   afterEach(() => sb.restore());
@@ -191,14 +199,30 @@ describe('Base Deploy Retrieve Commands', () => {
     it('should use the api version from SFDX configuration', async () => {
       const executor = new TestDeployRetrieve();
       const configApiVersion = '30.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      const getUserConfiguredApiVersionStub = sb
+        .stub(ConfigUtil, 'getUserConfiguredApiVersion')
+        .resolves(configApiVersion);
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
 
       expect(components.apiVersion).to.equal(configApiVersion);
+      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getOrgApiVersionStub.called).to.equal(false);
+    });
+
+    it('should use the api version from the Org when no User-configured api version is set', async () => {
+      const executor = new TestDeployRetrieve();
+      const getUserConfiguredApiVersionStub = sb
+        .stub(ConfigUtil, 'getUserConfiguredApiVersion')
+        .resolves(undefined);
+
+      await executor.run({ data: {}, type: 'CONTINUE' });
+      const components = executor.lifecycle.doOperationStub.firstCall.args[0];
+
+      expect(components.apiVersion).to.equal(dummyOrgApiVersion);
+      expect(getUserConfiguredApiVersionStub.calledOnce).to.equal(true);
+      expect(getOrgApiVersionStub.calledOnce).to.equal(true);
     });
 
     it('should not override api version if getComponents set it already', async () => {
@@ -218,19 +242,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
       expect(components.apiVersion).to.equal(getComponentsResult.apiVersion);
     });
-
-  //   xit('should use the registry api version by default', async () => {
-  //     const executor = new TestDeployRetrieve();
-  //     const registryApiVersion = registry.apiVersion;
-  //     sb.stub(ConfigUtil, 'getConfigValue')
-  //       .withArgs('apiVersion')
-  //       .returns(undefined);
-
-  //     await executor.run({ data: {}, type: 'CONTINUE' });
-  //     const components = executor.lifecycle.doOperationStub.firstCall.args[0];
-
-  //     expect(components.apiVersion).to.equal(registryApiVersion);
-  //   });
   });
 
   describe('DeployExecutor', () => {

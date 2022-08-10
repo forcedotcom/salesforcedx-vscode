@@ -13,7 +13,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { FileInfo, OrgList } from '../../../src/orgPicker';
-import { OrgAuthInfo } from '../../../src/util';
+import * as util from '../../../src/util';
 
 const sandbox = createSandbox();
 
@@ -99,10 +99,10 @@ describe('orgList Tests', () => {
 
       beforeEach(() => {
         defaultDevHubStub = sandbox.stub(
-          OrgAuthInfo,
+          util.OrgAuthInfo,
           'getDefaultDevHubUsernameOrAlias'
         );
-        getUsernameStub = sandbox.stub(OrgAuthInfo, 'getUsername');
+        getUsernameStub = sandbox.stub(util.OrgAuthInfo, 'getUsername');
 
         getAllStub = sandbox.stub();
         fakeStateAggregator = {
@@ -191,7 +191,9 @@ describe('orgList Tests', () => {
         defaultDevHubStub.resolves(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal('test-scratchorg1@example.com');
       });
 
@@ -210,6 +212,7 @@ describe('orgList Tests', () => {
         defaultDevHubStub.returns('dev hub alias');
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
         expect(authList[0]).to.equal(dummyScratchOrgAuth1.username);
       });
@@ -226,6 +229,7 @@ describe('orgList Tests', () => {
           .withArgs(authInfoObjects[0].username)
           .returns({});
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
       });
 
@@ -272,7 +276,9 @@ describe('orgList Tests', () => {
         defaultDevHubStub.resolves(dummyDevHubUsername1);
         getUsernameStub.resolves(dummyDevHubUsername1);
         getAllStub.returns([]);
+
         const authList = await orgList.filterAuthInfo(authInfoObjects);
+
         expect(authList[0]).to.equal(
           'test-scratchorg-today@example.com - ' +
             nls.localize('org_expired') +

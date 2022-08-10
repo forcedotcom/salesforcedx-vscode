@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ConfigUtil,
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
@@ -20,7 +19,6 @@ import {
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  registry,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
@@ -38,6 +36,7 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
+import { ConfigUtil, OrgAuthInfo } from '../util';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -64,17 +63,7 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-
-      // check the SFDX configuration to see if there is an overridden api version
-      // Run sfdx config:list to enlist all config values
-      // Project level local sfdx-config takes precedence over global sfdx-config at system level.
-      // getComponents uses ComponentSet from SDR which assigns
-      // the default latest value to components.apiversion
-
-      const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
-        | string
-        | undefined;
-      components.apiVersion = apiVersion ?? components.apiVersion;
+      await this.setApiVersionOn(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -94,6 +83,23 @@ export abstract class DeployRetrieveExecutor<
     } finally {
       await this.postOperation(result);
     }
+  }
+
+  private async setApiVersionOn(components: ComponentSet) {
+    // Check the SFDX configuration to see if there is an overridden api version.
+    // Project level local sfdx-config takes precedence over global sfdx-config at system level.
+    const userConfiguredApiVersion:
+      | string
+      | undefined = await ConfigUtil.getUserConfiguredApiVersion();
+
+    if (userConfiguredApiVersion) {
+      components.apiVersion = userConfiguredApiVersion;
+      return;
+    }
+
+    // If no user-configured Api Version is present, then get the version from the Org.
+    const orgApiVersion = await OrgAuthInfo.getOrgApiVersion();
+    components.apiVersion = orgApiVersion ?? components.apiVersion;
   }
 
   protected setupCancellation(
