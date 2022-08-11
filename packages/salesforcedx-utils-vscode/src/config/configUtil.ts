@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  Global
+} from '@salesforce/core';
 import * as path from 'path';
 import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
@@ -22,18 +27,6 @@ export enum ConfigSource {
 // not be viable.
 
 export class ConfigUtil {
-  public static async getConfigSource(key: string): Promise<ConfigSource> {
-    let value = await ConfigUtil.getConfigValue(key, ConfigSource.Local);
-    if (!(value === null || value === undefined)) {
-      return ConfigSource.Local;
-    }
-    value = await ConfigUtil.getConfigValue(key, ConfigSource.Global);
-    if (!(value === null || value === undefined)) {
-      return ConfigSource.Global;
-    }
-    return ConfigSource.None;
-  }
-
   public static async getConfigValue(
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
@@ -43,7 +36,7 @@ export class ConfigUtil {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
           isGlobal: false,
-          rootFolder: path.join(rootPath, '.sfdx'),
+          rootFolder: path.join(rootPath, Global.SFDX_STATE_FOLDER),
           filename: 'sfdx-config.json'
         });
         const localValue = myLocalConfig.get(key);
