@@ -53,3 +53,12 @@ export function flushFilePaths(filePaths: string[]): string[] {
 
   return filePaths;
 }
+
+export async function asyncFilter<T>(
+  arr: T[],
+  callback: (value: T, index: number, array: T[]) => unknown
+) {
+  const results = await Promise.all(arr.map(callback));
+
+  return arr.filter((_v, index) => results[index]);
+}

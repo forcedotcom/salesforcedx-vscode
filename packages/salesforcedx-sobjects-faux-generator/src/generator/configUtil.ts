@@ -6,10 +6,10 @@
  */
 
 import {
-  Aliases,
   ConfigAggregator,
   ConfigFile,
-  ConfigValue
+  ConfigValue,
+  StateAggregator
 } from '@salesforce/core';
 import * as path from 'path';
 
@@ -23,8 +23,9 @@ export class ConfigUtil {
       projectPath,
       defaultUserNameKey
     )) as string;
-    const username = await Aliases.fetch(defaultUserName);
-    return Promise.resolve(username);
+    const info = await StateAggregator.getInstance();
+    const username = info.aliases.resolveValue(defaultUserName);
+    return username;
   }
 
   public static async getConfigValue(

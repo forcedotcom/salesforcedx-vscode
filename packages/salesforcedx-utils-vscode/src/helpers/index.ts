@@ -7,22 +7,23 @@
 
 export {
   ensureDirectoryExists,
+  fileExtensionsMatch,
   getTestResultsFolder,
-  getRelativeProjectPath,
-  fileExtensionsMatch
+  getRelativeProjectPath
 } from './paths';
 export { TraceFlags } from './traceFlags';
 export { TraceFlagsRemover } from './traceFlagsRemover';
 export {
-  isNullOrUndefined,
+  asyncFilter,
   extractJsonObject,
   flushFilePath,
-  flushFilePaths
+  flushFilePaths,
+  isNullOrUndefined
 } from './utils';
 export {
+  isAlphaNumSpaceString,
   isAlphaNumString,
   isInteger,
   isIntegerInRange,
-  isAlphaNumSpaceString,
   isRecordIdFormat
 } from './validations';
