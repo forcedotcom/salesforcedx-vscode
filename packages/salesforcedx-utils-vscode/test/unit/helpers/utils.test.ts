@@ -31,7 +31,7 @@ describe('getConfigSource', () => {
 
 describe('flushFilePath', () => {
   it('should call fs.realpathSync.native() to resolve a path', async () => {
-    const filePath = 'C:\\Users\\temp\\exampleFile.js';
+    const filePath = 'c:\\Users\\temp\\exampleFile.js';
     const realpathSyncNativeStub = sinon
       .stub(fs.realpathSync, 'native')
       .returns(filePath);
@@ -46,7 +46,7 @@ describe('flushFilePath', () => {
   });
 
   it('should return a path when a path is passed in', async () => {
-    const filePath = 'C:\\Users\\temp\\exampleFile.js';
+    const filePath = 'c:\\Users\\temp\\exampleFile.js';
     const realpathSyncNativeStub = sinon
       .stub(fs.realpathSync, 'native')
       .returns(filePath);
