@@ -43,12 +43,12 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     token?: vscode.CancellationToken
   ): Promise<boolean> {
     if (this.sourcePaths) {
-      const componentSet = ComponentSet.fromSource(this.sourcePaths);
+      const packageXML = await ComponentSet.fromSource(this.sourcePaths).getPackageXml();
       if (this.responseText === undefined) {
         // Canceled and declined to name the document
         await openUntitledDocument(componentSet);
       } else {
-        saveDocument(this.responseText, componentSet);
+        saveDocument(this.responseText, packageXML);
       }
       return true;
     }
@@ -89,7 +89,7 @@ async function openUntitledDocument(componentSet: ComponentSet) {
   vscode.window.showTextDocument(newManifest);
 }
 
-function saveDocument(response: string, componentSet: ComponentSet) {
+function saveDocument(response: string, packageXML: string) {
   const fileName = response ? appendExtension(response) : DEFAULT_MANIFEST;
 
   const manifestPath = join(getRootWorkspacePath(), 'manifest');
