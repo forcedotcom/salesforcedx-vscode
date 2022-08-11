@@ -12,6 +12,11 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { nls } from '../messages';
+import { notificationService } from '../notifications';
+import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
+import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   LibraryPathsGatherer,
@@ -19,11 +24,6 @@ import {
   SfdxWorkspaceChecker
 } from './util';
 import { ConflictDetectionMessages } from './util/postconditionCheckers';
-import { channelService } from '../channels';
-import { nls } from '../messages';
-import { notificationService } from '../notifications';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../sfdxProject';
-import { telemetryService } from '../telemetry';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string[]
