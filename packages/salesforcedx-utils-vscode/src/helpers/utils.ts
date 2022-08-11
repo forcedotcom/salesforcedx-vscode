@@ -38,8 +38,8 @@ export function flushFilePath(filePath: string): string {
     // When called, fs.realpathSync.native() is returning the file path back as
     // "C:\Users\User Name\foo.cls", and the capitalization of the drive letter
     // causes problems further down stream.  To fix this, we'll use the path
-    // returned from fs.realpathSync.native() and then capitalize the first
-    // character.
+    // returned from fs.realpathSync.native() and then change the first character
+    // to lower case.
     nativePath = nativePath.charAt(0).toLowerCase() + nativePath.slice(1);
   }
 
