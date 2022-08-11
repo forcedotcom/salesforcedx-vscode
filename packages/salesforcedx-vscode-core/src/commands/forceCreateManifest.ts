@@ -43,10 +43,12 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     token?: vscode.CancellationToken
   ): Promise<boolean> {
     if (this.sourcePaths) {
-      const packageXML = await ComponentSet.fromSource(this.sourcePaths).getPackageXml();
+      const packageXML = await ComponentSet.fromSource(
+        this.sourcePaths
+      ).getPackageXml();
       if (this.responseText === undefined) {
         // Canceled and declined to name the document
-        await openUntitledDocument(componentSet);
+        await openUntitledDocument(packageXML);
       } else {
         saveDocument(this.responseText, packageXML);
       }
@@ -80,9 +82,9 @@ export async function forceCreateManifest(
   }
 }
 
-async function openUntitledDocument(componentSet: ComponentSet) {
+async function openUntitledDocument(packageXML: string) {
   const newManifest = await vscode.workspace.openTextDocument({
-    content: await componentSet.getPackageXml(),
+    content: packageXML,
     language: 'xml'
   });
 
@@ -99,7 +101,7 @@ function saveDocument(response: string, packageXML: string) {
   const saveLocation = join(manifestPath, fileName);
   checkForDuplicateManifest(saveLocation, fileName);
 
-  fs.writeFileSync(saveLocation, componentSet.getPackageXml());
+  fs.writeFileSync(saveLocation, packageXML);
   vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
     vscode.window.showTextDocument(newManifest);
   });

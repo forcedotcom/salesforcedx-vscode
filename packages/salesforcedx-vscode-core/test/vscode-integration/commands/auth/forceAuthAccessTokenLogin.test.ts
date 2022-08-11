@@ -72,11 +72,12 @@ describe('Force Auth Access Token Login', () => {
         instanceUrl: mockInstanceUrl
       }
     });
-    assert.calledOnce(authInfoSaveStub);
-    assert.calledOnce(authInfoSetAliasStub);
-    assert.calledWith(authInfoSetAliasStub, mockAlias);
-    assert.calledOnce(authInfoSetAsDefaultStub);
-    assert.calledWith(authInfoSetAsDefaultStub, { org: true });
+
+    assert.calledWith(handleAliasAndDefaultSettingsStub, {
+      alias: mockAlias,
+      setDefault: true,
+      setDefaultDevHub: false
+    });
   });
 
   it('Should show a user friendly message on Bad_OAuth_Token', async () => {
