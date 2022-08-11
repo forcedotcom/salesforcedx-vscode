@@ -67,12 +67,13 @@ workspace.registerTextDocumentContentProvider('embedded-soql', {
       .then(content => content.toLocaleString());
   }
 });
+const configDir = '.sfdx';
 
 describe('Should do completion', async () => {
   before(() => {
     // Populate filesystem with sobject's metadata. This is for the embedded-soql case
     const workspaceDir = path.normalize(
-      __dirname + '/../../../../../system-tests/assets/sfdx-simple/.sfdx'
+      __dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`
     );
     const targetDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
     const soqlMetadataDir = path.normalize(
@@ -174,7 +175,7 @@ describe('Should do completion', async () => {
   // Test the case of "embedded-soql" scheme:
   // SOQL LSP should read sobject metadata from the workspace's filesystem instead of
   // using jsforce lib (which invokes the remote SF remote API).
-  // See test data at `packages/system-tests/assets/sfdx-simple/.sfdx/tools/soqlMetadata`
+  // See test data at same path as soqlMetadataDir
   testCompletion(
     'SELECT | FROM Account',
     [
@@ -426,7 +427,7 @@ describe('Should do completion', async () => {
 
 describe('Should not do completion on metadata errors', async () => {
   const workspaceDir = path.normalize(
-    __dirname + '/../../../../../system-tests/assets/sfdx-simple/.sfdx'
+    __dirname + `/../../../../../system-tests/assets/sfdx-simple/${configDir}`
   );
   const soqlMetadataDir = path.join(workspaceDir, 'tools', 'soqlMetadata');
 
@@ -575,7 +576,7 @@ function testCompletion(
         }
 
         if (expectChannelMsg) {
-          expect(channelServiceSpy.called).to.be.true;
+          expect(channelServiceSpy.called).to.equal(true);
           console.log(channelServiceSpy.getCalls());
           expect(channelServiceSpy.lastCall.args[0].toLowerCase()).to.equal(
             expectChannelMsg.toLowerCase()
