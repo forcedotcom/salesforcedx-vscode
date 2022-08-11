@@ -14,11 +14,13 @@ export function isNullOrUndefined(object: any): object is null | undefined {
 }
 
 export function extractJsonObject(str: string): any {
-
-  const jsonString = str.substring(
-    str.indexOf('{'),
-    str.lastIndexOf('}') + 1
-  );
+  const jsonString = str.substring(str.indexOf('{'), str.lastIndexOf('}') + 1);
 
   return JSON.parse(jsonString);
+}
+
+export async function asyncFilter<T>(arr: T[], callback: (value: T, index: number, array: T[]) => unknown) {
+  const results = await Promise.all(arr.map(callback));
+
+  return arr.filter((_v, index) => results[index]);
 }

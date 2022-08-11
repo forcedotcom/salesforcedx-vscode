@@ -8,7 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { JsonMap } from '@salesforce/ts-types';
 import { QueryResult } from 'jsforce';
-import { SinonSandbox } from 'sinon';
+import { SinonSandbox, SinonSpy } from 'sinon';
 import * as vscode from 'vscode';
 import {
   SoqlEditorEvent,
@@ -30,7 +30,7 @@ const soqlExtension = vscode.extensions.getExtension(
 const soqlExports = soqlExtension?.exports;
 const { workspaceContext, channelService } = soqlExports;
 
-export function spyChannelService(sandbox: SinonSandbox) {
+export function spyChannelService(sandbox: SinonSandbox): SinonSpy {
   return sandbox.spy(channelService, 'appendLine');
 }
 
@@ -300,7 +300,7 @@ export const mockSObject = mockSObjects[0];
 export function stubMockConnection(
   sandbox: SinonSandbox,
   testUserName = 'test@test.com'
-) {
+): Connection {
   const connection = getMockConnection(sandbox, testUserName);
   sandbox.stub(workspaceContext, 'getConnection').returns(connection);
   return connection;
@@ -308,7 +308,7 @@ export function stubMockConnection(
 export function stubFailingMockConnection(
   sandbox: SinonSandbox,
   testUserName = 'test@test.com'
-) {
+): Connection {
   const connection = getFailingMockConnection(sandbox, testUserName);
   sandbox.stub(workspaceContext, 'getConnection').returns(connection);
   return connection;
@@ -324,14 +324,12 @@ export function getMockConnection(
 
   const mockConnection = ({
     authInfo: mockAuthInfo,
-    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
-      callback(undefined, mockDescribeGlobalResponse),
-    describe$: (
-      name: string,
-      callback: (err: Error | undefined, resp: any) => void
-    ) => {
+    describeGlobal$: () => {
+      return Promise.resolve(mockDescribeGlobalResponse);
+    },
+    describe$: (name: string) => {
       const sobjectMetadata = mockSObjects.find(s => s.name === name);
-      callback(undefined, sobjectMetadata);
+      return Promise.resolve(sobjectMetadata);
     },
     query: () => Promise.resolve(mockQueryData)
   } as unknown) as Connection;
@@ -346,12 +344,12 @@ export function getFailingMockConnection(
   const mockAuthInfo = { test: 'test' };
   const mockConnection = {
     authInfo: mockAuthInfo,
-    describeGlobal$: (callback: (err: Error | undefined, resp: any) => void) =>
-      callback(new Error('Unexpected error'), undefined),
-    describe$: (
-      name: string,
-      callback: (err: Error | undefined, resp: any) => void
-    ) => callback(new Error('Unexpected error'), undefined),
+    describeGlobal$: () => {
+      return Promise.reject(new Error('Unexpected error'));
+    },
+    describe$: (name: string) => {
+      return Promise.reject(new Error('Unexpected error'));
+    },
     query: () => Promise.reject(new Error('Unexpected error'))
   };
   return (mockConnection as unknown) as Connection;
@@ -368,11 +366,11 @@ export class MockTextDocumentProvider
 }
 
 export class TestSoqlEditorInstance extends SOQLEditorInstance {
-  public mockReceiveEvent(event: SoqlEditorEvent) {
+  public mockReceiveEvent(event: SoqlEditorEvent): void {
     this.onDidRecieveMessageHandler(event);
   }
 
-  public updateWebview(document: vscode.TextDocument) {
+  public updateWebview(document: vscode.TextDocument): void {
     super.updateWebview(document);
   }
 
@@ -383,29 +381,29 @@ export class TestSoqlEditorInstance extends SOQLEditorInstance {
     return super.updateTextDocument(document, soql);
   }
 
-  public openQueryDataView(queryData: QueryResult<JsonMap>) {
+  public openQueryDataView(queryData: QueryResult<JsonMap>): void {
     super.openQueryDataView(queryData);
   }
 
-  public sendMessageToUi(type: string, payload: any) {
+  public sendMessageToUi(type: string, payload: string): void {
     super.sendMessageToUi(type, payload);
   }
 }
 
 export class TestQueryDataViewService extends QueryDataViewService {
-  public mockReceiveEvent(event: DataViewEvent) {
+  public mockReceiveEvent(event: DataViewEvent): void {
     this.onDidRecieveMessageHandler(event);
   }
 
-  public createOrShowWebView() {
+  public createOrShowWebView(): vscode.Webview {
     return super.createOrShowWebView();
   }
 
-  public handleSaveRecords(format: FileFormat) {
+  public handleSaveRecords(format: FileFormat): void {
     super.handleSaveRecords(format);
   }
 
-  public getWebViewContent() {
+  public getWebViewContent(): string {
     return '<p>This is for you CI</p>';
   }
 }

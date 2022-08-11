@@ -41,38 +41,28 @@ export async function withSFConnection(
   }
 }
 export async function retrieveSObjects(): Promise<string[]> {
-  return new Promise<string[]>((resolve, reject) => {
-    return withSFConnection(async conn => {
-      conn.describeGlobal$((err, describeGlobalResult) => {
-        if (err) {
-          reject(err);
-        } else if (describeGlobalResult) {
-          const sobjectNames: string[] = describeGlobalResult.sobjects
-            .filter(o => o.queryable)
-            .map(o => o.name);
-          resolve(sobjectNames);
-        } else {
-          resolve([]);
-        }
-      });
-    });
+  let foundSObjectNames: string[] = [];
+  await withSFConnection(async conn => {
+    const describeGlobalResult = await conn.describeGlobal$();
+    if (describeGlobalResult) {
+      const sobjectNames: string[] = describeGlobalResult.sobjects
+        .filter(o => o.queryable)
+        .map(o => o.name);
+      foundSObjectNames = sobjectNames;
+    }
   });
+
+  return foundSObjectNames;
 }
 
 export async function retrieveSObject(
   sobjectName: string
 ): Promise<DescribeSObjectResult> {
-  return new Promise<DescribeSObjectResult>((resolve, reject) => {
-    return withSFConnection(async conn => {
-      conn.describe$(sobjectName, (err, sobject) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(sobject);
-        }
-      });
-    });
+  let name: DescribeSObjectResult;
+  await withSFConnection(async conn => {
+    name = await conn.describe$(sobjectName);
   });
+  return name;
 }
 
 workspaceContext.onOrgChange(async (orgInfo: any) => {

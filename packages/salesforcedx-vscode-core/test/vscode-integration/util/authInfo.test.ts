@@ -5,33 +5,39 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Aliases } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { ConfigUtil, OrgAuthInfo } from '../../../src/util';
 
-// tslint:disable: no-unused-expression
 describe('OrgAuthInfo', () => {
-  let env: SinonSandbox;
+  let sandbox: SinonSandbox;
+  const username = 'user@test.test';
+
   beforeEach(async () => {
-    env = createSandbox();
+    sandbox = createSandbox();
   });
-  afterEach(() => env.restore());
+  afterEach(() => sandbox.restore());
 
   describe('getUsername', () => {
-    const username = 'user@test.test';
     const alias = 'TestOrg';
 
-    it('should return the given username or alias if there is no alias', async () => {
-      expect(await OrgAuthInfo.getUsername(username)).to.equal(username);
-      expect(await OrgAuthInfo.getUsername(undefined!)).to.equal(undefined);
+    it('should return the given username if there is no alias', async () => {
+      const actualUsername = await OrgAuthInfo.getUsername(username);
+      expect(actualUsername).to.equal(username);
+    });
+
+    it('should return the given value if there is no alias', async () => {
+      const result = await OrgAuthInfo.getUsername(undefined!);
+      expect(result).to.equal(undefined);
     });
 
     it('should return the username for the matching alias', async () => {
-      env
-        .stub(Aliases, 'fetch')
+      const info = await StateAggregator.getInstance();
+      sandbox
+        .stub(info.aliases, 'getUsername')
         .withArgs(alias)
         .returns(username);
       expect(await OrgAuthInfo.getUsername(alias)).to.equal(username);
@@ -40,29 +46,39 @@ describe('OrgAuthInfo', () => {
 
   describe('getDefaultDevHubUsernameOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns(undefined);
-      const infoMessageStub = env.stub(vscode.window, 'showInformationMessage');
+      const infoMessageStub = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(infoMessageStub.calledOnce).to.be.true;
+      expect(infoMessageStub.calledOnce).to.equal(true);
       configUtilStub.restore();
       infoMessageStub.restore();
     });
 
     it('should run authorize a dev hub command if button clicked', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns(undefined);
-      const showMessageStub = env.stub(vscode.window, 'showInformationMessage');
+      const showMessageStub = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
       showMessageStub.returns(nls.localize('notification_make_default_dev'));
-      const executeCommandStub = env.stub(vscode.commands, 'executeCommand');
+      const executeCommandStub = sandbox.stub(
+        vscode.commands,
+        'executeCommand'
+      );
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.be
-        .true;
-      expect(showMessageStub.calledOnce).to.be.true;
+      expect(executeCommandStub.calledWith('sfdx.force.auth.dev.hub')).to.equal(
+        true
+      );
+      expect(showMessageStub.calledOnce).to.equal(true);
 
       configUtilStub.restore();
       showMessageStub.restore();
@@ -70,33 +86,65 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should not show a message if there is a dev hub set', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
       configUtilStub.returns('username');
-      const infoMessageStub = env.stub(vscode.window, 'showInformationMessage');
+      const infoMessageStub = sandbox.stub(
+        vscode.window,
+        'showInformationMessage'
+      );
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
-      expect(infoMessageStub.calledOnce).to.be.false;
+      expect(infoMessageStub.calledOnce).to.equal(false);
       configUtilStub.restore();
       infoMessageStub.restore();
     });
   });
 
   describe('getConnection', () => {
-    const username = 'user@test.test';
-    const alias = 'TestOrg';
+    const fakeAuthInfo = {
+      authy: true
+    };
+    const fakeConnection = {
+      connected: true
+    };
+    const defaultUsername = 'defaultUsername';
+
+    let authinfoCreateStub: SinonStub;
+    let connectionCreateStub: SinonStub;
+
+    beforeEach(() => {
+      authinfoCreateStub = sandbox
+        .stub(AuthInfo, 'create')
+        .resolves(fakeAuthInfo);
+      connectionCreateStub = sandbox
+        .stub(Connection, 'create')
+        .resolves(fakeConnection);
+    });
 
     it('should use username/alias when passed as argument', async () => {
       const connection = await OrgAuthInfo.getConnection(username);
-      expect(connection.getUsername()).to.equal(username);
+      expect(connection).to.equal(fakeConnection);
+      expect(authinfoCreateStub.calledWith({ username })).to.equal(true);
+      expect(
+        connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
+      ).to.equal(true);
     });
 
     it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = env.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns('defaultUsername');
+      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
+      configUtilStub.returns(defaultUsername);
 
       const connection = await OrgAuthInfo.getConnection();
-      expect(connection.getUsername()).to.equal('defaultUsername');
+      expect(connection).to.equal(fakeConnection);
+      expect(
+        authinfoCreateStub.calledWith({
+          username: defaultUsername
+        })
+      ).to.equal(true);
+      expect(
+        connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
+      ).to.equal(true);
 
       configUtilStub.restore();
     });

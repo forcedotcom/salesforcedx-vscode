@@ -13,7 +13,7 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { SfdxProject } from '@salesforce/core';
+import { SfProject } from '@salesforce/core';
 import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   EmptyParametersGatherer,
@@ -112,7 +112,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private async handleDiagnostics(result: TestResult) {
     ApexLibraryTestRunExecutor.diagnostics.clear();
     const projectPath = getRootWorkspacePath();
-    const project = await SfdxProject.resolve(projectPath);
+    const project = await SfProject.resolve(projectPath);
     const defaultPackage = project.getDefaultPackage().fullPath;
 
     result.tests.forEach(test => {

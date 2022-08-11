@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -17,7 +16,7 @@ export enum OrgType {
 export async function getWorkspaceOrgType(
   defaultUsernameOrAlias?: string
 ): Promise<OrgType> {
-  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+  if (!defaultUsernameOrAlias) {
     const e = new Error();
     e.name = 'NoDefaultusernameSet';
     throw e;
@@ -43,21 +42,24 @@ export async function setupWorkspaceOrgType(defaultUsernameOrAlias?: string) {
     const orgType = await getWorkspaceOrgType(defaultUsernameOrAlias);
     setWorkspaceOrgTypeWithOrgType(orgType);
   } catch (e) {
-    telemetryService.sendException('send_workspace_org_type', e.message);
-    switch (e.name) {
-      case 'NamedOrgNotFound':
-        // If the info for a default username cannot be found,
-        // then assume that the org can be of either type
-        setDefaultUsernameHasChangeTracking(true);
-        setDefaultUsernameHasNoChangeTracking(true);
-        break;
-      case 'NoDefaultusernameSet':
-        setDefaultUsernameHasChangeTracking(false);
-        setDefaultUsernameHasNoChangeTracking(false);
-        break;
-      default:
-        setDefaultUsernameHasChangeTracking(true);
-        setDefaultUsernameHasNoChangeTracking(true);
+    console.error(e);
+    if (e instanceof Error) {
+      telemetryService.sendException('send_workspace_org_type', e.message);
+      switch (e.name) {
+        case 'NamedOrgNotFound':
+          // If the info for a default username cannot be found,
+          // then assume that the org can be of either type
+          setDefaultUsernameHasChangeTracking(true);
+          setDefaultUsernameHasNoChangeTracking(true);
+          break;
+        case 'NoDefaultusernameSet':
+          setDefaultUsernameHasChangeTracking(false);
+          setDefaultUsernameHasNoChangeTracking(false);
+          break;
+        default:
+          setDefaultUsernameHasChangeTracking(true);
+          setDefaultUsernameHasNoChangeTracking(true);
+      }
     }
   }
 }
