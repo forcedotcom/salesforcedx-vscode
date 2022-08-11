@@ -1,5 +1,5 @@
 {
-  "force_lightning_lwc_start_text": "SFDX: ローカルの開発サーバを開始",
+  "force_lightning_lwc_start_text": "SFDX: ローカルの開発サーバを起動",
   "force_lightning_lwc_stop_text": "SFDX: ローカルの開発サーバを停止",
   "force_lightning_lwc_open_text": "SFDX: ローカルの開発サーバを開く",
   "force_lightning_lwc_preview_text": "SFDX: コンポーネントをローカルでプレビュー",
