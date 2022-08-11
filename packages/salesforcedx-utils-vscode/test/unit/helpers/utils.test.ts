@@ -38,7 +38,6 @@ describe('flushFilePath', () => {
 
     const result = flushFilePath(filePath);
 
-    expect(realpathSyncNativeStub.called).to.equal(true);
     expect(realpathSyncNativeStub.calledOnce).to.equal(true);
     expect(realpathSyncNativeStub.args[0][0]).to.equal(filePath);
 
@@ -90,7 +89,7 @@ describe('flushFilePath', () => {
 
 describe('flushFilePaths', () => {
   it('should return the same paths that are passed in', async () => {
-    const filePaths = ['file.js', 'file.js', 'file.js'];
+    const filePaths = ['file1.js', 'file2.js', 'file3.js'];
     const realpathSyncNativeStub = sinon
       .stub(fs.realpathSync, 'native')
       .returns(filePaths[0]);
