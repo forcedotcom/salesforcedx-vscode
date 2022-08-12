@@ -12,6 +12,7 @@ import {
   Global
 } from '@salesforce/core';
 import * as path from 'path';
+import { isNullOrUndefined } from '../helpers';
 import { getRootWorkspacePath } from '../workspaces';
 import { TelemetryService } from './telemetry';
 
@@ -40,7 +41,7 @@ export class ConfigUtil {
           filename: 'sfdx-config.json'
         });
         const localValue = myLocalConfig.get(key);
-        if (localValue !== undefined && localValue !== null) {
+        if (!isNullOrUndefined(localValue)) {
           return localValue;
         }
       } catch (err) {
@@ -55,7 +56,7 @@ export class ConfigUtil {
       try {
         const aggregator = await ConfigAggregator.create();
         const globalValue = aggregator.getPropertyValue(key);
-        if (globalValue !== undefined && globalValue !== null) {
+        if (!isNullOrUndefined(globalValue)) {
           return globalValue;
         }
       } catch (err) {
