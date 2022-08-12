@@ -22,14 +22,6 @@ export enum ConfigSource {
   None
 }
 
-function isNullOrUndefined(value: any) {
-  return value === null || value === undefined;
-}
-
-function isUndefined(value: any) {
-  return value === undefined;
-}
-
 async function getConfigAggregator(): Promise<ConfigAggregator> {
   const origCurrentWorkingDirectory = process.cwd();
   const rootWorkspacePath = getRootWorkspacePath();
@@ -60,7 +52,7 @@ export class ConfigUtil {
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
   ): Promise<ConfigValue | undefined> {
-    if (isUndefined(source) || source === ConfigSource.Local) {
+    if (source === undefined || source === ConfigSource.Local) {
       try {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
@@ -69,7 +61,7 @@ export class ConfigUtil {
           filename: SFDX_CONFIG_FILE
         });
         const localValue = myLocalConfig.get(key);
-        if (!isNullOrUndefined(localValue)) {
+        if (localValue !== undefined && localValue !== null) {
           return localValue;
         }
       } catch (err) {
@@ -77,11 +69,11 @@ export class ConfigUtil {
         return undefined;
       }
     }
-    if (isUndefined(source) || source === ConfigSource.Global) {
+    if (source === undefined || source === ConfigSource.Global) {
       try {
         const aggregator = await ConfigAggregator.create();
         const globalValue = aggregator.getPropertyValue(key);
-        if (!isNullOrUndefined(globalValue)) {
+        if (globalValue !== undefined && globalValue !== null) {
           return globalValue;
         }
       } catch (err) {
@@ -96,7 +88,7 @@ export class ConfigUtil {
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
   ): Promise<ConfigValue | undefined> {
-    if (isUndefined(source) || source === ConfigSource.Local) {
+    if (source === undefined || source === ConfigSource.Local) {
       try {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
@@ -105,7 +97,7 @@ export class ConfigUtil {
           filename: SF_CONFIG_FILE
         });
         const localValue = myLocalConfig.get(key);
-        if (!isNullOrUndefined(localValue)) {
+        if (localValue !== undefined && localValue !== null) {
           return localValue;
         }
       } catch (err) {
@@ -113,11 +105,11 @@ export class ConfigUtil {
         return undefined;
       }
     }
-    if (isUndefined(source) || source === ConfigSource.Global) {
+    if (source === undefined || source === ConfigSource.Global) {
       try {
         const aggregator = await ConfigAggregator.create();
         const globalValue = aggregator.getPropertyValue(key);
-        if (!isNullOrUndefined(globalValue)) {
+        if (globalValue !== undefined && globalValue !== null) {
           return globalValue;
         }
       } catch (err) {
