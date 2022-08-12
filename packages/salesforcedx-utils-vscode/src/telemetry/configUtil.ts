@@ -27,18 +27,6 @@ export enum ConfigSource {
 // not be viable.
 
 export class ConfigUtil {
-  public static async getConfigSource(key: string): Promise<ConfigSource> {
-    let value = await ConfigUtil.getConfigValue(key, ConfigSource.Local);
-    if (value !== undefined && value != null) {
-      return ConfigSource.Local;
-    }
-    value = await ConfigUtil.getConfigValue(key, ConfigSource.Global);
-    if (value !== undefined && value != null) {
-      return ConfigSource.Global;
-    }
-    return ConfigSource.None;
-  }
-
   public static async getConfigValue(
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
