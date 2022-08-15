@@ -12,7 +12,7 @@ import {
 import * as vscode from 'vscode';
 import { OrgInfo, workspaceContext } from '../context';
 import { nls } from '../messages';
-import { getDefaultDevHubUsernameOrAlias, OrgAuthInfo } from '../util';
+import { OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -68,7 +68,9 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]) {
-    const defaultDevHubUsernameorAlias = await this.getDefaultDevHubUsernameorAlias();
+    const defaultDevHubUsernameorAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+      false
+    );
     let defaultDevHubUsername: string | undefined;
     if (defaultDevHubUsernameorAlias) {
       defaultDevHubUsername = await OrgAuthInfo.getUsername(
