@@ -6,6 +6,10 @@
 
 - We fixed an issue with an error message for the SObject refresh process being incorrectly displayed. ([PR #4353](https://github.com/forcedotcom/salesforcedx-vscode/pull/4353))
 
+#### salesforcedx-vscode-core, salesforcedx-sojbects-faux-gennerator, salesforcedx-vscode-apex, salesforcedx-utils-vscode, salesforcedx-vscode-apex-replay-debugger, salesforcedx-vscode-lightning, salesforcedx-vscode-lwc, salesforcedx-vscode-soql
+
+- We made some changes under the hood. ([PR #4342](https://github.com/forcedotcom/salesforcedx-vscode/pull/4342))
+
 
 # 55.8.0 - August 4, 2022
 
