@@ -21,10 +21,8 @@ export class OrgAuthInfo {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
-      );
-      if (defaultUserName === undefined) {
+      const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+      if (defaultUsernameOrAlias === undefined) {
         displayMessage(
           nls.localize('error_no_default_username'),
           enableWarning,
@@ -44,7 +42,7 @@ export class OrgAuthInfo {
         }
       }
 
-      return JSON.stringify(defaultUserName).replace(/\"/g, '');
+      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {

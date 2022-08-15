@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  OrgConfigProperties,
+  StateAggregator
+} from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
 import { telemetryService } from '../telemetry';
@@ -15,6 +21,19 @@ export enum ConfigSource {
   Local,
   Global,
   None
+}
+
+async function getConfigAggregator(): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
+  process.chdir(rootWorkspacePath);
+  const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
 }
 
 // This class should be reworked or removed once the ConfigAggregator correctly checks
@@ -74,5 +93,13 @@ export class ConfigUtil {
   public static async getUserConfiguredApiVersion() {
     const apiVersion = await ConfigUtil.getConfigValue('apiVersion');
     return apiVersion ? String(apiVersion) : undefined;
+  }
+
+  public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
+    const configAggregator = await getConfigAggregator();
+    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
+    ) as string;
+    return defaultUsernameOrAlias;
   }
 }
