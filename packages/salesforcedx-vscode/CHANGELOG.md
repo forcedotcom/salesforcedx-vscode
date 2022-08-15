@@ -1,3 +1,12 @@
+# 55.9.0 - August 17, 2022
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We fixed an issue with an error message for the SObject refresh process being incorrectly displayed. ([PR #4353](https://github.com/forcedotcom/salesforcedx-vscode/pull/4353))
+
+
 # 55.8.0 - August 4, 2022
 
 ## Added
