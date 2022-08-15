@@ -12,7 +12,7 @@ import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { FileInfo, OrgList } from '../../../src/orgPicker';
+import { OrgList } from '../../../src/orgPicker';
 import * as util from '../../../src/util';
 
 const sandbox = createSandbox();
