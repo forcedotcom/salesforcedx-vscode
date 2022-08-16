@@ -84,18 +84,18 @@ export class OrgList implements vscode.Disposable {
       const authFields: AuthFields = await this.getAuthFieldsFor(
         orgAuth.username
       );
-      if (authFields?.scratchAdminUsername) {
+      if (authFields.scratchAdminUsername) {
         // non-Admin scratch org users
         continue;
       }
       if (
-        authFields?.devHubUsername &&
+        authFields.devHubUsername &&
         authFields.devHubUsername !== defaultDevHubUsername
       ) {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired = authFields?.expirationDate
+      const isExpired = authFields.expirationDate
         ? today >= new Date(authFields.expirationDate)
         : false;
 
