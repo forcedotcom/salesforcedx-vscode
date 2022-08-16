@@ -8,10 +8,7 @@ import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import { AuthUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  DEFAULT_DEV_HUB_USERNAME_KEY,
-  DEFAULT_USERNAME_KEY
-} from '../constants';
+import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -30,10 +27,7 @@ export class OrgAuthInfo {
         );
         return undefined;
       } else {
-        const configSource = await ConfigUtil.getConfigSource(
-          DEFAULT_USERNAME_KEY
-        );
-        if (configSource === ConfigSource.Global) {
+        if (await ConfigUtil.isGlobalDefaultUsername()) {
           displayMessage(
             nls.localize('warning_using_global_username'),
             enableWarning,

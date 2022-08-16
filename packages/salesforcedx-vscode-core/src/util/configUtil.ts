@@ -9,8 +9,7 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
-  OrgConfigProperties,
-  StateAggregator
+  OrgConfigProperties
 } from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
@@ -42,13 +41,15 @@ async function getConfigAggregator(): Promise<ConfigAggregator> {
 // not be viable.
 
 export class ConfigUtil {
-  public static async getConfigSource(key: string): Promise<ConfigSource> {
-    let value = await ConfigUtil.getConfigValue(key, ConfigSource.Local);
-    if (!isNullOrUndefined(value)) {
+  public static async getConfigSource(
+    key: string
+  ): Promise<ConfigSource.Local | ConfigSource.Global | ConfigSource.None> {
+    const configAggregator = await getConfigAggregator();
+    const configSource = configAggregator.getLocation(key);
+    if (configSource === ConfigAggregator.Location.LOCAL) {
       return ConfigSource.Local;
     }
-    value = await ConfigUtil.getConfigValue(key, ConfigSource.Global);
-    if (!isNullOrUndefined(value)) {
+    if (configSource === ConfigAggregator.Location.GLOBAL) {
       return ConfigSource.Global;
     }
     return ConfigSource.None;
@@ -101,5 +102,12 @@ export class ConfigUtil {
       OrgConfigProperties.TARGET_ORG
     ) as string;
     return defaultUsernameOrAlias;
+  }
+
+  public static async isGlobalDefaultUsername() {
+    const configSource: ConfigSource = await ConfigUtil.getConfigSource(
+      OrgConfigProperties.TARGET_ORG
+    );
+    return configSource === ConfigSource.Global;
   }
 }
