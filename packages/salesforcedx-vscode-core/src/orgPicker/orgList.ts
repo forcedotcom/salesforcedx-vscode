@@ -61,13 +61,13 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]) {
-    const defaultDevHubUsernameorAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
+    const defaultDevHubUsernameOrAlias = await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(
       false
     );
     let defaultDevHubUsername: string | undefined;
-    if (defaultDevHubUsernameorAlias) {
+    if (defaultDevHubUsernameOrAlias) {
       defaultDevHubUsername = await OrgAuthInfo.getUsername(
-        defaultDevHubUsernameorAlias
+        defaultDevHubUsernameOrAlias
       );
     }
 
