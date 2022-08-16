@@ -30,7 +30,6 @@ describe('Force Apex Class Create', () => {
   let openTextDocumentStub: SinonStub;
   let sendCommandEventStub: SinonStub;
   let sendExceptionStub: SinonStub;
-  let getConfigValue: SinonStub;
 
   beforeEach(() => {
     showInputBoxStub = stub(vscode.window, 'showInputBox');
@@ -45,8 +44,6 @@ describe('Force Apex Class Create', () => {
     openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
     sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
     sendExceptionStub = stub(telemetryService, 'sendException');
-    getConfigValue = stub(ConfigUtil, 'getConfigValue');
-    getConfigValue.returns(undefined);
   });
 
   afterEach(() => {
@@ -58,7 +55,6 @@ describe('Force Apex Class Create', () => {
     openTextDocumentStub.restore();
     sendCommandEventStub.restore();
     sendExceptionStub.restore();
-    getConfigValue.restore();
   });
 
   it('Should create Apex Class', async () => {
