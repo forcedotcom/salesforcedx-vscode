@@ -115,9 +115,7 @@ export class OrgList implements vscode.Disposable {
     if (orgAuthorizations && orgAuthorizations.length === 0) {
       return null;
     }
-    const authUsernameList = await this.filterAuthInfo(
-      orgAuthorizations as OrgAuthorization[]
-    );
+    const authUsernameList = await this.filterAuthInfo(orgAuthorizations);
     return authUsernameList;
   }
 
