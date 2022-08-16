@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import {
+  AuthInfo,
+  ConfigAggregator,
+  Connection,
+  StateAggregator
+} from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -46,8 +51,11 @@ describe('OrgAuthInfo', () => {
 
   describe('getDefaultDevHubUsernameOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(undefined);
+      const configAggregatorStub = sandbox.stub(
+        ConfigAggregator.prototype,
+        'getPropertyValue'
+      );
+      configAggregatorStub.returns(undefined);
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -56,13 +64,16 @@ describe('OrgAuthInfo', () => {
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
       expect(infoMessageStub.calledOnce).to.equal(true);
-      configUtilStub.restore();
+      configAggregatorStub.restore();
       infoMessageStub.restore();
     });
 
     it('should run authorize a dev hub command if button clicked', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(undefined);
+      const configAggregatorStub = sandbox.stub(
+        ConfigAggregator.prototype,
+        'getPropertyValue'
+      );
+      configAggregatorStub.returns(undefined);
       const showMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -80,7 +91,7 @@ describe('OrgAuthInfo', () => {
       );
       expect(showMessageStub.calledOnce).to.equal(true);
 
-      configUtilStub.restore();
+      configAggregatorStub.restore();
       showMessageStub.restore();
       executeCommandStub.restore();
     });
