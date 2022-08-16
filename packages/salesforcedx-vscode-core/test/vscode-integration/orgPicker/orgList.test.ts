@@ -33,52 +33,26 @@ describe('orgList Tests', () => {
     });
 
     it('should return a list of FileInfo objects when given an array of file names', async () => {
+      // Arrange
       const authFilesArray = [
         { username: 'test-username1@example.com' },
         { username: 'test-username2@example.com' }
       ];
       getAuthInfoListAllAuthorizationsStub.resolves(authFilesArray);
-      // readFileSync is used to load test files on the fly so we need to
-      // ensure we only stub calls to the fake authFiles.
-      const readFileStub = sandbox.stub(fs, 'readFileSync');
-      // Will only reurn when the arg includes the username.
-      readFileStub.withArgs(sinon.match(authFilesArray[0].username)).returns(
-        JSON.stringify({
-          orgId: '000',
-          accessToken: '000',
-          refreshToken: '000',
-          instanceUrl: '000',
-          loginUrl: '000',
-          username: 'test-username1@example.com'
-        })
-      );
-      readFileStub.withArgs(sinon.match(authFilesArray[1].username)).returns(
-        JSON.stringify({
-          orgId: '111',
-          accessToken: '111',
-          refreshToken: '111',
-          instanceUrl: '111',
-          loginUrl: '111',
-          username: 'test-username2@example.com'
-        })
-      );
-      // Call the stubbed function if not matching the above withArgs.
-      readFileStub.callThrough();
       const orgList = new OrgList();
 
+      // Act
       const orgAuthorizations = await orgList.getOrgAuthorizations();
-      if (orgAuthorizations) {
-        expect(orgAuthorizations.length).to.equal(2);
 
-        expect(orgAuthorizations[0].username).to.equal(
-          'test-username1@example.com'
-        );
-        expect(orgAuthorizations[1].username).to.equal(
-          'test-username2@example.com'
-        );
-      } else {
-        fail('Should have populated authInfoObjects');
-      }
+      // Assert
+      expect(orgAuthorizations.length).to.equal(2);
+
+      expect(orgAuthorizations[0].username).to.equal(
+        'test-username1@example.com'
+      );
+      expect(orgAuthorizations[1].username).to.equal(
+        'test-username2@example.com'
+      );
     });
 
     it('should return null when no auth files are present', async () => {
