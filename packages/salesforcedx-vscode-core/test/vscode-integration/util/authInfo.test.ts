@@ -97,8 +97,11 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should not show a message if there is a dev hub set', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns('username');
+      const configAggregatorStub = sandbox.stub(
+        ConfigAggregator.prototype,
+        'getPropertyValue'
+      );
+      configAggregatorStub.returns('username');
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -107,7 +110,7 @@ describe('OrgAuthInfo', () => {
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
       expect(infoMessageStub.calledOnce).to.equal(false);
-      configUtilStub.restore();
+      configAggregatorStub.restore();
       infoMessageStub.restore();
     });
   });
