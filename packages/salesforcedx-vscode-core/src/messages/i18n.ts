@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
@@ -646,8 +646,7 @@ export const messages = {
   error_function_type: 'Unable to determine type of executing function.',
   error_unable_to_get_started_function:
     'Unable to access the function in "{0}".',
-  pending_org_expiration_expires_on_message:
-    '%s\n(expires on %s)',
+  pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
   pending_org_expiration_notification_message:
     'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
   pending_org_expiration_output_channel_message:
