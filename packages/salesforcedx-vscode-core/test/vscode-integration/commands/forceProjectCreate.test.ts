@@ -422,7 +422,7 @@ describe('Force Project Create', () => {
       shell.rm('-rf', projectPath);
     });
 
-    it.only('Should Create Project with manifest', async () => {
+    it('Should Create Project with manifest', async () => {
       // arrange
       const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
       shell.rm('-rf', projectPath);
