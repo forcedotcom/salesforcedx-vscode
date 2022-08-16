@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
   ContinueResponse
@@ -29,7 +30,10 @@ import * as forceSourceRetrieveSourcePath from '../../../src/commands/forceSourc
 import { workspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
+import {
+  SfdxPackageDirectories,
+  SfdxProjectConfig
+} from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
@@ -106,7 +110,10 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
 
     it('componentSet has sourceApiVersion set', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor();
-      const data = path.join(getRootWorkspacePath(), 'force-app/main/default/classes/');
+      const data = path.join(
+        getRootWorkspacePath(),
+        'force-app/main/default/classes/'
+      );
       const continueResponse = {
         type: 'CONTINUE',
         data: [data]
@@ -127,11 +134,19 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const sourcePathCheckerCheckStub = sb.stub(
-        SourcePathChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const sourcePathCheckerCheckStub = sb
+        .stub(SourcePathChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([
+          path.sep + filePath1,
+          path.sep + filePath2,
+          path.sep + filePath3
+        ]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
@@ -139,23 +154,31 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
-      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+      const continueResponse = sourcePathCheckerCheckStub
+        .args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(
+        JSON.stringify(filePaths)
+      );
+
+      flushFilePathsStub.restore();
+      sourcePathCheckerCheckStub.restore();
     });
 
     it('should retrieve a single file', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
-      const uris = [
-        vscode.Uri.file(filePath1)
-      ];
+      const uris = [vscode.Uri.file(filePath1)];
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const sourcePathCheckerCheckStub = sb.stub(
-        SourcePathChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const sourcePathCheckerCheckStub = sb
+        .stub(SourcePathChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
@@ -163,23 +186,31 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
-      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+      const continueResponse = sourcePathCheckerCheckStub
+        .args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(
+        JSON.stringify(filePaths)
+      );
+
+      flushFilePathsStub.restore();
+      sourcePathCheckerCheckStub.restore();
     });
 
     it('should retrieve when editing a single file and "Retrieve This Source from Org" is executed', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
-      const uris = [
-        vscode.Uri.file(filePath1)
-      ];
+      const uris = [vscode.Uri.file(filePath1)];
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
-      const sourcePathCheckerCheckStub = sb.stub(
-        SourcePathChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
+      const sourcePathCheckerCheckStub = sb
+        .stub(SourcePathChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         uris[0],
@@ -187,8 +218,14 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
 
       expect(sourcePathCheckerCheckStub.called).to.equal(true);
-      const continueResponse = sourcePathCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+      const continueResponse = sourcePathCheckerCheckStub
+        .args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(
+        JSON.stringify(filePaths)
+      );
+
+      flushFilePathsStub.restore();
+      sourcePathCheckerCheckStub.restore();
     });
 
     it('should retrieve when using the command palette', async () => {
@@ -201,14 +238,19 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       const sourceUri = undefined;
       const uris = undefined;
 
-      const filePaths = [ filePath1 ];
-      const sourcePathCheckerCheckStub = sb.stub(
-        SourcePathChecker.prototype, 'check').returns({
-        type: 'CONTINUE',
-        data: filePaths
-      });
-
-      const getUriFromActiveEditorStub = sb.stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor').returns(filePath1);
+      const filePaths = [filePath1];
+      const sourcePathCheckerCheckStub = sb
+        .stub(SourcePathChecker.prototype, 'check')
+        .returns({
+          type: 'CONTINUE',
+          data: filePaths
+        });
+      const getUriFromActiveEditorStub = sb
+        .stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor')
+        .returns(filePath1);
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([undefined]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
         sourceUri,
@@ -216,6 +258,10 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
 
       expect(getUriFromActiveEditorStub.called).to.equal(true);
+
+      flushFilePathsStub.restore();
+      getUriFromActiveEditorStub.restore();
+      sourcePathCheckerCheckStub.restore();
     });
   });
 });
@@ -247,7 +293,7 @@ describe('SourcePathChecker', () => {
     const sourcePath = path.join(workspacePath, 'package');
     const continueResponse = (await pathChecker.check({
       type: 'CONTINUE',
-      data: [ sourcePath ]
+      data: [sourcePath]
     })) as ContinueResponse<string[]>;
 
     expect(isInPackageDirectoryStub.getCall(0).args[0]).to.equal(sourcePath);
@@ -264,7 +310,7 @@ describe('SourcePathChecker', () => {
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
-      data: [ path.join('not', 'in', 'package', 'directory') ]
+      data: [path.join('not', 'in', 'package', 'directory')]
     })) as CancelResponse;
 
     const errorMessage = nls.localize(
@@ -283,7 +329,7 @@ describe('SourcePathChecker', () => {
     const pathChecker = new SourcePathChecker();
     const cancelResponse = (await pathChecker.check({
       type: 'CONTINUE',
-      data: [ 'test/path' ]
+      data: ['test/path']
     })) as CancelResponse;
 
     const errorMessage = nls.localize(
