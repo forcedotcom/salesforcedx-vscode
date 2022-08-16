@@ -131,9 +131,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
 
-    const configValue = await ConfigUtil.getConfigValue(
-      'customOrgMetadataTemplates'
-    );
+    const configValue = await ConfigUtil.getTemplatesDirectory();
     if (configValue === undefined) {
       customOrgMetadataTemplates = undefined;
     } else {

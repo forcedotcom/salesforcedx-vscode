@@ -110,4 +110,11 @@ export class ConfigUtil {
     );
     return configSource === ConfigSource.Global;
   }
+
+  public static async getTemplatesDirectory() {
+    const configValue = await ConfigUtil.getConfigValue(
+      'customOrgMetadataTemplates'
+    );
+    return String(configValue);
+  }
 }
