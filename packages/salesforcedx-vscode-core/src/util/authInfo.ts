@@ -4,15 +4,34 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import {
+  AuthInfo,
+  ConfigAggregator,
+  Connection,
+  OrgConfigProperties,
+  StateAggregator
+} from '@salesforce/core';
 import { AuthUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../constants';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil } from './index';
+import { ConfigSource, ConfigUtil, getRootWorkspacePath } from './index';
+
+async function getConfigAggregator(): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
+  process.chdir(rootWorkspacePath);
+  const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
+}
+
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
@@ -53,10 +72,16 @@ export class OrgAuthInfo {
     enableWarning: boolean,
     configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
+    let configAggregator: ConfigAggregator;
     try {
-      const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_DEV_HUB_USERNAME_KEY,
-        configSource
+      if (configSource === ConfigSource.Global) {
+        // Global values only, since created under '/' as cwd
+        configAggregator = await ConfigAggregator.create();
+      } else {
+        configAggregator = await getConfigAggregator();
+      }
+      const defaultDevHubUserName = configAggregator.getPropertyValue(
+        OrgConfigProperties.TARGET_DEV_HUB
       );
       if (defaultDevHubUserName === undefined) {
         const showButtonText = nls.localize('notification_make_default_dev');
