@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, OrgAuthorization, StateAggregator } from '@salesforce/core';
-import { fail } from 'assert';
 import { expect } from 'chai';
-import * as fs from 'fs';
-import * as sinon from 'sinon';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
