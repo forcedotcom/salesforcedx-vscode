@@ -122,14 +122,18 @@ describe('Force Project Create', () => {
       inputBoxStub.returns(PROJECT_NAME);
       const response = await gatherer.gather();
       expect(response.type).to.equal('CONTINUE');
-      expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
+      expect(
+        (response as ContinueResponse<ProjectName>).data.projectName
+      ).to.equal(PROJECT_NAME);
     });
 
     it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
       inputBoxStub.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
       const response = await gatherer.gather();
       expect(response.type).to.equal('CONTINUE');
-      expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
+      expect(
+        (response as ContinueResponse<ProjectName>).data.projectName
+      ).to.equal(PROJECT_NAME);
     });
   });
 
@@ -418,7 +422,7 @@ describe('Force Project Create', () => {
       shell.rm('-rf', projectPath);
     });
 
-    it('Should Create Project with manifest', async () => {
+    it.only('Should Create Project with manifest', async () => {
       // arrange
       const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
       shell.rm('-rf', projectPath);

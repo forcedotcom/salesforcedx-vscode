@@ -48,13 +48,7 @@ export function disableCLITelemetry() {
   );
 }
 
-export async function isCLITelemetryAllowed(): Promise<boolean> {
-  try {
-    const disabledConfig =
-      (await ConfigUtil.getConfigValue(SFDX_CONFIG_DISABLE_TELEMETRY)) || '';
-    return disabledConfig !== 'true';
-  } catch (e) {
-    console.log('Error checking cli settings: ' + e);
-  }
-  return true;
+export async function isCLITelemetryAllowed() {
+  const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
+  return isTelemetryDisabled === 'true' ? false : true;
 }

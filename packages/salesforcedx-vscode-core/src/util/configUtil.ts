@@ -10,6 +10,7 @@ import {
   ConfigFile,
   ConfigValue,
   OrgConfigProperties,
+  SfConfigProperties,
   SfdxConfigAggregator,
   SfdxPropertyKeys
 } from '@salesforce/core';
@@ -132,5 +133,13 @@ export class ConfigUtil {
       SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
     ) as string;
     return templatesDirectory;
+  }
+
+  public static async isTelemetryDisabled(): Promise<string> {
+    const configAggregator = await getConfigAggregator();
+    const isTelemetryDisabled = await configAggregator.getPropertyValue(
+      SfConfigProperties.DISABLE_TELEMETRY
+    );
+    return String(isTelemetryDisabled);
   }
 }
