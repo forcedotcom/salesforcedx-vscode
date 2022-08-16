@@ -132,7 +132,10 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(
+        ConfigUtil,
+        'getDefaultUsernameOrAlias'
+      );
       configUtilStub.returns(defaultUsername);
 
       const connection = await OrgAuthInfo.getConnection();
