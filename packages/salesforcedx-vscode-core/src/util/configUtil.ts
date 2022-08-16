@@ -9,7 +9,9 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
-  OrgConfigProperties
+  OrgConfigProperties,
+  SfdxConfigAggregator,
+  SfdxPropertyKeys
 } from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
@@ -29,6 +31,19 @@ async function getConfigAggregator(): Promise<ConfigAggregator> {
   // so that ConfigAggregator reads the local project values
   process.chdir(rootWorkspacePath);
   const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
+}
+
+async function getSfdxConfigAggregator(): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
+  const rootWorkspacePath = getRootWorkspacePath();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
+  process.chdir(rootWorkspacePath);
+  const configAggregator = await SfdxConfigAggregator.create();
   // Change the current working directory back to what it was
   // before returning
   process.chdir(origCurrentWorkingDirectory);
@@ -112,9 +127,10 @@ export class ConfigUtil {
   }
 
   public static async getTemplatesDirectory() {
-    const configValue = await ConfigUtil.getConfigValue(
-      'customOrgMetadataTemplates'
-    );
-    return String(configValue);
+    const configAggregator = await getSfdxConfigAggregator();
+    const templatesDirectory = configAggregator.getPropertyValue(
+      SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
+    ) as string;
+    return templatesDirectory;
   }
 }
