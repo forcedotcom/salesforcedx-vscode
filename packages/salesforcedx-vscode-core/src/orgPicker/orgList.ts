@@ -57,7 +57,7 @@ export class OrgList implements vscode.Disposable {
     const authInfo: AuthInfo = await AuthInfo.create({
       username
     });
-    return authInfo.getFields();
+    return authInfo?.getFields();
   }
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]) {
@@ -77,20 +77,22 @@ export class OrgList implements vscode.Disposable {
       const authFields: AuthFields = await this.getAuthFieldsFor(
         orgAuth.username
       );
-      if ('scratchAdminUsername' in authFields) {
+      if (authFields && 'scratchAdminUsername' in authFields) {
         // non-Admin scratch org users
         continue;
       }
       if (
+        authFields &&
         'devHubUsername' in authFields &&
         authFields.devHubUsername !== defaultDevHubUsername
       ) {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired = authFields.expirationDate
-        ? today >= new Date(authFields.expirationDate)
-        : false;
+      const isExpired =
+        authFields && authFields.expirationDate
+          ? today >= new Date(authFields.expirationDate)
+          : false;
 
       let authListItem =
         orgAuth.aliases && orgAuth.aliases.length > 0
