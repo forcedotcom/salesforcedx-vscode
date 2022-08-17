@@ -127,12 +127,12 @@ export class ConfigUtil {
     return configSource === ConfigSource.Global;
   }
 
-  public static async getTemplatesDirectory() {
-    const configAggregator = await getSfdxConfigAggregator();
-    const templatesDirectory = configAggregator.getPropertyValue(
+  public static async getTemplatesDirectory(): Promise<string | undefined> {
+    const sfdxConfigAggregator = await getSfdxConfigAggregator();
+    const templatesDirectory = sfdxConfigAggregator.getPropertyValue(
       SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
-    ) as string;
-    return templatesDirectory;
+    );
+    return (templatesDirectory as string) || undefined;
   }
 
   public static async isTelemetryDisabled(): Promise<string> {
