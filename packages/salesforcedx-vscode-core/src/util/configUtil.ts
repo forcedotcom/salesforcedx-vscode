@@ -110,8 +110,11 @@ export class ConfigUtil {
   public static async getUserConfiguredApiVersion(): Promise<
     string | undefined
   > {
-    const apiVersion = await ConfigUtil.getConfigValue('apiVersion');
-    return apiVersion ? String(apiVersion) : undefined;
+    const configAggregator = await getConfigAggregator();
+    const apiVersion = configAggregator.getPropertyValue(
+      OrgConfigProperties.ORG_API_VERSION
+    );
+    return (apiVersion as string) || undefined;
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
