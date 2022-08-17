@@ -31,7 +31,10 @@ const endOfSource = (source: string): number => {
   return 0;
 };
 
-export type CoverageReportFormats = reports.ReportType;
+export type CoverageReportFormats = Exclude<
+  reports.ReportType,
+  'lcov' | 'text-lcov'
+>;
 
 export const DefaultWatermarks: libReport.Watermarks = {
   statements: [50, 75],
@@ -40,7 +43,10 @@ export const DefaultWatermarks: libReport.Watermarks = {
   lines: [50, 75]
 };
 
-export const DefaultReportOptions: Partial<reports.ReportOptions> = {
+export const DefaultReportOptions: Omit<
+  reports.ReportOptions,
+  'lcov' | 'text-lcov'
+> = {
   clover: { file: 'clover.xml', projectRoot: '.' },
   cobertura: { file: 'cobertura.xml', projectRoot: '.' },
   'html-spa': {
