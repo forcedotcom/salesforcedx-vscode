@@ -57,7 +57,7 @@ export class OrgList implements vscode.Disposable {
     const authInfo: AuthInfo = await AuthInfo.create({
       username
     });
-    return authInfo?.getFields();
+    return authInfo.getFields();
   }
 
   public async filterAuthInfo(
