@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
+import {
+  AuthFields,
+  AuthInfo,
+  OrgAuthorization,
+  StateAggregator
+} from '@salesforce/core';
 import {
   CancelResponse,
   ContinueResponse
@@ -96,9 +101,12 @@ export class OrgList implements vscode.Disposable {
           ? today >= new Date(authFields.expirationDate)
           : false;
 
+      const stateAggregator = await StateAggregator.getInstance();
+      const aliases = stateAggregator.aliases.getAll(orgAuth.username);
+
       let authListItem =
-        orgAuth.aliases && orgAuth.aliases.length > 0
-          ? `${orgAuth.aliases} - ${orgAuth.username}`
+        aliases && aliases.length > 0
+          ? `${aliases} - ${orgAuth.username}`
           : orgAuth.username;
 
       if (isExpired) {

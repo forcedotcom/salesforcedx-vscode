@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, OrgAuthorization, StateAggregator } from '@salesforce/core';
+import { AliasAccessor } from '@salesforce/core/lib/stateAggregator';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -188,19 +189,30 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal(dummyScratchOrgAuth1.username);
       });
 
-      it('should display alias with username when alias is available', async () => {
-        const authInfoObjects: OrgAuthorization[] = [
-          Object.assign(dummyOrgAuth1, { aliases: ['alias1'] }),
-          dummyOrgAuth2
-        ];
+      it.only('should display alias with username when alias is available', async () => {
+        // Arrange
         defaultDevHubStub.resolves(null);
         getAllStub.returns([]);
+        const authInfoObjects: OrgAuthorization[] = [
+          dummyOrgAuth1,
+          dummyOrgAuth2
+        ];
+        const aliasAccessorGetAllStub = sandbox.stub(
+          AliasAccessor.prototype,
+          'getAll'
+        );
+        aliasAccessorGetAllStub
+          .withArgs(dummyOrgAuth1.username)
+          .returns(['alias1']);
         sandbox
           .stub(orgList, 'getAuthFieldsFor')
           .withArgs(authInfoObjects[0].username)
           .returns({});
+
+        // Act
         const authList = await orgList.filterAuthInfo(authInfoObjects);
 
+        // Assert
         expect(authList[0]).to.equal('alias1 - test-username1@example.com');
       });
 
