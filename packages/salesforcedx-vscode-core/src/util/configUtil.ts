@@ -38,6 +38,11 @@ async function getConfigAggregator(): Promise<ConfigAggregator> {
   return configAggregator;
 }
 
+// The SfdxConfigAggregator is used only to get configuration
+// values that correspond with old/deprecated config keys.
+// Currently, the key used for the custom templates
+// directory is the only usage, since it is documented for use
+// here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
 async function getSfdxConfigAggregator(): Promise<ConfigAggregator> {
   const origCurrentWorkingDirectory = process.cwd();
   const rootWorkspacePath = getRootWorkspacePath();
@@ -50,11 +55,6 @@ async function getSfdxConfigAggregator(): Promise<ConfigAggregator> {
   process.chdir(origCurrentWorkingDirectory);
   return configAggregator;
 }
-
-// This class should be reworked or removed once the ConfigAggregator correctly checks
-// local as well as global configs. It's also worth noting that ConfigAggregator, according
-// to its docs checks local, global and environment and, for our purposes, environment may
-// not be viable.
 
 export class ConfigUtil {
   public static async getConfigSource(
