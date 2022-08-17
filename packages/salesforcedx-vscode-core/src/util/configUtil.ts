@@ -83,6 +83,9 @@ export class ConfigUtil {
 
   public static async getAllAliasesFor(username: string): Promise<string[]> {
     const stateAggregator = await StateAggregator.getInstance();
+    // Without a call to clearInstance(), stateAggregator will not report
+    // aliases that were created in the current running process.
+    StateAggregator.clearInstance();
     const aliases = stateAggregator.aliases.getAll(username);
     return aliases;
   }
