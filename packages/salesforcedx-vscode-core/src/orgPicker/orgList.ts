@@ -112,10 +112,10 @@ export class OrgList implements vscode.Disposable {
     return authList;
   }
 
-  public async updateOrgList(): Promise<string[] | null> {
+  public async updateOrgList(): Promise<string[]> {
     const orgAuthorizations = await this.getOrgAuthorizations();
     if (orgAuthorizations && orgAuthorizations.length === 0) {
-      return null;
+      return [];
     }
     const authUsernameList = await this.filterAuthInfo(orgAuthorizations);
     return authUsernameList;
@@ -131,9 +131,7 @@ export class OrgList implements vscode.Disposable {
     ];
 
     const authInfoList = await this.updateOrgList();
-    if (authInfoList) {
-      quickPickList = quickPickList.concat(authInfoList);
-    }
+    quickPickList = quickPickList.concat(authInfoList);
 
     const selection = await vscode.window.showQuickPick(quickPickList, {
       placeHolder: nls.localize('org_select_text')
