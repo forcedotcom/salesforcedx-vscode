@@ -11,6 +11,5 @@
         "release/*"
       ]
     }
-  },
-  "useWorkspaces": true
+  }
 }
