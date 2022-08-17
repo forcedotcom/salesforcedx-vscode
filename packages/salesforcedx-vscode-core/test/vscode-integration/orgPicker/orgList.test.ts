@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { OrgList } from '../../../src/orgPicker';
 import * as util from '../../../src/util';
+import { ConfigUtil } from '../../../src/util';
 
 const sandbox = createSandbox();
 
@@ -192,16 +193,16 @@ describe('orgList Tests', () => {
       it.only('should display alias with username when alias is available', async () => {
         // Arrange
         defaultDevHubStub.resolves(null);
-        getAllStub.returns([]);
         const authInfoObjects: OrgAuthorization[] = [
           dummyOrgAuth1,
           dummyOrgAuth2
         ];
-        const aliasAccessorGetAllStub = sandbox.stub(
-          AliasAccessor.prototype,
-          'getAll'
+        getAllStub.withArgs(dummyOrgAuth1.username).returns(['alias1']);
+        const configUtilGetAllAliasesForStub = sandbox.stub(
+          ConfigUtil,
+          'getAllAliasesFor'
         );
-        aliasAccessorGetAllStub
+        configUtilGetAllAliasesForStub
           .withArgs(dummyOrgAuth1.username)
           .returns(['alias1']);
         sandbox

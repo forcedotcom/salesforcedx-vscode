@@ -17,7 +17,7 @@ import {
 import * as vscode from 'vscode';
 import { OrgInfo, workspaceContext } from '../context';
 import { nls } from '../messages';
-import { OrgAuthInfo } from '../util';
+import { ConfigUtil, OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -101,9 +101,7 @@ export class OrgList implements vscode.Disposable {
           ? today >= new Date(authFields.expirationDate)
           : false;
 
-      const stateAggregator = await StateAggregator.getInstance();
-      const aliases = stateAggregator.aliases.getAll(orgAuth.username);
-
+      const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
       let authListItem =
         aliases && aliases.length > 0
           ? `${aliases} - ${orgAuth.username}`
