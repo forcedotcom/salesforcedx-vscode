@@ -14,8 +14,8 @@ import {
   SfdxConfigAggregator,
   SfdxPropertyKeys
 } from '@salesforce/core';
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as path from 'path';
-import { isNullOrUndefined, isUndefined } from 'util';
 import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from './index';
 
@@ -75,7 +75,7 @@ export class ConfigUtil {
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
   ): Promise<ConfigValue | undefined> {
-    if (isUndefined(source) || source === ConfigSource.Local) {
+    if (source === undefined || source === ConfigSource.Local) {
       try {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
@@ -92,7 +92,7 @@ export class ConfigUtil {
         return undefined;
       }
     }
-    if (isUndefined(source) || source === ConfigSource.Global) {
+    if (source === undefined || source === ConfigSource.Global) {
       try {
         const aggregator = await ConfigAggregator.create();
         const globalValue = aggregator.getPropertyValue(key);
