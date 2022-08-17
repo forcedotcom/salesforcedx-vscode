@@ -107,7 +107,9 @@ export class ConfigUtil {
     return undefined;
   }
 
-  public static async getUserConfiguredApiVersion() {
+  public static async getUserConfiguredApiVersion(): Promise<
+    string | undefined
+  > {
     const apiVersion = await ConfigUtil.getConfigValue('apiVersion');
     return apiVersion ? String(apiVersion) : undefined;
   }
@@ -120,7 +122,7 @@ export class ConfigUtil {
     return defaultUsernameOrAlias;
   }
 
-  public static async isGlobalDefaultUsername() {
+  public static async isGlobalDefaultUsername(): Promise<boolean> {
     const configSource: ConfigSource = await ConfigUtil.getConfigSource(
       OrgConfigProperties.TARGET_ORG
     );
