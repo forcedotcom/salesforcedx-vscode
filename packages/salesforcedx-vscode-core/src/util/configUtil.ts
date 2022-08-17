@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  StateAggregator
+} from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
 import { telemetryService } from '../telemetry';
@@ -74,5 +79,14 @@ export class ConfigUtil {
   public static async getUserConfiguredApiVersion() {
     const apiVersion = await ConfigUtil.getConfigValue('apiVersion');
     return apiVersion ? String(apiVersion) : undefined;
+  }
+
+  public static async getAllAliasesFor(username: string): Promise<string[]> {
+    const stateAggregator = await StateAggregator.getInstance();
+    // Without a call to clearInstance(), stateAggregator will not report
+    // aliases that were created in the current running process.
+    StateAggregator.clearInstance();
+    const aliases = stateAggregator.aliases.getAll(username);
+    return aliases;
   }
 }
