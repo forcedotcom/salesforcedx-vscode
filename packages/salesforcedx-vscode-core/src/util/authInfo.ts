@@ -4,33 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  AuthInfo,
-  ConfigAggregator,
-  Connection,
-  StateAggregator
-} from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { workspaceContext } from '../context';
-import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil, getRootWorkspacePath } from './index';
-
-async function getConfigAggregator(): Promise<ConfigAggregator> {
-  const origCurrentWorkingDirectory = process.cwd();
-  const rootWorkspacePath = getRootWorkspacePath();
-  // Change the current working directory to the project path,
-  // so that ConfigAggregator reads the local project values
-  process.chdir(rootWorkspacePath);
-  const configAggregator = await ConfigAggregator.create();
-  // Change the current working directory back to what it was
-  // before returning
-  process.chdir(origCurrentWorkingDirectory);
-  return configAggregator;
-}
+import { ConfigSource, ConfigUtil } from './index';
 
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
