@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  OrgConfigProperties
+} from '@salesforce/core';
 import * as path from 'path';
 import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
@@ -78,5 +83,29 @@ export class ConfigUtil {
       }
     }
     return undefined;
+  }
+
+  public static async getUsername(
+    projectPath: string
+  ): Promise<string | undefined> {
+    const configAggregator = await ConfigUtil.getConfigAggregator(projectPath);
+    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
+    );
+    return (defaultUsernameOrAlias as string) || undefined;
+  }
+
+  private static async getConfigAggregator(
+    projectPath: string
+  ): Promise<ConfigAggregator> {
+    const origCurrentWorkingDirectory = process.cwd();
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values
+    process.chdir(projectPath);
+    const configAggregator = await ConfigAggregator.create();
+    // Change the current working directory back to what it was
+    // before returning
+    process.chdir(origCurrentWorkingDirectory);
+    return configAggregator;
   }
 }
