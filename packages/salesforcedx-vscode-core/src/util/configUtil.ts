@@ -12,7 +12,8 @@ import {
   OrgConfigProperties,
   SfConfigProperties,
   SfdxConfigAggregator,
-  SfdxPropertyKeys
+  SfdxPropertyKeys,
+  StateAggregator
 } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as path from 'path';
@@ -165,5 +166,14 @@ export class ConfigUtil {
       OrgConfigProperties.TARGET_DEV_HUB
     );
     return (defaultGlobalDevHubUserName as string) || undefined;
+  }
+
+  public static async getAllAliasesFor(username: string): Promise<string[]> {
+    const stateAggregator = await StateAggregator.getInstance();
+    // Without a call to clearInstance(), stateAggregator will not report
+    // aliases that were created in the current running process.
+    StateAggregator.clearInstance();
+    const aliases = stateAggregator.aliases.getAll(username);
+    return aliases;
   }
 }
