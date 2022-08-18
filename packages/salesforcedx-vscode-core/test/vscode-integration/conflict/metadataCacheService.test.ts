@@ -82,7 +82,7 @@ describe('Metadata Cache', () => {
       shell.rm('-rf', PROJECT_DIR);
     });
 
-    it.only('Should run metadata service', async () => {
+    it('Should run metadata service', async () => {
       componentStub.resolves(new ComponentSet());
       const mockOperation = new MetadataApiRetrieve({
         usernameOrConnection: usernameOrAlias,
