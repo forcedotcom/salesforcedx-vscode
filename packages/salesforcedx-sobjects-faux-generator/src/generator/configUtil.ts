@@ -9,23 +9,33 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
-  StateAggregator
+  OrgConfigProperties
 } from '@salesforce/core';
 import * as path from 'path';
 
-const defaultUserNameKey = 'defaultusername';
+async function getConfigAggregator(
+  projectPath: string
+): Promise<ConfigAggregator> {
+  const origCurrentWorkingDirectory = process.cwd();
+  // Change the current working directory to the project path,
+  // so that ConfigAggregator reads the local project values
+  process.chdir(projectPath);
+  const configAggregator = await ConfigAggregator.create();
+  // Change the current working directory back to what it was
+  // before returning
+  process.chdir(origCurrentWorkingDirectory);
+  return configAggregator;
+}
 
 export class ConfigUtil {
   public static async getUsername(
     projectPath: string
   ): Promise<string | undefined> {
-    const defaultUserName = (await this.getConfigValue(
-      projectPath,
-      defaultUserNameKey
-    )) as string;
-    const info = await StateAggregator.getInstance();
-    const username = info.aliases.resolveValue(defaultUserName);
-    return username;
+    const configAggregator = await getConfigAggregator(projectPath);
+    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
+    );
+    return (defaultUsernameOrAlias as string) || undefined;
   }
 
   public static async getConfigValue(
