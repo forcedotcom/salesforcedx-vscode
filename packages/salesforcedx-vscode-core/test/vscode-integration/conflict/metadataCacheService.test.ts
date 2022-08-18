@@ -93,7 +93,7 @@ describe('Metadata Cache', () => {
       pollStatusStub.callsFake(() => {});
       operationStub.resolves(mockOperation);
       processStub.resolves(undefined);
-      sinon.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves(undefined);
+      sinon.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves('55.0');
 
       await executor.run({ data: PROJECT_DIR, type: 'CONTINUE' });
 
