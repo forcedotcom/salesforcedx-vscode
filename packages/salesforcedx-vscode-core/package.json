@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "^0.3.0",
-    "@octokit/plugin-paginate-rest": "2.21.1",
+    "@octokit/plugin-paginate-rest": "2.21.3",
     "@salesforce/core": "^3.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "55.9.0",
     "@salesforce/salesforcedx-utils-vscode": "55.9.0",
@@ -37,7 +37,7 @@
     "adm-zip": "0.4.13",
     "applicationinsights": "1.0.7",
     "glob": "^7.1.2",
-    "jsforce": "2.0.0-beta.10",
+    "jsforce": "2.0.0-beta.18",
     "rxjs": "^5.4.1",
     "sanitize-filename": "^1.6.1",
     "shelljs": "0.8.5"
