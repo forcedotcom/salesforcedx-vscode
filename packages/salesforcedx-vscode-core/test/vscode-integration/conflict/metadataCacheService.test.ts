@@ -30,6 +30,7 @@ import {
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 import sinon = require('sinon');
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
+import { ConfigUtil } from '../../../src/util';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
@@ -81,7 +82,7 @@ describe('Metadata Cache', () => {
       shell.rm('-rf', PROJECT_DIR);
     });
 
-    it('Should run metadata service', async () => {
+    it.only('Should run metadata service', async () => {
       componentStub.resolves(new ComponentSet());
       const mockOperation = new MetadataApiRetrieve({
         usernameOrConnection: usernameOrAlias,
@@ -92,6 +93,7 @@ describe('Metadata Cache', () => {
       pollStatusStub.callsFake(() => {});
       operationStub.resolves(mockOperation);
       processStub.resolves(undefined);
+      sinon.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves(undefined);
 
       await executor.run({ data: PROJECT_DIR, type: 'CONTINUE' });
 
@@ -322,16 +324,18 @@ describe('Metadata Cache', () => {
         name: 'CustomField'
       }
     };
-    const fileProperties = [{
-      fullName: 'HandlerCostCenter',
-      lastModifiedDate: 'Today',
-      type: 'ApexClass'
-    },
-    {
-      fullName: 'Account',
-      lastModifiedDate: 'Yesterday',
-      type: 'CustomObject'
-    }] as FileProperties[];
+    const fileProperties = [
+      {
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass'
+      },
+      {
+        fullName: 'Account',
+        lastModifiedDate: 'Yesterday',
+        type: 'CustomObject'
+      }
+    ] as FileProperties[];
 
     it('Should correlate results correctly', () => {
       const cacheResults = {
@@ -351,16 +355,18 @@ describe('Metadata Cache', () => {
       const components = MetadataCacheService.correlateResults(cacheResults);
 
       expect(components.length).to.equal(2);
-      expect(components).to.have.deep.members([{
-        cacheComponent: compOne,
-        projectComponent: compOne,
-        lastModifiedDate: 'Today'
-      },
-      {
-        cacheComponent: compTwo,
-        projectComponent: compTwo,
-        lastModifiedDate: 'Yesterday'
-      }]);
+      expect(components).to.have.deep.members([
+        {
+          cacheComponent: compOne,
+          projectComponent: compOne,
+          lastModifiedDate: 'Today'
+        },
+        {
+          cacheComponent: compTwo,
+          projectComponent: compTwo,
+          lastModifiedDate: 'Yesterday'
+        }
+      ]);
     });
 
     it('Should correlate results for just a child component', () => {
@@ -381,16 +387,18 @@ describe('Metadata Cache', () => {
       const components = MetadataCacheService.correlateResults(cacheResults);
 
       expect(components.length).to.equal(2);
-      expect(components).to.have.deep.members([{
-        cacheComponent: compOne,
-        projectComponent: compOne,
-        lastModifiedDate: 'Today'
-      },
-      {
-        cacheComponent: childComp,
-        projectComponent: childComp,
-        lastModifiedDate: 'Yesterday'
-      }]);
+      expect(components).to.have.deep.members([
+        {
+          cacheComponent: compOne,
+          projectComponent: compOne,
+          lastModifiedDate: 'Today'
+        },
+        {
+          cacheComponent: childComp,
+          projectComponent: childComp,
+          lastModifiedDate: 'Yesterday'
+        }
+      ]);
     });
   });
 });
