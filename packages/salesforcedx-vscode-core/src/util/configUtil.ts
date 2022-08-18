@@ -147,4 +147,23 @@ export class ConfigUtil {
     );
     return String(isTelemetryDisabled);
   }
+
+  public static async getDefaultDevHubUsername(): Promise<string | undefined> {
+    const configAggregator = await getConfigAggregator();
+
+    const defaultDevHubUserName = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_DEV_HUB
+    );
+    return (defaultDevHubUserName as string) || undefined;
+  }
+
+  public static async getGlobalDefaultDevHubUsername(): Promise<
+    string | undefined
+  > {
+    const globalConfigAggregator = await ConfigAggregator.create();
+    const defaultGlobalDevHubUserName = globalConfigAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_DEV_HUB
+    );
+    return (defaultGlobalDevHubUserName as string) || undefined;
+  }
 }

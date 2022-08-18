@@ -8,12 +8,12 @@ import {
   AuthInfo,
   ConfigAggregator,
   Connection,
-  OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
-import { AuthUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { workspaceContext } from '../context';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
@@ -72,17 +72,12 @@ export class OrgAuthInfo {
     enableWarning: boolean,
     configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
-    let configAggregator: ConfigAggregator;
     try {
-      if (configSource === ConfigSource.Global) {
-        // Global values only, since created under '/' as cwd
-        configAggregator = await ConfigAggregator.create();
-      } else {
-        configAggregator = await getConfigAggregator();
-      }
-      const defaultDevHubUserName = configAggregator.getPropertyValue(
-        OrgConfigProperties.TARGET_DEV_HUB
-      );
+      const defaultDevHubUserName =
+        configSource === ConfigSource.Global
+          ? await ConfigUtil.getGlobalDefaultDevHubUsername()
+          : await ConfigUtil.getDefaultDevHubUsername();
+
       if (defaultDevHubUserName === undefined) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
@@ -144,21 +139,10 @@ export class OrgAuthInfo {
     });
   }
 
-  public static async getOrgApiVersion() {
-    const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-      false
-    );
-    if (!defaultUsernameOrAlias) {
-      return undefined;
-    }
-    const username = defaultUsernameOrAlias
-      ? await AuthUtil.getInstance().getUsername(defaultUsernameOrAlias)
-      : undefined;
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username })
-    });
+  public static async getOrgApiVersion(): Promise<string | undefined> {
+    const connection = await workspaceContext.getConnection();
     const apiVersion = connection.getApiVersion();
-    return apiVersion;
+    return (apiVersion as string) || undefined;
   }
 }
 
