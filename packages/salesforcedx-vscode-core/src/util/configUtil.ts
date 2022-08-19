@@ -26,24 +26,6 @@ export enum ConfigSource {
   None
 }
 
-// The SfdxConfigAggregator is used only to get configuration
-// values that correspond with old/deprecated config keys.
-// Currently, the key used for the custom templates
-// directory is the only usage, since it is documented for use
-// here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
-async function getSfdxConfigAggregator(): Promise<ConfigAggregator> {
-  const origCurrentWorkingDirectory = process.cwd();
-  const rootWorkspacePath = getRootWorkspacePath();
-  // Change the current working directory to the project path,
-  // so that ConfigAggregator reads the local project values
-  process.chdir(rootWorkspacePath);
-  const configAggregator = await SfdxConfigAggregator.create();
-  // Change the current working directory back to what it was
-  // before returning
-  process.chdir(origCurrentWorkingDirectory);
-  return configAggregator;
-}
-
 export class ConfigUtil {
   public static async getConfigSource(
     key: string
@@ -123,8 +105,13 @@ export class ConfigUtil {
     return configSource === ConfigSource.Global;
   }
 
+  /*
+   * Currently, the docs tell Users to manually create this entry in the .sfdx
+   * configuration file.  For that reason, getTemplatesDirectory uses the
+   * SfdxConfigAggregator specifically.
+   */
   public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const sfdxConfigAggregator = await getSfdxConfigAggregator();
+    const sfdxConfigAggregator = await ConfigUtil.getSfdxConfigAggregator();
     const templatesDirectory = sfdxConfigAggregator.getPropertyValue(
       SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
     );
@@ -174,6 +161,26 @@ export class ConfigUtil {
     // so that ConfigAggregator reads the local project values
     process.chdir(rootWorkspacePath);
     const configAggregator = await ConfigAggregator.create();
+    // Change the current working directory back to what it was
+    // before returning
+    process.chdir(origCurrentWorkingDirectory);
+    return configAggregator;
+  }
+
+  /*
+   *  The SfdxConfigAggregator is used only to get configuration
+   *  values that correspond with old/deprecated config keys.
+   *  Currently, the key used for the custom templates
+   *  directory is the only usage, since it is documented for use
+   *  here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
+   */
+  private static async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
+    const origCurrentWorkingDirectory = process.cwd();
+    const rootWorkspacePath = getRootWorkspacePath();
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values
+    process.chdir(rootWorkspacePath);
+    const configAggregator = await SfdxConfigAggregator.create();
     // Change the current working directory back to what it was
     // before returning
     process.chdir(origCurrentWorkingDirectory);
