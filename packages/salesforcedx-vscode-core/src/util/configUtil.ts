@@ -26,19 +26,6 @@ export enum ConfigSource {
   None
 }
 
-async function getConfigAggregator(): Promise<ConfigAggregator> {
-  const origCurrentWorkingDirectory = process.cwd();
-  const rootWorkspacePath = getRootWorkspacePath();
-  // Change the current working directory to the project path,
-  // so that ConfigAggregator reads the local project values
-  process.chdir(rootWorkspacePath);
-  const configAggregator = await ConfigAggregator.create();
-  // Change the current working directory back to what it was
-  // before returning
-  process.chdir(origCurrentWorkingDirectory);
-  return configAggregator;
-}
-
 // The SfdxConfigAggregator is used only to get configuration
 // values that correspond with old/deprecated config keys.
 // Currently, the key used for the custom templates
@@ -58,8 +45,10 @@ async function getSfdxConfigAggregator(): Promise<ConfigAggregator> {
 }
 
 export class ConfigUtil {
-  public static async getConfigSource(key: string): Promise<ConfigSource> {
-    const configAggregator = await getConfigAggregator();
+  public static async getConfigSource(
+    key: string
+  ): Promise<ConfigSource.Local | ConfigSource.Global | ConfigSource.None> {
+    const configAggregator = await ConfigUtil.getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
@@ -77,7 +66,7 @@ export class ConfigUtil {
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
   ): Promise<ConfigValue | undefined> {
-    if (!source === undefined || source === ConfigSource.Local) {
+    if (source === undefined || source === ConfigSource.Local) {
       try {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
@@ -112,7 +101,7 @@ export class ConfigUtil {
   public static async getUserConfiguredApiVersion(): Promise<
     string | undefined
   > {
-    const configAggregator = await getConfigAggregator();
+    const configAggregator = await ConfigUtil.getConfigAggregator();
     const apiVersion = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_API_VERSION
     );
@@ -120,7 +109,7 @@ export class ConfigUtil {
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    const configAggregator = await getConfigAggregator();
+    const configAggregator = await ConfigUtil.getConfigAggregator();
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     ) as string;
@@ -143,7 +132,7 @@ export class ConfigUtil {
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {
-    const configAggregator = await getConfigAggregator();
+    const configAggregator = await ConfigUtil.getConfigAggregator();
     const isTelemetryDisabled = await configAggregator.getPropertyValue(
       SfConfigProperties.DISABLE_TELEMETRY
     );
@@ -151,7 +140,7 @@ export class ConfigUtil {
   }
 
   public static async getDefaultDevHubUsername(): Promise<string | undefined> {
-    const configAggregator = await getConfigAggregator();
+    const configAggregator = await ConfigUtil.getConfigAggregator();
 
     const defaultDevHubUserName = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
@@ -176,5 +165,18 @@ export class ConfigUtil {
     StateAggregator.clearInstance();
     const aliases = stateAggregator.aliases.getAll(username);
     return aliases;
+  }
+
+  private static async getConfigAggregator(): Promise<ConfigAggregator> {
+    const origCurrentWorkingDirectory = process.cwd();
+    const rootWorkspacePath = getRootWorkspacePath();
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values
+    process.chdir(rootWorkspacePath);
+    const configAggregator = await ConfigAggregator.create();
+    // Change the current working directory back to what it was
+    // before returning
+    process.chdir(origCurrentWorkingDirectory);
+    return configAggregator;
   }
 }
