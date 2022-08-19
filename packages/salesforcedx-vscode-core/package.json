@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@heroku/functions-core": "^0.3.0",
-    "@octokit/plugin-paginate-rest": "2.21.1",
+    "@octokit/plugin-paginate-rest": "2.21.3",
     "@salesforce/core": "^3.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "55.9.0",
     "@salesforce/salesforcedx-utils-vscode": "55.9.0",
@@ -46,7 +46,7 @@
     "@salesforce/salesforcedx-test-utils-vscode": "55.9.0",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
-    "@types/chai": "4.3.0",
+    "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
