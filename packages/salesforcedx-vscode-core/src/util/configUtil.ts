@@ -44,15 +44,15 @@ export class ConfigUtil {
     const apiVersion = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_API_VERSION
     );
-    return (apiVersion as string) || undefined;
+    return apiVersion ? String(apiVersion) : undefined;
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
     const configAggregator = await ConfigUtil.getConfigAggregator();
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
-    ) as string;
-    return defaultUsernameOrAlias;
+    );
+    return defaultUsernameOrAlias ? String(defaultUsernameOrAlias) : undefined;
   }
 
   public static async isGlobalDefaultUsername(): Promise<boolean> {
@@ -72,7 +72,7 @@ export class ConfigUtil {
     const templatesDirectory = sfdxConfigAggregator.getPropertyValue(
       SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
     );
-    return (templatesDirectory as string) || undefined;
+    return templatesDirectory ? String(templatesDirectory) : undefined;
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {
@@ -89,7 +89,7 @@ export class ConfigUtil {
     const defaultDevHubUserName = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
     );
-    return (defaultDevHubUserName as string) || undefined;
+    return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
   }
 
   public static async getGlobalDefaultDevHubUsername(): Promise<
@@ -99,7 +99,9 @@ export class ConfigUtil {
     const defaultGlobalDevHubUserName = globalConfigAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
     );
-    return (defaultGlobalDevHubUserName as string) || undefined;
+    return defaultGlobalDevHubUserName
+      ? String(defaultGlobalDevHubUserName)
+      : undefined;
   }
 
   public static async getAllAliasesFor(username: string): Promise<string[]> {
