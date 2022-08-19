@@ -36,17 +36,19 @@ const env = createSandbox();
 
 // tslint:disable:no-unused-expression
 describe('Fetch sObjects', () => {
+  const USERNAME = 'test@example.com';
   let connection: Connection;
   let sobjectdescribe: SObjectDescribe;
   let describeGlobalStub: any;
 
   beforeEach(async () => {
-    env.stub(AuthInfo, 'create').returns({
-      getConnectionOptions: () => CONNECTION_DATA
+    env.stub(AuthInfo, 'create').resolves({
+      getConnectionOptions: () => CONNECTION_DATA,
+      getUsername: () => USERNAME
     });
     connection = await Connection.create({
       authInfo: await AuthInfo.create({
-        username: 'test@example.com'
+        username: USERNAME
       })
     });
     sobjectdescribe = new SObjectDescribe(connection);
