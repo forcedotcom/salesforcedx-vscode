@@ -7,17 +7,12 @@
 
 import {
   ConfigAggregator,
-  ConfigFile,
-  ConfigValue,
   OrgConfigProperties,
   SfConfigProperties,
   SfdxConfigAggregator,
   SfdxPropertyKeys,
   StateAggregator
 } from '@salesforce/core';
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import * as path from 'path';
-import { telemetryService } from '../telemetry';
 import { getRootWorkspacePath } from './index';
 
 export enum ConfigSource {
@@ -116,16 +111,27 @@ export class ConfigUtil {
     return aliases;
   }
 
-  private static async getConfigAggregator(): Promise<ConfigAggregator> {
+  private static async getConfigAggregator(
+    sfdx: boolean = false
+  ): Promise<ConfigAggregator> {
     const origCurrentWorkingDirectory = process.cwd();
     const rootWorkspacePath = getRootWorkspacePath();
+    let configAggregator;
     // Change the current working directory to the project path,
     // so that ConfigAggregator reads the local project values
     process.chdir(rootWorkspacePath);
-    const configAggregator = await ConfigAggregator.create();
-    // Change the current working directory back to what it was
-    // before returning
-    process.chdir(origCurrentWorkingDirectory);
+    try {
+      configAggregator = sfdx
+        ? await SfdxConfigAggregator.create()
+        : await ConfigAggregator.create();
+    } finally {
+      // Change the current working directory back to what it was
+      // before returning.
+      // Wrapping this in a finally block ensures that the working
+      // directory is switched back to what it was before this method
+      // was called if SfdxConfigAggregator.create() throws an exception.
+      process.chdir(origCurrentWorkingDirectory);
+    }
     return configAggregator;
   }
 
@@ -137,15 +143,7 @@ export class ConfigUtil {
    *  here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
    */
   private static async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
-    const origCurrentWorkingDirectory = process.cwd();
-    const rootWorkspacePath = getRootWorkspacePath();
-    // Change the current working directory to the project path,
-    // so that ConfigAggregator reads the local project values
-    process.chdir(rootWorkspacePath);
-    const configAggregator = await SfdxConfigAggregator.create();
-    // Change the current working directory back to what it was
-    // before returning
-    process.chdir(origCurrentWorkingDirectory);
-    return configAggregator;
+    const sfdxConfigAggregator = ConfigUtil.getConfigAggregator(true);
+    return sfdxConfigAggregator;
   }
 }
