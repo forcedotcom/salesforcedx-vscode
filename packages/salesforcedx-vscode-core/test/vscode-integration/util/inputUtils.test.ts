@@ -6,7 +6,7 @@
  */
 
 import { assert, expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { stub } from 'sinon';
 import * as vscode from 'vscode';
 import { InputUtils } from '../../../src/util/inputUtils';
 
