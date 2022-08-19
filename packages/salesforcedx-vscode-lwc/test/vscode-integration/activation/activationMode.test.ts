@@ -5,9 +5,9 @@ import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import * as sinonChai from 'sinon-chai';
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
 import { MockExtensionContext } from './MockExtensionContext';
+import { expect, assert } from 'chai';
 
 chai.use(sinonChai);
-const { expect, assert } = chai;
 
 describe('activation modes', () => {
   let sandbox: sinon.SinonSandbox;
