@@ -50,5 +50,5 @@ export function disableCLITelemetry() {
 
 export async function isCLITelemetryAllowed() {
   const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
-  return isTelemetryDisabled === 'true' ? false : true;
+  return !isTelemetryDisabled;
 }

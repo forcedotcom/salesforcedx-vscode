@@ -141,12 +141,12 @@ export class ConfigUtil {
     return (templatesDirectory as string) || undefined;
   }
 
-  public static async isTelemetryDisabled(): Promise<string> {
+  public static async isTelemetryDisabled(): Promise<boolean> {
     const configAggregator = await getConfigAggregator();
     const isTelemetryDisabled = await configAggregator.getPropertyValue(
       SfConfigProperties.DISABLE_TELEMETRY
     );
-    return String(isTelemetryDisabled);
+    return isTelemetryDisabled === 'true';
   }
 
   public static async getDefaultDevHubUsername(): Promise<string | undefined> {
