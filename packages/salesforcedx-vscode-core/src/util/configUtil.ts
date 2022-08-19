@@ -27,9 +27,7 @@ export enum ConfigSource {
 }
 
 export class ConfigUtil {
-  public static async getConfigSource(
-    key: string
-  ): Promise<ConfigSource.Local | ConfigSource.Global | ConfigSource.None> {
+  public static async getConfigSource(key: string): Promise<ConfigSource> {
     const configAggregator = await ConfigUtil.getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
     switch (configSource) {
