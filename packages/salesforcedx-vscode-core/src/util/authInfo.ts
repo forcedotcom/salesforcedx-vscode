@@ -19,7 +19,7 @@ export class OrgAuthInfo {
   ): Promise<string | undefined> {
     try {
       const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
-      if (defaultUsernameOrAlias === undefined) {
+      if (!defaultUsernameOrAlias) {
         displayMessage(
           nls.localize('error_no_default_username'),
           enableWarning,
@@ -59,7 +59,7 @@ export class OrgAuthInfo {
           ? await ConfigUtil.getGlobalDefaultDevHubUsername()
           : await ConfigUtil.getDefaultDevHubUsername();
 
-      if (defaultDevHubUserName === undefined) {
+      if (!defaultDevHubUserName) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
           nls.localize('error_no_default_devhubusername'),
