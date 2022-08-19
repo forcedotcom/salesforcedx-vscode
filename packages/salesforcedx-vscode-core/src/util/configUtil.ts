@@ -42,42 +42,6 @@ export class ConfigUtil {
     }
   }
 
-  public static async getConfigValue(
-    key: string,
-    source?: ConfigSource.Global | ConfigSource.Local
-  ): Promise<ConfigValue | undefined> {
-    if (source === undefined || source === ConfigSource.Local) {
-      try {
-        const rootPath = getRootWorkspacePath();
-        const myLocalConfig = await ConfigFile.create({
-          isGlobal: false,
-          rootFolder: path.join(rootPath, '.sfdx'),
-          filename: 'sfdx-config.json'
-        });
-        const localValue = myLocalConfig.get(key);
-        if (!isNullOrUndefined(localValue)) {
-          return localValue;
-        }
-      } catch (err) {
-        telemetryService.sendException('get_config_value_local', err.message);
-        return undefined;
-      }
-    }
-    if (source === undefined || source === ConfigSource.Global) {
-      try {
-        const aggregator = await ConfigAggregator.create();
-        const globalValue = aggregator.getPropertyValue(key);
-        if (!isNullOrUndefined(globalValue)) {
-          return globalValue;
-        }
-      } catch (err) {
-        telemetryService.sendException('get_config_value_global', err.message);
-        return undefined;
-      }
-    }
-    return undefined;
-  }
-
   public static async getUserConfiguredApiVersion(): Promise<
     string | undefined
   > {
