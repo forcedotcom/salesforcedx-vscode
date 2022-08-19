@@ -9,7 +9,7 @@ import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { SinonStub, stub } from 'sinon';
+import { createSandbox, SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
@@ -22,6 +22,7 @@ import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
+  let sandbox: sinon.SinonSandbox;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -33,32 +34,27 @@ describe('Force Apex Class Create', () => {
   let getTemplatesDirectoryStub: SinonStub;
 
   beforeEach(() => {
-    showInputBoxStub = stub(vscode.window, 'showInputBox');
-    quickPickStub = stub(vscode.window, 'showQuickPick');
-    appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
+    sandbox = createSandbox();
+    showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+    quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+    appendLineStub = sandbox.stub(channelService, 'appendLine');
+    showSuccessfulExecutionStub = sandbox
+      .stub(notificationService, 'showSuccessfulExecution')
+      .returns(Promise.resolve());
+    showFailedExecutionStub = sandbox.stub(
       notificationService,
-      'showSuccessfulExecution'
+      'showFailedExecution'
     );
-    showSuccessfulExecutionStub.returns(Promise.resolve());
-    showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
-    openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
-    sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
-    sendExceptionStub = stub(telemetryService, 'sendException');
-    getTemplatesDirectoryStub = stub(ConfigUtil, 'getTemplatesDirectory');
-    getTemplatesDirectoryStub.returns(undefined);
+    openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
+    sendCommandEventStub = sandbox.stub(telemetryService, 'sendCommandEvent');
+    sendExceptionStub = sandbox.stub(telemetryService, 'sendException');
+    getTemplatesDirectoryStub = sandbox
+      .stub(ConfigUtil, 'getTemplatesDirectory')
+      .returns(undefined);
   });
 
   afterEach(() => {
-    showInputBoxStub.restore();
-    quickPickStub.restore();
-    showSuccessfulExecutionStub.restore();
-    showFailedExecutionStub.restore();
-    appendLineStub.restore();
-    openTextDocumentStub.restore();
-    sendCommandEventStub.restore();
-    sendExceptionStub.restore();
-    getTemplatesDirectoryStub.restore();
+    sandbox.restore();
   });
 
   it('Should create Apex Class', async () => {
