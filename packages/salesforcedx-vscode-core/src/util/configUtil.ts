@@ -58,25 +58,26 @@ async function getSfdxConfigAggregator(): Promise<ConfigAggregator> {
 }
 
 export class ConfigUtil {
-  public static async getConfigSource(
-    key: string
-  ): Promise<ConfigSource.Local | ConfigSource.Global | ConfigSource.None> {
+  public static async getConfigSource(key: string): Promise<ConfigSource> {
     const configAggregator = await getConfigAggregator();
     const configSource = configAggregator.getLocation(key);
-    if (configSource === ConfigAggregator.Location.LOCAL) {
-      return ConfigSource.Local;
+    switch (configSource) {
+      case ConfigAggregator.Location.LOCAL:
+        return ConfigSource.Local;
+        break;
+      case ConfigAggregator.Location.GLOBAL:
+        return ConfigSource.Global;
+        break;
+      default:
+        return ConfigSource.None;
     }
-    if (configSource === ConfigAggregator.Location.GLOBAL) {
-      return ConfigSource.Global;
-    }
-    return ConfigSource.None;
   }
 
   public static async getConfigValue(
     key: string,
     source?: ConfigSource.Global | ConfigSource.Local
   ): Promise<ConfigValue | undefined> {
-    if (source === undefined || source === ConfigSource.Local) {
+    if (!source === undefined || source === ConfigSource.Local) {
       try {
         const rootPath = getRootWorkspacePath();
         const myLocalConfig = await ConfigFile.create({
