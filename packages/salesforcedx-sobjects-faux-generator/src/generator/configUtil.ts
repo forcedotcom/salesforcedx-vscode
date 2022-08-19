@@ -13,25 +13,11 @@ import {
 } from '@salesforce/core';
 import * as path from 'path';
 
-async function getConfigAggregator(
-  projectPath: string
-): Promise<ConfigAggregator> {
-  const origCurrentWorkingDirectory = process.cwd();
-  // Change the current working directory to the project path,
-  // so that ConfigAggregator reads the local project values
-  process.chdir(projectPath);
-  const configAggregator = await ConfigAggregator.create();
-  // Change the current working directory back to what it was
-  // before returning
-  process.chdir(origCurrentWorkingDirectory);
-  return configAggregator;
-}
-
 export class ConfigUtil {
   public static async getUsername(
     projectPath: string
   ): Promise<string | undefined> {
-    const configAggregator = await getConfigAggregator(projectPath);
+    const configAggregator = await ConfigUtil.getConfigAggregator(projectPath);
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );
@@ -62,5 +48,20 @@ export class ConfigUtil {
       return undefined;
     }
     return undefined;
+  }
+
+  // TODO: Consolidate usages of ConfigAggregator - W-11623895
+  private static async getConfigAggregator(
+    projectPath: string
+  ): Promise<ConfigAggregator> {
+    const origCurrentWorkingDirectory = process.cwd();
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values
+    process.chdir(projectPath);
+    const configAggregator = await ConfigAggregator.create();
+    // Change the current working directory back to what it was
+    // before returning
+    process.chdir(origCurrentWorkingDirectory);
+    return configAggregator;
   }
 }
