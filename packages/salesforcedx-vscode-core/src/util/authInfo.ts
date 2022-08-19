@@ -123,7 +123,7 @@ export class OrgAuthInfo {
   public static async getOrgApiVersion(): Promise<string | undefined> {
     const connection = await workspaceContext.getConnection();
     const apiVersion = connection.getApiVersion();
-    return (apiVersion as string) || undefined;
+    return apiVersion ? String(apiVersion) : undefined;
   }
 }
 
