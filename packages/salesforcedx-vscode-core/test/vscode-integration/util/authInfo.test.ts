@@ -64,8 +64,6 @@ describe('OrgAuthInfo', () => {
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
       expect(infoMessageStub.calledOnce).to.equal(true);
-      configAggregatorStub.restore();
-      infoMessageStub.restore();
     });
 
     it('should run authorize a dev hub command if button clicked', async () => {
@@ -90,10 +88,6 @@ describe('OrgAuthInfo', () => {
         true
       );
       expect(showMessageStub.calledOnce).to.equal(true);
-
-      configAggregatorStub.restore();
-      showMessageStub.restore();
-      executeCommandStub.restore();
     });
 
     it('should not show a message if there is a dev hub set', async () => {
@@ -110,8 +104,6 @@ describe('OrgAuthInfo', () => {
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
       expect(infoMessageStub.calledOnce).to.equal(false);
-      configAggregatorStub.restore();
-      infoMessageStub.restore();
     });
   });
 
@@ -162,8 +154,6 @@ describe('OrgAuthInfo', () => {
       expect(
         connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
       ).to.equal(true);
-
-      configUtilStub.restore();
     });
   });
 });
