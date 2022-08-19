@@ -35,7 +35,7 @@ export class ConfigUtil {
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );
-    return (defaultUsernameOrAlias as string) || undefined;
+    return defaultUsernameOrAlias ? String(defaultUsernameOrAlias) : undefined;
   }
 
   public static async getConfigValue(
