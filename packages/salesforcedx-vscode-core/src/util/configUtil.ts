@@ -23,7 +23,7 @@ export enum ConfigSource {
 
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
-    const configAggregator = await ConfigUtil.getConfigAggregator();
+    const configAggregator = await VSCEConfigAggregator.create();
     const configSource = configAggregator.getLocation(key);
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
@@ -37,10 +37,15 @@ export class ConfigUtil {
     }
   }
 
+  /*
+   * The User-configured API version is set by the user, and is used to
+   * override the API version that is otherwise gotten from the authenticated
+   * Org in some cases, such as when deploying metadata.
+   */
   public static async getUserConfiguredApiVersion(): Promise<
     string | undefined
   > {
-    const configAggregator = await ConfigUtil.getConfigAggregator();
+    const configAggregator = await VSCEConfigAggregator.create();
     const apiVersion = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_API_VERSION
     );
@@ -48,7 +53,7 @@ export class ConfigUtil {
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    const configAggregator = await ConfigUtil.getConfigAggregator();
+    const configAggregator = await VSCEConfigAggregator.create();
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );
@@ -68,7 +73,9 @@ export class ConfigUtil {
    * SfdxConfigAggregator specifically.
    */
   public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const sfdxConfigAggregator = await ConfigUtil.getSfdxConfigAggregator();
+    const sfdxConfigAggregator = await VSCEConfigAggregator.create({
+      sfdx: true
+    });
     const templatesDirectory = sfdxConfigAggregator.getPropertyValue(
       SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
     );
@@ -76,15 +83,15 @@ export class ConfigUtil {
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {
-    const configAggregator = await ConfigUtil.getConfigAggregator();
-    const isTelemetryDisabled = await configAggregator.getPropertyValue(
+    const configAggregator = await VSCEConfigAggregator.create();
+    const isTelemetryDisabled = configAggregator.getPropertyValue(
       SfConfigProperties.DISABLE_TELEMETRY
     );
     return isTelemetryDisabled === 'true';
   }
 
   public static async getDefaultDevHubUsername(): Promise<string | undefined> {
-    const configAggregator = await ConfigUtil.getConfigAggregator();
+    const configAggregator = await VSCEConfigAggregator.create();
 
     const defaultDevHubUserName = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
@@ -95,7 +102,9 @@ export class ConfigUtil {
   public static async getGlobalDefaultDevHubUsername(): Promise<
     string | undefined
   > {
-    const globalConfigAggregator = await ConfigAggregator.create();
+    const globalConfigAggregator = await VSCEConfigAggregator.create({
+      globalValuesOnly: true
+    });
     const defaultGlobalDevHubUserName = globalConfigAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
     );
@@ -112,18 +121,54 @@ export class ConfigUtil {
     const aliases = stateAggregator.aliases.getAll(username);
     return aliases;
   }
+}
+
+type VSCEConfigAggregatorOptions = {
+  /*
+   *  The SfdxConfigAggregator is used only to get configuration
+   *  values that correspond with old/deprecated config keys.
+   *  Currently, the key used for the custom templates
+   *  directory is the only usage, since it is documented for use
+   *  here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
+   */
+  sfdx?: boolean;
+  globalValuesOnly?: boolean;
+};
+
+/*
+ * The VSCEConfigAggregator class is used to abstract away
+ * some of the complexities around changing the process directory
+ * that are needed to accurately retrieve configuration values
+ * when using the ConfigAggregator in the VSCE context.
+ */
+class VSCEConfigAggregator {
+  public static async create(
+    options?: VSCEConfigAggregatorOptions
+  ): Promise<ConfigAggregator> {
+    return VSCEConfigAggregator.getConfigAggregator(options);
+  }
 
   private static async getConfigAggregator(
-    sfdx: boolean = false
+    options: VSCEConfigAggregatorOptions = {
+      sfdx: false,
+      globalValuesOnly: false
+    }
   ): Promise<ConfigAggregator> {
-    const origCurrentWorkingDirectory = process.cwd();
-    const rootWorkspacePath = getRootWorkspacePath();
     let configAggregator;
-    // Change the current working directory to the project path,
-    // so that ConfigAggregator reads the local project values
-    process.chdir(rootWorkspacePath);
+    const currentWorkingDirectory = process.cwd();
+    if (options.globalValuesOnly) {
+      VSCEConfigAggregator.ensureProcessIsRunningUnderUserHomeDir(
+        currentWorkingDirectory
+      );
+    } else {
+      // Change the current working directory to the project path,
+      // so that ConfigAggregator reads the local project values
+      VSCEConfigAggregator.ensureProcessIsRunningUnderProjectRoot(
+        currentWorkingDirectory
+      );
+    }
     try {
-      configAggregator = sfdx
+      configAggregator = options.sfdx
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
     } finally {
@@ -132,20 +177,22 @@ export class ConfigUtil {
       // Wrapping this in a finally block ensures that the working
       // directory is switched back to what it was before this method
       // was called if SfdxConfigAggregator.create() throws an exception.
-      process.chdir(origCurrentWorkingDirectory);
+      process.chdir(currentWorkingDirectory);
     }
     return configAggregator;
   }
 
-  /*
-   *  The SfdxConfigAggregator is used only to get configuration
-   *  values that correspond with old/deprecated config keys.
-   *  Currently, the key used for the custom templates
-   *  directory is the only usage, since it is documented for use
-   *  here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
-   */
-  private static async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
-    const sfdxConfigAggregator = ConfigUtil.getConfigAggregator(true);
-    return sfdxConfigAggregator;
+  private static ensureProcessIsRunningUnderUserHomeDir(path: string) {
+    const userHomePath = '/';
+    if (path !== userHomePath) {
+      process.chdir(userHomePath);
+    }
+  }
+
+  private static ensureProcessIsRunningUnderProjectRoot(path: string) {
+    const rootWorkspacePath = getRootWorkspacePath();
+    if (path !== rootWorkspacePath) {
+      process.chdir(rootWorkspacePath);
+    }
   }
 }
