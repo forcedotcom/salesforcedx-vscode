@@ -6,7 +6,7 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { EventEmitter } from 'events';
-import { ConfigUtil } from '../../../salesforcedx-utils-vscode/out/src/config/configUtil';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';

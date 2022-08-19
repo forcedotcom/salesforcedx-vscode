@@ -9,6 +9,7 @@
   "categories": [
     "Other"
   ],
+  "main": "out/src",
   "dependencies": {
     "@salesforce/core": "^3.23.2",
     "applicationinsights": "1.0.7",
