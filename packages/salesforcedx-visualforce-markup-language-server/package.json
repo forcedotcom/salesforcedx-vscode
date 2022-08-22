@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "55.9.0",
+  "version": "55.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -13,7 +13,7 @@
   "main": "./out/src/htmlLanguageService.js",
   "typings": "./out/src/htmlLanguageService",
   "devDependencies": {
-    "@types/chai": "4.3.0",
+    "@types/chai": "4.3.3",
     "@types/mocha": "^2.2.38",
     "@types/node": "12.0.12",
     "chai": "^4.0.2",
