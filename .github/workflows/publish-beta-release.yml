@@ -1,0 +1,3 @@
+name: Publish Beta Release
+
+on: workflow_dispatch
