@@ -16,17 +16,12 @@ import {
   Command,
   CommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { flushFilePath } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import {
-  testOutlineProvider
-} from '../views/testOutlineProvider';
-import {
-  forceAnonApexDebug
-} from './forceAnonApexExecute';
+import { testOutlineProvider } from '../views/testOutlineProvider';
+import { forceAnonApexDebug } from './forceAnonApexExecute';
 
 export async function forceLaunchApexReplayDebuggerWithCurrentFile() {
   const editor = vscode.window.activeTextEditor;
@@ -75,21 +70,26 @@ function isAnonymousApexFile(sourceUri: vscode.Uri): boolean {
 }
 
 async function launchReplayDebuggerLogFile(sourceUri: vscode.Uri) {
-  await vscode.commands.executeCommand(
-    'sfdx.launch.replay.debugger.logfile',
-    {
-      fsPath: sourceUri.fsPath
-    }
-  );
+  await vscode.commands.executeCommand('sfdx.launch.replay.debugger.logfile', {
+    fsPath: sourceUri.fsPath
+  });
 }
 
-async function getApexTestClassName(sourceUri: vscode.Uri): Promise<string | undefined> {
+async function getApexTestClassName(
+  sourceUri: vscode.Uri
+): Promise<string | undefined> {
   if (!sourceUri) {
     return undefined;
   }
 
   await testOutlineProvider.refresh();
-  const testClassName = testOutlineProvider.getTestClassName(sourceUri);
+  let testClassName = testOutlineProvider.getTestClassName(sourceUri);
+  // This is a little bizarre.  Intellisense is reporting that getTestClassName() returns a string,
+  // but it actually it returns string | undefined.  Well, regardless, since flushFilePath() takes
+  // a string (and guards against empty strings) using the Non-null assertion operator
+  // (https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)
+  // fixes the issue.
+  testClassName = flushFilePath(testClassName!);
 
   return testClassName;
 }
@@ -105,17 +105,16 @@ async function launchAnonymousApexReplayDebugger() {
 
 async function launchApexReplayDebugger(apexTestClassName: string) {
   // Launch using QuickLaunch (the same way the "Debug All Tests" code lens runs)
-  await vscode.commands.executeCommand(
-    'sfdx.force.test.view.debugTests',
-    {
-      name: apexTestClassName
-    }
-  );
+  await vscode.commands.executeCommand('sfdx.force.test.view.debugTests', {
+    name: apexTestClassName
+  });
 }
 
 export class ForceAnonApexLaunchReplayDebuggerExecutor extends SfdxCommandletExecutor<{}> {
   public build(): Command {
-    return new CommandBuilder(nls.localize('force_launch_apex_replay_debugger_with_selected_file'))
+    return new CommandBuilder(
+      nls.localize('force_launch_apex_replay_debugger_with_selected_file')
+    )
       .withLogName('force_launch_apex_replay_debugger_with_selected_file')
       .build();
   }

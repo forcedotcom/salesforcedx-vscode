@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfdxProject, SfdxProjectJson } from '@salesforce/core';
+import { SfProject, SfProjectJson } from '@salesforce/core';
 import { AnyJson } from '@salesforce/ts-types';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -21,10 +21,10 @@ import { getRootWorkspacePath } from '../util';
  * Does not contain global values.
  */
 export default class SfdxProjectConfig {
-  private static instance: SfdxProjectJson;
+  private static instance: SfProjectJson;
   private constructor() {
     throw new Error(
-      'Error: *** call SfdxProject.getInstance() to get the singleton instance of this class ***'
+      'Error: *** call SfProject.getInstance() to get the singleton instance of this class ***'
     );
   }
 
@@ -35,8 +35,8 @@ export default class SfdxProjectConfig {
     ) {
       const sfdxProjectPath = getRootWorkspacePath();
       try {
-        const sfdxProject = await SfdxProject.resolve(sfdxProjectPath);
-        SfdxProjectConfig.instance = await sfdxProject.retrieveSfdxProjectJson();
+        const sfdxProject = await SfProject.resolve(sfdxProjectPath);
+        SfdxProjectConfig.instance = await sfdxProject.retrieveSfProjectJson();
         const fileWatcher = vscode.workspace.createFileSystemWatcher(
           path.join(sfdxProjectPath, SFDX_PROJECT_FILE)
         );
@@ -68,7 +68,7 @@ export default class SfdxProjectConfig {
     telemetryService.sendException('project_config', errorMessage);
   }
 
-  public static async getInstance(): Promise<SfdxProjectJson> {
+  public static async getInstance(): Promise<SfProjectJson> {
     if (!SfdxProjectConfig.instance) {
       await SfdxProjectConfig.initializeSfdxProjectConfig();
     }
