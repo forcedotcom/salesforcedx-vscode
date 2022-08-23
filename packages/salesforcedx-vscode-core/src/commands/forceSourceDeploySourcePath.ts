@@ -4,12 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -30,9 +26,7 @@ import {
   TimestampConflictChecker
 } from './util/postconditionCheckers';
 
-export class LibraryDeploySourcePathExecutor extends DeployExecutor<
-  string[]
-> {
+export class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor() {
     super(
       nls.localize('force_source_deploy_text'),
@@ -43,8 +37,11 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
   public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
-    const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
-    const paths = typeof response.data === 'string' ? [response.data] : response.data;
+    const sourceApiVersion = (await SfdxProjectConfig.getValue(
+      'sourceApiVersion'
+    )) as string;
+    const paths =
+      typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
     componentSet.sourceApiVersion = sourceApiVersion;
     return componentSet;
@@ -52,7 +49,7 @@ export class LibraryDeploySourcePathExecutor extends DeployExecutor<
 }
 
 export const forceSourceDeploySourcePaths = async (
-  sourceUri: vscode.Uri | vscode.Uri[] |undefined,
+  sourceUri: vscode.Uri | vscode.Uri[] | undefined,
   uris: vscode.Uri[] | undefined
 ) => {
   if (!sourceUri) {
