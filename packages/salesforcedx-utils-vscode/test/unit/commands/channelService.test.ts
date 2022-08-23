@@ -39,7 +39,11 @@ describe('Channel Service', () => {
   });
 
   it('Should create new singleton instance of channel if it does not exist', () => {
-    sb.stub(vscodeStub.window, 'createOutputChannel').withArgs('first').returns(mChannel).withArgs('second').returns(mChannel2);
+    sb.stub(vscodeStub.window, 'createOutputChannel')
+      .withArgs('first')
+      .returns(mChannel)
+      .withArgs('second')
+      .returns(mChannel2);
 
     const chan1 = ChannelService.getInstance('first');
     const chan2 = ChannelService.getInstance('second');
@@ -48,7 +52,11 @@ describe('Channel Service', () => {
   });
 
   it('Should return existing singleton instance of channel if it exists', () => {
-    sb.stub(vscodeStub.window, 'createOutputChannel').withArgs('first').returns(mChannel).withArgs('second').returns(mChannel2);
+    sb.stub(vscodeStub.window, 'createOutputChannel')
+      .withArgs('first')
+      .returns(mChannel)
+      .withArgs('second')
+      .returns(mChannel2);
 
     const chan1 = ChannelService.getInstance('first');
     const chan2 = ChannelService.getInstance('first');
@@ -67,7 +75,7 @@ describe('Channel Service', () => {
     // @ts-ignore
     channelService.streamCommandOutput(execution);
 
-    await new Promise<string>((resolve, reject) => {
+    await new Promise<string | void>((resolve, reject) => {
       execution.processExitSubject.subscribe(data => {
         resolve();
       });
@@ -90,7 +98,7 @@ describe('Channel Service', () => {
     // @ts-ignore
     channelService.streamCommandOutput(execution);
 
-    await new Promise<string>((resolve, reject) => {
+    await new Promise<string | void>((resolve, reject) => {
       execution.processExitSubject.subscribe(data => {
         resolve();
       });
@@ -109,7 +117,7 @@ describe('Channel Service', () => {
     // @ts-ignore
     channelService.streamCommandOutput(execution);
 
-    await new Promise<string>((resolve, reject) => {
+    await new Promise<string | void>((resolve, reject) => {
       execution.processErrorSubject.subscribe(data => {
         resolve();
       });

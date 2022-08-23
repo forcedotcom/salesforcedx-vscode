@@ -110,7 +110,13 @@ export function getJavascriptMode(
       };
     },
     getCurrentDirectory: () => '',
-    getDefaultLibFileName: options => getDefaultLibFilePath(options)
+    getDefaultLibFileName: options => getDefaultLibFilePath(options),
+    readFile: (path: string, encoding?: string): string => {
+      throw new Error('Function not implemented.');
+    },
+    fileExists: (path: string): boolean => {
+      throw new Error('Function not implemented.');
+    }
   };
   const jsLanguageService = createLanguageService(host);
 
@@ -182,6 +188,7 @@ export function getJavascriptMode(
         FILE_NAME,
         item.data.offset,
         item.label,
+        undefined,
         undefined,
         undefined,
         undefined

@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { OrgInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  OrgUserInfo,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '.';
 
@@ -15,7 +18,7 @@ import { setupWorkspaceOrgType } from '.';
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
 
-  public readonly onOrgChange: vscode.Event<OrgInfo>;
+  public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
     this.onOrgChange = WorkspaceContextUtil.getInstance().onOrgChange;
@@ -37,7 +40,7 @@ export class WorkspaceContext {
     return await WorkspaceContextUtil.getInstance().getConnection();
   }
 
-  protected async handleCliConfigChange(orgInfo: OrgInfo) {
+  protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
     setupWorkspaceOrgType(orgInfo.username).catch(e =>
       // error reported by setupWorkspaceOrgType
       console.error(e)
@@ -52,5 +55,3 @@ export class WorkspaceContext {
     return WorkspaceContextUtil.getInstance().alias;
   }
 }
-
-export { OrgInfo };
