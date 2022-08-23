@@ -44,7 +44,7 @@ describe('SOQL metadata files generator', () => {
     fs.mkdirSync(customFolder);
   });
 
-  after(() => {
+  afterAll(() => {
     cleanupMetadata();
   });
 
@@ -92,7 +92,7 @@ class TestSObjectRefreshOutput implements SObjectRefreshOutput {
   private custom: SObject[] = [];
   public error: { message?: string; stack?: string } = {};
 
-  public constructor(public sfdxPath: string) { }
+  public constructor(public sfdxPath: string) {}
 
   public addTypeNames(sobjShort: SObjectShortDescription[]): void {
     this.typeNames.push(...sobjShort);
