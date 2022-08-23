@@ -14,7 +14,7 @@ import {
   CommandExecution,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -43,7 +43,7 @@ import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
 import {
   ChannelService,
   notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
 
 const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';

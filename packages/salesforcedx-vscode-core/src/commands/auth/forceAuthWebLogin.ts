@@ -8,9 +8,9 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';

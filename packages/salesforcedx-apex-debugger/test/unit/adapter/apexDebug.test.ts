@@ -10,7 +10,7 @@ import {
   ForceConfigGet,
   ForceOrgDisplay,
   OrgInfo
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as AsyncLock from 'async-lock';

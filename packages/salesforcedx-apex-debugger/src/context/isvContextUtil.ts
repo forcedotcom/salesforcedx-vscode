@@ -8,7 +8,7 @@
 import {
   ForceConfigGet,
   GlobalCliEnvironment
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ENV_SFDX_DEFAULTUSERNAME,
   ENV_SFDX_INSTANCE_URL,

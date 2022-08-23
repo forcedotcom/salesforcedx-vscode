@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceOrgDisplay } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ForceOrgDisplay } from '@salesforce/salesforcedx-utils-vscode';
 import {
   RequestService,
   RestHttpMethodEnum
@@ -295,9 +295,9 @@ export class LogContext {
             }
           );
         if (returnString) {
-          heapDump.setOverlaySuccessResult(JSON.parse(
-            returnString
-          ) as ApexExecutionOverlayResultCommandSuccess);
+          heapDump.setOverlaySuccessResult(
+            JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess
+          );
         } else if (errorString) {
           try {
             success = false;

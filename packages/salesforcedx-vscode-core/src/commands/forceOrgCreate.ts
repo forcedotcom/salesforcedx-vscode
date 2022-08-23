@@ -11,7 +11,7 @@ import {
   OrgCreateErrorResult,
   OrgCreateResultParser,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   isAlphaNumSpaceString,
   isIntegerInRange

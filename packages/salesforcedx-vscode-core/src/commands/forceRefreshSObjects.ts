@@ -17,19 +17,19 @@ import {
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
 import {
+  Command,
+  LocalCommandExecution,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
+  notificationService,
+  ProgressNotification
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  LocalCommandExecution,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  notificationService,
-  ProgressNotification
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import {
   CancelResponse,
   ContinueResponse,
@@ -179,8 +179,10 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         }
       );
     } catch (result) {
-      console.log('Generate error ' + result.error);
-      telemetryService.sendException(result.name, result.error);
+      if (result instanceof Error) {
+        console.log('Generate error ' + result.message);
+        telemetryService.sendException(result.name, result.message);
+      }
     }
 
     ForceRefreshSObjectsExecutor.isActive = false;

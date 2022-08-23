@@ -6,12 +6,11 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+  notificationService,
+  SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';

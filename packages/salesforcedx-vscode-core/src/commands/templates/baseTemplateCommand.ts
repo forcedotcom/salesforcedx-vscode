@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
   DirFileNameSelection
@@ -47,10 +47,11 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
         dirType: this.identifyDirType(response.data.outputdir)
       });
       if (data !== undefined && String(data) === '0' && hasRootWorkspace()) {
-        const outputFile = this.getPathToSource(response.data.outputdir, response.data.fileName);
-        const document = await vscode.workspace.openTextDocument(
-          outputFile
+        const outputFile = this.getPathToSource(
+          response.data.outputdir,
+          response.data.fileName
         );
+        const document = await vscode.workspace.openTextDocument(outputFile);
         vscode.window.showTextDocument(document);
         this.runPostCommandTasks(response.data);
       }

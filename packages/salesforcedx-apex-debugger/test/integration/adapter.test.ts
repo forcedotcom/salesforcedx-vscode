@@ -10,7 +10,7 @@ import {
   CliCommandExecutor,
   CommandExecution,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as rimraf from 'rimraf';

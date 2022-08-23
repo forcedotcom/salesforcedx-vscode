@@ -11,7 +11,7 @@ import {
   ForceDeployResultParser,
   ForceSourceDeployErrorResponse,
   ForceSourceDeploySuccessResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   Row,
   Table

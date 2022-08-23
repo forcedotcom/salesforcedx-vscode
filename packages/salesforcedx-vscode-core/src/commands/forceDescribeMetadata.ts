@@ -11,7 +11,7 @@ import {
   Command,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';

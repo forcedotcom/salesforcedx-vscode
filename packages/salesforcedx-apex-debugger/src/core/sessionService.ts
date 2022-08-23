@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 
 export class SessionService {
@@ -64,9 +64,7 @@ export class SessionService {
         .withFlag('--sobjecttype', 'ApexDebuggerSession')
         .withFlag(
           '--values',
-          `UserIdFilter='${this.userFilter}' EntryPointFilter='${
-            this.entryFilter
-          }' RequestTypeFilter='${this.requestFilter}'`
+          `UserIdFilter='${this.userFilter}' EntryPointFilter='${this.entryFilter}' RequestTypeFilter='${this.requestFilter}'`
         )
         .withArg('--usetoolingapi')
         .withJson()

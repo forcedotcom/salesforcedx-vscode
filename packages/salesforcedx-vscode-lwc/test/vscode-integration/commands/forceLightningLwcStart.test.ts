@@ -10,7 +10,7 @@ import {
   CliCommandExecutor,
   Command,
   CommandExecution
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
@@ -26,11 +26,11 @@ import {
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
 import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
-import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ChannelService,
   notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
 
 class FakeExecution implements CommandExecution {
   public command: Command;

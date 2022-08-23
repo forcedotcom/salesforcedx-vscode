@@ -7,7 +7,7 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import * as path from 'path';

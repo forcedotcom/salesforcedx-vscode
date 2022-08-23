@@ -6,7 +6,7 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';

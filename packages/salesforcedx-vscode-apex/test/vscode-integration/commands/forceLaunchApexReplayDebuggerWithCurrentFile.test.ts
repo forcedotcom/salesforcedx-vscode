@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { testSetup } from '@salesforce/core/lib/testSetup';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';

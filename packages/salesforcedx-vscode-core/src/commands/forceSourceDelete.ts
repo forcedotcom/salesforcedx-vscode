@@ -9,7 +9,7 @@ import * as path from 'path';
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { flushFilePath } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,

@@ -8,7 +8,7 @@
 import {
   ForceConfigGet,
   ForceOrgDisplay
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import {
@@ -883,7 +883,9 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new RunCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        if (error instanceof Error) {
+          response.message = error.message;
+        }
       }
     }
     this.resetIdleTimer();
@@ -901,7 +903,9 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepOverCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        if (error instanceof Error) {
+          response.message = error.message;
+        }
       }
     }
     this.sendResponse(response);
@@ -918,7 +922,9 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepIntoCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        if (error instanceof Error) {
+          response.message = error.message;
+        }
       }
     }
     this.sendResponse(response);
@@ -935,7 +941,9 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepOutCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        if (error instanceof Error) {
+          response.message = error.message;
+        }
       }
     }
     this.sendResponse(response);
@@ -1053,7 +1061,9 @@ export class ApexDebug extends LoggingDebugSession {
       response.body = { stackFrames: clientFrames };
       response.success = true;
     } catch (error) {
-      response.message = error;
+      if (error instanceof Error) {
+        response.message = error.message;
+      }
     }
     this.sendResponse(response);
   }

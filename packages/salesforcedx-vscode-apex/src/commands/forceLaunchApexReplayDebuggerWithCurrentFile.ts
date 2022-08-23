@@ -6,17 +6,17 @@
  */
 
 import {
+  Command,
+  CommandBuilder,
+  notificationService
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
   EmptyParametersGatherer,
   fileExtensionsMatch,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  CommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import { flushFilePath } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import * as vscode from 'vscode';
 import { nls } from '../messages';

@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {

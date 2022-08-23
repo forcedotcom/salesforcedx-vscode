@@ -14,13 +14,16 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   getLogDirPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { getTestResultsFolder, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
+  getTestResultsFolder,
+  TraceFlags
+} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
 import * as path from 'path';
 import { workspace } from 'vscode';
@@ -65,11 +68,7 @@ export class QuickLaunch {
       }
     }
 
-    const testResult = await this.runTests(
-      connection,
-      testClass,
-      testName
-    );
+    const testResult = await this.runTests(connection, testClass, testName);
 
     if (testResult.success && testResult.logFileId) {
       const logFileRetrieve = await this.retrieveLogFile(
