@@ -26,6 +26,7 @@ module.exports = {
   // excluding dependencies from getting bundled
   externals: {
     '@salesforce/core': 'commonjs @salesforce/core',
+    '@salesforce/salesforcedx-utils-vscode': 'commonjs @salesforce/salesforcedx-utils-vscode',
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls',
     mocha: 'mocha'
