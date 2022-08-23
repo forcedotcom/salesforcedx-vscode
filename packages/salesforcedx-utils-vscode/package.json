@@ -3,23 +3,23 @@
   "displayName": "SFDX Utilities for VS Code",
   "description": "Provides utilities to interface the SFDX libraries with VS Code",
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "55.7.0",
+  "version": "55.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^2.35.0",
+    "@salesforce/core": "^3.23.2",
     "applicationinsights": "1.0.7",
-    "cross-spawn": "6.0.5",
+    "cross-spawn": "7.0.3",
     "rxjs": "^5.4.1",
     "strip-ansi": "^5.2.0",
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
     "@salesforce/ts-sinon": "1.3.21",
-    "@types/chai": "4.3.0",
+    "@types/chai": "4.3.3",
     "@types/cross-spawn": "6.0.0",
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
@@ -50,9 +50,9 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:unit",
-    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit/**/*.js --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
-    "coverage": "./node_modules/.bin/nyc npm test"
+    "test:unit": "mocha --recursive out/test/unit/**/*.js --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "test:unit:coverage": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit/**/*.js --timeout 20000 --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
+    "coverage": "./node_modules/.bin/nyc npm test:unit:coverage"
   },
   "nyc": {
     "reporter": [
