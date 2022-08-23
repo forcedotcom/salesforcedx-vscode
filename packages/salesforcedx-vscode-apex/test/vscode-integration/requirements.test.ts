@@ -41,7 +41,7 @@ describe('Java Requirements Test', () => {
       .returns({
         get: settingStub
       });
-    pathExistsStub = sandbox.stub(pathExists, 'pathExistsSync').resolves(true);
+    pathExistsStub = sandbox.stub(pathExists, 'sync').resolves(true);
     execFileStub = sandbox.stub(cp, 'execFile');
   });
 

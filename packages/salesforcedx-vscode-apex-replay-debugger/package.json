@@ -29,7 +29,7 @@
     "@salesforce/salesforcedx-apex-replay-debugger": "55.10.0",
     "@salesforce/salesforcedx-utils-vscode": "55.10.0",
     "async-lock": "1.0.0",
-    "path-exists": "5.0.0",
+    "path-exists": "3.0.0",
     "request-light": "0.2.4",
     "vscode-extension-telemetry": "0.0.17"
   },
@@ -41,7 +41,7 @@
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
-    "@types/path-exists": "^3.0.0",
+    "@types/path-exists": "^1.0.29",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "1.49.0",
     "chai": "^4.0.2",
