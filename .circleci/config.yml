@@ -3,14 +3,14 @@
 #
 # The following environment variables are required in the 'vscode-test' context
 # when running tests for Windows:
-#     SFDX_CI_DEVHUB_CLIENTID  -- connected app client ID for the dev hub
+#       SFDX_CI_DEVHUB_CLIENTID  -- connected app client ID for the dev hub
 #     SFDX_CI_DEVHUB_JWT_KEY   -- private key for the connected app (base64 encoded)
 #     SFDX_CI_DEVHUB_USERNAME  -- username of an authorized user of the dev hub
 #
 version: 2.1
 
 orbs:
-  win: circleci/windows@2.4.0
+  win: circleci/windows@4.1.0
   release-management: salesforce/npm-release-management@4
   slack: circleci/slack@3.4.2
   github-cli: circleci/github-cli@2.1.0
@@ -301,7 +301,9 @@ jobs:
 
   unit-tests:
     description: 'Run tests on Windows'
-    executor: win/default
+    executor:
+      name: win/default
+      size: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
@@ -334,7 +336,9 @@ jobs:
 
   soql-ui-tests:
     description: 'Run E2E SOQL UI Tests'
-    executor: win/default
+    executor:
+      name: win/default
+      size: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
@@ -350,7 +354,9 @@ jobs:
 
   integration-tests:
     description: 'Run tests on Windows'
-    executor: win/default
+    executor:
+      name: win/default
+      size: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
@@ -553,7 +559,8 @@ workflows:
     when: << pipeline.parameters.pre-publish >>
     jobs:
       - slack/approval-notification:
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           message: Pending Approval for merge of release branch into main
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -561,7 +568,8 @@ workflows:
           type: approval
       - merge-release-branch:
           e: default-executor
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           requires:
             - hold
           filters:
@@ -573,7 +581,8 @@ workflows:
     when: << pipeline.parameters.publish >>
     jobs:
       - slack/approval-notification:
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           message: Pending Approval for Publish
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -585,7 +594,8 @@ workflows:
       - publish:
           e: default-executor
           context:
-            - IEAT_keys
+            - salesforce-ide
+            - NPM_Salesforce-Releases
             - CLI_CTC
           requires:
             - build-all
@@ -601,7 +611,8 @@ workflows:
     when: << pipeline.parameters.create-release >>
     jobs:
       - slack/approval-notification:
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           message: Pending Approval for Creation of Release Branch
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -609,7 +620,8 @@ workflows:
           type: approval
       - create-release-branch:
           e: default-executor
-          context: IEAT_keys
+          context:
+            - salesforce-ide
           requires:
             - hold
           filters:

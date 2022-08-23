@@ -7,6 +7,7 @@
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';
@@ -28,8 +29,7 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should return an error when the editor is not found', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => undefined);
+    sb.stub(vscode.window, 'activeTextEditor').get(() => undefined);
 
     const showErrorMessageStub = sb.stub(
       notificationService,
@@ -44,13 +44,12 @@ describe('Force Launch Replay Debugger', () => {
     ).to.equal(true);
   });
 
-  it('should return an error when the document\'s URI is not found', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: undefined
-        }
-      }));
+  it("should return an error when the document's URI is not found", async () => {
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: undefined
+      }
+    }));
 
     const showErrorMessageStub = sb.stub(
       notificationService,
@@ -66,39 +65,41 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should return an error when not a log file, not an anon apex file, and not an apex test class', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.txt')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.txt')
+      }
+    }));
 
     const showErrorMessageStub = sb.stub(
       notificationService,
       'showErrorMessage'
     );
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'refresh')
-      .returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName')
-      .returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
+      undefined
+    );
+
+    sb.stub(helpers, 'flushFilePath').returns(undefined);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
-      showErrorMessageStub.calledWith(nls.localize('launch_apex_replay_debugger_unsupported_file'))
+      showErrorMessageStub.calledWith(
+        nls.localize('launch_apex_replay_debugger_unsupported_file')
+      )
     ).to.equal(true);
   });
 
   it('should call executeCommand() if file is a log file', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.log')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.log')
+      }
+    }));
 
     const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
 
@@ -111,15 +112,13 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should call SfdxCommandlet.run() if file is an anon apex file', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.apex')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.apex')
+      }
+    }));
 
-    const runStub = sb.stub(SfdxCommandlet.prototype, 'run')
-      .returns(undefined);
+    const runStub = sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
@@ -127,21 +126,21 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should call executeCommand if file is an apex test class', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.cls')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.cls')
+      }
+    }));
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'refresh')
-      .returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName')
-      .returns('foo.cls');
+    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
+      'foo.cls'
+    );
 
-    sb.stub(SfdxCommandlet.prototype, 'run')
-      .returns(undefined);
+    sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
+
+    sb.stub(helpers, 'flushFilePath').returns('foo.cls');
 
     const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
 

@@ -2,23 +2,22 @@
   "name": "@salesforce/salesforcedx-sobjects-faux-generator",
   "displayName": "Salesforce SObject Faux Generator",
   "description": "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
-  "version": "55.3.0",
+  "version": "55.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.49.3"
   },
   "dependencies": {
-    "@salesforce/core": "^2.35.0",
-    "@types/jsforce": "1.9.41",
-    "jsforce": "1.11.0",
+    "@salesforce/core": "^3.23.2",
+    "jsforce": "2.0.0-beta.18",
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@types/chai": "4.3.0",
+    "@types/chai": "4.3.3",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
-    "@types/rimraf": "^2.0.2",
+    "@types/rimraf": "^3.0.2",
     "@types/shelljs": "0.7.4",
     "@types/sinon": "^2.3.7",
     "chai": "^4.0.2",
@@ -35,7 +34,7 @@
   "scripts": {
     "compile": "webpack",
     "webpack": "webpack",
-    "lint": "tslint --project . -e **/src/data/minSObjects.json",
+    "lint": "tslint --project . -e **/minSObjects.json",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out",
