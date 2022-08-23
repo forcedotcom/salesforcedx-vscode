@@ -7,6 +7,7 @@
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { CommandExecution } from '../cli';
+import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
 import { ChannelService } from './index';
 
@@ -111,9 +112,8 @@ export class NotificationService {
       'notification_successful_execution_text',
       executionName
     );
-    const showCLISuccessMsg = vscode.workspace
-      .getConfiguration('salesforcedx-vscode-core')
-      .get<boolean>('show-cli-success-msg', true);
+    const coreConfigurationName = vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME);
+    const showCLISuccessMsg = coreConfigurationName.get<boolean>('show-cli-success-msg', true);
     if (showCLISuccessMsg) {
       const showButtonText = nls.localize('notification_show_button_text');
       const showOnlyStatusBarButtonText = nls.localize(
@@ -128,9 +128,7 @@ export class NotificationService {
         if (selection === showButtonText && channelService) {
           channelService.showChannelOutput();
         } else if (selection === showOnlyStatusBarButtonText) {
-          await vscode.workspace
-            .getConfiguration('salesforcedx-vscode-core')
-            .update('show-cli-success-msg', false);
+          await coreConfigurationName.update('show-cli-success-msg', false);
         }
       }
     } else {
