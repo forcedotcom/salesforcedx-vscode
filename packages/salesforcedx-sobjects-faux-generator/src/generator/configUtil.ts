@@ -9,7 +9,8 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
-  OrgConfigProperties
+  OrgConfigProperties,
+  StateAggregator
 } from '@salesforce/core';
 import * as path from 'path';
 
@@ -21,7 +22,15 @@ export class ConfigUtil {
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );
-    return defaultUsernameOrAlias ? String(defaultUsernameOrAlias) : undefined;
+
+    if (defaultUsernameOrAlias) {
+      const info = await StateAggregator.getInstance();
+      const username = info.aliases.resolveValue(
+        String(defaultUsernameOrAlias)
+      );
+      return username;
+    }
+    return undefined;
   }
 
   public static async getConfigValue(
