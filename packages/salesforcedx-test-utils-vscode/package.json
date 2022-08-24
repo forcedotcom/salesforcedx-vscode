@@ -21,7 +21,7 @@
     "@types/sinon": "^2.3.7",
     "chai": "^4.0.2",
     "decache": "^4.1.0",
-    "glob": "^7.1.2",
+    "glob": "^8.0.3",
     "istanbul": "^0.4.5",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
