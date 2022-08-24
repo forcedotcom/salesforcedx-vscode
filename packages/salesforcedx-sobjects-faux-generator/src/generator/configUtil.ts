@@ -42,6 +42,10 @@ export class ConfigUtil {
     // so that ConfigAggregator reads the local project values
     process.chdir(projectPath);
     const configAggregator = await ConfigAggregator.create();
+    // ConfigAggregator caches instances internally by working directory
+    // path.  Clling reload ensures that this instance of ConfigAggregator
+    // has the latest values from the config file.
+    configAggregator.reload();
     // Change the current working directory back to what it was
     // before returning
     process.chdir(origCurrentWorkingDirectory);
