@@ -171,6 +171,11 @@ class VSCEConfigAggregator {
       configAggregator = options.sfdx
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
+
+      // Force ConfigAggregator to load the most recent values from
+      // the config file.  This prevents an issue where ConfigAggregator
+      // can returned cached data instead of the most recent data.
+      await configAggregator.reload();
     } finally {
       // Change the current working directory back to what it was
       // before returning.
