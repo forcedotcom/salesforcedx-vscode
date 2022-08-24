@@ -17,6 +17,7 @@ import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
+
 // tslint:disable-next-line:no-var-requires
 const findJavaHome = require('find-java-home');
 
