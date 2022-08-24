@@ -63,7 +63,7 @@ function checkJavaRuntime(): Promise<string> {
     }
 
     if (javaHome) {
-=      javaHome = expandHomeDir(javaHome) as string;
+      javaHome = expandHomeDir(javaHome) as string;
       if (isLocal(javaHome)) {
         // prevent injecting malicious code from unknown repositories
         return reject(
