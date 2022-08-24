@@ -6,13 +6,12 @@
  */
 
 import {
-  CliCommandExecutor,
-  Command,
-  SfdxCommandBuilder,
-  isRecordIdFormat,
   CancelResponse,
+  Command,
   ContinueResponse,
-  ParametersGatherer
+  isRecordIdFormat,
+  ParametersGatherer,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';

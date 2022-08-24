@@ -16,13 +16,13 @@ import {
 import { SfProject } from '@salesforce/core';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  ContinueResponse,
   EmptyParametersGatherer,
   getRootWorkspacePath,
+  getTestResultsFolder,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  getTestResultsFolder,
-  ContinueResponse
+  SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,

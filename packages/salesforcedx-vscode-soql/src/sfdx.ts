@@ -6,8 +6,10 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ChannelService,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as debounce from 'debounce';
 import { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';

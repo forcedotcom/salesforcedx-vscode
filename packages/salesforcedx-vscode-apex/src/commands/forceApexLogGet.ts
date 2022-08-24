@@ -7,14 +7,14 @@
 
 import { LogRecord, LogService } from '@salesforce/apex-node';
 import {
-  getRootWorkspaceSfdxPath,
-  LibraryCommandletExecutor,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker,
-  optionYYYYMMddHHmmss,
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
+  getRootWorkspaceSfdxPath,
+  LibraryCommandletExecutor,
+  optionYYYYMMddHHmmss,
+  ParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';

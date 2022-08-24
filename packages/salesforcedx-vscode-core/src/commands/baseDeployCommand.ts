@@ -7,11 +7,11 @@
 
 import {
   CliCommandExecutor,
+  ContinueResponse,
   ForceDeployResultParser,
-  TelemetryBuilder,
   Row,
   Table,
-  ContinueResponse
+  TelemetryBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';

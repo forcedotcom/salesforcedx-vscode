@@ -6,9 +6,9 @@
  */
 
 import {
+  extractJsonObject,
   ForceConfigGet,
   ForceOrgDisplay,
-  extractJsonObject,
   RequestService,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
