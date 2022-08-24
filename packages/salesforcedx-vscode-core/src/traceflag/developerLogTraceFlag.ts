@@ -93,11 +93,11 @@ export class DeveloperLogTraceFlag {
     return this.active;
   }
 
-  public getDebugLevelId() {
+  public getDebugLevelId(): string|undefined|null {
     return this.debugLevelId;
   }
 
-  public getTraceFlagId() {
+  public getTraceFlagId(): string|undefined {
     return this.traceflagId;
   }
 

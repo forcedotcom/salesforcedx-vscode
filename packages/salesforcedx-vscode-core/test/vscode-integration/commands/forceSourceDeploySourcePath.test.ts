@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
 import {
   ComponentSet,
@@ -20,7 +21,10 @@ import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
 import { TimestampConflictChecker } from '../../../src/commands/util/postconditionCheckers';
 import { workspaceContext } from '../../../src/context';
-import { SfdxPackageDirectories, SfdxProjectConfig } from '../../../src/sfdxProject';
+import {
+  SfdxPackageDirectories,
+  SfdxProjectConfig
+} from '../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../src/util';
 
 const sb = createSandbox();
@@ -96,11 +100,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
       await executor.run({
         type: 'CONTINUE',
-        data: [
-          filePath1,
-          filePath2,
-          filePath3
-        ]
+        data: [filePath1, filePath2, filePath3]
       });
 
       expect(getComponentsFromPathStub.calledThrice).to.equal(true);
@@ -150,21 +150,33 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
 
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([
+          path.sep + filePath1,
+          path.sep + filePath2,
+          path.sep + filePath3
+        ]);
+
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
         uris
       );
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+      const continueResponse = timestampConflictCheckerCheckStub
+        .args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(
+        JSON.stringify(filePaths)
+      );
+
+      flushFilePathsStub.restore();
+      isInPackageDirectoryStub.restore();
     });
 
     it('should deploy a single file', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
-      const uris = [
-        vscode.Uri.file(filePath1)
-      ];
+      const uris = [vscode.Uri.file(filePath1)];
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
@@ -177,6 +189,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const isInPackageDirectoryStub = sb
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -184,15 +199,20 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       );
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+      const continueResponse = timestampConflictCheckerCheckStub
+        .args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(
+        JSON.stringify(filePaths)
+      );
+
+      flushFilePathsStub.restore();
+      isInPackageDirectoryStub.restore();
+      timestampConflictCheckerCheckStub.restore();
     });
 
     it('should deploy when editing single file and "Deploy This Source from Org" is executed', async () => {
       const filePath1 = path.join('classes', 'MyClass1.cls');
-      const uris = [
-        vscode.Uri.file(filePath1)
-      ];
+      const uris = [vscode.Uri.file(filePath1)];
       const filePaths = uris.map(uri => {
         return uri.fsPath;
       });
@@ -205,6 +225,9 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const isInPackageDirectoryStub = sb
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         uris[0],
@@ -212,8 +235,15 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       );
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+      const continueResponse = timestampConflictCheckerCheckStub
+        .args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(
+        JSON.stringify(filePaths)
+      );
+
+      flushFilePathsStub.restore();
+      isInPackageDirectoryStub.restore();
+      timestampConflictCheckerCheckStub.restore();
     });
 
     it('should deploy when using the command palette', async () => {
@@ -226,7 +256,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const sourceUri = undefined;
       const uris = undefined;
 
-      const filePaths = [ filePath1 ];
+      const filePaths = [filePath1];
       const timestampConflictCheckerCheckStub = sb
         .stub(TimestampConflictChecker.prototype, 'check')
         .returns({
@@ -236,10 +266,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const isInPackageDirectoryStub = sb
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
-
       const getUriFromActiveEditorStub = sb
         .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
         .returns(filePath1);
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([undefined]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
         sourceUri,
@@ -247,6 +279,11 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       );
 
       expect(getUriFromActiveEditorStub.called).to.equal(true);
+
+      flushFilePathsStub.restore();
+      getUriFromActiveEditorStub.restore();
+      isInPackageDirectoryStub.restore();
+      timestampConflictCheckerCheckStub.restore();
     });
 
     it('should deploy when saving and the "salesforcedx-vscode-core.push-or-deploy-on-save" setting is on', async () => {
@@ -254,12 +291,10 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
       // When the push-or-deploy-on-save setting is on,
       // sourceUri is an array, and uris is undefined.
-      const sourceUri: vscode.Uri[] = [
-        vscode.Uri.file(filePath1)
-      ];
+      const sourceUris: vscode.Uri[] = [vscode.Uri.file(filePath1)];
       const uris = undefined;
 
-      const filePaths = sourceUri.map(uri => {
+      const filePaths = sourceUris.map(uri => {
         return uri.fsPath;
       });
       const timestampConflictCheckerCheckStub = sb
@@ -271,15 +306,25 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
       const isInPackageDirectoryStub = sb
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
+      const flushFilePathsStub = sb
+        .stub(helpers, 'flushFilePaths')
+        .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
-        sourceUri,
+        sourceUris,
         uris
       );
 
       expect(timestampConflictCheckerCheckStub.called).to.equal(true);
-      const continueResponse = timestampConflictCheckerCheckStub.args[0][0] as ContinueResponse<string[]>;
-      expect(JSON.stringify(continueResponse.data)).to.equal(JSON.stringify(filePaths));
+      const continueResponse = timestampConflictCheckerCheckStub
+        .args[0][0] as ContinueResponse<string[]>;
+      expect(JSON.stringify(continueResponse.data)).to.equal(
+        JSON.stringify(filePaths)
+      );
+
+      flushFilePathsStub.restore();
+      isInPackageDirectoryStub.restore();
+      timestampConflictCheckerCheckStub.restore();
     });
   });
 });
