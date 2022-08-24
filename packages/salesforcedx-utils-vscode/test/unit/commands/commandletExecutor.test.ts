@@ -94,6 +94,24 @@ describe('LibraryCommandletExecutor', () => {
     expect(showInfoStub.called).to.be.true;
   });
 
+  it('should clear channel output if preference set', async () => {
+    sb.stub(vscodeStub.workspace, 'getConfiguration').returns({
+      get: () => true
+    });
+    const clearStub = sb.stub(MockChannel.prototype, 'clear');
+    await executor.execute({ data: { success: false }, type: 'CONTINUE' });
+    expect(clearStub.called).to.be.true;
+  });
+
+  it('should NOT clear channel output if preference NOT set', async () => {
+    sb.stub(vscodeStub.workspace, 'getConfiguration').returns({
+      get: () => false
+    });
+    const clearStub = sb.stub(MockChannel.prototype, 'clear');
+    await executor.execute({ data: { success: false }, type: 'CONTINUE' });
+    expect(clearStub.called).not.to.be.true;
+  });
+
   it('should show failed execution notification if run returns false', async () => {
     const showErrStub = sb
       .stub(vscodeStub.window, 'showErrorMessage')

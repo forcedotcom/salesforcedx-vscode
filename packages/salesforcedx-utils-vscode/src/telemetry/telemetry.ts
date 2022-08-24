@@ -7,6 +7,7 @@
 
 import * as util from 'util';
 import { env, ExtensionContext, workspace } from 'vscode';
+import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
 
@@ -140,7 +141,7 @@ export class TelemetryService {
         .getConfiguration('telemetry')
         .get<boolean>('enableTelemetry', true) &&
       workspace
-        .getConfiguration('salesforcedx-vscode-core')
+        .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
         .get<boolean>('telemetry.enabled', true)
     );
   }
