@@ -33,32 +33,6 @@ export class ConfigUtil {
     return undefined;
   }
 
-  public static async getConfigValue(
-    projectPath: string,
-    key: string
-  ): Promise<ConfigValue | undefined> {
-    try {
-      const myLocalConfig = await ConfigFile.create({
-        isGlobal: false,
-        rootFolder: path.join(projectPath, '.sfdx'),
-        filename: 'sfdx-config.json'
-      });
-      const localValue = myLocalConfig.get(key);
-      if (localValue) {
-        return localValue;
-      } else {
-        const aggregator = await ConfigAggregator.create();
-        const globalValue = aggregator.getPropertyValue(key);
-        if (globalValue) {
-          return globalValue;
-        }
-      }
-    } catch (err) {
-      return undefined;
-    }
-    return undefined;
-  }
-
   // TODO: Consolidate usages of ConfigAggregator - W-11623895
   private static async getConfigAggregator(
     projectPath: string
