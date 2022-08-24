@@ -9,11 +9,11 @@
 // Original version licensed under the Eclipse Public License (EPL)
 
 import * as cp from 'child_process';
+import * as path from 'path';
+import * as pathExists from 'path-exists';
 import { workspace } from 'vscode';
 import { SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
-import path = require('path');
-import pathExists = require('path-exists');
 
 // tslint:disable-next-line:no-var-requires
 const expandHomeDir = require('expand-home-dir');
@@ -63,14 +63,14 @@ function checkJavaRuntime(): Promise<string> {
     }
 
     if (javaHome) {
-      javaHome = expandHomeDir(javaHome) as string;
+=      javaHome = expandHomeDir(javaHome) as string;
       if (isLocal(javaHome)) {
         // prevent injecting malicious code from unknown repositories
         return reject(
           nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
         );
       }
-      if (!pathExists.sync(javaHome)) {
+      if (!pathExists.pathExistsSync(javaHome)) {
         return reject(
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
         );
