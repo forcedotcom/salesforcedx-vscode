@@ -45,7 +45,7 @@ export class ConfigUtil {
     // ConfigAggregator caches instances internally by working directory
     // path.  Clling reload ensures that this instance of ConfigAggregator
     // has the latest values from the config file.
-    configAggregator.reload();
+    await configAggregator.reload();
     // Change the current working directory back to what it was
     // before returning
     process.chdir(origCurrentWorkingDirectory);
