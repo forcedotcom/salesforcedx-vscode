@@ -32,7 +32,7 @@
     "@salesforce/source-deploy-retrieve": "6.0.4",
     "expand-home-dir": "0.0.3",
     "find-java-home": "0.2.0",
-    "path-exists": "3.0.0",
+    "path-exists": "5.0.0",
     "shelljs": "0.8.5",
     "vscode-extension-telemetry": "0.0.17",
     "vscode-languageclient": "5.1.1"
@@ -44,7 +44,7 @@
     "@types/mkdirp": "0.5.2",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
-    "@types/path-exists": "^1.0.29",
+    "@types/path-exists": "^3.0.0",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
     "@types/vscode": "1.49.0",

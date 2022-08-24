@@ -69,7 +69,7 @@ function checkJavaRuntime(): Promise<string> {
           nls.localize('java_runtime_local_text', javaHome, SET_JAVA_DOC_LINK)
         );
       }
-      if (!pathExists.sync(javaHome)) {
+      if (!pathExists.pathExistsSync(javaHome)) {
         return reject(
           nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
         );

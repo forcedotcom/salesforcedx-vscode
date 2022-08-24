@@ -243,14 +243,14 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     const lastOpenedLogFolder = extContext.workspaceState.get<string>(
       LAST_OPENED_LOG_FOLDER_KEY
     );
-    if (lastOpenedLogFolder && pathExists.sync(lastOpenedLogFolder)) {
+    if (lastOpenedLogFolder && pathExists.pathExistsSync(lastOpenedLogFolder)) {
       return vscode.Uri.file(lastOpenedLogFolder);
     }
     // If lastOpenedLogFolder isn't defined or doesn't exist then use the
     // same directory that the SFDX download logs command would download to
     // if it exists.
     const sfdxCommandLogDir = getLogDirPath();
-    if (pathExists.sync(sfdxCommandLogDir)) {
+    if (pathExists.pathExistsSync(sfdxCommandLogDir)) {
       return vscode.Uri.file(sfdxCommandLogDir);
     }
     // If all else fails, fallback to the .sfdx directory in the workspace
