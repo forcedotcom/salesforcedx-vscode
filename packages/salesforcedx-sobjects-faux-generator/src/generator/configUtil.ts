@@ -43,7 +43,7 @@ export class ConfigUtil {
     process.chdir(projectPath);
     const configAggregator = await ConfigAggregator.create();
     // ConfigAggregator caches instances internally by working directory
-    // path.  Clling reload ensures that this instance of ConfigAggregator
+    // path.  Calling reload ensures that this instance of ConfigAggregator
     // has the latest values from the config file.
     await configAggregator.reload();
     // Change the current working directory back to what it was
