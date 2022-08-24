@@ -15,12 +15,12 @@ import {
 import {
   isAlphaNumSpaceString,
   isIntegerInRange
-} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';

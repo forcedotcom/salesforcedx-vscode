@@ -19,7 +19,7 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { getLogDirPath } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';

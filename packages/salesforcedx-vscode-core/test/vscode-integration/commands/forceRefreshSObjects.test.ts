@@ -21,8 +21,8 @@ import {
   notificationService,
   ProgressNotification
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';

@@ -8,7 +8,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { DirFileNameSelection } from '@salesforce/salesforcedx-utils-vscode';
 import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode/src/types';
 import * as path from 'path';
 import { nls } from '../../messages';

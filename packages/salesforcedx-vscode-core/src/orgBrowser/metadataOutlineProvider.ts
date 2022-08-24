@@ -7,7 +7,7 @@
 import {
   extractJsonObject,
   isNullOrUndefined
-} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { hasRootWorkspace, OrgAuthInfo } from '../util';
@@ -88,7 +88,10 @@ export class MetadataOutlineProvider
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        } else if (element.parent && element.parent.fullName === CUSTOMOBJECTS_FULLNAME) {
+        } else if (
+          element.parent &&
+          element.parent.fullName === CUSTOMOBJECTS_FULLNAME
+        ) {
           nodeType = NodeType.MetadataField;
         }
 

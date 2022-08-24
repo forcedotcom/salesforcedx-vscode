@@ -11,9 +11,9 @@ import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import {
   getRootWorkspacePath,
   SFDX_CORE_CONFIGURATION_NAME
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';

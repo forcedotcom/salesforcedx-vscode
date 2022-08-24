@@ -7,14 +7,12 @@
 
 import {
   ForceConfigGet,
-  ForceOrgDisplay
-} from '@salesforce/salesforcedx-utils-vscode';
-import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
-import {
+  ForceOrgDisplay,
+  extractJsonObject,
+  RequestService,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
 import {

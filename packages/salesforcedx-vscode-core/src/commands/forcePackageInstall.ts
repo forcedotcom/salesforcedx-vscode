@@ -8,14 +8,12 @@
 import {
   CliCommandExecutor,
   Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import { isRecordIdFormat } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import {
+  SfdxCommandBuilder,
+  isRecordIdFormat,
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';

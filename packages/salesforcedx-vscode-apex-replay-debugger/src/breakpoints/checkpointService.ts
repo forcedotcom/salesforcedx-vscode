@@ -7,11 +7,11 @@
 import {
   ForceOrgDisplay,
   OrgInfo
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   ActionScriptEnum,
@@ -176,9 +176,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     }
     const oneOrMore = numEnabledCheckpoints > 0;
     if (!oneOrMore && displayError) {
-      const errorMessage = nls.localize(
-        'no_enabled_checkpoints'
-      );
+      const errorMessage = nls.localize('no_enabled_checkpoints');
       writeToDebuggerOutputWindow(
         errorMessage,
         true,

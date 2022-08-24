@@ -13,13 +13,13 @@ import {
   Measurements,
   Properties,
   TelemetryData
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker,
   PreconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { EmptyPostChecker } from '.';
 import { channelService } from '../../channels';

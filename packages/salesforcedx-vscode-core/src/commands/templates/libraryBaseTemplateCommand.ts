@@ -17,7 +17,7 @@ import {
   SourcePathStrategy
 } from '../util';
 
-import { Properties } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { Properties } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
@@ -29,7 +29,7 @@ import {
   MetadataInfo
 } from '../../util';
 
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from 'vscode';

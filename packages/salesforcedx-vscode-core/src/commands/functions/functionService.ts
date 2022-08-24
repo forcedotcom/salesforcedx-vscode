@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -112,7 +112,11 @@ export class FunctionService {
     };
   }
 
-  public updateFunction(rootDir: string, debugType: string, isContainerLess: boolean): void {
+  public updateFunction(
+    rootDir: string,
+    debugType: string,
+    isContainerLess: boolean
+  ): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const type = debugType.toLowerCase();
@@ -187,23 +191,30 @@ export class FunctionService {
   public async debugFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
     if (!functionExecution) {
-      throw new Error(nls.localize('error_unable_to_get_started_function').replace('{0}', rootDir));
+      throw new Error(
+        nls
+          .localize('error_unable_to_get_started_function')
+          .replace('{0}', rootDir)
+      );
     }
 
     if (!functionExecution.debugSession) {
-      const debugConfiguration = this.getDebugConfiguration(functionExecution, rootDir);
-
-      await vscode.debug.startDebugging(
-        getRootWorkspace(),
-        debugConfiguration
+      const debugConfiguration = this.getDebugConfiguration(
+        functionExecution,
+        rootDir
       );
+
+      await vscode.debug.startDebugging(getRootWorkspace(), debugConfiguration);
     }
   }
 
   /***
    * Create a DebugConfiguration object
    */
-  public getDebugConfiguration(functionExecution: FunctionExecution, rootDir: string): vscode.DebugConfiguration {
+  public getDebugConfiguration(
+    functionExecution: FunctionExecution,
+    rootDir: string
+  ): vscode.DebugConfiguration {
     const { debugPort, debugType } = functionExecution;
     const debugConfiguration: vscode.DebugConfiguration = {
       type: debugType,

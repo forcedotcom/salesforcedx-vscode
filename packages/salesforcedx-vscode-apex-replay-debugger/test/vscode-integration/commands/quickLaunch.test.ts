@@ -13,9 +13,9 @@ import {
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import * as utils from '@salesforce/salesforcedx-utils-vscode/out/src/index';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
+import * as utils from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';

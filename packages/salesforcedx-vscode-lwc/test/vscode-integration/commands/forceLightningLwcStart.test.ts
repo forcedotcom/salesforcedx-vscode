@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CliCommandExecutor,
   Command,
@@ -25,9 +25,9 @@ import {
 } from '../../../src/commands/forceLightningLwcStart';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
-import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
-import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  CancellationToken,
+  CliCommandExecution,
   ChannelService,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';

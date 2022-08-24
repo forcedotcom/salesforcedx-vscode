@@ -16,7 +16,7 @@ import {
   EmptyParametersGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';

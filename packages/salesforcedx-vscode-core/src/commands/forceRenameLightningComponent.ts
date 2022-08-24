@@ -6,7 +6,7 @@
  */
 
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,

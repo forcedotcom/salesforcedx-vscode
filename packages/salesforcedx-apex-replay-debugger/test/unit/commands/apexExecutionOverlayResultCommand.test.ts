@@ -7,11 +7,11 @@
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';

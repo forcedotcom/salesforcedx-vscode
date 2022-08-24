@@ -7,14 +7,12 @@
 
 import {
   CliCommandExecutor,
-  ForceDeployResultParser
-} from '@salesforce/salesforcedx-utils-vscode';
-import { TelemetryBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
+  ForceDeployResultParser,
+  TelemetryBuilder,
   Row,
-  Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  Table,
+  ContinueResponse
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';

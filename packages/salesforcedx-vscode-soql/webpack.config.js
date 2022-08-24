@@ -29,6 +29,7 @@ module.exports = {
     '@salesforce/soql-common': 'commonjs @salesforce/soql-common',
     '@salesforce/soql-model': 'commonjs @salesforce/soql-model',
     '@salesforce/salesforcedx-sobjects-faux-generator': 'commonjs @salesforce/salesforcedx-sobjects-faux-generator',
+    '@salesforce/salesforcedx-utils-vscode': 'commonjs @salesforce/salesforcedx-utils-vscode',
     jsforce: 'commonjs jsforce',
     vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls'

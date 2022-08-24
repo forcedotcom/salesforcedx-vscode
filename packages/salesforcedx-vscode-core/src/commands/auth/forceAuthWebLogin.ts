@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';

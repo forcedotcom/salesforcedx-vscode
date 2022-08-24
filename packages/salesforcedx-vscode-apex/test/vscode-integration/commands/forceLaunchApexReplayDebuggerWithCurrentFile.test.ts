@@ -6,8 +6,8 @@
  */
 import { testSetup } from '@salesforce/core/lib/testSetup';
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox } from 'sinon';
 import * as vscode from 'vscode';

@@ -39,7 +39,7 @@ export {
   Properties,
   Measurements
 } from './telemetry/telemetry';
-export { getRelativeProjectPath, fileExtensionsMatch } from './helpers';
+export * from './helpers';
 export { TraceFlags } from './helpers/traceFlags';
 export { TelemetryReporter } from './telemetry/telemetryReporter';
 export {
@@ -49,3 +49,10 @@ export {
   getRootWorkspaceSfdxPath
 } from './workspaces';
 export * from './cli';
+export * from './cli/commandExecutor';
+export * from './i18n';
+export * from './types';
+export * from './date';
+export * from './requestService';
+export * from './output';
+export * from './predicates';

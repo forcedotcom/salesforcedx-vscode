@@ -10,7 +10,7 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver,
@@ -27,9 +27,7 @@ import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import {
-  LibraryRetrieveSourcePathExecutor
-} from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
+import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { getRootWorkspacePath } from '../../../../src/util';

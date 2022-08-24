@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -122,14 +122,18 @@ describe('Force Project Create', () => {
       inputBoxStub.returns(PROJECT_NAME);
       const response = await gatherer.gather();
       expect(response.type).to.equal('CONTINUE');
-      expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
+      expect(
+        (response as ContinueResponse<ProjectName>).data.projectName
+      ).to.equal(PROJECT_NAME);
     });
 
     it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
       inputBoxStub.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
       const response = await gatherer.gather();
       expect(response.type).to.equal('CONTINUE');
-      expect((response as ContinueResponse<ProjectName>).data.projectName).to.equal(PROJECT_NAME);
+      expect(
+        (response as ContinueResponse<ProjectName>).data.projectName
+      ).to.equal(PROJECT_NAME);
     });
   });
 

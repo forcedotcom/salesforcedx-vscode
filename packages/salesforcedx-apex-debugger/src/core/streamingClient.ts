@@ -7,7 +7,7 @@
 
 import { Client } from 'faye';
 import os = require('os');
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
 

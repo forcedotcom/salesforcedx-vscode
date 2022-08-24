@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   LocalComponent,
   PostconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { existsSync } from 'fs';
 import { basename, join, normalize } from 'path';
 import { channelService } from '../../channels';

@@ -9,7 +9,7 @@ import {
   ContinueResponse,
   LocalComponent,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, registry } from '@salesforce/source-deploy-retrieve';
 import glob = require('glob');
 import * as path from 'path';

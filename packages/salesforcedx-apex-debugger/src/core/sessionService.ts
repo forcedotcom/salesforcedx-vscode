@@ -10,7 +10,7 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { RequestService } from '@salesforce/salesforcedx-utils-vscode';
 
 export class SessionService {
   private userFilter?: string;

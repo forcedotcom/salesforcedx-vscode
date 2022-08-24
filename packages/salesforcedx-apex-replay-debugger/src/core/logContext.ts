@@ -9,7 +9,7 @@ import { ForceOrgDisplay } from '@salesforce/salesforcedx-utils-vscode';
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { StackFrame } from 'vscode-debugadapter';
 import {

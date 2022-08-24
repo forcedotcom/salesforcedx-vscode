@@ -9,7 +9,7 @@ import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
   DirFileNameSelection
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';

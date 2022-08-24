@@ -17,8 +17,8 @@ import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';

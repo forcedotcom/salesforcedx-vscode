@@ -17,7 +17,7 @@ import {
   toMinimalSObject,
   TOOLS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
-import { getRootWorkspaceSfdxPath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { getRootWorkspaceSfdxPath } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { nls } from '../messages';

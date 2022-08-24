@@ -20,10 +20,10 @@ import {
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  SfdxWorkspaceChecker,
+  getTestResultsFolder,
+  ContinueResponse
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   SourceComponent

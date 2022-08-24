@@ -21,8 +21,8 @@ import {
 import { getRootWorkspacePath } from '../../util';
 
 import { ConfigFile } from '@salesforce/core';
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
 import { CLI } from '../../constants';

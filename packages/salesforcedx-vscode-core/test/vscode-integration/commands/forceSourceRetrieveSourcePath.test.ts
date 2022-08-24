@@ -7,11 +7,11 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import * as helpers from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   registry,

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentStatus,
   DeployResult

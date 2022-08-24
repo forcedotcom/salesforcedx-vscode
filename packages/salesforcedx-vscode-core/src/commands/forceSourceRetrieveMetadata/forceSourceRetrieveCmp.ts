@@ -10,11 +10,11 @@ import {
   CommandOutput,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { TelemetryData } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { TelemetryData } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   RetrieveResult,

@@ -8,11 +8,11 @@
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
 import { FIELD_INTEGRITY_EXCEPTION } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/index';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';

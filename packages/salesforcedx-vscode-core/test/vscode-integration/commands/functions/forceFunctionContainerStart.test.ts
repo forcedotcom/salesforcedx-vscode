@@ -7,7 +7,7 @@
 
 import { getFunctionsBinary } from '@heroku/functions-core';
 import * as library from '@heroku/functions-core';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';

@@ -9,7 +9,7 @@ import { OrgUserInfo } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';

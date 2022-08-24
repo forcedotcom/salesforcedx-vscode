@@ -19,12 +19,12 @@ import {
   getLogDirPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   getTestResultsFolder,
   TraceFlags
-} from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { workspace } from 'vscode';
 import { sfdxCreateCheckpoints } from '../breakpoints';
