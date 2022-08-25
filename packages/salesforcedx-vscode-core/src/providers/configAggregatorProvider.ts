@@ -80,13 +80,14 @@ export class ConfigAggregatorProvider {
     console.log(
       'The .sfdx config file has changed.  Reloading ConfigAggregator values in the salesforcedx-vscode-core package.'
     );
+    const rootWorkspacePath = getRootWorkspacePath();
     // Force ConfigAggregator to load the most recent values from
     // the config file.  This prevents an issue where ConfigAggregator
     // can return cached data instead of the most recent data.
-    const configAggregator = this.configAggregators.get(getRootWorkspacePath());
+    const configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (configAggregator) await configAggregator.reload();
 
-    const sfdx = this.sfdxConfigAggregators.get(getRootWorkspacePath());
+    const sfdx = this.sfdxConfigAggregators.get(rootWorkspacePath);
     if (sfdx) await sfdx.reload();
   }
 
