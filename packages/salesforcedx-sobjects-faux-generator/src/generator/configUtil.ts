@@ -9,48 +9,46 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
+  OrgConfigProperties,
   StateAggregator
 } from '@salesforce/core';
 import * as path from 'path';
-
-const defaultUserNameKey = 'defaultusername';
 
 export class ConfigUtil {
   public static async getUsername(
     projectPath: string
   ): Promise<string | undefined> {
-    const defaultUserName = (await this.getConfigValue(
-      projectPath,
-      defaultUserNameKey
-    )) as string;
-    const info = await StateAggregator.getInstance();
-    const username = info.aliases.resolveValue(defaultUserName);
-    return username;
-  }
+    const configAggregator = await ConfigUtil.getConfigAggregator(projectPath);
+    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
+    );
 
-  public static async getConfigValue(
-    projectPath: string,
-    key: string
-  ): Promise<ConfigValue | undefined> {
-    try {
-      const myLocalConfig = await ConfigFile.create({
-        isGlobal: false,
-        rootFolder: path.join(projectPath, '.sfdx'),
-        filename: 'sfdx-config.json'
-      });
-      const localValue = myLocalConfig.get(key);
-      if (localValue) {
-        return localValue;
-      } else {
-        const aggregator = await ConfigAggregator.create();
-        const globalValue = aggregator.getPropertyValue(key);
-        if (globalValue) {
-          return globalValue;
-        }
-      }
-    } catch (err) {
-      return undefined;
+    if (defaultUsernameOrAlias) {
+      const info = await StateAggregator.getInstance();
+      const username = info.aliases.resolveValue(
+        String(defaultUsernameOrAlias)
+      );
+      return username;
     }
     return undefined;
+  }
+
+  // TODO: Consolidate usages of ConfigAggregator - W-11623895
+  private static async getConfigAggregator(
+    projectPath: string
+  ): Promise<ConfigAggregator> {
+    const origCurrentWorkingDirectory = process.cwd();
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values
+    process.chdir(projectPath);
+    const configAggregator = await ConfigAggregator.create();
+    // ConfigAggregator caches instances internally by working directory
+    // path.  Calling reload ensures that this instance of ConfigAggregator
+    // has the latest values from the config file.
+    await configAggregator.reload();
+    // Change the current working directory back to what it was
+    // before returning
+    process.chdir(origCurrentWorkingDirectory);
+    return configAggregator;
   }
 }
