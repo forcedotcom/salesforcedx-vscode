@@ -1,0 +1,11 @@
+name: gitConfig
+description: "Sets git username/email and push behavior"
+runs:
+  using: composite
+  steps:
+    - run: git config --global push.default current
+      shell: bash
+    - run: git config --global user.email gbockus@salesforce.com
+      shell: bash
+    - run: git config user.name 'Release Bot'
+      shell: bash
