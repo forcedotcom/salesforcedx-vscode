@@ -13,7 +13,10 @@ import {
   SfdxPropertyKeys,
   StateAggregator
 } from '@salesforce/core';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { getRootWorkspacePath } from './index';
+
+const workspaceContext = WorkspaceContext.getInstance();
 
 export enum ConfigSource {
   Local,
@@ -23,7 +26,7 @@ export enum ConfigSource {
 
 export class ConfigUtil {
   public static async getConfigSource(key: string): Promise<ConfigSource> {
-    const configAggregator = await VSCEConfigAggregator.create();
+    const configAggregator = await workspaceContext.configAggregator();
     const configSource = configAggregator.getLocation(key);
     switch (configSource) {
       case ConfigAggregator.Location.LOCAL:
@@ -45,7 +48,7 @@ export class ConfigUtil {
   public static async getUserConfiguredApiVersion(): Promise<
     string | undefined
   > {
-    const configAggregator = await VSCEConfigAggregator.create();
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const apiVersion = configAggregator.getPropertyValue(
       OrgConfigProperties.ORG_API_VERSION
     );
@@ -53,7 +56,7 @@ export class ConfigUtil {
   }
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    const configAggregator = await VSCEConfigAggregator.create();
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );
@@ -73,9 +76,7 @@ export class ConfigUtil {
    * SfdxConfigAggregator specifically.
    */
   public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const sfdxConfigAggregator = await VSCEConfigAggregator.create({
-      sfdx: true
-    });
+    const sfdxConfigAggregator = await ConfigAggregatorProvider.getInstance().getSfdxConfigAggregator();
     const templatesDirectory = sfdxConfigAggregator.getPropertyValue(
       SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
     );
@@ -83,7 +84,7 @@ export class ConfigUtil {
   }
 
   public static async isTelemetryDisabled(): Promise<boolean> {
-    const configAggregator = await VSCEConfigAggregator.create();
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const isTelemetryDisabled = configAggregator.getPropertyValue(
       SfConfigProperties.DISABLE_TELEMETRY
     );
@@ -91,8 +92,7 @@ export class ConfigUtil {
   }
 
   public static async getDefaultDevHubUsername(): Promise<string | undefined> {
-    const configAggregator = await VSCEConfigAggregator.create();
-
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const defaultDevHubUserName = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
     );
@@ -102,9 +102,7 @@ export class ConfigUtil {
   public static async getGlobalDefaultDevHubUsername(): Promise<
     string | undefined
   > {
-    const globalConfigAggregator = await VSCEConfigAggregator.create({
-      globalValuesOnly: true
-    });
+    const globalConfigAggregator = await ConfigAggregatorProvider.getInstance().getGlobalConfigAggregator();
     const defaultGlobalDevHubUserName = globalConfigAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
     );
@@ -123,7 +121,7 @@ export class ConfigUtil {
   }
 }
 
-type VSCEConfigAggregatorOptions = {
+type ConfigAggregatorOptions = {
   /*
    *  The SfdxConfigAggregator is used only to get configuration
    *  values that correspond with old/deprecated config keys.
@@ -136,20 +134,79 @@ type VSCEConfigAggregatorOptions = {
 };
 
 /*
- * The VSCEConfigAggregator class is used to abstract away
+ * The ConfigAggregator class is used to abstract away
  * some of the complexities around changing the process directory
  * that are needed to accurately retrieve configuration values
  * when using the ConfigAggregator in the VSCE context.
  */
-class VSCEConfigAggregator {
-  public static async create(
-    options?: VSCEConfigAggregatorOptions
-  ): Promise<ConfigAggregator> {
-    return VSCEConfigAggregator.getConfigAggregator(options);
+class ConfigAggregatorProvider {
+  protected configAggregators: Map<string, ConfigAggregator>;
+  protected sfdxConfigAggregators: Map<string, ConfigAggregator>;
+  protected globalConfigAggregator: ConfigAggregator | undefined = undefined;
+
+  private static instance?: ConfigAggregatorProvider;
+
+  public static getInstance() {
+    if (ConfigAggregatorProvider.instance === undefined) {
+      ConfigAggregatorProvider.instance = new ConfigAggregatorProvider();
+    }
+    return ConfigAggregatorProvider.instance;
   }
 
-  private static async getConfigAggregator(
-    options: VSCEConfigAggregatorOptions = {
+  private constructor() {
+    this.configAggregators = new Map<string, ConfigAggregator>();
+    this.sfdxConfigAggregators = new Map<string, ConfigAggregator>();
+  }
+
+  public async getConfigAggregator(): Promise<ConfigAggregator> {
+    const rootWorkspacePath = getRootWorkspacePath();
+    let configAggregator = this.configAggregators.get(rootWorkspacePath);
+    if (!configAggregator) {
+      configAggregator = await this.createConfigAggregator();
+      this.configAggregators.set(getRootWorkspacePath(), configAggregator);
+    }
+    return configAggregator;
+  }
+
+  public async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
+    let sfdxConfigAggregator = this.sfdxConfigAggregators.get(
+      getRootWorkspacePath()
+    );
+    if (!sfdxConfigAggregator) {
+      sfdxConfigAggregator = await this.createConfigAggregator({ sfdx: true });
+      this.sfdxConfigAggregators.set(
+        getRootWorkspacePath(),
+        sfdxConfigAggregator
+      );
+    }
+    return sfdxConfigAggregator;
+  }
+
+  public async getGlobalConfigAggregator(): Promise<ConfigAggregator> {
+    if (!this.globalConfigAggregator) {
+      this.globalConfigAggregator = await this.createConfigAggregator({
+        globalValuesOnly: true
+      });
+    }
+    return this.globalConfigAggregator;
+  }
+
+  public async reloadConfigAggregators() {
+    console.log(
+      'The .sfdx config file has changed.  Reloading ConfigAggregator values in the salesforcedx-vscode-core package.'
+    );
+    // Force ConfigAggregator to load the most recent values from
+    // the config file.  This prevents an issue where ConfigAggregator
+    // can returned cached data instead of the most recent data.
+    const configAggregator = this.configAggregators.get(getRootWorkspacePath());
+    if (configAggregator) await configAggregator.reload();
+
+    const sfdx = this.sfdxConfigAggregators.get(getRootWorkspacePath());
+    if (sfdx) await sfdx.reload();
+  }
+
+  private async createConfigAggregator(
+    options: ConfigAggregatorOptions = {
       sfdx: false,
       globalValuesOnly: false
     }
@@ -157,13 +214,13 @@ class VSCEConfigAggregator {
     let configAggregator;
     const currentWorkingDirectory = process.cwd();
     if (options.globalValuesOnly) {
-      VSCEConfigAggregator.ensureProcessIsRunningUnderUserHomeDir(
+      ConfigAggregatorProvider.ensureProcessIsRunningUnderUserHomeDir(
         currentWorkingDirectory
       );
     } else {
       // Change the current working directory to the project path,
       // so that ConfigAggregator reads the local project values
-      VSCEConfigAggregator.ensureProcessIsRunningUnderProjectRoot(
+      ConfigAggregatorProvider.ensureProcessIsRunningUnderProjectRoot(
         currentWorkingDirectory
       );
     }
@@ -171,11 +228,6 @@ class VSCEConfigAggregator {
       configAggregator = options.sfdx
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
-
-      // Force ConfigAggregator to load the most recent values from
-      // the config file.  This prevents an issue where ConfigAggregator
-      // can returned cached data instead of the most recent data.
-      await configAggregator.reload();
     } finally {
       // Change the current working directory back to what it was
       // before returning.
