@@ -2,12 +2,6 @@ name: Publish Beta Release to Github Only
 
 on: 
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to use for beta release'
-        required: true
-        default: 'develop'
-        type: string
 
 jobs:
   save_artifacts:
@@ -20,7 +14,7 @@ jobs:
           node-version: '16.13.x'
       - uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ github.event.ref }}
       - name: Create and Package Extensions
         run: |
           npm install -g lerna
