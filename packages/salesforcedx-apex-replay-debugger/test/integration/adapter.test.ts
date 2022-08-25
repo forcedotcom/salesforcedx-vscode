@@ -31,7 +31,7 @@ const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 
 // tslint:disable:no-unused-expression
 describe('Replay debugger adapter - integration', function() {
-  // tslint:disable-next-line:no-invalid-this
+  // @ts-ignore // tslint:disable-next-line:no-invalid-this
   this.timeout(320000);
   let goldFileUtil: GoldFileUtil;
   let dc: DebugClient;

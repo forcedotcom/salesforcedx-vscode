@@ -6,8 +6,10 @@
  */
 
 import { expect } from 'chai';
-import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { OutputChannel } from 'vscode';
+import * as vscode from 'vscode';
+import { ChannelService } from '../../../src';
 import {
   CliCommandExecutor,
   CommandBuilder,
@@ -16,21 +18,16 @@ import {
 import { nls } from '../../../src/messages';
 import { MockChannel, vscodeStub } from './mocks';
 
-const { ChannelService } = proxyquire.noCallThru()('../../../src/commands', {
-  vscode: vscodeStub
-});
-
 describe('Channel Service', () => {
   let mChannel: MockChannel;
   let mChannel2: MockChannel;
-  // @ts-ignore
-  let channelService;
+  let channelService: ChannelService;
   let sb: SinonSandbox;
 
   beforeEach(() => {
     mChannel = new MockChannel();
     mChannel2 = new MockChannel();
-    channelService = new ChannelService(mChannel);
+    channelService = new ChannelService(mChannel as OutputChannel);
     sb = createSandbox();
   });
 
@@ -72,17 +69,16 @@ describe('Channel Service', () => {
         .build(),
       {}
     ).execute();
-    // @ts-ignore
     channelService.streamCommandOutput(execution);
 
-    await new Promise<string | void>((resolve, reject) => {
+    await new Promise<string | void>(resolve => {
       execution.processExitSubject.subscribe(data => {
         resolve();
       });
     });
     expect(mChannel.value).to.contain('Starting sfdx force --help');
     expect(mChannel.value).to.contain(
-      'USAGE\n  $ sfdx force [--json] [--loglevel \n  trace|debug|info|warn|error|fatal|TRACE|DEBUG|INFO|WARN|ERROR|FATAL]'
+      'USAGE\n  $ sfdx force [--json] [--loglevel'
     );
     expect(mChannel.value).to.contain('ended with exit code 0');
   });

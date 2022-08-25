@@ -9,13 +9,8 @@ import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { fail } from 'assert';
 import { expect } from 'chai';
-import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
-import { vscodeStub } from '../commands/mocks';
-
-const { TraceFlagsRemover } = proxyquire.noCallThru()('../../../src/helpers', {
-  vscode: vscodeStub
-});
+import { TraceFlagsRemover } from '../../../src';
 
 const $$ = testSetup();
 
@@ -46,7 +41,8 @@ describe('Trace Flags Remover', () => {
   it('should validate that a connection must be present when created', () => {
     try {
       TraceFlagsRemover.resetInstance();
-      TraceFlagsRemover.getInstance(undefined);
+      // here we're testing an unreachable state as it won't compile without the cast to any
+      TraceFlagsRemover.getInstance(undefined as any);
       expect.fail(
         'TraceFlagsRemover.getInstance() should have thrown an error'
       );

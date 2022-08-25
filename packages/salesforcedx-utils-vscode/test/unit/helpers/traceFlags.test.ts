@@ -11,12 +11,13 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { TraceFlags } from '../../../src/helpers';
 import { nls } from '../../../src/messages';
 import { vscodeStub } from '../commands/mocks';
 
-const { TraceFlags } = proxyquire.noCallThru()('../../../src/helpers', {
-  vscode: vscodeStub
-});
+// const { TraceFlags } = proxyquire.noCallThru()('../../../src/helpers', {
+//   vscode: vscodeStub
+// });
 
 const $$ = testSetup();
 
@@ -159,7 +160,10 @@ describe('Trace Flags', () => {
     toolingUpdateStub = sb.stub(mockConnection.tooling, 'update');
 
     const traceFlags = new TraceFlags(mockConnection);
-    const createTraceFlagSpy = sb.spy(TraceFlags.prototype, 'createTraceFlag');
+    const createTraceFlagSpy = sb.spy(
+      TraceFlags.prototype as any,
+      'createTraceFlag'
+    );
 
     queryStub.onFirstCall().resolves({
       done: true,
@@ -188,7 +192,10 @@ describe('Trace Flags', () => {
     toolingUpdateStub = sb.stub(mockConnection.tooling, 'update');
 
     const traceFlags = new TraceFlags(mockConnection);
-    const createTraceFlagSpy = sb.spy(TraceFlags.prototype, 'createTraceFlag');
+    const createTraceFlagSpy = sb.spy(
+      TraceFlags.prototype as any,
+      'createTraceFlag'
+    );
 
     queryStub.onFirstCall().resolves({
       done: true,

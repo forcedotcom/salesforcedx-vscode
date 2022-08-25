@@ -26,6 +26,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import {
+  ApexDebug,
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
@@ -117,6 +118,10 @@ describe('Interactive debugger adapter - unit', () => {
       args = {};
     });
 
+    afterAll(() => {
+      adapter.clearIdleTimers();
+    });
+
     it('Should not attach', () => {
       adapter.attachReq(response, args);
       const actualResp: DebugProtocol.Response = adapter.getResponse(0);
@@ -204,6 +209,10 @@ describe('Interactive debugger adapter - unit', () => {
       if (sessionPrintToDebugSpy) {
         sessionPrintToDebugSpy.restore();
       }
+    });
+
+    afterAll(() => {
+      adapter.clearIdleTimers();
     });
 
     it('Should launch successfully', async () => {
@@ -534,6 +543,10 @@ describe('Interactive debugger adapter - unit', () => {
       orgInfoSpy.restore();
     });
 
+    afterAll(() => {
+      adapter.clearIdleTimers();
+    });
+
     it('Should save proxy settings', async () => {
       const sessionId = '07aFAKE';
       sessionStartSpy = sinon
@@ -634,6 +647,10 @@ describe('Interactive debugger adapter - unit', () => {
       orgInfoSpy.restore();
     });
 
+    afterAll(() => {
+      adapter.clearIdleTimers();
+    });
+
     it('Should not save line number mapping', async () => {
       args = {
         sfdxProject: 'some/project/path',
@@ -704,6 +721,10 @@ describe('Interactive debugger adapter - unit', () => {
 
     afterEach(() => {
       clock.restore();
+    });
+
+    afterAll(() => {
+      adapter.clearIdleTimers();
     });
 
     it('Should clear idle timers', () => {
@@ -819,6 +840,10 @@ describe('Interactive debugger adapter - unit', () => {
       clearIdleTimersSpy.restore();
     });
 
+    afterAll(() => {
+      adapter.clearIdleTimers();
+    });
+
     it('Should not use session service if not connected', async () => {
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
@@ -931,6 +956,10 @@ describe('Interactive debugger adapter - unit', () => {
       }
       sessionIdSpy.restore();
       lockSpy.restore();
+    });
+
+    afterAll(() => {
+      adapter.clearIdleTimers();
     });
 
     it('Should create breakpoint', async () => {
@@ -1058,6 +1087,10 @@ describe('Interactive debugger adapter - unit', () => {
       runSpy.restore();
     });
 
+    afterAll(() => {
+      adapter.clearIdleTimers();
+    });
+
     it('Should continue successfully', async () => {
       runSpy = sinon
         .stub(RequestService.prototype, 'execute')
@@ -1084,6 +1117,7 @@ describe('Interactive debugger adapter - unit', () => {
         { threadId: 2 } as DebugProtocol.ContinueArguments
       );
 
+      adapter.clearIdleTimers();
       expect(adapter.getResponse(0).success).to.equal(false);
       expect(runSpy.called).to.equal(false);
     });
@@ -1092,9 +1126,7 @@ describe('Interactive debugger adapter - unit', () => {
       runSpy = sinon
         .stub(RequestService.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+          Promise.reject({ message: 'There was an error', action: 'Try again' })
         );
 
       await adapter.continueReq(
@@ -1103,9 +1135,7 @@ describe('Interactive debugger adapter - unit', () => {
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getResponse(0).message).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
+      expect(adapter.getResponse(0).message).to.equal('There was an error');
       expect(runSpy.called).to.equal(true);
     });
   });
@@ -1121,6 +1151,10 @@ describe('Interactive debugger adapter - unit', () => {
 
     afterEach(() => {
       stepSpy.restore();
+    });
+
+    afterAll(() => {
+      adapter.clearIdleTimers();
     });
 
     it('Step into should call proper command', async () => {
@@ -1174,6 +1208,10 @@ describe('Interactive debugger adapter - unit', () => {
       adapter = new ApexDebugForTest(new RequestService());
     });
 
+    afterAll(() => {
+      adapter.clearIdleTimers();
+    });
+
     it('Should return known debugged requests', () => {
       adapter.addRequestThread('07cFAKE1');
       adapter.addRequestThread('07cFAKE2');
@@ -1217,6 +1255,10 @@ describe('Interactive debugger adapter - unit', () => {
         sourcePathSpy.restore();
       }
       lockSpy.restore();
+    });
+
+    afterAll(() => {
+      adapter.clearIdleTimers();
     });
 
     it('Should not get state of unknown thread', async () => {
@@ -1333,9 +1375,7 @@ describe('Interactive debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(RequestService.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+          Promise.reject({ message: 'There was an error', action: 'Try again' })
         );
 
       await adapter.stackTraceRequest(
@@ -1344,9 +1384,7 @@ describe('Interactive debugger adapter - unit', () => {
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getResponse(0).message).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
+      expect(adapter.getResponse(0).message).to.equal('There was an error');
       expect(stateSpy.called).to.equal(true);
     });
   });
@@ -1355,6 +1393,10 @@ describe('Interactive debugger adapter - unit', () => {
     describe('Hotswap warning', () => {
       beforeEach(() => {
         adapter = new ApexDebugForTest(new RequestService());
+      });
+
+      afterAll(() => {
+        adapter.clearIdleTimers();
       });
 
       it('Should log warning to debug console', () => {
@@ -1395,6 +1437,10 @@ describe('Interactive debugger adapter - unit', () => {
         lockSpy.restore();
         reconcileExceptionBreakpointSpy.restore();
         sessionIdSpy.restore();
+      });
+
+      afterAll(() => {
+        adapter.clearIdleTimers();
       });
 
       it('Should create exception breakpoint', async () => {
@@ -1549,6 +1595,10 @@ describe('Interactive debugger adapter - unit', () => {
         getExceptionBreakpointCacheSpy.restore();
       });
 
+      afterAll(() => {
+        adapter.clearIdleTimers();
+      });
+
       it('Should return list of breakpoint typerefs', async () => {
         await adapter.customRequest(
           LIST_EXCEPTION_BREAKPOINTS_REQUEST,
@@ -1597,6 +1647,10 @@ describe('Interactive debugger adapter - unit', () => {
       };
       breakpointService = adapter.getBreakpointService();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
+    });
+
+    afterAll(() => {
+      adapter.clearIdleTimers();
     });
 
     it('Should not log without an error', () => {
@@ -1681,6 +1735,10 @@ describe('Interactive debugger adapter - unit', () => {
       streamingSubscribeSpy.restore();
     });
 
+    afterAll(() => {
+      adapter.clearIdleTimers();
+    });
+
     it('Should call streaming service subscribe', () => {
       adapter.connectStreaming('foo');
 
@@ -1753,6 +1811,10 @@ describe('Interactive debugger adapter - unit', () => {
       eventProcessedSpy.restore();
       markEventProcessedSpy.restore();
       getExceptionBreakpointCacheSpy.restore();
+    });
+
+    afterAll(() => {
+      adapter.clearIdleTimers();
     });
 
     it('[SessionTerminated] - Should stop session service', () => {

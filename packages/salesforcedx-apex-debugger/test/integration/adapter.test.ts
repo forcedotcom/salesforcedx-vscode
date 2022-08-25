@@ -41,6 +41,7 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
  */
 describe.skip('Interactive debugger adapter - integration', function() {
   // tslint:disable-next-line:no-invalid-this
+  // @ts-ignore
   this.timeout(320000);
   let dc: DebugClient;
   let userName: string;

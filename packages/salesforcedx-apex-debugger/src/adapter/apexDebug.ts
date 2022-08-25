@@ -546,7 +546,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
-  protected idleTimers: NodeJS.Timer[] = [];
+  protected idleTimers: Array<ReturnType<typeof setTimeout>> = [];
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -588,8 +588,8 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  private getSessionIdleTimer(): NodeJS.Timer[] {
-    const timers: NodeJS.Timer[] = [];
+  private getSessionIdleTimer(): Array<ReturnType<typeof setTimeout>> {
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
     timers.push(
       setTimeout(() => {
         this.warnToDebugConsole(
@@ -635,7 +635,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public resetIdleTimer(): NodeJS.Timer[] {
+  public resetIdleTimer(): Array<ReturnType<typeof setTimeout>> {
     this.clearIdleTimers();
     this.idleTimers = this.getSessionIdleTimer();
     return this.idleTimers;
@@ -881,9 +881,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new RunCommand(requestId));
         response.success = true;
       } catch (error) {
-        if (error instanceof Error) {
-          response.message = error.message;
-        }
+        response.message = error.message;
       }
     }
     this.resetIdleTimer();
@@ -901,9 +899,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepOverCommand(requestId));
         response.success = true;
       } catch (error) {
-        if (error instanceof Error) {
-          response.message = error.message;
-        }
+        response.message = error.message;
       }
     }
     this.sendResponse(response);
@@ -920,9 +916,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepIntoCommand(requestId));
         response.success = true;
       } catch (error) {
-        if (error instanceof Error) {
-          response.message = error.message;
-        }
+        response.message = error.message;
       }
     }
     this.sendResponse(response);
@@ -939,9 +933,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepOutCommand(requestId));
         response.success = true;
       } catch (error) {
-        if (error instanceof Error) {
-          response.message = error.message;
-        }
+        response.message = error.message;
       }
     }
     this.sendResponse(response);
@@ -1059,9 +1051,7 @@ export class ApexDebug extends LoggingDebugSession {
       response.body = { stackFrames: clientFrames };
       response.success = true;
     } catch (error) {
-      if (error instanceof Error) {
-        response.message = error.message;
-      }
+      response.message = error.message;
     }
     this.sendResponse(response);
   }

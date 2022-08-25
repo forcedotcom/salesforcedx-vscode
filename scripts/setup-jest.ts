@@ -1,0 +1,75 @@
+class EventEmitter {
+  private listeners: any[] = [];
+  constructor() {}
+  public event = (listener: any) => this.listeners.push(listener);
+  public dispose = jest.fn();
+  public fire = (e: any) => this.listeners.forEach(listener => listener(e));
+}
+
+const getMockVSCode = () => {
+  return {
+    CancellationTokenSource: class {
+      public listeners: any[] = [];
+      public token = {
+        isCancellationRequested: false,
+        onCancellationRequested: (listener: any) => {
+          this.listeners.push(listener);
+          return {
+            dispose: () => {
+              this.listeners = [];
+            }
+          };
+        }
+      };
+      public cancel = () => {
+        this.listeners.forEach(listener => {
+          listener.call();
+        });
+      };
+      public dispose = () => {};
+    },
+    commands: jest.fn(),
+    Disposable: jest.fn(),
+    env: {
+      machineId: '12345534'
+    },
+    EventEmitter: EventEmitter,
+    Uri: {
+      parse: jest.fn(),
+      file: jest.fn()
+    },
+    ProgressLocation: {
+      SourceControl: 1,
+      Window: 10,
+      Notification: 15
+    },
+    window: {
+      showInformationMessage: jest.fn(),
+      showWarningMessage: jest.fn(),
+      showErrorMessage: jest.fn(),
+      setStatusBarMessage: jest.fn(),
+      withProgress: jest.fn(),
+      createOutputChannel: jest.fn(),
+      OutputChannel: {
+        show: jest.fn()
+      }
+    },
+    workspace: {
+      getConfiguration: () => {
+        return {
+          get: () => true
+        };
+      },
+      onDidChangeConfiguration: jest.fn(),
+      createFileSystemWatcher: jest.fn()
+    }
+  };
+};
+
+jest.mock(
+  'vscode',
+  () => {
+    return getMockVSCode();
+  },
+  { virtual: true }
+);

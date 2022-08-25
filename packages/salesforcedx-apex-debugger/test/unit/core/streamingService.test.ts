@@ -203,7 +203,7 @@ describe('Debugger streaming service', () => {
       .forChannel(StreamingService.USER_EVENT_CHANNEL)
       .build();
 
-    before(async () => {
+    beforeAll(async () => {
       service = new StreamingService();
       clientSubscribeSpy = sinon
         .stub(StreamingClient.prototype, 'subscribe')
@@ -219,7 +219,7 @@ describe('Debugger streaming service', () => {
       );
     });
 
-    after(() => {
+    afterAll(() => {
       clientSubscribeSpy.restore();
       clientIsConnectedSpy.restore();
     });

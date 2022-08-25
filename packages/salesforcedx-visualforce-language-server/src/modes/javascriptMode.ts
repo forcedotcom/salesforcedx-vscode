@@ -84,6 +84,9 @@ export function getJavascriptMode(
       scriptFileVersion++;
     }
   }
+
+  // TODO: with the update to typescript the below fileExists and readFile methods started complaining.
+  // @ts-ignore
   const host: LanguageServiceHost = {
     getCompilationSettings: () => compilerOptions,
     getScriptFileNames: () => [FILE_NAME],
@@ -110,13 +113,13 @@ export function getJavascriptMode(
       };
     },
     getCurrentDirectory: () => '',
-    getDefaultLibFileName: options => getDefaultLibFilePath(options),
-    readFile: (path: string, encoding?: string): string => {
-      throw new Error('Function not implemented.');
-    },
-    fileExists: (path: string): boolean => {
-      throw new Error('Function not implemented.');
-    }
+    getDefaultLibFileName: options => getDefaultLibFilePath(options)
+    // readFile: (path: string, encoding?: string): string => {
+    //   throw new Error('Function not implemented.');
+    // },
+    // fileExists: (path: string): boolean => {
+    //   throw new Error('Function not implemented.');
+    // }
   };
   const jsLanguageService = createLanguageService(host);
 

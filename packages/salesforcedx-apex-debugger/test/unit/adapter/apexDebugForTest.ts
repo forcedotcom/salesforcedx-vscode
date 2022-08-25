@@ -216,7 +216,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.variablesRequest(response, args);
   }
 
-  public getIdleTimers(): NodeJS.Timer[] {
+  public getIdleTimers(): Array<ReturnType<typeof setTimeout>> {
     return this.idleTimers;
   }
 }

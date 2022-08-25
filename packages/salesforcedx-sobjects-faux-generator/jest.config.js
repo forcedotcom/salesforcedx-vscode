@@ -1,9 +1,9 @@
+const baseConfig =  require('../../config/jest.base.config');
+
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
-module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testMatch: [ "**/unit/?(*.)+(spec|test).[t]s?(x)" ],
-  setupFilesAfterEnv: ['./test/unit/setup-jest.ts'],
-  reporters: ['default', [ "jest-junit", { outputName: "junit-custom-unitTests.xml" } ]],
-  coverageReporters: ['lcov', 'text']
-};
+module.exports = Object.assign({},
+  baseConfig,
+  {
+    testMatch: [ "**/unit/?(*.)+(spec|test).[t]s?(x)" ]
+  }
+);
