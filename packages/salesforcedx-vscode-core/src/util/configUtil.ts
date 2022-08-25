@@ -12,7 +12,7 @@ import {
   SfdxPropertyKeys,
   StateAggregator
 } from '@salesforce/core';
-import { ConfigAggregatorProvider } from '../context/workspaceContext';
+import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 
 export enum ConfigSource {
   Local,
