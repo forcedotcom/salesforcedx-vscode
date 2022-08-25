@@ -1,5 +1,3 @@
 {
-  "inputs": {
-    "branch": "release/v55.10.2022082401"
-  }
+  "ref": "release/v55.10.2022082401"
 }
