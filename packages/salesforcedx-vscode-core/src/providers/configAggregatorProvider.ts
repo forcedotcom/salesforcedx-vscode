@@ -99,7 +99,7 @@ export class ConfigAggregatorProvider {
     let configAggregator;
     const currentWorkingDirectory = process.cwd();
     if (options.globalValuesOnly) {
-      ConfigAggregatorProvider.ensureProcessIsRunningUnderUserHomeDir(
+      ConfigAggregatorProvider.ensureProcessIsRunningUnderDefaultBaseDir(
         currentWorkingDirectory
       );
     } else {
@@ -124,10 +124,10 @@ export class ConfigAggregatorProvider {
     return configAggregator;
   }
 
-  private static ensureProcessIsRunningUnderUserHomeDir(path: string) {
-    const userHomePath = '/';
-    if (path !== userHomePath) {
-      process.chdir(userHomePath);
+  private static ensureProcessIsRunningUnderDefaultBaseDir(path: string) {
+    const defaultBaseProcessDirectoryInVSCE = '/';
+    if (path !== defaultBaseProcessDirectoryInVSCE) {
+      process.chdir(defaultBaseProcessDirectoryInVSCE);
     }
   }
 
