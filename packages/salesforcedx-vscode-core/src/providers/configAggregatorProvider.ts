@@ -21,8 +21,8 @@ type ConfigAggregatorOptions = {
 };
 
 /*
- * The ConfigAggregator class is used to abstract away
- * some of the complexities around changing the process directory
+ * The ConfigAggregatorProvider class is used to abstract away
+ * the complexities around changing the process directory
  * that are needed to accurately retrieve configuration values
  * when using the ConfigAggregator in the VSCE context.
  */
@@ -82,7 +82,7 @@ export class ConfigAggregatorProvider {
     );
     // Force ConfigAggregator to load the most recent values from
     // the config file.  This prevents an issue where ConfigAggregator
-    // can returned cached data instead of the most recent data.
+    // can return cached data instead of the most recent data.
     const configAggregator = this.configAggregators.get(getRootWorkspacePath());
     if (configAggregator) await configAggregator.reload();
 
@@ -104,7 +104,7 @@ export class ConfigAggregatorProvider {
       );
     } else {
       // Change the current working directory to the project path,
-      // so that ConfigAggregator reads the local project values
+      // so that ConfigAggregator reads the local project values.
       ConfigAggregatorProvider.ensureProcessIsRunningUnderProjectRoot(
         currentWorkingDirectory
       );
