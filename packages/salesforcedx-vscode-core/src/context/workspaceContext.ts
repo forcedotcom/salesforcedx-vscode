@@ -106,21 +106,19 @@ export class ConfigAggregatorProvider {
     let configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (!configAggregator) {
       configAggregator = await this.createConfigAggregator();
-      this.configAggregators.set(getRootWorkspacePath(), configAggregator);
+      this.configAggregators.set(rootWorkspacePath, configAggregator);
     }
     return configAggregator;
   }
 
   public async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
+    const rootWorkspacePath = getRootWorkspacePath();
     let sfdxConfigAggregator = this.sfdxConfigAggregators.get(
-      getRootWorkspacePath()
+      rootWorkspacePath
     );
     if (!sfdxConfigAggregator) {
       sfdxConfigAggregator = await this.createConfigAggregator({ sfdx: true });
-      this.sfdxConfigAggregators.set(
-        getRootWorkspacePath(),
-        sfdxConfigAggregator
-      );
+      this.sfdxConfigAggregators.set(rootWorkspacePath, sfdxConfigAggregator);
     }
     return sfdxConfigAggregator;
   }
