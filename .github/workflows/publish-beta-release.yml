@@ -40,6 +40,7 @@ jobs:
       - uses: actions/checkout@v3
       - id: getVersion
         run: echo "::set-output name=version::"$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")""
+      - run: echo "Release Version is ${{ steps.getVersion.outputs.version }}"
 
   create_git_tag:
     name: 'Create and Tag Beta Release'
@@ -57,9 +58,9 @@ jobs:
       - uses: ./.github/actions/gitConfig
       - name: 'Create git tag to map to the Release Version'
         run: |
-          git tag v$VERSION
-          git push origin v$VERSION
+          git tag v${{env.VERSION}}
+          git push origin v${{env.VERSION}}
       - name: 'Create Pre-Release and Attach VSIX Files'
-        run: gh release create v$VERSION ${{ steps.download.outputs.download-path }} --title "Pre-Release v$VERSION" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md --prerelease
+        run: gh release create v${{env.VERSION}} ${{ steps.download.outputs.download-path }} --title "Pre-Release v${{env.VERSION}}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md --prerelease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
