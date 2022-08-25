@@ -32,6 +32,7 @@
     "@salesforce/salesforcedx-utils-vscode": "55.10.0",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "6.0.4",
+    "@salesforce/source-tracking": "2.2.1",
     "@salesforce/templates": "^55.1.0",
     "@salesforce/ts-types": "1.5.13",
     "adm-zip": "0.4.13",
