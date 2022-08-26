@@ -7,7 +7,6 @@
 
 import { ConfigAggregator, SfdxConfigAggregator } from '@salesforce/core';
 import { WorkspaceContext } from '../context/workspaceContext';
-import { getRootWorkspacePath } from '../util';
 
 type ConfigAggregatorOptions = {
   /*
