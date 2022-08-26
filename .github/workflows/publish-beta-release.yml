@@ -64,4 +64,4 @@ jobs:
         run: gh release create v${{env.VERSION}} ${{env.VSIX_PATH}} --title "Pre-Release v${{env.VERSION}}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md --prerelease
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VSIX_PATH: ${{ steps.download.outputs.download-path }}/packages/**/*.vsix
+          VSIX_PATH: ${{ steps.download.outputs.download-path }}/*
