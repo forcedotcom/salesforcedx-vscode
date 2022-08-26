@@ -94,6 +94,10 @@ export class ConfigAggregatorProvider {
     if (sfdx) await sfdx.reload();
   }
 
+  public getCurrentDirectory() {
+    return process.cwd();
+  }
+
   private async createConfigAggregator(
     options: ConfigAggregatorOptions = {
       sfdx: false,
@@ -101,26 +105,26 @@ export class ConfigAggregatorProvider {
     }
   ): Promise<ConfigAggregator> {
     let configAggregator;
-    const currentDirectory = process.cwd();
+    const origDirectory = this.getCurrentDirectory();
     if (options.globalValuesOnly) {
-      this.ensureCurrentDirectoryOutsideProject(currentDirectory);
+      this.ensureCurrentDirectoryOutsideProject(origDirectory);
     } else {
       // Change the current working directory to the project path,
       // so that ConfigAggregator reads the local project values.
-      this.ensureCurrentDirectoryInsideProject(currentDirectory);
+      this.ensureCurrentDirectoryInsideProject(origDirectory);
     }
     try {
       configAggregator = options.sfdx
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
     } finally {
-      if (process.cwd() !== currentDirectory) {
+      if (this.getCurrentDirectory() !== origDirectory) {
         // Change the current working directory back to what it was
         // before returning.
         // Wrapping this in a finally block ensures that the working
         // directory is switched back to what it was before this method
         // was called if SfdxConfigAggregator.create() throws an exception.
-        process.chdir(currentDirectory);
+        process.chdir(origDirectory);
       }
     }
     return configAggregator;
