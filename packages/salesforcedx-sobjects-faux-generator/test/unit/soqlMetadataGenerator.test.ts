@@ -38,31 +38,16 @@ describe('SOQL metadata files generator', () => {
     }
   }
 
-  function stats() {
-    const username = userInfo().username;
-    const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
-    const standardFolderExists = fs.existsSync(standardFolder);
-    const customFolderExists = fs.existsSync(standardFolder);
-
-    console.log('stats', {
-      username,
-      soqlMetadataFolder,
-      soqlMetadataFolderExists,
-      standardFolder,
-      standardFolderExists,
-      customFolder,
-      customFolderExists
-    });
-  }
+  const username = userInfo().username;
+  const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
+  const standardFolderExists = fs.existsSync(standardFolder);
+  const customFolderExists = fs.existsSync(standardFolder);
 
   beforeEach(() => {
-    stats();
     cleanupMetadata();
-    stats();
     fs.mkdirSync(soqlMetadataFolder, { recursive: true });
     fs.mkdirSync(standardFolder);
     fs.mkdirSync(customFolder);
-    stats();
   });
 
   afterAll(() => {
