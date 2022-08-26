@@ -35,9 +35,11 @@ describe('ConfigAggregatorProvider', () => {
       );
 
       // Act
-      const configAggregator = await (provider as any).createConfigAggregator({
-        globalValuesOnly: true
-      });
+      const globalConfigAggregator = await (provider as any).createConfigAggregator(
+        {
+          globalValuesOnly: true
+        }
+      );
 
       // Assert
       // createConfigAggregator should store the cwd initially,
@@ -49,6 +51,7 @@ describe('ConfigAggregatorProvider', () => {
       // to produce a global ConfigAggregator.
       expect(processChdirStub.callCount).to.equal(0);
       expect(configAggregatorCreateStub.callCount).to.equal(1);
+      expect(globalConfigAggregator).to.not.equal(undefined);
     });
   });
 });
