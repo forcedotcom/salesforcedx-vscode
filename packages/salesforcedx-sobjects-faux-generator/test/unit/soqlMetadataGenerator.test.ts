@@ -59,7 +59,7 @@ describe('SOQL metadata files generator', () => {
     stats();
     cleanupMetadata();
     stats();
-    fs.mkdirSync(soqlMetadataFolder);
+    fs.mkdirSync(soqlMetadataFolder, { recursive: true });
     fs.mkdirSync(standardFolder);
     fs.mkdirSync(customFolder);
     stats();

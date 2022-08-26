@@ -312,7 +312,7 @@ jobs:
       - build-win
       - run:
           name: 'Running unit tests'
-          shell: bash.exe
+          shell: cmd.exe
           command: npm run test:unit
       - run:
           name: 'Aggregate test results'
