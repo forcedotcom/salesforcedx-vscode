@@ -42,13 +42,13 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
 describe.skip('Interactive debugger adapter - integration', function() {
   // tslint:disable-next-line:no-invalid-this
   // @ts-ignore
-  this.timeout(320000);
+  jest.setTimeout(320000);
   let dc: DebugClient;
   let userName: string;
   let projectPath: string;
   let apexClassUri: string;
 
-  before(async () => {
+  beforeAll(async () => {
     // Create SFDX project
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
@@ -110,7 +110,7 @@ describe.skip('Interactive debugger adapter - integration', function() {
     dc.defaultTimeout = 10000;
   });
 
-  after(async () => {
+  afterAll(async () => {
     if (userName) {
       await util.deleteScratchOrg(PROJECT_NAME, userName);
     }

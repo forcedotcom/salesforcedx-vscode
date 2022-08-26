@@ -32,13 +32,13 @@ const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 // tslint:disable:no-unused-expression
 describe('Replay debugger adapter - integration', function() {
   // @ts-ignore // tslint:disable-next-line:no-invalid-this
-  this.timeout(320000);
+  jest.setTimeout(320000);
   let goldFileUtil: GoldFileUtil;
   let dc: DebugClient;
   let projectPath: string;
   let lineBpInfo: LineBreakpointInfo[];
 
-  before(async () => {
+  beforeAll(async () => {
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     lineBpInfo = [];
     console.log(`projectPath: ${projectPath}`);
@@ -54,7 +54,7 @@ describe('Replay debugger adapter - integration', function() {
     dc.defaultTimeout = 10000;
   });
 
-  after(async () => {
+  afterAll(async () => {
     if (dc) {
       await dc.stop();
     }
