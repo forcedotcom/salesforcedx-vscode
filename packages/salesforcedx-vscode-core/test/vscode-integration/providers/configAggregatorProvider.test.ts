@@ -6,7 +6,7 @@
  */
 import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
-import { createSandbox } from 'sinon';
+import { createSandbox, SinonSpy, SinonStub } from 'sinon';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
 
 const sandbox = createSandbox();
@@ -18,28 +18,28 @@ describe('ConfigAggregatorProvider', () => {
   });
 
   describe('createConfigAggregator', () => {
-    let provider: ConfigAggregatorProvider;
+    let configAggregatorProvider: ConfigAggregatorProvider;
+    let getCurrentDirectoryStub: SinonStub;
+    let configAggregatorCreateSpy: SinonSpy;
+
     beforeEach(() => {
-      provider = ConfigAggregatorProvider.getInstance();
+      configAggregatorProvider = ConfigAggregatorProvider.getInstance();
+      getCurrentDirectoryStub = sandbox.stub(
+        ConfigAggregatorProvider.prototype,
+        'getCurrentDirectory'
+      );
+      configAggregatorCreateSpy = sandbox.spy(ConfigAggregator, 'create');
     });
 
     it('should create a global ConfigAggregator', async () => {
       // Arrange
-      const getCurrentDirectoryStub = sandbox.stub(
-        ConfigAggregatorProvider.prototype,
-        'getCurrentDirectory'
-      );
       getCurrentDirectoryStub.returns(
         ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
       );
       const processChdirStub = sandbox.spy(process, 'chdir');
-      const configAggregatorCreateStub = sandbox.spy(
-        ConfigAggregator,
-        'create'
-      );
 
       // Act
-      const globalConfigAggregator = await (provider as any).createConfigAggregator(
+      const globalConfigAggregator = await (configAggregatorProvider as any).createConfigAggregator(
         {
           globalValuesOnly: true
         }
@@ -54,28 +54,20 @@ describe('ConfigAggregatorProvider', () => {
       // createConfigAggregator should not need to change the dir
       // to produce a global ConfigAggregator.
       expect(processChdirStub.callCount).to.equal(0);
-      expect(configAggregatorCreateStub.callCount).to.equal(1);
+      expect(configAggregatorCreateSpy.callCount).to.equal(1);
       expect(globalConfigAggregator).to.not.equal(undefined);
     });
 
-    it.only('should create a global ConfigAggregator from within a project', async () => {
+    it('should create a global ConfigAggregator from within a project', async () => {
       // Arrange
-      const getCurrentDirectoryStub = sandbox.stub(
-        ConfigAggregatorProvider.prototype as any,
-        'getCurrentDirectory'
-      );
       getCurrentDirectoryStub.onCall(0).returns(dummyProjectRootWorkspacePath);
       getCurrentDirectoryStub
         .onCall(1)
         .returns(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
       const processChdirStub = sandbox.stub(process, 'chdir');
-      const configAggregatorCreateStub = sandbox.spy(
-        ConfigAggregator,
-        'create'
-      );
 
       // Act
-      const globalConfigAggregator = await (provider as any).createConfigAggregator(
+      const globalConfigAggregator = await (configAggregatorProvider as any).createConfigAggregator(
         {
           globalValuesOnly: true
         }
@@ -91,7 +83,7 @@ describe('ConfigAggregatorProvider', () => {
       // createConfigAggregator should change the dir to be the default dir
       // to produce a global ConfigAggregator.
       expect(processChdirStub.callCount).to.equal(2);
-      expect(configAggregatorCreateStub.callCount).to.equal(1);
+      expect(configAggregatorCreateSpy.callCount).to.equal(1);
       expect(globalConfigAggregator).to.not.equal(undefined);
     });
   });
