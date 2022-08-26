@@ -30,6 +30,7 @@ export class ConfigAggregatorProvider {
   protected configAggregators: Map<string, ConfigAggregator>;
   protected sfdxConfigAggregators: Map<string, ConfigAggregator>;
   protected globalConfigAggregator: ConfigAggregator | undefined = undefined;
+  public static readonly defaultBaseProcessDirectoryInVSCE = '/';
 
   private static instance?: ConfigAggregatorProvider;
   private rootWorkspacePath: string = WorkspaceContext.getInstance()
@@ -112,8 +113,6 @@ export class ConfigAggregatorProvider {
       configAggregator = options.sfdx
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
-    } catch (error) {
-      throw error;
     } finally {
       // Change the current working directory back to what it was
       // before returning.
@@ -126,9 +125,8 @@ export class ConfigAggregatorProvider {
   }
 
   private ensureCurrentDirectoryOutsideProject(path: string) {
-    const defaultBaseProcessDirectoryInVSCE = '/';
-    if (path !== defaultBaseProcessDirectoryInVSCE) {
-      process.chdir(defaultBaseProcessDirectoryInVSCE);
+    if (path !== ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE) {
+      process.chdir(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
     }
   }
 
