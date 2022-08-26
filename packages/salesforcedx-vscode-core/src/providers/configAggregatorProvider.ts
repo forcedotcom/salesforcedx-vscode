@@ -112,6 +112,8 @@ export class ConfigAggregatorProvider {
       configAggregator = options.sfdx
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
+    } catch (error) {
+      throw error;
     } finally {
       // Change the current working directory back to what it was
       // before returning.
