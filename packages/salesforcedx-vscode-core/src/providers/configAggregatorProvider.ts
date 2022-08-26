@@ -101,13 +101,13 @@ export class ConfigAggregatorProvider {
     }
   ): Promise<ConfigAggregator> {
     let configAggregator;
-    const currentWorkingDirectory = process.cwd();
+    const currentDirectory = process.cwd();
     if (options.globalValuesOnly) {
-      this.ensureProcessIsRunningUnderDefaultBaseDir(currentWorkingDirectory);
+      this.ensureCurrentDirectoryOutsideProject(currentDirectory);
     } else {
       // Change the current working directory to the project path,
       // so that ConfigAggregator reads the local project values.
-      this.ensureProcessIsRunningUnderProjectRoot(currentWorkingDirectory);
+      this.ensureCurrentDirectoryInsideProject(currentDirectory);
     }
     try {
       configAggregator = options.sfdx
@@ -119,19 +119,19 @@ export class ConfigAggregatorProvider {
       // Wrapping this in a finally block ensures that the working
       // directory is switched back to what it was before this method
       // was called if SfdxConfigAggregator.create() throws an exception.
-      process.chdir(currentWorkingDirectory);
+      process.chdir(currentDirectory);
     }
     return configAggregator;
   }
 
-  private ensureProcessIsRunningUnderDefaultBaseDir(path: string) {
+  private ensureCurrentDirectoryOutsideProject(path: string) {
     const defaultBaseProcessDirectoryInVSCE = '/';
     if (path !== defaultBaseProcessDirectoryInVSCE) {
       process.chdir(defaultBaseProcessDirectoryInVSCE);
     }
   }
 
-  private ensureProcessIsRunningUnderProjectRoot(path: string) {
+  private ensureCurrentDirectoryInsideProject(path: string) {
     if (path !== this.rootWorkspacePath) {
       process.chdir(this.rootWorkspacePath);
     }
