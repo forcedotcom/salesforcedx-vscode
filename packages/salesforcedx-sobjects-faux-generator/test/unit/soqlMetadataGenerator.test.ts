@@ -7,6 +7,7 @@
 
 import * as chai from 'chai';
 import * as fs from 'fs';
+import { userInfo } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
 import {
@@ -37,11 +38,31 @@ describe('SOQL metadata files generator', () => {
     }
   }
 
+  function stats() {
+    const username = userInfo().username;
+    const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
+    const standardFolderExists = fs.existsSync(standardFolder);
+    const customFolderExists = fs.existsSync(standardFolder);
+
+    console.log('stats', {
+      username,
+      soqlMetadataFolder,
+      soqlMetadataFolderExists,
+      standardFolder,
+      standardFolderExists,
+      customFolder,
+      customFolderExists
+    });
+  }
+
   beforeEach(() => {
+    stats();
     cleanupMetadata();
+    stats();
     fs.mkdirSync(soqlMetadataFolder);
     fs.mkdirSync(standardFolder);
     fs.mkdirSync(customFolder);
+    stats();
   });
 
   afterAll(() => {
