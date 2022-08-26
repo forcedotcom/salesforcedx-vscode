@@ -92,8 +92,16 @@ describe('ConfigAggregatorProvider', () => {
     it('should create a ConfigAggregator from within a project', async () => {});
   });
 
-  describe('getConfigAggregator', () => {});
-  describe('getSfdxConfigAggregator', () => {});
-  describe('getGlobalConfigAggregator', () => {});
-  describe('reloadConfigAggregators', () => {});
+  describe('getConfigAggregator', () => {
+    it('should call createConfigAggregator without options', async () => {});
+  });
+  describe('getSfdxConfigAggregator', () => {
+    it('should call createConfigAggregator with the sfdx option', async () => {});
+  });
+  describe('getGlobalConfigAggregator', () => {
+    it('should call createConfigAggregator with the global values only option', async () => {});
+  });
+  describe('reloadConfigAggregators', () => {
+    it('should reload the ConfigAggregator for the project root workspace path', async () => {});
+  });
 });
