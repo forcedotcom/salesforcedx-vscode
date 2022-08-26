@@ -39,9 +39,7 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
  * These integration tests assume the environment has authenticated to
  * a Dev Hub and it is set as the default Dev Hub.
  */
-describe.skip('Interactive debugger adapter - integration', function() {
-  // tslint:disable-next-line:no-invalid-this
-  // @ts-ignore
+describe.skip('Interactive debugger adapter - integration', () => {
   jest.setTimeout(320000);
   let dc: DebugClient;
   let userName: string;

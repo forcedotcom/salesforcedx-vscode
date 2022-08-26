@@ -30,8 +30,7 @@ const CONFIG_DIR = path.join(
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 
 // tslint:disable:no-unused-expression
-describe('Replay debugger adapter - integration', function() {
-  // @ts-ignore // tslint:disable-next-line:no-invalid-this
+describe('Replay debugger adapter - integration', () => {
   jest.setTimeout(320000);
   let goldFileUtil: GoldFileUtil;
   let dc: DebugClient;
