@@ -114,12 +114,14 @@ export class ConfigAggregatorProvider {
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
     } finally {
-      // Change the current working directory back to what it was
-      // before returning.
-      // Wrapping this in a finally block ensures that the working
-      // directory is switched back to what it was before this method
-      // was called if SfdxConfigAggregator.create() throws an exception.
-      process.chdir(currentDirectory);
+      if (process.cwd() !== currentDirectory) {
+        // Change the current working directory back to what it was
+        // before returning.
+        // Wrapping this in a finally block ensures that the working
+        // directory is switched back to what it was before this method
+        // was called if SfdxConfigAggregator.create() throws an exception.
+        process.chdir(currentDirectory);
+      }
     }
     return configAggregator;
   }
