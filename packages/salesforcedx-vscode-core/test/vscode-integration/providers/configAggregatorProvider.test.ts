@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
@@ -24,6 +25,11 @@ describe('ConfigAggregatorProvider', () => {
     it('should create a global ConfigAggregator', async () => {
       // Arrange
       const processCwdStub = sandbox.stub(process, 'cwd');
+      const processChdirStub = sandbox.spy(process, 'chdir');
+      const configAggregatorCreateStub = sandbox.spy(
+        ConfigAggregator,
+        'create'
+      );
       processCwdStub.returns(
         ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
       );
@@ -34,7 +40,15 @@ describe('ConfigAggregatorProvider', () => {
       });
 
       // Assert
-      expect(processCwdStub.callCount).to.equal(1);
+      // createConfigAggregator should store the cwd initially,
+      // and check it again after creating the ConfigAggregator
+      // to ensure that the cwd is set back to its original value.
+      expect(processCwdStub.callCount).to.equal(2);
+      // Since the stubbed directory is not an sfdx project directory,
+      // createConfigAggregator should not need to change the dir
+      // to produce a global ConfigAggregator.
+      expect(processChdirStub.callCount).to.equal(0);
+      expect(configAggregatorCreateStub.callCount).to.equal(1);
     });
   });
 });
