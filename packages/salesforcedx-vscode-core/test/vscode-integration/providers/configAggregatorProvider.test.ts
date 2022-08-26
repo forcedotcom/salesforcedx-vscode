@@ -86,5 +86,14 @@ describe('ConfigAggregatorProvider', () => {
       expect(configAggregatorCreateSpy.callCount).to.equal(1);
       expect(globalConfigAggregator).to.not.equal(undefined);
     });
+
+    it('should create a ConfigAggregator', async () => {});
+
+    it('should create a ConfigAggregator from within a project', async () => {});
   });
+
+  describe('getConfigAggregator', () => {});
+  describe('getSfdxConfigAggregator', () => {});
+  describe('getGlobalConfigAggregator', () => {});
+  describe('reloadConfigAggregators', () => {});
 });
