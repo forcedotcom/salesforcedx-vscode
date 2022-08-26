@@ -6,6 +6,7 @@
  */
 
 import { ConfigAggregator, SfdxConfigAggregator } from '@salesforce/core';
+import { WorkspaceContext } from '../context/workspaceContext';
 import { getRootWorkspacePath } from '../util';
 
 type ConfigAggregatorOptions = {
@@ -32,6 +33,8 @@ export class ConfigAggregatorProvider {
   protected globalConfigAggregator: ConfigAggregator | undefined = undefined;
 
   private static instance?: ConfigAggregatorProvider;
+  private rootWorkspacePath: string = WorkspaceContext.getInstance()
+    .rootWorkspacePath;
 
   public static getInstance() {
     if (ConfigAggregatorProvider.instance === undefined) {
@@ -46,23 +49,24 @@ export class ConfigAggregatorProvider {
   }
 
   public async getConfigAggregator(): Promise<ConfigAggregator> {
-    const rootWorkspacePath = getRootWorkspacePath();
-    let configAggregator = this.configAggregators.get(rootWorkspacePath);
+    let configAggregator = this.configAggregators.get(this.rootWorkspacePath);
     if (!configAggregator) {
       configAggregator = await this.createConfigAggregator();
-      this.configAggregators.set(rootWorkspacePath, configAggregator);
+      this.configAggregators.set(this.rootWorkspacePath, configAggregator);
     }
     return configAggregator;
   }
 
   public async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
-    const rootWorkspacePath = getRootWorkspacePath();
     let sfdxConfigAggregator = this.sfdxConfigAggregators.get(
-      rootWorkspacePath
+      this.rootWorkspacePath
     );
     if (!sfdxConfigAggregator) {
       sfdxConfigAggregator = await this.createConfigAggregator({ sfdx: true });
-      this.sfdxConfigAggregators.set(rootWorkspacePath, sfdxConfigAggregator);
+      this.sfdxConfigAggregators.set(
+        this.rootWorkspacePath,
+        sfdxConfigAggregator
+      );
     }
     return sfdxConfigAggregator;
   }
@@ -80,14 +84,13 @@ export class ConfigAggregatorProvider {
     console.log(
       'The .sfdx config file has changed.  Reloading ConfigAggregator values in the salesforcedx-vscode-core package.'
     );
-    const rootWorkspacePath = getRootWorkspacePath();
     // Force ConfigAggregator to load the most recent values from
     // the config file.  This prevents an issue where ConfigAggregator
     // can return cached data instead of the most recent data.
-    const configAggregator = this.configAggregators.get(rootWorkspacePath);
+    const configAggregator = this.configAggregators.get(this.rootWorkspacePath);
     if (configAggregator) await configAggregator.reload();
 
-    const sfdx = this.sfdxConfigAggregators.get(rootWorkspacePath);
+    const sfdx = this.sfdxConfigAggregators.get(this.rootWorkspacePath);
     if (sfdx) await sfdx.reload();
   }
 
@@ -100,15 +103,11 @@ export class ConfigAggregatorProvider {
     let configAggregator;
     const currentWorkingDirectory = process.cwd();
     if (options.globalValuesOnly) {
-      ConfigAggregatorProvider.ensureProcessIsRunningUnderDefaultBaseDir(
-        currentWorkingDirectory
-      );
+      this.ensureProcessIsRunningUnderDefaultBaseDir(currentWorkingDirectory);
     } else {
       // Change the current working directory to the project path,
       // so that ConfigAggregator reads the local project values.
-      ConfigAggregatorProvider.ensureProcessIsRunningUnderProjectRoot(
-        currentWorkingDirectory
-      );
+      this.ensureProcessIsRunningUnderProjectRoot(currentWorkingDirectory);
     }
     try {
       configAggregator = options.sfdx
@@ -125,17 +124,16 @@ export class ConfigAggregatorProvider {
     return configAggregator;
   }
 
-  private static ensureProcessIsRunningUnderDefaultBaseDir(path: string) {
+  private ensureProcessIsRunningUnderDefaultBaseDir(path: string) {
     const defaultBaseProcessDirectoryInVSCE = '/';
     if (path !== defaultBaseProcessDirectoryInVSCE) {
       process.chdir(defaultBaseProcessDirectoryInVSCE);
     }
   }
 
-  private static ensureProcessIsRunningUnderProjectRoot(path: string) {
-    const rootWorkspacePath = getRootWorkspacePath();
-    if (path !== rootWorkspacePath) {
-      process.chdir(rootWorkspacePath);
+  private ensureProcessIsRunningUnderProjectRoot(path: string) {
+    if (path !== this.rootWorkspacePath) {
+      process.chdir(this.rootWorkspacePath);
     }
   }
 }
