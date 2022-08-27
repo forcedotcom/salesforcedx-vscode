@@ -81,8 +81,15 @@ describe('ConfigAggregatorProvider', () => {
       // Since the stubbed current directory is not equal to the
       // ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE directory,
       // createConfigAggregator should change the dir to be the default dir
-      // to produce a global ConfigAggregator.
+      // to produce a global ConfigAggregator, then change the dir back
+      // to the original dir before exiting.
       expect(processChdirStub.callCount).to.equal(2);
+      expect(processChdirStub.getCall(0).args[0]).to.equal(
+        ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
+      );
+      expect(processChdirStub.getCall(1).args[0]).to.equal(
+        dummyProjectRootWorkspacePath
+      );
       expect(configAggregatorCreateSpy.callCount).to.equal(1);
       expect(globalConfigAggregator).to.not.equal(undefined);
     });
