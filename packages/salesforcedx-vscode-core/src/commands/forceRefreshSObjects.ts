@@ -181,6 +181,9 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
     } catch (result) {
       console.log('Generate error ' + result.error);
       telemetryService.sendException(result.name, result.error);
+      ForceRefreshSObjectsExecutor.isActive = false;
+
+      throw result;
     }
 
     ForceRefreshSObjectsExecutor.isActive = false;
