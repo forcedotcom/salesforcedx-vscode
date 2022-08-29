@@ -21,12 +21,17 @@ describe('ConfigAggregatorProvider', () => {
     let configAggregatorProvider: ConfigAggregatorProvider;
     let getCurrentDirectoryStub: SinonStub;
     let configAggregatorCreateSpy: SinonSpy;
+    let changeCurrentDirectoryToSpy: SinonSpy;
 
     beforeEach(() => {
       configAggregatorProvider = ConfigAggregatorProvider.getInstance();
       getCurrentDirectoryStub = sandbox.stub(
         ConfigAggregatorProvider.prototype,
         'getCurrentDirectory'
+      );
+      changeCurrentDirectoryToSpy = sandbox.spy(
+        ConfigAggregatorProvider.prototype,
+        'changeCurrentDirectoryTo'
       );
       configAggregatorCreateSpy = sandbox.spy(ConfigAggregator, 'create');
     });
@@ -94,9 +99,35 @@ describe('ConfigAggregatorProvider', () => {
       expect(globalConfigAggregator).to.not.equal(undefined);
     });
 
-    it('should create a ConfigAggregator', async () => {});
+    it('should create a ConfigAggregator', async () => {
+      // Arrange
+      getCurrentDirectoryStub
+        .onCall(0)
+        .returns(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
+      // getCurrentDirectoryStub.onCall(1).returns(dummyProjectRootWorkspacePath);
+      // (configAggregatorProvider as any).rootWorkspacePath = dummyProjectRootWorkspacePath;
+
+      // Act
+      const configAggregator = await (configAggregatorProvider as any).createConfigAggregator();
+
+      // Assert
+      // createConfigAggregator should store the cwd initially,
+      // and check it again after creating the ConfigAggregator
+      // to ensure that the cwd is set back to its original value.
+      expect(getCurrentDirectoryStub.callCount).to.equal(2);
+      // Since the stubbed directory is not an sfdx project directory,
+      // createConfigAggregator should not need to change the dir
+      // to produce a global ConfigAggregator.
+      expect(changeCurrentDirectoryToSpy.callCount).to.equal(2);
+      expect(changeCurrentDirectoryToSpy.getCall(1).args[0]).to.equal(
+        ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
+      );
+      expect(configAggregatorCreateSpy.callCount).to.equal(1);
+      expect(configAggregator).to.not.equal(undefined);
+    });
 
     it('should create a ConfigAggregator from within a project', async () => {});
+    it('should change back to the original current directory if ConfigAggregator creation fails', async () => {});
   });
 
   describe('getConfigAggregator', () => {

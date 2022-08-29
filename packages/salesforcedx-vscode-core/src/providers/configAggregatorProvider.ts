@@ -35,7 +35,7 @@ export class ConfigAggregatorProvider {
   private static instance?: ConfigAggregatorProvider;
   private rootWorkspacePath: string = WorkspaceContext.getInstance()
     .rootWorkspacePath;
-
+  // there should be one provider
   public static getInstance() {
     if (ConfigAggregatorProvider.instance === undefined) {
       ConfigAggregatorProvider.instance = new ConfigAggregatorProvider();
@@ -98,6 +98,10 @@ export class ConfigAggregatorProvider {
     return process.cwd();
   }
 
+  public changeCurrentDirectoryTo(path: string) {
+    process.chdir(path);
+  }
+
   private async createConfigAggregator(
     options: ConfigAggregatorOptions = {
       sfdx: false,
@@ -124,7 +128,7 @@ export class ConfigAggregatorProvider {
         // Wrapping this in a finally block ensures that the working
         // directory is switched back to what it was before this method
         // was called if SfdxConfigAggregator.create() throws an exception.
-        process.chdir(origDirectory);
+        this.changeCurrentDirectoryTo(origDirectory);
       }
     }
     return configAggregator;
@@ -132,13 +136,15 @@ export class ConfigAggregatorProvider {
 
   private ensureCurrentDirectoryOutsideProject(path: string) {
     if (path !== ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE) {
-      process.chdir(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
+      this.changeCurrentDirectoryTo(
+        ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
+      );
     }
   }
 
   private ensureCurrentDirectoryInsideProject(path: string) {
     if (path !== this.rootWorkspacePath) {
-      process.chdir(this.rootWorkspacePath);
+      this.changeCurrentDirectoryTo(this.rootWorkspacePath);
     }
   }
 }
