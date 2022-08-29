@@ -17,10 +17,6 @@ describe('ConfigAggregatorProvider', () => {
   let changeCurrentDirectoryToStub: SinonStub;
   let getRootWorkspacePathStub: SinonStub;
   let configAggregatorProvider: ConfigAggregatorProvider;
-  // VSCE integration test context returns this
-  // when process.cwd() is called:
-  // const testContextRootWorkspacePath =
-  // '/salesforcedx-vscode/packages/system-tests/assets/sfdx-simple';
 
   beforeEach(() => {
     getRootWorkspacePathStub = sandbox.stub(
@@ -65,9 +61,9 @@ describe('ConfigAggregatorProvider', () => {
       // and check it again after creating the ConfigAggregator
       // to ensure that the cwd is set back to its original value.
       expect(getCurrentDirectoryStub.callCount).to.equal(2);
-      // Since the stubbed directory is not an sfdx project directory,
-      // createConfigAggregator should not need to change the dir
-      // to produce a global ConfigAggregator.
+      // createConfigAggregator should change the process to the
+      // root project workspace path to create the ConfigAggregator,
+      // then change back to the original directory.
       expect(changeCurrentDirectoryToStub.callCount).to.equal(2);
       expect(changeCurrentDirectoryToStub.getCall(1).args[0]).to.equal(
         ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
@@ -89,11 +85,8 @@ describe('ConfigAggregatorProvider', () => {
       // and check it again after creating the ConfigAggregator
       // to ensure that the cwd is set back to its original value.
       expect(getCurrentDirectoryStub.callCount).to.equal(2);
-      // Since the stubbed current directory is not equal to the
-      // ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE directory,
-      // createConfigAggregator should change the dir to be the default dir
-      // to produce a global ConfigAggregator, then change the dir back
-      // to the original dir before exiting.
+      // Since the stubbed current directory is the same as the root
+      // workspace path, the directory should not have been changed.
       expect(changeCurrentDirectoryToStub.callCount).to.equal(0);
       expect(configAggregatorCreateSpy.callCount).to.equal(1);
       expect(configAggregator).to.not.equal(undefined);
