@@ -25,6 +25,7 @@ jobs:
         run: |
           mkdir extensions
           find packages -name "*.vsix" -type f -exec cp {} ./extensions \;
+          cp ./packages/salesforcedx-vscode/CHANGELOG.md ./extensions
       - name: Upload Extensions
         uses: actions/upload-artifact@v3
         with:
@@ -57,6 +58,8 @@ jobs:
           name: VS Code Extensions
           path: tmp/saved-extensions
       - uses: ./.github/actions/gitConfig
+        with:
+          email: ${{ secrets.GH_EMAIL }}
       - name: 'Create git tag to map to the Release Version'
         run: |
           git tag v${{env.VERSION}}
@@ -65,7 +68,7 @@ jobs:
         run: ls -R
         working-directory: tmp/saved-extensions
       - name: 'Create Pre-Release and Attach VSIX Files'
-        run: gh release create v${{env.VERSION}} **.vsix --title "Pre-Release v${{env.VERSION}}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md --prerelease
+        run: gh release create v${{env.VERSION}} **.vsix --title "Pre-Release v${{env.VERSION}}" --notes-file CHANGELOG.md --prerelease
         working-directory: tmp/saved-extensions
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
