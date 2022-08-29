@@ -7,6 +7,7 @@
 import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
+import Sinon = require('sinon');
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
 
 const sandbox = createSandbox();
@@ -127,7 +128,40 @@ describe('ConfigAggregatorProvider', () => {
     });
 
     it('should create a ConfigAggregator from within a project', async () => {});
-    it('should change back to the original current directory if ConfigAggregator creation fails', async () => {});
+
+    it('should change back to the original current directory if ConfigAggregator creation fails', async () => {
+      // Arrange
+      configAggregatorCreateSpy.restore();
+      const configAggregatorCreateStub = Sinon.stub(ConfigAggregator, 'create');
+      configAggregatorCreateStub.throws(
+        new Error('There was a problem creating the Config Aggregator.')
+      );
+      getCurrentDirectoryStub
+        .onCall(0)
+        .returns(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
+
+      // Act
+      let configAggregator;
+      let caughtError;
+      try {
+        configAggregator = await (configAggregatorProvider as any).createConfigAggregator();
+      } catch (error) {
+        caughtError = error;
+      }
+
+      // Assert
+      // createConfigAggregator should store the cwd initially,
+      // and check it again after creating the ConfigAggregator
+      // to ensure that the cwd is set back to its original value.
+      expect(getCurrentDirectoryStub.callCount).to.equal(2);
+      expect(changeCurrentDirectoryToSpy.callCount).to.equal(2);
+      expect(changeCurrentDirectoryToSpy.getCall(1).args[0]).to.equal(
+        ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
+      );
+      expect(configAggregatorCreateStub.callCount).to.equal(1);
+      expect(caughtError).to.not.equal(undefined);
+      expect(configAggregator).to.equal(undefined);
+    });
   });
 
   describe('getConfigAggregator', () => {
