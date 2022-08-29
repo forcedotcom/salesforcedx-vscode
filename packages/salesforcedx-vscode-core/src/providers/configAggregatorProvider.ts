@@ -33,8 +33,7 @@ export class ConfigAggregatorProvider {
   public static readonly defaultBaseProcessDirectoryInVSCE = '/';
 
   private static instance?: ConfigAggregatorProvider;
-  private rootWorkspacePath: string = WorkspaceContext.getInstance()
-    .rootWorkspacePath;
+
   // there should be one provider
   public static getInstance() {
     if (ConfigAggregatorProvider.instance === undefined) {
@@ -49,24 +48,23 @@ export class ConfigAggregatorProvider {
   }
 
   public async getConfigAggregator(): Promise<ConfigAggregator> {
-    let configAggregator = this.configAggregators.get(this.rootWorkspacePath);
+    const rootWorkspacePath = this.getRootWorkspacePath();
+    let configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (!configAggregator) {
       configAggregator = await this.createConfigAggregator();
-      this.configAggregators.set(this.rootWorkspacePath, configAggregator);
+      this.configAggregators.set(rootWorkspacePath, configAggregator);
     }
     return configAggregator;
   }
 
   public async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
+    const rootWorkspacePath = this.getRootWorkspacePath();
     let sfdxConfigAggregator = this.sfdxConfigAggregators.get(
-      this.rootWorkspacePath
+      rootWorkspacePath
     );
     if (!sfdxConfigAggregator) {
       sfdxConfigAggregator = await this.createConfigAggregator({ sfdx: true });
-      this.sfdxConfigAggregators.set(
-        this.rootWorkspacePath,
-        sfdxConfigAggregator
-      );
+      this.sfdxConfigAggregators.set(rootWorkspacePath, sfdxConfigAggregator);
     }
     return sfdxConfigAggregator;
   }
@@ -84,22 +82,15 @@ export class ConfigAggregatorProvider {
     console.log(
       'The .sfdx config file has changed.  Reloading ConfigAggregator values in the salesforcedx-vscode-core package.'
     );
+    const rootWorkspacePath = this.getRootWorkspacePath();
     // Force ConfigAggregator to load the most recent values from
     // the config file.  This prevents an issue where ConfigAggregator
     // can return cached data instead of the most recent data.
-    const configAggregator = this.configAggregators.get(this.rootWorkspacePath);
+    const configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (configAggregator) await configAggregator.reload();
 
-    const sfdx = this.sfdxConfigAggregators.get(this.rootWorkspacePath);
+    const sfdx = this.sfdxConfigAggregators.get(rootWorkspacePath);
     if (sfdx) await sfdx.reload();
-  }
-
-  public getCurrentDirectory() {
-    return process.cwd();
-  }
-
-  public changeCurrentDirectoryTo(path: string) {
-    process.chdir(path);
   }
 
   private async createConfigAggregator(
@@ -122,7 +113,8 @@ export class ConfigAggregatorProvider {
         ? await SfdxConfigAggregator.create()
         : await ConfigAggregator.create();
     } finally {
-      if (this.getCurrentDirectory() !== origDirectory) {
+      const currentDirectory = this.getCurrentDirectory();
+      if (currentDirectory !== origDirectory) {
         // Change the current working directory back to what it was
         // before returning.
         // Wrapping this in a finally block ensures that the working
@@ -134,6 +126,20 @@ export class ConfigAggregatorProvider {
     return configAggregator;
   }
 
+  private getCurrentDirectory() {
+    const currentWorkingDirectory = process.cwd();
+    return currentWorkingDirectory;
+  }
+
+  private changeCurrentDirectoryTo(path: string) {
+    process.chdir(path);
+  }
+
+  private getRootWorkspacePath() {
+    const rootWorkspacePath = WorkspaceContext.getInstance().rootWorkspacePath;
+    return rootWorkspacePath;
+  }
+
   private ensureCurrentDirectoryOutsideProject(path: string) {
     if (path !== ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE) {
       this.changeCurrentDirectoryTo(
@@ -143,8 +149,8 @@ export class ConfigAggregatorProvider {
   }
 
   private ensureCurrentDirectoryInsideProject(path: string) {
-    if (path !== this.rootWorkspacePath) {
-      this.changeCurrentDirectoryTo(this.rootWorkspacePath);
+    if (path !== this.getRootWorkspacePath()) {
+      this.changeCurrentDirectoryTo(this.getRootWorkspacePath());
     }
   }
 }

@@ -27,11 +27,11 @@ describe('ConfigAggregatorProvider', () => {
     beforeEach(() => {
       configAggregatorProvider = ConfigAggregatorProvider.getInstance();
       getCurrentDirectoryStub = sandbox.stub(
-        ConfigAggregatorProvider.prototype,
+        (ConfigAggregatorProvider as any).prototype,
         'getCurrentDirectory'
       );
       changeCurrentDirectoryToSpy = sandbox.spy(
-        ConfigAggregatorProvider.prototype,
+        (ConfigAggregatorProvider as any).prototype,
         'changeCurrentDirectoryTo'
       );
       configAggregatorCreateSpy = sandbox.spy(ConfigAggregator, 'create');
@@ -105,8 +105,6 @@ describe('ConfigAggregatorProvider', () => {
       getCurrentDirectoryStub
         .onCall(0)
         .returns(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
-      // getCurrentDirectoryStub.onCall(1).returns(dummyProjectRootWorkspacePath);
-      // (configAggregatorProvider as any).rootWorkspacePath = dummyProjectRootWorkspacePath;
 
       // Act
       const configAggregator = await (configAggregatorProvider as any).createConfigAggregator();
@@ -127,7 +125,35 @@ describe('ConfigAggregatorProvider', () => {
       expect(configAggregator).to.not.equal(undefined);
     });
 
-    it('should create a ConfigAggregator from within a project', async () => {});
+    it('should create a ConfigAggregator from within a project', async () => {
+      // Arrange
+      getCurrentDirectoryStub.returns(dummyProjectRootWorkspacePath);
+      const getRootWorkspacePathStub = sandbox
+        .stub(
+          (ConfigAggregatorProvider as any).prototype,
+          'getRootWorkspacePath'
+        )
+        .returns(dummyProjectRootWorkspacePath);
+      const processChdirStub = sandbox.stub(process, 'chdir');
+
+      // Act
+      const configAggregator = await (configAggregatorProvider as any).createConfigAggregator();
+
+      // Assert
+      // createConfigAggregator should store the cwd initially,
+      // and check it again after creating the ConfigAggregator
+      // to ensure that the cwd is set back to its original value.
+      expect(getCurrentDirectoryStub.callCount).to.equal(2);
+      // Since the stubbed current directory is not equal to the
+      // ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE directory,
+      // createConfigAggregator should change the dir to be the default dir
+      // to produce a global ConfigAggregator, then change the dir back
+      // to the original dir before exiting.
+      expect(changeCurrentDirectoryToSpy.callCount).to.equal(0);
+      expect(configAggregatorCreateSpy.callCount).to.equal(1);
+      expect(configAggregator).to.not.equal(undefined);
+      expect(getRootWorkspacePathStub.callCount).to.equal(1);
+    });
 
     it('should change back to the original current directory if ConfigAggregator creation fails', async () => {
       // Arrange
