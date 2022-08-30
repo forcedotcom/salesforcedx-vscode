@@ -13,7 +13,11 @@ import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../src/constants';
 import { nls } from '../../src/messages';
-import { checkJavaVersion, JAVA_HOME_KEY, resolveRequirements } from '../../src/requirements';
+import {
+  checkJavaVersion,
+  JAVA_HOME_KEY,
+  resolveRequirements
+} from '../../src/requirements';
 import pathExists = require('path-exists');
 import * as cp from 'child_process';
 
@@ -69,7 +73,9 @@ describe('Java Requirements Test', () => {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
     } catch (err) {
-      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+      fail(
+        `Should not have thrown when the Java version is 17.  The error was: ${err}`
+      );
     }
   });
 
@@ -79,7 +85,9 @@ describe('Java Requirements Test', () => {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
     } catch (err) {
-      fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
+      fail(
+        `Should not have thrown when the Java version is 11.  The error was: ${err}`
+      );
     }
   });
 
@@ -89,7 +97,9 @@ describe('Java Requirements Test', () => {
       const result = await checkJavaVersion('~/java_home');
       expect(result).to.equal(true);
     } catch (err) {
-      fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
+      fail(
+        `Should not have thrown when the Java version is 17.  The error was: ${err}`
+      );
     }
   });
 
