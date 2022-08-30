@@ -93,67 +93,6 @@ describe('ConfigAggregatorProvider', () => {
       expect(getRootWorkspacePathStub.callCount).to.equal(1);
     });
 
-    it('should create a global ConfigAggregator when outside of a project directory', async () => {
-      // Arrange
-      getCurrentDirectoryStub.returns(
-        ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
-      );
-
-      // Act
-      const globalConfigAggregator = await (configAggregatorProvider as any).createConfigAggregator(
-        {
-          globalValuesOnly: true
-        }
-      );
-
-      // Assert
-      // createConfigAggregator should store the cwd initially,
-      // and check it again after creating the ConfigAggregator
-      // to ensure that the cwd is set back to its original value.
-      expect(getCurrentDirectoryStub.callCount).to.equal(2);
-      // Since the stubbed directory is not an sfdx project directory,
-      // createConfigAggregator should not need to change the dir
-      // to produce a global ConfigAggregator.
-      expect(changeCurrentDirectoryToStub.callCount).to.equal(0);
-      expect(configAggregatorCreateSpy.callCount).to.equal(1);
-      expect(globalConfigAggregator).to.not.equal(undefined);
-    });
-
-    it('should create a global ConfigAggregator when inside of a project directory', async () => {
-      // Arrange
-      getCurrentDirectoryStub.onCall(0).returns(dummyProjectRootWorkspacePath);
-      getCurrentDirectoryStub
-        .onCall(1)
-        .returns(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
-
-      // Act
-      const globalConfigAggregator = await (configAggregatorProvider as any).createConfigAggregator(
-        {
-          globalValuesOnly: true
-        }
-      );
-
-      // Assert
-      // createConfigAggregator should store the cwd initially,
-      // and check it again after creating the ConfigAggregator
-      // to ensure that the cwd is set back to its original value.
-      expect(getCurrentDirectoryStub.callCount).to.equal(2);
-      // Since the stubbed current directory is not equal to the
-      // ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE directory,
-      // createConfigAggregator should change the dir to be the default dir
-      // to produce a global ConfigAggregator, then change the dir back
-      // to the original dir before exiting.
-      expect(changeCurrentDirectoryToStub.callCount).to.equal(2);
-      expect(changeCurrentDirectoryToStub.getCall(0).args[0]).to.equal(
-        ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
-      );
-      expect(changeCurrentDirectoryToStub.getCall(1).args[0]).to.equal(
-        dummyProjectRootWorkspacePath
-      );
-      expect(configAggregatorCreateSpy.callCount).to.equal(1);
-      expect(globalConfigAggregator).to.not.equal(undefined);
-    });
-
     it('should create an SfdxConfigAggregator', async () => {
       // Arrange
       getCurrentDirectoryStub
@@ -245,27 +184,8 @@ describe('ConfigAggregatorProvider', () => {
     });
   });
 
-  describe('getGlobalConfigAggregator', () => {
-    it('should call createConfigAggregator with the global values only option', async () => {
-      // Act
-      const configAggregatorCreateSpy = sandbox.spy(
-        configAggregatorProvider as any,
-        'createConfigAggregator'
-      );
-
-      // Act
-      await configAggregatorProvider.getGlobalConfigAggregator();
-
-      // Assert
-      expect(configAggregatorCreateSpy.callCount).to.equal(1);
-      expect(configAggregatorCreateSpy.getCall(0).args[0]).to.deep.equal({
-        globalValuesOnly: true
-      });
-    });
-  });
-
   describe('reloadConfigAggregators', () => {
-    it.only('should reload the ConfigAggregators for the project root workspace path', async () => {
+    it('should reload the ConfigAggregators for the project root workspace path', async () => {
       // Arrange
       getRootWorkspacePathStub.returns(dummyProjectRootWorkspacePath);
       const configAggregator = await configAggregatorProvider.getConfigAggregator();

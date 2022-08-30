@@ -17,14 +17,15 @@ type ConfigAggregatorOptions = {
    *  here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
    */
   sfdx?: boolean;
-  globalValuesOnly?: boolean;
 };
 
 /*
- * The ConfigAggregatorProvider class is used to abstract away
- * the complexities around changing the process directory
- * that are needed to accurately retrieve configuration values
- * when using the ConfigAggregator in the VSCE context.
+ * The ConfigAggregatorProvider class is used to instantiate
+ * ConfigAggregator and SfdxConfigAggregator in the VSCE context.
+ * In order to accurately retrieve both project and global variable values,
+ * It needs to be instantiated while process.cwd() returns the root project
+ * workspace path. ConfigAggregatorProvider handles this and switches the
+ * cwd back so that it is the same when the function finishes.
  */
 export class ConfigAggregatorProvider {
   protected configAggregators: Map<string, ConfigAggregator>;
@@ -34,7 +35,6 @@ export class ConfigAggregatorProvider {
 
   private static instance?: ConfigAggregatorProvider;
 
-  // there should be one provider
   public static getInstance() {
     if (ConfigAggregatorProvider.instance === undefined) {
       ConfigAggregatorProvider.instance = new ConfigAggregatorProvider();
@@ -69,15 +69,6 @@ export class ConfigAggregatorProvider {
     return sfdxConfigAggregator;
   }
 
-  public async getGlobalConfigAggregator(): Promise<ConfigAggregator> {
-    if (!this.globalConfigAggregator) {
-      this.globalConfigAggregator = await this.createConfigAggregator({
-        globalValuesOnly: true
-      });
-    }
-    return this.globalConfigAggregator;
-  }
-
   public async reloadConfigAggregators() {
     console.log(
       'The .sfdx config file has changed.  Reloading ConfigAggregator values in the salesforcedx-vscode-core package.'
@@ -97,19 +88,14 @@ export class ConfigAggregatorProvider {
 
   private async createConfigAggregator(
     options: ConfigAggregatorOptions = {
-      sfdx: false,
-      globalValuesOnly: false
+      sfdx: false
     }
   ): Promise<ConfigAggregator> {
     let configAggregator;
     const origDirectory = this.getCurrentDirectory();
-    if (options.globalValuesOnly) {
-      this.ensureCurrentDirectoryOutsideProject(origDirectory);
-    } else {
-      // Change the current working directory to the project path,
-      // so that ConfigAggregator reads the local project values.
-      this.ensureCurrentDirectoryInsideProject(origDirectory);
-    }
+    // Change the current working directory to the project path,
+    // so that ConfigAggregator reads the local project values.
+    this.ensureCurrentDirectoryInsideProject(origDirectory);
     try {
       configAggregator = options.sfdx
         ? await SfdxConfigAggregator.create()
@@ -140,14 +126,6 @@ export class ConfigAggregatorProvider {
   private getRootWorkspacePath() {
     const rootWorkspacePath = WorkspaceContext.getInstance().rootWorkspacePath;
     return rootWorkspacePath;
-  }
-
-  private ensureCurrentDirectoryOutsideProject(path: string) {
-    if (path !== ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE) {
-      this.changeCurrentDirectoryTo(
-        ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
-      );
-    }
   }
 
   private ensureCurrentDirectoryInsideProject(path: string) {
