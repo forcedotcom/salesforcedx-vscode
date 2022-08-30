@@ -75,8 +75,8 @@ export class ConfigAggregatorProvider {
     );
     const rootWorkspacePath = this.getRootWorkspacePath();
     // Force ConfigAggregator to load the most recent values from
-    // the config file.  This prevents an issue where ConfigAggregator
-    // can return cached data instead of the most recent data.
+    // the config file.  This ensures that the ConfigAggregator
+    // contains the most recent data.
     const configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (configAggregator) await configAggregator.reload();
 
