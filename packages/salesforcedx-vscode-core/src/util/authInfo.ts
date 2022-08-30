@@ -56,8 +56,8 @@ export class OrgAuthInfo {
     try {
       const defaultDevHubUserName =
         configSource === ConfigSource.Global
-          ? await ConfigUtil.getGlobalDefaultDevHubUsername()
-          : await ConfigUtil.getDefaultDevHubUsername();
+          ? await ConfigUtil.getGlobalDefaultDevHubUsernameOrAlias()
+          : await ConfigUtil.getDefaultDevHubUsernameOrAlias();
 
       if (!defaultDevHubUserName) {
         const showButtonText = nls.localize('notification_make_default_dev');

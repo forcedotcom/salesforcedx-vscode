@@ -6,7 +6,9 @@
  */
 
 import {
+  Config,
   ConfigAggregator,
+  ConfigFile,
   OrgConfigProperties,
   SfConfigProperties,
   SfdxPropertyKeys,
@@ -87,7 +89,9 @@ export class ConfigUtil {
     return isTelemetryDisabled === 'true';
   }
 
-  public static async getDefaultDevHubUsername(): Promise<string | undefined> {
+  public static async getDefaultDevHubUsernameOrAlias(): Promise<
+    string | undefined
+  > {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const defaultDevHubUserName = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_DEV_HUB
@@ -95,13 +99,14 @@ export class ConfigUtil {
     return defaultDevHubUserName ? String(defaultDevHubUserName) : undefined;
   }
 
-  public static async getGlobalDefaultDevHubUsername(): Promise<
+  public static async getGlobalDefaultDevHubUsernameOrAlias(): Promise<
     string | undefined
   > {
-    const globalConfigAggregator = await ConfigAggregatorProvider.getInstance().getGlobalConfigAggregator();
-    const defaultGlobalDevHubUserName = globalConfigAggregator.getPropertyValue(
+    const globalConfig = await Config.create({ isGlobal: true });
+    const defaultGlobalDevHubUserName = globalConfig.get(
       OrgConfigProperties.TARGET_DEV_HUB
     );
+
     return defaultGlobalDevHubUserName
       ? String(defaultGlobalDevHubUserName)
       : undefined;
