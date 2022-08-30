@@ -56,7 +56,7 @@ describe('orgUtil tests', () => {
       expect(appendLineSpy.called).to.equal(false);
       expect(showChannelOutputSpy.called).to.equal(false);
     });
-    /*
+
     xit('should not display a notification when dev hubs are present', async () => {
       // Todo: stub listAllAuthorizations
       const orgList = new OrgList();
@@ -153,6 +153,5 @@ describe('orgUtil tests', () => {
       authInfoCreateStub.restore();
       listAllAuthorizationsStub.restore();
     });
-    */
   });
 });
