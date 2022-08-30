@@ -218,7 +218,7 @@ describe('ConfigAggregatorProvider', () => {
       );
 
       // Act
-      configAggregatorProvider.getConfigAggregator();
+      await configAggregatorProvider.getConfigAggregator();
 
       // Assert
       expect(configAggregatorCreateSpy.callCount).to.equal(1);
@@ -235,7 +235,7 @@ describe('ConfigAggregatorProvider', () => {
       );
 
       // Act
-      configAggregatorProvider.getSfdxConfigAggregator();
+      await configAggregatorProvider.getSfdxConfigAggregator();
 
       // Assert
       expect(configAggregatorCreateSpy.callCount).to.equal(1);
@@ -254,7 +254,7 @@ describe('ConfigAggregatorProvider', () => {
       );
 
       // Act
-      configAggregatorProvider.getGlobalConfigAggregator();
+      await configAggregatorProvider.getGlobalConfigAggregator();
 
       // Assert
       expect(configAggregatorCreateSpy.callCount).to.equal(1);
