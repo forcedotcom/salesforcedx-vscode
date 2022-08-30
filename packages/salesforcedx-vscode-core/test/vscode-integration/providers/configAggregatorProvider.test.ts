@@ -265,7 +265,7 @@ describe('ConfigAggregatorProvider', () => {
   });
 
   describe('reloadConfigAggregators', () => {
-    it('should reload the ConfigAggregators for the project root workspace path', async () => {
+    it.only('should reload the ConfigAggregators for the project root workspace path', async () => {
       // Arrange
       getRootWorkspacePathStub.returns(dummyProjectRootWorkspacePath);
       const configAggregator = await configAggregatorProvider.getConfigAggregator();
@@ -274,19 +274,12 @@ describe('ConfigAggregatorProvider', () => {
         ConfigAggregator.prototype,
         'reload'
       );
-      // todo: finish test - reload is already wrapped?
-      // const sfdxConfigAggregatorReloadSpy = sandbox.spy(
-      //   // SfdxConfigAggregator.prototype, // attempted to fix method to return SfdxConfigAgg - same issue
-      //   sfdxConfigAggregator,
-      //   'reload'
-      // );
 
       // Act
-      configAggregatorProvider.reloadConfigAggregators();
+      await configAggregatorProvider.reloadConfigAggregators();
 
       // Assert
-      expect(configAggregatorReloadSpy.callCount).to.equal(1);
-      // expect(sfdxConfigAggregatorReloadSpy.callCount).to.equal(1);
+      expect(configAggregatorReloadSpy.callCount).to.equal(2);
     });
   });
 });

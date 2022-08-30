@@ -89,8 +89,10 @@ export class ConfigAggregatorProvider {
     const configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (configAggregator) await configAggregator.reload();
 
-    const sfdx = this.sfdxConfigAggregators.get(rootWorkspacePath);
-    if (sfdx) await sfdx.reload();
+    const sfdxConfigAggregator = this.sfdxConfigAggregators.get(
+      rootWorkspacePath
+    );
+    if (sfdxConfigAggregator) await sfdxConfigAggregator.reload();
   }
 
   private async createConfigAggregator(
