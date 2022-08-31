@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       releaseType:
-        description: 'Release type: minor, major, patch, or beta'
+        description: 'Select the release type (default is minor)'
         required: true
         default: 'minor'
         type: choice
@@ -34,10 +34,11 @@ jobs:
       with:
         ref: ${{ github.event.ref }}
     - name: Install Script Dependencies
-      run: npm install shelljs && npm install -g lerna
+      run: sudo npm install -g npm@8.12.1 && npm install shelljs && npm install -g lerna
     - uses: ./.github/actions/gitConfig
       with:
           email: ${{ secrets.GH_EMAIL }}
+    - run: npm ci
     - name: Create and Push the Release Branch
       run: |
         echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
