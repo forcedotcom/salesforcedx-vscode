@@ -10,33 +10,12 @@ const RELEASE_TYPE = process.env['RELEASE_TYPE'];
 shell.set('-e');
 shell.set('+v');
 
-function getReleaseType() {
-  if (RELEASE_TYPE) {
-    if (!isValidReleaseType()) {
-      console.error(
-        `Release Type was specified (-r), but received invalid value ${RELEASE_TYPE}.
-        Accepted Values: 'patch', 'minor', 'major', or 'beta'`
-      );
-      process.exit(-1);
-    }
-  }
-  return 'minor';
-}
-
-function isValidReleaseType() {
-  return /patch|minor|major|beta/.exec(`${RELEASE_TYPE}`);
-}
-
-function isBetaRelease() {
-  return /beta/.exec(`${RELEASE_TYPE}`);
-}
-
 function getReleaseVersion() {
   const currentVersion = require('../packages/salesforcedx-vscode/package.json')
     .version;
   let [version, major, minor, patch] = currentVersion.match(/^(\d+)\.?(\d+)\.?(\*|\d+)$/);
 
-  switch(getReleaseType()) {
+  switch(RELEASE_TYPE) {
     case 'major':
       major = parseInt(major) + 1;
       minor = 0;
@@ -57,16 +36,13 @@ function getReleaseVersion() {
 }
 
 function getBetaVersion() {
-  //const t = new Date.today().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
-  // const year = t.getFullYear().toString();
-  // const month = t.getMonth().toString();
-  // const date = t.getDate().toString();
-  // const hour = t.getHours().toString();
-  // const minutes = t.getMinutes().toString();
-  // return String.concat(year, month, date, hour, minutes);
-  //returns the YYYYMMDDHHMM format to use as the beta version in the patch
-  const yearMonthDateHourMin = Date.today().toISOString().replace(/\D/g, '').substring(-5);
+  //ISO returns UTC for consistency; new betas can be made every minute
+  const yearMonthDateHourMin = new Date().toISOString().replace(/\D/g, '').substring(0, 12);
   return yearMonthDateHourMin;
+}
+
+function isBetaRelease() {
+  return /beta/.exec(`${RELEASE_TYPE}`);
 }
 
 shell.env['SALESFORCEDX_VSCODE_VERSION'] = getReleaseVersion();
@@ -74,6 +50,7 @@ checkVSCodeVersion();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
+//todo: update to be dynamic for any base branch
 checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
