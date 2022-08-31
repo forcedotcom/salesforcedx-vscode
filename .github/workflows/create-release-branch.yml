@@ -40,6 +40,7 @@ jobs:
           email: ${{ secrets.GH_EMAIL }}
     - name: Create and Push the Release Branch
       run: |
+        echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
         node scripts/create-release-branch.js
       env:
         RELEASE_TYPE: ${{ github.event.inputs.releaseType }}
