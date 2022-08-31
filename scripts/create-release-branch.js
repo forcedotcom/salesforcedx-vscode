@@ -5,22 +5,30 @@ const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
 const logger = require('./logger-util');
 const changeLogGeneratorUtils = require('./change-log-generator-utils');
 
+const RELEASE_TYPE = process.env['RELEASE_TYPE'];
+
 shell.set('-e');
 shell.set('+v');
 
 function getReleaseType() {
-  const releaseTypeIndex = process.argv.indexOf('-r');
-  if (releaseTypeIndex > -1) {
-    if (!/patch|minor|major/.exec(`${process.argv[releaseTypeIndex + 1]}`)) {
+  if (RELEASE_TYPE) {
+    if (!isValidReleaseType()) {
       console.error(
-        `Release Type was specified (-r), but received invalid value ${process.argv[releaseTypeIndex + 1]}.
-        Accepted Values: 'patch', 'minor', or 'major'`
+        `Release Type was specified (-r), but received invalid value ${RELEASE_TYPE}.
+        Accepted Values: 'patch', 'minor', 'major', or 'beta'`
       );
       process.exit(-1);
     }
-    return process.argv[releaseTypeIndex + 1];
   }
   return 'minor';
+}
+
+function isValidReleaseType() {
+  return /patch|minor|major|beta/.exec(`${RELEASE_TYPE}`);
+}
+
+function isBetaRelease() {
+  return /beta/.exec(`${RELEASE_TYPE}`);
 }
 
 function getReleaseVersion() {
@@ -41,8 +49,24 @@ function getReleaseVersion() {
     case 'patch':
       patch = parseInt(patch) + 1;
       break;
+    case 'beta':
+      patch = getBetaVersion();
+      break;
   }
   return `${major}.${minor}.${patch}`;
+}
+
+function getBetaVersion() {
+  //const t = new Date.today().toLocaleString('en-US', { timeZone: 'America/Los_Angeles' });
+  // const year = t.getFullYear().toString();
+  // const month = t.getMonth().toString();
+  // const date = t.getDate().toString();
+  // const hour = t.getHours().toString();
+  // const minutes = t.getMinutes().toString();
+  // return String.concat(year, month, date, hour, minutes);
+  //returns the YYYYMMDDHHMM format to use as the beta version in the patch
+  const yearMonthDateHourMin = Date.today().toISOString().replace(/\D/g, '').substring(-5);
+  return yearMonthDateHourMin;
 }
 
 shell.env['SALESFORCEDX_VSCODE_VERSION'] = getReleaseVersion();
@@ -101,10 +125,13 @@ shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
 // Merge release branch to develop as soon as it is cut.
 // In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
-shell.exec(`git checkout develop`)
-shell.exec(`git merge ${releaseBranchName}`)
-shell.exec(`git push -u origin develop`)
-shell.exec(`git checkout ${releaseBranchName}`)
+// beta versions should not be merged directly to develop, so we don't merge back yet
+if (!isBetaRelease()) {
+  shell.exec(`git checkout develop`)
+  shell.exec(`git merge ${releaseBranchName}`)
+  shell.exec(`git push -u origin develop`)
+  shell.exec(`git checkout ${releaseBranchName}`)
+}
 
 // Generate changelog
 const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch(releaseBranchName);
