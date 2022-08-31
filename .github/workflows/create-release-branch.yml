@@ -39,6 +39,8 @@ jobs:
       with:
           email: ${{ secrets.GH_EMAIL }}
     - run: npm ci
+    - run: npm --version
+    - run: node --version
     - name: Create and Push the Release Branch
       run: |
         echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
