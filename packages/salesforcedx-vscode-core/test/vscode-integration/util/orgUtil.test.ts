@@ -16,7 +16,7 @@ import { AuthInfo } from '@salesforce/core';
 import { channelService } from '../../../src/channels';
 import { OrgList } from '../../../src/orgPicker';
 
-describe.only('orgUtil tests', () => {
+describe('orgUtil tests', () => {
   let sb: SinonSandbox;
   before(() => {
     sb = createSandbox();
