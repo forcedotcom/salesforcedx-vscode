@@ -14,7 +14,7 @@
   "typings": "./out/src/htmlLanguageService",
   "devDependencies": {
     "@types/chai": "4.3.3",
-    "@types/mocha": "^2.2.38",
+    "@types/mocha": "^9.1.1",
     "@types/node": "12.0.12",
     "chai": "^4.0.2",
     "mocha": "^10",

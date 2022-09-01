@@ -15,7 +15,7 @@
   "devDependencies": {
     "@types/chai": "4.3.3",
     "@types/glob": "^7.2.0",
-    "@types/mocha": "^2.2.38",
+    "@types/mocha": "^9.1.1",
     "@types/node": "12.0.12",
     "@types/shelljs": "0.7.9",
     "@types/sinon": "^2.3.7",

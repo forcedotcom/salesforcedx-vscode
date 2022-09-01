@@ -23,7 +23,7 @@
     "@salesforce/salesforcedx-test-utils-vscode": "55.10.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "4.3.3",
-    "@types/mocha": "^5",
+    "@types/mocha": "^9",
     "@types/node": "12.0.12",
     "@types/rimraf": "^3.0.2",
     "@types/sinon": "^2.3.7",
