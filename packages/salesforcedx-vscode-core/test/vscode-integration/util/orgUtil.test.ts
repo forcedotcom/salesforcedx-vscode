@@ -7,7 +7,7 @@
 
 // Imports for testing
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonSpy } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { checkForExpiredOrgs } from '../../../src/util';
 
@@ -16,9 +16,9 @@ import { AuthInfo } from '@salesforce/core';
 import { channelService } from '../../../src/channels';
 import { OrgList } from '../../../src/orgPicker';
 
-describe('orgUtil tests', () => {
+describe.only('orgUtil tests', () => {
   let sb: SinonSandbox;
-  beforeEach(() => {
+  before(() => {
     sb = createSandbox();
   });
 
@@ -27,75 +27,99 @@ describe('orgUtil tests', () => {
   });
 
   describe('checkForExpiredOrgs tests', () => {
-    let today: Date;
+    const orgName1 = 'dreamhouse-org';
+    const orgName2 = 'ebikes-lwc';
+    const now = new Date();
+    const threeDaysFromNow = new Date(now.getTime() + 24 * 3 * 60 * 60000);
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60000);
+
     let showWarningMessageSpy: SinonSpy;
     let appendLineSpy: SinonSpy;
     let showChannelOutputSpy: SinonSpy;
+    let listAllAuthorizationsStub: SinonStub;
+    let authInfoCreateStub: SinonStub;
 
     beforeEach(() => {
-      today = new Date();
       showWarningMessageSpy = sb.spy(vscode.window, 'showWarningMessage');
       appendLineSpy = sb.spy(channelService, 'appendLine');
       showChannelOutputSpy = sb.spy(channelService, 'showChannelOutput');
-    });
-
-    afterEach(async () => {
-      showWarningMessageSpy.restore();
-      appendLineSpy.restore();
-      showChannelOutputSpy.restore();
+      listAllAuthorizationsStub = sb.stub(AuthInfo, 'listAllAuthorizations');
+      authInfoCreateStub = sb.stub(AuthInfo, 'create');
     });
 
     it('should not display a notification when no orgs are present', async () => {
-      const listAllAuthorizationsStub = sb.stub(
-        AuthInfo,
-        'listAllAuthorizations'
-      );
       listAllAuthorizationsStub.resolves(undefined);
-
-      expect(showWarningMessageSpy.called).to.equal(false);
-      expect(appendLineSpy.called).to.equal(false);
-      expect(showChannelOutputSpy.called).to.equal(false);
-    });
-
-    xit('should not display a notification when dev hubs are present', async () => {
-      // Todo: stub listAllAuthorizations
       const orgList = new OrgList();
       await checkForExpiredOrgs(orgList);
 
-      // Todo: fix spy
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
       expect(showChannelOutputSpy.called).to.equal(false);
     });
 
-    xit('should not display a notification when the scratch org has already expired', async () => {
-      // Todo: stub listAllAuthorizations
+    it('should not display a notification when dev hubs are present', async () => {
+      listAllAuthorizationsStub.resolves([
+        {
+          isDevHub: true,
+          username: 'foo',
+          aliases: [orgName1]
+        },
+        {
+          isDevHub: true,
+          username: 'bar',
+          aliases: [orgName2]
+        }
+      ]);
       const orgList = new OrgList();
       await checkForExpiredOrgs(orgList);
 
-      // Todo: fix spy
       expect(showWarningMessageSpy.called).to.equal(false);
       expect(appendLineSpy.called).to.equal(false);
       expect(showChannelOutputSpy.called).to.equal(false);
+      expect(authInfoCreateStub.called).to.equal(false);
     });
 
-    xit('should display a notification when the scratch org is about to expire', async () => {
-      const orgName = 'dreamhouse-org';
-      const listAllAuthorizationsStub = sb
-        .stub(AuthInfo, 'listAllAuthorizations')
-        .resolves([
-          {
-            isDevHub: false,
-            username: 'foo',
-            aliases: [orgName]
-          }
-        ]);
+    it('should not display a notification when the scratch org has already expired', async () => {
+      listAllAuthorizationsStub.resolves([
+        {
+          isDevHub: false,
+          username: 'foo',
+          aliases: [orgName1]
+        }
+      ]);
 
-      const authInfoCreateStub = sb.stub(AuthInfo, 'create').resolves({
+      authInfoCreateStub.resolves({
         getFields: () => {
           return {
-            expirationDate: `${today.getFullYear()}-${today.getMonth() +
-              1}-${today.getDate() + 3}`
+            expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() +
+              1}-${yesterday.getDate()}`
+          };
+        }
+      });
+      const orgList = new OrgList();
+      await checkForExpiredOrgs(orgList);
+
+      expect(showWarningMessageSpy.called).to.equal(false);
+      expect(appendLineSpy.called).to.equal(false);
+      expect(showChannelOutputSpy.called).to.equal(false);
+      expect(authInfoCreateStub.called).to.equal(true);
+    });
+
+    it('should display a notification when the scratch org is about to expire', async () => {
+      const orgName = 'dreamhouse-org';
+      listAllAuthorizationsStub.resolves([
+        {
+          isDevHub: false,
+          username: 'foo',
+          aliases: [orgName]
+        }
+      ]);
+
+      authInfoCreateStub.resolves({
+        getFields: () => {
+          return {
+            expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() +
+              1}-${threeDaysFromNow.getDate()}`
           };
         }
       });
@@ -103,39 +127,31 @@ describe('orgUtil tests', () => {
       const orgList = new OrgList();
       await checkForExpiredOrgs(orgList);
 
-      // Todo: fix spy
       expect(showWarningMessageSpy.called).to.equal(true);
       expect(appendLineSpy.called).to.equal(true);
       expect(appendLineSpy.args[0][0]).to.contain(orgName);
       expect(showChannelOutputSpy.called).to.equal(true);
-
-      authInfoCreateStub.restore();
-      listAllAuthorizationsStub.restore();
     });
 
-    xit('should display multiple orgs in the output when there are several scratch orgs about to expire', async () => {
-      const orgName1 = 'dreamhouse-org';
-      const orgName2 = 'ebikes-lwc';
-      const listAllAuthorizationsStub = sb
-        .stub(AuthInfo, 'listAllAuthorizations')
-        .resolves([
-          {
-            isDevHub: false,
-            username: 'foo',
-            aliases: [orgName1]
-          },
-          {
-            isDevHub: false,
-            username: 'bar',
-            aliases: [orgName2]
-          }
-        ]);
+    it('should display multiple orgs in the output when there are several scratch orgs about to expire', async () => {
+      listAllAuthorizationsStub.resolves([
+        {
+          isDevHub: false,
+          username: 'foo',
+          aliases: [orgName1]
+        },
+        {
+          isDevHub: false,
+          username: 'bar',
+          aliases: [orgName2]
+        }
+      ]);
 
-      const authInfoCreateStub = sb.stub(AuthInfo, 'create').resolves({
+      authInfoCreateStub.resolves({
         getFields: () => {
           return {
-            expirationDate: `${today.getFullYear()}-${today.getMonth() +
-              1}-${today.getDate() + 3}`
+            expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() +
+              1}-${threeDaysFromNow.getDate()}`
           };
         }
       });
@@ -149,9 +165,6 @@ describe('orgUtil tests', () => {
       expect(appendLineSpy.args[0][0]).to.contain(orgName1);
       expect(appendLineSpy.args[0][0]).to.contain(orgName2);
       expect(showChannelOutputSpy.called).to.equal(true);
-
-      authInfoCreateStub.restore();
-      listAllAuthorizationsStub.restore();
     });
   });
 });
