@@ -159,7 +159,6 @@ describe('orgUtil tests', () => {
       const orgList = new OrgList();
       await checkForExpiredOrgs(orgList);
 
-      // Todo: fix spy
       expect(showWarningMessageSpy.called).to.equal(true);
       expect(appendLineSpy.called).to.equal(true);
       expect(appendLineSpy.args[0][0]).to.contain(orgName1);
