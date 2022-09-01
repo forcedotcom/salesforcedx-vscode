@@ -30,7 +30,7 @@ type ConfigAggregatorOptions = {
 export class ConfigAggregatorProvider {
   protected configAggregators: Map<string, ConfigAggregator>;
   protected sfdxConfigAggregators: Map<string, ConfigAggregator>;
-  protected globalConfigAggregator: ConfigAggregator | undefined = undefined;
+  protected globalConfigAggregator: ConfigAggregator | undefined;
   public static readonly defaultBaseProcessDirectoryInVSCE = '/';
 
   private static instance?: ConfigAggregatorProvider;
