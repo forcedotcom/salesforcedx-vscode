@@ -29,8 +29,9 @@ const NON_EXISTENT_LOCAL_PATH = 'this-folder-does-not-exist';
 const NON_EXISTENT_REPO =
   'https://github.com/forcedotcom/this-repo-does-not-exist';
 
+const sandbox = createSandbox();
+
 describe('Custom Templates Create', () => {
-  let sandbox: sinon.SinonSandbox;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -42,7 +43,6 @@ describe('Custom Templates Create', () => {
   let getTemplatesDirectoryStub: SinonStub;
 
   beforeEach(() => {
-    sandbox = createSandbox();
     showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
     quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
     appendLineStub = sandbox.stub(channelService, 'appendLine');
@@ -62,7 +62,6 @@ describe('Custom Templates Create', () => {
       ConfigUtil,
       'getTemplatesDirectory'
     );
-    getTemplatesDirectoryStub.returns(undefined);
   });
 
   afterEach(() => {
