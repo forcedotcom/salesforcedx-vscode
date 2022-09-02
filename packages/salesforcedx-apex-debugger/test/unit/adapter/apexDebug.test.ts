@@ -7,12 +7,12 @@
 // This is only done in tests because we are mocking things
 // tslint:disable:no-floating-promises
 import {
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   ForceConfigGet,
   ForceOrgDisplay,
-  OrgInfo
-} from '@salesforce/salesforcedx-utils-vscode';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode';
-import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode';
+  OrgInfo,
+  RequestService
+} from '@salesforce/salesforcedx-utils';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as sinon from 'sinon';

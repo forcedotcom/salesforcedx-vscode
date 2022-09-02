@@ -8,9 +8,9 @@
 import {
   CliCommandExecutor,
   CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode';
+  SfdxCommandBuilder,
+  RequestService
+} from '@salesforce/salesforcedx-utils';
 
 export class SessionService {
   private userFilter?: string;

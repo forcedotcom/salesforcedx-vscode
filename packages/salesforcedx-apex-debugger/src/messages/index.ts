@@ -12,7 +12,7 @@ import {
   DEFAULT_LOCALE,
   Localization,
   Message
-} from '@salesforce/salesforcedx-utils-vscode';
+} from '@salesforce/salesforcedx-utils';
 import { messages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 

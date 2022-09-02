@@ -12,7 +12,7 @@ import {
   RequestService,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode';
+} from '@salesforce/salesforcedx-utils';
 import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
 import {

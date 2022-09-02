@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgInfo } from '@salesforce/salesforcedx-utils-vscode';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgInfo, RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import {

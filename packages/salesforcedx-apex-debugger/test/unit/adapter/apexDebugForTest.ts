@@ -7,7 +7,7 @@
 // This is only done in tests because we are mocking things
 // tslint:disable:no-floating-promises
 
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode';
+import { RequestService } from '@salesforce/salesforcedx-utils';
 import { Source } from 'vscode-debugadapter/lib/debugSession';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import {
