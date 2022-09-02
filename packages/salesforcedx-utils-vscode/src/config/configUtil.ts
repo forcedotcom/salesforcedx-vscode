@@ -103,6 +103,7 @@ export class ConfigUtil {
     // so that ConfigAggregator reads the local project values
     process.chdir(projectPath);
     const configAggregator = await ConfigAggregator.create();
+    await configAggregator.reload();
     // Change the current working directory back to what it was
     // before returning
     process.chdir(origCurrentWorkingDirectory);
