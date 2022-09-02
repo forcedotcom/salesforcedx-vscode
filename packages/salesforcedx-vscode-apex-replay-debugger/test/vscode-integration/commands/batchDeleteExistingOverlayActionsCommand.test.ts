@@ -8,7 +8,7 @@
 import {
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
+} from '@salesforce/salesforcedx-utils';
 import {
   INVALID_CROSS_REFERENCE_KEY,
   OVERLAY_ACTION_DELETE_URL

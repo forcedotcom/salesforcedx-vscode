@@ -6,12 +6,10 @@
  */
 import {
   ForceOrgDisplay,
-  OrgInfo
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
-import {
+  OrgInfo,
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
+} from '@salesforce/salesforcedx-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints';
 import {
   ActionScriptEnum,

@@ -8,7 +8,7 @@
 import {
   BaseCommand,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-apex-replay-debugger/node_modules/@salesforce/salesforcedx-utils-vscode';
+} from '@salesforce/salesforcedx-utils';
 import { COMPOSITE_BATCH_URL } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 
 export interface BatchRequests {
