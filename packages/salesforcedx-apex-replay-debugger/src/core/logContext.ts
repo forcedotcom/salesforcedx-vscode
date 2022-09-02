@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceOrgDisplay } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  ForceOrgDisplay,
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils-vscode';
+} from '@salesforce/salesforcedx-utils';
 import * as path from 'path';
 import { StackFrame } from 'vscode-debugadapter';
 import {

@@ -22,7 +22,6 @@ const CONFIG_DIR = path.join(
   __dirname,
   '..',
   '..',
-  '..',
   'test',
   'integration',
   'config'
