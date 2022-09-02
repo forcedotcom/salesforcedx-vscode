@@ -6,8 +6,8 @@
  */
 
 import {
-  SfdxCommandBuilder,
-  RequestService
+  RequestService,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import * as sinon from 'sinon';

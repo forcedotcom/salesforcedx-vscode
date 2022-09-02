@@ -8,8 +8,8 @@
 import {
   CliCommandExecutor,
   CommandOutput,
-  SfdxCommandBuilder,
-  RequestService
+  RequestService,
+  SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import {
