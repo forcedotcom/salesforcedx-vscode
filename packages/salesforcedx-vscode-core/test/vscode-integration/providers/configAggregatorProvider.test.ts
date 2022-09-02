@@ -35,7 +35,7 @@ describe('ConfigAggregatorProvider', () => {
 
   describe('createConfigAggregator', () => {
     let getCurrentDirectoryStub: SinonStub;
-    let configAggregatorCreateSpy: SinonSpy;
+    let configAggregatorCreateStub: SinonStub;
 
     beforeEach(() => {
       configAggregatorProvider = ConfigAggregatorProvider.getInstance();
@@ -43,7 +43,9 @@ describe('ConfigAggregatorProvider', () => {
         (ConfigAggregatorProvider as any).prototype,
         'getCurrentDirectory'
       );
-      configAggregatorCreateSpy = sandbox.spy(ConfigAggregator, 'create');
+      configAggregatorCreateStub = sandbox
+        .stub(ConfigAggregator, 'create')
+        .callThrough();
     });
 
     it('should create a ConfigAggregator when outside of a project directory', async () => {
@@ -67,7 +69,7 @@ describe('ConfigAggregatorProvider', () => {
       expect(changeCurrentDirectoryToStub.getCall(1).args[0]).to.equal(
         ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
       );
-      expect(configAggregatorCreateSpy.callCount).to.equal(1);
+      expect(configAggregatorCreateStub.callCount).to.equal(1);
       expect(configAggregator).to.not.equal(undefined);
     });
 
@@ -81,7 +83,7 @@ describe('ConfigAggregatorProvider', () => {
 
       // Assert
       expect(configAggregator).to.not.equal(undefined);
-      expect(configAggregatorCreateSpy.callCount).to.equal(1);
+      expect(configAggregatorCreateStub.callCount).to.equal(1);
       // createConfigAggregator should store the cwd initially,
       expect(getRootWorkspacePathStub.callCount).to.equal(1);
       // and check it again after creating the ConfigAggregator
@@ -94,14 +96,13 @@ describe('ConfigAggregatorProvider', () => {
 
     it('should change back to the original current directory if ConfigAggregator creation fails', async () => {
       // Arrange
-      configAggregatorCreateSpy.restore();
-      const configAggregatorCreateStub = Sinon.stub(ConfigAggregator, 'create');
-      configAggregatorCreateStub.throws(
-        new Error('There was a problem creating the Config Aggregator.')
-      );
+      const dummyErrorMessage =
+        'There was a problem creating the Config Aggregator.';
+      configAggregatorCreateStub.throws(new Error(dummyErrorMessage));
       getCurrentDirectoryStub
         .onCall(0)
         .returns(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
+      getRootWorkspacePathStub.returns(dummyProjectRootWorkspacePath);
 
       // Act
       let configAggregator;
@@ -113,17 +114,20 @@ describe('ConfigAggregatorProvider', () => {
       }
 
       // Assert
+      expect(configAggregatorCreateStub.callCount).to.equal(1);
+      expect(caughtError.message).to.equal(dummyErrorMessage);
+      expect(configAggregator).to.equal(undefined);
       // createConfigAggregator should store the cwd initially,
       // and check it again after creating the ConfigAggregator
       // to ensure that the cwd is set back to its original value.
       expect(getCurrentDirectoryStub.callCount).to.equal(2);
       expect(changeCurrentDirectoryToStub.callCount).to.equal(2);
+      expect(changeCurrentDirectoryToStub.getCall(0).args[0]).to.equal(
+        dummyProjectRootWorkspacePath
+      );
       expect(changeCurrentDirectoryToStub.getCall(1).args[0]).to.equal(
         ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
       );
-      expect(configAggregatorCreateStub.callCount).to.equal(1);
-      expect(caughtError).to.not.equal(undefined);
-      expect(configAggregator).to.equal(undefined);
     });
   });
 
