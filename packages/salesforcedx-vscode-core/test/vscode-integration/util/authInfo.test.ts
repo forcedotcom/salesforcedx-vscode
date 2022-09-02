@@ -11,6 +11,7 @@ import {
   Connection,
   StateAggregator
 } from '@salesforce/core';
+import { OrgConfigProperties } from '@salesforce/core/lib/exported';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -51,11 +52,9 @@ describe('OrgAuthInfo', () => {
 
   describe('getDefaultDevHubUsernameOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
-      const configAggregatorStub = sandbox.stub(
-        ConfigAggregator.prototype,
-        'getPropertyValue'
-      );
-      configAggregatorStub.returns(undefined);
+      const configAggregatorStub = sandbox
+        .stub(ConfigAggregator.prototype, 'getPropertyValue')
+        .returns(undefined);
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -103,6 +102,10 @@ describe('OrgAuthInfo', () => {
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
+      expect(configAggregatorStub.calledOnce).to.equal(true);
+      expect(
+        configAggregatorStub.calledWith(OrgConfigProperties.TARGET_DEV_HUB)
+      ).to.equal(true);
       expect(infoMessageStub.calledOnce).to.equal(false);
     });
   });
