@@ -190,7 +190,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal(dummyScratchOrgAuth1.username);
       });
 
-      it.only('should display alias with username when alias is available', async () => {
+      it('should display alias with username when alias is available', async () => {
         // Arrange
         defaultDevHubStub.resolves(null);
         const authInfoObjects: OrgAuthorization[] = [
