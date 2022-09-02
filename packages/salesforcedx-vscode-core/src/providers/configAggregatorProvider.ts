@@ -5,23 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, SfdxConfigAggregator } from '@salesforce/core';
+import { ConfigAggregator } from '@salesforce/core';
 import { WorkspaceContext } from '../context/workspaceContext';
-
-type ConfigAggregatorOptions = {
-  /*
-   *  The SfdxConfigAggregator is used only to get configuration
-   *  values that correspond with old/deprecated config keys.
-   *  Currently, the key used for the custom templates
-   *  directory is the only usage, since it is documented for use
-   *  here: https://developer.salesforce.com/tools/vscode/en/user-guide/byotemplate#set-default-template-location
-   */
-  sfdx?: boolean;
-};
 
 /*
  * The ConfigAggregatorProvider class is used to instantiate
- * ConfigAggregator and SfdxConfigAggregator in the VSCE context.
+ * ConfigAggregator in the VSCE context.
  * In order to accurately retrieve both project and global variable values,
  * It needs to be instantiated while process.cwd() returns the root project
  * workspace path. ConfigAggregatorProvider handles this and switches the
@@ -29,7 +18,6 @@ type ConfigAggregatorOptions = {
  */
 export class ConfigAggregatorProvider {
   protected configAggregators: Map<string, ConfigAggregator>;
-  protected sfdxConfigAggregators: Map<string, ConfigAggregator>;
   protected globalConfigAggregator: ConfigAggregator | undefined;
   public static readonly defaultBaseProcessDirectoryInVSCE = '/';
 
@@ -44,7 +32,6 @@ export class ConfigAggregatorProvider {
 
   private constructor() {
     this.configAggregators = new Map<string, ConfigAggregator>();
-    this.sfdxConfigAggregators = new Map<string, ConfigAggregator>();
   }
 
   public async getConfigAggregator(): Promise<ConfigAggregator> {
@@ -57,18 +44,6 @@ export class ConfigAggregatorProvider {
     return configAggregator;
   }
 
-  public async getSfdxConfigAggregator(): Promise<ConfigAggregator> {
-    const rootWorkspacePath = this.getRootWorkspacePath();
-    let sfdxConfigAggregator = this.sfdxConfigAggregators.get(
-      rootWorkspacePath
-    );
-    if (!sfdxConfigAggregator) {
-      sfdxConfigAggregator = await this.createConfigAggregator({ sfdx: true });
-      this.sfdxConfigAggregators.set(rootWorkspacePath, sfdxConfigAggregator);
-    }
-    return sfdxConfigAggregator;
-  }
-
   public async reloadConfigAggregators() {
     console.log(
       'The .sfdx config file has changed.  Reloading ConfigAggregator values in the salesforcedx-vscode-core package.'
@@ -79,27 +54,16 @@ export class ConfigAggregatorProvider {
     // contains the most recent data.
     const configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (configAggregator) await configAggregator.reload();
-
-    const sfdxConfigAggregator = this.sfdxConfigAggregators.get(
-      rootWorkspacePath
-    );
-    if (sfdxConfigAggregator) await sfdxConfigAggregator.reload();
   }
 
-  private async createConfigAggregator(
-    options: ConfigAggregatorOptions = {
-      sfdx: false
-    }
-  ): Promise<ConfigAggregator> {
+  private async createConfigAggregator(): Promise<ConfigAggregator> {
     let configAggregator;
     const origDirectory = this.getCurrentDirectory();
     // Change the current working directory to the project path,
     // so that ConfigAggregator reads the local project values.
     this.ensureCurrentDirectoryInsideProject(origDirectory);
     try {
-      configAggregator = options.sfdx
-        ? await SfdxConfigAggregator.create()
-        : await ConfigAggregator.create();
+      configAggregator = await ConfigAggregator.create();
     } finally {
       const currentDirectory = this.getCurrentDirectory();
       if (currentDirectory !== origDirectory) {
@@ -107,7 +71,7 @@ export class ConfigAggregatorProvider {
         // before returning.
         // Wrapping this in a finally block ensures that the working
         // directory is switched back to what it was before this method
-        // was called if SfdxConfigAggregator.create() throws an exception.
+        // was called if ConfigAggregator.create() throws an exception.
         this.changeCurrentDirectoryTo(origDirectory);
       }
     }

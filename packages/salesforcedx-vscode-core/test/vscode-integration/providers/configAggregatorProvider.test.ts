@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ConfigAggregator, SfdxConfigAggregator } from '@salesforce/core';
+import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
 import Sinon = require('sinon');
@@ -93,26 +93,6 @@ describe('ConfigAggregatorProvider', () => {
       expect(getRootWorkspacePathStub.callCount).to.equal(1);
     });
 
-    it('should create an SfdxConfigAggregator', async () => {
-      // Arrange
-      getCurrentDirectoryStub
-        .onCall(0)
-        .returns(ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE);
-      const sfdxConfigAggregatorCreateSpy = sandbox.spy(
-        SfdxConfigAggregator,
-        'create'
-      );
-
-      // Act
-      const sfdxConfigAggregator = await (configAggregatorProvider as any).createConfigAggregator(
-        { sfdx: true }
-      );
-
-      // Assert
-      expect(sfdxConfigAggregatorCreateSpy.callCount).to.equal(1);
-      expect(sfdxConfigAggregator).to.not.equal(undefined);
-    });
-
     it('should change back to the original current directory if ConfigAggregator creation fails', async () => {
       // Arrange
       configAggregatorCreateSpy.restore();
@@ -165,31 +145,11 @@ describe('ConfigAggregatorProvider', () => {
     });
   });
 
-  describe('getSfdxConfigAggregator', () => {
-    it('should call createConfigAggregator with the sfdx option', async () => {
-      // Act
-      const configAggregatorCreateSpy = sandbox.spy(
-        configAggregatorProvider as any,
-        'createConfigAggregator'
-      );
-
-      // Act
-      await configAggregatorProvider.getSfdxConfigAggregator();
-
-      // Assert
-      expect(configAggregatorCreateSpy.callCount).to.equal(1);
-      expect(configAggregatorCreateSpy.getCall(0).args[0]).to.deep.equal({
-        sfdx: true
-      });
-    });
-  });
-
   describe('reloadConfigAggregators', () => {
     it('should reload the ConfigAggregators for the project root workspace path', async () => {
       // Arrange
       getRootWorkspacePathStub.returns(dummyProjectRootWorkspacePath);
       const configAggregator = await configAggregatorProvider.getConfigAggregator();
-      const sfdxConfigAggregator = await configAggregatorProvider.getSfdxConfigAggregator();
       const configAggregatorReloadSpy = sandbox.spy(
         ConfigAggregator.prototype,
         'reload'
@@ -199,7 +159,7 @@ describe('ConfigAggregatorProvider', () => {
       await configAggregatorProvider.reloadConfigAggregators();
 
       // Assert
-      expect(configAggregatorReloadSpy.callCount).to.equal(2);
+      expect(configAggregatorReloadSpy.callCount).to.equal(1);
     });
   });
 });
