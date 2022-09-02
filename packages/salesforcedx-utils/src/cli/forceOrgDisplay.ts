@@ -6,7 +6,7 @@
  */
 
 import { SfdxCommandBuilder } from './sfdxCommandBuilder';
-import { CliCommandExecutor } from './commandExecutor';
+import { CliCommandExecutor } from './cliCommandExecutor';
 import { CommandOutput } from './commandOutput';
 import { OrgInfo } from '../types';
 
