@@ -8,10 +8,8 @@
 import {
   Config,
   ConfigAggregator,
-  ConfigFile,
   OrgConfigProperties,
   SfConfigProperties,
-  SfdxPropertyKeys,
   StateAggregator
 } from '@salesforce/core';
 import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
