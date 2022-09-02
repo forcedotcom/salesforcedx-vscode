@@ -68,15 +68,10 @@ export class ConfigUtil {
     return configSource === ConfigSource.Global;
   }
 
-  /*
-   * Currently, the docs tell Users to manually create this entry in the .sfdx
-   * configuration file.  For that reason, getTemplatesDirectory uses the
-   * SfdxConfigAggregator specifically.
-   */
   public static async getTemplatesDirectory(): Promise<string | undefined> {
-    const sfdxConfigAggregator = await ConfigAggregatorProvider.getInstance().getSfdxConfigAggregator();
-    const templatesDirectory = sfdxConfigAggregator.getPropertyValue(
-      SfdxPropertyKeys.CUSTOM_ORG_METADATA_TEMPLATES
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const templatesDirectory = configAggregator.getPropertyValue(
+      OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
     );
     return templatesDirectory ? String(templatesDirectory) : undefined;
   }
