@@ -7,7 +7,6 @@
 import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonSpy, SinonStub } from 'sinon';
-import Sinon = require('sinon');
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
 
 const sandbox = createSandbox();
