@@ -80,16 +80,16 @@ describe('ConfigAggregatorProvider', () => {
       const configAggregator = await (configAggregatorProvider as any).createConfigAggregator();
 
       // Assert
+      expect(configAggregator).to.not.equal(undefined);
+      expect(configAggregatorCreateSpy.callCount).to.equal(1);
       // createConfigAggregator should store the cwd initially,
+      expect(getRootWorkspacePathStub.callCount).to.equal(1);
       // and check it again after creating the ConfigAggregator
       // to ensure that the cwd is set back to its original value.
       expect(getCurrentDirectoryStub.callCount).to.equal(2);
       // Since the stubbed current directory is the same as the root
       // workspace path, the directory should not have been changed.
       expect(changeCurrentDirectoryToStub.callCount).to.equal(0);
-      expect(configAggregatorCreateSpy.callCount).to.equal(1);
-      expect(configAggregator).to.not.equal(undefined);
-      expect(getRootWorkspacePathStub.callCount).to.equal(1);
     });
 
     it('should change back to the original current directory if ConfigAggregator creation fails', async () => {
