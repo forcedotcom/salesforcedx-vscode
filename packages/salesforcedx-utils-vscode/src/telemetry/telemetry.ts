@@ -101,11 +101,8 @@ export class TelemetryService {
     const isDevMode = machineId === 'someValue.machineId';
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
-    if (
-      this.reporter === undefined &&
-      this.isTelemetryEnabled() &&
-      !isDevMode
-    ) {
+    const isTelemetryEnabled = await this.isTelemetryEnabled();
+    if (this.reporter === undefined && isTelemetryEnabled && !isDevMode) {
       this.reporter = new TelemetryReporter(
         'salesforcedx-vscode',
         this.version,
