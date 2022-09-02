@@ -9,7 +9,7 @@ import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { createSandbox, SinonStub, stub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
@@ -20,9 +20,10 @@ import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
 import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
 
+const sandbox = createSandbox();
+
 // tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
-  let sandbox: sinon.SinonSandbox;
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
   let appendLineStub: SinonStub;
@@ -34,13 +35,12 @@ describe('Force Apex Class Create', () => {
   let getTemplatesDirectoryStub: SinonStub;
 
   beforeEach(() => {
-    sandbox = createSandbox();
     showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
     quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
     appendLineStub = sandbox.stub(channelService, 'appendLine');
     showSuccessfulExecutionStub = sandbox
       .stub(notificationService, 'showSuccessfulExecution')
-      .returns(Promise.resolve());
+      .resolves();
     showFailedExecutionStub = sandbox.stub(
       notificationService,
       'showFailedExecution'
