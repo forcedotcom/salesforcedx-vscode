@@ -18,7 +18,8 @@ export {
   extractJsonObject,
   flushFilePath,
   flushFilePaths,
-  isNullOrUndefined
+  isNullOrUndefined,
+  fileUtils
 } from './utils';
 export {
   isAlphaNumSpaceString,
