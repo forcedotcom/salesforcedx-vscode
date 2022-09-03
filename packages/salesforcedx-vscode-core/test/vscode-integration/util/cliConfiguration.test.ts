@@ -10,10 +10,7 @@ import { expect } from 'chai';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
-import {
-  ENV_SFDX_DISABLE_TELEMETRY,
-  SFDX_CONFIG_DISABLE_TELEMETRY
-} from '../../../src/constants';
+import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
 import {
   ConfigUtil,
   disableCLITelemetry,
@@ -110,7 +107,7 @@ describe('SFDX CLI Configuration utility', () => {
     });
 
     it('Should return true if telemetry setting is enabled', async () => {
-      isTelemetryDisabledStub.returns('false');
+      isTelemetryDisabledStub.returns(false);
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
