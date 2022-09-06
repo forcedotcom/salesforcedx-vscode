@@ -52,7 +52,8 @@ checkVSCodeVersion();
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
 //todo: update to be dynamic for any base branch
-checkBaseBranch(BASE_BRANCH);
+//checkBaseBranch(BASE_BRANCH);
+checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
 
