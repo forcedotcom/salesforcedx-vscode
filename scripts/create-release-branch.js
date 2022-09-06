@@ -88,6 +88,8 @@ shell.exec(
   `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
 );
 
+shell.exec(`npm run bootstrap`);
+
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
 // all the version bump changes so we'll now need to commit those using git add & commit.
 // Add all package.json version update changes
