@@ -26,7 +26,7 @@ jobs:
 
     steps:
     - name: Setup Node.js
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: '16.13.x'
         cache: 'npm'
@@ -34,21 +34,17 @@ jobs:
       uses: actions/checkout@v2.0.0
       with:
         ref: ${{ github.event.ref }}
-
-    - name: Install Script Dependencies
-      run: sudo npm install -g npm@8.12.1 && npm install shelljs && npm install -g lerna
     - uses: ./.github/actions/gitConfig
       with:
           email: ${{ secrets.GH_EMAIL }}
-    - run: npm install
-    - run: npm --version
-    - run: node --version
+    - run: npm install shelljs
     - name: Create and Push the Release Branch
       run: |
         echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
         node scripts/create-release-branch.js
       env: 
         RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
+        BASE_BRANCH: ${{ github.event.ref || 'develop'}}
 # For future Slack Integration
 #     - name: Update Slack - Failure
 #       if: failure()

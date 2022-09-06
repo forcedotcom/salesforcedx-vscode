@@ -6,6 +6,7 @@ const logger = require('./logger-util');
 const changeLogGeneratorUtils = require('./change-log-generator-utils');
 
 const RELEASE_TYPE = process.env['RELEASE_TYPE'];
+const BASE_BRANCH = process.env['BASE_BRANCH'];
 
 shell.set('-e');
 shell.set('+v');
@@ -51,18 +52,18 @@ checkVSCodeVersion();
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
 //todo: update to be dynamic for any base branch
-checkBaseBranch('develop');
+checkBaseBranch(BASE_BRANCH);
 
 const releaseBranchName = `release/v${nextVersion}`;
 
 // Check if release branch has already been created
-const isRemoteReleaseBranchExist = shell
+const remoteReleaseBranchExists = shell
   .exec(`git ls-remote --heads origin ${releaseBranchName}`, {
     silent: true
   })
   .stdout.trim();
 
-if (isRemoteReleaseBranchExist) {
+if (remoteReleaseBranchExists) {
   logger.error(
     `${releaseBranchName} already exists in remote. You might want to verify the value assigned to SALESFORCEDX_VSCODE_VERSION`
   );
@@ -71,6 +72,10 @@ if (isRemoteReleaseBranchExist) {
 
 // Create the new release branch and switch to it
 shell.exec(`git checkout -b ${releaseBranchName}`);
+
+// Set up lerna and dependencies 
+shell.exec(`npm install -g lerna`);
+shell.exec(`npm install`);
 
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
