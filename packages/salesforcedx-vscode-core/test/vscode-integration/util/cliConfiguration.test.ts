@@ -93,21 +93,21 @@ describe('SFDX CLI Configuration utility', () => {
     });
 
     it('Should return false if telemetry setting is disabled', async () => {
-      isTelemetryDisabledStub.returns('true');
+      isTelemetryDisabledStub.resolves('true');
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(false);
     });
 
     it('Should return true if telemetry setting is undefined', async () => {
-      isTelemetryDisabledStub.returns(undefined);
+      isTelemetryDisabledStub.resolves(undefined);
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
     });
 
     it('Should return true if telemetry setting is enabled', async () => {
-      isTelemetryDisabledStub.returns(false);
+      isTelemetryDisabledStub.resolves(false);
 
       const response = await isCLITelemetryAllowed();
       expect(response).to.equal(true);
