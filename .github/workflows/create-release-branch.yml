@@ -29,8 +29,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '16.13.x'
-        cache: 'npm'
-        cache-dependency-path: ./package-lock.json
     - name: Checkout
       uses: actions/checkout@v2.0.0
       with:
