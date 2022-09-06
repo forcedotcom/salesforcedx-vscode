@@ -362,7 +362,7 @@ describe('Quick launch apex tests', () => {
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
     expect(notificationArgs[0]).to.equal(
-      "Cannot read properties of undefined (reading 'length')"
+      "Cannot read property 'length' of undefined"
     );
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
