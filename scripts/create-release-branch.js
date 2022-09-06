@@ -6,7 +6,6 @@ const logger = require('./logger-util');
 const changeLogGeneratorUtils = require('./change-log-generator-utils');
 
 const RELEASE_TYPE = process.env['RELEASE_TYPE'];
-const BASE_BRANCH = process.env['BASE_BRANCH'];
 
 shell.set('-e');
 shell.set('+v');
@@ -51,8 +50,6 @@ checkVSCodeVersion();
 
 const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
 logger.info(`Release version: ${nextVersion}`);
-//todo: update to be dynamic for any base branch
-//checkBaseBranch(BASE_BRANCH);
 checkBaseBranch('develop');
 
 const releaseBranchName = `release/v${nextVersion}`;
@@ -77,6 +74,7 @@ shell.exec(`git checkout -b ${releaseBranchName}`);
 // Set up lerna and dependencies 
 shell.exec(`npm install -g lerna`);
 shell.exec(`npm install`);
+shell.exec(`echo "Installed Lerna"`);
 
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
@@ -89,6 +87,7 @@ shell.exec(
 );
 
 shell.exec(`npm run bootstrap`);
+shell.exec(`echo "Bootstrap again"`);
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
 // all the version bump changes so we'll now need to commit those using git add & commit.

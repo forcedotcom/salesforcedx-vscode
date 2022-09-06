@@ -43,7 +43,6 @@ jobs:
         node scripts/create-release-branch.js
       env: 
         RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
-        BASE_BRANCH: ${{ github.event.ref || 'develop'}}
 # For future Slack Integration
 #     - name: Update Slack - Failure
 #       if: failure()
