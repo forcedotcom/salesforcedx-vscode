@@ -47,8 +47,8 @@ jobs:
       run: |
         echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
         node scripts/create-release-branch.js
-      env:
-        RELEASE_TYPE: ${{ github.event.inputs.releaseType }}
+      env: 
+        RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 # For future Slack Integration
 #     - name: Update Slack - Failure
 #       if: failure()
