@@ -187,7 +187,7 @@ describe('WorkspaceContext', () => {
     await mockFileWatcher.fire('delete');
 
     expect(someLogic.callCount).to.equal(3);
-  });
+  }).timeout(320000);
 
   describe('getConnection', () => {
     const mockAuthInfo = { test: 'test' };
