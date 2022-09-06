@@ -10,11 +10,11 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  getLogDirPath,
   hasRootWorkspace,
   LibraryCommandletExecutor,
   SfdxCommandlet,
-  SfdxWorkspaceChecker
+  SfdxWorkspaceChecker,
+  WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode';
 import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
@@ -157,7 +157,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 
   private getLogFilePath(): string {
-    const outputDir = getLogDirPath();
+    const outputDir = WorkspaceContextUtil.getLogDirPath();
     const now = new Date();
     const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
     const logFilePath = path.join(outputDir, `${localDateFormatted}.log`);

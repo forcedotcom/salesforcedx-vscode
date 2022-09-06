@@ -10,44 +10,7 @@ import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  getLogDirPath,
-  getRootWorkspacePath,
-  WorkspaceContextUtil
-} from '../../../src';
-
-// const vscodeStub = {
-//   commands: stub(),
-//   Disposable: stub(),
-//   env: {
-//     machineId: '12345534'
-//   },
-//   EventEmitter,
-//   Uri: {
-//     parse: stub(),
-//     file: stub()
-//   },
-//   window: {
-//     showInformationMessage: stub()
-//   },
-//   workspace: {
-//     createFileSystemWatcher: () => {
-//       return {
-//         dispose: () => {},
-//         onDidChange: () => {},
-//         onDidCreate: () => {},
-//         onDidDelete: () => {},
-//         fire: () => {}
-//       };
-//     },
-//     getConfiguration: () => {
-//       return {
-//         get: () => true
-//       };
-//     },
-//     onDidChangeConfiguration: stub()
-//   }
-// };
+import { getRootWorkspacePath, WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -209,7 +172,7 @@ describe('WorkspaceContext', () => {
 describe('getLogDirPath', () => {
   it('should return a path to debug log folder', () => {
     const dirPath = getRootWorkspacePath();
-    const result = getLogDirPath();
+    const result = WorkspaceContextUtil.getLogDirPath();
     expect(result).to.equal(join(dirPath, '.sfdx', 'tools', 'debug', 'logs'));
   });
 });

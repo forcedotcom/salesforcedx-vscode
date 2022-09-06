@@ -51,6 +51,10 @@ export class WorkspaceContextUtil {
     this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
+  public static getLogDirPath(): string {
+    return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
+  }
+
   public getAuthUtil(): AuthUtil {
     return AuthUtil.getInstance();
   }
@@ -114,8 +118,4 @@ export class WorkspaceContextUtil {
   get alias(): string | undefined {
     return this._alias;
   }
-}
-
-export function getLogDirPath(): string {
-  return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
 }

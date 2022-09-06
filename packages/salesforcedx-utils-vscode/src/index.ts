@@ -29,8 +29,7 @@ export {
 } from './constants';
 export {
   OrgUserInfo,
-  WorkspaceContextUtil,
-  getLogDirPath
+  WorkspaceContextUtil
 } from './context/workspaceContextUtil';
 export {
   TelemetryService,

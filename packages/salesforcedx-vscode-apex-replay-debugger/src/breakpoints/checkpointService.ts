@@ -422,6 +422,166 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       return false;
     }
   }
+
+  // The order of operations here should be to
+  // 1. Get the source/line information
+  // 2. Validate the existing checkpoint information
+  //    a. validate there are only 5 active checkpoints
+  //    b. validate that the active checkpoint information is correct
+  //    c. set the typeRef on each checkpoint (requires the source/line information)
+  // 3. Remove any existing checkpoints
+  // 4. Create the new checkpoints
+  public static async sfdxCreateCheckpoints(): Promise<boolean> {
+    // In-spite of waiting for the lock, we still want subsequent calls to immediately return
+    // from this if checkpoints are already being created instead of stacking them up.
+    if (!creatingCheckpoints) {
+      creatingCheckpoints = true;
+    } else {
+      return false;
+    }
+    let updateError = false;
+    // The status message isn't changing, call to localize it once and use the localized string in the
+    // progress report.
+    const localizedProgressMessage = nls.localize(
+      'sfdx_update_checkpoints_in_org'
+    );
+    // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
+    try {
+      // The lock is necessary here to prevent the user from deleting the underlying breakpoint
+      // attached to the checkpoint while they're being uploaded into the org.
+      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
+        writeToDebuggerOutputWindow(
+          `${nls.localize('long_command_start')} ${localizedProgressMessage}`
+        );
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: localizedProgressMessage,
+            cancellable: false
+          },
+          async (progress, token) => {
+            writeToDebuggerOutputWindow(
+              `${localizedProgressMessage}, ${nls.localize(
+                'checkpoint_creation_status_org_info'
+              )}`
+            );
+            progress.report({
+              increment: 0,
+              message: localizedProgressMessage
+            });
+            const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
+            if (!orgInfoRetrieved) {
+              updateError = true;
+              return false;
+            }
+
+            writeToDebuggerOutputWindow(
+              `${localizedProgressMessage}, ${nls.localize(
+                'checkpoint_creation_status_source_line_info'
+              )}`
+            );
+            progress.report({
+              increment: 20,
+              message: localizedProgressMessage
+            });
+            const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
+            // If we didn't get the source line information that'll be reported at that time, just return
+            if (!sourceLineInfoRetrieved) {
+              updateError = true;
+              return false;
+            }
+
+            // There can be a max of five active checkpoints
+            if (!checkpointService.hasFiveOrLessActiveCheckpoints(true)) {
+              updateError = true;
+              return false;
+            }
+
+            writeToDebuggerOutputWindow(
+              `${localizedProgressMessage}, ${nls.localize(
+                'checkpoint_creation_status_setting_typeref'
+              )}`
+            );
+            progress.report({
+              increment: 50,
+              message: localizedProgressMessage
+            });
+            // For the active checkpoints set the typeRefs using the source/line info
+            if (!setTypeRefsForEnabledCheckpoints()) {
+              updateError = true;
+              return false;
+            }
+
+            writeToDebuggerOutputWindow(
+              `${localizedProgressMessage}, ${nls.localize(
+                'checkpoint_creation_status_clearing_existing_checkpoints'
+              )}`
+            );
+            progress.report({
+              increment: 50,
+              message: localizedProgressMessage
+            });
+            // remove any existing checkpoints on the server
+            const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
+            if (!allRemoved) {
+              updateError = true;
+              return false;
+            }
+
+            writeToDebuggerOutputWindow(
+              `${localizedProgressMessage}, ${nls.localize(
+                'checkpoint_creation_status_uploading_checkpoints'
+              )}`
+            );
+            progress.report({
+              increment: 70,
+              message: localizedProgressMessage
+            });
+            // This should probably be batched but it makes dealing with errors kind of a pain
+            for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
+              if (cpNode.isCheckpointEnabled()) {
+                if (
+                  !(await checkpointService.executeCreateApexExecutionOverlayActionCommand(
+                    cpNode
+                  ))
+                ) {
+                  updateError = true;
+                }
+              }
+            }
+
+            progress.report({
+              increment: 100,
+              message: localizedProgressMessage
+            });
+            writeToDebuggerOutputWindow(
+              `${localizedProgressMessage}, ${nls.localize(
+                'checkpoint_creation_status_processing_complete_success'
+              )}`
+            );
+          }
+        );
+      });
+    } finally {
+      writeToDebuggerOutputWindow(
+        `${nls.localize('long_command_end')} ${localizedProgressMessage}`
+      );
+      let errorMsg = '';
+      if (updateError) {
+        errorMsg = nls.localize(
+          'checkpoint_upload_error_wrap_up_message',
+          nls.localize('sfdx_update_checkpoints_in_org')
+        );
+        writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
+      }
+      telemetryService.sendCheckpointEvent(errorMsg);
+      creatingCheckpoints = false;
+    }
+    if (updateError) {
+      return false;
+    }
+    return true;
+  }
 }
 
 export const checkpointService = CheckpointService.getInstance();
@@ -787,142 +947,6 @@ function setTypeRefsForEnabledCheckpoints(): boolean {
 // 3. Remove any existing checkpoints
 // 4. Create the new checkpoints
 let creatingCheckpoints = false;
-export async function sfdxCreateCheckpoints(): Promise<boolean> {
-  // In-spite of waiting for the lock, we still want subsequent calls to immediately return
-  // from this if checkpoints are already being created instead of stacking them up.
-  if (!creatingCheckpoints) {
-    creatingCheckpoints = true;
-  } else {
-    return false;
-  }
-  let updateError = false;
-  // The status message isn't changing, call to localize it once and use the localized string in the
-  // progress report.
-  const localizedProgressMessage = nls.localize(
-    'sfdx_update_checkpoints_in_org'
-  );
-  // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
-  try {
-    // The lock is necessary here to prevent the user from deleting the underlying breakpoint
-    // attached to the checkpoint while they're being uploaded into the org.
-    await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-      writeToDebuggerOutputWindow(
-        `${nls.localize('long_command_start')} ${localizedProgressMessage}`
-      );
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: localizedProgressMessage,
-          cancellable: false
-        },
-        async (progress, token) => {
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize(
-              'checkpoint_creation_status_org_info'
-            )}`
-          );
-          progress.report({ increment: 0, message: localizedProgressMessage });
-          const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
-          if (!orgInfoRetrieved) {
-            updateError = true;
-            return false;
-          }
-
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize(
-              'checkpoint_creation_status_source_line_info'
-            )}`
-          );
-          progress.report({ increment: 20, message: localizedProgressMessage });
-          const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
-          // If we didn't get the source line information that'll be reported at that time, just return
-          if (!sourceLineInfoRetrieved) {
-            updateError = true;
-            return false;
-          }
-
-          // There can be a max of five active checkpoints
-          if (!checkpointService.hasFiveOrLessActiveCheckpoints(true)) {
-            updateError = true;
-            return false;
-          }
-
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize(
-              'checkpoint_creation_status_setting_typeref'
-            )}`
-          );
-          progress.report({ increment: 50, message: localizedProgressMessage });
-          // For the active checkpoints set the typeRefs using the source/line info
-          if (!setTypeRefsForEnabledCheckpoints()) {
-            updateError = true;
-            return false;
-          }
-
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize(
-              'checkpoint_creation_status_clearing_existing_checkpoints'
-            )}`
-          );
-          progress.report({ increment: 50, message: localizedProgressMessage });
-          // remove any existing checkpoints on the server
-          const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
-          if (!allRemoved) {
-            updateError = true;
-            return false;
-          }
-
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize(
-              'checkpoint_creation_status_uploading_checkpoints'
-            )}`
-          );
-          progress.report({ increment: 70, message: localizedProgressMessage });
-          // This should probably be batched but it makes dealing with errors kind of a pain
-          for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
-            if (cpNode.isCheckpointEnabled()) {
-              if (
-                !(await checkpointService.executeCreateApexExecutionOverlayActionCommand(
-                  cpNode
-                ))
-              ) {
-                updateError = true;
-              }
-            }
-          }
-
-          progress.report({
-            increment: 100,
-            message: localizedProgressMessage
-          });
-          writeToDebuggerOutputWindow(
-            `${localizedProgressMessage}, ${nls.localize(
-              'checkpoint_creation_status_processing_complete_success'
-            )}`
-          );
-        }
-      );
-    });
-  } finally {
-    writeToDebuggerOutputWindow(
-      `${nls.localize('long_command_end')} ${localizedProgressMessage}`
-    );
-    let errorMsg = '';
-    if (updateError) {
-      errorMsg = nls.localize(
-        'checkpoint_upload_error_wrap_up_message',
-        nls.localize('sfdx_update_checkpoints_in_org')
-      );
-      writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
-    }
-    telemetryService.sendCheckpointEvent(errorMsg);
-    creatingCheckpoints = false;
-  }
-  if (updateError) {
-    return false;
-  }
-  return true;
-}
 
 // A couple of important notes about this command's processing
 // 1. There is no way to invoke a breakpoint change through vscode.debug

@@ -14,21 +14,21 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
-  getLogDirPath,
+  ContinueResponse,
   getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
   getTestResultsFolder,
-  TraceFlags
+  LibraryCommandletExecutor,
+  notificationService,
+  TraceFlags,
+  WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { workspace } from 'vscode';
-import { sfdxCreateCheckpoints } from '../breakpoints';
-import { checkpointService } from '../breakpoints/checkpointService';
+import {
+  checkpointService,
+  CheckpointService
+} from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -62,7 +62,7 @@ export class QuickLaunch {
       true
     );
     if (oneOrMoreCheckpoints) {
-      const createCheckpointsResult = await sfdxCreateCheckpoints();
+      const createCheckpointsResult = await CheckpointService.sfdxCreateCheckpoints();
       if (!createCheckpointsResult) {
         return false;
       }
@@ -138,7 +138,7 @@ export class QuickLaunch {
     logId: string
   ): Promise<LogFileRetrieveResult> {
     const logService = new LogService(connection);
-    const outputDir = getLogDirPath();
+    const outputDir = WorkspaceContextUtil.getLogDirPath();
 
     await logService.getLogs({ logId, outputDir });
     const logPath = path.join(outputDir, `${logId}.log`);
