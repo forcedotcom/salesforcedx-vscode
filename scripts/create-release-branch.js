@@ -72,9 +72,8 @@ if (remoteReleaseBranchExists) {
 shell.exec(`git checkout -b ${releaseBranchName}`);
 
 // Set up lerna and dependencies 
-shell.exec(`npm install -g lerna`);
 shell.exec(`npm install`);
-logger.info(`Installed Lerna`);
+logger.info(`NOT INSTALLED Lerna`);
 
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
@@ -82,10 +81,11 @@ shell.exec('git clean -xfd -e node_modules');
 // lerna version
 // increment the version number in all packages without publishing to npmjs
 // only run on branch named develop and do not create git tags
+logger.info(`Before version bump`);
 shell.exec(
   `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
 );
-
+logger.info(`After version bump`);
 shell.exec(`npm run bootstrap`);
 logger.info(`Bootstrap again`);
 
