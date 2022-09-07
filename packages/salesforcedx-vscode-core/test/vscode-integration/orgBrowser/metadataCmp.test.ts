@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, Global } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import { expect } from 'chai';
@@ -86,7 +86,7 @@ describe('get metadata components path', () => {
   function expectedPath(fileName: string) {
     return path.join(
       rootWorkspacePath,
-      '.sfdx',
+      Global.SFDX_STATE_FOLDER,
       'orgs',
       username,
       'metadata',
