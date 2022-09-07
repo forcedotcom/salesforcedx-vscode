@@ -101,14 +101,16 @@ describe('WorkspaceContext', () => {
     SFDX_CONFIG_FILE
   );
 
-  let orgTypeStub: SinonStub;
+  let setupWorkspaceOrgTypeStub: SinonStub;
   let usernameStub: SinonStub;
   let aliasStub: SinonStub;
   let workspaceContextUtil: WorkspaceContextUtil;
   let workspaceContext: WorkspaceContext;
 
   beforeEach(async () => {
-    orgTypeStub = env.stub(wsContext, 'setupWorkspaceOrgType').resolves();
+    setupWorkspaceOrgTypeStub = env
+      .stub(wsContext, 'setupWorkspaceOrgType')
+      .resolves();
 
     workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
     env.stub(WorkspaceContextUtil, 'getInstance').returns(workspaceContextUtil);
@@ -130,7 +132,7 @@ describe('WorkspaceContext', () => {
   it('should load the default username and alias upon initialization', () => {
     expect(workspaceContext.username).to.equal(testUser);
     expect(workspaceContext.alias).to.equal(testAlias);
-    expect(orgTypeStub.called).to.equal(true);
+    expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
   });
 
   it('should update default username and alias upon config change', async () => {
@@ -141,7 +143,7 @@ describe('WorkspaceContext', () => {
       .getFileWatcher()
       .fire('change');
 
-    expect(orgTypeStub.called).to.equal(true);
+    expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(testUser2);
     expect(workspaceContext.alias).to.equal(undefined);
   });
@@ -154,7 +156,7 @@ describe('WorkspaceContext', () => {
       .getFileWatcher()
       .fire('change');
 
-    expect(orgTypeStub.called).to.equal(true);
+    expect(setupWorkspaceOrgTypeStub.called).to.equal(true);
     expect(workspaceContext.username).to.equal(undefined);
     expect(workspaceContext.alias).to.equal(undefined);
   });
@@ -169,13 +171,39 @@ describe('WorkspaceContext', () => {
     await (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('change');
-    // await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
-    // await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
 
     expect(someLogic.callCount).to.equal(1);
   });
 
-  describe.skip('getConnection', () => {
+  it('should notify subscribers that the default org may have created', async () => {
+    const someLogic = env.stub();
+    workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
+      someLogic(orgInfo);
+    });
+
+    // awaiting to ensure subscribers run their logic
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('create');
+
+    expect(someLogic.callCount).to.equal(1);
+  });
+
+  it('should notify subscribers that the default org may have been deleted', async () => {
+    const someLogic = env.stub();
+    workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
+      someLogic(orgInfo);
+    });
+
+    // awaiting to ensure subscribers run their logic
+    await (workspaceContextUtil as TestWorkspaceContextUtil)
+      .getFileWatcher()
+      .fire('delete');
+
+    expect(someLogic.callCount).to.equal(1);
+  });
+
+  describe('getConnection', () => {
     const mockAuthInfo = { test: 'test' };
     const mockConnection = { authInfo: mockAuthInfo };
 
@@ -189,4 +217,4 @@ describe('WorkspaceContext', () => {
       expect(connection).to.deep.equal(mockConnection);
     });
   });
-});
+}).timeout(60000);
