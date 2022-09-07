@@ -74,7 +74,7 @@ shell.exec(`git checkout -b ${releaseBranchName}`);
 // Set up lerna and dependencies 
 shell.exec(`npm install -g lerna`);
 shell.exec(`npm install`);
-shell.exec(`echo "Installed Lerna"`);
+logger.info(`Installed Lerna`);
 
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
@@ -87,7 +87,7 @@ shell.exec(
 );
 
 shell.exec(`npm run bootstrap`);
-shell.exec(`echo "Bootstrap again"`);
+logger.info(`Bootstrap again`);
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
 // all the version bump changes so we'll now need to commit those using git add & commit.
