@@ -169,14 +169,10 @@ describe('WorkspaceContext', () => {
     await (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('change');
-    await (workspaceContextUtil as TestWorkspaceContextUtil)
-      .getFileWatcher()
-      .fire('create');
-    await (workspaceContextUtil as TestWorkspaceContextUtil)
-      .getFileWatcher()
-      .fire('delete');
+    // await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('create');
+    // await (workspaceContextUtil as TestWorkspaceContextUtil).getFileWatcher().fire('delete');
 
-    expect(someLogic.callCount).to.equal(3);
+    expect(someLogic.callCount).to.equal(1);
   });
 
   describe.skip('getConnection', () => {
