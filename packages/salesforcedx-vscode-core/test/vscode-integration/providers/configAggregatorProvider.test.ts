@@ -8,7 +8,7 @@ import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
-import { getRootWorkspacePath } from '../../../src/util';
+import * as utils from '../../../src/util';
 
 const sandbox = createSandbox();
 const dummyProjectRootWorkspacePath = '/test/home/testProject';
@@ -19,7 +19,7 @@ describe('ConfigAggregatorProvider', () => {
   let configAggregatorProvider: ConfigAggregatorProvider;
 
   beforeEach(() => {
-    getRootWorkspacePathStub = sandbox.stub(getRootWorkspacePath);
+    getRootWorkspacePathStub = sandbox.stub(utils, 'getRootWorkspacePath');
     changeCurrentDirectoryToStub = sandbox.stub(
       ConfigAggregatorProvider.prototype as any,
       'changeCurrentDirectoryTo'
