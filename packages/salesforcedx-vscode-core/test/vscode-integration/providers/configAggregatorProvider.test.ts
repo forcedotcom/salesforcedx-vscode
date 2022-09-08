@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ConfigAggregator } from '@salesforce/core';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/src';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const sandbox = createSandbox();
 const dummyProjectRootWorkspacePath = '/test/home/testProject';
