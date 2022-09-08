@@ -115,13 +115,6 @@ export class WorkspaceContextUtil {
   get alias(): string | undefined {
     return this._alias;
   }
-
-  get rootWorkspacePath(): string {
-    if (!this._rootWorkspacePath) {
-      this._rootWorkspacePath = getRootWorkspacePath();
-    }
-    return this._rootWorkspacePath;
-  }
 }
 
 export function getLogDirPath(): string {
