@@ -130,11 +130,12 @@ export class DeployQueue {
 export async function registerPushOrDeployOnSave() {
   vscode.workspace.onDidSaveTextDocument(
     async (textDocument: vscode.TextDocument) => {
+      const documentUri = textDocument.uri;
       if (
         sfdxCoreSettings.getPushOrDeployOnSaveEnabled() &&
-        !(await ignorePath(textDocument.uri))
+        !(await ignorePath(documentUri.fsPath))
       ) {
-        await DeployQueue.get().enqueue(textDocument.uri);
+        await DeployQueue.get().enqueue(documentUri);
       }
     }
   );
@@ -150,14 +151,13 @@ function displayError(message: string) {
   );
 }
 
-async function ignorePath(uri: vscode.Uri) {
-  return isDotFile(uri) || !(await pathIsInPackageDirectory(uri));
+async function ignorePath(documentPath: string) {
+  return fileShouldNotBeDeployed(documentPath) || !(await pathIsInPackageDirectory(documentPath));
 }
 
 export async function pathIsInPackageDirectory(
-  documentUri: vscode.Uri
+  documentPath: string
 ): Promise<boolean> {
-  const documentPath = documentUri.fsPath;
   try {
     return await SfdxPackageDirectories.isInPackageDirectory(documentPath);
   } catch (error) {
@@ -178,6 +178,18 @@ export async function pathIsInPackageDirectory(
   }
 }
 
-function isDotFile(uri: vscode.Uri) {
-  return path.basename(uri.fsPath).startsWith('.');
+export function fileShouldNotBeDeployed(fsPath: string) {
+  return (isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath));
+}
+
+function isDotFile(fsPath: string) {
+  return path.basename(fsPath).startsWith('.');
+}
+
+function isSoql(fsPath: string) {
+  return path.basename(fsPath).endsWith('.soql');
+}
+
+function isAnonApex(fsPath: string) {
+  return path.basename(fsPath).endsWith('.apex');
 }
