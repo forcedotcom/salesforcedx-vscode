@@ -29,7 +29,6 @@ export class WorkspaceContextUtil {
   protected onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
   protected _username?: string;
   protected _alias?: string;
-  protected _rootWorkspacePath?: string;
 
   public readonly onOrgChange: vscode.Event<OrgInfo>;
 
