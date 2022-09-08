@@ -168,15 +168,21 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileChangedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('change');
-    await (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileCreatedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('create');
-    await (workspaceContextUtil as TestWorkspaceContextUtil)
+    const fileDeletedPromise = (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('delete');
+
+    await Promise.all([
+      fileChangedPromise,
+      fileCreatedPromise,
+      fileDeletedPromise
+    ]);
 
     expect(someLogic.callCount).to.equal(3);
   });
