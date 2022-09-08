@@ -32,6 +32,15 @@ export {
 } from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
 export {
+  forceOpenDocumentation,
+  auraDocUrl,
+  apexDocUrl,
+  soqlDocUrl,
+  lwcDocUrl,
+  functionsDocUrl,
+  defaultDocUrl
+} from './forceOpenDocumentation';
+export {
   forceOrgCreate,
   AliasGatherer,
   ForceOrgCreateExecutor

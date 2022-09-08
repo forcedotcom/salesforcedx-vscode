@@ -337,6 +337,10 @@
           "when": "sfdx:project_opened && sfdx:has_default_username"
         },
         {
+          "command": "sfdx.force.open.documentation",
+          "when": "sfdx:project_opened"
+        },
+        {
           "command": "sfdx.force.org.create",
           "when": "sfdx:project_opened"
         },
@@ -642,6 +646,10 @@
       {
         "command": "sfdx.force.auth.logout.default",
         "title": "%force_auth_logout_default_text%"
+      },
+      {
+        "command": "sfdx.force.open.documentation",
+        "title": "%force_open_documentation_text%"
       },
       {
         "command": "sfdx.force.org.create",
