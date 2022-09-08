@@ -58,18 +58,18 @@ export class WorkspaceContext {
 
   public getSfdxDirectoryPath(): string {
     return path.join(
-      getRootWorkspacePath(), 
+      getRootWorkspacePath(),
       Global.SFDX_STATE_FOLDER
-    )
+    );
   }
-    
+
   public getMetadataDirectoryPath(username: string): string {
     return path.join(
       this.getSfdxDirectoryPath(),
       'orgs',
       username,
       'metadata'
-    )
+    );
   }
 
 }
