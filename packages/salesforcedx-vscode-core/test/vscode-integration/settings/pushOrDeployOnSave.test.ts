@@ -11,7 +11,7 @@ import { channelService } from '../../../src/channels';
 import * as context from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { DeployQueue, pathIsInPackageDirectory, fileShouldNotBeDeployed } from '../../../src/settings';
+import { DeployQueue, fileShouldNotBeDeployed, pathIsInPackageDirectory } from '../../../src/settings';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
@@ -238,7 +238,7 @@ describe('Push or Deploy on Save', () => {
   });
 
   describe('fileShouldNotBeDeployed', () => {
-    //verify which types of files we want to be deployed on save
+    // verify which types of files we want to be deployed on save
 
     it('should return true for dot files', async () => {
       const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/.env'));
