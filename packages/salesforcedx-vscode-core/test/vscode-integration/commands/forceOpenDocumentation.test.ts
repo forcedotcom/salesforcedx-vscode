@@ -9,13 +9,13 @@ import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import {
-  forceOpenDocumentation,
-  auraDocUrl,
   apexDocUrl,
-  soqlDocUrl,
-  lwcDocUrl,
+  auraDocUrl,
+  defaultDocUrl,
+  forceOpenDocumentation,
   functionsDocUrl,
-  defaultDocUrl
+  lwcDocUrl,
+  soqlDocUrl
 } from '../../../src/commands';
 
 describe('forceOpenDocumentation', () => {
