@@ -179,7 +179,8 @@ describe('WorkspaceContext', () => {
       .getFileWatcher()
       .fire('delete');
 
-    this.timeout(320000);
+    // Test runs in CI build in approx: 45000ms
+    this.timeout(60000);
     await Promise.all([
       fileChangedPromise,
       fileCreatedPromise,
