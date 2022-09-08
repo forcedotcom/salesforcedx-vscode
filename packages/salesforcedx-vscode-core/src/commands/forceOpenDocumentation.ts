@@ -5,14 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as path from 'path'
+import * as path from 'path';
 import * as vscode from 'vscode';
 
-export const auraDocUrl = 'https://developer.salesforce.com/tools/vscode/en/aura/writing';
-export const apexDocUrl = 'https://developer.salesforce.com/tools/vscode/en/apex/writing';
-export const soqlDocUrl = 'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder';
-export const lwcDocUrl = 'https://developer.salesforce.com/tools/vscode/en/lwc/writing';
-export const functionsDocUrl = 'https://developer.salesforce.com/tools/vscode/en/functions/overview';
+export const auraDocUrl =
+  'https://developer.salesforce.com/tools/vscode/en/aura/writing';
+export const apexDocUrl =
+  'https://developer.salesforce.com/tools/vscode/en/apex/writing';
+export const soqlDocUrl =
+  'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder';
+export const lwcDocUrl =
+  'https://developer.salesforce.com/tools/vscode/en/lwc/writing';
+export const functionsDocUrl =
+  'https://developer.salesforce.com/tools/vscode/en/functions/overview';
 export const defaultDocUrl = 'https://developer.salesforce.com/tools/vscode';
 
 const auraPath = '/force-app/main/default/aura/';
@@ -32,7 +37,10 @@ export async function forceOpenDocumentation() {
 
     if (filePath.includes(auraPath)) {
       docUrl = auraDocUrl;
-    } else if (filePath.includes(apexClassesPath) || extension === apexExtension) {
+    } else if (
+      filePath.includes(apexClassesPath) ||
+      extension === apexExtension
+    ) {
       docUrl = apexDocUrl;
     } else if (extension === soqlExtension) {
       docUrl = soqlDocUrl;

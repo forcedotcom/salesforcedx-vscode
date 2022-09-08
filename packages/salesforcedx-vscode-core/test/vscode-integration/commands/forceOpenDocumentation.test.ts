@@ -18,7 +18,6 @@ import {
   defaultDocUrl
 } from '../../../src/commands';
 
-
 describe('forceOpenDocumentation', () => {
   let sb: SinonSandbox;
   let activeTextEditorStub: SinonStub;
@@ -26,7 +25,7 @@ describe('forceOpenDocumentation', () => {
 
   beforeEach(() => {
     sb = createSandbox();
-    activeTextEditorStub = sb.stub(vscode.window, 'activeTextEditor')
+    activeTextEditorStub = sb.stub(vscode.window, 'activeTextEditor');
     openExternalStub = sb.stub(vscode.env, 'openExternal');
   });
 
@@ -37,7 +36,8 @@ describe('forceOpenDocumentation', () => {
   it('should open the documentation for Aura', async () => {
     activeTextEditorStub.get(() => ({
       document: {
-        fileName: '/force-app/main/default/aura/exampleAuraComponent/exampleAuraComponent.cmp'
+        fileName:
+          '/force-app/main/default/aura/exampleAuraComponent/exampleAuraComponent.cmp'
       }
     }));
 
@@ -85,7 +85,8 @@ describe('forceOpenDocumentation', () => {
   it('should open the documentation for LWC', async () => {
     activeTextEditorStub.get(() => ({
       document: {
-        fileName: '/force-app/main/default/lwc/exampleLwcComponent/exampleLwcComponent.js'
+        fileName:
+          '/force-app/main/default/lwc/exampleLwcComponent/exampleLwcComponent.js'
       }
     }));
 
@@ -103,7 +104,9 @@ describe('forceOpenDocumentation', () => {
 
     await forceOpenDocumentation();
 
-    expect(openExternalStub.getCall(0).args[0].toString()).to.equal(functionsDocUrl);
+    expect(openExternalStub.getCall(0).args[0].toString()).to.equal(
+      functionsDocUrl
+    );
   });
 
   it('should open the default documentation', async () => {
@@ -115,6 +118,8 @@ describe('forceOpenDocumentation', () => {
 
     await forceOpenDocumentation();
 
-    expect(openExternalStub.getCall(0).args[0].toString()).to.equal(defaultDocUrl);
+    expect(openExternalStub.getCall(0).args[0].toString()).to.equal(
+      defaultDocUrl
+    );
   });
 });
