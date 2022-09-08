@@ -11,7 +11,7 @@ import { channelService } from '../../../src/channels';
 import * as context from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { DeployQueue, pathIsInPackageDirectory } from '../../../src/settings';
+import { DeployQueue, pathIsInPackageDirectory, fileShouldNotBeDeployed } from '../../../src/settings';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
@@ -234,6 +234,27 @@ describe('Push or Deploy on Save', () => {
       );
       expect(showErrorMessageStub.calledOnce).to.be.false;
       expect(appendLineStub.calledOnce).to.be.false;
+    });
+  });
+
+  describe('fileShouldNotBeDeployed', () => {
+    //verify which types of files we want to be deployed on save
+
+    it('should return true for dot files', async () => {
+      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/.env'));
+      expect(stopDotFileFromBeingDeployed).to.be.true;
+    });
+    it('should return true for soql files', async () => {
+      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/AccountQuery.soql'));
+      expect(stopSOQLFileFromBeingDeployed).to.be.true;
+    });
+    it('should return true for anonymous apex files', async () => {
+      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/GetAccounts.apex'));
+      expect(stopAnonApexFileFromBeingDeployed).to.be.true;
+    });
+    it('should return false for class files', async () => {
+      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/MyAccountMap.cls'));
+      expect(stopClassFileFromBeingDeployed).to.be.false;
     });
   });
 });

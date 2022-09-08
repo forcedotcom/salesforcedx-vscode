@@ -151,7 +151,7 @@ function displayError(message: string) {
 }
 
 async function ignorePath(uri: vscode.Uri) {
-  return isDotFile(uri) || !(await pathIsInPackageDirectory(uri));
+  return fileShouldNotBeDeployed(uri) || !(await pathIsInPackageDirectory(uri));
 }
 
 export async function pathIsInPackageDirectory(
@@ -178,6 +178,18 @@ export async function pathIsInPackageDirectory(
   }
 }
 
+export function fileShouldNotBeDeployed(uri: vscode.Uri) {
+  return (isDotFile(uri) || isSoql(uri) || isAnonApex(uri));
+}
+
 function isDotFile(uri: vscode.Uri) {
   return path.basename(uri.fsPath).startsWith('.');
+}
+
+function isSoql(uri: vscode.Uri) {
+  return path.basename(uri.fsPath).endsWith('.soql');
+}
+
+function isAnonApex(uri: vscode.Uri) {
+  return path.basename(uri.fsPath).endsWith('.apex');
 }
