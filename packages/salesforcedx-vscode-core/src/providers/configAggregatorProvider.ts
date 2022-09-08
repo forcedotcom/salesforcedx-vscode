@@ -80,14 +80,14 @@ export class ConfigAggregatorProvider {
     return currentWorkingDirectory;
   }
 
-  private changeCurrentDirectoryTo(path: string) {
-    process.chdir(path);
-  }
-
   private ensureCurrentDirectoryInsideProject(path: string) {
     const rootWorkspacePath = getRootWorkspacePath();
     if (path !== rootWorkspacePath) {
       this.changeCurrentDirectoryTo(rootWorkspacePath);
     }
+  }
+
+  private changeCurrentDirectoryTo(path: string) {
+    process.chdir(path);
   }
 }
