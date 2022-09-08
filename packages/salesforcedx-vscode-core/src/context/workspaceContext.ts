@@ -56,10 +56,6 @@ export class WorkspaceContext {
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
-
-  get rootWorkspacePath(): string {
-    return WorkspaceContextUtil.getInstance().rootWorkspacePath;
-  }
 }
 
 export { OrgInfo };
