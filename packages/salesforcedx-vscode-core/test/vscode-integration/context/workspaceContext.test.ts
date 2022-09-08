@@ -161,7 +161,8 @@ describe('WorkspaceContext', () => {
     expect(workspaceContext.alias).to.equal(undefined);
   });
 
-  it('should notify subscribers that the default org may have changed', async () => {
+  // tslint:disable-next-line:only-arrow-functions
+  it('should notify subscribers that the default org may have changed', async function() {
     const someLogic = env.stub();
     workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
       someLogic(orgInfo);
@@ -178,6 +179,7 @@ describe('WorkspaceContext', () => {
       .getFileWatcher()
       .fire('delete');
 
+    this.timeout(320000);
     await Promise.all([
       fileChangedPromise,
       fileCreatedPromise,
