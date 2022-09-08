@@ -135,6 +135,10 @@
           "when": "sfdx:project_opened && !editorHasSelection"
         },
         {
+          "command": "sfdx.force.anon.apex.execute.document.debug.only",
+          "when": "sfdx:project_opened && !editorHasSelection"
+        },
+        {
           "command": "sfdx.force.apex.log.get",
           "when": "sfdx:project_opened"
         },
@@ -200,6 +204,10 @@
       {
         "command": "sfdx.force.anon.apex.execute.document",
         "title": "%force_anon_apex_execute_document_text%"
+      },
+      {
+        "command": "sfdx.force.anon.apex.execute.document.debug.only",
+        "title": "%force_anon_apex_execute_document_text_debug_only%"
       },
       {
         "command": "sfdx.force.anon.apex.execute.selection",

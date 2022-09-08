@@ -13,6 +13,7 @@ import { CodeCoverage, StatusBarToggle } from './codecoverage';
 import {
   forceAnonApexDebug,
   forceAnonApexExecute,
+  forceAnonApexExecuteDebugOnly,
   forceApexDebugClassRunCodeActionDelegate,
   forceApexDebugMethodRunCodeActionDelegate,
   forceApexLogGet,
@@ -72,7 +73,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await workspaceContext.initialize(extensionContext);
 
   // Telemetry
-  const extensionPackage = require(extensionContext.asAbsolutePath('./package.json'));
+  const extensionPackage = require(extensionContext.asAbsolutePath(
+    './package.json'
+  ));
   await telemetryService.initializeService(
     extensionContext,
     APEX_EXTENSION_NAME,
@@ -83,7 +86,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
-    languageClient = await languageServer.createLanguageServer(extensionContext);
+    languageClient = await languageServer.createLanguageServer(
+      extensionContext
+    );
     languageClientUtils.setClientInstance(languageClient);
     const handle = languageClient.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
@@ -219,6 +224,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.anon.apex.execute.document',
     forceAnonApexExecute
   );
+  const forceAnonApexExecuteDocumentDebugOnlyCmd = vscode.commands.registerCommand(
+    'sfdx.force.anon.apex.execute.document.debug.only',
+    forceAnonApexExecuteDebugOnly
+  );
   const forceAnonApexDebugDocumentCmd = vscode.commands.registerCommand(
     'sfdx.force.apex.debug.document',
     forceAnonApexDebug
@@ -239,6 +248,7 @@ function registerCommands(): vscode.Disposable {
     forceAnonApexRunDelegateCmd,
     forceAnonApexDebugDelegateCmd,
     forceAnonApexExecuteDocumentCmd,
+    forceAnonApexExecuteDocumentDebugOnlyCmd,
     forceAnonApexExecuteSelectionCmd,
     forceAnonApexDebugDocumentCmd,
     forceLaunchApexReplayDebuggerWithCurrentFileCmd,
@@ -257,8 +267,7 @@ function registerCommands(): vscode.Disposable {
   );
 }
 
-async function registerTestView(
-): Promise<vscode.Disposable> {
+async function registerTestView(): Promise<vscode.Disposable> {
   // Create TestRunner
   const testRunner = new ApexTestRunner(testOutlineProvider);
 

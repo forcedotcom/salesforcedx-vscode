@@ -11,6 +11,7 @@
   "java_memory_description": "Specifies the amount of memory allocation to the Apex Language Server in MB, or null to use the system default value.",
   "apex_semantic_errors_description": "Allow Apex Language Server to surface semantic errors",
   "force_anon_apex_execute_document_text": "SFDX: Execute Anonymous Apex with Editor Contents",
+  "force_anon_apex_execute_document_text_debug_only": "SFDX: Execute Anonymous Apex with Editor Contents - Debug Statements Only",
   "force_anon_apex_execute_selection_text": "SFDX: Execute Anonymous Apex with Currently Selected Text",
   "force_apex_log_get_text": "SFDX: Get Apex Debug Logs",
   "force_apex_test_last_class_run_text": "SFDX: Re-Run Last Run Apex Test Class",

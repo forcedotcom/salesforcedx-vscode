@@ -16,9 +16,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  getYYYYMMddHHmmssDateFormat
-} from '@salesforce/salesforcedx-utils-vscode/out/src/date';
+import { getYYYYMMddHHmmssDateFormat } from '@salesforce/salesforcedx-utils-vscode/out/src/date';
 import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
@@ -82,8 +80,9 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   );
 
   private isDebugging: boolean;
+  private isDebugStatementsOnly: boolean;
 
-  constructor(isDebugging: boolean) {
+  constructor(isDebugging: boolean, isDebugStatementsOnly: boolean = false) {
     super(
       nls.localize('apex_execute_text'),
       'force_apex_execute_library',
@@ -91,6 +90,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     );
 
     this.isDebugging = isDebugging;
+    this.isDebugStatementsOnly = isDebugStatementsOnly;
   }
 
   public async run(
@@ -167,9 +167,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     return logFilePath;
   }
 
-  private saveLogFile(
-    logFilePath: string,
-    logs?: string): boolean {
+  private saveLogFile(logFilePath: string, logs?: string): boolean {
     if (!logFilePath || !logs) {
       return false;
     }
@@ -181,10 +179,20 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 
   private outputResult(response: ExecuteAnonymousResponse): void {
     let outputText = '';
+    let logs = response.logs!;
+
+    if (this.isDebugStatementsOnly) {
+      // Todo: QA on Windows machines to validate/verify carriage return aka '\n' works as expected
+      logs = logs
+        .split('\n')
+        .filter(line => line.includes('USER_DEBUG'))
+        .join('\n');
+    }
+
     if (response.success) {
       outputText += `${nls.localize('apex_execute_compile_success')}\n`;
       outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
-      outputText += `\n${response.logs}`;
+      outputText += `\n${logs}`;
     } else {
       const diagnostic = response.diagnostic![0];
 
@@ -234,9 +242,10 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
         )
       };
 
-      AnonApexLibraryExecuteExecutor.diagnostics.set(vscode.Uri.file(filePath), [
-        vscDiagnostic
-      ]);
+      AnonApexLibraryExecuteExecutor.diagnostics.set(
+        vscode.Uri.file(filePath),
+        [vscDiagnostic]
+      );
     }
   }
 
@@ -264,6 +273,16 @@ export async function forceAnonApexExecute() {
     new SfdxWorkspaceChecker(),
     new AnonApexGatherer(),
     new AnonApexLibraryExecuteExecutor(false)
+  );
+
+  await commandlet.run();
+}
+
+export async function forceAnonApexExecuteDebugOnly() {
+  const commandlet = new SfdxCommandlet(
+    new SfdxWorkspaceChecker(),
+    new AnonApexGatherer(),
+    new AnonApexLibraryExecuteExecutor(false, true)
   );
 
   await commandlet.run();
