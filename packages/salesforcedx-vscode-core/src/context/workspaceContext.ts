@@ -55,4 +55,21 @@ export class WorkspaceContext {
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
+
+  public getSfdxDirectoryPath(): string {
+    return path.join(
+      getRootWorkspacePath(), 
+      Global.SFDX_STATE_FOLDER
+    )
+  }
+    
+  public getMetadataDirectoryPath(username: string): string {
+    return path.join(
+      this.getSfdxDirectoryPath(),
+      'orgs',
+      username,
+      'metadata'
+    )
+  }
+
 }
