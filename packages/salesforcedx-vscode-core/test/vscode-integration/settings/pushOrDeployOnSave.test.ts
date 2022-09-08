@@ -39,9 +39,7 @@ describe('Push or Deploy on Save', () => {
       sandbox
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
-      const isInPackageDirectory = await pathIsInPackageDirectory(
-        vscode.Uri.file('test-path')
-      );
+      const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.true;
       expect(appendLineStub.called).to.be.false;
       expect(showErrorMessageStub.called).to.be.false;
@@ -51,9 +49,7 @@ describe('Push or Deploy on Save', () => {
       sandbox
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(false);
-      const isInPackageDirectory = await pathIsInPackageDirectory(
-        vscode.Uri.file('test-path')
-      );
+      const isInPackageDirectory = await pathIsInPackageDirectory('test-path');
       expect(isInPackageDirectory).to.be.false;
       expect(appendLineStub.called).to.be.false;
       expect(showErrorMessageStub.called).to.be.false;
@@ -68,7 +64,7 @@ describe('Push or Deploy on Save', () => {
       let errorWasThrown = false;
 
       try {
-        await pathIsInPackageDirectory(vscode.Uri.file('test-path'));
+        await pathIsInPackageDirectory('test-path');
       } catch (e) {
         errorWasThrown = true;
         expect(e.message).to.equal(
@@ -89,7 +85,7 @@ describe('Push or Deploy on Save', () => {
         .throws(error);
       let errorWasThrown = false;
       try {
-        await pathIsInPackageDirectory(vscode.Uri.file('test-path'));
+        await pathIsInPackageDirectory('test-path');
       } catch (error) {
         errorWasThrown = true;
         expect(error.message).to.equal(
@@ -241,19 +237,19 @@ describe('Push or Deploy on Save', () => {
     // verify which types of files we want to be deployed on save
 
     it('should return true for dot files', async () => {
-      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/.env'));
+      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/.env');
       expect(stopDotFileFromBeingDeployed).to.be.true;
     });
     it('should return true for soql files', async () => {
-      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/AccountQuery.soql'));
+      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/AccountQuery.soql');
       expect(stopSOQLFileFromBeingDeployed).to.be.true;
     });
     it('should return true for anonymous apex files', async () => {
-      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/GetAccounts.apex'));
+      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/GetAccounts.apex');
       expect(stopAnonApexFileFromBeingDeployed).to.be.true;
     });
     it('should return false for class files', async () => {
-      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed(vscode.Uri.file('/force-app/main/default/MyAccountMap.cls'));
+      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/MyAccountMap.cls');
       expect(stopClassFileFromBeingDeployed).to.be.false;
     });
   });
