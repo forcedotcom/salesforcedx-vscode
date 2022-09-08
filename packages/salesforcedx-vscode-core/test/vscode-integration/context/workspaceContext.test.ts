@@ -171,36 +171,14 @@ describe('WorkspaceContext', () => {
     await (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('change');
-
-    expect(someLogic.callCount).to.equal(1);
-  });
-
-  it('should notify subscribers that the default org may have created', async () => {
-    const someLogic = env.stub();
-    workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
-      someLogic(orgInfo);
-    });
-
-    // awaiting to ensure subscribers run their logic
     await (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('create');
-
-    expect(someLogic.callCount).to.equal(1);
-  });
-
-  it('should notify subscribers that the default org may have been deleted', async () => {
-    const someLogic = env.stub();
-    workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
-      someLogic(orgInfo);
-    });
-
-    // awaiting to ensure subscribers run their logic
     await (workspaceContextUtil as TestWorkspaceContextUtil)
       .getFileWatcher()
       .fire('delete');
 
-    expect(someLogic.callCount).to.equal(1);
+    expect(someLogic.callCount).to.equal(3);
   });
 
   describe('getConnection', () => {
@@ -217,4 +195,4 @@ describe('WorkspaceContext', () => {
       expect(connection).to.deep.equal(mockConnection);
     });
   });
-}).timeout(60000);
+});
