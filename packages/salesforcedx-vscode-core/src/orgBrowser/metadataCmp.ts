@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection, Global } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'fs';
@@ -43,11 +43,7 @@ export class ComponentUtils {
       folderName ? `${metadataType}_${folderName}` : metadataType
     }.json`;
     const componentsPath = path.join(
-      getRootWorkspacePath(),
-      Global.SFDX_STATE_FOLDER,
-      'orgs',
-      username,
-      'metadata',
+      workspaceContext.getMetadataDirectoryPath(username),
       fileName
     );
     return componentsPath;
