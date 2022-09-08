@@ -6,7 +6,7 @@
  */
 
 import { ConfigAggregator } from '@salesforce/core';
-import { WorkspaceContext } from '../context/workspaceContext';
+import { getRootWorkspacePath } from '../util';
 
 /*
  * The ConfigAggregatorProvider class is used to instantiate
@@ -35,7 +35,7 @@ export class ConfigAggregatorProvider {
   }
 
   public async getConfigAggregator(): Promise<ConfigAggregator> {
-    const rootWorkspacePath = this.getRootWorkspacePath();
+    const rootWorkspacePath = getRootWorkspacePath();
     let configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (!configAggregator) {
       configAggregator = await this.createConfigAggregator();
@@ -45,7 +45,7 @@ export class ConfigAggregatorProvider {
   }
 
   public async reloadConfigAggregators() {
-    const rootWorkspacePath = this.getRootWorkspacePath();
+    const rootWorkspacePath = getRootWorkspacePath();
     // Force ConfigAggregator to load the most recent values from
     // the config file.  This ensures that the ConfigAggregator
     // contains the most recent data.
@@ -80,18 +80,14 @@ export class ConfigAggregatorProvider {
     return currentWorkingDirectory;
   }
 
+  private ensureCurrentDirectoryInsideProject(path: string) {
+    const rootWorkspacePath = getRootWorkspacePath();
+    if (path !== rootWorkspacePath) {
+      this.changeCurrentDirectoryTo(rootWorkspacePath);
+    }
+  }
+
   private changeCurrentDirectoryTo(path: string) {
     process.chdir(path);
-  }
-
-  private getRootWorkspacePath() {
-    const rootWorkspacePath = WorkspaceContext.getInstance().rootWorkspacePath;
-    return rootWorkspacePath;
-  }
-
-  private ensureCurrentDirectoryInsideProject(path: string) {
-    if (path !== this.getRootWorkspacePath()) {
-      this.changeCurrentDirectoryTo(this.getRootWorkspacePath());
-    }
   }
 }

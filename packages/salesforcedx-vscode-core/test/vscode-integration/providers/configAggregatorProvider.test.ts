@@ -8,6 +8,7 @@ import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
+import { getRootWorkspacePath } from '../../../src/util';
 
 const sandbox = createSandbox();
 const dummyProjectRootWorkspacePath = '/test/home/testProject';
@@ -18,10 +19,7 @@ describe('ConfigAggregatorProvider', () => {
   let configAggregatorProvider: ConfigAggregatorProvider;
 
   beforeEach(() => {
-    getRootWorkspacePathStub = sandbox.stub(
-      ConfigAggregatorProvider.prototype as any,
-      'getRootWorkspacePath'
-    );
+    getRootWorkspacePathStub = sandbox.stub(getRootWorkspacePath);
     changeCurrentDirectoryToStub = sandbox.stub(
       ConfigAggregatorProvider.prototype as any,
       'changeCurrentDirectoryTo'
@@ -133,16 +131,13 @@ describe('ConfigAggregatorProvider', () => {
 
   describe('getConfigAggregator', () => {
     it('should call createConfigAggregator without options', async () => {
-      // Act
       const configAggregatorCreateSpy = sandbox.spy(
         configAggregatorProvider as any,
         'createConfigAggregator'
       );
 
-      // Act
       await configAggregatorProvider.getConfigAggregator();
 
-      // Assert
       expect(configAggregatorCreateSpy.callCount).to.equal(1);
       expect(configAggregatorCreateSpy.getCall(0).args[0]).to.equal(undefined);
     });
@@ -150,7 +145,6 @@ describe('ConfigAggregatorProvider', () => {
 
   describe('reloadConfigAggregators', () => {
     it('should reload the ConfigAggregators for the project root workspace path', async () => {
-      // Arrange
       getRootWorkspacePathStub.returns(dummyProjectRootWorkspacePath);
       const configAggregator = await configAggregatorProvider.getConfigAggregator();
       const configAggregatorReloadSpy = sandbox.spy(
@@ -158,10 +152,8 @@ describe('ConfigAggregatorProvider', () => {
         'reload'
       );
 
-      // Act
       await configAggregatorProvider.reloadConfigAggregators();
 
-      // Assert
       expect(configAggregatorReloadSpy.callCount).to.equal(1);
     });
   });

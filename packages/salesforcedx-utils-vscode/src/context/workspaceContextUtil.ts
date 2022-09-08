@@ -29,7 +29,6 @@ export class WorkspaceContextUtil {
   protected onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
   protected _username?: string;
   protected _alias?: string;
-  protected _rootWorkspacePath?: string;
 
   public readonly onOrgChange: vscode.Event<OrgInfo>;
 
@@ -114,13 +113,6 @@ export class WorkspaceContextUtil {
 
   get alias(): string | undefined {
     return this._alias;
-  }
-
-  get rootWorkspacePath(): string {
-    if (!this._rootWorkspacePath) {
-      this._rootWorkspacePath = getRootWorkspacePath();
-    }
-    return this._rootWorkspacePath;
   }
 }
 
