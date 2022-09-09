@@ -8,12 +8,12 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
-  APEX_FILE_NAME_EXTENSION,
-  SOQL_FILE_NAME_EXTENSION,
-  AURA_PATH,
   APEX_CLASSES_PATH,
+  APEX_FILE_NAME_EXTENSION,
+  AURA_PATH,
+  FUNCTIONS_PATH,
   LWC_PATH,
-  FUNCTIONS_PATH
+  SOQL_FILE_NAME_EXTENSION
 } from '../constants';
 import { nls } from '../messages';
 
