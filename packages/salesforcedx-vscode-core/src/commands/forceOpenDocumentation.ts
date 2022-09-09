@@ -7,11 +7,11 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
 import {
   APEX_FILE_NAME_EXTENSION,
   SOQL_FILE_NAME_EXTENSION
 } from '../constants';
+import { nls } from '../messages';
 
 const auraPath = '/force-app/main/default/aura/';
 const apexClassesPath = '/force-app/main/default/classes/';
