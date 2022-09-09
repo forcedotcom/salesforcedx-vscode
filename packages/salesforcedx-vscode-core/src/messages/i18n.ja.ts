@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
@@ -516,5 +516,13 @@ export const messages = {
   force_source_diff_title: '%s//%s ↔ ローカル //%s',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
-  package_id_gatherer_placeholder: '04t...'
+  package_id_gatherer_placeholder: '04t...',
+  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
+  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
+  soql_doc_url:
+    'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
+  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
+  functions_doc_url:
+    'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja'
 };

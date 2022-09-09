@@ -40,6 +40,7 @@ import {
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
+  forceOpenDocumentation,
   forceOrgCreate,
   forceOrgDelete,
   forceOrgDisplay,
@@ -148,6 +149,10 @@ function registerCommands(
   const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.default',
     forceAuthLogoutDefault
+  );
+  const forceOpenDocumentationCmd = vscode.commands.registerCommand(
+    'sfdx.force.open.documentation',
+    forceOpenDocumentation
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
@@ -447,6 +452,7 @@ function registerCommands(
     forceFunctionStartCmd,
     forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
+    forceOpenDocumentationCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
