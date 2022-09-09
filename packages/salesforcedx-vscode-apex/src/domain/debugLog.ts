@@ -22,7 +22,7 @@ export class DebugLog {
   }
 
   public value(): string {
-    if (!this._log) {
+    if (!this._log && this._lines && this._lines.length > 0) {
       this._log = this._lines!.join(this.newLineCharacter);
     }
     return this._log!;
