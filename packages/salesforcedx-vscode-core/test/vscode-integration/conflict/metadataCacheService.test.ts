@@ -324,18 +324,32 @@ describe('Metadata Cache', () => {
         name: 'CustomField'
       }
     };
-    const fileProperties = [
+    const fileProperties: FileProperties[] = [
       {
         fullName: 'HandlerCostCenter',
         lastModifiedDate: 'Today',
-        type: 'ApexClass'
+        type: 'ApexClass',
+        id: '1',
+        createdById: '2',
+        createdByName: 'Me',
+        createdDate: 'Today',
+        fileName: 'One.cls',
+        lastModifiedById: '3',
+        lastModifiedByName: 'You'
       },
       {
         fullName: 'Account',
         lastModifiedDate: 'Yesterday',
-        type: 'CustomObject'
+        type: 'CustomObject',
+        id: '2',
+        createdById: '2',
+        createdByName: 'Me',
+        createdDate: 'Today',
+        fileName: 'Two.cls',
+        lastModifiedById: '3',
+        lastModifiedByName: 'You'
       }
-    ] as FileProperties[];
+    ];
 
     it('Should correlate results correctly', () => {
       const cacheResults = {
