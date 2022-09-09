@@ -9,14 +9,13 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   APEX_FILE_NAME_EXTENSION,
-  SOQL_FILE_NAME_EXTENSION
+  SOQL_FILE_NAME_EXTENSION,
+  AURA_PATH,
+  APEX_CLASSES_PATH,
+  LWC_PATH,
+  FUNCTIONS_PATH
 } from '../constants';
 import { nls } from '../messages';
-
-const auraPath = '/force-app/main/default/aura/';
-const apexClassesPath = '/force-app/main/default/classes/';
-const lwcPath = '/force-app/main/default/lwc/';
-const functionsPath = '/functions/';
 
 export async function forceOpenDocumentation() {
   let docUrl = '';
@@ -25,18 +24,18 @@ export async function forceOpenDocumentation() {
     const filePath = editor.document.fileName;
     const extension = path.extname(filePath);
 
-    if (filePath.includes(auraPath)) {
+    if (filePath.includes(AURA_PATH)) {
       docUrl = nls.localize('aura_doc_url');
     } else if (
-      filePath.includes(apexClassesPath) ||
+      filePath.includes(APEX_CLASSES_PATH) ||
       extension === APEX_FILE_NAME_EXTENSION
     ) {
       docUrl = nls.localize('apex_doc_url');
     } else if (extension === SOQL_FILE_NAME_EXTENSION) {
       docUrl = nls.localize('soql_doc_url');
-    } else if (filePath.includes(lwcPath)) {
+    } else if (filePath.includes(LWC_PATH)) {
       docUrl = nls.localize('lwc_doc_url');
-    } else if (filePath.includes(functionsPath)) {
+    } else if (filePath.includes(FUNCTIONS_PATH)) {
       docUrl = nls.localize('functions_doc_url');
     }
   }
