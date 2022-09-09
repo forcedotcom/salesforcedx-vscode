@@ -8,8 +8,8 @@
 import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
+import { DebugLog } from '../domain';
 import { nls } from '../messages';
-import { DebugLog } from './forceAnonApexExecute';
 
 export async function forceShowDebugStatementsInOutput() {
   const editor = vscode.window.activeTextEditor;
