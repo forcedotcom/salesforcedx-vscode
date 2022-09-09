@@ -179,11 +179,11 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
 
   private outputResult(response: ExecuteAnonymousResponse): void {
     let outputText = '';
-    let logs = response.logs!;
+    let log = response.logs!;
 
     if (this.isDebugStatementsOnly) {
       // Todo: QA on Windows machines to validate/verify carriage return aka '\n' works as expected
-      logs = logs
+      log = log
         .split('\n')
         .filter(line => line.includes('USER_DEBUG'))
         .join('\n');
@@ -192,7 +192,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
     if (response.success) {
       outputText += `${nls.localize('apex_execute_compile_success')}\n`;
       outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
-      outputText += `\n${logs}`;
+      outputText += `\n${log}`;
     } else {
       const diagnostic = response.diagnostic![0];
 
