@@ -178,21 +178,17 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 
   private outputResult(response: ExecuteAnonymousResponse): void {
+    const anonymousApexLog = new DebugLog(response.logs!);
+
+    const logOutputText = this.isDebugStatementsOnly
+      ? anonymousApexLog.debugStatements()
+      : anonymousApexLog.value();
+
     let outputText = '';
-    let log = response.logs!;
-
-    if (this.isDebugStatementsOnly) {
-      // Todo: QA on Windows machines to validate/verify carriage return aka '\n' works as expected
-      log = log
-        .split('\n')
-        .filter(line => line.includes('USER_DEBUG'))
-        .join('\n');
-    }
-
     if (response.success) {
       outputText += `${nls.localize('apex_execute_compile_success')}\n`;
       outputText += `${nls.localize('apex_execute_runtime_success')}\n`;
-      outputText += `\n${log}`;
+      outputText += `\n${logOutputText}`;
     } else {
       const diagnostic = response.diagnostic![0];
 
@@ -265,6 +261,47 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
       column > 0 ? column - 1 : 0
     );
     return new vscode.Range(pos, pos);
+  }
+}
+
+export class DebugLog {
+  private _log: string | undefined;
+  private _lines: string[] | undefined;
+  private userDebugEventIdentifier = 'USER_DEBUG';
+  // Todo: QA on Windows machines to validate/verify
+  // newLine aka '\n' works as expected
+  private newLineCharacter = '\n';
+
+  constructor(logOrLogLines: string | string[]) {
+    if (Array.isArray(logOrLogLines)) {
+      this._lines = logOrLogLines;
+    } else {
+      this._log = logOrLogLines;
+    }
+  }
+
+  public value(): string {
+    if (!this._log) {
+      this._log = this._lines!.join(this.newLineCharacter);
+    }
+    return this._log!;
+  }
+
+  public debugStatements(): string {
+    const userDebugStatements = this.lines(this.userDebugEventIdentifier);
+    const userDebugStatementsText = userDebugStatements.join(
+      this.newLineCharacter
+    );
+    return userDebugStatementsText;
+  }
+
+  private lines(filter?: string): string[] {
+    if (!this._lines) {
+      this._lines = this._log!.split(this.newLineCharacter);
+    }
+    return filter
+      ? this._lines.filter(line => line.includes(filter))
+      : this._lines;
   }
 }
 

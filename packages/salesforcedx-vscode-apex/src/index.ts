@@ -25,7 +25,8 @@ import {
   forceApexTestSuiteAdd,
   forceApexTestSuiteCreate,
   forceApexTestSuiteRun,
-  forceLaunchApexReplayDebuggerWithCurrentFile
+  forceLaunchApexReplayDebuggerWithCurrentFile,
+  forceShowDebugStatementsInOutput
 } from './commands';
 import { APEX_EXTENSION_NAME, LSP_ERR } from './constants';
 import { workspaceContext } from './context';
@@ -240,6 +241,10 @@ function registerCommands(): vscode.Disposable {
     'sfdx.force.launch.apex.replay.debugger.with.current.file',
     forceLaunchApexReplayDebuggerWithCurrentFile
   );
+  const forceShowDebugStatementsInOutputCmd = vscode.commands.registerCommand(
+    'sfdx.force.show.debug.statements.in.output',
+    forceShowDebugStatementsInOutput
+  );
 
   return vscode.Disposable.from(
     forceApexDebugClassRunDelegateCmd,
@@ -252,6 +257,7 @@ function registerCommands(): vscode.Disposable {
     forceAnonApexExecuteSelectionCmd,
     forceAnonApexDebugDocumentCmd,
     forceLaunchApexReplayDebuggerWithCurrentFileCmd,
+    forceShowDebugStatementsInOutputCmd,
     forceApexLogGetCmd,
     forceApexTestClassRunCmd,
     forceApexTestClassRunDelegateCmd,

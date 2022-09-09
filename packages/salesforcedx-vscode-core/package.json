@@ -203,6 +203,10 @@
         {
           "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
           "when": "sfdx:project_opened && resource =~ /.\\.(cls|apex|log)?$/"
+        },
+        {
+          "command": "sfdx.force.show.debug.statements.in.output",
+          "when": "sfdx:project_opened && resource =~ /.\\.log?$/"
         }
       ],
       "explorer/context": [
@@ -946,6 +950,10 @@
       {
         "command": "sfdx.force.launch.apex.replay.debugger.with.current.file",
         "title": "%force_launch_apex_replay_debugger_with_current_file%"
+      },
+      {
+        "command": "sfdx.force.show.debug.statements.in.output",
+        "title": "%force_show_debug_statements_in_output%"
       },
       {
         "command": "sfdx.lightning.rename",
