@@ -28,6 +28,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
+import { DebugLog } from '../domain';
 import { nls } from '../messages';
 
 interface ApexExecuteParameters {
