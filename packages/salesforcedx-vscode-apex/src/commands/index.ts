@@ -27,4 +27,3 @@ export {
   forceApexTestSuiteRun
 } from './forceApexTestSuite';
 export { forceLaunchApexReplayDebuggerWithCurrentFile } from './forceLaunchApexReplayDebuggerWithCurrentFile';
-export { forceShowDebugStatementsInOutput } from './forceShowDebugStatementsInOutput';
