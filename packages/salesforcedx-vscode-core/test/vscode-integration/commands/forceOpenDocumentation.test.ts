@@ -6,18 +6,18 @@
  */
 
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { forceOpenDocumentation } from '../../../src/commands';
 import { nls } from '../../../src/messages';
 
+const sb = createSandbox();
+
 describe('forceOpenDocumentation', () => {
-  let sb: SinonSandbox;
   let activeTextEditorStub: SinonStub;
   let openExternalStub: SinonStub;
 
   beforeEach(() => {
-    sb = createSandbox();
     activeTextEditorStub = sb.stub(vscode.window, 'activeTextEditor');
     openExternalStub = sb.stub(vscode.env, 'openExternal');
   });
