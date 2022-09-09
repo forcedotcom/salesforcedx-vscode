@@ -43,3 +43,5 @@ export const CLI = {
   AUTH_DEVICE_LOGIN: 'force:auth:device:login',
   AUTH_WEB_LOGIN: 'force:auth:web:login'
 };
+export const APEX_FILE_NAME_EXTENSION = '.apex';
+export const SOQL_FILE_NAME_EXTENSION = '.soql';

@@ -8,15 +8,8 @@
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import {
-  apexDocUrl,
-  auraDocUrl,
-  defaultDocUrl,
-  forceOpenDocumentation,
-  functionsDocUrl,
-  lwcDocUrl,
-  soqlDocUrl
-} from '../../../src/commands';
+import { forceOpenDocumentation } from '../../../src/commands';
+import { nls } from '../../../src/messages';
 
 describe('forceOpenDocumentation', () => {
   let sb: SinonSandbox;
@@ -34,6 +27,8 @@ describe('forceOpenDocumentation', () => {
   });
 
   it('should open the documentation for Aura', async () => {
+    const auraDocUrl = nls.localize('aura_doc_url');
+
     activeTextEditorStub.get(() => ({
       document: {
         fileName:
@@ -47,6 +42,8 @@ describe('forceOpenDocumentation', () => {
   });
 
   it('should open the documentation for Apex class', async () => {
+    const apexDocUrl = nls.localize('apex_doc_url');
+
     activeTextEditorStub.get(() => ({
       document: {
         fileName: '/force-app/main/default/classes/exampleApexClass.cls'
@@ -59,6 +56,8 @@ describe('forceOpenDocumentation', () => {
   });
 
   it('should open the documentation for Anonymous Apex', async () => {
+    const apexDocUrl = nls.localize('apex_doc_url');
+
     activeTextEditorStub.get(() => ({
       document: {
         fileName: '/scripts/apex/exampleApex.apex'
@@ -71,6 +70,8 @@ describe('forceOpenDocumentation', () => {
   });
 
   it('should open the documentation for SOQL', async () => {
+    const soqlDocUrl = nls.localize('soql_doc_url');
+
     activeTextEditorStub.get(() => ({
       document: {
         fileName: '/scripts/soql/exampleSoql.soql'
@@ -83,6 +84,8 @@ describe('forceOpenDocumentation', () => {
   });
 
   it('should open the documentation for LWC', async () => {
+    const lwcDocUrl = nls.localize('lwc_doc_url');
+
     activeTextEditorStub.get(() => ({
       document: {
         fileName:
@@ -96,6 +99,8 @@ describe('forceOpenDocumentation', () => {
   });
 
   it('should open the documentation for Functions', async () => {
+    const functionsDocUrl = nls.localize('functions_doc_url');
+
     activeTextEditorStub.get(() => ({
       document: {
         fileName: '/functions/example/index.js'
@@ -110,6 +115,8 @@ describe('forceOpenDocumentation', () => {
   });
 
   it('should open the default documentation', async () => {
+    const defaultDocUrl = nls.localize('default_doc_url');
+
     activeTextEditorStub.get(() => ({
       document: {
         fileName: '/force-app/main/default/staticresources/example-image.png'

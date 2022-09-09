@@ -7,26 +7,16 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-
-export const auraDocUrl =
-  'https://developer.salesforce.com/tools/vscode/en/aura/writing';
-export const apexDocUrl =
-  'https://developer.salesforce.com/tools/vscode/en/apex/writing';
-export const soqlDocUrl =
-  'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder';
-export const lwcDocUrl =
-  'https://developer.salesforce.com/tools/vscode/en/lwc/writing';
-export const functionsDocUrl =
-  'https://developer.salesforce.com/tools/vscode/en/functions/overview';
-export const defaultDocUrl = 'https://developer.salesforce.com/tools/vscode';
+import { nls } from '../messages';
+import {
+  APEX_FILE_NAME_EXTENSION,
+  SOQL_FILE_NAME_EXTENSION
+} from '../constants';
 
 const auraPath = '/force-app/main/default/aura/';
 const apexClassesPath = '/force-app/main/default/classes/';
 const lwcPath = '/force-app/main/default/lwc/';
 const functionsPath = '/functions/';
-
-const apexExtension = '.apex';
-const soqlExtension = '.soql';
 
 export async function forceOpenDocumentation() {
   let docUrl = '';
@@ -36,23 +26,23 @@ export async function forceOpenDocumentation() {
     const extension = path.extname(filePath);
 
     if (filePath.includes(auraPath)) {
-      docUrl = auraDocUrl;
+      docUrl = nls.localize('aura_doc_url');
     } else if (
       filePath.includes(apexClassesPath) ||
-      extension === apexExtension
+      extension === APEX_FILE_NAME_EXTENSION
     ) {
-      docUrl = apexDocUrl;
-    } else if (extension === soqlExtension) {
-      docUrl = soqlDocUrl;
+      docUrl = nls.localize('apex_doc_url');
+    } else if (extension === SOQL_FILE_NAME_EXTENSION) {
+      docUrl = nls.localize('soql_doc_url');
     } else if (filePath.includes(lwcPath)) {
-      docUrl = lwcDocUrl;
+      docUrl = nls.localize('lwc_doc_url');
     } else if (filePath.includes(functionsPath)) {
-      docUrl = functionsDocUrl;
+      docUrl = nls.localize('functions_doc_url');
     }
   }
 
   if (docUrl === '') {
-    docUrl = defaultDocUrl;
+    docUrl = nls.localize('default_doc_url');
   }
 
   await vscode.env.openExternal(vscode.Uri.parse(docUrl));
