@@ -5,9 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { OrgInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  OrgInfo,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode/out/src';
 import * as vscode from 'vscode';
 import { setupWorkspaceOrgType } from '.';
+import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
@@ -42,6 +46,7 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
+    await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
   }
 
   get username(): string | undefined {

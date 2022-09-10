@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import {
+  AuthInfo,
+  ConfigAggregator,
+  Connection,
+  StateAggregator
+} from '@salesforce/core';
+import { OrgConfigProperties } from '@salesforce/core/lib/exported';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
@@ -46,8 +52,9 @@ describe('OrgAuthInfo', () => {
 
   describe('getDefaultDevHubUsernameOrAlias', () => {
     it('should return notification if there is no dev hub set', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(undefined);
+      const configAggregatorStub = sandbox
+        .stub(ConfigAggregator.prototype, 'getPropertyValue')
+        .returns(undefined);
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -56,13 +63,14 @@ describe('OrgAuthInfo', () => {
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
       expect(infoMessageStub.calledOnce).to.equal(true);
-      configUtilStub.restore();
-      infoMessageStub.restore();
     });
 
     it('should run authorize a dev hub command if button clicked', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns(undefined);
+      const configAggregatorStub = sandbox.stub(
+        ConfigAggregator.prototype,
+        'getPropertyValue'
+      );
+      configAggregatorStub.returns(undefined);
       const showMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -79,15 +87,14 @@ describe('OrgAuthInfo', () => {
         true
       );
       expect(showMessageStub.calledOnce).to.equal(true);
-
-      configUtilStub.restore();
-      showMessageStub.restore();
-      executeCommandStub.restore();
     });
 
     it('should not show a message if there is a dev hub set', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
-      configUtilStub.returns('username');
+      const configAggregatorStub = sandbox.stub(
+        ConfigAggregator.prototype,
+        'getPropertyValue'
+      );
+      configAggregatorStub.returns('username');
       const infoMessageStub = sandbox.stub(
         vscode.window,
         'showInformationMessage'
@@ -95,9 +102,11 @@ describe('OrgAuthInfo', () => {
 
       await OrgAuthInfo.getDefaultDevHubUsernameOrAlias(true);
 
+      expect(configAggregatorStub.calledOnce).to.equal(true);
+      expect(
+        configAggregatorStub.calledWith(OrgConfigProperties.TARGET_DEV_HUB)
+      ).to.equal(true);
       expect(infoMessageStub.calledOnce).to.equal(false);
-      configUtilStub.restore();
-      infoMessageStub.restore();
     });
   });
 
@@ -132,7 +141,10 @@ describe('OrgAuthInfo', () => {
     });
 
     it('should use default username/alias when invoked without argument', async () => {
-      const configUtilStub = sandbox.stub(ConfigUtil, 'getConfigValue');
+      const configUtilStub = sandbox.stub(
+        ConfigUtil,
+        'getDefaultUsernameOrAlias'
+      );
       configUtilStub.returns(defaultUsername);
 
       const connection = await OrgAuthInfo.getConnection();
@@ -145,8 +157,6 @@ describe('OrgAuthInfo', () => {
       expect(
         connectionCreateStub.calledWith({ authInfo: fakeAuthInfo })
       ).to.equal(true);
-
-      configUtilStub.restore();
     });
   });
 });

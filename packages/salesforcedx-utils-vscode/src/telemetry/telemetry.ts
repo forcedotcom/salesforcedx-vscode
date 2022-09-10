@@ -103,7 +103,7 @@ export class TelemetryService {
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
-      this.isTelemetryEnabled() &&
+      (await this.isTelemetryEnabled()) &&
       !isDevMode
     ) {
       this.reporter = new TelemetryReporter(
