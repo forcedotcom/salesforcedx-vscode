@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  CancelResponse,
+  ContinueResponse
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -90,6 +93,11 @@ describe('Force Project Create', () => {
   describe('SelectProjectName Gatherer', () => {
     let gatherer: SelectProjectName;
     let inputBoxStub: sinon.SinonStub;
+    const isContinueResponse = (
+      response: CancelResponse | ContinueResponse<ProjectName>
+    ): response is ContinueResponse<ProjectName> => {
+      return (response as ContinueResponse<ProjectName>).data !== undefined;
+    };
 
     beforeEach(() => {
       gatherer = new SelectProjectName();
@@ -120,20 +128,26 @@ describe('Force Project Create', () => {
 
     it('Should return Continue with inputted project name if project name is not undefined or empty', async () => {
       inputBoxStub.returns(PROJECT_NAME);
+
       const response = await gatherer.gather();
-      expect(response.type).to.equal('CONTINUE');
-      expect(
-        (response as ContinueResponse<ProjectName>).data.projectName
-      ).to.equal(PROJECT_NAME);
+
+      expect(isContinueResponse(response)).to.equal(true);
+      if (isContinueResponse(response)) {
+        expect(response.type).to.equal('CONTINUE');
+        expect(response.data.projectName).to.equal(PROJECT_NAME);
+      }
     });
 
     it('Should return Continue with trimmed project name if project name input has leading and or trailing spaces', async () => {
       inputBoxStub.returns(PROJECT_NAME_WITH_LEADING_TRAILING_SPACES);
+
       const response = await gatherer.gather();
-      expect(response.type).to.equal('CONTINUE');
-      expect(
-        (response as ContinueResponse<ProjectName>).data.projectName
-      ).to.equal(PROJECT_NAME);
+
+      expect(isContinueResponse(response)).to.equal(true);
+      if (isContinueResponse(response)) {
+        expect(response.type).to.equal('CONTINUE');
+        expect(response.data.projectName).to.equal(PROJECT_NAME);
+      }
     });
   });
 

@@ -18,11 +18,12 @@ import {
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
 import {
+  ContinueResponse,
   notificationService,
-  ProgressNotification
+  ProgressNotification,
+  SfdxCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
@@ -250,7 +251,7 @@ describe('ForceGenerateFauxClasses', () => {
       expect(notificationStub.notCalled).to.be.true;
     });
 
-    it('Should log correct information to telemetry', async () => {
+    it('Should log correct information to telemetry on success.', async () => {
       // Success
       transformerStub.returns({ data: expectedData });
       await doExecute(SObjectRefreshSource.Startup);
@@ -261,12 +262,20 @@ describe('ForceGenerateFauxClasses', () => {
         standardObjects: expectedData.standardObjects,
         customObjects: expectedData.customObjects
       });
+    });
 
+    it('Should log correct information to telemetry on error.', async () => {
       // Error
-      const error = { message: 'sample error', stack: 'sample stack' };
+      const error = new Error('sample error');
+      error.name = 'aFakeError';
       transformerStub.throws({ data: expectedData, error });
-      await doExecute(SObjectRefreshSource.Startup);
-      expect(errorStub.calledWith(error, expectedData));
+      try {
+        await doExecute(SObjectRefreshSource.Startup);
+        fail('should have thown an error.');
+      } catch (e) {
+        expect(errorStub.calledWith(error.name, error.message));
+        expect(e.error).to.equal(error);
+      }
     });
 
     async function doExecute(

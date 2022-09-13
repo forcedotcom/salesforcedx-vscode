@@ -9,7 +9,7 @@ import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { SinonStub, stub } from 'sinon';
+import { createSandbox, SinonStub, stub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
@@ -29,6 +29,8 @@ const NON_EXISTENT_LOCAL_PATH = 'this-folder-does-not-exist';
 const NON_EXISTENT_REPO =
   'https://github.com/forcedotcom/this-repo-does-not-exist';
 
+const sandbox = createSandbox();
+
 describe('Custom Templates Create', () => {
   let showInputBoxStub: SinonStub;
   let quickPickStub: SinonStub;
@@ -38,40 +40,37 @@ describe('Custom Templates Create', () => {
   let openTextDocumentStub: SinonStub;
   let sendCommandEventStub: SinonStub;
   let sendExceptionStub: SinonStub;
-  let getConfigValue: SinonStub;
+  let getTemplatesDirectoryStub: SinonStub;
 
   beforeEach(() => {
-    showInputBoxStub = stub(vscode.window, 'showInputBox');
-    quickPickStub = stub(vscode.window, 'showQuickPick');
-    appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
+    showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+    quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+    appendLineStub = sandbox.stub(channelService, 'appendLine');
+    showSuccessfulExecutionStub = sandbox.stub(
       notificationService,
       'showSuccessfulExecution'
     );
     showSuccessfulExecutionStub.returns(Promise.resolve());
-    showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
-    openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
-    sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
-    sendExceptionStub = stub(telemetryService, 'sendException');
-    getConfigValue = stub(ConfigUtil, 'getConfigValue');
-    getConfigValue.returns(undefined);
+    showFailedExecutionStub = sandbox.stub(
+      notificationService,
+      'showFailedExecution'
+    );
+    openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
+    sendCommandEventStub = sandbox.stub(telemetryService, 'sendCommandEvent');
+    sendExceptionStub = sandbox.stub(telemetryService, 'sendException');
+    getTemplatesDirectoryStub = sandbox.stub(
+      ConfigUtil,
+      'getTemplatesDirectory'
+    );
   });
 
   afterEach(() => {
-    showInputBoxStub.restore();
-    quickPickStub.restore();
-    showSuccessfulExecutionStub.restore();
-    showFailedExecutionStub.restore();
-    appendLineStub.restore();
-    openTextDocumentStub.restore();
-    sendCommandEventStub.restore();
-    sendExceptionStub.restore();
-    getConfigValue.restore();
+    sandbox.restore();
   });
 
   it('Should create Apex Class with custom templates', async () => {
     // arrange
-    getConfigValue.returns(TEST_CUSTOM_TEMPLATES_REPO);
+    getTemplatesDirectoryStub.returns(TEST_CUSTOM_TEMPLATES_REPO);
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
       getRootWorkspacePath(),
@@ -129,7 +128,7 @@ describe('Custom Templates Create', () => {
 
   it('Should handle error and log telemetry if local template does not exist', async () => {
     // arrange
-    getConfigValue.returns(NON_EXISTENT_LOCAL_PATH);
+    getTemplatesDirectoryStub.returns(NON_EXISTENT_LOCAL_PATH);
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
       getRootWorkspacePath(),
@@ -172,7 +171,7 @@ describe('Custom Templates Create', () => {
 
   it('Should handle error and log telemetry if cannot retrieve default branch', async () => {
     // arrange
-    getConfigValue.returns(NON_EXISTENT_REPO);
+    getTemplatesDirectoryStub.returns(NON_EXISTENT_REPO);
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
       getRootWorkspacePath(),
@@ -215,7 +214,7 @@ describe('Custom Templates Create', () => {
 
   it('Should create from default template if git repo templates do not have the template type', async () => {
     // arrange
-    getConfigValue.returns(TEST_CUSTOM_TEMPLATES_REPO);
+    getTemplatesDirectoryStub.returns(TEST_CUSTOM_TEMPLATES_REPO);
     const fileName = 'testLwc';
     const outputPath = 'force-app/main/default/lwc';
     const lwcHtmlPath = path.join(

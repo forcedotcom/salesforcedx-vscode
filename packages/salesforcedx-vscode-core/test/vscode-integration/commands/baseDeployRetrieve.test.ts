@@ -233,9 +233,9 @@ describe('Base Deploy Retrieve Commands', () => {
       executor.lifecycle.getComponentsStub.returns(getComponentsResult);
 
       const configApiVersion = '45.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').returns(
+        configApiVersion
+      );
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
