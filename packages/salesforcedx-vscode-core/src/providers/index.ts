@@ -1,0 +1,1 @@
+// export { configAggregatorProvider } from './configAggregatorProvider';
