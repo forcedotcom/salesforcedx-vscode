@@ -20,7 +20,7 @@ import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils, isSFDXContainerMode } from '../util';
+import { isSFDXContainerMode, workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,

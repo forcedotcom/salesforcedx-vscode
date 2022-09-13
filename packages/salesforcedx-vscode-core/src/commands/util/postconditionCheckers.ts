@@ -24,7 +24,7 @@ import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils, MetadataDictionary } from '../../util';
+import { MetadataDictionary, workspaceUtils } from '../../util';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];

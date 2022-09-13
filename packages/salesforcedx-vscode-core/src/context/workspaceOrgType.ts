@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export enum OrgType {
   SourceTracked,

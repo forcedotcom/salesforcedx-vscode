@@ -22,7 +22,7 @@ import {
 } from '../../../../src/notifications';
 import { taskViewService } from '../../../../src/statuses';
 import { telemetryService } from '../../../../src/telemetry';
-import { workspaceUtils, OrgAuthInfo } from '../../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../../src/util';
 
 describe('Force Function Start Integration Tests.', () => {
   describe('execute', () => {

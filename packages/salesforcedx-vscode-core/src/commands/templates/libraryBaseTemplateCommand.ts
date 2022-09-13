@@ -23,9 +23,9 @@ import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
   ConfigUtil,
-  workspaceUtils,
   MetadataDictionary,
-  MetadataInfo
+  MetadataInfo,
+  workspaceUtils
 } from '../../util';
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';

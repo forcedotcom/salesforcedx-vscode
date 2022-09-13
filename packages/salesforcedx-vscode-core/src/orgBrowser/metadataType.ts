@@ -12,7 +12,7 @@ import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export type MetadataObject = {
   directoryName: string;

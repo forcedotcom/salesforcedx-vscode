@@ -28,7 +28,7 @@ import { FunctionService } from '../../../../src/commands/functions/functionServ
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { workspaceUtils, OrgAuthInfo } from '../../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
 

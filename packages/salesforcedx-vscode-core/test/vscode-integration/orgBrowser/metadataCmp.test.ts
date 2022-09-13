@@ -14,7 +14,7 @@ import { createSandbox, SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { workspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
-import { workspaceUtils, OrgAuthInfo } from '../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();

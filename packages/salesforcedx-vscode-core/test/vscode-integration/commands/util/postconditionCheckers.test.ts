@@ -33,7 +33,7 @@ import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { workspaceUtils, MetadataDictionary } from '../../../../src/util';
+import { MetadataDictionary, workspaceUtils } from '../../../../src/util';
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {

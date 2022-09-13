@@ -16,7 +16,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
-import { workspaceUtils, MetadataDictionary, MetadataInfo } from '../../util';
+import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
 import {
   SelectOutputDir,
   SfdxCommandletExecutor,

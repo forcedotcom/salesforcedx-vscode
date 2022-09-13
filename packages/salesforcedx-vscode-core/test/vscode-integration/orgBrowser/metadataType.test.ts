@@ -12,7 +12,7 @@ import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { ForceDescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
-import { workspaceUtils, OrgAuthInfo } from '../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('get metadata types folder', () => {

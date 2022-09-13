@@ -13,7 +13,7 @@ import * as path from 'path';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { workspaceUtils, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 
 const validManageableStates = new Set([
   'unmanaged',

@@ -10,7 +10,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { OrgList } from '../orgPicker';
-import { workspaceUtils, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export async function setUpOrgExpirationWatcher(orgList: OrgList) {
   // Run once to start off with.

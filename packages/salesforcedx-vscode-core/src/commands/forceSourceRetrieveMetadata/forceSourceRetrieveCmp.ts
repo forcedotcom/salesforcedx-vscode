@@ -30,7 +30,7 @@ import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils, MetadataDictionary } from '../../util';
+import { MetadataDictionary, workspaceUtils } from '../../util';
 import { RetrieveExecutor } from '../baseDeployRetrieve';
 import {
   SfdxCommandlet,

@@ -26,7 +26,7 @@ import {
 } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
-import { workspaceUtils, isSFDXContainerMode } from '../../util';
+import { isSFDXContainerMode, workspaceUtils } from '../../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
