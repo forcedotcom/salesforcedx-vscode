@@ -57,7 +57,8 @@ const getMockVSCode = () => {
     workspace: {
       getConfiguration: () => {
         return {
-          get: () => true
+          get: () => true,
+          update: jest.fn()
         };
       },
       onDidChangeConfiguration: jest.fn(),
