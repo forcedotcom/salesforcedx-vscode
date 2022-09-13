@@ -6,25 +6,21 @@
  */
 
 import {
+  CancelResponse,
   CliCommandExecutor,
   Command,
+  ContinueResponse,
+  isAlphaNumSpaceString,
+  isIntegerInRange,
   OrgCreateErrorResult,
   OrgCreateResultParser,
+  ParametersGatherer,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  isAlphaNumSpaceString,
-  isIntegerInRange
-} from '@salesforce/salesforcedx-utils-vscode';
-import {
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { OrgType, setWorkspaceOrgTypeWithOrgType } from '../context';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
@@ -90,7 +86,9 @@ export class ForceOrgCreateExecutor extends SfdxCommandletExecutor<
         if (createParser.createIsSuccessful()) {
           // NOTE: there is a beta in which this command also allows users to create sandboxes
           // once it's GA this will have to be updated
-          setWorkspaceOrgTypeWithOrgType(OrgType.SourceTracked);
+          workspaceContextUtils.setWorkspaceOrgTypeWithOrgType(
+            OrgType.SourceTracked
+          );
         } else {
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {

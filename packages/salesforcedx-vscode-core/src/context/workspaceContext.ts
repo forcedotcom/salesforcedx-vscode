@@ -10,7 +10,7 @@ import {
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { setupWorkspaceOrgType } from '.';
+import { workspaceContextUtils } from '.';
 import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 
 /**
@@ -42,7 +42,7 @@ export class WorkspaceContext {
   }
 
   protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
-    setupWorkspaceOrgType(orgInfo.username).catch(e =>
+    workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );

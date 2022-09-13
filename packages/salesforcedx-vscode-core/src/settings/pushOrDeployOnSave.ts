@@ -6,7 +6,7 @@
  */
 
 import { channelService } from '../channels';
-import { getWorkspaceOrgType, OrgType } from '../context';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -79,7 +79,9 @@ export class DeployQueue {
             false
           );
         }
-        const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
+        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
+          defaultUsernameorAlias
+        );
         if (orgType === OrgType.SourceTracked) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'

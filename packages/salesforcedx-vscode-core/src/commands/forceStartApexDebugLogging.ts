@@ -28,7 +28,7 @@ import {
 } from './util';
 
 import { isNullOrUndefined } from 'util';
-import { getDefaultUsernameOrAlias } from '../context';
+import { workspaceContextUtils } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
@@ -119,7 +119,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 }
 
 export async function getUserId(projectPath: string): Promise<string> {
-  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
+  const defaultUsernameOrAlias = await workspaceContextUtils.getDefaultUsernameOrAlias();
   if (!defaultUsernameOrAlias) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendException('replay_debugger_undefined_username', err);

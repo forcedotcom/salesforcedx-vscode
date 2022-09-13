@@ -93,7 +93,7 @@ import {
   setupConflictView
 } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
-import { getDefaultUsernameOrAlias } from './context';
+import { workspaceContextUtils } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
@@ -681,7 +681,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     channelService,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
-    getDefaultUsernameOrAlias,
+    getDefaultUsernameOrAlias: workspaceContextUtils.getDefaultUsernameOrAlias,
     getUserId,
     isCLIInstalled,
     notificationService,

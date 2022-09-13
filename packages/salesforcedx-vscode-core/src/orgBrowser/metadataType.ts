@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode';
-import { MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  isNullOrUndefined,
+  MISSING_LABEL_MSG
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
