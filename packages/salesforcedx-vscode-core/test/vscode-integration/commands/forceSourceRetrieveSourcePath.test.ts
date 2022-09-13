@@ -7,10 +7,10 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import * as helpers from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
-  ContinueResponse
+  ContinueResponse,
+  fileUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
@@ -141,7 +141,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([
           path.sep + filePath1,
           path.sep + filePath2,
@@ -177,7 +177,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
@@ -209,7 +209,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
@@ -249,7 +249,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         .stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor')
         .returns(filePath1);
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([undefined]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(

@@ -189,9 +189,15 @@ describe('Force Auth Logout Default', () => {
       'should not have reported an error'
     ).to.equal(false);
     expect(
-      notificationStub.called,
+      notificationStub.callCount,
       'should not have posted an error message'
-    ).to.equal(false);
+    ).to.equal(1);
+    const notificationArgs = notificationStub.getCall(0).args;
+    expect(notificationArgs).to.deep.equal([
+      'SFDX: Log Out from Default Org successfully ran',
+      'Show',
+      'Show Only in Status Bar'
+    ]);
     expect(inputMessageStub.called, 'should have prompted a message').to.equal(
       true
     );

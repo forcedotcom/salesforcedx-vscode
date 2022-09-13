@@ -10,7 +10,7 @@ import {
   Command,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
-import { flushFilePath } from '@salesforce/salesforcedx-utils-vscode';
+import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
@@ -43,7 +43,7 @@ export class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = flushFilePath(uri.fsPath);
+    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
   public check(): boolean {
@@ -70,7 +70,7 @@ export class ConfirmationAndSourcePathGatherer
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = flushFilePath(uri.fsPath);
+    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
   public async gather(): Promise<
