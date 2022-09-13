@@ -12,13 +12,13 @@ import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { ForceDescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+import { workspaceUtils, OrgAuthInfo } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('get metadata types folder', () => {
   let getDefaultUsernameStub: SinonStub;
   let getUsernameStub: SinonStub;
-  const rootWorkspacePath = getRootWorkspacePath();
+  const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   const typeUtil = new TypeUtils();
   beforeEach(() => {
     getDefaultUsernameStub = stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');

@@ -12,7 +12,7 @@ import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { workspaceUtils, OrgAuthInfo } from '../util';
 
 export type MetadataObject = {
   directoryName: string;
@@ -38,12 +38,12 @@ export class TypeUtils {
   ]);
 
   public async getTypesFolder(usernameOrAlias: string): Promise<string> {
-    if (!hasRootWorkspace()) {
+    if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
-    const workspaceRootPath = getRootWorkspacePath();
+    const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
     const username = await OrgAuthInfo.getUsername(usernameOrAlias);
     const metadataTypesPath = path.join(
       workspaceRootPath,

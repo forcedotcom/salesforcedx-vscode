@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import * as wsContext from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
 
@@ -72,7 +72,7 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
 
     const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       SFDX_FOLDER,
       SFDX_CONFIG_FILE
     );
@@ -99,7 +99,7 @@ describe('WorkspaceContext', () => {
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
   const cliConfigPath = join(
-    getRootWorkspacePath(),
+    workspaceUtils.getRootWorkspacePath(),
     SFDX_FOLDER,
     SFDX_CONFIG_FILE
   );

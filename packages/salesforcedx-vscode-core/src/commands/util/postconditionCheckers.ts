@@ -24,7 +24,7 @@ import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
 import { DeployQueue, sfdxCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, MetadataDictionary } from '../../util';
+import { workspaceUtils, MetadataDictionary } from '../../util';
 import { PathStrategyFactory } from './sourcePathStrategies';
 
 type OneOrMany = LocalComponent | LocalComponent[];
@@ -98,7 +98,7 @@ export class OverwriteComponentPrompt
       : PathStrategyFactory.createDefaultStrategy();
     return this.getFileExtensions(component).some(extension => {
       const path = join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         pathStrategy.getPathToSource(outputdir, fileName, extension)
       );
       return existsSync(path);
@@ -249,7 +249,7 @@ export class TimestampConflictChecker implements PostconditionChecker<string> {
       try {
         const result = await cacheService.loadCache(
           componentPath,
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           this.isManifest
         );
         const detector = new TimestampConflictDetector();

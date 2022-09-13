@@ -16,12 +16,7 @@ import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
-import {
-  getRootWorkspacePath,
-  hasRootWorkspace,
-  MetadataDictionary,
-  MetadataInfo
-} from '../../util';
+import { workspaceUtils, MetadataDictionary, MetadataInfo } from '../../util';
 import {
   SelectOutputDir,
   SfdxCommandletExecutor,
@@ -39,14 +34,18 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime, {
         dirType: this.identifyDirType(response.data.outputdir)
       });
-      if (data !== undefined && String(data) === '0' && hasRootWorkspace()) {
+      if (
+        data !== undefined &&
+        String(data) === '0' &&
+        workspaceUtils.hasRootWorkspace()
+      ) {
         const outputFile = this.getPathToSource(
           response.data.outputdir,
           response.data.fileName
@@ -83,7 +82,10 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   }
 
   protected getPathToSource(outputDir: string, fileName: string): string {
-    const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
+    const sourceDirectory = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputDir
+    );
     return this.getSourcePathStrategy().getPathToSource(
       sourceDirectory,
       fileName,

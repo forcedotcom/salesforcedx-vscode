@@ -16,7 +16,7 @@ import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { workspaceUtils, OrgAuthInfo } from '../util';
 
 export class DeployQueue {
   public static readonly ENQUEUE_DELAY = 500; // milliseconds
@@ -74,7 +74,7 @@ export class DeployQueue {
       this.queue.clear();
       try {
         let defaultUsernameorAlias: string | undefined;
-        if (hasRootWorkspace()) {
+        if (workspaceUtils.hasRootWorkspace()) {
           defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
             false
           );
@@ -152,7 +152,10 @@ function displayError(message: string) {
 }
 
 async function ignorePath(documentPath: string) {
-  return fileShouldNotBeDeployed(documentPath) || !(await pathIsInPackageDirectory(documentPath));
+  return (
+    fileShouldNotBeDeployed(documentPath) ||
+    !(await pathIsInPackageDirectory(documentPath))
+  );
 }
 
 export async function pathIsInPackageDirectory(
@@ -179,7 +182,7 @@ export async function pathIsInPackageDirectory(
 }
 
 export function fileShouldNotBeDeployed(fsPath: string) {
-  return (isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath));
+  return isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
 }
 
 function isDotFile(fsPath: string) {

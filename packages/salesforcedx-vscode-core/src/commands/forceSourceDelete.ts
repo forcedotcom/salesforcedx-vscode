@@ -22,7 +22,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { workspaceUtils } from '../util';
 import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
@@ -47,8 +47,8 @@ export class ManifestChecker implements PreconditionChecker {
   }
 
   public check(): boolean {
-    if (hasRootWorkspace()) {
-      const workspaceRootPath = getRootWorkspacePath();
+    if (workspaceUtils.hasRootWorkspace()) {
+      const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
       const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {

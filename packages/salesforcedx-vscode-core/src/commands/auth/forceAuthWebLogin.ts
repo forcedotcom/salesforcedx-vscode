@@ -26,7 +26,7 @@ import {
 } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, isSFDXContainerMode } from '../../util';
+import { workspaceUtils, isSFDXContainerMode } from '../../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -71,7 +71,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath(),
+      cwd: workspaceUtils.getRootWorkspacePath(),
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
@@ -174,7 +174,7 @@ export abstract class ForceAuthDemoModeExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(() => {

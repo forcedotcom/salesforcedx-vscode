@@ -14,7 +14,7 @@ import { createSandbox, SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { workspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+import { workspaceUtils, OrgAuthInfo } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -69,7 +69,7 @@ const expectedFieldList = [
 // tslint:disable:no-unused-expression
 describe('get metadata components path', () => {
   let getUsernameStub: SinonStub;
-  const rootWorkspacePath = getRootWorkspacePath();
+  const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   const cmpUtil = new ComponentUtils();
   const alias = 'test user 1';
   const username = 'test-username1@example.com';

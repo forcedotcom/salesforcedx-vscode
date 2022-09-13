@@ -6,7 +6,7 @@
  */
 
 import { ConfigAggregator } from '@salesforce/core';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 
 /*
  * The ConfigAggregatorProvider class is used to instantiate
@@ -35,7 +35,7 @@ export class ConfigAggregatorProvider {
   }
 
   public async getConfigAggregator(): Promise<ConfigAggregator> {
-    const rootWorkspacePath = getRootWorkspacePath();
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     let configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (!configAggregator) {
       configAggregator = await this.createConfigAggregator();
@@ -45,7 +45,7 @@ export class ConfigAggregatorProvider {
   }
 
   public async reloadConfigAggregators() {
-    const rootWorkspacePath = getRootWorkspacePath();
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     // Force ConfigAggregator to load the most recent values from
     // the config file.  This ensures that the ConfigAggregator
     // contains the most recent data.
@@ -81,7 +81,7 @@ export class ConfigAggregatorProvider {
   }
 
   private ensureCurrentDirectoryInsideProject(path: string) {
-    const rootWorkspacePath = getRootWorkspacePath();
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     if (path !== rootWorkspacePath) {
       this.changeCurrentDirectoryTo(rootWorkspacePath);
     }

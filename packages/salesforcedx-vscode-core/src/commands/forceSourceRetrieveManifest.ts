@@ -18,7 +18,7 @@ import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
@@ -45,7 +45,7 @@ export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
     return ComponentSet.fromManifest({
       manifestPath: response.data,
       resolveSourcePaths: packageDirs.map(relativeDir =>
-        join(getRootWorkspacePath(), relativeDir)
+        join(workspaceUtils.getRootWorkspacePath(), relativeDir)
       ),
       forceAddWildcards: true
     });

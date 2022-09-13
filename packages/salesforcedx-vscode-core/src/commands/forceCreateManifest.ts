@@ -14,7 +14,7 @@ import { format } from 'util';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const CREATE_MANIFEST_EXECUTOR = 'force_create_manifest';
@@ -94,7 +94,7 @@ async function openUntitledDocument(packageXML: string) {
 function saveDocument(response: string, packageXML: string) {
   const fileName = response ? appendExtension(response) : DEFAULT_MANIFEST;
 
-  const manifestPath = join(getRootWorkspacePath(), 'manifest');
+  const manifestPath = join(workspaceUtils.getRootWorkspacePath(), 'manifest');
   if (!fs.existsSync(manifestPath)) {
     fs.mkdirSync(manifestPath);
   }

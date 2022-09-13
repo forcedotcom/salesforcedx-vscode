@@ -30,7 +30,7 @@ import { nls } from '../../messages';
 import { sfdxCoreSettings } from '../../settings';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, MetadataDictionary } from '../../util';
+import { workspaceUtils, MetadataDictionary } from '../../util';
 import { RetrieveExecutor } from '../baseDeployRetrieve';
 import {
   SfdxCommandlet,
@@ -80,7 +80,10 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
       if (componentToOpen) {
         const dirPath =
           (await SfdxPackageDirectories.getDefaultPackageDir()) || '';
-        const defaultOutput = path.join(getRootWorkspacePath(), dirPath);
+        const defaultOutput = path.join(
+          workspaceUtils.getRootWorkspacePath(),
+          dirPath
+        );
         const compSet = ComponentSet.fromSource(defaultOutput);
         await this.openResources(this.findResources(componentToOpen, compSet));
       }

@@ -18,7 +18,7 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 
-import { getRootWorkspacePath } from '../../util';
+import { workspaceUtils } from '../../util';
 
 import { ConfigFile } from '@salesforce/core';
 import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode';
@@ -73,7 +73,7 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(() =>

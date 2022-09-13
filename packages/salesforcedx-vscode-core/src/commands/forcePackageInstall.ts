@@ -20,7 +20,6 @@ import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
-import { getRootWorkspacePath } from '../util';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,

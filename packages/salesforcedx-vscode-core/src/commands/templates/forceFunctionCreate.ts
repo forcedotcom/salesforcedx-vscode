@@ -31,7 +31,7 @@ import {
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 import { generateFunction, Language } from '@heroku/functions-core';
-import { getRootWorkspacePath } from '../../util';
+import { workspaceUtils } from '../../util';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';
@@ -67,7 +67,7 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
     const { path: functionPath, welcomeText } = await generateFunction(
       fileName,
       language as Language,
-      getRootWorkspacePath()
+      workspaceUtils.getRootWorkspacePath()
     );
     channelService.appendLine(
       `Created ${language} function ${fileName} in ${functionPath}.`

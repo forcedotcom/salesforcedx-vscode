@@ -27,7 +27,7 @@ import { notificationService, ProgressNotification } from '../../notifications';
 import { sfdxCoreSettings } from '../../settings';
 import { taskViewService } from '../../statuses';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath } from '../../util';
+import { workspaceUtils } from '../../util';
 
 export enum CommandVersion {
   Beta = 'beta',
@@ -55,7 +55,7 @@ export interface CommandletExecutor<T> {
 export abstract class SfdxCommandletExecutor<T>
   implements CommandletExecutor<T> {
   protected showChannelOutput = true;
-  protected executionCwd = getRootWorkspacePath();
+  protected executionCwd = workspaceUtils.getRootWorkspacePath();
   protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<
     [number, number]
   >();

@@ -10,7 +10,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { workspaceUtils, OrgAuthInfo } from '../util';
 import {
   BrowserNode,
   ComponentUtils,
@@ -147,7 +147,7 @@ export class MetadataOutlineProvider
   }
 
   public async getDefaultUsernameOrAlias(): Promise<string | undefined> {
-    if (hasRootWorkspace()) {
+    if (workspaceUtils.hasRootWorkspace()) {
       const username = await OrgAuthInfo.getDefaultUsernameOrAlias(false);
       return username;
     } else {

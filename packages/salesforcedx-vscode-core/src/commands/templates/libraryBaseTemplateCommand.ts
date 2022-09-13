@@ -23,8 +23,7 @@ import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
   ConfigUtil,
-  getRootWorkspacePath,
-  hasRootWorkspace,
+  workspaceUtils,
   MetadataDictionary,
   MetadataInfo
 } from '../../util';
@@ -127,7 +126,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     templateType: TemplateType,
     templateOptions: TemplateOptions
   ) {
-    const cwd = getRootWorkspacePath();
+    const cwd = workspaceUtils.getRootWorkspacePath();
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
 
@@ -153,7 +152,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     outputdir: string,
     fileName: string
   ) {
-    if (hasRootWorkspace()) {
+    if (workspaceUtils.hasRootWorkspace()) {
       const document = await workspace.openTextDocument(
         this.getPathToSource(outputdir, fileName)
       );

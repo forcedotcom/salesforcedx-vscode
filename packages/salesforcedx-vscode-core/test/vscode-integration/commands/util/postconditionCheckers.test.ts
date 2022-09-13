@@ -33,7 +33,7 @@ import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { sfdxCoreSettings } from '../../../../src/settings';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { getRootWorkspacePath, MetadataDictionary } from '../../../../src/util';
+import { workspaceUtils, MetadataDictionary } from '../../../../src/util';
 describe('Postcondition Checkers', () => {
   let env: SinonSandbox;
   describe('EmptyPostconditionChecker', () => {
@@ -419,7 +419,7 @@ describe('Postcondition Checkers', () => {
       withExtension: string
     ) {
       const path = join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         `package/tests/${forComponent.fileName}${withExtension}`
       );
       existsStub.withArgs(path).returns(value);

@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
 import { workspaceContext } from '../../context';
 import { nls } from '../../messages';
-import { getRootWorkspace, getRootWorkspacePath } from '../../util';
+import { workspaceUtils } from '../../util';
 
 /**
  * An enum for the different types of functions.
@@ -82,7 +82,7 @@ export class FunctionService {
       ? sourceFsPath
       : path.dirname(sourceFsPath);
     const { root } = path.parse(sourceFsPath);
-    const rootWorkspacePath = getRootWorkspacePath();
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     while (current !== rootWorkspacePath && current !== root) {
       const tomlPath = path.join(current, 'project.toml');
       if (fs.existsSync(tomlPath)) {
@@ -204,7 +204,10 @@ export class FunctionService {
         rootDir
       );
 
-      await vscode.debug.startDebugging(getRootWorkspace(), debugConfiguration);
+      await vscode.debug.startDebugging(
+        workspaceUtils.getRootWorkspace(),
+        debugConfiguration
+      );
     }
   }
 

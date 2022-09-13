@@ -21,7 +21,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
@@ -42,7 +42,7 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
     return ComponentSet.fromManifest({
       manifestPath: response.data,
       resolveSourcePaths: packageDirs.map(dir =>
-        join(getRootWorkspacePath(), dir)
+        join(workspaceUtils.getRootWorkspacePath(), dir)
       )
     });
   }

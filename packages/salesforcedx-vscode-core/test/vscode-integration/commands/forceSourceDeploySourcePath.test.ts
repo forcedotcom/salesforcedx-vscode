@@ -25,7 +25,7 @@ import {
   SfdxPackageDirectories,
   SfdxProjectConfig
 } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -117,7 +117,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     it('componentSet should have sourceApiVersion set', async () => {
       const executor = new LibraryDeploySourcePathExecutor();
       const data = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'force-app/main/default/classes/'
       );
       const continueResponse = {
