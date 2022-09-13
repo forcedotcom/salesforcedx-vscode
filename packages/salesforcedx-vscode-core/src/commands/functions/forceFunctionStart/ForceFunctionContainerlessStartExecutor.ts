@@ -51,6 +51,7 @@ export class ForceFunctionContainerlessStartExecutor extends ForceFunctionStartE
       debugPort: FUNCTION_DEFAULT_DEBUG_PORT
     });
 
+    // TODO: Refactor this rather than hardcoding all the languages yet again.
     const debugType = functionLanguage === functionType.JAVA ? 'java' : 'node';
     FunctionService.instance.updateFunction(functionDirPath, debugType, true);
 

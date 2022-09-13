@@ -253,6 +253,22 @@ describe('Function Service', () => {
       expect(service.getFunctionLanguage()).to.equal('node');
     });
 
+    it('Should update debugType of a Python function', () => {
+      const service = FunctionService.instance;
+      service.registerStartedFunction({
+        rootDir: 'Bar',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerLess: false
+      });
+
+      service.updateFunction('Bar', 'Python', false);
+      expect(service.getStartedFunction('Bar')?.debugType).to.equal('python');
+      expect(service.getFunctionLanguage()).to.equal('python');
+    });
+
     it('Should not update debugType of an unknown function', () => {
       const service = FunctionService.instance;
       service.registerStartedFunction({
@@ -303,7 +319,7 @@ describe('Function Service', () => {
       }).to.throw(nls.localize('error_function_type'));
     });
 
-    it('Should identify a typscript function.', () => {
+    it('Should identify a typescript function.', () => {
       fsSyncStub.returns(true);
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);
@@ -325,6 +341,18 @@ describe('Function Service', () => {
       expect(fsSyncStub.callCount).to.equal(2);
       expect(fsSyncStub.getCall(1).args[0]).to.equal(
         `${functionDef.rootDir}/package.json`
+      );
+    });
+
+    it('Should identify a Python function.', () => {
+      fsSyncStub.returns(true);
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const functionTypeVal = service.getFunctionType();
+      expect(functionTypeVal).to.equal(functionType.PYTHON);
+      expect(fsSyncStub.callCount).to.equal(1);
+      expect(fsSyncStub.getCall(0).args[0]).to.equal(
+        `${functionDef.rootDir}/main.py`
       );
     });
 
@@ -458,6 +486,44 @@ describe('Function Service', () => {
         isContainerLess: true
       };
       getFunctionTypeStub.returns(functionType.JAVA);
+
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
+    });
+
+    it('Should set remoteRoot to /workspace when Python and running in a container.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerLess: false
+      };
+      getFunctionTypeStub.returns(functionType.PYTHON);
+
+      const service = FunctionService.instance;
+      service.registerStartedFunction(functionDef);
+      const rootDir = 'FirstFunction';
+      const functionExecution = service.getStartedFunction(rootDir);
+      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      expect(debugConfiguration.remoteRoot).to.equal('/workspace');
+    });
+
+    it('Should validate that remoteRoot is not defined when Python and running containerless.', () => {
+      const functionDef: FunctionExecution = {
+        rootDir: 'FirstFunction',
+        debugPort: 7777,
+        port: 8080,
+        debugType: 'unknown',
+        terminate: () => Promise.resolve(),
+        isContainerLess: true
+      };
+      getFunctionTypeStub.returns(functionType.PYTHON);
 
       const service = FunctionService.instance;
       service.registerStartedFunction(functionDef);

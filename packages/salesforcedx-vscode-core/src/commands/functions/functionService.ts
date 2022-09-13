@@ -17,9 +17,10 @@ import { getRootWorkspace, getRootWorkspacePath } from '../../util';
  * An enum for the different types of functions.
  */
 export enum functionType {
+  JAVA = 'java',
   JAVASCRIPT = 'javascript',
+  PYTHON = 'python',
   TYPESCRIPT = 'typescript',
-  JAVA = 'java'
 }
 
 /**
@@ -68,7 +69,7 @@ export class FunctionService {
     return FunctionService._instance;
   }
 
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Locate the directory that has project.toml.
@@ -120,6 +121,8 @@ export class FunctionService {
         functionExecution.debugType = 'node';
       } else if (type.startsWith('java') || type.startsWith('jvm')) {
         functionExecution.debugType = 'java';
+      } else if (type.startsWith('python')) {
+        functionExecution.debugType = 'python';
       }
 
       functionExecution.isContainerLess = isContainerLess;
@@ -133,7 +136,7 @@ export class FunctionService {
   /**
    * Returns the debugType of the first of the startedExecutions as a way to determine the language
    * of all running executions.
-   * Current options: 'node', 'java'
+   * Current options: 'node', 'java', 'python'
    */
   public getFunctionLanguage() {
     const functionIterator = this.startedExecutions.values();
@@ -155,6 +158,8 @@ export class FunctionService {
         return functionType.TYPESCRIPT;
       } else if (fs.existsSync(`${rootDir}/package.json`)) {
         return functionType.JAVASCRIPT;
+      } else if (fs.existsSync(`${rootDir}/main.py`)) {
+        return functionType.PYTHON;
       }
 
       return functionType.JAVA;

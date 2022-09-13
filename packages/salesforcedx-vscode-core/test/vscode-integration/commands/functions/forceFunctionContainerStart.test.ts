@@ -389,5 +389,24 @@ describe('Force Function Start Integration Tests.', () => {
       assert.calledOnce(functionServiceStub);
       assert.calledWith(functionServiceStub, srcUri.fsPath, 'nodejs');
     });
+
+    it('Should capture debug language type for Python runtime', async () => {
+      const functionServiceStub = sandbox.stub(
+        FunctionService.prototype,
+        'updateFunction'
+      );
+      const srcUri = Uri.file(
+        path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      );
+
+      hrtimeStub.returns([1234, 5678]);
+
+      await forceFunctionContainerStartCommand(srcUri);
+      // TODO: Update this once the CNB plan for Python functions is clearer
+      // (it needs to match against FUNCTION_RUNTIME_DETECTION_PATTERN in constants.ts)
+      emitter.emit('log', { text: 'TODO' });
+      assert.calledOnce(functionServiceStub);
+      assert.calledWith(functionServiceStub, srcUri.fsPath, 'python');
+    });
   });
 });

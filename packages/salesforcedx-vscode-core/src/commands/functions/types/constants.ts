@@ -30,6 +30,7 @@ export const FUNCTION_PAYLOAD_DOCUMENT_SELECTOR = {
 /**
  * Pattern to capture a function runtime language
  */
+// TODO: Update this once the CNB plan for Python functions is clearer
 export const FUNCTION_RUNTIME_DETECTION_PATTERN: RegExp = new RegExp(
   '.*heroku/(.*)-function-invoker.*'
 );
