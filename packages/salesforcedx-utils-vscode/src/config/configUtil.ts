@@ -9,7 +9,8 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
-  OrgConfigProperties
+  OrgConfigProperties,
+  StateAggregator
 } from '@salesforce/core';
 import * as path from 'path';
 import { TelemetryService } from '../telemetry/telemetry';
@@ -85,6 +86,12 @@ export class ConfigUtil {
     return undefined;
   }
 
+  /**
+   * Get the username of the currently auth'd user for the project.
+   *
+   * @param projectPath The project path for the currently SF project.
+   * @returns The username for the configured Org if it exists.
+   */
   public static async getUsername(
     projectPath: string
   ): Promise<string | undefined> {
@@ -92,7 +99,15 @@ export class ConfigUtil {
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );
-    return (defaultUsernameOrAlias as string) || undefined;
+    if (!defaultUsernameOrAlias) {
+      return;
+    }
+
+    const info = await StateAggregator.getInstance();
+    const username = defaultUsernameOrAlias
+      ? info.aliases.getUsername(String(defaultUsernameOrAlias))
+      : undefined;
+    return username ? String(username) : undefined;
   }
 
   private static async getConfigAggregator(
