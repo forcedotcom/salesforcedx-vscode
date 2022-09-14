@@ -11,7 +11,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import { ConfigSource, ConfigUtil } from '../../../src/util';
 
 describe('getConfigSource', () => {
-  let sandbox = createSandbox();
+  const sandbox = createSandbox();
   let getLocationStub: SinonStub;
 
   beforeEach(() => {
