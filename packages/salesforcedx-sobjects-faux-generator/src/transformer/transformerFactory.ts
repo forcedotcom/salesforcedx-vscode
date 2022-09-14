@@ -91,6 +91,7 @@ export class SObjectTransformerFactory {
   public static async createConnection(
     projectPath: string
   ): Promise<Connection> {
+    // TODO: replace below logic with a call to a common function for getting a connection.
     const connection = await Connection.create({
       authInfo: await AuthInfo.create({
         username: await ConfigUtil.getUsername(projectPath)
