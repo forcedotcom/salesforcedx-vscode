@@ -3,18 +3,13 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   },
   "exclude": [
     "node_modules",
-    ".vscode-test",
     "out"
   ],
-  "references": [
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-test-utils-vscode"
-    }
-  ]
+  "references": []
 }
