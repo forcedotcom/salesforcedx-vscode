@@ -50,9 +50,7 @@ export class SObjectTransformerFactory {
       retrievers.push(new MinObjectRetriever());
       generators.push(standardGenerator);
     } else {
-      const connection = await SObjectTransformerFactory.createConnection(
-        projectPath
-      );
+      const connection = await SObjectTransformerFactory.createConnection();
 
       retrievers.push(
         new OrgObjectRetriever(connection),
@@ -88,13 +86,11 @@ export class SObjectTransformerFactory {
     );
   }
 
-  public static async createConnection(
-    projectPath: string
-  ): Promise<Connection> {
+  public static async createConnection(): Promise<Connection> {
     // TODO: replace below logic with a call to a common function for getting a connection.
     const connection = await Connection.create({
       authInfo: await AuthInfo.create({
-        username: await ConfigUtil.getUsername(projectPath)
+        username: await ConfigUtil.getUsername()
       })
     });
     return connection;
