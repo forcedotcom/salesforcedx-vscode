@@ -14,7 +14,7 @@ import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import { forceVisualforcePageCreate } from '../../../../src/commands/templates';
 import { notificationService } from '../../../../src/notifications';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Visualforce Page Create', () => {
@@ -52,12 +52,12 @@ describe('Force Visualforce Page Create', () => {
     const fileName = 'testVFPage';
     const outputPath = 'force-app/main/default/components';
     const vfPagePath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testVFPage.page'
     );
     const vfPageMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testVFPage.page-meta.xml'
     );
@@ -93,6 +93,9 @@ This is your new Page
     sinon.assert.calledWith(openTextDocumentStub, vfPagePath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
   });
 });
