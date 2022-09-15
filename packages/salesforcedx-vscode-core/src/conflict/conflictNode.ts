@@ -51,6 +51,8 @@ export class ConflictNode extends vscode.TreeItem {
     return this._children;
   }
 
+  // TODO: create issue to track this
+  // @ts-ignore
   get tooltip() {
     if (this._conflict) {
       let tooltipMessage: string = '';

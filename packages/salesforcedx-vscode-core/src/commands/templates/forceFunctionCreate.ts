@@ -5,17 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   FunctionInfo,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -31,7 +31,7 @@ import {
 import { FUNCTION_TYPE_JAVA, FUNCTION_TYPE_JS } from './metadataTypeConstants';
 
 import { generateFunction, Language } from '@heroku/functions-core';
-import { getRootWorkspacePath } from '../../util';
+import { workspaceUtils } from '../../util';
 
 const LANGUAGE_JAVA = 'java';
 const LANGUAGE_JAVASCRIPT = 'javascript';
@@ -67,7 +67,7 @@ export class ForceFunctionCreateExecutor extends LibraryCommandletExecutor<
     const { path: functionPath, welcomeText } = await generateFunction(
       fileName,
       language as Language,
-      getRootWorkspacePath()
+      workspaceUtils.getRootWorkspacePath()
     );
     channelService.appendLine(
       `Created ${language} function ${fileName} in ${functionPath}.`
