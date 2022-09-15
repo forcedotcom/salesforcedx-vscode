@@ -13,7 +13,6 @@ export {
   isSFDXContainerMode,
   showCLINotInstalledMessage
 } from './cliConfiguration';
-export { ConfigSource, ConfigUtil } from './configUtil';
 export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
 export {

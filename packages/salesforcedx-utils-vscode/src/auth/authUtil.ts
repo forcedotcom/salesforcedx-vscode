@@ -24,9 +24,7 @@ export class AuthUtil {
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
-      );
+      const defaultUserName = await ConfigUtil.getDefaultUsernameOrAlias();
       if (defaultUserName === undefined) {
         return undefined;
       }

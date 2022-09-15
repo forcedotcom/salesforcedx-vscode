@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  ConfigUtil,
+  ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
-  LibraryCommandletExecutor
+  LibraryCommandletExecutor,
+  Row,
+  Table
 } from '@salesforce/salesforcedx-utils-vscode';
-import { Row, Table } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   DeployResult,
@@ -33,7 +35,7 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { ConfigUtil, OrgAuthInfo } from '../util';
+import { OrgAuthInfo } from '../util';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
