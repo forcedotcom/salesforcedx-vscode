@@ -6,8 +6,12 @@
  */
 import { OrgConfigProperties, StateAggregator } from '@salesforce/core';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
-import { ConfigSource, ConfigUtil } from '../../../src';
+import { createSandbox, SinonStub, stub } from 'sinon';
+import {
+  ConfigAggregatorProvider,
+  ConfigSource,
+  ConfigUtil
+} from '../../../src';
 
 const vscodeStub = {
   commands: stub(),
@@ -64,7 +68,6 @@ describe('getConfigSource', () => {
   describe('getUsername', () => {
     const testAlias = 'aFakeAlias';
     const testUsername = 'a.f.alias@salesforce.com';
-    const fakeProjectPath = '/a/fully/qualified/fake/path';
 
     let getUserNameStub: SinonStub;
     let getPropertyValueStub: SinonStub;
@@ -78,16 +81,18 @@ describe('getConfigSource', () => {
       });
 
       getPropertyValueStub = sandbox.stub();
-      sandbox.stub(ConfigUtil as any, 'getConfigAggregator').resolves({
-        getPropertyValue: getPropertyValueStub
-      });
+      sandbox
+        .stub(ConfigAggregatorProvider.prototype, 'getConfigAggregator')
+        .resolves({
+          getPropertyValue: getPropertyValueStub
+        });
     });
 
     it('Should return the currently auth username.', async () => {
       getPropertyValueStub.returns(testAlias);
       getUserNameStub.returns(testUsername);
 
-      const username = await ConfigUtil.getUsername(fakeProjectPath);
+      const username = await ConfigUtil.getUsername();
 
       expect(username).to.equal(testUsername);
       expect(getPropertyValueStub.callCount).to.equal(1);
@@ -101,7 +106,7 @@ describe('getConfigSource', () => {
     it('Should return undefined if no username or alias is found.', async () => {
       getPropertyValueStub.returns(undefined);
 
-      const username = await ConfigUtil.getUsername(fakeProjectPath);
+      const username = await ConfigUtil.getUsername();
 
       expect(username).to.equal(undefined);
       expect(getPropertyValueStub.callCount).to.equal(1);
@@ -112,7 +117,7 @@ describe('getConfigSource', () => {
       getPropertyValueStub.returns(testAlias);
       getUserNameStub.returns(null);
 
-      const username = await ConfigUtil.getUsername(fakeProjectPath);
+      const username = await ConfigUtil.getUsername();
 
       expect(username).to.equal(undefined);
       expect(getPropertyValueStub.callCount).to.equal(1);
