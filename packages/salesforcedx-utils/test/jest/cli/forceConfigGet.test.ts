@@ -1,4 +1,3 @@
-import { stringify } from 'querystring';
 import {
   CliCommandExecutor,
   CommandOutput,

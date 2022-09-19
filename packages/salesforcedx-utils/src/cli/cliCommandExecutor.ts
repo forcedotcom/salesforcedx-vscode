@@ -10,6 +10,7 @@ import * as cross_spawn from 'cross-spawn';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 
+import { TELEMETRY_HEADER } from '../constants';
 import { CancellationToken, Command } from '../types';
 import { CliCommandExecution } from './cliCommandExecution';
 import { GlobalCliEnvironment } from './globalCliEnvironment';
@@ -30,9 +31,8 @@ export class CliCommandExecutor {
       env[key] = value;
     });
 
-    // telemetry header
     if (env) {
-      env.SFDX_TOOL = 'salesforce-vscode-extensions';
+      env.SFDX_TOOL = TELEMETRY_HEADER;
     }
 
     // then specific environment from Spawn Options

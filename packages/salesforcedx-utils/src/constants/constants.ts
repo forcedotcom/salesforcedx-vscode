@@ -17,3 +17,4 @@ export const DEFAULT_LOCALE = 'en';
 export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 export const SFDX_CONFIG_ISV_DEBUGGER_SID = 'isvDebuggerSid';
 export const SFDX_CONFIG_ISV_DEBUGGER_URL = 'isvDebuggerUrl';
+export const TELEMETRY_HEADER = 'salesforce-vscode-extensions';
