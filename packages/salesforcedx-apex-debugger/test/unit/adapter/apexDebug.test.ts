@@ -102,12 +102,21 @@ describe('Interactive debugger adapter - unit', () => {
     }
   } as DebugProtocol.InitializeResponse;
 
+  beforeEach(() => {
+    adapter = new ApexDebugForTest(new RequestService());
+  });
+
+  afterAll(() => {
+    if (adapter) {
+      adapter.clearIdleTimers();
+    }
+  });
+
   describe('Attach', () => {
     let response: DebugProtocol.AttachResponse;
     let args: DebugProtocol.AttachRequestArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       response = {
         command: '',
         success: true,
@@ -116,10 +125,6 @@ describe('Interactive debugger adapter - unit', () => {
         type: 'response'
       };
       args = {};
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should not attach', () => {
@@ -151,7 +156,6 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       sessionProjectSpy = sinon.spy(SessionService.prototype, 'forProject');
       sessionUserFilterSpy = sinon.spy(
         SessionService.prototype,
@@ -209,10 +213,6 @@ describe('Interactive debugger adapter - unit', () => {
       if (sessionPrintToDebugSpy) {
         sessionPrintToDebugSpy.restore();
       }
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should launch successfully', async () => {
@@ -543,10 +543,6 @@ describe('Interactive debugger adapter - unit', () => {
       orgInfoSpy.restore();
     });
 
-    afterAll(() => {
-      adapter.clearIdleTimers();
-    });
-
     it('Should save proxy settings', async () => {
       const sessionId = '07aFAKE';
       sessionStartSpy = sinon
@@ -615,7 +611,6 @@ describe('Interactive debugger adapter - unit', () => {
     let streamingSubscribeSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.initializeReq(
         initializedResponse,
         {} as DebugProtocol.InitializeRequestArguments
@@ -645,10 +640,6 @@ describe('Interactive debugger adapter - unit', () => {
       streamingSubscribeSpy.restore();
       setValidLinesSpy.restore();
       orgInfoSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should not save line number mapping', async () => {
@@ -715,16 +706,11 @@ describe('Interactive debugger adapter - unit', () => {
     let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       clock = sinon.useFakeTimers();
     });
 
     afterEach(() => {
       clock.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should clear idle timers', () => {
@@ -807,7 +793,6 @@ describe('Interactive debugger adapter - unit', () => {
     let args: DebugProtocol.DisconnectArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       streamingDisconnectSpy = sinon.stub(
         StreamingService.prototype,
         'disconnect'
@@ -838,10 +823,6 @@ describe('Interactive debugger adapter - unit', () => {
       streamingDisconnectSpy.restore();
       breakpointClearSpy.restore();
       clearIdleTimersSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should not use session service if not connected', async () => {
@@ -915,7 +896,6 @@ describe('Interactive debugger adapter - unit', () => {
     let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       breakpointGetSpy = sinon.spy(
         BreakpointService.prototype,
         'getBreakpointsFor'
@@ -956,10 +936,6 @@ describe('Interactive debugger adapter - unit', () => {
       }
       sessionIdSpy.restore();
       lockSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should create breakpoint', async () => {
@@ -1078,17 +1054,12 @@ describe('Interactive debugger adapter - unit', () => {
     let runSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
 
     afterEach(() => {
       runSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should continue successfully', async () => {
@@ -1144,17 +1115,12 @@ describe('Interactive debugger adapter - unit', () => {
     let stepSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
 
     afterEach(() => {
       stepSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Step into should call proper command', async () => {
@@ -1204,14 +1170,6 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Threads request', () => {
-    beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
-    });
-
     it('Should return known debugged requests', () => {
       adapter.addRequestThread('07cFAKE1');
       adapter.addRequestThread('07cFAKE2');
@@ -1243,7 +1201,6 @@ describe('Interactive debugger adapter - unit', () => {
     let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
       lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
@@ -1255,10 +1212,6 @@ describe('Interactive debugger adapter - unit', () => {
         sourcePathSpy.restore();
       }
       lockSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should not get state of unknown thread', async () => {
@@ -1391,14 +1344,6 @@ describe('Interactive debugger adapter - unit', () => {
 
   describe('Custom request', () => {
     describe('Hotswap warning', () => {
-      beforeEach(() => {
-        adapter = new ApexDebugForTest(new RequestService());
-      });
-
-      afterAll(() => {
-        adapter.clearIdleTimers();
-      });
-
       it('Should log warning to debug console', () => {
         adapter.customRequest(
           HOTSWAP_REQUEST,
@@ -1422,7 +1367,6 @@ describe('Interactive debugger adapter - unit', () => {
       let sessionIdSpy: sinon.SinonStub;
 
       beforeEach(() => {
-        adapter = new ApexDebugForTest(new RequestService());
         adapter.setSfdxProject('someProjectPath');
         lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
         reconcileExceptionBreakpointSpy = sinon
@@ -1437,10 +1381,6 @@ describe('Interactive debugger adapter - unit', () => {
         lockSpy.restore();
         reconcileExceptionBreakpointSpy.restore();
         sessionIdSpy.restore();
-      });
-
-      afterAll(() => {
-        adapter.clearIdleTimers();
       });
 
       it('Should create exception breakpoint', async () => {
@@ -1585,7 +1525,6 @@ describe('Interactive debugger adapter - unit', () => {
       ]);
 
       beforeEach(() => {
-        adapter = new ApexDebugForTest(new RequestService());
         getExceptionBreakpointCacheSpy = sinon
           .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
           .returns(knownExceptionBreakpoints);
@@ -1593,10 +1532,6 @@ describe('Interactive debugger adapter - unit', () => {
 
       afterEach(() => {
         getExceptionBreakpointCacheSpy.restore();
-      });
-
-      afterAll(() => {
-        adapter.clearIdleTimers();
       });
 
       it('Should return list of breakpoint typerefs', async () => {
@@ -1637,7 +1572,6 @@ describe('Interactive debugger adapter - unit', () => {
     typerefMapping.set('bar', 'file:///bar.cls');
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       response = {
         command: '',
         success: true,
@@ -1647,10 +1581,6 @@ describe('Interactive debugger adapter - unit', () => {
       };
       breakpointService = adapter.getBreakpointService();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should not log without an error', () => {
@@ -1725,7 +1655,6 @@ describe('Interactive debugger adapter - unit', () => {
     let streamingSubscribeSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
         .returns(Promise.resolve());
@@ -1733,10 +1662,6 @@ describe('Interactive debugger adapter - unit', () => {
 
     afterEach(() => {
       streamingSubscribeSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('Should call streaming service subscribe', () => {
@@ -1787,7 +1712,6 @@ describe('Interactive debugger adapter - unit', () => {
       getExceptionBreakpointCacheSpy = sinon
         .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
         .returns(knownExceptionBreakpoints);
-      adapter = new ApexDebugForTest(new RequestService());
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
@@ -1811,10 +1735,6 @@ describe('Interactive debugger adapter - unit', () => {
       eventProcessedSpy.restore();
       markEventProcessedSpy.restore();
       getExceptionBreakpointCacheSpy.restore();
-    });
-
-    afterAll(() => {
-      adapter.clearIdleTimers();
     });
 
     it('[SessionTerminated] - Should stop session service', () => {

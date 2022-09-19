@@ -72,7 +72,7 @@ describe('Channel Service', () => {
     channelService.streamCommandOutput(execution);
 
     await new Promise<string | void>(resolve => {
-      execution.processExitSubject.subscribe(data => {
+      execution.processExitSubject.subscribe(() => {
         resolve();
       });
     });

@@ -162,7 +162,7 @@ describe('LibraryCommandletExecutor', () => {
 
     expect(withProgressStub.called).to.be.true;
     expect(withProgressStub.getCall(0).args[0]).to.eql({
-      title: nls.localize('progress_notification_text', 'Test Command'),
+      title: nls.localize('progress_notification_text', commandExecutionName),
       location: vscode.ProgressLocation.Notification,
       cancellable: true
     });
@@ -170,7 +170,7 @@ describe('LibraryCommandletExecutor', () => {
     assert.calledOnce(cancelStub);
     assert.calledWith(
       cancelStub,
-      nls.localize('notification_canceled_execution_text', 'Test Command')
+      nls.localize('notification_canceled_execution_text', commandExecutionName)
     );
   });
 
