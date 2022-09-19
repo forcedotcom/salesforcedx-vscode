@@ -134,8 +134,7 @@ describe('LibraryCommandletExecutor', () => {
     expect(showInfoStub.notCalled).to.be.true;
   });
 
-  // TODO: figure out the right flow for this cancel unit test.
-  it.skip('should show cancelled warning message if run was cancelled', async () => {
+  it('should show cancelled warning message if run was cancelled', async () => {
     const cancelStub = sb.stub(vscode.window, 'showWarningMessage' as any);
     const tokenSource = new vscode.CancellationTokenSource();
     const reportStub = stub();

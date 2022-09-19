@@ -37,7 +37,7 @@ import { workspaceUtils } from '../../../src/util';
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
-  const rootWorkspacePath = workspaceUtils.getRootWorkspace();
+  const rootWorkspacePath = String(workspaceUtils.getRootWorkspace());
   const PROJECT_NAME_WITH_LEADING_TRAILING_SPACES = `  ${PROJECT_NAME}  `;
   const WORKSPACE_PATH = path.join(rootWorkspacePath, '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
