@@ -26,19 +26,15 @@ function loadMessageBundle(config?: Config): Message {
   const base = new Message(messages);
 
   if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-    try {
-      if (config.locale === 'ja') {
-        const layer = new Message(jaMessages, base);
-        return layer;
-      }
-      throw new Error('locale not supported');
-    } catch (e) {
-      console.error(`Cannot find ${config.locale}, defaulting to en`);
-      return base;
+    if (config.locale === 'ja') {
+      const layer = new Message(jaMessages, base);
+      return layer;
     }
-  } else {
-    return base;
+
+    console.error(`Cannot find ${config.locale}, defaulting to en`);
   }
+
+  return base;
 }
 
 export const nls = new Localization(
