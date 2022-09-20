@@ -41,11 +41,7 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
       this.logMetric(execution.command.logName, startTime, {
         dirType: this.identifyDirType(response.data.outputdir)
       });
-      if (
-        data !== undefined &&
-        String(data) === '0' &&
-        workspaceUtils.hasRootWorkspace()
-      ) {
+      if (data && String(data) === '0' && workspaceUtils.hasRootWorkspace()) {
         const outputFile = this.getPathToSource(
           response.data.outputdir,
           response.data.fileName
