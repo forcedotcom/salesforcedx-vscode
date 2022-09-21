@@ -297,6 +297,7 @@ describe('Force Rename Lightning Component', () => {
       expect(isNameMatch('hero1.css', 'hero', lwcComponentPath)).to.equal(false);
       expect(isNameMatch('page.jpg', 'page', auraComponentPath)).to.equal(false);
       expect(isNameMatch('page1.css', 'hero', auraComponentPath)).to.equal(false);
+      expect(isNameMatch('pageEvt.js', 'page', auraComponentPath)).to.equal(false);
     });
   });
 
