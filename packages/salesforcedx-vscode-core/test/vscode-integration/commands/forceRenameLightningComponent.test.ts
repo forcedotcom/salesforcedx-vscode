@@ -83,7 +83,7 @@ describe('Force Rename Lightning Component', () => {
         type: 'CONTINUE',
         data: {name: 'page1'}
       });
-      expect(renameStub.callCount).to.equal(10);
+      expect(renameStub.callCount).to.equal(12);
     });
 
     it('should rename the test file that has the same name as component', async () => {
