@@ -546,7 +546,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
-  protected idleTimers: NodeJS.Timer[] = [];
+  protected idleTimers: Array<ReturnType<typeof setTimeout>> = [];
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -588,8 +588,8 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  private getSessionIdleTimer(): NodeJS.Timer[] {
-    const timers: NodeJS.Timer[] = [];
+  private getSessionIdleTimer(): Array<ReturnType<typeof setTimeout>> {
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
     timers.push(
       setTimeout(() => {
         this.warnToDebugConsole(
@@ -635,7 +635,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public resetIdleTimer(): NodeJS.Timer[] {
+  public resetIdleTimer(): Array<ReturnType<typeof setTimeout>> {
     this.clearIdleTimers();
     this.idleTimers = this.getSessionIdleTimer();
     return this.idleTimers;
