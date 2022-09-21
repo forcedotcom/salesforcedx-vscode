@@ -220,7 +220,7 @@ export function isNameMatch(item: string, componentName: string, componentPath: 
   if (isLwc) {
     regularExp = new RegExp(`${componentName}\.(html|js|js-meta.xml|css|svg|test.js)`);
   } else {
-    regularExp = new RegExp(`${componentName}(((Controller|Renderer|Helper)?\.js)|(\.(cmp|app|css|design|auradoc|svg)))`);
+    regularExp = new RegExp(`${componentName}(((Controller|Renderer|Helper)?\.js)|(\.(cmp|app|css|design|auradoc|svg|evt)))`);
   }
   return Boolean(item.match(regularExp));
 }
