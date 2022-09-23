@@ -30,6 +30,8 @@ const TEST_FOLDER = '__tests__';
 
 export class RenameLwcComponentExecutor extends LibraryCommandletExecutor<ComponentName> {
   private sourceFsPath: string;
+  protected showChannelOutput = true;
+
   constructor(sourceFsPath: string) {
     super(
       nls.localize(RENAME_LIGHTNING_COMPONENT_EXECUTOR),

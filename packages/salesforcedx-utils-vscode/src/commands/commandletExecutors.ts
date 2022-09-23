@@ -124,23 +124,23 @@ export abstract class LibraryCommandletExecutor<T>
   private cancelled: boolean = false;
   private readonly executionName: string;
   private readonly logName: string;
-  private readonly outputChannel: vscode.OutputChannel;
-  protected showChannelOutput = true;
+  private readonly channelService: ChannelService;
+  protected showChannelOutput = false;
   protected readonly telemetry = new TelemetryBuilder();
 
   /**
    * @param executionName Name visible to user while executing.
    * @param logName Name for logging purposes such as telemetry.
-   * @param outputChannel VS Code output channel to report execution status to.
+   * @param channelService ChannelService to report
    */
   constructor(
     executionName: string,
     logName: string,
-    outputChannel: vscode.OutputChannel
+    channelService: ChannelService
   ) {
     this.executionName = executionName;
     this.logName = logName;
-    this.outputChannel = outputChannel;
+    this.channelService = channelService;
   }
 
   /**
@@ -160,13 +160,12 @@ export abstract class LibraryCommandletExecutor<T>
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
     const startTime = process.hrtime();
-    const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
     if (SfdxSettingsService.getEnableClearOutputBeforeEachCommand()) {
       channelService.clear();
     }
 
-    channelService.showCommandWithTimestamp(
+    this.channelService.showCommandWithTimestamp(
       `${nls.localize('channel_starting_message')}${this.executionName}\n`
     );
 
@@ -192,18 +191,18 @@ export abstract class LibraryCommandletExecutor<T>
           return this.run(response, progress, token);
         }
       );
-      channelService.showCommandWithTimestamp(
+      this.channelService.showCommandWithTimestamp(
         `${nls.localize('channel_end')} ${this.executionName}`
       );
 
       if (this.showChannelOutput) {
-        channelService.showChannelOutput();
+        this.channelService.showChannelOutput();
       }
 
       if (!this.cancelled) {
         if (success) {
           notificationService
-            .showSuccessfulExecution(this.executionName, channelService)
+            .showSuccessfulExecution(this.executionName, this.channelService)
             .catch(e => console.error(e));
         } else {
           notificationService.showFailedExecution(this.executionName);
@@ -221,8 +220,8 @@ export abstract class LibraryCommandletExecutor<T>
     } catch (e) {
       telemetryService.sendException(e.name, e.message);
       notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
-      channelService.showChannelOutput();
+      this.channelService.appendLine(e.message);
+      this.channelService.showChannelOutput();
     }
   }
 

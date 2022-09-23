@@ -148,6 +148,9 @@ export class QuickLaunch {
 }
 
 export class TestDebuggerExecutor extends LibraryCommandletExecutor<string[]> {
+
+  protected showChannelOutput = true;
+
   constructor() {
     super(
       nls.localize('debug_test_exec_name'),

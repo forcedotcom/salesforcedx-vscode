@@ -31,7 +31,6 @@ import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 export class ForceAuthLogoutAll extends SfdxCommandletExecutor<{}> {
   public static withoutShowingChannel(): ForceAuthLogoutAll {
     const instance = new ForceAuthLogoutAll();
-    instance.showChannelOutput = false;
     return instance;
   }
 
@@ -60,12 +59,16 @@ export async function forceAuthLogoutAll() {
 }
 
 export class AuthLogoutDefault extends LibraryCommandletExecutor<string> {
+
+  protected showChannelOutput = true;
+
   constructor() {
     super(
       nls.localize('force_auth_logout_default_text'),
       'force_auth_logout_default',
       OUTPUT_CHANNEL
     );
+
   }
 
   public async run(

@@ -46,7 +46,6 @@ export interface DeviceCodeResponse {
 export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
-  protected showChannelOutput = false;
   protected deviceCodeReceived = false;
   protected stdOut = '';
 
@@ -147,7 +146,6 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
 export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
-  protected showChannelOutput = false;
 
   public build(data: AuthParams): Command {
     const command = new SfdxCommandBuilder().withDescription(

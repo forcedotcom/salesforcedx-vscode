@@ -152,6 +152,7 @@ export class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<
   public static diagnostics = vscode.languages.createDiagnosticCollection(
     'apex-errors'
   );
+  protected showChannelOutput = true;
 
   constructor() {
     super(

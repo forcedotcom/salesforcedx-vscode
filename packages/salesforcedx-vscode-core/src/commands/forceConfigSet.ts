@@ -18,7 +18,6 @@ import {
 
 export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
   private usernameOrAlias: string;
-  protected showChannelOutput = false;
 
   public constructor(usernameOrAlias: string) {
     super();
