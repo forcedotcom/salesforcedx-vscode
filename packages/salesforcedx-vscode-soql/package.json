@@ -88,7 +88,7 @@
     "test:ui": "extest setup-and-run -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json -e test/ui-test/resources/extensions out/test/ui-test/*.test.js",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "prevscode:package": "npm prune --production; npx node-prune",
+    "prevscode:package": "npm prune --production",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
