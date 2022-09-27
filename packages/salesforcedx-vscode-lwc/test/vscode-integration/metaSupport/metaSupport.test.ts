@@ -13,7 +13,7 @@ import { metaSupport } from '../../../src/metasupport';
 import { strict as assert } from 'assert';
 import * as sinon from 'sinon';
 import * as path from 'path';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 
 let sandbox = sinon.createSandbox();
 let mockRhExtension: any;

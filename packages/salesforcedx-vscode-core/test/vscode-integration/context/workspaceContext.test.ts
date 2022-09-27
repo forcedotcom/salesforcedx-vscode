@@ -1,12 +1,15 @@
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  OrgUserInfo,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { join } from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
-import * as wsContext from '../../../src/context';
+import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
 
@@ -69,7 +72,7 @@ class TestWorkspaceContextUtil extends WorkspaceContextUtil {
 
     const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       SFDX_FOLDER,
       SFDX_CONFIG_FILE
     );
@@ -96,7 +99,7 @@ describe('WorkspaceContext', () => {
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
   const cliConfigPath = join(
-    getRootWorkspacePath(),
+    workspaceUtils.getRootWorkspacePath(),
     SFDX_FOLDER,
     SFDX_CONFIG_FILE
   );
@@ -109,7 +112,7 @@ describe('WorkspaceContext', () => {
 
   beforeEach(async () => {
     setupWorkspaceOrgTypeStub = env
-      .stub(wsContext, 'setupWorkspaceOrgType')
+      .stub(workspaceContextUtils, 'setupWorkspaceOrgType')
       .resolves();
 
     workspaceContextUtil = TestWorkspaceContextUtil.getInstance();
@@ -164,7 +167,7 @@ describe('WorkspaceContext', () => {
   // tslint:disable-next-line:only-arrow-functions
   it('should notify subscribers that the default org may have changed', async function() {
     const someLogic = env.stub();
-    workspaceContext.onOrgChange((orgInfo: wsContext.OrgInfo) => {
+    workspaceContext.onOrgChange((orgInfo: OrgUserInfo) => {
       someLogic(orgInfo);
     });
 

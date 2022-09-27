@@ -7,10 +7,13 @@
 import { ExecuteService } from '@salesforce/apex-node';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { getRootWorkspacePath, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  getRootWorkspacePath,
+  SFDX_CORE_CONFIGURATION_NAME
+} from '@salesforce/salesforcedx-utils-vscode';
+import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -43,7 +46,7 @@ describe('Force Apex Execute', () => {
       .withArgs(SFDX_CORE_CONFIGURATION_NAME)
       .returns({
         get: settingStub
-    });
+      });
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -55,23 +58,22 @@ describe('Force Apex Execute', () => {
     sb.stub(ConfigAggregator.prototype, 'getPropertyValue')
       .withArgs('defaultusername')
       .returns(testData.username);
-    sb.stub(workspaceContext, 'getConnection')
-      .returns(mockConnection);
+    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
-    traceFlagsStub = sb.stub(TraceFlags.prototype, 'ensureTraceFlags')
+    traceFlagsStub = sb
+      .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
 
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('/test')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('/test')
+      }
+    }));
 
-    writeFileStub = sb.stub(fs, 'writeFileSync')
-      .returns(true);
+    writeFileStub = sb.stub(fs, 'writeFileSync').returns(true);
 
-    executeCommandStub = sb.stub(vscode.commands, 'executeCommand')
+    executeCommandStub = sb
+      .stub(vscode.commands, 'executeCommand')
       .withArgs('sfdx.launch.replay.debugger.logfile.path')
       .returns(true);
   });

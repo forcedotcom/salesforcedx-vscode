@@ -135,7 +135,7 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
     };
 
     ({ ContinueResponse } = proxyquireStrict(
-      '@salesforce/salesforcedx-utils-vscode/out/src/types',
+      '@salesforce/salesforcedx-utils-vscode',
       {
         vscode: vscodeStub
       }
@@ -147,10 +147,8 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
         '@heroku/functions-core': {
           getProjectDescriptor: getProjectDescriptorStub
         },
-        '@salesforce/salesforcedx-utils-vscode/out/src': {
-          LibraryCommandletExecutor
-        },
-        '@salesforce/salesforcedx-utils-vscode/out/src/types': {
+        '@salesforce/salesforcedx-utils-vscode': {
+          LibraryCommandletExecutor,
           ContinueResponse: {
             ContinueResponse
           }
