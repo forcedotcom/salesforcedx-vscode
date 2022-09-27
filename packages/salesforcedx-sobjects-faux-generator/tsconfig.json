@@ -10,5 +10,9 @@
     "node_modules",
     "out"
   ],
-  "references": []
+  "references": [
+    {
+      "path": "../salesforcedx-utils-vscode"
+    }
+  ]
 }

@@ -13,7 +13,7 @@ import { nls } from '../../../src/messages';
 import {
   ChannelService,
   notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
 
 describe('forceLightningLwcStop', () => {
   let sandbox: sinon.SinonSandbox;

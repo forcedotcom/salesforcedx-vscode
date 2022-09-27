@@ -10,18 +10,18 @@ import {
   Command,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { developerLogTraceFlag } from '.';
 import { hideTraceFlagExpiration } from '../decorators';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import {
   SfdxCommandlet,
   SfdxCommandletExecutor,
@@ -39,7 +39,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
@@ -56,7 +56,7 @@ export class ForceStopApexDebugLoggingExecutor extends SfdxCommandletExecutor<{}
 export async function turnOffLogging(): Promise<void> {
   if (developerLogTraceFlag.isActive()) {
     const execution = new CliCommandExecutor(deleteTraceFlag(), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute();
     telemetryService.sendCommandEvent(execution.command.logName);
     const resultPromise = new CommandOutput().getCmdResult(execution);

@@ -23,7 +23,7 @@ import { SfdxWorkspaceChecker } from '../../../../src/commands/util/precondition
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import * as rootWorkspace from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
 import sinon = require('sinon');
@@ -60,13 +60,15 @@ describe('Force Function Create', () => {
       notificationService,
       'showWarningMessage'
     );
-    rootWorkspacePathStub = sandbox.stub(rootWorkspace, 'getRootWorkspacePath');
-    rootWorkspacePathStub.returns(workingDir);
+    rootWorkspacePathStub = sandbox
+      .stub(workspaceUtils, 'getRootWorkspacePath')
+      .returns(workingDir);
     telemetryServiceStub = sandbox.stub(telemetryService, 'sendCommandEvent');
-    withProgressStub = sandbox.stub(vscode.window, 'withProgress');
-    withProgressStub.callsFake((options, task) => {
-      task();
-    });
+    withProgressStub = sandbox
+      .stub(vscode.window, 'withProgress')
+      .callsFake((options, task) => {
+        task();
+      });
 
     openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
     openTextDocumentStub.resolves();
@@ -94,6 +96,9 @@ describe('Force Function Create', () => {
       execStub.yields();
       await funcCreate.run(functionInfoJS);
       assert.calledOnce(generateFunctionStub);
+      console.log('args', {
+        generateARgs: JSON.stringify(generateFunctionStub.getCall(0).args)
+      });
       assert.calledWith(
         generateFunctionStub,
         'myFunc1',

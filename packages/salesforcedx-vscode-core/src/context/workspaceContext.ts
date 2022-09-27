@@ -6,11 +6,11 @@
  */
 import { Connection } from '@salesforce/core';
 import {
-  OrgInfo,
+  OrgUserInfo,
   WorkspaceContextUtil
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { setupWorkspaceOrgType } from '.';
+import { workspaceContextUtils } from '.';
 import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 
 /**
@@ -19,7 +19,7 @@ import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider'
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
 
-  public readonly onOrgChange: vscode.Event<OrgInfo>;
+  public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
     this.onOrgChange = WorkspaceContextUtil.getInstance().onOrgChange;
@@ -41,8 +41,8 @@ export class WorkspaceContext {
     return await WorkspaceContextUtil.getInstance().getConnection();
   }
 
-  protected async handleCliConfigChange(orgInfo: OrgInfo) {
-    setupWorkspaceOrgType(orgInfo.username).catch(e =>
+  protected async handleCliConfigChange(orgInfo: OrgUserInfo) {
+    workspaceContextUtils.setupWorkspaceOrgType(orgInfo.username).catch(e =>
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
@@ -57,5 +57,3 @@ export class WorkspaceContext {
     return WorkspaceContextUtil.getInstance().alias;
   }
 }
-
-export { OrgInfo };
