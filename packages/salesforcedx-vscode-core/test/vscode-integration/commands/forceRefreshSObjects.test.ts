@@ -207,7 +207,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should pass response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.Startup, SObjectCategory.CUSTOM);
-      expect(factoryStub.firstCall.args.slice(3)).to.eql([
+      expect(factoryStub.firstCall.args.slice(2)).to.eql([
         SObjectCategory.CUSTOM,
         SObjectRefreshSource.Startup
       ]);
@@ -215,7 +215,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     it('Should pass minimal response data to transformer', async () => {
       await doExecute(SObjectRefreshSource.StartupMin, SObjectCategory.CUSTOM);
-      expect(factoryStub.firstCall.args.slice(3)).to.eql([
+      expect(factoryStub.firstCall.args.slice(2)).to.eql([
         SObjectCategory.STANDARD,
         SObjectRefreshSource.StartupMin
       ]);

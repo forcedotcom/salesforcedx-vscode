@@ -11,3 +11,5 @@ export {
   getRootWorkspacePath,
   getRootWorkspaceSfdxPath
 } from './rootWorkspace';
+
+export { workspaceUtils } from './workspaceUtils';

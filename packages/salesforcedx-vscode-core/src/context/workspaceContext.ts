@@ -6,12 +6,12 @@
  */
 import { Connection } from '@salesforce/core';
 import {
+  ConfigAggregatorProvider,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
-import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.

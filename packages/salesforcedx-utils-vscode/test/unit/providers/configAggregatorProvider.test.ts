@@ -8,7 +8,7 @@ import { ConfigAggregator } from '@salesforce/core';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
-import { workspaceUtils } from '../../../src/util';
+import { workspaceUtils } from '../../../src/workspaces';
 
 const sandbox = createSandbox();
 const dummyProjectRootWorkspacePath = '/test/home/testProject';

@@ -9,9 +9,11 @@ import {
   ConfigAggregator,
   ConfigFile,
   ConfigValue,
-  OrgConfigProperties
+  OrgConfigProperties,
+  StateAggregator
 } from '@salesforce/core';
 import * as path from 'path';
+import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
 
@@ -85,28 +87,24 @@ export class ConfigUtil {
     return undefined;
   }
 
-  public static async getUsername(
-    projectPath: string
-  ): Promise<string | undefined> {
-    const configAggregator = await ConfigUtil.getConfigAggregator(projectPath);
+  /**
+   * Get the username of the currently auth'd user for the project.
+   *
+   * @returns The username for the configured Org if it exists.
+   */
+  public static async getUsername(): Promise<string | undefined> {
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );
-    return (defaultUsernameOrAlias as string) || undefined;
-  }
+    if (!defaultUsernameOrAlias) {
+      return;
+    }
 
-  private static async getConfigAggregator(
-    projectPath: string
-  ): Promise<ConfigAggregator> {
-    const origCurrentWorkingDirectory = process.cwd();
-    // Change the current working directory to the project path,
-    // so that ConfigAggregator reads the local project values
-    process.chdir(projectPath);
-    const configAggregator = await ConfigAggregator.create();
-    await configAggregator.reload();
-    // Change the current working directory back to what it was
-    // before returning
-    process.chdir(origCurrentWorkingDirectory);
-    return configAggregator;
+    const info = await StateAggregator.getInstance();
+    const username = defaultUsernameOrAlias
+      ? info.aliases.getUsername(String(defaultUsernameOrAlias))
+      : undefined;
+    return username ? String(username) : undefined;
   }
 }

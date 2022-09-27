@@ -9,6 +9,7 @@ import { join } from 'path';
 import { workspace, WorkspaceFolder } from 'vscode';
 import { SFDX_FOLDER } from '../types';
 
+// TODO: consolidate all of these into workspaceUtils
 export function hasRootWorkspace(ws: typeof workspace = workspace) {
   return ws && ws.workspaceFolders && ws.workspaceFolders.length > 0;
 }
