@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { Connection } from '@salesforce/core';
+import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
@@ -31,7 +31,6 @@ export class SObjectTransformerFactory {
   public static async create(
     emitter: EventEmitter,
     cancellationToken: CancellationToken,
-    projectPath: string,
     category: SObjectCategory,
     source: SObjectRefreshSource
   ): Promise<SObjectTransformer> {
@@ -87,12 +86,7 @@ export class SObjectTransformerFactory {
   }
 
   public static async createConnection(): Promise<Connection> {
-    // TODO: replace below logic with a call to a common function for getting a connection.
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: await ConfigUtil.getUsername()
-      })
-    });
+    const connection = await WorkspaceContextUtil.getInstance().getConnection();
     return connection;
   }
 }

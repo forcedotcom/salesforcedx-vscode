@@ -90,7 +90,6 @@ export class ConfigUtil {
   /**
    * Get the username of the currently auth'd user for the project.
    *
-   * @param projectPath The project path for the currently SF project.
    * @returns The username for the configured Org if it exists.
    */
   public static async getUsername(): Promise<string | undefined> {
