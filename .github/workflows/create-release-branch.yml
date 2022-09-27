@@ -39,8 +39,9 @@ jobs:
     - uses: ./.github/actions/gitConfig
       with:
           email: ${{ secrets.GH_EMAIL }}
-    - run: npm ci
+    - run: npm install -g npm@8.12.1
     - run: npm --version
+    - run: npm ci
     - run: npm install -g shelljs && npm install -g lerna
     - name: Create and Push the Release Branch
       run: |
