@@ -73,6 +73,7 @@ shell.exec(`git checkout -b ${releaseBranchName}`);
 
 // Set up lerna and dependencies 
 shell.exec(`npm install`);
+shell.exec(`npm --version`);
 logger.info(`NOT INSTALLED Lerna`);
 
 // git clean but keeping node_modules around
