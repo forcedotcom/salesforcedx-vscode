@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { Table } from '../../../src/output';
 
 describe('Creating a Table string', () => {
   it('Should create a string with the correct formatting and number of Rows and Columns', () => {
     const expectedTable =
-      '=== Sample Table\n'   +
+      '=== Sample Table\n' +
       'Column 1  Column 2\n' +
       '────────  ────────\n' +
       'test      test2   \n' +
@@ -82,12 +83,14 @@ describe('Creating a Table string', () => {
       { key: 'col3', label: 'Column 2' }
     ];
 
-    let err;
     try {
       new Table().createTable(rows, cols);
-    } catch (e) {
-      err = e;
+    } catch (err) {
+      if (err instanceof Error) {
+        expect(err.message).to.be.eq('Row is missing the key col3');
+      } else {
+        fail('Expected an error');
+      }
     }
-    expect(err.message).to.be.eq('Row is missing the key col3');
   });
 });

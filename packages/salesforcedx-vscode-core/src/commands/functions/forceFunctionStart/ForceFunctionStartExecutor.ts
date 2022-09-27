@@ -6,8 +6,8 @@
  */
 
 import { getProjectDescriptor } from '@heroku/functions-core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../../channels';
