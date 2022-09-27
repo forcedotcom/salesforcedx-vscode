@@ -6,38 +6,19 @@
  */
 
 import { expect } from 'chai';
-import * as proxyquire from 'proxyquire';
 import { SinonStub, stub } from 'sinon';
+import { TelemetryReporter, TelemetryService } from '../../../src';
+import * as cliConfiguration from '../../../src/telemetry/cliConfiguration';
 import { MockExtensionContext } from './MockExtensionContext';
 
 const mShowInformation = stub();
 mShowInformation.returns(Promise.resolve());
-const vscodeStub = {
-  commands: stub(),
-  Disposable: stub(),
-  Uri: {
-    parse: stub()
-  },
-  window: {
-    createOutputChannel: () => {
-      return {
-        show: () => {}
-      };
-    },
-    showInformationMessage: mShowInformation
-  },
-  workspace: {
-    getConfiguration: () => {
-      return {
-        get: () => true
-      };
-    }
-  }
-};
+jest.mock('../../../src/telemetry/telemetryReporter');
+jest.mock('../../../src/telemetry/cliConfiguration');
 
 describe('Telemetry dev mode', () => {
   const extensionName = 'salesforcedx-test';
-  let telemetryService: any;
+  let telemetryService: TelemetryService;
   let mockExtensionContext: MockExtensionContext;
   let teleStub: SinonStub;
   let cliStub: SinonStub;
@@ -51,19 +32,12 @@ describe('Telemetry dev mode', () => {
       public dispose = stub();
     };
 
-    const cliConfigurationStub = {
-      disableCLITelemetry: stub(),
-      isCLITelemetryAllowed: () => {
-        return Promise.resolve(true);
-      }
-    };
-
-    // tslint:disable-next-line
-    const { TelemetryService } = proxyquire.noCallThru()('../../../src/index', {
-      vscode: vscodeStub,
-      './telemetryReporter': { default: telemetryReporterStub },
-      '../cli/cliConfiguration': cliConfigurationStub
-    });
+    // @ts-ignore
+    TelemetryReporter.mockImplementation(() => telemetryReporterStub);
+    jest.spyOn(cliConfiguration, 'disableCLITelemetry');
+    jest
+      .spyOn(cliConfiguration, 'isCLITelemetryAllowed')
+      .mockResolvedValue(true);
 
     telemetryService = TelemetryService.getInstance();
     teleStub = stub(telemetryService, 'setCliTelemetryEnabled');
@@ -79,8 +53,14 @@ describe('Telemetry dev mode', () => {
   it('Should not initialize telemetry reporter', async () => {
     // create vscode extensionContext
     mockExtensionContext = new MockExtensionContext(true);
+    jest.spyOn(telemetryService, 'isTelemetryEnabled').mockResolvedValue(false);
 
-    await telemetryService.initializeService(mockExtensionContext, extensionName);
+    await telemetryService.initializeService(
+      mockExtensionContext as any,
+      extensionName,
+      'fakeAPIKey',
+      'fakeVersion'
+    );
 
     const telemetryReporter = telemetryService.getReporter();
     expect(typeof telemetryReporter).to.be.eql('undefined');
@@ -91,7 +71,12 @@ describe('Telemetry dev mode', () => {
     mockExtensionContext = new MockExtensionContext(true);
 
     cliStub.returns(Promise.resolve(false));
-    await telemetryService.initializeService(mockExtensionContext, extensionName);
+    await telemetryService.initializeService(
+      mockExtensionContext as any,
+      extensionName,
+      'fakeApiKey',
+      'fakeVersion'
+    );
 
     expect(teleStub.firstCall.args).to.eql([false]);
   });

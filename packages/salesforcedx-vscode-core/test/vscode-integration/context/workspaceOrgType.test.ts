@@ -9,15 +9,10 @@ import { AuthInfo } from '@salesforce/core';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { createSandbox } from 'sinon';
-import Sinon = require('sinon');
 import * as vscode from 'vscode';
-import {
-  getDefaultUsernameOrAlias,
-  getWorkspaceOrgType,
-  OrgType,
-  setupWorkspaceOrgType
-} from '../../../src/context';
+import { OrgType, workspaceContextUtils } from '../../../src/context';
 import { OrgAuthInfo } from '../../../src/util';
+import Sinon = require('sinon');
 
 const sandbox = createSandbox();
 
@@ -75,13 +70,17 @@ describe('workspaceOrgType unit tests', () => {
   describe('getDefaultUsernameOrAlias', () => {
     it('returns undefined when no defaultusername is set', async () => {
       getDefaultUsernameOrAliasStub.resolves(undefined);
-      expect(await getDefaultUsernameOrAlias()).to.equal(undefined);
+      expect(await workspaceContextUtils.getDefaultUsernameOrAlias()).to.equal(
+        undefined
+      );
     });
 
     it('returns the defaultusername when the username is set', async () => {
       const username = 'test@org.com';
       getDefaultUsernameOrAliasStub.resolves(username);
-      expect(await getDefaultUsernameOrAlias()).to.equal(username);
+      expect(await workspaceContextUtils.getDefaultUsernameOrAlias()).to.equal(
+        username
+      );
     });
   });
 
@@ -95,7 +94,9 @@ describe('workspaceOrgType unit tests', () => {
         })
       });
 
-      const orgType = await getWorkspaceOrgType(defaultUsername);
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
+        defaultUsername
+      );
 
       expect(orgType).to.equal(OrgType.SourceTracked);
       expect(createStub.getCall(0).args[0]).to.eql({
@@ -109,7 +110,9 @@ describe('workspaceOrgType unit tests', () => {
       createStub.resolves({
         getFields: () => ({})
       });
-      const orgType = await getWorkspaceOrgType(defaultUsername);
+      const orgType = await workspaceContextUtils.getWorkspaceOrgType(
+        defaultUsername
+      );
 
       expect(orgType).to.equal(OrgType.NonSourceTracked);
       expect(createStub.getCall(0).args[0]).to.eql({
@@ -121,7 +124,7 @@ describe('workspaceOrgType unit tests', () => {
       const defaultUsername = undefined;
       let errorWasThrown = false;
       try {
-        await getWorkspaceOrgType(defaultUsername);
+        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
       } catch (error) {
         if (error instanceof Error) {
           errorWasThrown = true;
@@ -143,7 +146,7 @@ describe('workspaceOrgType unit tests', () => {
 
       let errorWasThrown = false;
       try {
-        await getWorkspaceOrgType(defaultUsername);
+        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
       } catch (error) {
         if (error instanceof Error) {
           errorWasThrown = true;
@@ -167,7 +170,7 @@ describe('workspaceOrgType unit tests', () => {
 
       let errorWasThrown = false;
       try {
-        await getWorkspaceOrgType(defaultUsername);
+        await workspaceContextUtils.getWorkspaceOrgType(defaultUsername);
       } catch (error) {
         if (error instanceof Error) {
           errorWasThrown = true;
@@ -187,7 +190,7 @@ describe('workspaceOrgType unit tests', () => {
       const defaultUsername = undefined;
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-      await setupWorkspaceOrgType(defaultUsername);
+      await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(false, executeCommandStub);
@@ -206,7 +209,7 @@ describe('workspaceOrgType unit tests', () => {
         .throws(error);
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-      await setupWorkspaceOrgType(defaultUsername);
+      await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
@@ -227,7 +230,7 @@ describe('workspaceOrgType unit tests', () => {
       const defaultUsername = 'scratchOrgAlias';
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
 
-      await setupWorkspaceOrgType(defaultUsername);
+      await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(createStub.getCall(0).args[0]).to.eql({
         username: scratchOrgUser
@@ -246,7 +249,7 @@ describe('workspaceOrgType unit tests', () => {
       });
       const executeCommandStub = sinon.stub(vscode.commands, 'executeCommand');
       const defaultUsername = 'sandbox@org.com';
-      await setupWorkspaceOrgType(defaultUsername);
+      await workspaceContextUtils.setupWorkspaceOrgType(defaultUsername);
 
       expect(executeCommandStub.calledThrice).to.equal(true);
       expectSetHasDefaultUsername(true, executeCommandStub);
@@ -270,7 +273,7 @@ describe('workspaceOrgType unit tests', () => {
         .throws(error);
 
       try {
-        await setupWorkspaceOrgType(username);
+        await workspaceContextUtils.setupWorkspaceOrgType(username);
 
         expect(executeCommandStub.calledThrice).to.equal(true);
         expectSetHasDefaultUsername(true, executeCommandStub);
