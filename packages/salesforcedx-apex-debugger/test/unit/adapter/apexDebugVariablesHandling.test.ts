@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* tslint:disable:no-unused-expression */
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+import { RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';

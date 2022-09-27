@@ -11,15 +11,13 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { TraceFlags } from '../../../src/helpers';
 import { nls } from '../../../src/messages';
 import { vscodeStub } from '../commands/mocks';
 
-const { TraceFlags } = proxyquire.noCallThru()(
-  '../../../src/helpers',
-  {
-    vscode: vscodeStub
-  }
-);
+// const { TraceFlags } = proxyquire.noCallThru()('../../../src/helpers', {
+//   vscode: vscodeStub
+// });
 
 const $$ = testSetup();
 
@@ -155,29 +153,28 @@ describe('Trace Flags', () => {
     expect(expDate.getTime() - currDate).to.be.greaterThan(60000 * 29);
   });
 
-  it('should verify that createTraceFlag() is called when a trace flag doesn\'t exist', async () => {
+  it("should verify that createTraceFlag() is called when a trace flag doesn't exist", async () => {
     queryStub = sb.stub(mockConnection, 'query');
     toolingCreateStub = sb.stub(mockConnection.tooling, 'create');
     toolingQueryStub = sb.stub(mockConnection.tooling, 'query');
     toolingUpdateStub = sb.stub(mockConnection.tooling, 'update');
 
     const traceFlags = new TraceFlags(mockConnection);
-    const createTraceFlagSpy = sb.spy(TraceFlags.prototype, 'createTraceFlag');
+    const createTraceFlagSpy = sb.spy(
+      TraceFlags.prototype as any,
+      'createTraceFlag'
+    );
 
-    queryStub
-      .onFirstCall()
-      .resolves({
-        done: true,
-        totalSize: 1,
-        records: [{ Id: USER_ID }]
-      });
-    toolingQueryStub
-      .onFirstCall()
-      .resolves({
-        done: true,
-        totalSize: 0,
-        records: []
-      });
+    queryStub.onFirstCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: [{ Id: USER_ID }]
+    });
+    toolingQueryStub.onFirstCall().resolves({
+      done: true,
+      totalSize: 0,
+      records: []
+    });
     toolingCreateStub
       .onFirstCall()
       .resolves({ success: true, id: 'aBcDeF' })
@@ -195,34 +192,33 @@ describe('Trace Flags', () => {
     toolingUpdateStub = sb.stub(mockConnection.tooling, 'update');
 
     const traceFlags = new TraceFlags(mockConnection);
-    const createTraceFlagSpy = sb.spy(TraceFlags.prototype, 'createTraceFlag');
+    const createTraceFlagSpy = sb.spy(
+      TraceFlags.prototype as any,
+      'createTraceFlag'
+    );
 
-    queryStub
-      .onFirstCall()
-      .resolves({
-        done: true,
-        totalSize: 1,
-        records: [{ Id: USER_ID }]
+    queryStub.onFirstCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: [{ Id: USER_ID }]
     });
-    toolingQueryStub
-      .onFirstCall()
-      .resolves({
-        done: true,
-        totalSize: 1,
-        records: [
-          {
-            Id: '1234',
-            DebugLevelId: '00A123456',
-            LogType: 'developer_log',
-            StartDate: null,
-            ExpirationDate: null,
-            DebugLevel: {
-              ApexCode: '',
-              VisualForce: ''
-            }
+    toolingQueryStub.onFirstCall().resolves({
+      done: true,
+      totalSize: 1,
+      records: [
+        {
+          Id: '1234',
+          DebugLevelId: '00A123456',
+          LogType: 'developer_log',
+          StartDate: null,
+          ExpirationDate: null,
+          DebugLevel: {
+            ApexCode: '',
+            VisualForce: ''
           }
-        ]
-      });
+        }
+      ]
+    });
     toolingUpdateStub
       .onFirstCall()
       .resolves({ success: true })
@@ -241,7 +237,11 @@ describe('Trace Flags', () => {
       await traceFlags.ensureTraceFlags();
       fail('Expected an error');
     } catch (err) {
-      expect(err.message).to.equal(nls.localize('error_no_default_username'));
+      if (err instanceof Error) {
+        expect(err.message).to.equal(nls.localize('error_no_default_username'));
+      } else {
+        fail('Expected an error');
+      }
     }
   });
 
@@ -255,7 +255,11 @@ describe('Trace Flags', () => {
       await traceFlags.ensureTraceFlags();
       fail('Expected an error');
     } catch (err) {
-      expect(err.message).to.equal(nls.localize('trace_flags_unknown_user'));
+      if (err instanceof Error) {
+        expect(err.message).to.equal(nls.localize('trace_flags_unknown_user'));
+      } else {
+        fail('Expected an error');
+      }
     }
   });
 
@@ -279,9 +283,13 @@ describe('Trace Flags', () => {
       await traceFlags.ensureTraceFlags();
       fail('Expected to raise an error');
     } catch (err) {
-      expect(err.message).to.equal(
-        nls.localize('trace_flags_failed_to_create_debug_level')
-      );
+      if (err instanceof Error) {
+        expect(err.message).to.equal(
+          nls.localize('trace_flags_failed_to_create_debug_level')
+        );
+      } else {
+        fail('Expected an error');
+      }
     }
   });
 });

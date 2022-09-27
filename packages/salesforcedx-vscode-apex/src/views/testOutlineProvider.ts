@@ -270,6 +270,8 @@ export abstract class TestNode extends vscode.TreeItem {
     dark: DARK_BLUE_BUTTON
   };
 
+  // TODO: create a ticket to address this particular issue.
+  // @ts-ignore
   get tooltip(): string {
     return this.description;
   }

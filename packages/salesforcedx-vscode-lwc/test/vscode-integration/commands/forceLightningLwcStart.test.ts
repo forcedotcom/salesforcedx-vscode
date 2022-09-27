@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CliCommandExecutor,
   Command,
   CommandExecution
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { Subject } from 'rxjs/Subject';
 import * as sinon from 'sinon';
@@ -25,12 +25,12 @@ import {
 } from '../../../src/commands/forceLightningLwcStart';
 import { nls } from '../../../src/messages';
 import { DevServerService } from '../../../src/service/devServerService';
-import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
-import { CliCommandExecution } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  CancellationToken,
+  CliCommandExecution,
   ChannelService,
   notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
 
 class FakeExecution implements CommandExecution {
   public command: Command;

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CliCommandExecution,
   CliCommandExecutor,
@@ -14,8 +14,8 @@ import {
   CommandExecution,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode/out/src/cli/commandExecutor';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { CancellationToken } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -43,7 +43,7 @@ import { WorkspaceUtils } from '../../../src/util/workspaceUtils';
 import {
   ChannelService,
   notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
 
 const sfdxDeviceListCommand = 'force:lightning:local:device:list';
 const sfdxMobilePreviewCommand = 'force:lightning:lwc:preview';

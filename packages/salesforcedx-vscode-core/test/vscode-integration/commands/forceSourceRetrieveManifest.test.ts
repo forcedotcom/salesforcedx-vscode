@@ -13,7 +13,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import { LibrarySourceRetrieveManifestExecutor } from '../../../src/commands/forceSourceRetrieveManifest';
 import { workspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
 const $$ = testSetup();
@@ -23,7 +23,7 @@ describe('Force Source Retrieve with Manifest Option', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
     const packageDirFullPaths = packageDirs.map(p =>
-      path.join(getRootWorkspacePath(), p)
+      path.join(workspaceUtils.getRootWorkspacePath(), p)
     );
     const defaultPackagePath = packageDirFullPaths[0];
     const mockComponents = new ComponentSet([

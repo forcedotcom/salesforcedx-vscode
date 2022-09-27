@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SETTING_CLEAR_OUTPUT_TAB, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  SETTING_CLEAR_OUTPUT_TAB,
+  SFDX_CORE_CONFIGURATION_NAME
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import {
   CONFLICT_DETECTION_ENABLED,
@@ -59,7 +62,10 @@ export class SfdxCoreSettings {
   }
 
   public getPushOrDeployOnSaveOverrideConflicts(): boolean {
-    return this.getConfigValue<boolean>(PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS, false);
+    return this.getConfigValue<boolean>(
+      PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS,
+      false
+    );
   }
 
   public getRetrieveTestCodeCoverage(): boolean {

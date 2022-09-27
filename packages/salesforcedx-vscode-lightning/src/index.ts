@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   ExtensionContext,
@@ -86,7 +86,9 @@ export async function activate(extensionContext: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Initialize telemetry service
-  const extensionPackage = require(extensionContext.asAbsolutePath('./package.json'));
+  const extensionPackage = require(extensionContext.asAbsolutePath(
+    './package.json'
+  ));
   await TelemetryService.getInstance().initializeService(
     extensionContext,
     EXTENSION_NAME,

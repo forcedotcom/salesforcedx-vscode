@@ -6,27 +6,20 @@
  */
 
 import { expect } from 'chai';
-import * as proxyquire from 'proxyquire';
 import { Subject } from 'rxjs/Subject';
 import { assert, match, SinonStub, spy, stub } from 'sinon';
+import * as vscode from 'vscode';
+import { ProgressNotification } from '../../../src';
 import {
   CliCommandExecutor,
   CommandExecution,
   SfdxCommandBuilder
 } from '../../../src/cli';
 import { nls } from '../../../src/messages';
-import { vscodeStub } from './mocks';
 
 interface Progress<T> {
   report(value: T): void;
 }
-
-const { ProgressNotification } = proxyquire.noCallThru()(
-  '../../../src/commands',
-  {
-    vscode: vscodeStub
-  }
-);
 
 // tslint:disable:no-unused-expression
 describe('Progress Notification', () => {
@@ -35,7 +28,7 @@ describe('Progress Notification', () => {
   let withProgressStub: SinonStub;
 
   beforeEach(() => {
-    tokenSource = new vscodeStub.CancellationTokenSource();
+    tokenSource = new vscode.CancellationTokenSource();
     execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force')
@@ -43,7 +36,7 @@ describe('Progress Notification', () => {
         .build(),
       {}
     ).execute(tokenSource.token);
-    withProgressStub = stub(vscodeStub.window, 'withProgress').returns(
+    withProgressStub = stub(vscode.window, 'withProgress').returns(
       Promise.resolve()
     );
   });
@@ -58,13 +51,13 @@ describe('Progress Notification', () => {
     expect(withProgressStub.called).to.be.true;
     expect(withProgressStub.getCall(0).args[0]).to.eql({
       title: nls.localize('progress_notification_text', execution.command),
-      location: vscodeStub.ProgressLocation.Notification,
+      location: vscode.ProgressLocation.Notification,
       cancellable: true
     });
   });
 
   it('Should display progress based on given progress location', () => {
-    const progressLocation = vscodeStub.ProgressLocation.Window;
+    const progressLocation = vscode.ProgressLocation.Window;
     ProgressNotification.show(execution, tokenSource, progressLocation);
 
     expect(withProgressStub.getCall(0).args[0]).to.eql({
@@ -75,14 +68,14 @@ describe('Progress Notification', () => {
   });
 
   it('Should subscribe to the observable when given a progress reporter', async () => {
-    const progressLocation = vscodeStub.ProgressLocation.Window;
+    const progressLocation = vscode.ProgressLocation.Window;
     const progress: Progress<{
       message?: string;
       increment?: number;
     }> = {
       report: stub()
     };
-    const token = new vscodeStub.CancellationTokenSource().token;
+    const token = new vscode.CancellationTokenSource().token;
     withProgressStub.yields(progress, token);
 
     const reporter = new Subject<number>();
@@ -101,7 +94,7 @@ describe('Progress Notification', () => {
   });
 
   it('Should report 100 progress when the reporter invokes complete', async () => {
-    const progressLocation = vscodeStub.ProgressLocation.Window;
+    const progressLocation = vscode.ProgressLocation.Window;
     const reportStub = stub();
     const progress: Progress<{
       message?: string;
@@ -109,7 +102,7 @@ describe('Progress Notification', () => {
     }> = {
       report: reportStub
     };
-    const token = new vscodeStub.CancellationTokenSource().token;
+    const token = new vscode.CancellationTokenSource().token;
     withProgressStub.yields(progress, token);
 
     const reporter = new Subject<number>();
@@ -127,7 +120,7 @@ describe('Progress Notification', () => {
   });
 
   it('Should report incremental progress when the reporter invokes next', async () => {
-    const progressLocation = vscodeStub.ProgressLocation.Window;
+    const progressLocation = vscode.ProgressLocation.Window;
     const reportStub = stub();
     const progress: Progress<{
       message?: string;
@@ -135,7 +128,7 @@ describe('Progress Notification', () => {
     }> = {
       report: reportStub
     };
-    const token = new vscodeStub.CancellationTokenSource().token;
+    const token = new vscode.CancellationTokenSource().token;
     withProgressStub.yields(progress, token);
 
     const reporter = new Subject<number>();

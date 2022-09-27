@@ -15,7 +15,7 @@ import { FunctionService } from '../../../../src/commands/functions/functionServ
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 describe('Force Function Stop Integration Tests', () => {
   let sandbox: SinonSandbox;
@@ -73,7 +73,11 @@ describe('Force Function Stop Integration Tests', () => {
     );
     functionServiceStubs.getFunctionLanguage.returns(FUNCTION_LANGUAGE);
     const srcUri = Uri.file(
-      path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        'functions',
+        'demoJavaScriptFunction'
+      )
     );
 
     await forceFunctionContainerStartCommand(srcUri);
@@ -114,7 +118,11 @@ describe('Force Function Stop Integration Tests', () => {
 
   it('Should show warning message if already stopped function', async () => {
     const srcUri = Uri.file(
-      path.join(getRootWorkspacePath(), 'functions', 'demoJavaScriptFunction')
+      path.join(
+        workspaceUtils.getRootWorkspacePath(),
+        'functions',
+        'demoJavaScriptFunction'
+      )
     );
 
     await forceFunctionContainerStartCommand(srcUri);

@@ -7,19 +7,15 @@
 
 import { LogRecord, LogService } from '@salesforce/apex-node';
 import {
-  getRootWorkspaceSfdxPath,
-  LibraryCommandletExecutor,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  optionYYYYMMddHHmmss
-} from '@salesforce/salesforcedx-utils-vscode/out/src/date';
-import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  getRootWorkspaceSfdxPath,
+  LibraryCommandletExecutor,
+  optionYYYYMMddHHmmss,
+  ParametersGatherer,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -130,7 +126,10 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 
-    const logResults = await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
+    const logResults = await logService.getLogs({
+      logId,
+      outputDir: LOG_DIRECTORY
+    });
     logResults.forEach(logResult => OUTPUT_CHANNEL.appendLine(logResult.log));
 
     const logPath = logResults[0].logPath;

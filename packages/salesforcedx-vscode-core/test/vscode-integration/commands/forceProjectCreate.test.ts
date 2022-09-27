@@ -8,7 +8,7 @@
 import {
   CancelResponse,
   ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as shell from 'shelljs';
@@ -32,13 +32,14 @@ import { ProjectName } from '../../../src/commands/forceProjectCreate';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
 import { telemetryService } from '../../../src/telemetry';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Project Create', () => {
   const PROJECT_NAME = 'sfdx-simple';
+  const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   const PROJECT_NAME_WITH_LEADING_TRAILING_SPACES = `  ${PROJECT_NAME}  `;
-  const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
+  const WORKSPACE_PATH = path.join(rootWorkspacePath, '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
   describe('SelectProjectTemplate Gatherer', () => {
@@ -296,7 +297,7 @@ describe('Force Project Create', () => {
 
     it('Should Create Project', async () => {
       // arrange
-      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      const projectPath = path.join(rootWorkspacePath, 'TestProject');
       shell.rm('-rf', projectPath);
       assert.noFile(projectPath);
 
@@ -306,9 +307,7 @@ describe('Force Project Create', () => {
         )
       });
       showInputBoxStub.returns('TestProject');
-      openDialogStub.returns([
-        vscode.Uri.file(path.join(getRootWorkspacePath()))
-      ]);
+      openDialogStub.returns([vscode.Uri.file(path.join(rootWorkspacePath))]);
 
       // act
       await forceSfdxProjectCreate();
@@ -337,7 +336,7 @@ describe('Force Project Create', () => {
       const vscodearray = ['extensions', 'launch', 'settings'];
       assert.file([
         path.join(
-          getRootWorkspacePath(),
+          rootWorkspacePath,
           'TestProject',
           'config',
           'project-scratch-def.json'
@@ -345,7 +344,7 @@ describe('Force Project Create', () => {
       ]);
       assert.file([
         path.join(
-          getRootWorkspacePath(),
+          rootWorkspacePath,
           'TestProject',
           'scripts',
           'soql',
@@ -354,49 +353,42 @@ describe('Force Project Create', () => {
       ]);
       assert.file([
         path.join(
-          getRootWorkspacePath(),
+          rootWorkspacePath,
           'TestProject',
           'scripts',
           'apex',
           'hello.apex'
         )
       ]);
+      assert.file([path.join(rootWorkspacePath, 'TestProject', 'README.md')]);
       assert.file([
-        path.join(getRootWorkspacePath(), 'TestProject', 'README.md')
-      ]);
-      assert.file([
-        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json')
+        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json')
       ]);
       assert.fileContent(
-        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
         '"namespace": "",'
       );
       assert.fileContent(
-        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
         '"path": "force-app",'
       );
       assert.fileContent(
-        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
         'sourceApiVersion'
       );
       assert.fileContent(
-        path.join(getRootWorkspacePath(), 'TestProject', 'sfdx-project.json'),
+        path.join(rootWorkspacePath, 'TestProject', 'sfdx-project.json'),
         '"sfdcLoginUrl": "https://login.salesforce.com"'
       );
 
       for (const file of vscodearray) {
         assert.file([
-          path.join(
-            getRootWorkspacePath(),
-            'TestProject',
-            '.vscode',
-            `${file}.json`
-          )
+          path.join(rootWorkspacePath, 'TestProject', '.vscode', `${file}.json`)
         ]);
       }
       assert.file([
         path.join(
-          getRootWorkspacePath(),
+          rootWorkspacePath,
           'TestProject',
           'force-app',
           'main',
@@ -407,7 +399,7 @@ describe('Force Project Create', () => {
       ]);
       assert.file([
         path.join(
-          getRootWorkspacePath(),
+          rootWorkspacePath,
           'TestProject',
           'force-app',
           'main',
@@ -417,12 +409,12 @@ describe('Force Project Create', () => {
         )
       ]);
       for (const file of filestocopy) {
-        assert.file([path.join(getRootWorkspacePath(), 'TestProject', file)]);
+        assert.file([path.join(rootWorkspacePath, 'TestProject', file)]);
       }
       for (const folder of standardfolderarray) {
         assert.file(
           path.join(
-            getRootWorkspacePath(),
+            rootWorkspacePath,
             'TestProject',
             'force-app',
             'main',
@@ -438,7 +430,7 @@ describe('Force Project Create', () => {
 
     it('Should Create Project with manifest', async () => {
       // arrange
-      const projectPath = path.join(getRootWorkspacePath(), 'TestProject');
+      const projectPath = path.join(rootWorkspacePath, 'TestProject');
       shell.rm('-rf', projectPath);
       assert.noFile(projectPath);
 
@@ -448,20 +440,13 @@ describe('Force Project Create', () => {
         )
       });
       showInputBoxStub.returns('TestProject');
-      openDialogStub.returns([
-        vscode.Uri.file(path.join(getRootWorkspacePath()))
-      ]);
+      openDialogStub.returns([vscode.Uri.file(path.join(rootWorkspacePath))]);
 
       // act
       await forceProjectWithManifestCreate();
 
       assert.file([
-        path.join(
-          getRootWorkspacePath(),
-          'TestProject',
-          'manifest',
-          'package.xml'
-        )
+        path.join(rootWorkspacePath, 'TestProject', 'manifest', 'package.xml')
       ]);
 
       // clean up

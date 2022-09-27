@@ -28,7 +28,7 @@ import { FunctionService } from '../../../../src/commands/functions/functionServ
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../../src/util';
 
 import * as library from '@heroku/functions-core';
 
@@ -86,7 +86,7 @@ describe('Force Function Invoke', () => {
     it('Should call library with proper args and log telemetry', async () => {
       const srcUri = Uri.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
@@ -106,12 +106,12 @@ describe('Force Function Invoke', () => {
     it('Should start a debug session and attach to debug port', async () => {
       const srcUri = Uri.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
       const rootDir = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
       await forceFunctionDebugInvoke(srcUri);
@@ -123,7 +123,7 @@ describe('Force Function Invoke', () => {
     it('Should show warning and log telemetry if debugged function does not have toml', async () => {
       const srcUri = Uri.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
@@ -154,7 +154,7 @@ describe('Force Function Invoke', () => {
       functionServiceStubs.getFunctionLanguage.returns(FUNCTION_LANGUAGE);
       const srcUri = Uri.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           'functions/demoJavaScriptFunction/payload.json'
         )
       );
@@ -187,7 +187,7 @@ describe('Force Function Invoke', () => {
 
       const srcUri = Uri.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           'functions/demoJavaScriptFunction/payload.json'
         )
       );

@@ -13,7 +13,7 @@ import {
   forceLwcTestRun,
   forceLwcTestRunActiveTextEditorTest
 } from '../../../../src/testSupport/commands/forceLwcTestRunAction';
-import { getLwcTestRunnerExecutable } from '../../../../src/testSupport/workspace';
+import { workspace } from '../../../../src/testSupport/workspace';
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../../../../src/testSupport/types/constants';
 import {
   createMockTestFileInfo,
@@ -108,7 +108,9 @@ describe('Force LWC Test Run - Code Action', () => {
             shellArgs: ['/d', '/c']
           }
         : undefined;
-      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(expectedCwd);
+      const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
+        expectedCwd
+      );
       assert.calledOnce(executeTaskStub);
       assert.calledWith(
         executeTaskStub,

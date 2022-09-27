@@ -9,9 +9,10 @@ import { getLwcTestRunnerExecutable } from './getLwcTestRunnerExecutable';
 import { getTestWorkspaceFolder } from './getTestWorkspaceFolder';
 import { workspaceService } from './workspaceService';
 
-export {
+const workspace = {
   getCliArgsFromJestArgs,
   getLwcTestRunnerExecutable,
-  getTestWorkspaceFolder,
-  workspaceService
+  getTestWorkspaceFolder
 };
+
+export { workspace, workspaceService };

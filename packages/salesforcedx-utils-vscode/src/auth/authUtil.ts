@@ -34,10 +34,12 @@ export class AuthUtil {
       return JSON.stringify(defaultUserName).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
-      TelemetryService.getInstance().sendException(
-        'get_default_username_alias',
-        err.message
-      );
+      if (err instanceof Error) {
+        TelemetryService.getInstance().sendException(
+          'get_default_username_alias',
+          err.message
+        );
+      }
       return undefined;
     }
   }

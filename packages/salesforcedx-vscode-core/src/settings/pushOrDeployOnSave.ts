@@ -6,7 +6,7 @@
  */
 
 import { channelService } from '../channels';
-import { getWorkspaceOrgType, OrgType } from '../context';
+import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
@@ -16,7 +16,7 @@ import * as path from 'path';
 import { setTimeout } from 'timers';
 import * as vscode from 'vscode';
 import { telemetryService } from '../telemetry';
-import { hasRootWorkspace, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export class DeployQueue {
   public static readonly ENQUEUE_DELAY = 500; // milliseconds
@@ -74,12 +74,14 @@ export class DeployQueue {
       this.queue.clear();
       try {
         let defaultUsernameorAlias: string | undefined;
-        if (hasRootWorkspace()) {
+        if (workspaceUtils.hasRootWorkspace()) {
           defaultUsernameorAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
             false
           );
         }
-        const orgType = await getWorkspaceOrgType(defaultUsernameorAlias);
+        const orgType = await workspaceContextUtils.getWorkspaceOrgType(
+          defaultUsernameorAlias
+        );
         if (orgType === OrgType.SourceTracked) {
           const forceCommand = sfdxCoreSettings.getPushOrDeployOnSaveOverrideConflicts()
             ? '.force'
@@ -152,7 +154,10 @@ function displayError(message: string) {
 }
 
 async function ignorePath(documentPath: string) {
-  return fileShouldNotBeDeployed(documentPath) || !(await pathIsInPackageDirectory(documentPath));
+  return (
+    fileShouldNotBeDeployed(documentPath) ||
+    !(await pathIsInPackageDirectory(documentPath))
+  );
 }
 
 export async function pathIsInPackageDirectory(
@@ -179,7 +184,7 @@ export async function pathIsInPackageDirectory(
 }
 
 export function fileShouldNotBeDeployed(fsPath: string) {
-  return (isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath));
+  return isDotFile(fsPath) || isSoql(fsPath) || isAnonApex(fsPath);
 }
 
 function isDotFile(fsPath: string) {

@@ -18,7 +18,7 @@ import { forceApexClassCreate } from '../../../../src/commands/templates/forceAp
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
+import { ConfigUtil, workspaceUtils } from '../../../../src/util';
 
 const sandbox = createSandbox();
 
@@ -61,12 +61,12 @@ describe('Force Apex Class Create', () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls'
     );
     const apexClassMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls-meta.xml'
     );

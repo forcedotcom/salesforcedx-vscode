@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { join, parse } from 'path';
@@ -14,7 +14,7 @@ import { format } from 'util';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const CREATE_MANIFEST_EXECUTOR = 'force_create_manifest';
@@ -43,7 +43,9 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     token?: vscode.CancellationToken
   ): Promise<boolean> {
     if (this.sourcePaths) {
-      const packageXML = await ComponentSet.fromSource(this.sourcePaths).getPackageXml();
+      const packageXML = await ComponentSet.fromSource(
+        this.sourcePaths
+      ).getPackageXml();
       if (this.responseText === undefined) {
         // Canceled and declined to name the document
         await openUntitledDocument(packageXML);
@@ -92,7 +94,7 @@ async function openUntitledDocument(packageXML: string) {
 function saveDocument(response: string, packageXML: string) {
   const fileName = response ? appendExtension(response) : DEFAULT_MANIFEST;
 
-  const manifestPath = join(getRootWorkspacePath(), 'manifest');
+  const manifestPath = join(workspaceUtils.getRootWorkspacePath(), 'manifest');
   if (!fs.existsSync(manifestPath)) {
     fs.mkdirSync(manifestPath);
   }

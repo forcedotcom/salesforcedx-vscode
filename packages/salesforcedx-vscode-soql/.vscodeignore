@@ -24,7 +24,7 @@ node_modules/rxjs/_esm2015/**
 node_modules/typescript/**
 
 # salesforcedx-utils-vscode files to ignore 
-node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
+#node_modules/@salesforce/salesforcedx-utils-vscode/node_modules/**
 node_modules/@salesforce/salesforcedx-utils-vscode/src/**
 node_modules/@salesforce/salesforcedx-utils-vscode/test/**
 node_modules/@salesforce/salesforcedx-utils-vscode/.vscode

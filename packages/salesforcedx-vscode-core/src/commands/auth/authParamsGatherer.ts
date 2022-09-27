@@ -11,7 +11,7 @@ import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../../messages';
 import { SfdxProjectConfig } from '../../sfdxProject';
 

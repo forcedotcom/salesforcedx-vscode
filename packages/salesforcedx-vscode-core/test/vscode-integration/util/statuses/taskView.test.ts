@@ -11,7 +11,7 @@ import {
   CliCommandExecutor,
   CommandBuilder,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { CancellationTokenSource } from 'vscode';

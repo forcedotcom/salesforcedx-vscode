@@ -12,15 +12,15 @@ import {
   OrgOpenErrorResult,
   OrgOpenSuccessResult,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, isSFDXContainerMode } from '../util';
+import { isSFDXContainerMode, workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -53,7 +53,7 @@ export class ForceOrgOpenContainerExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath(),
+      cwd: workspaceUtils.getRootWorkspacePath(),
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 

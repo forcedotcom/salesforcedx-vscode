@@ -8,7 +8,7 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
   CommandParams,
@@ -41,14 +41,17 @@ export const statusCommand: CommandParams = {
 
 export const statusCommandLegacy: CommandParams = {
   command: 'force:source:legacy:status',
-  description: {default: 'force_source_legacy_status_text'},
-  logName: {default: 'force_source_legacy_status'}
+  description: { default: 'force_source_legacy_status_text' },
+  logName: { default: 'force_source_legacy_status' }
 };
 
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;
 
-  public constructor(flag?: SourceStatusFlags, public params: CommandParams = statusCommand) {
+  public constructor(
+    flag?: SourceStatusFlags,
+    public params: CommandParams = statusCommand
+  ) {
     super();
     this.flag = flag;
   }
@@ -77,8 +80,11 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function forceSourceStatus(
   this: FlagParameter<SourceStatusFlags>
 ) {
-  const {flag, commandVersion} = this || {};
-  const command = commandVersion === CommandVersion.Legacy ? statusCommandLegacy : statusCommand;
+  const { flag, commandVersion } = this || {};
+  const command =
+    commandVersion === CommandVersion.Legacy
+      ? statusCommandLegacy
+      : statusCommand;
   const executor = new ForceSourceStatusExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,

@@ -7,6 +7,7 @@
 
 import * as chai from 'chai';
 import * as fs from 'fs';
+import { userInfo } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
 import {
@@ -37,14 +38,19 @@ describe('SOQL metadata files generator', () => {
     }
   }
 
+  const username = userInfo().username;
+  const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
+  const standardFolderExists = fs.existsSync(standardFolder);
+  const customFolderExists = fs.existsSync(standardFolder);
+
   beforeEach(() => {
     cleanupMetadata();
-    fs.mkdirSync(soqlMetadataFolder);
+    fs.mkdirSync(soqlMetadataFolder, { recursive: true });
     fs.mkdirSync(standardFolder);
     fs.mkdirSync(customFolder);
   });
 
-  after(() => {
+  afterAll(() => {
     cleanupMetadata();
   });
 
@@ -92,7 +98,7 @@ class TestSObjectRefreshOutput implements SObjectRefreshOutput {
   private custom: SObject[] = [];
   public error: { message?: string; stack?: string } = {};
 
-  public constructor(public sfdxPath: string) { }
+  public constructor(public sfdxPath: string) {}
 
   public addTypeNames(sobjShort: SObjectShortDescription[]): void {
     this.typeNames.push(...sobjShort);

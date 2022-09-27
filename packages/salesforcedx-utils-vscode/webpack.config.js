@@ -32,7 +32,7 @@ module.exports = {
   // extensions run in a node context
   target: 'node',
   mode: getMode(),
-  entry: getEntryObject(),
+  entry: { 'dist/src/index': './src/index.ts' },
   // vsix packaging depends on commonjs2
   output: {
     path: DIST,

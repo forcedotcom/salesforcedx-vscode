@@ -8,49 +8,9 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { expect } from 'chai';
 import { join } from 'path';
-import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonStub, stub } from 'sinon';
-
-class EventEmitter {
-  private listeners: any[] = [];
-  constructor() {}
-  public event = (listener: any) => this.listeners.push(listener);
-  public dispose = stub();
-  public fire = (e: any) => this.listeners.forEach(listener => listener(e));
-}
-
-const vscodeStub = {
-  commands: stub(),
-  Disposable: stub(),
-  env: {
-    machineId: '12345534'
-  },
-  EventEmitter,
-  Uri: {
-    parse: stub(),
-    file: stub()
-  },
-  window: {
-    showInformationMessage: stub()
-  },
-  workspace: {
-    createFileSystemWatcher: () => {
-      return {
-        dispose: () => {},
-        onDidChange: () => {},
-        onDidCreate: () => {},
-        onDidDelete: () => {},
-        fire: () => {}
-      };
-    },
-    getConfiguration: () => {
-      return {
-        get: () => true
-      };
-    },
-    onDidChangeConfiguration: stub()
-  }
-};
+import * as vscode from 'vscode';
+import { getRootWorkspacePath, WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -59,7 +19,7 @@ export class MockFileWatcher {
   private deleteSubscribers: Array<(uri: any) => void> = [];
 
   constructor(fsPath: string) {
-    this.watchUri = vscodeStub.Uri.file(fsPath);
+    this.watchUri = vscode.Uri.file(fsPath);
   }
 
   public dispose() {}
@@ -97,18 +57,6 @@ export class MockFileWatcher {
   }
 }
 
-const { WorkspaceContextUtil } = proxyquire.noCallThru()('../../../src/index', {
-  vscode: vscodeStub
-});
-
-const { getLogDirPath } = proxyquire.noCallThru()('../../../src/index', {
-  vscode: vscodeStub
-});
-
-const { getRootWorkspacePath } = proxyquire.noCallThru()('../../../src/index', {
-  vscode: vscodeStub
-});
-
 const env = createSandbox();
 
 describe('WorkspaceContext', () => {
@@ -120,14 +68,14 @@ describe('WorkspaceContext', () => {
 
   let getUsernameStub: SinonStub;
   let getUsernameOrAliasStub: SinonStub;
-  let workspaceContextUtil: typeof WorkspaceContextUtil;
+  let workspaceContextUtil: any; // TODO find a better way
   let authUtil: any;
 
   beforeEach(async () => {
     mockFileWatcher = new MockFileWatcher(cliConfigPath);
 
     env
-      .stub(vscodeStub.workspace, 'createFileSystemWatcher')
+      .stub(vscode.workspace, 'createFileSystemWatcher')
       .returns(mockFileWatcher);
 
     const context = {
@@ -224,7 +172,7 @@ describe('WorkspaceContext', () => {
 describe('getLogDirPath', () => {
   it('should return a path to debug log folder', () => {
     const dirPath = getRootWorkspacePath();
-    const result = getLogDirPath();
+    const result = WorkspaceContextUtil.getLogDirPath();
     expect(result).to.equal(join(dirPath, '.sfdx', 'tools', 'debug', 'logs'));
   });
 });

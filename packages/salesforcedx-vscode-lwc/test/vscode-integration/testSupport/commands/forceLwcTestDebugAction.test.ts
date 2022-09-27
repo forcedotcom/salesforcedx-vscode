@@ -21,7 +21,7 @@ import {
   handleDidStartDebugSession,
   handleDidTerminateDebugSession
 } from '../../../../src/testSupport/commands/forceLwcTestDebugAction';
-import * as lwcTestWorkspace from '../../../../src/testSupport/workspace';
+import { workspace } from '../../../../src/testSupport/workspace';
 import {
   TestCaseInfo,
   TestInfoKind,
@@ -69,7 +69,7 @@ describe('Force LWC Test Debug - Code Action', () => {
     processHrtimeStub = stub(process, 'hrtime');
     telemetryStub = stub(telemetryService, 'sendCommandEvent');
     getLwcTestRunnerExecutableStub = stub(
-      lwcTestWorkspace,
+      workspace,
       'getLwcTestRunnerExecutable'
     );
     uuidStub.returns(mockUuid);
@@ -187,7 +187,7 @@ describe('Force LWC Test Debug - Code Action', () => {
         testExecutionInfo: mockTestFileInfo
       });
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
-      assert.calledWith(debugStub, vscode.workspace.workspaceFolders![0], {
+      const expectedArgTwo = {
         args: [
           '--',
           '--json',
@@ -217,13 +217,26 @@ describe('Force LWC Test Debug - Code Action', () => {
         runtimeExecutable: lwcTestExecutablePath,
         sfdxDebugSessionId: mockUuid,
         type: 'node'
-      });
+      };
+
+      expect(getLwcTestRunnerExecutableStub.getCalls().length).to.equal(1);
+      expect(debugStub.getCalls().length).to.equal(1);
+      expect(debugStub.getCall(0).args[0]).to.equal(
+        vscode.workspace.workspaceFolders![0]
+      );
+      expect(debugStub.getCall(0).args[1]).to.deep.equal(expectedArgTwo);
+      assert.calledWith(
+        debugStub,
+        vscode.workspace.workspaceFolders![0],
+        expectedArgTwo
+      );
     });
 
     it('Should debug active text editor test file', async () => {
       mockActiveTextEditorUri(mockTestFileInfo.testUri);
       await forceLwcTestDebugActiveTextEditorTest();
       const expectedCwd = vscode.workspace.workspaceFolders![0].uri.fsPath;
+      expect(getLwcTestRunnerExecutableStub.getCalls().length).to.equal(1);
       assert.calledWith(debugStub, vscode.workspace.workspaceFolders![0], {
         args: [
           '--',

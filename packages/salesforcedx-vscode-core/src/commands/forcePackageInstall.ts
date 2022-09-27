@@ -6,16 +6,13 @@
  */
 
 import {
-  CliCommandExecutor,
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { isRecordIdFormat } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import {
   CancelResponse,
+  Command,
   ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  isRecordIdFormat,
+  ParametersGatherer,
+  SfdxCommandBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -23,7 +20,6 @@ import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
 import { notificationService, ProgressNotification } from '../notifications';
 import { taskViewService } from '../statuses';
-import { getRootWorkspacePath } from '../util';
 import {
   CompositeParametersGatherer,
   EmptyPreChecker,

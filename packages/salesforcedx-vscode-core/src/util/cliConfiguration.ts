@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
 import { which } from 'shelljs';
 import { window } from 'vscode';
 import { ConfigUtil } from '.';

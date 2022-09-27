@@ -13,7 +13,7 @@ import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import { forceAnalyticsTemplateCreate } from '../../../../src/commands/templates/forceAnalyticsTemplateCreate';
 import { notificationService } from '../../../../src/notifications';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Analytics Template Create', () => {
@@ -47,24 +47,27 @@ describe('Force Analytics Template Create', () => {
     // arrange
     const outputPath = 'force-app/main/default/waveTemplates';
     const templateInfoJsonPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestWave',
       'template-info.json'
     );
     const templateFolderJsonPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestWave',
       'folder.json'
     );
     const templateDashboardPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestWave/dashboards',
       'TestWaveDashboard.json'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, 'TestWave'));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'TestWave')
+    );
     assert.noFile([
       templateInfoJsonPath,
       templateFolderJsonPath,
@@ -87,6 +90,9 @@ describe('Force Analytics Template Create', () => {
     assert.fileContent(templateDashboardPath, '"name": "TestWaveDashboard_tp"');
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
   });
 });

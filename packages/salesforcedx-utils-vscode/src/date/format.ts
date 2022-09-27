@@ -19,7 +19,7 @@ export function makeDoubleDigit(currentDigit: number): string {
   return ('0' + currentDigit).slice(-2);
 }
 
-export const optionYYYYMMddHHmmss = {
+export const optionYYYYMMddHHmmss: Intl.DateTimeFormatOptions = {
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
@@ -28,12 +28,12 @@ export const optionYYYYMMddHHmmss = {
   second: '2-digit'
 };
 
-export const optionHHmm = {
+export const optionHHmm: Intl.DateTimeFormatOptions = {
   hour: '2-digit',
   minute: '2-digit'
 };
 
-export const optionMMddYYYY = {
+export const optionMMddYYYY: Intl.DateTimeFormatOptions = {
   month: '2-digit',
   day: '2-digit',
   year: 'numeric'

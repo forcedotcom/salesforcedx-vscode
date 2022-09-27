@@ -14,8 +14,7 @@ import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import { forceApexTriggerCreate } from '../../../../src/commands/templates/forceApexTriggerCreate';
 import { notificationService } from '../../../../src/notifications';
-import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Trigger Create', () => {
@@ -49,12 +48,12 @@ describe('Force Apex Trigger Create', () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
     const apexTriggerPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexTrigger.trigger'
     );
     const apexTriggerMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexTrigger.trigger-meta.xml'
     );

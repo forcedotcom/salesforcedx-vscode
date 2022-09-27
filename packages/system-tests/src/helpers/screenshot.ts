@@ -45,10 +45,10 @@ export class Screenshot {
       .catch(err => {
         console.log('Error creating test snapshot');
       });
-    await new Promise((c, e) =>
+    await new Promise<void>((c, e) =>
       mkdirp(path.dirname(screenshotPath), err => (err ? e(err) : c()))
     );
-    await new Promise((c, e) =>
+    await new Promise<void>((c, e) =>
       fs.writeFile(screenshotPath, image, err => (err ? e(err) : c()))
     );
   }

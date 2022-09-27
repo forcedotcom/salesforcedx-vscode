@@ -10,7 +10,7 @@ import { showError } from '../../../src/commands/commandUtils';
 import {
   ChannelService,
   notificationService
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('command utilities', () => {

@@ -18,7 +18,7 @@ import {
 } from '../../../../src/commands/templates/forceLightningInterfaceCreate';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Lightning Interface Create', () => {
@@ -60,18 +60,21 @@ describe('Force Lightning Interface Create', () => {
     const fileName = 'testInterface';
     const outputPath = 'force-app/main/default/aura';
     const auraInterfacePath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testInterface.intf'
     );
     const auraInterfaceMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testInterface.intf-meta.xml'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([auraInterfacePath, auraInterfaceMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -100,7 +103,10 @@ describe('Force Lightning Interface Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 
   it('Should create internal Aura Interface', async () => {
@@ -109,20 +115,28 @@ describe('Force Lightning Interface Create', () => {
     const fileName = 'testInterface';
     const outputPath = 'force-app/main/default/aura';
     const auraInterfacePath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testInterface.intf'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([auraInterfacePath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir('-p', path.join(getRootWorkspacePath(), outputPath));
+    shell.mkdir(
+      '-p',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
     await forceInternalLightningInterfaceCreate(
-      vscode.Uri.file(path.join(getRootWorkspacePath(), outputPath))
+      vscode.Uri.file(
+        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+      )
     );
 
     // assert
@@ -137,6 +151,9 @@ describe('Force Lightning Interface Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraInterfacePath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 });

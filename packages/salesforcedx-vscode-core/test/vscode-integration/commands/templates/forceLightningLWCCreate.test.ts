@@ -18,7 +18,7 @@ import {
 } from '../../../../src/commands/templates';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Lightning Web Component Create', () => {
@@ -60,24 +60,27 @@ describe('Force Lightning Web Component Create', () => {
     const fileName = 'testLwc';
     const outputPath = 'force-app/main/default/lwc';
     const lwcHtmlPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.html'
     );
     const lwcJsPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.js'
     );
     const lwcJsMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.js-meta.xml'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -107,7 +110,10 @@ export default class TestLwc extends LightningElement {}`
     sinon.assert.calledWith(openTextDocumentStub, lwcJsPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 
   it('Should create internal LWC Component', async () => {
@@ -116,26 +122,34 @@ export default class TestLwc extends LightningElement {}`
     const fileName = 'testLwc';
     const outputPath = 'force-app/main/default/lwc';
     const lwcHtmlPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.html'
     );
     const lwcJsPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.js'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([lwcHtmlPath, lwcJsPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir('-p', path.join(getRootWorkspacePath(), outputPath));
+    shell.mkdir(
+      '-p',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
     await forceInternalLightningLwcCreate(
-      vscode.Uri.file(path.join(getRootWorkspacePath(), outputPath))
+      vscode.Uri.file(
+        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+      )
     );
 
     // assert
@@ -151,6 +165,9 @@ export default class TestLwc extends LightningElement {}`
     sinon.assert.calledWith(openTextDocumentStub, lwcJsPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 });

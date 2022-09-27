@@ -8,12 +8,9 @@ import {
   getRelativeProjectPath,
   getRootWorkspacePath,
   LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Row,
-  Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { Row, Table } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   DeployResult,

@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import { SObjectSelector, SObjectShortDescription } from '../describe';
 import { FauxClassGenerator, TypingGenerator } from '../generator';
-import { ConfigUtil } from '../generator/configUtil';
 import { SOQLMetadataGenerator } from '../generator/soqlMetadataGenerator';
 import {
   MinObjectRetriever,

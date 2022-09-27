@@ -19,7 +19,7 @@ import * as shell from 'shelljs';
 import * as vscode from 'vscode';
 import { RetrieveExecutor } from '../commands/baseDeployRetrieve';
 import { SfdxPackageDirectories } from '../sfdxProject';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 
 export interface MetadataContext {
   baseDirectory: string;
@@ -263,7 +263,9 @@ export class MetadataCacheService {
    * @param result A MetadataCacheResult
    * @returns An array with one entry per retrieved component, with all corresponding information about the component included
    */
-  public static correlateResults(result: MetadataCacheResult): CorrelatedComponent[] {
+  public static correlateResults(
+    result: MetadataCacheResult
+  ): CorrelatedComponent[] {
     const components: CorrelatedComponent[] = [];
 
     const projectIndex = new Map<string, RecomposedComponent>();
@@ -274,7 +276,10 @@ export class MetadataCacheService {
 
     const fileIndex = new Map<string, FileProperties>();
     for (const fileProperty of result.properties) {
-      fileIndex.set(MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
+      fileIndex.set(
+        MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName),
+        fileProperty
+      );
     }
 
     fileIndex.forEach((fileProperties, key) => {
@@ -310,12 +315,18 @@ export class MetadataCacheService {
    * @param index The map which is mutated by this function
    * @param components The parent and/or child components to add to the map
    */
-  private static pairParentsAndChildren(index: Map<string, RecomposedComponent>, components: SourceComponent[]) {
+  private static pairParentsAndChildren(
+    index: Map<string, RecomposedComponent>,
+    components: SourceComponent[]
+  ) {
     for (const comp of components) {
       const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
       // If the component has a parent it is assumed to be a child
       if (comp.parent) {
-        const parentKey = MetadataCacheService.makeKey(comp.parent.type.name, comp.parent.fullName);
+        const parentKey = MetadataCacheService.makeKey(
+          comp.parent.type.name,
+          comp.parent.fullName
+        );
         const parentEntry = index.get(parentKey);
         if (parentEntry) {
           // Add the child component if we have an entry for the parent
@@ -406,7 +417,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   protected async getComponents(response: any): Promise<ComponentSet> {
     this.cacheService.initialize(
       response.data,
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       this.isManifest
     );
     return this.cacheService.getSourceComponents();

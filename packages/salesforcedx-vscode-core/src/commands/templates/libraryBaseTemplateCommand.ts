@@ -17,19 +17,18 @@ import {
   SourcePathStrategy
 } from '../util';
 
-import { Properties } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { Properties } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import {
   ConfigUtil,
-  getRootWorkspacePath,
-  hasRootWorkspace,
   MetadataDictionary,
-  MetadataInfo
+  MetadataInfo,
+  workspaceUtils
 } from '../../util';
 
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from 'vscode';
@@ -127,7 +126,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     templateType: TemplateType,
     templateOptions: TemplateOptions
   ) {
-    const cwd = getRootWorkspacePath();
+    const cwd = workspaceUtils.getRootWorkspacePath();
     const templateService = TemplateService.getInstance(cwd);
     let customOrgMetadataTemplates;
 
@@ -153,7 +152,7 @@ export abstract class LibraryBaseTemplateCommand<T>
     outputdir: string,
     fileName: string
   ) {
-    if (hasRootWorkspace()) {
+    if (workspaceUtils.hasRootWorkspace()) {
       const document = await workspace.openTextDocument(
         this.getPathToSource(outputdir, fileName)
       );

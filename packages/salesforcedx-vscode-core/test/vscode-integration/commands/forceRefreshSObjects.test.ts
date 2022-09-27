@@ -17,12 +17,12 @@ import {
   SObjectCategory,
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
+  ContinueResponse,
   notificationService,
-  ProgressNotification
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  ProgressNotification,
+  SfdxCommandlet
+} from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';

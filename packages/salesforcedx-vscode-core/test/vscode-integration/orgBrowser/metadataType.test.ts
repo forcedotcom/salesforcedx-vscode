@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,13 +12,13 @@ import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { ForceDescribeMetadataExecutor } from '../../../src/commands';
 import { TypeUtils } from '../../../src/orgBrowser';
-import { getRootWorkspacePath, OrgAuthInfo } from '../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('get metadata types folder', () => {
   let getDefaultUsernameStub: SinonStub;
   let getUsernameStub: SinonStub;
-  const rootWorkspacePath = getRootWorkspacePath();
+  const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   const typeUtil = new TypeUtils();
   beforeEach(() => {
     getDefaultUsernameStub = stub(OrgAuthInfo, 'getDefaultUsernameOrAlias');
@@ -89,9 +89,9 @@ describe('build metadata types list', () => {
     const data = JSON.stringify({
       status: 0,
       result: {
-        metadataObjects: Array.from(TypeUtils.UNSUPPORTED_TYPES).map(
-          xmlName => ({ xmlName })
-        )
+        metadataObjects: Array.from(
+          TypeUtils.UNSUPPORTED_TYPES
+        ).map(xmlName => ({ xmlName }))
       }
     });
     const types = await typeUtil.buildTypesList(data, undefined);

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
@@ -25,7 +25,10 @@ export async function forceLightningLwcStop() {
       );
       await DevServerService.instance.stopServer();
       notificationService
-        .showSuccessfulExecution(nls.localize('force_lightning_lwc_stop_text'), channelService)
+        .showSuccessfulExecution(
+          nls.localize('force_lightning_lwc_stop_text'),
+          channelService
+        )
         .catch();
       telemetryService.sendCommandEvent(logName, startTime);
     } else {

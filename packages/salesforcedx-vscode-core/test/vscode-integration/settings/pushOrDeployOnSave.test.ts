@@ -8,10 +8,14 @@ import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
-import * as context from '../../../src/context';
+import { workspaceContextUtils } from '../../../src/context';
 import { nls } from '../../../src/messages';
 import { notificationService } from '../../../src/notifications';
-import { DeployQueue, fileShouldNotBeDeployed, pathIsInPackageDirectory } from '../../../src/settings';
+import {
+  DeployQueue,
+  fileShouldNotBeDeployed,
+  pathIsInPackageDirectory
+} from '../../../src/settings';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { telemetryService } from '../../../src/telemetry';
@@ -19,7 +23,7 @@ import { telemetryService } from '../../../src/telemetry';
 /* tslint:disable:no-unused-expression */
 
 const sandbox = createSandbox();
-const OrgType = context.OrgType;
+const OrgType = workspaceContextUtils.OrgType;
 
 describe('Push or Deploy on Save', () => {
   let appendLineStub: SinonStub;
@@ -105,7 +109,10 @@ describe('Push or Deploy on Save', () => {
 
     beforeEach(() => {
       DeployQueue.reset();
-      getWorkspaceOrgTypeStub = sandbox.stub(context, 'getWorkspaceOrgType');
+      getWorkspaceOrgTypeStub = sandbox.stub(
+        workspaceContextUtils,
+        'getWorkspaceOrgType'
+      );
       executeCommandStub = sandbox.stub(vscode.commands, 'executeCommand');
     });
 
@@ -237,19 +244,27 @@ describe('Push or Deploy on Save', () => {
     // verify which types of files we want to be deployed on save
 
     it('should return true for dot files', async () => {
-      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/.env');
+      const stopDotFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/.env'
+      );
       expect(stopDotFileFromBeingDeployed).to.be.true;
     });
     it('should return true for soql files', async () => {
-      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/AccountQuery.soql');
+      const stopSOQLFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/AccountQuery.soql'
+      );
       expect(stopSOQLFileFromBeingDeployed).to.be.true;
     });
     it('should return true for anonymous apex files', async () => {
-      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/GetAccounts.apex');
+      const stopAnonApexFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/GetAccounts.apex'
+      );
       expect(stopAnonApexFileFromBeingDeployed).to.be.true;
     });
     it('should return false for class files', async () => {
-      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed('/force-app/main/default/MyAccountMap.cls');
+      const stopClassFileFromBeingDeployed = fileShouldNotBeDeployed(
+        '/force-app/main/default/MyAccountMap.cls'
+      );
       expect(stopClassFileFromBeingDeployed).to.be.false;
     });
   });

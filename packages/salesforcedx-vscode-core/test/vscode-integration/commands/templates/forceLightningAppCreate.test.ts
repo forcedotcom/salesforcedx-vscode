@@ -18,7 +18,7 @@ import {
 } from '../../../../src/commands/templates/forceLightningAppCreate';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Lightning App Create', () => {
@@ -59,18 +59,21 @@ describe('Force Lightning App Create', () => {
     getInternalDevStub.returns(false);
     const outputPath = 'force-app/main/default/aura';
     const auraAppPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testApp',
       'testApp.app'
     );
     const auraAppMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testApp',
       'testApp.app-meta.xml'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, 'testApp'));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+    );
     assert.noFile([auraAppPath, auraAppMetaPath]);
     showInputBoxStub.returns('testApp');
     quickPickStub.returns(outputPath);
@@ -92,7 +95,7 @@ describe('Force Lightning App Create', () => {
     for (const suffix of suffixarray) {
       assert.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           outputPath,
           'testApp',
           `testApp${suffix}`
@@ -111,7 +114,10 @@ describe('Force Lightning App Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, 'testApp'));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+    );
   });
 
   it('Should create internal Aura App', async () => {
@@ -119,19 +125,27 @@ describe('Force Lightning App Create', () => {
     getInternalDevStub.returns(true);
     const outputPath = 'force-app/main/default/aura';
     const auraAppPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testApp',
       'testApp.app'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, 'testApp'));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+    );
     assert.noFile([auraAppPath]);
     showInputBoxStub.returns('testApp');
 
     // act
-    shell.mkdir('-p', path.join(getRootWorkspacePath(), outputPath));
+    shell.mkdir(
+      '-p',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
     await forceInternalLightningAppCreate(
-      vscode.Uri.file(path.join(getRootWorkspacePath(), outputPath))
+      vscode.Uri.file(
+        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+      )
     );
 
     // assert
@@ -147,7 +161,7 @@ describe('Force Lightning App Create', () => {
     for (const suffix of suffixarray) {
       assert.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           outputPath,
           'testApp',
           `testApp${suffix}`
@@ -162,6 +176,9 @@ describe('Force Lightning App Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraAppPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, 'testApp'));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, 'testApp')
+    );
   });
 });

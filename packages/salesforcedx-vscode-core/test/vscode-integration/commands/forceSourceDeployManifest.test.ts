@@ -14,7 +14,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
 import { workspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
 const $$ = testSetup();
@@ -53,7 +53,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
         .stub(ComponentSet, 'fromManifest')
         .withArgs({
           manifestPath,
-          resolveSourcePaths: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
+          resolveSourcePaths: packageDirs.map(p =>
+            path.join(workspaceUtils.getRootWorkspacePath(), p)
+          )
         })
         .returns(mockComponents);
       pollStatusStub = env.stub();

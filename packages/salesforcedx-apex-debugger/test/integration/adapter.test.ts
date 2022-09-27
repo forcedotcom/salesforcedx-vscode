@@ -10,7 +10,7 @@ import {
   CliCommandExecutor,
   CommandExecution,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
@@ -39,15 +39,14 @@ const LINE_BREAKPOINT_INFO: LineBreakpointInfo[] = [];
  * These integration tests assume the environment has authenticated to
  * a Dev Hub and it is set as the default Dev Hub.
  */
-describe.skip('Interactive debugger adapter - integration', function() {
-  // tslint:disable-next-line:no-invalid-this
-  this.timeout(320000);
+describe.skip('Interactive debugger adapter - integration', () => {
+  jest.setTimeout(320000);
   let dc: DebugClient;
   let userName: string;
   let projectPath: string;
   let apexClassUri: string;
 
-  before(async () => {
+  beforeAll(async () => {
     // Create SFDX project
     projectPath = path.join(process.cwd(), PROJECT_NAME);
     console.log(`projectPath: ${projectPath}`);
@@ -109,7 +108,7 @@ describe.skip('Interactive debugger adapter - integration', function() {
     dc.defaultTimeout = 10000;
   });
 
-  after(async () => {
+  afterAll(async () => {
     if (userName) {
       await util.deleteScratchOrg(PROJECT_NAME, userName);
     }

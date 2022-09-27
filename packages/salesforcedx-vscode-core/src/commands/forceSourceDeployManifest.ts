@@ -7,8 +7,8 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
@@ -21,7 +21,7 @@ import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
@@ -41,7 +41,9 @@ export class LibrarySourceDeployManifestExecutor extends DeployExecutor<
     const packageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
     return ComponentSet.fromManifest({
       manifestPath: response.data,
-      resolveSourcePaths: packageDirs.map(dir => join(getRootWorkspacePath(), dir))
+      resolveSourcePaths: packageDirs.map(dir =>
+        join(workspaceUtils.getRootWorkspacePath(), dir)
+      )
     });
   }
 }

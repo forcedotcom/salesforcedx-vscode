@@ -6,7 +6,7 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox } from 'sinon';
 import * as vscode from 'vscode';

@@ -7,11 +7,7 @@
 import { expect } from 'chai';
 import { SinonStub } from 'sinon';
 import { WorkspaceFolder } from 'vscode';
-import {
-  getRootWorkspace,
-  getRootWorkspacePath,
-  hasRootWorkspace
-} from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 import { stubWorkspace } from './rootWorkspace.test-util';
 
 // tslint:disable:no-unused-expression
@@ -36,26 +32,26 @@ describe('RootWorkspace utils should', () => {
   });
 
   it('correctly determine if there is a workspace', () => {
-    expect(hasRootWorkspace()).to.be.true;
+    expect(workspaceUtils.hasRootWorkspace()).to.be.true;
     workspaceStub = stubWorkspace([]);
-    expect(hasRootWorkspace()).to.be.false;
+    expect(workspaceUtils.hasRootWorkspace()).to.be.false;
   });
 
   it('get workspace information', () => {
-    expect(getRootWorkspace()).to.be.an.instanceOf(Object);
-    expect(getRootWorkspace().name).to.contain(WORKSPACE_NAME);
-    expect(getRootWorkspacePath()).to.contain(WORKSPACE_NAME);
+    expect(workspaceUtils.getRootWorkspace()).to.be.an.instanceOf(Object);
+    expect(workspaceUtils.getRootWorkspace().name).to.contain(WORKSPACE_NAME);
+    expect(workspaceUtils.getRootWorkspacePath()).to.contain(WORKSPACE_NAME);
   });
 
   it('return empty things ( not undefined ) if no root workspace', () => {
     workspaceStub = stubWorkspace([]);
-    expect(getRootWorkspace()).to.be.empty;
-    expect(getRootWorkspacePath()).to.be.empty;
+    expect(workspaceUtils.getRootWorkspace()).to.be.empty;
+    expect(workspaceUtils.getRootWorkspacePath()).to.be.empty;
   });
 
   it('return correct parts of the root workspace', () => {
     workspaceStub = stubWorkspace(myWorkspaces);
-    expect(getRootWorkspace().name).to.equal(myFolder.name);
-    expect(getRootWorkspacePath()).to.equal(myFolder.uri.fsPath);
+    expect(workspaceUtils.getRootWorkspace().name).to.equal(myFolder.name);
+    expect(workspaceUtils.getRootWorkspacePath()).to.equal(myFolder.uri.fsPath);
   });
 });

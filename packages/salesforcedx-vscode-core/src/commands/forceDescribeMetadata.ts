@@ -11,12 +11,12 @@ import {
   Command,
   CommandOutput,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { mkdir } from 'shelljs';
 import { SfdxCommandletExecutor } from '../commands/util';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 
 export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   string
@@ -36,7 +36,7 @@ export class ForceDescribeMetadataExecutor extends SfdxCommandletExecutor<
   public execute(): CliCommandExecution {
     const startTime = process.hrtime();
     const execution = new CliCommandExecutor(this.build({}), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute();
 
     execution.processExitSubject.subscribe(() => {
