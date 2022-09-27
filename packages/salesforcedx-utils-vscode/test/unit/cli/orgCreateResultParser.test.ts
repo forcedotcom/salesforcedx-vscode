@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { EOL } from 'os';
 import {
@@ -100,8 +101,12 @@ describe('force:org:create parser', () => {
         `sfdx force:org:create --json --loglevel fatal ${EOL} sfdx force:org:create --json --loglevel fatal ended with exit code 0`
       );
     } catch (err) {
-      expect(err.name).to.be.equals('OrgCreateParserFail');
-      expect(err.message).to.be.equals('Error parsing org create result');
+      if (err instanceof Error) {
+        expect(err.name).to.be.equals('OrgCreateParserFail');
+        expect(err.message).to.be.equals('Error parsing org create result');
+      } else {
+        fail('Expected an error');
+      }
     }
   });
 });

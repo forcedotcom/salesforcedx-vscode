@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import * as proxyquire from 'proxyquire';
 import { createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
+import { ConfigSource, ConfigUtil } from '../../../src';
 
 const vscodeStub = {
   commands: stub(),
@@ -29,13 +29,6 @@ const vscodeStub = {
     onDidChangeConfiguration: stub()
   }
 };
-
-const { ConfigSource, ConfigUtil } = proxyquire.noCallThru()(
-  '../../../src/index',
-  {
-    vscode: vscodeStub
-  }
-);
 
 describe('getConfigSource', () => {
   let sandboxStub: SinonSandbox;
