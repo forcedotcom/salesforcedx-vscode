@@ -6,8 +6,8 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { Table } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   ComponentStatus,
@@ -43,11 +43,7 @@ import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import {
-  ConfigUtil,
-  getRootWorkspacePath,
-  OrgAuthInfo
-} from '../../../src/util';
+import { ConfigUtil, OrgAuthInfo, workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const sb = createSandbox();
@@ -184,7 +180,7 @@ describe('Base Deploy Retrieve Commands', () => {
         'classes',
         'someclass.xyz'
       );
-      const fullPath = join(getRootWorkspacePath(), projectPath);
+      const fullPath = join(workspaceUtils.getRootWorkspacePath(), projectPath);
       const error = new Error(`Problem with ${fullPath}`);
       executor.lifecycle.getComponentsStub.throws(error);
 
@@ -233,9 +229,9 @@ describe('Base Deploy Retrieve Commands', () => {
       executor.lifecycle.getComponentsStub.returns(getComponentsResult);
 
       const configApiVersion = '45.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').returns(
+        configApiVersion
+      );
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
@@ -468,7 +464,10 @@ describe('Base Deploy Retrieve Commands', () => {
         failedRows.forEach((row, index) => {
           const [fileUri, diagnostics] = setDiagnosticsStub.getCall(index).args;
           const expectedFileUri = vscode.Uri.file(
-            getAbsoluteFilePath(row.filePath, getRootWorkspacePath())
+            getAbsoluteFilePath(
+              row.filePath,
+              workspaceUtils.getRootWorkspacePath()
+            )
           );
           expect(fileUri).to.deep.equal(expectedFileUri);
           expect(diagnostics).to.deep.equal([

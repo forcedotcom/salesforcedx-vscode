@@ -15,7 +15,7 @@ import {
 } from '../types';
 import { FORCE_LWC_TEST_RUN_LOG_NAME } from '../types/constants';
 import { isLwcJestTest } from '../utils';
-import { getTestWorkspaceFolder } from '../workspace';
+import { workspace } from '../workspace';
 
 /**
  * Run an LWC Jest test from provided test execution info
@@ -60,7 +60,7 @@ export function forceLwcTestFileRun(data: {
  * Run all tests in the workspace folder
  */
 export function forceLwcTestRunAllTests() {
-  const workspaceFolder = getTestWorkspaceFolder();
+  const workspaceFolder = workspace.getTestWorkspaceFolder();
   if (workspaceFolder) {
     const testExecutionInfo: TestDirectoryInfo = {
       kind: TestInfoKind.TEST_DIRECTORY,

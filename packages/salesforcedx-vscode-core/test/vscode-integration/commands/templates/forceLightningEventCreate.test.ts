@@ -18,7 +18,7 @@ import {
 } from '../../../../src/commands/templates/forceLightningEventCreate';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Lightning Event Create', () => {
@@ -60,18 +60,21 @@ describe('Force Lightning Event Create', () => {
     const fileName = 'testEvent';
     const outputPath = 'force-app/main/default/aura';
     const auraEventPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testEvent.evt'
     );
     const auraEventMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testEvent.evt-meta.xml'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([auraEventPath, auraEventMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -98,7 +101,10 @@ describe('Force Lightning Event Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 
   it('Should create internal Aura Event', async () => {
@@ -107,20 +113,28 @@ describe('Force Lightning Event Create', () => {
     const fileName = 'testEvent';
     const outputPath = 'force-app/main/default/aura';
     const auraEventPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testEvent.evt'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([auraEventPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir('-p', path.join(getRootWorkspacePath(), outputPath));
+    shell.mkdir(
+      '-p',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
     await forceInternalLightningEventCreate(
-      vscode.Uri.file(path.join(getRootWorkspacePath(), outputPath))
+      vscode.Uri.file(
+        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+      )
     );
 
     // assert
@@ -133,6 +147,9 @@ describe('Force Lightning Event Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraEventPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 });
