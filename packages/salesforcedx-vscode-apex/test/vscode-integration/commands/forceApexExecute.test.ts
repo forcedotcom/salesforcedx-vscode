@@ -5,15 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteService } from '@salesforce/apex-node';
-import { AuthInfo, ConfigAggregator, Connection, Global } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  AuthInfo,
+  ConfigAggregator,
+  Connection,
+  Global
+} from '@salesforce/core';
+import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  ChannelService,
+  ContinueResponse,
   getRootWorkspacePath,
-  SFDX_CORE_CONFIGURATION_NAME
+  SFDX_CORE_CONFIGURATION_NAME,
+  TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
