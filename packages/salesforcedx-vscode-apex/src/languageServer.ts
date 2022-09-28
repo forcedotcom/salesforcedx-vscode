@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -64,11 +65,9 @@ async function createServer(
     if (jvmMaxHeap) {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
-    telemetryService.sendEventData(
-      'apexLSPSettings',
-      undefined,
-      { maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0 }
-    );
+    telemetryService.sendEventData('apexLSPSettings', undefined, {
+      maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0
+    });
 
     if (DEBUG) {
       args.push(
@@ -104,7 +103,7 @@ export function setupDB(): void {
   ) {
     const dbPath = path.join(
       vscode.workspace.workspaceFolders[0].uri.fsPath,
-      '.sfdx',
+      Global.STATE_FOLDER,
       'tools',
       'apex.db'
     );

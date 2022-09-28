@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteService } from '@salesforce/apex-node';
-import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
+import { AuthInfo, ConfigAggregator, Connection, Global } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -86,7 +86,7 @@ describe('Force Apex Execute', () => {
     it('should return the selected file to execute anonymous apex', async () => {
       const fileName = path.join(
         getRootWorkspacePath(),
-        '.sfdx',
+        Global.STATE_FOLDER,
         'tools',
         'tempApex.input'
       );
@@ -113,7 +113,7 @@ describe('Force Apex Execute', () => {
       const text = 'System.assert(true);';
       const fileName = path.join(
         getRootWorkspacePath(),
-        '.sfdx',
+        Global.STATE_FOLDER,
         'tools',
         'tempApex.input'
       );
