@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import {
   MetricError,
   MetricLaunch
@@ -255,7 +256,7 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     }
     // If all else fails, fallback to the .sfdx directory in the workspace
     return vscode.Uri.file(
-      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx')
+      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, Global.STATE_FOLDER)
     );
   }
 }
