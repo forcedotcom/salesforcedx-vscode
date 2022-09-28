@@ -9,7 +9,7 @@ import { TemplateService } from '@salesforce/templates';
 import { nls as templatesNls } from '@salesforce/templates/lib/i18n';
 import * as path from 'path';
 import * as shell from 'shelljs';
-import { SinonStub, stub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as assert from 'yeoman-assert';
@@ -18,7 +18,9 @@ import { forceApexClassCreate } from '../../../../src/commands/templates/forceAp
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
+import { ConfigUtil, workspaceUtils } from '../../../../src/util';
+
+const sandbox = createSandbox();
 
 // tslint:disable:no-unused-expression
 describe('Force Apex Class Create', () => {
@@ -30,47 +32,41 @@ describe('Force Apex Class Create', () => {
   let openTextDocumentStub: SinonStub;
   let sendCommandEventStub: SinonStub;
   let sendExceptionStub: SinonStub;
-  let getConfigValue: SinonStub;
+  let getTemplatesDirectoryStub: SinonStub;
 
   beforeEach(() => {
-    showInputBoxStub = stub(vscode.window, 'showInputBox');
-    quickPickStub = stub(vscode.window, 'showQuickPick');
-    appendLineStub = stub(channelService, 'appendLine');
-    showSuccessfulExecutionStub = stub(
+    showInputBoxStub = sandbox.stub(vscode.window, 'showInputBox');
+    quickPickStub = sandbox.stub(vscode.window, 'showQuickPick');
+    appendLineStub = sandbox.stub(channelService, 'appendLine');
+    showSuccessfulExecutionStub = sandbox
+      .stub(notificationService, 'showSuccessfulExecution')
+      .resolves();
+    showFailedExecutionStub = sandbox.stub(
       notificationService,
-      'showSuccessfulExecution'
+      'showFailedExecution'
     );
-    showSuccessfulExecutionStub.returns(Promise.resolve());
-    showFailedExecutionStub = stub(notificationService, 'showFailedExecution');
-    openTextDocumentStub = stub(vscode.workspace, 'openTextDocument');
-    sendCommandEventStub = stub(telemetryService, 'sendCommandEvent');
-    sendExceptionStub = stub(telemetryService, 'sendException');
-    getConfigValue = stub(ConfigUtil, 'getConfigValue');
-    getConfigValue.returns(undefined);
+    openTextDocumentStub = sandbox.stub(vscode.workspace, 'openTextDocument');
+    sendCommandEventStub = sandbox.stub(telemetryService, 'sendCommandEvent');
+    sendExceptionStub = sandbox.stub(telemetryService, 'sendException');
+    getTemplatesDirectoryStub = sandbox
+      .stub(ConfigUtil, 'getTemplatesDirectory')
+      .returns(undefined);
   });
 
   afterEach(() => {
-    showInputBoxStub.restore();
-    quickPickStub.restore();
-    showSuccessfulExecutionStub.restore();
-    showFailedExecutionStub.restore();
-    appendLineStub.restore();
-    openTextDocumentStub.restore();
-    sendCommandEventStub.restore();
-    sendExceptionStub.restore();
-    getConfigValue.restore();
+    sandbox.restore();
   });
 
   it('Should create Apex Class', async () => {
     // arrange
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls'
     );
     const apexClassMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls-meta.xml'
     );

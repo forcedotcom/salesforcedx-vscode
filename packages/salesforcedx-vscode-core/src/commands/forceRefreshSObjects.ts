@@ -17,24 +17,24 @@ import {
   SObjectRefreshSource
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src/types';
 import {
-  SfdxCommandlet,
-  SfdxCommandletExecutor,
-  SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
   Command,
   LocalCommandExecution,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   notificationService,
   ProgressNotification
-} from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+} from '@salesforce/salesforcedx-utils-vscode';
+import {
+  SfdxCommandlet,
+  SfdxCommandletExecutor,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -149,7 +149,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         transformer = await SObjectTransformerFactory.create(
           execution.cmdEmitter,
           cancellationToken,
-          projectPath,
           SObjectCategory.STANDARD,
           SObjectRefreshSource.StartupMin
         );
@@ -157,7 +156,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         transformer = await SObjectTransformerFactory.create(
           execution.cmdEmitter,
           cancellationToken,
-          projectPath,
           response.data.category,
           response.data.source
         );
@@ -178,12 +176,12 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
           customObjects: result.data.customObjects ?? 0
         }
       );
-    } catch (result) {
-      console.log('Generate error ' + result.error);
-      telemetryService.sendException(result.name, result.error);
+    } catch (error) {
+      console.log('Generate error ' + error.error);
+      telemetryService.sendException(error.name, error.error);
       ForceRefreshSObjectsExecutor.isActive = false;
 
-      throw result;
+      throw error;
     }
 
     ForceRefreshSObjectsExecutor.isActive = false;

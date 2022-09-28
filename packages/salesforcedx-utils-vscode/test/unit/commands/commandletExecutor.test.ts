@@ -6,37 +6,23 @@
  */
 
 import { expect } from 'chai';
-import * as proxyquire from 'proxyquire';
-import { assert, createSandbox, SinonSandbox, stub } from 'sinon';
-import { Progress } from 'vscode';
+import { assert, createSandbox, SinonSandbox, SinonStub, stub } from 'sinon';
+import { OutputChannel, Progress } from 'vscode';
+import * as vscode from 'vscode';
+import {
+  ChannelService,
+  LibraryCommandletExecutor,
+  NotificationService,
+  TelemetryService
+} from '../../../src';
 import { nls } from '../../../src/messages';
 import { ContinueResponse } from '../../../src/types';
-import { MockChannel, vscodeStub } from './mocks';
+import { MockChannel } from './mocks';
 
-const { ChannelService } = proxyquire.noCallThru()(
-  '../../../src/commands/index',
-  {
-    vscode: vscodeStub
-  }
-);
-
-const { LibraryCommandletExecutor } = proxyquire.noCallThru()(
-  '../../../src/index',
-  {
-    vscode: vscodeStub
-  }
-);
-
-const { NotificationService } = proxyquire.noCallThru()(
-  '../../../src/commands',
-  {
-    vscode: vscodeStub
-  }
-);
-
+const commandExecutionName = 'Test Command';
 class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
   constructor(outputChannel: MockChannel, private error?: Error) {
-    super('Test Command', 'test_command', outputChannel);
+    super(commandExecutionName, 'test_command', outputChannel as OutputChannel);
   }
 
   public async run(response: ContinueResponse<{ success: boolean }>) {
@@ -51,12 +37,16 @@ class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
 describe('LibraryCommandletExecutor', () => {
   const executor = new TestExecutor(new MockChannel());
   let sb: SinonSandbox;
+  let showFailedExecutionStub: SinonStub;
 
   beforeEach(() => {
     sb = createSandbox();
 
     sb.stub(NotificationService, 'getInstance');
-    sb.stub(NotificationService.prototype, 'showFailedExecution');
+    showFailedExecutionStub = sb.stub(
+      NotificationService.prototype,
+      'showFailedExecution'
+    );
 
     sb.stub(ChannelService, 'getInstance');
 
@@ -74,12 +64,17 @@ describe('LibraryCommandletExecutor', () => {
         return Promise.resolve(true);
       }
     };
-    const { TelemetryService } = proxyquire.noCallThru()('../../../src/index', {
-      vscode: vscodeStub,
-      './telemetryReporter': { default: telemetryReporterStub },
-      '../cli/cliConfiguration': cliConfigurationStub
+    jest.mock('../../../src/telemetry/telemetryReporter', () => {
+      return telemetryReporterStub;
     });
-    sb.stub(TelemetryService, 'getInstance');
+    jest.mock('../../../src/telemetry/cliConfiguration', () => {
+      return cliConfigurationStub;
+    });
+    sb.stub(TelemetryService, 'getInstance').returns({
+      sendCommandEvent: jest.fn(),
+      sendException: jest.fn()
+    });
+    (vscode.window.withProgress as jest.Mock).mockResolvedValue(true);
   });
 
   afterEach(async () => {
@@ -88,14 +83,15 @@ describe('LibraryCommandletExecutor', () => {
 
   it('should show successful execution notification if run returns true', async () => {
     const showInfoStub = sb
-      .stub(vscodeStub.window, 'showInformationMessage')
+      .stub(vscode.window, 'showInformationMessage')
       .resolves(nls.localize('notification_show_in_status_bar_button_text'));
+
     await executor.execute({ data: { success: true }, type: 'CONTINUE' });
     expect(showInfoStub.called).to.be.true;
   });
 
   it('should clear channel output if preference set', async () => {
-    sb.stub(vscodeStub.workspace, 'getConfiguration').returns({
+    sb.stub(vscode.workspace, 'getConfiguration').returns({
       get: () => true
     });
     const clearStub = sb.stub(MockChannel.prototype, 'clear');
@@ -104,7 +100,7 @@ describe('LibraryCommandletExecutor', () => {
   });
 
   it('should NOT clear channel output if preference NOT set', async () => {
-    sb.stub(vscodeStub.workspace, 'getConfiguration').returns({
+    sb.stub(vscode.workspace, 'getConfiguration').returns({
       get: () => false
     });
     const clearStub = sb.stub(MockChannel.prototype, 'clear');
@@ -113,34 +109,34 @@ describe('LibraryCommandletExecutor', () => {
   });
 
   it('should show failed execution notification if run returns false', async () => {
-    const showErrStub = sb
-      .stub(vscodeStub.window, 'showErrorMessage')
-      .resolves(nls.localize('notification_unsuccessful_execution_text'));
-    sb.stub(vscodeStub.window, 'withProgress').resolves(false);
+    sb.stub(vscode.window, 'withProgress').resolves(false);
     await executor.execute({ data: { success: true }, type: 'CONTINUE' });
-    expect(showErrStub.called).to.be.true;
+    expect(showFailedExecutionStub.called).to.be.true;
   });
 
   it('should not show successful or failed notifications if run was cancelled', async () => {
     const showErrStub = sb
-      .stub(vscodeStub.window, 'showErrorMessage')
+      .stub(vscode.window, 'showErrorMessage')
       .resolves(nls.localize('notification_unsuccessful_execution_text'));
     const showInfoStub = sb
-      .stub(vscodeStub.window, 'showInformationMessage')
+      .stub(vscode.window, 'showInformationMessage')
       .resolves(nls.localize('notification_show_in_status_bar_button_text'));
     const cancelledExecutor = new TestExecutor(new MockChannel());
     // set private property for testing
     // @ts-ignore
     cancelledExecutor.cancelled = true;
 
-    await cancelledExecutor.execute({ data: { success: true }, type: 'CONTINUE' });
+    await cancelledExecutor.execute({
+      data: { success: true },
+      type: 'CONTINUE'
+    });
     expect(showErrStub.notCalled).to.be.true;
     expect(showInfoStub.notCalled).to.be.true;
   });
 
   it('should show cancelled warning message if run was cancelled', async () => {
-    const cancelStub = sb.stub(vscodeStub.window, 'showWarningMessage' as any);
-    const tokenSource = new vscodeStub.CancellationTokenSource();
+    const cancelStub = sb.stub(vscode.window, 'showWarningMessage' as any);
+    const tokenSource = new vscode.CancellationTokenSource();
     const reportStub = stub();
     const progress: Progress<{
       message?: string;
@@ -148,26 +144,33 @@ describe('LibraryCommandletExecutor', () => {
     }> = {
       report: reportStub
     };
-    const withProgressStub = sb.stub(vscodeStub.window, 'withProgress');
+    const withProgressStub = sb.stub(vscode.window, 'withProgress');
     withProgressStub.callsFake((options, task) => {
       task(progress, tokenSource.token);
     });
 
     const cancelledExecutor = new TestExecutor(new MockChannel());
+    // @ts-ignore
     cancelledExecutor.cancellable = true;
 
-    await cancelledExecutor.execute({ data: { success: true }, type: 'CONTINUE' });
+    await cancelledExecutor.execute({
+      data: { success: true },
+      type: 'CONTINUE'
+    });
     tokenSource.cancel();
 
     expect(withProgressStub.called).to.be.true;
     expect(withProgressStub.getCall(0).args[0]).to.eql({
-      title: nls.localize('progress_notification_text', 'Test Command'),
-      location: vscodeStub.ProgressLocation.Notification,
+      title: nls.localize('progress_notification_text', commandExecutionName),
+      location: vscode.ProgressLocation.Notification,
       cancellable: true
     });
 
     assert.calledOnce(cancelStub);
-    assert.calledWith(cancelStub, nls.localize('notification_canceled_execution_text', 'Test Command'));
+    assert.calledWith(
+      cancelStub,
+      nls.localize('notification_canceled_execution_text', commandExecutionName)
+    );
   });
 
   it('should log command event if there were no issues running', async () => {
@@ -181,10 +184,7 @@ describe('LibraryCommandletExecutor', () => {
     const errorExecutor = new TestExecutor(new MockChannel(), error);
 
     it('should show failed execution notification', async () => {
-      const showErrStub = sb
-        .stub(vscodeStub.window, 'showErrorMessage')
-        .resolves(nls.localize('notification_unsuccessful_execution_text'));
-      sb.stub(vscodeStub.window, 'withProgress').throws(new Error('Issues!'));
+      sb.stub(vscode.window, 'withProgress').throws(new Error('Issues!'));
 
       try {
         await errorExecutor.execute({
@@ -193,14 +193,14 @@ describe('LibraryCommandletExecutor', () => {
         });
         assert.fail();
       } catch (e) {
-        expect(showErrStub.called).to.be.true;
-        expect(showErrStub.args[0]).to.eql(['Test Command failed to run']);
+        expect(showFailedExecutionStub.called).to.be.true;
+        expect(showFailedExecutionStub.args[0]).to.eql([commandExecutionName]);
       }
     });
 
     it('should add channel output', async () => {
-      sb.stub(vscodeStub.window, 'showErrorMessage');
-      sb.stub(vscodeStub.window, 'withProgress').throws(new Error('Issues!'));
+      sb.stub(vscode.window, 'showErrorMessage');
+      sb.stub(vscode.window, 'withProgress').throws(new Error('Issues!'));
       const appendStub = sb.stub(MockChannel.prototype, 'appendLine');
 
       try {
