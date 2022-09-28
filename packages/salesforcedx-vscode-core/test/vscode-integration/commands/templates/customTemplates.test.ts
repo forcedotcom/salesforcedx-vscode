@@ -21,7 +21,7 @@ import {
 import { nls } from '../../../../src/messages';
 import { notificationService } from '../../../../src/notifications';
 import { telemetryService } from '../../../../src/telemetry';
-import { ConfigUtil, getRootWorkspacePath } from '../../../../src/util';
+import { ConfigUtil, workspaceUtils } from '../../../../src/util';
 
 const TEST_CUSTOM_TEMPLATES_REPO =
   'https://github.com/forcedotcom/salesforcedx-templates/tree/main/packages/templates/test/custom-templates';
@@ -73,12 +73,12 @@ describe('Custom Templates Create', () => {
     getTemplatesDirectoryStub.returns(TEST_CUSTOM_TEMPLATES_REPO);
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls'
     );
     const apexClassMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
@@ -131,12 +131,12 @@ describe('Custom Templates Create', () => {
     getTemplatesDirectoryStub.returns(NON_EXISTENT_LOCAL_PATH);
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls'
     );
     const apexClassMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
@@ -174,12 +174,12 @@ describe('Custom Templates Create', () => {
     getTemplatesDirectoryStub.returns(NON_EXISTENT_REPO);
     const outputPath = 'force-app/main/default/classes';
     const apexClassPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls'
     );
     const apexClassMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'TestApexClass.cls-meta.xml'
     );
@@ -218,24 +218,27 @@ describe('Custom Templates Create', () => {
     const fileName = 'testLwc';
     const outputPath = 'force-app/main/default/lwc';
     const lwcHtmlPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.html'
     );
     const lwcJsPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.js'
     );
     const lwcJsMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       fileName,
       'testLwc.js-meta.xml'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([lwcHtmlPath, lwcJsPath, lwcJsMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -277,6 +280,9 @@ export default class TestLwc extends LightningElement {}`
     );
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   }).timeout(20000);
 });

@@ -14,7 +14,7 @@ import * as assert from 'yeoman-assert';
 import { channelService } from '../../../../src/channels';
 import { forceVisualforceComponentCreate } from '../../../../src/commands/templates';
 import { notificationService } from '../../../../src/notifications';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Visualforce Component Create', () => {
@@ -52,16 +52,19 @@ describe('Force Visualforce Component Create', () => {
     const fileName = 'testVFCmp';
     const outputPath = 'force-app/main/default/components';
     const vfCmpPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testVFCmp.component'
     );
     const vfCmpMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testVFCmp.component-meta.xml'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
     assert.noFile([vfCmpPath, vfCmpMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -93,6 +96,9 @@ This is your new Component
     sinon.assert.calledWith(openTextDocumentStub, vfCmpPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
   });
 });

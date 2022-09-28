@@ -7,11 +7,11 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
 import {
   CancelResponse,
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+  ContinueResponse,
+  fileUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   registry,
@@ -34,7 +34,7 @@ import {
   SfdxPackageDirectories,
   SfdxProjectConfig
 } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -102,7 +102,10 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       expect(retrieveStub.calledOnce).to.equal(true);
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
-        output: path.join(getRootWorkspacePath(), defaultPackage),
+        output: path.join(
+          workspaceUtils.getRootWorkspacePath(),
+          defaultPackage
+        ),
         merge: true
       });
       expect(pollStatusStub.calledOnce).to.equal(true);
@@ -111,7 +114,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
     it('componentSet has sourceApiVersion set', async () => {
       const executor = new LibraryRetrieveSourcePathExecutor();
       const data = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'force-app/main/default/classes/'
       );
       const continueResponse = {
@@ -141,7 +144,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([
           path.sep + filePath1,
           path.sep + filePath2,
@@ -177,7 +180,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
@@ -209,7 +212,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
           data: filePaths
         });
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
@@ -249,7 +252,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         .stub(forceSourceRetrieveSourcePath, 'getUriFromActiveEditor')
         .returns(filePath1);
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([undefined]);
 
       await forceSourceRetrieveSourcePath.forceSourceRetrieveSourcePaths(
@@ -273,7 +276,7 @@ describe('SourcePathChecker', () => {
   let showErrorMessageSpy: SinonStub;
   beforeEach(() => {
     sandboxStub = createSandbox();
-    workspacePath = getRootWorkspacePath();
+    workspacePath = workspaceUtils.getRootWorkspacePath();
     appendLineSpy = sandboxStub.stub(channelService, 'appendLine');
     showErrorMessageSpy = sandboxStub.stub(
       notificationService,
