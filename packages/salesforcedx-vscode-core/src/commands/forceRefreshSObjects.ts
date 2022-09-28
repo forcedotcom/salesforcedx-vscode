@@ -149,7 +149,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         transformer = await SObjectTransformerFactory.create(
           execution.cmdEmitter,
           cancellationToken,
-          projectPath,
           SObjectCategory.STANDARD,
           SObjectRefreshSource.StartupMin
         );
@@ -157,7 +156,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
         transformer = await SObjectTransformerFactory.create(
           execution.cmdEmitter,
           cancellationToken,
-          projectPath,
           response.data.category,
           response.data.source
         );
