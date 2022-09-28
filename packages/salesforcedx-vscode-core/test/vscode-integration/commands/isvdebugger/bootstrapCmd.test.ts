@@ -13,7 +13,7 @@ import {
   IsvDebugBootstrapExecutor
 } from '../../../../src/commands/isvdebugging';
 import { nls } from '../../../../src/messages';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('ISV Debugging Project Bootstrap Command', () => {
@@ -21,7 +21,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
   const SESSION_ID = '0x123';
   const PROJECT_NAME = 'sfdx-simple-clone';
   const ORIGINAL_PROJECT = 'sfdx-simple';
-  const WORKSPACE_PATH = path.join(getRootWorkspacePath(), '..');
+  const WORKSPACE_PATH = path.join(workspaceUtils.getRootWorkspacePath(), '..');
   const PROJECT_DIR: vscode.Uri[] = [vscode.Uri.parse(WORKSPACE_PATH)];
 
   describe('EnterForceIdeUri Gatherer', () => {
@@ -162,9 +162,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         }
       );
       expect(createCommand.toCommand()).to.equal(
-        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${
-          PROJECT_DIR[0].fsPath
-        } --template standard`
+        `sfdx force:project:create --projectname ${PROJECT_NAME} --outputdir ${PROJECT_DIR[0].fsPath} --template standard`
       );
       expect(createCommand.description).to.equal(
         nls.localize('isv_debug_bootstrap_step1_create_project')
@@ -238,11 +236,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         projectTemplate: 'standard'
       });
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve --retrievetargetdir ${
-          builder.relativeMetdataTempPath
-        } --unpackaged ${
-          builder.relativeApexPackageXmlPath
-        } --targetusername ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --unpackaged ${builder.relativeApexPackageXmlPath} --targetusername ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step3_retrieve_org_source')
@@ -303,9 +297,7 @@ describe('ISV Debugging Project Bootstrap Command', () => {
         packageNames
       );
       expect(command.toCommand()).to.equal(
-        `sfdx force:mdapi:retrieve --retrievetargetdir ${
-          builder.relativeMetdataTempPath
-        } --packagenames mypackage_abc,mpackage_def --targetusername ${SESSION_ID}`
+        `sfdx force:mdapi:retrieve --retrievetargetdir ${builder.relativeMetdataTempPath} --packagenames mypackage_abc,mpackage_def --targetusername ${SESSION_ID}`
       );
       expect(command.description).to.equal(
         nls.localize('isv_debug_bootstrap_step6_retrieve_packages_source')

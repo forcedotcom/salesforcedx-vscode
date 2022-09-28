@@ -146,7 +146,7 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
     };
 
     ({ ContinueResponse } = proxyquireStrict(
-      '@salesforce/salesforcedx-utils-vscode/out/src/types',
+      '@salesforce/salesforcedx-utils-vscode',
       {
         vscode: vscodeStub
       }
@@ -158,10 +158,8 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
         '@heroku/functions-core': {
           getProjectDescriptor: getProjectDescriptorStub
         },
-        '@salesforce/salesforcedx-utils-vscode/out/src': {
-          LibraryCommandletExecutor
-        },
-        '@salesforce/salesforcedx-utils-vscode/out/src/types': {
+        '@salesforce/salesforcedx-utils-vscode': {
+          LibraryCommandletExecutor,
           ContinueResponse: {
             ContinueResponse
           }
@@ -221,9 +219,7 @@ describe('ForceFunctionContainerlessStartExecutor unit tests', () => {
       START_KEY,
       LOG_NAME
     );
-    const listenerResult = await executor.setupFunctionListeners(
-      'funDirPath'
-    );
+    const listenerResult = await executor.setupFunctionListeners('funDirPath');
     expect(listenerResult).to.equal(undefined);
     const buildResult = await executor.buildFunction('nameMe', 'funDirPath');
     expect(buildResult).to.equal(undefined);
