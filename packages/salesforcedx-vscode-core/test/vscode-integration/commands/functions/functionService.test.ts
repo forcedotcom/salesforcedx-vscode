@@ -13,7 +13,7 @@ import {
   FUNCTION_DEFAULT_PORT
 } from '../../../../src/commands/functions/types/constants';
 import { nls } from '../../../../src/messages';
-import { getRootWorkspace, getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 import { MockExtensionContext } from '../../telemetry/MockExtensionContext';
 
 describe('Function Service', () => {
@@ -55,7 +55,7 @@ describe('Function Service', () => {
       id: '',
       name: 'Debug Invoke',
       type: 'node',
-      workspaceFolder: getRootWorkspace(),
+      workspaceFolder: workspaceUtils.getRootWorkspace(),
       configuration: {
         type: 'node',
         name: 'Debug Invoke',
@@ -69,7 +69,7 @@ describe('Function Service', () => {
 
     it('Should start a debug session and attach to debug port', async () => {
       const rootDir = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
       const debugPort = FUNCTION_DEFAULT_DEBUG_PORT;
@@ -94,7 +94,7 @@ describe('Function Service', () => {
       assert.calledOnce(vscodeDebugStubs.startDebuggingStub);
       assert.calledWith(
         vscodeDebugStubs.startDebuggingStub,
-        getRootWorkspace(),
+        workspaceUtils.getRootWorkspace(),
         {
           type: undefined,
           request: 'attach',
@@ -112,7 +112,7 @@ describe('Function Service', () => {
 
     it('Should stop debug session', async () => {
       const rootDir = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
       const getStartedFunctionStub = sandbox.stub(
@@ -144,7 +144,7 @@ describe('Function Service', () => {
         }
       );
       const rootDir = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
       const getStartedFunctionStub = sandbox.stub(
@@ -180,7 +180,7 @@ describe('Function Service', () => {
         }
       );
       const rootDir = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'functions/demoJavaScriptFunction'
       );
       const getStartedFunctionStub = sandbox.stub(
@@ -368,7 +368,10 @@ describe('Function Service', () => {
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      const debugConfiguration = service.getDebugConfiguration(
+        functionExecution!,
+        rootDir
+      );
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
@@ -387,7 +390,10 @@ describe('Function Service', () => {
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      const debugConfiguration = service.getDebugConfiguration(
+        functionExecution!,
+        rootDir
+      );
       expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
     });
 
@@ -406,7 +412,10 @@ describe('Function Service', () => {
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      const debugConfiguration = service.getDebugConfiguration(
+        functionExecution!,
+        rootDir
+      );
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
@@ -425,7 +434,10 @@ describe('Function Service', () => {
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      const debugConfiguration = service.getDebugConfiguration(
+        functionExecution!,
+        rootDir
+      );
       expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
     });
 
@@ -444,7 +456,10 @@ describe('Function Service', () => {
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      const debugConfiguration = service.getDebugConfiguration(
+        functionExecution!,
+        rootDir
+      );
       expect(debugConfiguration.remoteRoot).to.equal('/workspace');
     });
 
@@ -463,7 +478,10 @@ describe('Function Service', () => {
       service.registerStartedFunction(functionDef);
       const rootDir = 'FirstFunction';
       const functionExecution = service.getStartedFunction(rootDir);
-      const debugConfiguration = service.getDebugConfiguration(functionExecution!, rootDir);
+      const debugConfiguration = service.getDebugConfiguration(
+        functionExecution!,
+        rootDir
+      );
       expect(debugConfiguration.hasOwnProperty('remoteRoot')).to.equal(false);
     });
   });

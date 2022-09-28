@@ -7,12 +7,12 @@
 // This is only done in tests because we are mocking things
 // tslint:disable:no-floating-promises
 import {
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   ForceConfigGet,
   ForceOrgDisplay,
-  OrgInfo
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
-import { DEFAULT_CONNECTION_TIMEOUT_MS } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  OrgInfo,
+  RequestService
+} from '@salesforce/salesforcedx-utils';
 import * as AsyncLock from 'async-lock';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -26,6 +26,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import Uri from 'vscode-uri';
 import {
+  ApexDebug,
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
@@ -101,12 +102,21 @@ describe('Interactive debugger adapter - unit', () => {
     }
   } as DebugProtocol.InitializeResponse;
 
+  beforeEach(() => {
+    adapter = new ApexDebugForTest(new RequestService());
+  });
+
+  afterAll(() => {
+    if (adapter) {
+      adapter.clearIdleTimers();
+    }
+  });
+
   describe('Attach', () => {
     let response: DebugProtocol.AttachResponse;
     let args: DebugProtocol.AttachRequestArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       response = {
         command: '',
         success: true,
@@ -146,7 +156,6 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       sessionProjectSpy = sinon.spy(SessionService.prototype, 'forProject');
       sessionUserFilterSpy = sinon.spy(
         SessionService.prototype,
@@ -602,7 +611,6 @@ describe('Interactive debugger adapter - unit', () => {
     let streamingSubscribeSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.initializeReq(
         initializedResponse,
         {} as DebugProtocol.InitializeRequestArguments
@@ -698,7 +706,6 @@ describe('Interactive debugger adapter - unit', () => {
     let clock: sinon.SinonFakeTimers;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       clock = sinon.useFakeTimers();
     });
 
@@ -786,7 +793,6 @@ describe('Interactive debugger adapter - unit', () => {
     let args: DebugProtocol.DisconnectArguments;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       streamingDisconnectSpy = sinon.stub(
         StreamingService.prototype,
         'disconnect'
@@ -890,7 +896,6 @@ describe('Interactive debugger adapter - unit', () => {
     let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       breakpointGetSpy = sinon.spy(
         BreakpointService.prototype,
         'getBreakpointsFor'
@@ -1049,7 +1054,6 @@ describe('Interactive debugger adapter - unit', () => {
     let runSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
@@ -1084,6 +1088,7 @@ describe('Interactive debugger adapter - unit', () => {
         { threadId: 2 } as DebugProtocol.ContinueArguments
       );
 
+      adapter.clearIdleTimers();
       expect(adapter.getResponse(0).success).to.equal(false);
       expect(runSpy.called).to.equal(false);
     });
@@ -1092,9 +1097,7 @@ describe('Interactive debugger adapter - unit', () => {
       runSpy = sinon
         .stub(RequestService.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+          Promise.reject({ message: 'There was an error', action: 'Try again' })
         );
 
       await adapter.continueReq(
@@ -1103,9 +1106,7 @@ describe('Interactive debugger adapter - unit', () => {
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getResponse(0).message).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
+      expect(adapter.getResponse(0).message).to.equal('There was an error');
       expect(runSpy.called).to.equal(true);
     });
   });
@@ -1114,7 +1115,6 @@ describe('Interactive debugger adapter - unit', () => {
     let stepSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
     });
@@ -1170,10 +1170,6 @@ describe('Interactive debugger adapter - unit', () => {
   });
 
   describe('Threads request', () => {
-    beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
-    });
-
     it('Should return known debugged requests', () => {
       adapter.addRequestThread('07cFAKE1');
       adapter.addRequestThread('07cFAKE2');
@@ -1205,7 +1201,6 @@ describe('Interactive debugger adapter - unit', () => {
     let lockSpy: sinon.SinonSpy;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       adapter.setSfdxProject('someProjectPath');
       adapter.addRequestThread('07cFAKE');
       lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
@@ -1333,9 +1328,7 @@ describe('Interactive debugger adapter - unit', () => {
       stateSpy = sinon
         .stub(RequestService.prototype, 'execute')
         .returns(
-          Promise.reject(
-            '{"message":"There was an error", "action":"Try again"}'
-          )
+          Promise.reject({ message: 'There was an error', action: 'Try again' })
         );
 
       await adapter.stackTraceRequest(
@@ -1344,19 +1337,13 @@ describe('Interactive debugger adapter - unit', () => {
       );
 
       expect(adapter.getResponse(0).success).to.equal(false);
-      expect(adapter.getResponse(0).message).to.equal(
-        '{"message":"There was an error", "action":"Try again"}'
-      );
+      expect(adapter.getResponse(0).message).to.equal('There was an error');
       expect(stateSpy.called).to.equal(true);
     });
   });
 
   describe('Custom request', () => {
     describe('Hotswap warning', () => {
-      beforeEach(() => {
-        adapter = new ApexDebugForTest(new RequestService());
-      });
-
       it('Should log warning to debug console', () => {
         adapter.customRequest(
           HOTSWAP_REQUEST,
@@ -1380,7 +1367,6 @@ describe('Interactive debugger adapter - unit', () => {
       let sessionIdSpy: sinon.SinonStub;
 
       beforeEach(() => {
-        adapter = new ApexDebugForTest(new RequestService());
         adapter.setSfdxProject('someProjectPath');
         lockSpy = sinon.spy(AsyncLock.prototype, 'acquire');
         reconcileExceptionBreakpointSpy = sinon
@@ -1539,7 +1525,6 @@ describe('Interactive debugger adapter - unit', () => {
       ]);
 
       beforeEach(() => {
-        adapter = new ApexDebugForTest(new RequestService());
         getExceptionBreakpointCacheSpy = sinon
           .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
           .returns(knownExceptionBreakpoints);
@@ -1587,7 +1572,6 @@ describe('Interactive debugger adapter - unit', () => {
     typerefMapping.set('bar', 'file:///bar.cls');
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       response = {
         command: '',
         success: true,
@@ -1671,7 +1655,6 @@ describe('Interactive debugger adapter - unit', () => {
     let streamingSubscribeSpy: sinon.SinonStub;
 
     beforeEach(() => {
-      adapter = new ApexDebugForTest(new RequestService());
       streamingSubscribeSpy = sinon
         .stub(StreamingService.prototype, 'subscribe')
         .returns(Promise.resolve());
@@ -1729,7 +1712,6 @@ describe('Interactive debugger adapter - unit', () => {
       getExceptionBreakpointCacheSpy = sinon
         .stub(BreakpointService.prototype, 'getExceptionBreakpointCache')
         .returns(knownExceptionBreakpoints);
-      adapter = new ApexDebugForTest(new RequestService());
       sessionStopSpy = sinon.spy(SessionService.prototype, 'forceStop');
       sessionConnectedSpy = sinon
         .stub(SessionService.prototype, 'isConnected')
