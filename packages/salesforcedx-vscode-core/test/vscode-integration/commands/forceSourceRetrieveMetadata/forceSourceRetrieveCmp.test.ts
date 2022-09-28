@@ -10,7 +10,7 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver,
@@ -27,12 +27,10 @@ import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import {
-  LibraryRetrieveSourcePathExecutor
-} from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
+import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -74,7 +72,7 @@ describe('Force Source Retrieve Component(s)', () => {
         defaultPackageDir
       );
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
-        path.join(getRootWorkspacePath(), defaultPackageDir)
+        path.join(workspaceUtils.getRootWorkspacePath(), defaultPackageDir)
       ]);
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         defaultPackageDir
@@ -117,7 +115,7 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(retrieveStub.calledOnce).to.equal(true);
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
-        output: path.join(getRootWorkspacePath(), 'test-app'),
+        output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
         merge: true
       });
 

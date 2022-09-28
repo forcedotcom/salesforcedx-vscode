@@ -95,7 +95,7 @@ export class CommonActions {
   public type(text: string): Promise<any> {
     const spectron = this.spectron;
 
-    return new Promise(res => {
+    return new Promise<void>(res => {
       const textSplit = text.split(' ');
 
       async function type(i: number) {

@@ -6,18 +6,16 @@
  */
 
 import {
+  Command,
+  CommandBuilder,
   EmptyParametersGatherer,
   fileExtensionsMatch,
+  fileUtils,
+  notificationService,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  Command,
-  CommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { flushFilePath } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { testOutlineProvider } from '../views/testOutlineProvider';
@@ -89,7 +87,7 @@ async function getApexTestClassName(
   // a string (and guards against empty strings) using the Non-null assertion operator
   // (https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-0.html#non-null-assertion-operator)
   // fixes the issue.
-  testClassName = flushFilePath(testClassName!);
+  testClassName = fileUtils.flushFilePath(testClassName || '');
 
   return testClassName;
 }
