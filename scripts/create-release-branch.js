@@ -71,24 +71,15 @@ if (remoteReleaseBranchExists) {
 // Create the new release branch and switch to it
 shell.exec(`git checkout -b ${releaseBranchName}`);
 
-// Set up lerna and dependencies 
-shell.exec(`npm install`);
-shell.exec(`npm --version`);
-logger.info(`NOT INSTALLED Lerna`);
-
 // git clean but keeping node_modules around
 shell.exec('git clean -xfd -e node_modules');
 
 // lerna version
 // increment the version number in all packages without publishing to npmjs
 // only run on branch named develop and do not create git tags
-logger.info(`Before version bump`);
 shell.exec(
   `lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`
 );
-logger.info(`After version bump`);
-shell.exec(`npm ci`);
-logger.info(`After running ci`);
 
 // Using --no-git-tag-version prevents creating git tags but also prevents commiting
 // all the version bump changes so we'll now need to commit those using git add & commit.
@@ -110,23 +101,23 @@ shell.exec(`git commit -m "chore: update to version ${nextVersion}"`);
 
 // Merge release branch to develop as soon as it is cut.
 // In this way, we can resolve conflicts between main branch and develop branch when merge main back to develop after the release.
-// beta versions should not be merged directly to develop, so we don't merge back yet
+// beta versions should not be merged directly to develop, so we don't merge back or add to the changelog
 if (!isBetaRelease()) {
   shell.exec(`git checkout develop`)
   shell.exec(`git merge ${releaseBranchName}`)
   shell.exec(`git push -u origin develop`)
   shell.exec(`git checkout ${releaseBranchName}`)
+
+  // Generate changelog
+  const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch(releaseBranchName);
+  const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, previousBranchName));
+  const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
+  const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
+  changeLogGeneratorUtils.writeChangeLog(changeLog);
+
+  const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranchName}"`;
+  shell.exec(commitCommand);
 }
-
-// Generate changelog
-const previousBranchName = changeLogGeneratorUtils.getPreviousReleaseBranch(releaseBranchName);
-const parsedCommits = changeLogGeneratorUtils.parseCommits(changeLogGeneratorUtils.getCommits(releaseBranchName, previousBranchName));
-const groupedMessages = changeLogGeneratorUtils.getMessagesGroupedByPackage(parsedCommits, '');
-const changeLog = changeLogGeneratorUtils.getChangeLogText(releaseBranchName, groupedMessages);
-changeLogGeneratorUtils.writeChangeLog(changeLog);
-
-const commitCommand = `git commit -a -m "chore: generated CHANGELOG for ${releaseBranchName}"`;
-shell.exec(commitCommand);
 
 // Push new release branch to remote
 shell.exec(`git push -u origin ${releaseBranchName}`);
