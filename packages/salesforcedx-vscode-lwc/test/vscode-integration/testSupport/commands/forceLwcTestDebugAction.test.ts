@@ -36,6 +36,7 @@ import {
   unmockTestResultWatcher
 } from '../mocks';
 import { InputBuffer } from 'uuid/interfaces';
+import { Global } from '@salesforce/core';
 
 describe('Force LWC Test Debug - Code Action', () => {
   let uuidStub: SinonStub<

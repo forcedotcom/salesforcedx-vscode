@@ -22,6 +22,7 @@ import {
   TestRunType
 } from '../../../../src/testSupport/testRunner';
 import { InputBuffer } from 'uuid/interfaces';
+import { Global } from '@salesforce/core';
 
 describe('LWC Test Runner', () => {
   describe('Jest Execution Info Unit Tests', () => {
