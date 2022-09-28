@@ -84,6 +84,7 @@ export function getJavascriptMode(
       scriptFileVersion++;
     }
   }
+
   const host: LanguageServiceHost = {
     getCompilationSettings: () => compilerOptions,
     getScriptFileNames: () => [FILE_NAME],
@@ -110,7 +111,13 @@ export function getJavascriptMode(
       };
     },
     getCurrentDirectory: () => '',
-    getDefaultLibFileName: options => getDefaultLibFilePath(options)
+    getDefaultLibFileName: options => getDefaultLibFilePath(options),
+    readFile: (path: string, encoding?: string): string => {
+      return sys.readFile(path, encoding);
+    },
+    fileExists: (path: string): boolean => {
+      return sys.fileExists(path);
+    }
   };
   const jsLanguageService = createLanguageService(host);
 
@@ -182,6 +189,7 @@ export function getJavascriptMode(
         FILE_NAME,
         item.data.offset,
         item.label,
+        undefined,
         undefined,
         undefined,
         undefined

@@ -5,8 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
+import {
+  ConfigAggregator,
+  ConfigFile,
+  ConfigValue,
+  OrgConfigProperties,
+  StateAggregator
+} from '@salesforce/core';
 import * as path from 'path';
+import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../telemetry/telemetry';
 import { getRootWorkspacePath } from '../workspaces';
 
@@ -78,5 +85,26 @@ export class ConfigUtil {
       }
     }
     return undefined;
+  }
+
+  /**
+   * Get the username of the currently auth'd user for the project.
+   *
+   * @returns The username for the configured Org if it exists.
+   */
+  public static async getUsername(): Promise<string | undefined> {
+    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    const defaultUsernameOrAlias = configAggregator.getPropertyValue(
+      OrgConfigProperties.TARGET_ORG
+    );
+    if (!defaultUsernameOrAlias) {
+      return;
+    }
+
+    const info = await StateAggregator.getInstance();
+    const username = defaultUsernameOrAlias
+      ? info.aliases.getUsername(String(defaultUsernameOrAlias))
+      : undefined;
+    return username ? String(username) : undefined;
   }
 }

@@ -13,7 +13,7 @@ import { nls } from '../messages';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 
-export interface OrgInfo {
+export interface OrgUserInfo {
   username?: string;
   alias?: string;
 }
@@ -26,15 +26,15 @@ export class WorkspaceContextUtil {
 
   protected cliConfigWatcher: vscode.FileSystemWatcher;
   protected sessionConnections: Map<string, Connection>;
-  protected onOrgChangeEmitter: vscode.EventEmitter<OrgInfo>;
+  protected onOrgChangeEmitter: vscode.EventEmitter<OrgUserInfo>;
   protected _username?: string;
   protected _alias?: string;
 
-  public readonly onOrgChange: vscode.Event<OrgInfo>;
+  public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
     this.sessionConnections = new Map<string, Connection>();
-    this.onOrgChangeEmitter = new vscode.EventEmitter<OrgInfo>();
+    this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
@@ -49,6 +49,10 @@ export class WorkspaceContextUtil {
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
+  }
+
+  public static getLogDirPath(): string {
+    return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
   }
 
   public getAuthUtil(): AuthUtil {
@@ -114,8 +118,4 @@ export class WorkspaceContextUtil {
   get alias(): string | undefined {
     return this._alias;
   }
-}
-
-export function getLogDirPath(): string {
-  return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
 }
