@@ -194,7 +194,7 @@ describe('Force LWC Test Debug - Code Action', () => {
           '--outputFile',
           path.join(
             expectedCwd,
-            '.sfdx',
+            Global.STATE_FOLDER,
             'tools',
             'testresults',
             'lwc',
@@ -244,7 +244,7 @@ describe('Force LWC Test Debug - Code Action', () => {
           '--outputFile',
           path.join(
             expectedCwd,
-            '.sfdx',
+            Global.STATE_FOLDER,
             'tools',
             'testresults',
             'lwc',

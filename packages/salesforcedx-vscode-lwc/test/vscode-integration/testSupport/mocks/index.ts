@@ -23,6 +23,7 @@ import {
   mockPreviewJavaScriptDebugger,
   unmockPreviewJavaScriptDebugger
 } from './vscodeConfiguration';
+import { Global } from '@salesforce/core';
 
 export { mockPreviewJavaScriptDebugger, unmockPreviewJavaScriptDebugger };
 
@@ -127,7 +128,7 @@ export function unmockActiveTextEditorUri() {
 export function mockTestResultWatcher() {
   getTempFolderStub = stub(pathUtils, 'getTestResultsFolder');
   getTempFolderStub.callsFake((vscodePath: string, testType: string) => {
-    return path.join(vscodePath, '.sfdx', 'tools', 'testresults', testType);
+    return path.join(vscodePath, Global.STATE_FOLDER, 'tools', 'testresults', testType);
   });
   watchTestResultsStub = stub(testResultsWatcher, 'watchTestResults');
   watchTestResultsStub.callsFake(() => {});

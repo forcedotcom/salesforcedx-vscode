@@ -126,7 +126,7 @@ describe('Force LWC Test Run - Code Action', () => {
             '--outputFile',
             path.join(
               expectedCwd,
-              '.sfdx',
+              Global.STATE_FOLDER,
               'tools',
               'testresults',
               'lwc',
