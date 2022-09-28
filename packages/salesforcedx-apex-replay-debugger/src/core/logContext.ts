@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceOrgDisplay } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
 import {
+  ForceOrgDisplay,
   RequestService,
   RestHttpMethodEnum
-} from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
+} from '@salesforce/salesforcedx-utils';
 import * as path from 'path';
 import { StackFrame } from 'vscode-debugadapter';
 import {
@@ -295,9 +295,9 @@ export class LogContext {
             }
           );
         if (returnString) {
-          heapDump.setOverlaySuccessResult(JSON.parse(
-            returnString
-          ) as ApexExecutionOverlayResultCommandSuccess);
+          heapDump.setOverlaySuccessResult(
+            JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess
+          );
         } else if (errorString) {
           try {
             success = false;

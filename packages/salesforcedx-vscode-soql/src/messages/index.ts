@@ -11,7 +11,7 @@ import {
   DEFAULT_LOCALE,
   Localization,
   Message
-} from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
+} from '@salesforce/salesforcedx-utils-vscode';
 
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
