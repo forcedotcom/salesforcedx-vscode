@@ -19,7 +19,7 @@
     "tree-kill": "^1.1.0"
   },
   "devDependencies": {
-    "@salesforce/ts-sinon": "1.3.21",
+    "@salesforce/ts-sinon": "1.4.0",
     "@types/chai": "4.3.3",
     "@types/cross-spawn": "6.0.0",
     "@types/jest": "28.1.7",
