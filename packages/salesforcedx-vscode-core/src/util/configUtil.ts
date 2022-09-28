@@ -12,7 +12,7 @@ import {
   SfConfigProperties,
   StateAggregator
 } from '@salesforce/core';
-import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
+import { ConfigAggregatorProvider } from '@salesforce/salesforcedx-utils-vscode';
 
 export enum ConfigSource {
   Local,
