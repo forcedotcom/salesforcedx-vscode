@@ -19,8 +19,8 @@ export function disableCLITelemetry() {
 
 export async function isCLITelemetryAllowed(): Promise<boolean> {
   try {
-    const disabledConfig = await ConfigUtil.isTelemetryDisabled();
-    return !disabledConfig;
+    const isTelemetryDisabled = await ConfigUtil.isTelemetryDisabled();
+    return !isTelemetryDisabled;
   } catch (e) {
     console.log('Error checking cli settings: ' + e);
   }

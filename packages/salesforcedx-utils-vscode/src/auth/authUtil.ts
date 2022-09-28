@@ -8,7 +8,6 @@
 import { StateAggregator } from '@salesforce/core';
 import { ConfigUtil } from '..';
 import { TelemetryService } from '../telemetry/telemetry';
-import { DEFAULT_USERNAME_KEY } from '../types';
 
 export class AuthUtil {
   private static instance?: AuthUtil;
