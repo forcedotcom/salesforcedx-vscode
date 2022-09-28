@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "node": "^16.13.0",
-    "npm": "^6"
+    "npm": "^6",
+    "ts-node": "10.9.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.0.3",
+    "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.0.3",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.8.2",
     "@octokit/core": "4.0.5",
