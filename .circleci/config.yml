@@ -27,7 +27,7 @@ parameters:
     type: string
     # node > 16.13 doesn't exist on legacy CircleCI image https://hub.docker.com/r/circleci/node/tags
     # Need to migrate from legacy CircleCI image (W-11027467)
-    default: '16.13.0'
+    default: '16.15.1'
   # Constants
   cache-version:
     type: string

@@ -1,6 +1,6 @@
 name: Publish Beta Release to Github Only
 
-on: 
+on:
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v1
         with:
-          node-version: '16.13.x'
+          node-version: '16.15.x'
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.ref }}
@@ -29,14 +29,14 @@ jobs:
         with:
           name: VS Code Extensions
           path: ./extensions/
-  
+
   get_release_variables:
     # store the RELEASE_VERSION from the parent package as an output that we can reference elsewhere
     name: 'Get Release Environment Variables'
     runs-on: ubuntu-latest
     outputs:
       RELEASE_VERSION: ${{ steps.getVersion.outputs.version }}
-    steps: 
+    steps:
       - uses: actions/checkout@v3
       - id: getVersion
         run: echo "::set-output name=version::"$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")""
