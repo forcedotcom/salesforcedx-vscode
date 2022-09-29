@@ -14,7 +14,7 @@ import * as which from 'which';
 import { nls } from '../../../../src/messages';
 import { telemetryService } from '../../../../src/telemetry';
 import {
-  getLwcTestRunnerExecutable,
+  workspace,
   workspaceService
 } from '../../../../src/testSupport/workspace';
 
@@ -53,7 +53,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
 
     it('Should return LWC Test Runner Path when LWC Test Runner is installed and not display error message', () => {
       existsSyncStub.returns(true);
-      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(
+      const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
         sfdxProjectPath
       );
       expect(lwcTestRunnerExecutable).to.equal(
@@ -65,7 +65,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
 
     it('Should display error message when LWC Jest Test Runner is not installed', () => {
       existsSyncStub.returns(false);
-      getLwcTestRunnerExecutable(sfdxProjectPath);
+      workspace.getLwcTestRunnerExecutable(sfdxProjectPath);
       assert.calledOnce(notificationStub);
       // @ts-ignore
       assert.calledWith(
@@ -96,7 +96,9 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
 
     it('Should return LWC Test Runner Path when LWC Test Runner is installed and not display error message', () => {
       existsSyncStub.returns(true);
-      const lwcTestRunnerExecutable = getLwcTestRunnerExecutable(projectPath);
+      const lwcTestRunnerExecutable = workspace.getLwcTestRunnerExecutable(
+        projectPath
+      );
       expect(lwcTestRunnerExecutable).to.equal(mockLwcTestRunnerPath);
       assert.notCalled(notificationStub);
       assert.notCalled(telemetryStub);
@@ -104,7 +106,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
 
     it('Should display error message when LWC Jest Test Runner is not installed', () => {
       existsSyncStub.returns(false);
-      getLwcTestRunnerExecutable(projectPath);
+      workspace.getLwcTestRunnerExecutable(projectPath);
       assert.calledOnce(notificationStub);
       // @ts-ignore
       assert.calledWith(
@@ -124,7 +126,7 @@ describe('getLwcTestRunnerExecutable Unit Tests', () => {
     const projectPath = path.join(root, 'project', 'mockProject');
     it('Should send exception in unsupported workspace', () => {
       getCurrentWorkspaceTypeStub.returns(lspCommon.WorkspaceType.UNKNOWN);
-      getLwcTestRunnerExecutable(projectPath);
+      workspace.getLwcTestRunnerExecutable(projectPath);
       assert.calledOnce(telemetryStub);
       assert.calledWith(
         telemetryStub,

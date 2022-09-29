@@ -14,16 +14,16 @@ import {
   TestService
 } from '@salesforce/apex-node';
 import { SfProject } from '@salesforce/core';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  ContinueResponse,
   EmptyParametersGatherer,
+  getRootWorkspacePath,
+  getTestResultsFolder,
   LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   SourceComponent

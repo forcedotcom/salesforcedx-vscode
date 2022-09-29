@@ -8,11 +8,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as sinon from 'sinon';
-import {
-  extractJsonObject,
-  flushFilePath,
-  flushFilePaths
-} from '../../../src/helpers';
+import { extractJsonObject, fileUtils } from '../../../src/helpers';
 
 describe('utils.test.ts', () => {
   let realpathSyncNativeStub: sinon.SinonStub;
@@ -45,7 +41,7 @@ describe('utils.test.ts', () => {
       const filePath = 'c:\\Users\\temp\\exampleFile.js';
       realpathSyncNativeStub.returns(filePath);
 
-      const result = flushFilePath(filePath);
+      const result = fileUtils.flushFilePath(filePath);
 
       expect(realpathSyncNativeStub.calledOnce).to.equal(true);
       expect(realpathSyncNativeStub.args[0][0]).to.equal(filePath);
@@ -57,7 +53,7 @@ describe('utils.test.ts', () => {
       const filePath = 'c:\\Users\\temp\\exampleFile.js';
       realpathSyncNativeStub.returns(filePath);
 
-      const result = flushFilePath(filePath);
+      const result = fileUtils.flushFilePath(filePath);
 
       expect(result).to.equal(filePath);
 
@@ -68,7 +64,7 @@ describe('utils.test.ts', () => {
       const filePath = 'c:\\Users\\temp\\exampleFile.js';
       realpathSyncNativeStub.returns('');
 
-      const result = flushFilePath(filePath);
+      const result = fileUtils.flushFilePath(filePath);
 
       expect(result).to.equal('');
 
@@ -83,7 +79,7 @@ describe('utils.test.ts', () => {
         .stub(process, 'platform')
         .value('win32');
 
-      const result = flushFilePath(filePath);
+      const result = fileUtils.flushFilePath(filePath);
 
       expect(result).to.equal(filePath);
 
@@ -97,7 +93,7 @@ describe('utils.test.ts', () => {
       const filePaths = ['file1.js', 'file2.js', 'file3.js'];
       realpathSyncNativeStub.returns(filePaths[0]);
 
-      const result = flushFilePaths(filePaths);
+      const result = fileUtils.flushFilePaths(filePaths);
 
       expect(result).to.equal(filePaths);
 
