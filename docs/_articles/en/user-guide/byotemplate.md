@@ -29,12 +29,21 @@ See GitHub documentation for instructions on how to clone repos.
 
 ## Set Default Template Location
 1. Open the `sfdx-config.json` config file in your `<project-folder>/.sfdx` folder
-2. Add the parameter `customOrgMetadataTemplates`, and set its value to either a local directory or your cloned GitHub repository that contains your default templates. The GitHub URL can either point to the root folder that contains your templates, or a path to a subfolder on a branch in the repo that contains your templates. For example:
+2. Add the parameter `customOrgMetadataTemplates` and set its value to the templates folder in your cloned repo. For example:
 ```
 {
-"customOrgMetadataTemplates": "https://github.com/mygithubacct/salesforcedx-templates"
+  "customOrgMetadataTemplates": "https://github.com/mygitrepo/salesforcedx-templates/tree/main/packages/templates/src/templates"
 }
 ```
+
+or the location of a local copy:
+
+```
+{
+  ""customOrgMetadataTemplates": "/Users/mydrive/github/devtools/salesforcedx-templates/packages/templates/src/templates"
+}
+```
+
 **Note:** You can also use the CLI to set this parameter. See [CLI Runtime Configuration Values](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_dev_cli_config_values.htm) for more information.
 
 ## Create a Apex Class with Custom Code

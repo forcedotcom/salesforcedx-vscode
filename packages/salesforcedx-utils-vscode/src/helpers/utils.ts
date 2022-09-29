@@ -8,11 +8,7 @@
 import * as fs from 'fs';
 
 export function isNullOrUndefined(object: any): object is null | undefined {
-  if (object === null || object === undefined) {
-    return true;
-  } else {
-    return false;
-  }
+  return object === null || object === undefined;
 }
 
 export function extractJsonObject(str: string): any {
@@ -62,3 +58,9 @@ export async function asyncFilter<T>(
 
   return arr.filter((_v, index) => results[index]);
 }
+
+export const fileUtils = {
+  flushFilePaths,
+  flushFilePath,
+  extractJsonObject
+};

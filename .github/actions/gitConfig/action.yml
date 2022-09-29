@@ -1,5 +1,11 @@
 name: gitConfig
 description: "Sets git username/email and push behavior"
+
+inputs:
+  email:
+    description: 'Email to set for config'
+    required: true
+
 runs:
   using: composite
   steps:
