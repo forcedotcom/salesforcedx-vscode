@@ -11,7 +11,7 @@ import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_SFDX_DEFAULTUSERNAME,
   ENV_SFDX_INSTANCE_URL
-} from '../types';
+} from '../constants';
 import { BaseCommand } from './baseCommand';
 
 // Right now have POST and DELETE (out of Query, GET, POST, PATCH, DELETE),
@@ -28,7 +28,7 @@ export class RequestService {
   private _instanceUrl!: string;
   private _accessToken!: string;
   private _proxyUrl!: string;
-  private _proxyStrictSSL: boolean = false;
+  private _proxyStrictSSL = false;
   private _proxyAuthorization!: string;
   private _connectionTimeoutMs: number = DEFAULT_CONNECTION_TIMEOUT_MS;
 
@@ -107,10 +107,10 @@ export class RequestService {
       configure(this._proxyUrl, this._proxyStrictSSL);
     }
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
-    const requestUrl =
-      command.getQueryString() == null
-        ? urlElements.join('/')
-        : urlElements.join('/').concat('?', command.getQueryString()!);
+    const queryString = command.getQueryString();
+    const requestUrl = !queryString
+      ? urlElements.join('/')
+      : urlElements.join('/').concat('?', queryString);
     const requestBody = command.getRequest();
     const options: XHROptions = {
       type: restHttpMethodEnum,

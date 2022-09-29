@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { fail } from 'assert';
 import { expect } from 'chai';
 import { EOL } from 'os';
 import {
@@ -95,9 +96,13 @@ describe('force:org:open container parser', () => {
       new OrgOpenContainerResultParser(
         'sfdx force:org:open --urlonly --json --loglevel fatal ended with exit code 0'
       );
-    } catch (error) {
-      expect(error.name).to.equal('OrgOpenContainerParserFail');
-      expect(error.message).to.equal('Error parsing org open result');
+    } catch (err) {
+      if (err instanceof Error) {
+        expect(err.name).to.equal('OrgOpenContainerParserFail');
+        expect(err.message).to.equal('Error parsing org open result');
+      } else {
+        fail('Expected an error');
+      }
     }
   });
 });
