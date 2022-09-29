@@ -17,9 +17,6 @@ on:
           - major
           - patch
           - beta
-  push:
-    branches:
-      - develop
 
 jobs:
   
