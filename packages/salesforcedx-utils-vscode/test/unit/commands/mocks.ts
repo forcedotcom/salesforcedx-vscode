@@ -7,7 +7,7 @@
 
 import { EOL } from 'os';
 import { stub } from 'sinon';
-import { ViewColumn, OutputChannel } from 'vscode';
+import { OutputChannel, ViewColumn } from 'vscode';
 
 export class MockChannel implements OutputChannel {
   public readonly name = 'MockChannel';
