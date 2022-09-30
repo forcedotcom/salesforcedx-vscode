@@ -22,7 +22,11 @@ import { MockChannel } from './mocks';
 const commandExecutionName = 'Test Command';
 class TestExecutor extends LibraryCommandletExecutor<{ success: boolean }> {
   constructor(outputChannel: MockChannel, private error?: Error) {
-    super(commandExecutionName, 'test_command', outputChannel as OutputChannel);
+    super(
+      commandExecutionName,
+      'test_command',
+      (outputChannel as any) as OutputChannel
+    );
   }
 
   public async run(response: ContinueResponse<{ success: boolean }>) {

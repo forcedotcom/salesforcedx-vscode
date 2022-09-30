@@ -27,7 +27,7 @@ describe('Channel Service', () => {
   beforeEach(() => {
     mChannel = new MockChannel();
     mChannel2 = new MockChannel();
-    channelService = new ChannelService(mChannel as OutputChannel);
+    channelService = new ChannelService((mChannel as any) as OutputChannel);
     sb = createSandbox();
   });
 

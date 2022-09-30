@@ -7,8 +7,9 @@
 
 import { EOL } from 'os';
 import { stub } from 'sinon';
+import { ViewColumn, OutputChannel } from 'vscode';
 
-export class MockChannel {
+export class MockChannel implements OutputChannel {
   public readonly name = 'MockChannel';
   public value = '';
 
@@ -21,9 +22,17 @@ export class MockChannel {
     this.value += EOL;
   }
 
+  public replace(value: string): void {
+    this.value = value;
+  }
+
   public clear(): void {}
-  public show(preserveFocus?: boolean | undefined): void;
-  public show(column?: any, preserveFocus?: any) {}
+
+  // @ts-ignore
+  public show(preserveFocus?: boolean): void {}
+  // @ts-ignore
+  public show(column?: ViewColumn, preserveFocus?: boolean): void {}
+
   public hide(): void {}
   public dispose(): void {}
 }

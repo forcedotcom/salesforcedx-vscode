@@ -49,7 +49,7 @@ describe('Notifications', () => {
       update: () => {}
     });
     mChannel = new MockChannel();
-    channelService = new ChannelService(mChannel as OutputChannel);
+    channelService = new ChannelService((mChannel as any) as OutputChannel);
   });
 
   afterEach(() => {
