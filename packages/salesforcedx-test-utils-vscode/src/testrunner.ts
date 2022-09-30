@@ -36,8 +36,6 @@ function configure(mochaOpts: any, xmlOutputDirectory: string): void {
     mochaOpts.reporter = 'mocha-multi-reporters';
   }
   if (!mochaOpts.reporterOptions) {
-    let xmlPath = '';
-
     const junitOutputFileLocation = paths.join(
       xmlOutputDirectory,
       'junit-custom-vscodeIntegrationTests.xml'
