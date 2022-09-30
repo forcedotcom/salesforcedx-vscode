@@ -8,6 +8,7 @@
 import { ConfigAggregator, ConfigFile, ConfigValue } from '@salesforce/core';
 import * as path from 'path';
 import { isNullOrUndefined, isUndefined } from 'util';
+import { ConfigAggregatorProvider } from '../providers';
 import { getRootWorkspacePath } from '../workspaces';
 import { TelemetryService } from './telemetry';
 
@@ -63,7 +64,9 @@ export class ConfigUtil {
     }
     if (isUndefined(source) || source === ConfigSource.Global) {
       try {
-        const aggregator = await ConfigAggregator.create();
+        // A config aggregator is created here to prevent the core library
+        // from cacheing a global config aggregator for this root project path
+        const aggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
         const globalValue = aggregator.getPropertyValue(key);
         if (!isNullOrUndefined(globalValue)) {
           return globalValue;

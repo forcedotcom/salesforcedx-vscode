@@ -8,7 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { AuthUtil } from '..';
+import { AuthUtil, ConfigAggregatorProvider } from '..';
 import { nls } from '../messages';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
@@ -82,6 +82,7 @@ export class WorkspaceContextUtil {
 
     let connection = this.sessionConnections.get(this._username);
     if (!connection) {
+      const aggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
       connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: this._username })
       });

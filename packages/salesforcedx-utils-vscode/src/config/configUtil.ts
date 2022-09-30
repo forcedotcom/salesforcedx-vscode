@@ -69,7 +69,7 @@ export class ConfigUtil {
     }
     if (source === undefined || source === ConfigSource.Global) {
       try {
-        const aggregator = await ConfigAggregator.create();
+        const aggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
         const globalValue = aggregator.getPropertyValue(key);
         if (!(globalValue === null || globalValue === undefined)) {
           return globalValue;
