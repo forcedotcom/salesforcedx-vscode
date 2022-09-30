@@ -82,6 +82,8 @@ export class WorkspaceContextUtil {
 
     let connection = this.sessionConnections.get(this._username);
     if (!connection) {
+      // A config aggregator is created here to prevent the core library
+      // from cacheing a global config aggregator for this root project path
       const aggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
       connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: this._username })
