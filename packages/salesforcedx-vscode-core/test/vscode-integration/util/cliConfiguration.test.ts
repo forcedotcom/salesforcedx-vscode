@@ -5,14 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { GlobalCliEnvironment } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  GlobalCliEnvironment
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
 import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
 import {
-  ConfigUtil,
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,

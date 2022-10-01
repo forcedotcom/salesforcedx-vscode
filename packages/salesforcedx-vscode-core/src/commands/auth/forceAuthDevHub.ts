@@ -21,21 +21,26 @@ import {
 import { workspaceUtils } from '../../util';
 
 import { ConfigFile } from '@salesforce/core';
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigSource,
+  ContinueResponse,
+  isNullOrUndefined
+} from '@salesforce/salesforcedx-utils-vscode';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
-import { CLI } from '../../constants';
 import {
+  CLI,
   DEFAULT_DEV_HUB_USERNAME_KEY,
   SFDX_CONFIG_FILE
 } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
 import { isSFDXContainerMode } from '../../util';
-import { ConfigSource, OrgAuthInfo } from '../../util/index';
-import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
-import { ForceAuthWebLoginContainerExecutor } from './forceAuthWebLogin';
+import { OrgAuthInfo } from '../../util/index';
+import {
+  ForceAuthDemoModeExecutor,
+  ForceAuthWebLoginContainerExecutor
+} from './forceAuthWebLogin';
 
 export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainerExecutor {
   public build(data: {}): Command {

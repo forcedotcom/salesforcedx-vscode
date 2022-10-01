@@ -5,15 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
-import { OrgUserInfo } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
-  ContinueResponse
+  ConfigUtil,
+  ContinueResponse,
+  OrgUserInfo
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { ConfigUtil, OrgAuthInfo } from '../util';
+import { OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
