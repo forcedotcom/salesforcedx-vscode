@@ -18,7 +18,7 @@
     "vscode-uri": "1.0.1"
   },
   "devDependencies": {
-    "@types/mocha": "^5",
+    "@types/mocha": "^10",
     "@types/node": "12.0.12",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
