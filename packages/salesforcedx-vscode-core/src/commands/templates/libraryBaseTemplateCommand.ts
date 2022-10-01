@@ -17,16 +17,11 @@ import {
   SourcePathStrategy
 } from '../util';
 
-import { Properties } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, Properties } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../channels';
 import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
-import {
-  ConfigUtil,
-  MetadataDictionary,
-  MetadataInfo,
-  workspaceUtils
-} from '../../util';
+import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
 
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 
