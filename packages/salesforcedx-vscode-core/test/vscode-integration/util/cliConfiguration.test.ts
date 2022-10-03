@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, ConfigFile, OrgConfigProperties } from '@salesforce/core';
+import { Config, OrgConfigProperties } from '@salesforce/core';
 import {
   getRootWorkspacePath,
   GlobalCliEnvironment
@@ -147,9 +147,9 @@ describe('SFDX CLI Configuration utility', () => {
       const origDir = process.cwd();
       const rootWorkspacePath = getRootWorkspacePath();
       process.chdir(rootWorkspacePath);
-      const config = await Config.create(Config.getDefaultOptions());
-      config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
-      await config.write();
+      const configFile = await Config.create(Config.getDefaultOptions());
+      configFile.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
+      await configFile.write();
       process.chdir(origDir); // Change back to the orig process.cwd
 
       // Act
