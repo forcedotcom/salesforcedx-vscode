@@ -11,12 +11,15 @@ import {
   getRootWorkspacePath,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
+import { doesNotReject, rejects } from 'assert';
 import { expect } from 'chai';
+import { resolve } from 'dns';
 import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
 import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
+import { workspaceContext } from '../../../src/context';
 import {
   disableCLITelemetry,
   isCLIInstalled,
@@ -156,6 +159,34 @@ describe('SFDX CLI Configuration utility', () => {
     });
 
     it.only('Should return the locally configured default username when it exists', async () => {
+      let res: (value: string) => void;
+      let rej: (reason?: any) => void;
+      const resultPromise = new Promise((resolve, rejects) => {
+        res = resolve;
+        rej = rejects;
+      });
+      workspaceContext.onOrgChange(async orgUserInfo => {
+        console.log('TEST LISTENER');
+
+        console.log('POST flush promises');
+        try {
+          // Act
+          const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+
+          // Assert
+          expect(localProjectDefaultUsernameOrAlias).to.equal(
+            dummyLocalDefaultUsername
+          );
+          expect(localProjectDefaultUsernameOrAlias).to.equal(
+            orgUserInfo.username
+          );
+
+          res('success');
+        } catch (e) {
+          rej(e);
+        }
+      });
+
       // Arrange: create a local config file and set the local project default username
       const origDir = process.cwd();
       const rootWorkspacePath = getRootWorkspacePath();
@@ -167,31 +198,7 @@ describe('SFDX CLI Configuration utility', () => {
       console.log('config file written in test');
       process.chdir(origDir); // Change back to the orig process.cwd
 
-      // Act
-      const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
-
-      // Assert
-      expect(localProjectDefaultUsernameOrAlias).to.equal(
-        dummyLocalDefaultUsername
-      );
-
-      // setTimeout(() => {
-      //   const localProjectDefaultUsernameOrAlias = ConfigUtil.getDefaultUsernameOrAlias().then(
-      //     l => {
-      //       // Assert
-      //       expect(l).to.equal(dummyLocalDefaultUsername);
-      //       done();
-      //     }
-      //   );
-      // }, 5000);
-
-      // after configFile.write(), the listener should have been invoked and the
-      // configAgg should have been updated
-
-      // Act
-      // await Promise.resolve();
-      // await Promise.resolve();
-      // await Promise.resolve();
+      return resultPromise;
     });
   });
 });

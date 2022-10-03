@@ -46,7 +46,6 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-    await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
   }
 
   get username(): string | undefined {
