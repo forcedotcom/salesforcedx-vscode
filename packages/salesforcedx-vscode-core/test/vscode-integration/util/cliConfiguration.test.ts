@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, OrgConfigProperties } from '@salesforce/core';
+import { Config, ConfigFile, OrgConfigProperties } from '@salesforce/core';
 import {
   getRootWorkspacePath,
   GlobalCliEnvironment
@@ -132,6 +132,15 @@ describe('SFDX CLI Configuration utility', () => {
 
   describe('ConfigAggregator integration tests', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
+
+    afterEach(async () => {
+      const origDir = process.cwd();
+      const rootWorkspacePath = getRootWorkspacePath();
+      process.chdir(rootWorkspacePath);
+      const configFile = await Config.create(Config.getDefaultOptions());
+      configFile.unlinkSync(); // delete the file that was created for the test
+      process.chdir(origDir); // Change back to the orig process.cwd
+    });
 
     it.only('Should return the locally configured default username when it exists', async () => {
       // Arrange: create a local config file and set the local project default username
