@@ -40,15 +40,15 @@ describe('RequestService unit tests.', () => {
   it('should be able to create an instance.', () => {
     const requestService = new RequestService();
     requestService.connectionTimeoutMs = 1000;
-    expect(requestService.connectionTimeoutMs).toBe(1000);
+    expect(requestService.connectionTimeoutMs).toEqual(1000);
     requestService.proxyStrictSSL = true;
-    expect(requestService.proxyStrictSSL).toBe(true);
+    expect(requestService.proxyStrictSSL).toEqual(true);
     expect(requestService).not.toBeUndefined();
   });
 
   it('Should have default timeout.', () => {
     const requestService = new RequestService();
-    expect(requestService.connectionTimeoutMs).toBe(
+    expect(requestService.connectionTimeoutMs).toEqual(
       DEFAULT_CONNECTION_TIMEOUT_MS
     );
   });
@@ -106,7 +106,7 @@ describe('RequestService unit tests.', () => {
       requestServiceInst.proxyStrictSSL = true;
       sendRequestMock.mockResolvedValue(fakeResponse);
       const result = await requestServiceInst.execute(testCommand);
-      expect(result).toBe(fakeResponse.responseText);
+      expect(result).toEqual(fakeResponse.responseText);
       expect(sendRequestMock).toHaveBeenCalled();
       expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
       expect(mockedRequestLight.configure).toHaveBeenCalledWith(
@@ -121,7 +121,7 @@ describe('RequestService unit tests.', () => {
       sendRequestMock.mockResolvedValue(fakeResponse);
 
       const result = await requestServiceInst.execute(testCommand);
-      expect(result).toBe(fakeResponse.responseText);
+      expect(result).toEqual(fakeResponse.responseText);
       expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
       expect(mockedRequestLight.configure).not.toHaveBeenCalled();
     });
@@ -136,7 +136,7 @@ describe('RequestService unit tests.', () => {
         queryCommand,
         RestHttpMethodEnum.Get
       );
-      expect(result).toBe(fakeResponse.responseText);
+      expect(result).toEqual(fakeResponse.responseText);
       expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
     });
 
@@ -162,7 +162,7 @@ describe('RequestService unit tests.', () => {
 
       const requestService = new RequestService();
       const response = await requestService.sendRequest(fakeOptions);
-      expect(response).toBe(fakeXhrResponse);
+      expect(response).toEqual(fakeXhrResponse);
       expect(mockedRequestLight.xhr).toHaveBeenCalledWith(fakeOptions);
     });
   });

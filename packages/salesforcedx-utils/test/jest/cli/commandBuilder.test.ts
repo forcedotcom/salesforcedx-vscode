@@ -21,14 +21,14 @@ describe('CommandBuild unit tests', () => {
     expect(commandBuilderInst).toBeInstanceOf(CommandBuilder);
     const testCommand = commandBuilderInst.build();
     expect(testCommand).toBeInstanceOf(Command);
-    expect(testCommand.command).toBe(testCommandStr);
+    expect(testCommand.command).toEqual(testCommandStr);
   });
 
   it('Should be able to set description.', () => {
     const testCommand = commandBuilderInst
       .withDescription(testDescription)
       .build();
-    expect(testCommand.description).toBe(testDescription);
+    expect(testCommand.description).toEqual(testDescription);
   });
 
   it('Should be able to set a flag.', () => {
