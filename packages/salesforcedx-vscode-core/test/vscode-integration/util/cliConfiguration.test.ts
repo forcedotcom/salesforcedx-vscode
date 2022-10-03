@@ -136,26 +136,25 @@ describe('SFDX CLI Configuration utility', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
 
     afterEach(async () => {
-      // Switch to the root workspace path and remove
-      // the config files that were created for the test
-      const origDir = process.cwd();
-      const rootWorkspacePath = getRootWorkspacePath();
-      process.chdir(rootWorkspacePath);
-      // const configFile = await Config.create(Config.getDefaultOptions());
-      const configFile = await ConfigFile.create(
-        Config.getDefaultOptions(false, 'sfdx-config.json')
-      );
-      configFile.unlinkSync(); // delete the file that was created for the test
+      // Remove the config files that were created for the test
+      try {
+        const configFile = await ConfigFile.create(
+          Config.getDefaultOptions(false, 'sfdx-config.json')
+        );
+        configFile.unlinkSync(); // delete the sfdx config file that was created for the test
 
-      const config = await Config.create(Config.getDefaultOptions());
-      config.unlinkSync(); // delete the file that was created for the test
+        const config = await Config.create(Config.getDefaultOptions());
+        config.unlinkSync(); // delete the sf config file that was created for the test
 
-      fs.rmdir('.sf', err => {
-        if (err) {
-          console.log(err);
-        }
-      });
-      process.chdir(origDir); // Change back to the orig process.cwd
+        // delete the sf directory that was created for the test
+        fs.rmdir('.sf', err => {
+          if (err) {
+            console.log(err);
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
     });
 
     /*
@@ -200,15 +199,10 @@ describe('SFDX CLI Configuration utility', () => {
       });
 
       // Arrange
-      // Switch to the current root workspace path and create a local config file
-      // and set the local project default username
-      const origDir = process.cwd();
-      const rootWorkspacePath = getRootWorkspacePath();
-      process.chdir(rootWorkspacePath);
+      // Create a local config file and set the local project default username
       const config = await Config.create(Config.getDefaultOptions());
       config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
       await config.write();
-      process.chdir(origDir); // Change back to the orig process.cwd
 
       return resultPromise;
     });
