@@ -6,8 +6,11 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { Table } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  ContinueResponse,
+  Table
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   ComponentStatus,
@@ -26,7 +29,6 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { Test } from 'mocha';
 import { basename, dirname, join, sep } from 'path';
 import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
@@ -43,7 +45,7 @@ import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { ConfigUtil, OrgAuthInfo, workspaceUtils } from '../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const sb = createSandbox();

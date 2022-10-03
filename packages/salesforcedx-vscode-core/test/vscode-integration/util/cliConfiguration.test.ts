@@ -7,6 +7,7 @@
 
 import { Config, OrgConfigProperties } from '@salesforce/core';
 import {
+  ConfigUtil,
   getRootWorkspacePath,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -16,7 +17,6 @@ import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
 import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
 import {
-  ConfigUtil,
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
@@ -134,15 +134,15 @@ describe('SFDX CLI Configuration utility', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
 
     afterEach(async () => {
-      const origDir = process.cwd();
-      const rootWorkspacePath = getRootWorkspacePath();
-      process.chdir(rootWorkspacePath);
-      const configFile = await Config.create(Config.getDefaultOptions());
-      configFile.unlinkSync(); // delete the file that was created for the test
-      process.chdir(origDir); // Change back to the orig process.cwd
+      // const origDir = process.cwd();
+      // const rootWorkspacePath = getRootWorkspacePath();
+      // process.chdir(rootWorkspacePath);
+      // const configFile = await Config.create(Config.getDefaultOptions());
+      // configFile.unlinkSync(); // delete the file that was created for the test
+      // process.chdir(origDir); // Change back to the orig process.cwd
     });
 
-    it.only('Should return the locally configured default username when it exists', async () => {
+    it('Should return the locally configured default username when it exists', async () => {
       // Arrange: create a local config file and set the local project default username
       const origDir = process.cwd();
       const rootWorkspacePath = getRootWorkspacePath();
