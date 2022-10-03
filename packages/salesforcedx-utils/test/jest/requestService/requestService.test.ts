@@ -17,7 +17,7 @@ jest.mock('request-light');
 // This ensures that typscript understands the mocked module
 const mockedRequestLight = jest.mocked(requestLight);
 
-const testCommandUrl = 'https://this.is.a.test';
+const testCommandUrl = 'this.is.a.test/location';
 const testRequestBody = 'this-is-a-test-request-body';
 class TestCommand extends BaseCommand {
   public getCommandUrl(): string {
@@ -108,7 +108,7 @@ describe('RequestService unit tests.', () => {
       const result = await requestServiceInst.execute(testCommand);
       expect(result).toBe(fakeResponse.responseText);
       expect(sendRequestMock).toHaveBeenCalled();
-      expect(sendRequestMock).toMatchSnapshot();
+      expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
       expect(mockedRequestLight.configure).toHaveBeenCalledWith(
         testProxyUrl,
         true
@@ -122,7 +122,7 @@ describe('RequestService unit tests.', () => {
 
       const result = await requestServiceInst.execute(testCommand);
       expect(result).toBe(fakeResponse.responseText);
-      expect(sendRequestMock).toMatchSnapshot();
+      expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
       expect(mockedRequestLight.configure).not.toHaveBeenCalled();
     });
 
@@ -137,7 +137,7 @@ describe('RequestService unit tests.', () => {
         RestHttpMethodEnum.Get
       );
       expect(result).toBe(fakeResponse.responseText);
-      expect(sendRequestMock).toMatchSnapshot();
+      expect(sendRequestMock.mock.calls[0]).toMatchSnapshot();
     });
 
     it('Should reject on error.', async () => {
