@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, OrgConfigProperties } from '@salesforce/core';
+import { Config, ConfigFile, OrgConfigProperties } from '@salesforce/core';
 import {
   ConfigUtil,
   getRootWorkspacePath,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
@@ -134,22 +135,36 @@ describe('SFDX CLI Configuration utility', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
 
     afterEach(async () => {
-      // const origDir = process.cwd();
-      // const rootWorkspacePath = getRootWorkspacePath();
-      // process.chdir(rootWorkspacePath);
+      const origDir = process.cwd();
+      const rootWorkspacePath = getRootWorkspacePath();
+      process.chdir(rootWorkspacePath);
       // const configFile = await Config.create(Config.getDefaultOptions());
-      // configFile.unlinkSync(); // delete the file that was created for the test
-      // process.chdir(origDir); // Change back to the orig process.cwd
+      const configFile = await ConfigFile.create(
+        Config.getDefaultOptions(false, 'sfdx-config.json')
+      );
+      configFile.unlinkSync(); // delete the file that was created for the test
+
+      const config = await Config.create(Config.getDefaultOptions());
+      config.unlinkSync(); // delete the file that was created for the test
+
+      fs.rmdir('.sf', err => {
+        if (err) {
+          console.log(err);
+        }
+      });
+      process.chdir(origDir); // Change back to the orig process.cwd
     });
 
-    it('Should return the locally configured default username when it exists', async () => {
+    it.only('Should return the locally configured default username when it exists', async () => {
       // Arrange: create a local config file and set the local project default username
       const origDir = process.cwd();
       const rootWorkspacePath = getRootWorkspacePath();
       process.chdir(rootWorkspacePath);
-      const configFile = await Config.create(Config.getDefaultOptions());
-      configFile.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
-      await configFile.write();
+      const config = await Config.create(Config.getDefaultOptions());
+      config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
+      // after this, the listener should be invoked
+      await config.write();
+      console.log('config file written in test');
       process.chdir(origDir); // Change back to the orig process.cwd
 
       // Act
@@ -159,6 +174,24 @@ describe('SFDX CLI Configuration utility', () => {
       expect(localProjectDefaultUsernameOrAlias).to.equal(
         dummyLocalDefaultUsername
       );
+
+      // setTimeout(() => {
+      //   const localProjectDefaultUsernameOrAlias = ConfigUtil.getDefaultUsernameOrAlias().then(
+      //     l => {
+      //       // Assert
+      //       expect(l).to.equal(dummyLocalDefaultUsername);
+      //       done();
+      //     }
+      //   );
+      // }, 5000);
+
+      // after configFile.write(), the listener should have been invoked and the
+      // configAgg should have been updated
+
+      // Act
+      // await Promise.resolve();
+      // await Promise.resolve();
+      // await Promise.resolve();
     });
   });
 });

@@ -53,6 +53,7 @@ export class ConfigUtil {
 
   public static async getDefaultUsernameOrAlias(): Promise<string | undefined> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+    // await configAggregator.reload();
     const defaultUsernameOrAlias = configAggregator.getPropertyValue(
       OrgConfigProperties.TARGET_ORG
     );

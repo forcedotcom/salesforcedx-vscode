@@ -92,6 +92,8 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
+    console.log('in handleCliConfigChange in utils pkg workspaceContextUtil');
+
     const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
       false
     );
