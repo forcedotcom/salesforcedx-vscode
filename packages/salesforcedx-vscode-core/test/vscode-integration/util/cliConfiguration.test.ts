@@ -134,44 +134,19 @@ describe('SFDX CLI Configuration utility', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
 
     it.only('Should return the locally configured default username when it exists', async () => {
-      // Arrange: create a local config file with a local default username
-      // const localSfdxDirPath = path.join(getRootWorkspacePath(), '.sfdx');
-      // process.chdir(localSfdxDirPath);
-
-      // class MyConfig extends ConfigFile {
-      //   public static getFileName(): string {
-      //     return 'sfdx-config.json';
-      //   }
-      // }
-
-      // localSfdxConfigFile = await MyConfig.create({
-      //   isGlobal: false
-      // });
-      // localSfdxConfigFile.set(
-      //   OrgConfigProperties.TARGET_ORG,
-      //   dummyLocalDefaultUsername
-      // );
-      // localSfdxConfigFile.writeSync(); // doesn't fire the file watcher logic to run
-      // process.chdir('/'); // Change back to the default process.cwd
-      // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-      const rpath = getRootWorkspacePath(); // Get current workspace path
-      process.chdir(rpath); // Set process directory
-
+      // Arrange: create a local config file and set the local project default username
+      const origDir = process.cwd();
+      const rootWorkspacePath = getRootWorkspacePath();
+      process.chdir(rootWorkspacePath);
       const config = await Config.create(Config.getDefaultOptions());
-
       config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
       await config.write();
-      process.chdir('/'); // Change back to the default process.cwd
-      // ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
+      process.chdir(origDir); // Change back to the orig process.cwd
 
       // Act
-      // const c = await ConfigAggregator.create();
-      // process.chdir(getRootWorkspacePath());
-      // const c2 = await ConfigAggregator.create();
       const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
 
       // Assert
-      // when the test initializes it creates a ConfigAggregator instance for the SFDX simple project, and put it in the config aggregator provider internal map. I have to get that provider and call reload in order to reset it before this test.
       expect(localProjectDefaultUsernameOrAlias).to.equal(
         dummyLocalDefaultUsername
       );
