@@ -5,14 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigFile, OrgConfigProperties } from '@salesforce/core';
+import { Config, OrgConfigProperties } from '@salesforce/core';
 import {
-  ConfigAggregatorProvider,
   getRootWorkspacePath,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import * as path from 'path';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
@@ -133,43 +131,50 @@ describe('SFDX CLI Configuration utility', () => {
   });
 
   describe('ConfigAggregator integration tests', () => {
-    let localSfdxConfigFile: ConfigFile;
     const dummyLocalDefaultUsername = 'test@local.com';
-
-    afterEach(() => {
-      // Clean up by removing the config file that was created in the setup for this test
-      localSfdxConfigFile.unlinkSync();
-    });
 
     it.only('Should return the locally configured default username when it exists', async () => {
       // Arrange: create a local config file with a local default username
-      const localSfdxDirPath = path.join(getRootWorkspacePath(), '.sfdx');
-      process.chdir(localSfdxDirPath);
+      // const localSfdxDirPath = path.join(getRootWorkspacePath(), '.sfdx');
+      // process.chdir(localSfdxDirPath);
 
-      class MyConfig extends ConfigFile {
-        public static getFileName(): string {
-          return 'sfdx-config.json';
-        }
-      }
+      // class MyConfig extends ConfigFile {
+      //   public static getFileName(): string {
+      //     return 'sfdx-config.json';
+      //   }
+      // }
 
-      localSfdxConfigFile = await MyConfig.create({
-        isGlobal: false
-      });
-      localSfdxConfigFile.set(
-        OrgConfigProperties.TARGET_ORG,
-        dummyLocalDefaultUsername
-      );
-      localSfdxConfigFile.writeSync(); // doesn't fire the file watcher logic to run
+      // localSfdxConfigFile = await MyConfig.create({
+      //   isGlobal: false
+      // });
+      // localSfdxConfigFile.set(
+      //   OrgConfigProperties.TARGET_ORG,
+      //   dummyLocalDefaultUsername
+      // );
+      // localSfdxConfigFile.writeSync(); // doesn't fire the file watcher logic to run
+      // process.chdir('/'); // Change back to the default process.cwd
+      // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
+      const rpath = getRootWorkspacePath(); // Get current workspace path
+      process.chdir(rpath); // Set process directory
+
+      const config = await Config.create(Config.getDefaultOptions());
+
+      config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
+      await config.write();
       process.chdir('/'); // Change back to the default process.cwd
+      // ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
 
       // Act
+      // const c = await ConfigAggregator.create();
+      // process.chdir(getRootWorkspacePath());
+      // const c2 = await ConfigAggregator.create();
       const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
 
       // Assert
       // when the test initializes it creates a ConfigAggregator instance for the SFDX simple project, and put it in the config aggregator provider internal map. I have to get that provider and call reload in order to reset it before this test.
-      // expect(localProjectDefaultUsernameOrAlias).to.equal(
-      // dummyLocalDefaultUsername
-      // );
+      expect(localProjectDefaultUsernameOrAlias).to.equal(
+        dummyLocalDefaultUsername
+      );
     });
   });
 });
