@@ -11,9 +11,7 @@ import {
   getRootWorkspacePath,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
-import { doesNotReject, rejects } from 'assert';
 import { expect } from 'chai';
-import { resolve } from 'dns';
 import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
@@ -161,14 +159,11 @@ describe('SFDX CLI Configuration utility', () => {
     it.only('Should return the locally configured default username when it exists', async () => {
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
-      const resultPromise = new Promise((resolve, rejects) => {
-        res = resolve;
-        rej = rejects;
+      const resultPromise = new Promise((resolveFunc, rejectsFunc) => {
+        res = resolveFunc;
+        rej = rejectsFunc;
       });
       workspaceContext.onOrgChange(async orgUserInfo => {
-        console.log('TEST LISTENER');
-
-        console.log('POST flush promises');
         try {
           // Act
           const localProjectDefaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
