@@ -50,10 +50,7 @@ export class ConfigAggregatorProvider {
     // the config file.  This ensures that the ConfigAggregator
     // contains the most recent data.
     const configAggregator = this.configAggregators.get(rootWorkspacePath);
-    console.log('before reload');
-
     if (configAggregator) await configAggregator.reload();
-    console.log('after reload');
   }
 
   private async createConfigAggregator(): Promise<ConfigAggregator> {

@@ -136,6 +136,8 @@ describe('SFDX CLI Configuration utility', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
 
     afterEach(async () => {
+      // Switch to the root workspace path and remove
+      // the config files that were created for the test
       const origDir = process.cwd();
       const rootWorkspacePath = getRootWorkspacePath();
       process.chdir(rootWorkspacePath);
@@ -156,6 +158,21 @@ describe('SFDX CLI Configuration utility', () => {
       process.chdir(origDir); // Change back to the orig process.cwd
     });
 
+    /*
+     * workspaceContextUtil defines a listener that fires a VS Code event when
+     * the config file changes.  Ideally, something like flushAllPromises()
+     * would be used to force the promises to resolve - however, there seems
+     * to be no mechanism to get the VS Code Events to fire before the assertions
+     * in the test.  To work around this, a new listener for the event is
+     * configured in this test, and the assertions are made within that event listener.
+     * By asserting localProjectDefaultUsernameOrAlias, this test validates that:
+     * 1. The config file listener in workspaceContextUtil is active
+     * 2. When the listener detects a config file change (config.write()) it reloads the
+     * configAggregator to ensure it has the latest values
+     * 3. The VS Code onOrgChange event handler is invoked
+     * 4. The VS Code orgChange event was fired with the correct values
+     * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
+     */
     it('Should return the locally configured default username when it exists', async () => {
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
@@ -182,15 +199,15 @@ describe('SFDX CLI Configuration utility', () => {
         }
       });
 
-      // Arrange: create a local config file and set the local project default username
+      // Arrange
+      // Switch to the current root workspace path and create a local config file
+      // and set the local project default username
       const origDir = process.cwd();
       const rootWorkspacePath = getRootWorkspacePath();
       process.chdir(rootWorkspacePath);
       const config = await Config.create(Config.getDefaultOptions());
       config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
-      // after this, the listener should be invoked
       await config.write();
-      console.log('config file written in test');
       process.chdir(origDir); // Change back to the orig process.cwd
 
       return resultPromise;
