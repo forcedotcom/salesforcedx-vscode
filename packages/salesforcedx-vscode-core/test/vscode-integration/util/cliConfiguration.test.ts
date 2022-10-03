@@ -156,7 +156,7 @@ describe('SFDX CLI Configuration utility', () => {
       process.chdir(origDir); // Change back to the orig process.cwd
     });
 
-    it.only('Should return the locally configured default username when it exists', async () => {
+    it('Should return the locally configured default username when it exists', async () => {
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
       const resultPromise = new Promise((resolveFunc, rejectsFunc) => {
