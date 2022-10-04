@@ -7,6 +7,7 @@
 
 import { ConfigFile } from '@salesforce/core';
 import { testSetup } from '@salesforce/core/lib/testSetup';
+import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import {
@@ -17,7 +18,7 @@ import {
 } from '../../../../src/commands';
 import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
-import { ConfigSource, OrgAuthInfo } from '../../../../src/util';
+import { OrgAuthInfo } from '../../../../src/util';
 
 class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
   public getShowChannelOutput() {

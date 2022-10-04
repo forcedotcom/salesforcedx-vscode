@@ -7,12 +7,14 @@
 import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
 import {
   CancelResponse,
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  ConfigUtil,
+  ContinueResponse,
+  OrgUserInfo
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { OrgInfo, workspaceContext } from '../context';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
-import { ConfigUtil, OrgAuthInfo } from '../util';
+import { OrgAuthInfo } from '../util';
 
 export interface FileInfo {
   scratchAdminUsername?: string;
@@ -33,7 +35,7 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
-    workspaceContext.onOrgChange((orgInfo: OrgInfo) =>
+    workspaceContext.onOrgChange((orgInfo: OrgUserInfo) =>
       this.displayDefaultUsername(orgInfo.alias || orgInfo.username)
     );
     const { username, alias } = workspaceContext;
