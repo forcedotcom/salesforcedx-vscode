@@ -35,9 +35,10 @@ jobs:
       uses: actions/checkout@v2.0.0
       with:
         ref: ${{ github.event.ref }}
+        token: ${{ GITHUB_TOKEN }}
     - uses: ./.github/actions/gitConfig
       with:
-          email: ${{ secrets.GH_EMAIL }}
+        email: ${{ secrets.GH_EMAIL }}
     - name: Set NPM at the correct version for Lerna
       run: npm install -g npm@8.12.1
     - run: npm ci
