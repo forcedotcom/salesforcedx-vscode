@@ -8,7 +8,6 @@
 import { Config, ConfigFile, OrgConfigProperties } from '@salesforce/core';
 import {
   ConfigUtil,
-  getRootWorkspacePath,
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
@@ -173,8 +172,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
     it('Should return the locally configured default username when it exists', async function() {
-      // Test runs in CI build in approx: 10000ms
-      this.timeout(60000);
+      this.timeout(320000);
 
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
