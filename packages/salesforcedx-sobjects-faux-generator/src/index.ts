@@ -14,4 +14,5 @@ export {
   TOOLS_DIR
 } from './constants';
 export { SObjectTransformer, SObjectTransformerFactory } from './transformer';
-export { SObjectRefreshResult } from './types';
+export * from './types';
+export * from './describe';
