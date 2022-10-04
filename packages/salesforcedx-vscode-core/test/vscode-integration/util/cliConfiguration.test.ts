@@ -172,7 +172,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 4. The VS Code orgChange event was fired with the correct values
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
-    it.only('Should return the locally configured default username when it exists', async function() {
+    it('Should return the locally configured default username when it exists', async function() {
       // Test runs in CI build in approx: 10000ms
       this.timeout(60000);
 
