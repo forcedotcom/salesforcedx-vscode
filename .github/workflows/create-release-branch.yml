@@ -24,7 +24,7 @@ jobs:
     name: 'Create Branch'
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.SF_IDEE_BOT_GITHUB_TOKEN }}
+      RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
     steps:
     - name: Setup Node.js
@@ -34,7 +34,9 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
       with:
-        ref: ${{ github.event.ref }}
+        ref: 'develop'
+        ssh-strict: false
+        token: ${{ secrets.SF_IDEE_BOT_GITHUB_TOKEN }}
     - uses: ./.github/actions/gitConfig
       with:
         email: ${{ secrets.GH_EMAIL }}
@@ -46,8 +48,6 @@ jobs:
       run: |
         echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
         node scripts/create-release-branch.js
-      env: 
-        RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 # For future Slack Integration
 #     - name: Update Slack - Failure
 #       if: failure()
