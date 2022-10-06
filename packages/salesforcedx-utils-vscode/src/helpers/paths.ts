@@ -84,4 +84,4 @@ function getMetadataDirectoryPath(username: string): string {
 export const projectPath = {
   getSfdxDirectoryPath,
   getMetadataDirectoryPath
-}
+};
