@@ -9,7 +9,6 @@ import { Connection, Global } from '@salesforce/core';
 import {
   ConfigAggregatorProvider,
   getRootWorkspacePath,
-  OrgInfo,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
