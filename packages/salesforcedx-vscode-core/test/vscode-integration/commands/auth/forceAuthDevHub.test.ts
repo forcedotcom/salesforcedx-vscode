@@ -79,10 +79,6 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
     sb.restore();
   });
 
-  after(() => {
-    restoreContext($$);
-  });
-
   it('Should set global dev hub if there is no global already, but a local has been defined', async () => {
     getDefaultDevHubUsernameStub.onCall(0).returns(undefined);
     getDefaultDevHubUsernameStub.onCall(1).returns('test@test.com');

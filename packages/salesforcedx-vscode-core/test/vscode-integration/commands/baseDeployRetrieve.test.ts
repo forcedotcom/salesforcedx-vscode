@@ -65,6 +65,7 @@ describe('Base Deploy Retrieve Commands', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -73,7 +74,6 @@ describe('Base Deploy Retrieve Commands', () => {
     getOrgApiVersionStub = sb
       .stub(OrgAuthInfo, 'getOrgApiVersion')
       .resolves(dummyOrgApiVersion);
-    stubContext($$);
   });
 
   afterEach(() => {
