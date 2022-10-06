@@ -134,7 +134,7 @@ describe('SFDX CLI Configuration utility', () => {
 
   describe('ConfigAggregator integration tests', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
-    let origCwd = process.cwd();
+    const origCwd = process.cwd();
 
     before(() => {
       // Ensure we are in the project directory

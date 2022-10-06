@@ -6,8 +6,8 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import {
-  MockTestOrgData,
   instantiateContext,
+  MockTestOrgData,
   restoreContext
 } from '@salesforce/core/lib/testSetup';
 import {
