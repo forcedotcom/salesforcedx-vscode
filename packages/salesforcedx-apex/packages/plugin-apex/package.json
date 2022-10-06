@@ -6,7 +6,7 @@
   "bugs": "https://github.com/forcedotcom/salesforcedx-apex/issues",
   "main": "lib/index.js",
   "dependencies": {
-    "@oclif/core": "^1.5.2",
+    "@oclif/core": "^1.16.4",
     "@salesforce/apex-node": "1.2.0",
     "@salesforce/command": "^5.1.0",
     "@salesforce/core": "^3.23.3",
@@ -16,7 +16,7 @@
   "devDependencies": {
     "@oclif/plugin-command-snapshot": "^3",
     "@oclif/plugin-help": "^5",
-    "@oclif/test": "^2",
+    "@oclif/test": "^2.2.2",
     "@salesforce/dev-config": "3.0.1",
     "@salesforce/plugin-command-reference": "^1.3.16",
     "@salesforce/ts-sinon": "^1.1.2",

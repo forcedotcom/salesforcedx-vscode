@@ -445,7 +445,8 @@ export const testResults: TestResult = {
       id: '07M3t000003bQwREAU',
       queueItemId: '7093t000000c0eiAAA',
       stackTrace: null,
-      message: '\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
+      message:
+        'Weird characters <>&"\'\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
       asyncApexJobId: '7073t000061uwZIAAY',
       methodName: 'testGetCallout',
       outcome: ApexTestResultOutcome.Fail,
@@ -568,7 +569,7 @@ export const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
         </testcase>
         <testcase name="testCallout" classname="ParkLocatorTest" time="0.01">
         </testcase>
-        <testcase name="testGetCallout" classname="AnimalsCalloutsTest" time="0.03">\n            <failure message="\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r
+        <testcase name="testGetCallout" classname="AnimalsCalloutsTest" time="0.03">\n            <failure message="Weird characters &lt;&gt;&amp;&quot;&apos;\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r
 "></failure>
         </testcase>
         <testcase name="testPostCallout" classname="AnimalsCalloutsTest" time="0.01">

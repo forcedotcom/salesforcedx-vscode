@@ -72,17 +72,18 @@ export class JUnitReporter {
     let junitTests = '';
 
     for (const testCase of tests) {
-      junitTests += `${tab}${tab}<testcase name="${
-        testCase.methodName
-      }" classname="${testCase.apexClass.fullName}" time="${msToSecond(
-        testCase.runTime
-      )}">\n`;
+      const methodName = this.xmlEscape(testCase.methodName);
+      junitTests += `${tab}${tab}<testcase name="${methodName}" classname="${
+        testCase.apexClass.fullName
+      }" time="${msToSecond(testCase.runTime)}">\n`;
 
       if (
         testCase.outcome === ApexTestResultOutcome.Fail ||
         testCase.outcome === ApexTestResultOutcome.CompileFail
       ) {
-        junitTests += `${tab}${tab}${tab}<failure message="${testCase.message}">`;
+        let message = this.isEmpty(testCase.message) ? '' : testCase.message;
+        message = this.xmlEscape(message);
+        junitTests += `${tab}${tab}${tab}<failure message="${message}">`;
         if (testCase.stackTrace) {
           junitTests += `<![CDATA[${testCase.stackTrace}]]>`;
         }
@@ -92,6 +93,15 @@ export class JUnitReporter {
       junitTests += `${tab}${tab}</testcase>\n`;
     }
     return junitTests;
+  }
+
+  private xmlEscape(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
   }
 
   private isEmpty(value: string | number): boolean {

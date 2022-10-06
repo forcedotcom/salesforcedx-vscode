@@ -70,6 +70,7 @@ describe('TAP Reporter Tests', () => {
       'Class.AccountProcessorTest.testCountContacts: line 47, column 1'
     ]);
     expect(result[12].diagnostics).to.eql([
+      'Weird characters <>&"\'',
       'Surrounded by newlines.',
       'and whitespace.'
     ]);
