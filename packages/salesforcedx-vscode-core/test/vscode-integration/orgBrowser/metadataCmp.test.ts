@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
   restoreContext,
-  testSetup
+  stubContext
 } from '@salesforce/core/lib/testSetup';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import { expect } from 'chai';
@@ -87,7 +87,7 @@ describe('get metadata components path', () => {
   afterEach(() => {
     getUsernameStub.restore();
   });
-  after(() => {
+  afterEach(() => {
     restoreContext($$);
   });
 
@@ -271,14 +271,11 @@ describe('load metadata components and custom objects fields list', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    mockConnection = await testData.getConnection();
     getComponentsPathStub = sb
       .stub(ComponentUtils.prototype, 'getComponentsPath')
       .returns(filePath);
@@ -306,6 +303,7 @@ describe('load metadata components and custom objects fields list', () => {
   });
 
   afterEach(() => {
+    restoreContext($$);
     sb.restore();
   });
 
@@ -504,14 +502,11 @@ describe('fetch metadata components and custom objects fields list', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    mockConnection = await testData.getConnection();
     fileExistsStub = sb.stub(fs, 'existsSync');
     connectionStub = sb
       .stub(workspaceContext, 'getConnection')
@@ -534,6 +529,7 @@ describe('fetch metadata components and custom objects fields list', () => {
   });
 
   afterEach(() => {
+    restoreContext($$);
     sb.restore();
   });
 
@@ -633,14 +629,11 @@ describe('fetch fields of a standard or custom object', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    mockConnection = await testData.getConnection();
     fetchAndSaveSObjectFieldsPropertiesStub = sb
       .stub(cmpUtil, 'fetchAndSaveSObjectFieldsProperties')
       .resolves(fieldData);
@@ -653,6 +646,7 @@ describe('fetch fields of a standard or custom object', () => {
   });
 
   afterEach(() => {
+    restoreContext($$);
     sb.restore();
   });
 
@@ -699,14 +693,11 @@ describe('retrieve fields data of a sobject to write in a json file designated f
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    mockConnection = await testData.getConnection();
     connectionStub = sb
       .stub(workspaceContext, 'getConnection')
       .resolves(mockConnection);
@@ -717,6 +708,7 @@ describe('retrieve fields data of a sobject to write in a json file designated f
   });
 
   afterEach(() => {
+    restoreContext($$);
     sb.restore();
   });
 

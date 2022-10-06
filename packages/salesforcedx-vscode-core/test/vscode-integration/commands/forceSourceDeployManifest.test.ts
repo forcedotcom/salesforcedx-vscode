@@ -9,7 +9,8 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
-  restoreContext
+  restoreContext,
+  stubContext
 } from '@salesforce/core/lib/testSetup';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
@@ -24,7 +25,10 @@ const env = createSandbox();
 const $$ = instantiateContext();
 
 describe('Force Source Deploy Using Manifest Option', () => {
-  after(() => {
+  beforeEach(() => {
+    stubContext($$);
+  });
+  afterEach(() => {
     restoreContext($$);
   });
   describe('Library Executor', () => {
@@ -46,11 +50,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
+      mockConnection = await testData.getConnection();
       env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
 
       env

@@ -4,11 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
-  restoreContext
+  restoreContext,
+  stubContext
 } from '@salesforce/core/lib/testSetup';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
@@ -23,7 +24,7 @@ const env = createSandbox();
 const $$ = instantiateContext();
 
 describe('Force Source Retrieve with Manifest Option', () => {
-  after(() => {
+  afterEach(() => {
     restoreContext($$);
   });
 
@@ -47,14 +48,11 @@ describe('Force Source Retrieve with Manifest Option', () => {
 
     beforeEach(async () => {
       const testData = new MockTestOrgData();
+      stubContext($$);
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
+      mockConnection = await testData.getConnection();
 
       env
         .stub(SfdxPackageDirectories, 'getPackageDirectoryPaths')
@@ -79,7 +77,6 @@ describe('Force Source Retrieve with Manifest Option', () => {
 
     afterEach(() => {
       env.restore();
-      $$.SANDBOX.restore();
     });
 
     it('should retrieve components in a manifest', async () => {

@@ -8,7 +8,8 @@
 import { ConfigFile } from '@salesforce/core';
 import {
   instantiateContext,
-  restoreContext
+  restoreContext,
+  stubContext
 } from '@salesforce/core/lib/testSetup';
 import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
@@ -57,6 +58,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   let sb: SinonSandbox;
 
   beforeEach(() => {
+    stubContext($$);
     $$.SANDBOXES.CONFIG.restore();
     sb = createSandbox();
     getDefaultDevHubUsernameStub = sb.stub(
@@ -73,7 +75,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   });
 
   afterEach(() => {
-    $$.SANDBOX.restore();
+    restoreContext($$);
     sb.restore();
   });
 

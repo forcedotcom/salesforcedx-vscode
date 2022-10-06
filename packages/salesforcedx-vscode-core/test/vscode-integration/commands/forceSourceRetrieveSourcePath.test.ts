@@ -9,7 +9,8 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
-  restoreContext
+  restoreContext,
+  stubContext
 } from '@salesforce/core/lib/testSetup';
 import {
   CancelResponse,
@@ -44,7 +45,10 @@ const sb = createSandbox();
 const $$ = instantiateContext();
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
-  after(() => {
+  beforeEach(() => {
+    stubContext($$);
+  });
+  afterEach(() => {
     sb.restore();
     restoreContext($$);
   });
@@ -62,13 +66,7 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
         contents: await testData.getConfig()
       });
 
-      const authInfo = await AuthInfo.create({
-        username: testData.username
-      });
-
-      mockConnection = await Connection.create({
-        authInfo
-      });
+      mockConnection = await testData.getConnection();
 
       sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
       sb.stub(workspaceContext, 'username').get(() => testData.username);

@@ -68,7 +68,7 @@ describe('Base Deploy Retrieve Commands', () => {
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = {} as any;
+    mockConnection = await testData.getConnection();
     sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
     getOrgApiVersionStub = sb
       .stub(OrgAuthInfo, 'getOrgApiVersion')

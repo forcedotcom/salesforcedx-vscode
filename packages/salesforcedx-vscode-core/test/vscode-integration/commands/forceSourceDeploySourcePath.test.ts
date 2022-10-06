@@ -5,14 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
-  restoreContext
+  restoreContext,
+  stubContext
 } from '@salesforce/core/lib/testSetup';
-import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ContinueResponse,
+  fileUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver
@@ -35,9 +38,10 @@ const sb = createSandbox();
 const $$ = instantiateContext();
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
-  after(() => {
+  afterEach(() => {
     restoreContext($$);
   });
+
   describe('Library Executor', () => {
     let mockConnection: Connection;
 
@@ -47,17 +51,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
     beforeEach(async () => {
       const testData = new MockTestOrgData();
+      stubContext($$);
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
 
-      const authInfo = await AuthInfo.create({
-        username: testData.username
-      });
-
-      mockConnection = await Connection.create({
-        authInfo
-      });
+      mockConnection = await testData.getConnection();
 
       getComponentsFromPathStub = sb
         .stub(MetadataResolver.prototype, 'getComponentsFromPath')
