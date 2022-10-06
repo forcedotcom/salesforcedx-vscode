@@ -5,14 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection, Global } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   ConfigAggregatorProvider,
-  getRootWorkspacePath,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
 
@@ -59,21 +57,4 @@ export class WorkspaceContext {
   get alias(): string | undefined {
     return WorkspaceContextUtil.getInstance().alias;
   }
-
-  public getSfdxDirectoryPath(): string {
-    return path.join(
-      getRootWorkspacePath(),
-      Global.SFDX_STATE_FOLDER
-    );
-  }
-
-  public getMetadataDirectoryPath(username: string): string {
-    return path.join(
-      this.getSfdxDirectoryPath(),
-      'orgs',
-      username,
-      'metadata'
-    );
-  }
-
 }
