@@ -8,7 +8,8 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
-  restoreContext
+  restoreContext,
+  stubContext
 } from '@salesforce/core/lib/testSetup';
 import {
   ConfigUtil,
@@ -64,23 +65,21 @@ describe('Base Deploy Retrieve Commands', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    // await $$.stubAuths(testData);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    mockConnection = {} as any;
     sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
     getOrgApiVersionStub = sb
       .stub(OrgAuthInfo, 'getOrgApiVersion')
       .resolves(dummyOrgApiVersion);
+    stubContext($$);
   });
 
-  after(() => {
-    sb.restore();
+  afterEach(() => {
     restoreContext($$);
+    sb.restore();
   });
 
   describe('DeployRetrieveCommand', () => {
