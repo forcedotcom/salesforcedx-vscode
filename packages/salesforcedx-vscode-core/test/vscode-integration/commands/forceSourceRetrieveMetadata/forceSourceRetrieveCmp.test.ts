@@ -6,7 +6,11 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext
+} from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   LocalComponent
@@ -33,7 +37,7 @@ import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 
 const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 class TestDescriber implements RetrieveDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
@@ -46,6 +50,9 @@ class TestDescriber implements RetrieveDescriber {
 }
 
 describe('Force Source Retrieve Component(s)', () => {
+  after(() => {
+    restoreContext($$);
+  });
   describe('Library Executor', () => {
     const testData = new MockTestOrgData();
     const defaultPackageDir = 'test-app';

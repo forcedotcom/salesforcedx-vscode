@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  testSetup
+} from '@salesforce/core/lib/testSetup';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -17,7 +22,7 @@ import { ComponentUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
 const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 const mockFieldData = {
   result: {
@@ -81,6 +86,9 @@ describe('get metadata components path', () => {
   });
   afterEach(() => {
     getUsernameStub.restore();
+  });
+  after(() => {
+    restoreContext($$);
   });
 
   function expectedPath(fileName: string) {

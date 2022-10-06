@@ -6,7 +6,11 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext
+} from '@salesforce/core/lib/testSetup';
 import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -28,9 +32,12 @@ import {
 import { workspaceUtils } from '../../../src/util';
 
 const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
+  after(() => {
+    restoreContext($$);
+  });
   describe('Library Executor', () => {
     let mockConnection: Connection;
 

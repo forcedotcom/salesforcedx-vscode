@@ -21,7 +21,8 @@ import {
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,
-  showCLINotInstalledMessage
+  showCLINotInstalledMessage,
+  workspaceUtils
 } from '../../../src/util';
 
 describe('SFDX CLI Configuration utility', () => {
@@ -133,6 +134,16 @@ describe('SFDX CLI Configuration utility', () => {
 
   describe('ConfigAggregator integration tests', () => {
     const dummyLocalDefaultUsername = 'test@local.com';
+    let origCwd = process.cwd();
+
+    before(() => {
+      // Ensure we are in the project directory
+      const rootWorkpace = workspaceUtils.getRootWorkspacePath();
+      process.chdir(rootWorkpace);
+    });
+    after(() => {
+      process.chdir(origCwd);
+    });
 
     afterEach(async () => {
       // Remove the config files that were created for the test
@@ -171,7 +182,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 4. The VS Code orgChange event was fired with the correct values
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
-    it.only('Should return the locally configured default username when it exists', async function() {
+    it('Should return the locally configured default username when it exists', async function() {
       this.timeout(320000);
 
       let res: (value: string) => void;

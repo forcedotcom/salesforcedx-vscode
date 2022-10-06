@@ -6,7 +6,10 @@
  */
 
 import { ConfigFile } from '@salesforce/core';
-import { testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  restoreContext
+} from '@salesforce/core/lib/testSetup';
 import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
@@ -41,7 +44,7 @@ describe('Force Auth Web Login for Dev Hub', () => {
 });
 
 // Setup the test environment.
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecutor', () => {
   let getDefaultDevHubUsernameStub: SinonStub;
@@ -72,6 +75,10 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   afterEach(() => {
     $$.SANDBOX.restore();
     sb.restore();
+  });
+
+  after(() => {
+    restoreContext($$);
   });
 
   it('Should set global dev hub if there is no global already, but a local has been defined', async () => {

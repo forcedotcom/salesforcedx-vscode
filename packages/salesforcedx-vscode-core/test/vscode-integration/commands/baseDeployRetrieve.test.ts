@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  MockTestOrgData,
+  instantiateContext,
+  restoreContext
+} from '@salesforce/core/lib/testSetup';
 import {
   ConfigUtil,
   ContinueResponse,
@@ -49,7 +53,7 @@ import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
@@ -74,7 +78,10 @@ describe('Base Deploy Retrieve Commands', () => {
       .resolves(dummyOrgApiVersion);
   });
 
-  afterEach(() => sb.restore());
+  after(() => {
+    sb.restore();
+    restoreContext($$);
+  });
 
   describe('DeployRetrieveCommand', () => {
     class TestDeployRetrieve extends DeployRetrieveExecutor<{}> {

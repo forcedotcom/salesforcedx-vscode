@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext
+} from '@salesforce/core/lib/testSetup';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -16,9 +20,13 @@ import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 describe('Force Source Retrieve with Manifest Option', () => {
+  after(() => {
+    restoreContext($$);
+  });
+
   describe('Library Executor', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
