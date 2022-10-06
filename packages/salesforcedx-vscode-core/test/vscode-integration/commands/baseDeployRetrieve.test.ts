@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
@@ -65,7 +65,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
-    // await $$.stubAuths(testData);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
