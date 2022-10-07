@@ -29,7 +29,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
@@ -37,8 +37,8 @@ import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 
-const sb = createSandbox();
 const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 class TestDescriber implements RetrieveDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
@@ -51,9 +51,6 @@ class TestDescriber implements RetrieveDescriber {
 }
 
 describe('Force Source Retrieve Component(s)', () => {
-  afterEach(() => {
-    restoreContext($$);
-  });
   describe('Library Executor', () => {
     const testData = new MockTestOrgData();
     const defaultPackageDir = 'test-app';
@@ -93,8 +90,7 @@ describe('Force Source Retrieve Component(s)', () => {
     });
 
     afterEach(() => {
-      $$.SANDBOX.restore();
-      sb.restore();
+      restoreContext($$);
     });
 
     it('should retrieve with given components', async () => {
