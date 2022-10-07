@@ -80,7 +80,7 @@ function getMetadataDirectoryPath(username: string): string {
   return path.join(getSfdxDirectoryPath(), 'orgs', username, 'metadata');
 }
 
-function getApexDirPath(): string {
+function apexTestResults(): string {
   const apexDirPath = path.join(
     workspace!.workspaceFolders![0].uri.fsPath,
     Global.STATE_FOLDER,
@@ -107,6 +107,6 @@ function getApexLanguageServerDatabasePath(): string | undefined {
 export const projectPaths = {
   getSfdxDirectoryPath,
   getMetadataDirectoryPath,
-  getApexDirPath,
+  apexTestResults,
   getApexLanguageServerDatabasePath
 };

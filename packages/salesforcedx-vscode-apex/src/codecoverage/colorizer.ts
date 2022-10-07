@@ -17,7 +17,7 @@ import {
 } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-export const apexDirPath = projectPaths.getApexDirPath();
+export const apexDirPath = projectPaths.apexTestResults();
 
 export function getLineRange(
   document: TextDocument,
