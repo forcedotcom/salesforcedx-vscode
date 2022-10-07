@@ -9,7 +9,7 @@ import { Command } from './command';
 export const NO_PID_ERROR = 'No process associated with sfdx command.';
 export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
 export const NO_STDERR_ERROR = 'No stderr found for childProcess';
-export const CANCELATION_INTERVAL = 1000;
+export const CANCELLATION_INTERVAL = 1000;
 export const KILL_CODE = 'SIGKILL';
 
 export class CliCommandExecution implements CommandExecution {
@@ -69,7 +69,7 @@ export class CliCommandExecution implements CommandExecution {
 
     // Cancellation watcher
     if (cancellationToken) {
-      const timer = Observable.interval(CANCELATION_INTERVAL);
+      const timer = Observable.interval(CANCELLATION_INTERVAL);
       timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {

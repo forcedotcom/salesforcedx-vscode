@@ -1,6 +1,6 @@
 import { CancellationToken, CliCommandExecution, Command } from '../../../src';
 import {
-  CANCELATION_INTERVAL,
+  CANCELLATION_INTERVAL,
   KILL_CODE,
   NO_PID_ERROR,
   NO_STDERR_ERROR,
@@ -79,7 +79,7 @@ describe('CliCommandExecution Unit Tests.', () => {
     );
     expect(cliCommandExecution).toBeInstanceOf(CliCommandExecution);
     expect(subscribeSpy).toHaveBeenCalledTimes(3);
-    expect(intervalSpy).toHaveBeenCalledWith(CANCELATION_INTERVAL);
+    expect(intervalSpy).toHaveBeenCalledWith(CANCELLATION_INTERVAL);
   });
 
   describe('Subscribe handlers.', () => {
