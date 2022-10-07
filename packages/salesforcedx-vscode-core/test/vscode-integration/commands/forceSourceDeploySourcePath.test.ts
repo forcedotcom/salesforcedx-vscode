@@ -22,7 +22,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
@@ -34,8 +34,8 @@ import {
 } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
-const sb = createSandbox();
 const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
   afterEach(() => {

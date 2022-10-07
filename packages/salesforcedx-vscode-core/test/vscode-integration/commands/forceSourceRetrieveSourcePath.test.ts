@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { Connection } from '@salesforce/core';
 import {
   instantiateContext,
   MockTestOrgData,
@@ -24,7 +24,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
@@ -41,15 +41,15 @@ import {
 } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
-const sb = createSandbox();
 const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 describe('Force Source Retrieve with Sourcepath Option', () => {
   beforeEach(() => {
     stubContext($$);
   });
+
   afterEach(() => {
-    sb.restore();
     restoreContext($$);
   });
 
@@ -76,10 +76,6 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
       );
       sb.stub(SfdxProjectConfig, 'getValue').resolves('11.0');
       pollStatusStub = sb.stub();
-    });
-
-    afterEach(() => {
-      sb.restore();
     });
 
     it('should retrieve with a file path', async () => {
@@ -278,25 +274,21 @@ describe('Force Source Retrieve with Sourcepath Option', () => {
 
 describe('SourcePathChecker', () => {
   let workspacePath: string;
-  let sandboxStub: SinonSandbox;
   let appendLineSpy: SinonStub;
   let showErrorMessageSpy: SinonStub;
   beforeEach(() => {
-    sandboxStub = createSandbox();
+    stubContext($$);
     workspacePath = workspaceUtils.getRootWorkspacePath();
-    appendLineSpy = sandboxStub.stub(channelService, 'appendLine');
-    showErrorMessageSpy = sandboxStub.stub(
-      notificationService,
-      'showErrorMessage'
-    );
+    appendLineSpy = sb.stub(channelService, 'appendLine');
+    showErrorMessageSpy = sb.stub(notificationService, 'showErrorMessage');
   });
 
   afterEach(() => {
-    sandboxStub.restore();
+    restoreContext($$);
   });
 
   it('Should continue when source path is in a package directory', async () => {
-    const isInPackageDirectoryStub = sandboxStub
+    const isInPackageDirectoryStub = sb
       .stub(SfdxPackageDirectories, 'isInPackageDirectory')
       .returns(true);
     const pathChecker = new SourcePathChecker();
@@ -314,7 +306,7 @@ describe('SourcePathChecker', () => {
   });
 
   it('Should notify user and cancel when source path is not inside of a package directory', async () => {
-    const isInPackageDirectoryStub = sandboxStub
+    const isInPackageDirectoryStub = sb
       .stub(SfdxPackageDirectories, 'isInPackageDirectory')
       .returns(false);
     const pathChecker = new SourcePathChecker();
@@ -333,7 +325,7 @@ describe('SourcePathChecker', () => {
   });
 
   it('Should cancel and notify user if an error occurs when fetching the package directories', async () => {
-    const isInPackageDirectoryStub = sandboxStub
+    const isInPackageDirectoryStub = sb
       .stub(SfdxPackageDirectories, 'isInPackageDirectory')
       .throws(new Error());
     const pathChecker = new SourcePathChecker();

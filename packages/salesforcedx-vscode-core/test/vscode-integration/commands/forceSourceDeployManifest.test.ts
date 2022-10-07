@@ -21,16 +21,18 @@ import { workspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
-const env = createSandbox();
 const $$ = instantiateContext();
+const env = $$.SANDBOX;
 
 describe('Force Source Deploy Using Manifest Option', () => {
   beforeEach(() => {
     stubContext($$);
   });
+
   afterEach(() => {
     restoreContext($$);
   });
+
   describe('Library Executor', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
@@ -73,7 +75,6 @@ describe('Force Source Deploy Using Manifest Option', () => {
 
     afterEach(() => {
       env.restore();
-      $$.SANDBOX.restore();
     });
 
     it('should deploy components in a manifest', async () => {

@@ -35,7 +35,7 @@ import {
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
+import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
@@ -53,8 +53,8 @@ import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
-const sb = createSandbox();
 const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
@@ -78,7 +78,6 @@ describe('Base Deploy Retrieve Commands', () => {
 
   afterEach(() => {
     restoreContext($$);
-    sb.restore();
   });
 
   describe('DeployRetrieveCommand', () => {

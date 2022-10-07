@@ -20,8 +20,8 @@ import { workspaceContext } from '../../../src/context';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
-const env = createSandbox();
 const $$ = instantiateContext();
+const env = $$.SANDBOX;
 
 describe('Force Source Retrieve with Manifest Option', () => {
   afterEach(() => {
@@ -73,10 +73,6 @@ describe('Force Source Retrieve with Manifest Option', () => {
       retrieveStub = env.stub(mockComponents, 'retrieve').returns({
         pollStatus: pollStatusStub
       });
-    });
-
-    afterEach(() => {
-      env.restore();
     });
 
     it('should retrieve components in a manifest', async () => {

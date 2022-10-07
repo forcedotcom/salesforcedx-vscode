@@ -21,8 +21,8 @@ import { workspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 
-const sb = createSandbox();
 const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 const mockFieldData = {
   result: {
@@ -86,9 +86,7 @@ describe('get metadata components path', () => {
   });
   afterEach(() => {
     getUsernameStub.restore();
-  });
-  afterEach(() => {
-    restoreContext($$);
+    // restoreContext($$);
   });
 
   function expectedPath(fileName: string) {
@@ -304,7 +302,6 @@ describe('load metadata components and custom objects fields list', () => {
 
   afterEach(() => {
     restoreContext($$);
-    sb.restore();
   });
 
   it('should load metadata components through sfdx-core library if file does not exist', async () => {
@@ -530,7 +527,6 @@ describe('fetch metadata components and custom objects fields list', () => {
 
   afterEach(() => {
     restoreContext($$);
-    sb.restore();
   });
 
   it('should call fetchCustomObjectsFields() to fetch fields of a sobject if json file does not exist', async () => {
@@ -647,7 +643,6 @@ describe('fetch fields of a standard or custom object', () => {
 
   afterEach(() => {
     restoreContext($$);
-    sb.restore();
   });
 
   it('should call fetchAndSaveSObjectFieldsProperties() and buildCustomObjectFields() while fetching custom object fields if file does not exist or forceRefresh is set to true', async () => {
@@ -709,7 +704,6 @@ describe('retrieve fields data of a sobject to write in a json file designated f
 
   afterEach(() => {
     restoreContext($$);
-    sb.restore();
   });
 
   it('should validate that fetchAndSaveSObjectFieldsProperties() writes a json file at sobject components path', async () => {
