@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, ConfigFile, OrgConfigProperties } from '@salesforce/core';
+import {
+  Config,
+  ConfigFile,
+  Global,
+  OrgConfigProperties
+} from '@salesforce/core';
 import {
   ConfigUtil,
   GlobalCliEnvironment
@@ -211,6 +216,11 @@ describe('SFDX CLI Configuration utility', () => {
       });
 
       // Arrange
+      // The stubContext method set the Global.SFDX_INTEROPERABILITY to false but
+      // doesn't reset it to the default true on restore.  This causes issues with the sfdx config
+      // file watcher. Set it to true here to ensure we get the writes to the sfdx config file.
+      Global.SFDX_INTEROPERABILITY = true;
+
       // Create a local config file and set the local project default username
       const config = await Config.create(Config.getDefaultOptions());
       config.set(OrgConfigProperties.TARGET_ORG, dummyLocalDefaultUsername);
