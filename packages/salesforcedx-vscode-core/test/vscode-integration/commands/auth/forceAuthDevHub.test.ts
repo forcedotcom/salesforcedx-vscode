@@ -13,7 +13,7 @@ import {
 } from '@salesforce/core/lib/testSetup';
 import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import {
   createAuthDevHubExecutor,
   ForceAuthDevHubContainerExecutor,
@@ -60,7 +60,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   beforeEach(() => {
     stubContext($$);
     $$.SANDBOXES.CONFIG.restore();
-    sb = createSandbox();
+    sb = $$.SANDBOX;
     getDefaultDevHubUsernameStub = sb.stub(
       OrgAuthInfo,
       'getDefaultDevHubUsernameOrAlias'
@@ -76,7 +76,6 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
 
   afterEach(() => {
     restoreContext($$);
-    sb.restore();
   });
 
   it('Should set global dev hub if there is no global already, but a local has been defined', async () => {
