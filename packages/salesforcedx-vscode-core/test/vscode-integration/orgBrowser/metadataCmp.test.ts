@@ -6,6 +6,7 @@
  */
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import { expect } from 'chai';
 import * as fs from 'fs';
@@ -14,7 +15,7 @@ import { createSandbox, SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { workspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
-import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
+import { OrgAuthInfo } from '../../../src/util';
 
 const sb = createSandbox();
 const $$ = testSetup();
@@ -69,27 +70,30 @@ const expectedFieldList = [
 // tslint:disable:no-unused-expression
 describe('get metadata components path', () => {
   let getUsernameStub: SinonStub;
+  let getMetadataDirectoryPathStub: SinonStub;
   const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
   const cmpUtil = new ComponentUtils();
   const alias = 'test user 1';
   const username = 'test-username1@example.com';
+  const metadataDirectoryPath = 'test/path/.sfdx';
 
   beforeEach(() => {
     getUsernameStub = stub(OrgAuthInfo, 'getUsername').returns(
       'test-username1@example.com'
     );
+    getMetadataDirectoryPathStub = stub(projectPaths, 'getMetadataDirectoryPath').returns(
+      metadataDirectoryPath
+    );
+
   });
   afterEach(() => {
     getUsernameStub.restore();
+    getMetadataDirectoryPathStub.restore();
   });
 
   function expectedPath(fileName: string) {
     return path.join(
-      rootWorkspacePath,
-      '.sfdx',
-      'orgs',
-      username,
-      'metadata',
+      metadataDirectoryPath,
       fileName + '.json'
     );
   }
@@ -99,6 +103,8 @@ describe('get metadata components path', () => {
     expect(await cmpUtil.getComponentsPath(metadataType, alias)).to.equal(
       expectedPath(metadataType)
     );
+    expect(getMetadataDirectoryPathStub.called).to.equal(true);
+    expect(getMetadataDirectoryPathStub.calledWith(username)).to.equal(true);
   });
 
   it('should return the path for a given folder', async () => {
@@ -107,6 +113,8 @@ describe('get metadata components path', () => {
     expect(
       await cmpUtil.getComponentsPath(metadataType, alias, folder)
     ).to.equal(expectedPath(metadataType + '_' + folder));
+    expect(getMetadataDirectoryPathStub.called).to.equal(true);
+    expect(getMetadataDirectoryPathStub.calledWith(username)).to.equal(true);
   });
 });
 
