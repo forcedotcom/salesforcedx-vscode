@@ -16,10 +16,12 @@ import {
   GlobalCliEnvironment
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
+import * as fs from 'fs';
 import * as shelljs from 'shelljs';
 import { assert, createSandbox, SinonSandbox, SinonStub } from 'sinon';
 import { window } from 'vscode';
 import { ENV_SFDX_DISABLE_TELEMETRY } from '../../../src/constants';
+import { workspaceContext } from '../../../src/context';
 import {
   disableCLITelemetry,
   isCLIInstalled,
@@ -186,7 +188,7 @@ describe('SFDX CLI Configuration utility', () => {
      * 5. The call to ConfigUtil.getDefaultUsernameOrAlias() returns the expected local value
      */
     it('Should return the locally configured default username when it exists', async function() {
-      this.timeout(320000);
+      this.timeout(60000);
 
       let res: (value: string) => void;
       let rej: (reason?: any) => void;
