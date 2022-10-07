@@ -1,0 +1,26 @@
+name: No Response
+
+## Closes issues marked with 'more information required' label after 7 days
+##    if original poster does not respond within that time
+
+on:
+  issue_comment:
+    types: [created]
+  schedule:
+    # Schedule for five minutes after the hour, every hour
+    - cron: '5 * * * *'
+
+jobs:
+  noResponse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: lee-dohm/no-response@v0.5.0
+        with:
+          token: ${{ secrets.SF_IDEE_BOT_GITHUB_TOKEN }}
+          daysUntilClose: 7
+          responseRequiredLabel: 'more information required'
+          closeComment: >
+            This issue has been automatically closed because there has been no response
+            to our request for more information from the original author. Currently, there
+            is not enough information provided for us to take action. Please reply and 
+            reopen this issue if you need additional assistance.
