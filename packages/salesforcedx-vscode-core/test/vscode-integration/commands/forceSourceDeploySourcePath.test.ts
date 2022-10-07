@@ -5,17 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+  ContinueResponse,
+  fileUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
@@ -27,10 +34,14 @@ import {
 } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
+  afterEach(() => {
+    restoreContext($$);
+  });
+
   describe('Library Executor', () => {
     let mockConnection: Connection;
 
@@ -40,17 +51,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
     beforeEach(async () => {
       const testData = new MockTestOrgData();
+      stubContext($$);
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
 
-      const authInfo = await AuthInfo.create({
-        username: testData.username
-      });
-
-      mockConnection = await Connection.create({
-        authInfo
-      });
+      mockConnection = await testData.getConnection();
 
       getComponentsFromPathStub = sb
         .stub(MetadataResolver.prototype, 'getComponentsFromPath')

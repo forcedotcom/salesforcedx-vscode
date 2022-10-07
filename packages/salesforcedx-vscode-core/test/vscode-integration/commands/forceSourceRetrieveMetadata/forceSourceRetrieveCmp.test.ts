@@ -5,8 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   LocalComponent
@@ -24,7 +29,7 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
 import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
@@ -32,8 +37,8 @@ import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
 import { workspaceUtils } from '../../../../src/util';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 class TestDescriber implements RetrieveDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
@@ -58,14 +63,11 @@ describe('Force Source Retrieve Component(s)', () => {
     let retrieveStub: SinonStub;
 
     beforeEach(async () => {
+      stubContext($$);
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
+      mockConnection = await testData.getConnection();
       sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').returns(
@@ -88,8 +90,7 @@ describe('Force Source Retrieve Component(s)', () => {
     });
 
     afterEach(() => {
-      $$.SANDBOX.restore();
-      sb.restore();
+      restoreContext($$);
     });
 
     it('should retrieve with given components', async () => {

@@ -4,8 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
 import {
   ConfigUtil,
   ContinueResponse,
@@ -30,7 +35,7 @@ import {
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
+import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
@@ -48,8 +53,8 @@ import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
@@ -60,21 +65,20 @@ describe('Base Deploy Retrieve Commands', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    mockConnection = await testData.getConnection();
     sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
     getOrgApiVersionStub = sb
       .stub(OrgAuthInfo, 'getOrgApiVersion')
       .resolves(dummyOrgApiVersion);
   });
 
-  afterEach(() => sb.restore());
+  afterEach(() => {
+    restoreContext($$);
+  });
 
   describe('DeployRetrieveCommand', () => {
     class TestDeployRetrieve extends DeployRetrieveExecutor<{}> {
