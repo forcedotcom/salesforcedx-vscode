@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { getRootWorkspacePath } from '..';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -62,3 +64,24 @@ export function fileExtensionsMatch(sourceUri: vscode.Uri, targetExtension: stri
   const extension = sourceUri.path.split('.').pop()?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 }
+
+function getSfdxDirectoryPath(): string {
+  return path.join(
+    getRootWorkspacePath(),
+    Global.SFDX_STATE_FOLDER
+  );
+}
+
+function getMetadataDirectoryPath(username: string): string {
+  return path.join(
+    getSfdxDirectoryPath(),
+    'orgs',
+    username,
+    'metadata'
+  );
+}
+
+export const projectPaths = {
+  getSfdxDirectoryPath,
+  getMetadataDirectoryPath
+};
