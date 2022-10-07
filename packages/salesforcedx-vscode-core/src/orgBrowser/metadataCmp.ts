@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { isNullOrUndefined, projectPath, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { isNullOrUndefined, projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce/api/metadata';
@@ -43,7 +43,7 @@ export class ComponentUtils {
       folderName ? `${metadataType}_${folderName}` : metadataType
     }.json`;
     const componentsPath = path.join(
-      projectPath.getMetadataDirectoryPath(username),
+      projectPaths.getMetadataDirectoryPath(username),
       fileName
     );
     return componentsPath;

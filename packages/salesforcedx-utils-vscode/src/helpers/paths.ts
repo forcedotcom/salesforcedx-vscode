@@ -81,7 +81,7 @@ function getMetadataDirectoryPath(username: string): string {
   );
 }
 
-export const projectPath = {
+export const projectPaths = {
   getSfdxDirectoryPath,
   getMetadataDirectoryPath
 };

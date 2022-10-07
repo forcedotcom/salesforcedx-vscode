@@ -10,7 +10,7 @@ export {
   fileExtensionsMatch,
   getTestResultsFolder,
   getRelativeProjectPath,
-  projectPath
+  projectPaths
 } from './paths';
 export { TraceFlags } from './traceFlags';
 export { TraceFlagsRemover } from './traceFlagsRemover';
