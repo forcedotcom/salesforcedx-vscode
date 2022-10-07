@@ -6,17 +6,10 @@
  */
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
-import { Global } from '@salesforce/core';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { join, sep } from 'path';
-import {
-  Range,
-  TextDocument,
-  TextEditor,
-  TextLine,
-  window,
-  workspace
-} from 'vscode';
+import { Range, TextDocument, TextEditor, TextLine, window } from 'vscode';
 import { nls } from '../messages';
 import {
   coveredLinesDecorationType,
@@ -24,13 +17,7 @@ import {
 } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-const apexDirPath = join(
-  workspace!.workspaceFolders![0].uri.fsPath,
-  Global.STATE_FOLDER,
-  'tools',
-  'testresults',
-  'apex'
-);
+export const apexDirPath = projectPaths.getApexDirPath();
 
 export function getLineRange(
   document: TextDocument,

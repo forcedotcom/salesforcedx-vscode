@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode/src';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -101,19 +101,14 @@ export function setupDB(): void {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    const dbPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      Global.STATE_FOLDER,
-      'tools',
-      'apex.db'
-    );
-    if (fs.existsSync(dbPath)) {
+    const dbPath = projectPaths.getApexLanguageServerDatabasePath();
+    if (dbPath && fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
     }
 
     try {
       const systemDb = path.join(__dirname, '..', '..', 'resources', 'apex.db');
-      if (fs.existsSync(systemDb)) {
+      if (dbPath && fs.existsSync(systemDb)) {
         fs.copyFileSync(systemDb, dbPath);
       }
     } catch (e) {

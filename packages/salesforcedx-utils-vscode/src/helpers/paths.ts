@@ -9,6 +9,7 @@ import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { workspace } from 'vscode';
 import { getRootWorkspacePath } from '..';
 
 export function ensureDirectoryExists(filePath: string): void {
@@ -60,28 +61,52 @@ export function getRelativeProjectPath(
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 }
 
-export function fileExtensionsMatch(sourceUri: vscode.Uri, targetExtension: string): boolean {
-  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
+export function fileExtensionsMatch(
+  sourceUri: vscode.Uri,
+  targetExtension: string
+): boolean {
+  const extension = sourceUri.path
+    .split('.')
+    .pop()
+    ?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 }
 
 function getSfdxDirectoryPath(): string {
-  return path.join(
-    getRootWorkspacePath(),
-    Global.SFDX_STATE_FOLDER
-  );
+  return path.join(getRootWorkspacePath(), Global.SFDX_STATE_FOLDER);
 }
 
 function getMetadataDirectoryPath(username: string): string {
-  return path.join(
-    getSfdxDirectoryPath(),
-    'orgs',
-    username,
-    'metadata'
+  return path.join(getSfdxDirectoryPath(), 'orgs', username, 'metadata');
+}
+
+function getApexDirPath(): string {
+  const apexDirPath = path.join(
+    workspace!.workspaceFolders![0].uri.fsPath,
+    Global.STATE_FOLDER,
+    'tools',
+    'testresults',
+    'apex'
   );
+  return apexDirPath;
+}
+
+function getApexLanguageServerDatabasePath(): string | undefined {
+  if (!vscode.workspace.workspaceFolders) {
+    return undefined;
+  }
+  const dbPath = path.join(
+    vscode.workspace.workspaceFolders[0].uri.fsPath,
+    Global.STATE_FOLDER,
+    'tools',
+    'apex.db'
+  );
+  return dbPath;
 }
 
 export const projectPaths = {
   getSfdxDirectoryPath,
-  getMetadataDirectoryPath
+  getMetadataDirectoryPath,
+  getApexDirPath,
+  getApexLanguageServerDatabasePath
 };
