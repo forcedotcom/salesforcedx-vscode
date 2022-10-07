@@ -6,7 +6,6 @@
  */
 import { Connection } from '@salesforce/core';
 import {
-  ConfigAggregatorProvider,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
