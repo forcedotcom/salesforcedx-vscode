@@ -15,7 +15,7 @@ import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/reg
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as path from 'path';
-import { createSandbox, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import { isNullOrUndefined } from 'util';
 import { workspaceContext } from '../../../src/context';
 import { ComponentUtils } from '../../../src/orgBrowser';
