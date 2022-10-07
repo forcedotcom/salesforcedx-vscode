@@ -6,7 +6,12 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -17,9 +22,15 @@ import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 describe('Force Source Deploy Using Manifest Option', () => {
+  beforeEach(() => {
+    stubContext($$);
+  });
+  afterEach(() => {
+    restoreContext($$);
+  });
   describe('Library Executor', () => {
     const manifestPath = 'package.xml';
     const packageDirs = ['p1', 'p2'];
@@ -39,11 +50,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
+      mockConnection = await testData.getConnection();
       env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
 
       env
