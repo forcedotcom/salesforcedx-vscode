@@ -1,6 +1,6 @@
 import { CommandOutput } from '../../../src';
 
-describe('CommandOuput Unit Tests.', () => {
+describe('CommandOutput Unit Tests.', () => {
   const goodOutput = 'its gooooooood';
   const badOutput = 'all baaaaaaad';
   const successCode = '0';
@@ -9,7 +9,7 @@ describe('CommandOuput Unit Tests.', () => {
   let commandOutput: CommandOutput;
   let result: Promise<string>;
 
-  // It's a pain to unit test Obserables.  Open to exploring other options.
+  // It's a pain to unit test Observables.  Open to exploring other options.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let fakeExecution: any;
   beforeEach(() => {

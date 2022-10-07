@@ -14,7 +14,7 @@ describe('Command unit tests.', () => {
     expect(command.logName).toBeUndefined();
   });
 
-  it('Should be abled to pass a fully built builder.', () => {
+  it('Should be able to pass a fully built builder.', () => {
     const commandBuilderInst = new CommandBuilder(testCommand)
       .withDescription('test description')
       .withArg('immaArg')
@@ -38,7 +38,7 @@ describe('Command unit tests.', () => {
     expect(command.toString()).toEqual(testDescription);
   });
 
-  it('Should construct string if no descirption provided.', () => {
+  it('Should construct string if no description provided.', () => {
     const commandBuilderInst = new CommandBuilder(testCommand)
       .withArg('immaArg')
       .withFlag('--silent', 'quiet')

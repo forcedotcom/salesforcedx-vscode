@@ -1,7 +1,5 @@
-import {
-  SfdxCommandBuilder,
-  SFDX_COMMAND
-} from '../../../src/cli/sfdxCommandBuilder';
+import { SfdxCommandBuilder } from '../../../src/cli/sfdxCommandBuilder';
+import { SFDX_COMMAND } from '../../../src/constants';
 
 describe('sfdxCommandBuilder unit tests.', () => {
   it('Should default to sfdx command.', () => {
