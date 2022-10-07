@@ -8,7 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { AuthUtil } from '..';
+import { AuthUtil, ConfigAggregatorProvider } from '..';
 import { nls } from '../messages';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
@@ -92,6 +92,7 @@ export class WorkspaceContextUtil {
   }
 
   protected async handleCliConfigChange() {
+    await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
     const usernameOrAlias = await this.getAuthUtil().getDefaultUsernameOrAlias(
       false
     );
