@@ -20,7 +20,10 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  projectPaths,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
@@ -256,7 +259,7 @@ function getDialogStartingPath(): vscode.Uri | undefined {
     }
     // If all else fails, fallback to the .sfdx directory in the workspace
     return vscode.Uri.file(
-      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, Global.STATE_FOLDER)
+      projectPaths.stateFolder(vscode.workspace.workspaceFolders[0].uri.fsPath)
     );
   }
 }
