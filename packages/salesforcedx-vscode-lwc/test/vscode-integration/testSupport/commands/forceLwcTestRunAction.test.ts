@@ -1,4 +1,3 @@
-import { projectPaths } from './../../../../../salesforcedx-utils-vscode/src/helpers/paths';
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
