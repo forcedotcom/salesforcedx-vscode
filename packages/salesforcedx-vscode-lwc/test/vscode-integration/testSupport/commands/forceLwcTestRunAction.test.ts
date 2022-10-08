@@ -1,3 +1,4 @@
+import { projectPaths } from './../../../../../salesforcedx-utils-vscode/src/helpers/paths';
 /*
  * Copyright (c) 2019, salesforce.com, inc.
  * All rights reserved.
@@ -27,7 +28,6 @@ import {
   unmockTestResultWatcher
 } from '../mocks';
 import { InputBuffer } from 'uuid/interfaces';
-import { Global } from '@salesforce/core';
 
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
@@ -126,11 +126,7 @@ describe('Force LWC Test Run - Code Action', () => {
             '--json',
             '--outputFile',
             path.join(
-              expectedCwd,
-              Global.STATE_FOLDER,
-              'tools',
-              'testresults',
-              'lwc',
+              projectPaths.lwcTestResults(expectedCwd),
               `test-result-${mockUuid}.json`
             ),
             '--testLocationInResults',

@@ -98,6 +98,31 @@ function apexTestResults(): string {
 
 function apexLanguageServerDatabase(): string | undefined {
   if (!hasRootWorkspace()) {
+function lwcTestResults(expectedCwd: string): string {
+  // todo: should this use getRootWorkspacePath instead?
+  const apexDirPath = path.join(
+    expectedCwd,
+    Global.STATE_FOLDER,
+    'tools',
+    'testresults',
+    'lwc'
+  );
+  return apexDirPath;
+}
+
+function testResults(vscodePath: string): string {
+  // todo: should this use getRootWorkspacePath instead?
+  const testResultsDirPath = path.join(
+    vscodePath,
+    Global.STATE_FOLDER,
+    'tools',
+    'testresults'
+  );
+  return testResultsDirPath;
+}
+
+function getApexLanguageServerDatabasePath(): string | undefined {
+  if (!vscode.workspace.workspaceFolders) {
     return undefined;
   }
   const apexLangServerDbPath = path.join(stateFolder(), 'tools', 'apex.db');
@@ -112,7 +137,12 @@ function debugLogs(): string | undefined {
 export const projectPaths = {
   stateFolder,
   metadataDirectory,
+  getSfdxDirectoryPath,
+  getMetadataDirectoryPath,
+  testResults,
   apexTestResults,
   apexLanguageServerDatabase,
   debugLogs
+  lwcTestResults,
+  getApexLanguageServerDatabasePath
 };
