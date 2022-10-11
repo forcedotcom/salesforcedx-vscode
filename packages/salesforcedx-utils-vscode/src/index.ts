@@ -45,7 +45,6 @@ export {
   hasRootWorkspace,
   getRootWorkspace,
   getRootWorkspacePath,
-  getRootWorkspaceSfdxPath,
   workspaceUtils
 } from './workspaces';
 export * from './cli';

@@ -87,7 +87,7 @@ describe('get metadata components path', () => {
     );
     getMetadataDirectoryPathStub = stub(
       projectPaths,
-      'getMetadataDirectoryPath'
+      'metadataDirectory'
     ).returns(metadataDirectoryPath);
   });
   afterEach(() => {

@@ -23,7 +23,3 @@ export function getRootWorkspace(): WorkspaceFolder {
 export function getRootWorkspacePath(): string {
   return getRootWorkspace().uri ? getRootWorkspace().uri.fsPath : '';
 }
-
-export function getRootWorkspaceSfdxPath(): string {
-  return hasRootWorkspace() ? join(getRootWorkspacePath(), SFDX_FOLDER) : '';
-}

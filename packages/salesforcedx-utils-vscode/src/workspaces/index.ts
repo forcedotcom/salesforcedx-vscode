@@ -8,8 +8,7 @@
 export {
   hasRootWorkspace,
   getRootWorkspace,
-  getRootWorkspacePath,
-  getRootWorkspaceSfdxPath
+  getRootWorkspacePath
 } from './rootWorkspace';
 
 export { workspaceUtils } from './workspaceUtils';

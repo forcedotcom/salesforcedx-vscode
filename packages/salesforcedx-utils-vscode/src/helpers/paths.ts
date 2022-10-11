@@ -9,8 +9,11 @@ import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { workspace } from 'vscode';
-import { getRootWorkspacePath } from '..';
+import {
+  getRootWorkspacePath,
+  hasRootWorkspace,
+  WorkspaceContextUtil
+} from '..';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -20,14 +23,9 @@ export function ensureDirectoryExists(filePath: string): void {
   fs.mkdirSync(filePath);
 }
 
+// todo: remove vscodePath arg
 export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const dirPath = path.join(
-    vscodePath,
-    '.sfdx',
-    'tools',
-    'testresults',
-    testType
-  );
+  const dirPath = path.join(stateFolder(), 'tools', 'testresults', testType);
 
   ensureDirectoryExists(dirPath);
   return dirPath;
@@ -72,41 +70,44 @@ export function fileExtensionsMatch(
   return extension === targetExtension.toLowerCase();
 }
 
-function getSfdxDirectoryPath(): string {
-  return path.join(getRootWorkspacePath(), Global.SFDX_STATE_FOLDER);
+function stateFolder(): string {
+  return hasRootWorkspace()
+    ? path.join(getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
+    : '';
 }
 
-function getMetadataDirectoryPath(username: string): string {
-  return path.join(getSfdxDirectoryPath(), 'orgs', username, 'metadata');
+async function metadataDirectory(): Promise<string> {
+  const username = await WorkspaceContextUtil.getInstance().username;
+  return path.join(stateFolder(), 'orgs', String(username), 'metadata');
 }
 
 function apexTestResults(): string {
-  const apexDirPath = path.join(
-    workspace!.workspaceFolders![0].uri.fsPath,
-    Global.STATE_FOLDER,
+  const apexTestResultsFolder = path.join(
+    stateFolder(),
     'tools',
     'testresults',
     'apex'
   );
-  return apexDirPath;
+  return apexTestResultsFolder;
 }
 
-function getApexLanguageServerDatabasePath(): string | undefined {
-  if (!vscode.workspace.workspaceFolders) {
+function apexLanguageServerDatabase(): string | undefined {
+  if (!hasRootWorkspace()) {
     return undefined;
   }
-  const dbPath = path.join(
-    vscode.workspace.workspaceFolders[0].uri.fsPath,
-    Global.STATE_FOLDER,
-    'tools',
-    'apex.db'
-  );
-  return dbPath;
+  const apexLangServerDbPath = path.join(stateFolder(), 'tools', 'apex.db');
+  return apexLangServerDbPath;
+}
+
+function debugLogs(): string | undefined {
+  const logsDirectory = path.join(stateFolder(), 'tools', 'debug', 'logs');
+  return logsDirectory;
 }
 
 export const projectPaths = {
-  getSfdxDirectoryPath,
-  getMetadataDirectoryPath,
+  stateFolder,
+  metadataDirectory,
   apexTestResults,
-  getApexLanguageServerDatabasePath
+  apexLanguageServerDatabase,
+  debugLogs
 };

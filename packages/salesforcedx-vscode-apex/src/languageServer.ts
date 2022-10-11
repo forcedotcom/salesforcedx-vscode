@@ -101,7 +101,7 @@ export function setupDB(): void {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    const dbPath = projectPaths.getApexLanguageServerDatabasePath();
+    const dbPath = projectPaths.apexLanguageServerDatabase();
     if (dbPath && fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
     }
