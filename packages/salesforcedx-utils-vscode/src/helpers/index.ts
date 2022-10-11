@@ -8,7 +8,6 @@
 export {
   ensureDirectoryExists,
   fileExtensionsMatch,
-  getTestResultsFolder,
   getRelativeProjectPath,
   projectPaths
 } from './paths';
