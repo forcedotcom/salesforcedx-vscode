@@ -111,9 +111,9 @@ describe('get metadata components path', () => {
   it('should return the path for a given folder', async () => {
     const metadataType = 'Report';
     const folder = 'TestFolder';
-    expect(
-      await cmpUtil.getComponentsPath(metadataType, alias, folder)
-    ).to.equal(expectedPath(metadataType + '_' + folder));
+    expect(await cmpUtil.getComponentsPath(metadataType, folder)).to.equal(
+      expectedPath(metadataType + '_' + folder)
+    );
     expect(getMetadataDirectoryPathStub.called).to.equal(true);
     expect(getMetadataDirectoryPathStub.calledWith(username)).to.equal(true);
   });

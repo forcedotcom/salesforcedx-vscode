@@ -17,7 +17,6 @@ import * as path from 'path';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo } from '../util';
 
 const validManageableStates = new Set([
   'unmanaged',
@@ -151,6 +150,7 @@ export class ComponentUtils {
     return jsonResult;
   }
 
+  // todo: remove defaultOrg (default username) arg
   public async loadComponents(
     defaultOrg: string,
     metadataType: string,
@@ -159,7 +159,6 @@ export class ComponentUtils {
   ): Promise<string[]> {
     const componentsPath = await this.getComponentsPath(
       metadataType,
-      defaultOrg,
       folderName
     );
     let componentsList: string[];
