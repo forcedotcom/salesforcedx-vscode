@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Connection } from '@salesforce/core';
-import { isNullOrUndefined, projectPaths, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  isNullOrUndefined,
+  projectPaths,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve/lib/src/registry';
 import * as fs from 'fs';
 import { ListMetadataQuery } from 'jsforce/api/metadata';
@@ -29,7 +33,6 @@ export const CUSTOMOBJECTS_FULLNAME = 'CustomObject';
 export class ComponentUtils {
   public async getComponentsPath(
     metadataType: string,
-    defaultUsernameOrAlias: string,
     folderName?: string
   ): Promise<string> {
     if (!workspaceUtils.hasRootWorkspace()) {
@@ -38,12 +41,11 @@ export class ComponentUtils {
       throw new Error(err);
     }
 
-    const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
     const fileName = `${
       folderName ? `${metadataType}_${folderName}` : metadataType
     }.json`;
     const componentsPath = path.join(
-      projectPaths.getMetadataDirectoryPath(username),
+      await projectPaths.metadataDirectory(),
       fileName
     );
     return componentsPath;
