@@ -83,10 +83,7 @@ function apexTestResults(): string {
   return apexTestResultsFolder;
 }
 
-function getTestResultsFolder(
-  vscodePath: string,
-  testType: string
-): string | undefined {
+export function getTestResultsFolder(vscodePath: string, testType: string) {
   const testResultsFolder = path.join(
     vscodePath,
     Global.STATE_FOLDER,
@@ -117,6 +114,5 @@ export const projectPaths = {
   metadataDirectory,
   apexTestResults,
   apexLanguageServerDatabase,
-  debugLogs,
-  getTestResultsFolder
+  debugLogs
 };

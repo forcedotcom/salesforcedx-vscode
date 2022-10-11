@@ -12,7 +12,7 @@ import { createSandbox, SinonStub } from 'sinon';
 import {
   ensureDirectoryExists,
   getRelativeProjectPath,
-  projectPaths
+  getTestResultsFolder
 } from '../../../src/helpers';
 
 const sb = createSandbox();
@@ -56,7 +56,7 @@ describe('paths utils', () => {
       const dirPath = path.join('path', 'to', 'testresults');
       existsStub.returns(true);
 
-      const result = projectPaths.getTestResultsFolder(dirPath, 'apex');
+      const result = getTestResultsFolder(dirPath, 'apex');
 
       expect(existsStub.called).to.equal(true);
       expect(result).to.equal(
