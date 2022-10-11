@@ -25,7 +25,13 @@ export function ensureDirectoryExists(filePath: string): void {
 
 // todo: remove vscodePath arg
 export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const dirPath = path.join(stateFolder(), 'tools', 'testresults', testType);
+  const dirPath = path.join(
+    vscodePath,
+    '.sfdx',
+    'tools',
+    'testresults',
+    testType
+  );
 
   ensureDirectoryExists(dirPath);
   return dirPath;
