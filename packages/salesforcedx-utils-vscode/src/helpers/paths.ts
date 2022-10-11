@@ -23,20 +23,6 @@ export function ensureDirectoryExists(filePath: string): void {
   fs.mkdirSync(filePath);
 }
 
-// todo: remove vscodePath arg
-export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const dirPath = path.join(
-    vscodePath,
-    '.sfdx',
-    'tools',
-    'testresults',
-    testType
-  );
-
-  ensureDirectoryExists(dirPath);
-  return dirPath;
-}
-
 /**
  * Creates a project relative path version of an absolute path.
  *
@@ -97,6 +83,22 @@ function apexTestResults(): string {
   return apexTestResultsFolder;
 }
 
+function testResultsFor(
+  vscodePath: string,
+  testType: string
+): string | undefined {
+  const testResultsFolder = path.join(
+    vscodePath,
+    Global.STATE_FOLDER,
+    'tools',
+    'testresults',
+    testType
+  );
+
+  ensureDirectoryExists(testResultsFolder);
+  return testResultsFolder;
+}
+
 function apexLanguageServerDatabase(): string | undefined {
   if (!hasRootWorkspace()) {
     return undefined;
@@ -115,5 +117,6 @@ export const projectPaths = {
   metadataDirectory,
   apexTestResults,
   apexLanguageServerDatabase,
-  debugLogs
+  debugLogs,
+  testResultsFor
 };
