@@ -56,7 +56,7 @@ describe('paths utils', () => {
       const dirPath = path.join('path', 'to', 'testresults');
       existsStub.returns(true);
 
-      const result = projectPaths.testResultsFor(dirPath, 'apex');
+      const result = projectPaths.getTestResultsFolder(dirPath, 'apex');
 
       expect(existsStub.called).to.equal(true);
       expect(result).to.equal(

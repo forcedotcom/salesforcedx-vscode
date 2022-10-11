@@ -83,7 +83,7 @@ function apexTestResults(): string {
   return apexTestResultsFolder;
 }
 
-function testResultsFor(
+function getTestResultsFolder(
   vscodePath: string,
   testType: string
 ): string | undefined {
@@ -118,5 +118,5 @@ export const projectPaths = {
   apexTestResults,
   apexLanguageServerDatabase,
   debugLogs,
-  testResultsFor
+  getTestResultsFolder
 };
