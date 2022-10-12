@@ -23,6 +23,19 @@ export function ensureDirectoryExists(filePath: string): void {
   fs.mkdirSync(filePath);
 }
 
+export function getTestResultsFolder(vscodePath: string, testType: string) {
+  const testResultsFolder = path.join(
+    vscodePath,
+    Global.STATE_FOLDER,
+    'tools',
+    'testresults',
+    testType
+  );
+
+  ensureDirectoryExists(testResultsFolder);
+  return testResultsFolder;
+}
+
 /**
  * Creates a project relative path version of an absolute path.
  *
@@ -81,19 +94,6 @@ function apexTestResults(): string {
     'apex'
   );
   return apexTestResultsFolder;
-}
-
-export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const testResultsFolder = path.join(
-    vscodePath,
-    Global.STATE_FOLDER,
-    'tools',
-    'testresults',
-    testType
-  );
-
-  ensureDirectoryExists(testResultsFolder);
-  return testResultsFolder;
 }
 
 function apexLanguageServerDatabase(): string | undefined {
