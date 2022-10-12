@@ -257,9 +257,7 @@ function getDialogStartingPath(): vscode.Uri | undefined {
       return vscode.Uri.file(sfdxCommandLogDir);
     }
     // If all else fails, fallback to the .sfdx directory in the workspace
-    return vscode.Uri.file(
-      projectPaths.stateFolder(vscode.workspace.workspaceFolders[0].uri.fsPath)
-    );
+    return vscode.Uri.file(projectPaths.stateFolder());
   }
 }
 
