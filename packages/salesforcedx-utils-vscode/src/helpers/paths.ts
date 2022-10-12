@@ -69,7 +69,7 @@ function stateFolder(): string {
 }
 
 async function metadataDirectory(): Promise<string> {
-  const username = await WorkspaceContextUtil.getInstance().username;
+  const username = WorkspaceContextUtil.getInstance().username;
   return path.join(stateFolder(), 'orgs', String(username), 'metadata');
 }
 
