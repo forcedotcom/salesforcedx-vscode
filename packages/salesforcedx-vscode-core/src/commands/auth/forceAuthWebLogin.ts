@@ -118,7 +118,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
       const userCode = response.user_code;
 
       if (verificationUrl && userCode) {
-        authUrl = `${verificationUrl}?user_code=${userCode}`;
+        authUrl = `${verificationUrl}?user_code=${userCode}&prompt=login`;
         this.logToOutputChannel(userCode, verificationUrl);
       }
     } catch (error) {
