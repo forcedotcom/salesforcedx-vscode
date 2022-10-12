@@ -316,6 +316,7 @@ describe('Force Auth Device Login', () => {
     expect(targetUrl).to.contain(testResponse.verification_uri);
     expect(targetUrl).to.contain(testResponse.user_code);
     expect(targetUrl).to.contain('user_code');
+    expect(targetUrl).to.contain('prompt%3Dlogin');
   });
 
   it('should handle partial data from CLI stdOut', () => {
