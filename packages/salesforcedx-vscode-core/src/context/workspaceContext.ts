@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
 import { Connection } from '@salesforce/core';
 import {
-  ConfigAggregatorProvider,
   OrgUserInfo,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -46,7 +46,6 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-    await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
   }
 
   get username(): string | undefined {
