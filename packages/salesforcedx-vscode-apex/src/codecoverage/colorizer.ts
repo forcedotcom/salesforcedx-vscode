@@ -17,7 +17,7 @@ import {
 } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
 
-export const apexDirPath = projectPaths.apexTestResults();
+export const apexTestResultsFolder = projectPaths.apexTestResults();
 
 export function getLineRange(
   document: TextDocument,
@@ -54,7 +54,7 @@ export type CoverageItem = {
 };
 
 function getTestRunId(): string {
-  const testRunIdFile = join(apexDirPath, 'test-run-id.txt');
+  const testRunIdFile = join(apexTestResultsFolder, 'test-run-id.txt');
   if (!fs.existsSync(testRunIdFile)) {
     throw new Error(nls.localize('colorizer_no_code_coverage_on_project'));
   }
@@ -63,7 +63,10 @@ function getTestRunId(): string {
 
 function getCoverageData(): CoverageItem[] | CodeCoverageResult[] {
   const testRunId = getTestRunId();
-  const testResultFilePath = join(apexDirPath, `test-result-${testRunId}.json`);
+  const testResultFilePath = join(
+    apexTestResultsFolder,
+    `test-result-${testRunId}.json`
+  );
 
   if (!fs.existsSync(testResultFilePath)) {
     throw new Error(
