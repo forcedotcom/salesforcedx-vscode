@@ -8,8 +8,8 @@
 export {
   ensureDirectoryExists,
   fileExtensionsMatch,
-  getRelativeProjectPath,
   getTestResultsFolder,
+  getRelativeProjectPath,
   projectPaths
 } from './paths';
 export { TraceFlags } from './traceFlags';
