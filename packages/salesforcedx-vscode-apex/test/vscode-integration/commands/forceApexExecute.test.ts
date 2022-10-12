@@ -5,17 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExecuteService } from '@salesforce/apex-node';
-import {
-  AuthInfo,
-  ConfigAggregator,
-  Connection,
-  Global
-} from '@salesforce/core';
+import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import {
   ChannelService,
   ContinueResponse,
-  getRootWorkspacePath,
+  projectPaths,
   SFDX_CORE_CONFIGURATION_NAME,
   TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -90,8 +85,7 @@ describe('Force Apex Execute', () => {
   describe('AnonApexGatherer', async () => {
     it('should return the selected file to execute anonymous apex', async () => {
       const fileName = path.join(
-        getRootWorkspacePath(),
-        Global.STATE_FOLDER,
+        projectPaths.stateFolder(),
         'tools',
         'tempApex.input'
       );
@@ -117,8 +111,7 @@ describe('Force Apex Execute', () => {
     it('should return the text in file if file has not been created yet', async () => {
       const text = 'System.assert(true);';
       const fileName = path.join(
-        getRootWorkspacePath(),
-        Global.STATE_FOLDER,
+        projectPaths.stateFolder(),
         'tools',
         'tempApex.input'
       );
