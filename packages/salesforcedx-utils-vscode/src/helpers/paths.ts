@@ -114,7 +114,7 @@ function apexTestResultsFolder(): string {
 
 function apexLanguageServerDatabase(): string {
   if (!hasRootWorkspace()) {
-    throw new Error(nls.localize('error_no_root_workspace_found'));
+    throw new Error(nls.localize('cannot_determine_workspace'));
   }
   const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
   return pathToApexLangServerDb;
@@ -122,8 +122,11 @@ function apexLanguageServerDatabase(): string {
 
 function lwcTestResultsFolder(expectedCwd: string): string {
   // todo: should this use getRootWorkspacePath instead?
-  const apexDirPath = path.join(testResultsFolder(expectedCwd), LWC);
-  return apexDirPath;
+  const pathToLwcTestResultsFolder = path.join(
+    testResultsFolder(expectedCwd),
+    LWC
+  );
+  return pathToLwcTestResultsFolder;
 }
 
 function testResultsFolder(vscodePath: string): string {
