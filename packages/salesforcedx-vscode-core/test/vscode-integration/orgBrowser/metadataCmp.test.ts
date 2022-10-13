@@ -87,7 +87,7 @@ describe('get metadata components path', () => {
     getUsernameStub = stub(WorkspaceContextUtil.prototype, 'username').returns(
       'test-username1@example.com'
     );
-    metadataFolderStub = stub(projectPaths, 'metadataDirectory').returns(
+    metadataFolderStub = stub(projectPaths, 'metadataFolder').returns(
       metadataDirectoryPath
     );
   });
@@ -102,8 +102,9 @@ describe('get metadata components path', () => {
 
   it('should return the path for a given username and metadata type', async () => {
     const metadataType = 'ApexClass';
+    const expectedPathToApexClassFolder = expectedPath(metadataType);
     expect(await cmpUtil.getComponentsPath(metadataType)).to.equal(
-      expectedPath(metadataType)
+      expectedPathToApexClassFolder
     );
     expect(metadataFolderStub.called).to.equal(true);
     expect(metadataFolderStub.calledWith(username)).to.equal(false);
@@ -112,9 +113,13 @@ describe('get metadata components path', () => {
   it('should return the path for a given folder', async () => {
     const metadataType = 'Report';
     const folder = 'TestFolder';
-    expect(await cmpUtil.getComponentsPath(metadataType, folder)).to.equal(
-      expectedPath(metadataType + '_' + folder)
+    const compPath = await cmpUtil.getComponentsPath(metadataType, folder);
+
+    const expectedPathToReportsFolder = expectedPath(
+      metadataType + '_' + folder
     );
+
+    expect(compPath).to.equal(expectedPathToReportsFolder);
     expect(metadataFolderStub.called).to.equal(true);
     expect(metadataFolderStub.calledWith(username)).to.equal(false);
   });
