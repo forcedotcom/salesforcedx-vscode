@@ -24,6 +24,7 @@ const APEX = 'apex';
 const DEBUG = 'debug';
 const LOGS = 'logs';
 const APEX_DB = 'apex.db';
+const LWC = 'lwc';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -119,35 +120,21 @@ function apexLanguageServerDatabase(): string {
   return pathToApexLangServerDb;
 }
 
-function lwcTestResults(expectedCwd: string): string {
+function lwcTestResultsFolder(expectedCwd: string): string {
   // todo: should this use getRootWorkspacePath instead?
-  const apexDirPath = path.join(
-    expectedCwd,
-    Global.STATE_FOLDER,
-    'tools',
-    'testresults',
-    'lwc'
-  );
+  const apexDirPath = path.join(testResultsFolder(expectedCwd), LWC);
   return apexDirPath;
 }
 
-function testResults(vscodePath: string): string {
+function testResultsFolder(vscodePath: string): string {
   // todo: should this use getRootWorkspacePath instead?
-  const testResultsDirPath = path.join(
+  const pathToTestResultsFolder = path.join(
     vscodePath,
     Global.STATE_FOLDER,
-    'tools',
-    'testresults'
+    TOOLS,
+    TEST_RESULTS
   );
-  return testResultsDirPath;
-}
-
-function getApexLanguageServerDatabasePath(): string | undefined {
-  if (!vscode.workspace.workspaceFolders) {
-    return undefined;
-  }
-  const apexLangServerDbPath = path.join(stateFolder(), 'tools', 'apex.db');
-  return apexLangServerDbPath;
+  return pathToTestResultsFolder;
 }
 
 function debugLogsFolder(): string {
@@ -163,10 +150,10 @@ function toolsFolder(): string {
 export const projectPaths = {
   stateFolder,
   metadataFolder,
-  testResults,
+  testResultsFolder,
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
   toolsFolder,
-  lwcTestResults
+  lwcTestResultsFolder
 };
