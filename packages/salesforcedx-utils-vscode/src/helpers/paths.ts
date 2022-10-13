@@ -33,7 +33,7 @@ export function ensureDirectoryExists(filePath: string): void {
 }
 
 export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const testResultsFolder = path.join(
+  const pathToTestResultsFolder = path.join(
     vscodePath,
     Global.STATE_FOLDER,
     TOOLS,
@@ -41,8 +41,8 @@ export function getTestResultsFolder(vscodePath: string, testType: string) {
     testType
   );
 
-  ensureDirectoryExists(testResultsFolder);
-  return testResultsFolder;
+  ensureDirectoryExists(pathToTestResultsFolder);
+  return pathToTestResultsFolder;
 }
 
 /**
@@ -92,7 +92,13 @@ function stateFolder(): string {
 
 async function metadataFolder(): Promise<string> {
   const username = WorkspaceContextUtil.getInstance().username;
-  return path.join(stateFolder(), ORGS, String(username), METADATA);
+  const pathToMetadataFolder = path.join(
+    stateFolder(),
+    ORGS,
+    String(username),
+    METADATA
+  );
+  return pathToMetadataFolder;
 }
 
 function apexTestResultsFolder(): string {
@@ -114,8 +120,8 @@ function apexLanguageServerDatabase(): string | undefined {
 }
 
 function debugLogsFolder(): string | undefined {
-  const logsDirectory = path.join(stateFolder(), TOOLS, DEBUG, LOGS);
-  return logsDirectory;
+  const pathToDebugLogsFolder = path.join(stateFolder(), TOOLS, DEBUG, LOGS);
+  return pathToDebugLogsFolder;
 }
 
 export const projectPaths = {
