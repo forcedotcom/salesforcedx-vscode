@@ -103,8 +103,7 @@ async function metadataFolder(): Promise<string> {
 
 function apexTestResultsFolder(): string {
   const pathToApexTestResultsFolder = path.join(
-    stateFolder(),
-    TOOLS,
+    toolsFolder(),
     TEST_RESULTS,
     APEX
   );
@@ -115,13 +114,18 @@ function apexLanguageServerDatabase(): string | undefined {
   if (!hasRootWorkspace()) {
     return undefined;
   }
-  const pathToApexLangServerDb = path.join(stateFolder(), TOOLS, APEX_DB);
+  const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
   return pathToApexLangServerDb;
 }
 
-function debugLogsFolder(): string | undefined {
-  const pathToDebugLogsFolder = path.join(stateFolder(), TOOLS, DEBUG, LOGS);
+function debugLogsFolder(): string {
+  const pathToDebugLogsFolder = path.join(toolsFolder(), DEBUG, LOGS);
   return pathToDebugLogsFolder;
+}
+
+function toolsFolder(): string {
+  const pathToToolsFolder = path.join(stateFolder(), TOOLS);
+  return pathToToolsFolder;
 }
 
 export const projectPaths = {
@@ -129,5 +133,6 @@ export const projectPaths = {
   metadataFolder,
   apexTestResultsFolder,
   apexLanguageServerDatabase,
-  debugLogsFolder
+  debugLogsFolder,
+  toolsFolder
 };
