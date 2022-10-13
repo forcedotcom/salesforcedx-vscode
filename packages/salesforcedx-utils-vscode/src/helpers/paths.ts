@@ -14,6 +14,7 @@ import {
   hasRootWorkspace,
   WorkspaceContextUtil
 } from '..';
+import { nls } from '../messages';
 
 const ORGS = 'orgs';
 const METADATA = 'metadata';
@@ -110,9 +111,9 @@ function apexTestResultsFolder(): string {
   return pathToApexTestResultsFolder;
 }
 
-function apexLanguageServerDatabase(): string | undefined {
+function apexLanguageServerDatabase(): string {
   if (!hasRootWorkspace()) {
-    return undefined;
+    throw new Error(nls.localize('error_no_root_workspace_found'));
   }
   const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
   return pathToApexLangServerDb;
