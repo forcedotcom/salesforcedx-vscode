@@ -15,6 +15,15 @@ import {
   WorkspaceContextUtil
 } from '..';
 
+const ORGS = 'orgs';
+const METADATA = 'metadata';
+const TOOLS = 'tools';
+const TEST_RESULTS = 'testresults';
+const APEX = 'apex';
+const DEBUG = 'debug';
+const LOGS = 'logs';
+const APEX_DB = 'apex.db';
+
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
     return;
@@ -27,8 +36,8 @@ export function getTestResultsFolder(vscodePath: string, testType: string) {
   const testResultsFolder = path.join(
     vscodePath,
     Global.STATE_FOLDER,
-    'tools',
-    'testresults',
+    TOOLS,
+    TEST_RESULTS,
     testType
   );
 
@@ -81,38 +90,38 @@ function stateFolder(): string {
     : '';
 }
 
-async function metadataDirectory(): Promise<string> {
+async function metadataFolder(): Promise<string> {
   const username = WorkspaceContextUtil.getInstance().username;
-  return path.join(stateFolder(), 'orgs', String(username), 'metadata');
+  return path.join(stateFolder(), ORGS, String(username), METADATA);
 }
 
-function apexTestResults(): string {
-  const apexTestResultsFolder = path.join(
+function apexTestResultsFolder(): string {
+  const pathToApexTestResultsFolder = path.join(
     stateFolder(),
-    'tools',
-    'testresults',
-    'apex'
+    TOOLS,
+    TEST_RESULTS,
+    APEX
   );
-  return apexTestResultsFolder;
+  return pathToApexTestResultsFolder;
 }
 
 function apexLanguageServerDatabase(): string | undefined {
   if (!hasRootWorkspace()) {
     return undefined;
   }
-  const apexLangServerDbPath = path.join(stateFolder(), 'tools', 'apex.db');
-  return apexLangServerDbPath;
+  const pathToApexLangServerDb = path.join(stateFolder(), TOOLS, APEX_DB);
+  return pathToApexLangServerDb;
 }
 
 function debugLogs(): string | undefined {
-  const logsDirectory = path.join(stateFolder(), 'tools', 'debug', 'logs');
+  const logsDirectory = path.join(stateFolder(), TOOLS, DEBUG, LOGS);
   return logsDirectory;
 }
 
 export const projectPaths = {
   stateFolder,
-  metadataDirectory,
-  apexTestResults,
+  metadataFolder,
+  apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogs
 };

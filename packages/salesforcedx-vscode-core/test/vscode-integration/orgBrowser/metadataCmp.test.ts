@@ -87,7 +87,7 @@ describe('get metadata components path', () => {
     getUsernameStub = stub(WorkspaceContextUtil.prototype, 'username').returns(
       'test-username1@example.com'
     );
-    metadataFolderStub = stub(projectPaths, 'metadataDirectory').returns(
+    metadataFolderStub = stub(projectPaths, 'metadataFolder').returns(
       metadataDirectoryPath
     );
   });
