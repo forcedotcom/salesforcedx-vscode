@@ -102,13 +102,13 @@ export function setupDB(): void {
     vscode.workspace.workspaceFolders[0]
   ) {
     const dbPath = projectPaths.apexLanguageServerDatabase();
-    if (dbPath && fs.existsSync(dbPath)) {
+    if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
     }
 
     try {
       const systemDb = path.join(__dirname, '..', '..', 'resources', 'apex.db');
-      if (dbPath && fs.existsSync(systemDb)) {
+      if (fs.existsSync(systemDb)) {
         fs.copyFileSync(systemDb, dbPath);
       }
     } catch (e) {
