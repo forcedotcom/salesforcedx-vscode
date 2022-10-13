@@ -90,7 +90,7 @@ function stateFolder(): string {
     : '';
 }
 
-async function metadataFolder(): Promise<string> {
+function metadataFolder(): string {
   const username = WorkspaceContextUtil.getInstance().username;
   const pathToMetadataFolder = path.join(
     stateFolder(),
