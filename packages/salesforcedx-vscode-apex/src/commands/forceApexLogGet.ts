@@ -21,7 +21,7 @@ import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
-const LOG_DIRECTORY = projectPaths.debugLogs();
+const LOG_DIRECTORY = projectPaths.debugLogsFolder();
 
 interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;

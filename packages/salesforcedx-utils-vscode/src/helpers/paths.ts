@@ -113,7 +113,7 @@ function apexLanguageServerDatabase(): string | undefined {
   return pathToApexLangServerDb;
 }
 
-function debugLogs(): string | undefined {
+function debugLogsFolder(): string | undefined {
   const logsDirectory = path.join(stateFolder(), TOOLS, DEBUG, LOGS);
   return logsDirectory;
 }
@@ -123,5 +123,5 @@ export const projectPaths = {
   metadataFolder,
   apexTestResultsFolder,
   apexLanguageServerDatabase,
-  debugLogs
+  debugLogsFolder
 };
