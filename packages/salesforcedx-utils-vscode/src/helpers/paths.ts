@@ -14,6 +14,17 @@ import {
   hasRootWorkspace,
   WorkspaceContextUtil
 } from '..';
+import { nls } from '../messages';
+
+const ORGS = 'orgs';
+const METADATA = 'metadata';
+const TOOLS = 'tools';
+const TEST_RESULTS = 'testresults';
+const APEX = 'apex';
+const DEBUG = 'debug';
+const LOGS = 'logs';
+const APEX_DB = 'apex.db';
+const LWC = 'lwc';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -24,16 +35,16 @@ export function ensureDirectoryExists(filePath: string): void {
 }
 
 export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const testResultsFolder = path.join(
+  const pathToTestResultsFolder = path.join(
     vscodePath,
     Global.STATE_FOLDER,
-    'tools',
-    'testresults',
+    TOOLS,
+    TEST_RESULTS,
     testType
   );
 
-  ensureDirectoryExists(testResultsFolder);
-  return testResultsFolder;
+  ensureDirectoryExists(pathToTestResultsFolder);
+  return pathToTestResultsFolder;
 }
 
 /**
@@ -81,71 +92,68 @@ function stateFolder(): string {
     : '';
 }
 
-async function metadataDirectory(): Promise<string> {
+function metadataFolder(): string {
   const username = WorkspaceContextUtil.getInstance().username;
-  return path.join(stateFolder(), 'orgs', String(username), 'metadata');
-}
-
-function apexTestResults(): string {
-  const apexTestResultsFolder = path.join(
+  const pathToMetadataFolder = path.join(
     stateFolder(),
-    'tools',
-    'testresults',
-    'apex'
+    ORGS,
+    String(username),
+    METADATA
   );
-  return apexTestResultsFolder;
+  return pathToMetadataFolder;
 }
 
-function apexLanguageServerDatabase(): string | undefined {
+function apexTestResultsFolder(): string {
+  const pathToApexTestResultsFolder = path.join(
+    toolsFolder(),
+    TEST_RESULTS,
+    APEX
+  );
+  return pathToApexTestResultsFolder;
+}
+
+function apexLanguageServerDatabase(): string {
   if (!hasRootWorkspace()) {
-    return undefined;
+    throw new Error(nls.localize('error_no_root_workspace_found'));
   }
-  const apexLangServerDbPath = path.join(stateFolder(), 'tools', 'apex.db');
-  return apexLangServerDbPath;
+  const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
+  return pathToApexLangServerDb;
 }
 
-function lwcTestResults(expectedCwd: string): string {
+function lwcTestResultsFolder(expectedCwd: string): string {
   // todo: should this use getRootWorkspacePath instead?
-  const apexDirPath = path.join(
-    expectedCwd,
-    Global.STATE_FOLDER,
-    'tools',
-    'testresults',
-    'lwc'
-  );
+  const apexDirPath = path.join(testResultsFolder(expectedCwd), LWC);
   return apexDirPath;
 }
 
-function testResults(vscodePath: string): string {
+function testResultsFolder(vscodePath: string): string {
   // todo: should this use getRootWorkspacePath instead?
-  const testResultsDirPath = path.join(
+  const pathToTestResultsFolder = path.join(
     vscodePath,
     Global.STATE_FOLDER,
-    'tools',
-    'testresults'
+    TOOLS,
+    TEST_RESULTS
   );
-  return testResultsDirPath;
+  return pathToTestResultsFolder;
 }
 
-function getApexLanguageServerDatabasePath(): string | undefined {
-  if (!vscode.workspace.workspaceFolders) {
-    return undefined;
-  }
-  const apexLangServerDbPath = path.join(stateFolder(), 'tools', 'apex.db');
-  return apexLangServerDbPath;
+function debugLogsFolder(): string {
+  const pathToDebugLogsFolder = path.join(toolsFolder(), DEBUG, LOGS);
+  return pathToDebugLogsFolder;
 }
 
-function debugLogs(): string | undefined {
-  const logsDirectory = path.join(stateFolder(), 'tools', 'debug', 'logs');
-  return logsDirectory;
+function toolsFolder(): string {
+  const pathToToolsFolder = path.join(stateFolder(), TOOLS);
+  return pathToToolsFolder;
 }
 
 export const projectPaths = {
   stateFolder,
-  metadataDirectory,
-  testResults,
-  apexTestResults,
+  metadataFolder,
+  testResultsFolder,
+  apexTestResultsFolder,
   apexLanguageServerDatabase,
-  debugLogs,
-  lwcTestResults
+  debugLogsFolder,
+  toolsFolder,
+  lwcTestResultsFolder
 };

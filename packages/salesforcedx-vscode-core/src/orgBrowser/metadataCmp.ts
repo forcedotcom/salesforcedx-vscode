@@ -44,7 +44,7 @@ export class ComponentUtils {
       folderName ? `${metadataType}_${folderName}` : metadataType
     }.json`;
     const componentsPath = path.join(
-      await projectPaths.metadataDirectory(),
+      await projectPaths.metadataFolder(),
       fileName
     );
     return componentsPath;

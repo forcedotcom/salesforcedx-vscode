@@ -194,7 +194,7 @@ describe('Force LWC Test Debug - Code Action', () => {
           '--json',
           '--outputFile',
           path.join(
-            projectPaths.lwcTestResults(expectedCwd),
+            projectPaths.lwcTestResultsFolder(expectedCwd),
             `test-result-${mockUuid}.json`
           ),
           '--testLocationInResults',
@@ -240,7 +240,7 @@ describe('Force LWC Test Debug - Code Action', () => {
           '--json',
           '--outputFile',
           path.join(
-            projectPaths.lwcTestResults(expectedCwd),
+            projectPaths.lwcTestResultsFolder(expectedCwd),
             `test-result-${mockUuid}.json`
           ),
           '--testLocationInResults',
