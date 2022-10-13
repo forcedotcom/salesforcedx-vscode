@@ -122,8 +122,11 @@ function apexLanguageServerDatabase(): string {
 
 function lwcTestResultsFolder(expectedCwd: string): string {
   // todo: should this use getRootWorkspacePath instead?
-  const apexDirPath = path.join(testResultsFolder(expectedCwd), LWC);
-  return apexDirPath;
+  const pathToLwcTestResultsFolder = path.join(
+    testResultsFolder(expectedCwd),
+    LWC
+  );
+  return pathToLwcTestResultsFolder;
 }
 
 function testResultsFolder(vscodePath: string): string {
