@@ -11,7 +11,6 @@ import {
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { RecompositionState } from '@salesforce/source-deploy-retrieve/lib/src/convert/convertContext';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';

@@ -6,6 +6,12 @@ import * as kill from 'tree-kill';
 import { CancellationToken, CommandExecution } from '../types';
 import { Command } from './command';
 
+export const NO_PID_ERROR = 'No process associated with sfdx command.';
+export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
+export const NO_STDERR_ERROR = 'No stderr found for childProcess';
+export const CANCELLATION_INTERVAL = 1000;
+export const KILL_CODE = 'SIGKILL';
+
 export class CliCommandExecution implements CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
@@ -25,7 +31,7 @@ export class CliCommandExecution implements CommandExecution {
     this.cancellationToken = cancellationToken;
 
     if (!childProcess.pid) {
-      throw new Error('No process associated with sfdx command.');
+      throw new Error(NO_PID_ERROR);
     }
     this.childProcessPid = childProcess.pid;
 
@@ -53,17 +59,17 @@ export class CliCommandExecution implements CommandExecution {
 
     // Output
     if (!childProcess.stdout) {
-      throw new Error('No stdout found for childProcess');
+      throw new Error(NO_STDOUT_ERROR);
     }
     this.stdoutSubject = Observable.fromEvent(childProcess.stdout, 'data');
     if (!childProcess.stderr) {
-      throw new Error('No stderr found for childProcess');
+      throw new Error(NO_STDERR_ERROR);
     }
     this.stderrSubject = Observable.fromEvent(childProcess.stderr, 'data');
 
     // Cancellation watcher
     if (cancellationToken) {
-      const timer = Observable.interval(1000);
+      const timer = Observable.interval(CANCELLATION_INTERVAL);
       timerSubscriber = timer.subscribe(async () => {
         if (cancellationToken.isCancellationRequested) {
           try {
@@ -76,7 +82,7 @@ export class CliCommandExecution implements CommandExecution {
     }
   }
 
-  public async killExecution(signal = 'SIGKILL') {
+  public async killExecution(signal = KILL_CODE) {
     return killPromise(this.childProcessPid, signal);
   }
 }
