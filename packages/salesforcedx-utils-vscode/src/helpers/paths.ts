@@ -113,9 +113,6 @@ function apexTestResultsFolder(): string {
 }
 
 function apexLanguageServerDatabase(): string {
-  if (!hasRootWorkspace()) {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
   const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
   return pathToApexLangServerDb;
 }
