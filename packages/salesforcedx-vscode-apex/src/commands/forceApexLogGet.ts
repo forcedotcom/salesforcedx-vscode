@@ -9,25 +9,19 @@ import { LogRecord, LogService } from '@salesforce/apex-node';
 import {
   CancelResponse,
   ContinueResponse,
-  getRootWorkspaceSfdxPath,
   LibraryCommandletExecutor,
   optionYYYYMMddHHmmss,
   ParametersGatherer,
+  projectPaths,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
-const LOG_DIRECTORY = path.join(
-  getRootWorkspaceSfdxPath(),
-  'tools',
-  'debug',
-  'logs'
-);
+const LOG_DIRECTORY = projectPaths.debugLogsFolder();
 
 interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;

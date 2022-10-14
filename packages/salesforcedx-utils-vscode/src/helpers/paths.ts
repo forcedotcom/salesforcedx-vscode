@@ -9,7 +9,21 @@ import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getRootWorkspacePath } from '..';
+import {
+  getRootWorkspacePath,
+  hasRootWorkspace,
+  WorkspaceContextUtil
+} from '..';
+import { nls } from '../messages';
+
+const ORGS = 'orgs';
+const METADATA = 'metadata';
+const TOOLS = 'tools';
+const TEST_RESULTS = 'testresults';
+const APEX = 'apex';
+const DEBUG = 'debug';
+const LOGS = 'logs';
+const APEX_DB = 'apex.db';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -20,16 +34,16 @@ export function ensureDirectoryExists(filePath: string): void {
 }
 
 export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const dirPath = path.join(
+  const pathToTestResultsFolder = path.join(
     vscodePath,
-    '.sfdx',
-    'tools',
-    'testresults',
+    Global.STATE_FOLDER,
+    TOOLS,
+    TEST_RESULTS,
     testType
   );
 
-  ensureDirectoryExists(dirPath);
-  return dirPath;
+  ensureDirectoryExists(pathToTestResultsFolder);
+  return pathToTestResultsFolder;
 }
 
 /**
@@ -60,28 +74,66 @@ export function getRelativeProjectPath(
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 }
 
-export function fileExtensionsMatch(sourceUri: vscode.Uri, targetExtension: string): boolean {
-  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
+export function fileExtensionsMatch(
+  sourceUri: vscode.Uri,
+  targetExtension: string
+): boolean {
+  const extension = sourceUri.path
+    .split('.')
+    .pop()
+    ?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 }
 
-function getSfdxDirectoryPath(): string {
-  return path.join(
-    getRootWorkspacePath(),
-    Global.SFDX_STATE_FOLDER
-  );
+function stateFolder(): string {
+  return hasRootWorkspace()
+    ? path.join(getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
+    : '';
 }
 
-function getMetadataDirectoryPath(username: string): string {
-  return path.join(
-    getSfdxDirectoryPath(),
-    'orgs',
-    username,
-    'metadata'
+function metadataFolder(): string {
+  const username = WorkspaceContextUtil.getInstance().username;
+  const pathToMetadataFolder = path.join(
+    stateFolder(),
+    ORGS,
+    String(username),
+    METADATA
   );
+  return pathToMetadataFolder;
+}
+
+function apexTestResultsFolder(): string {
+  const pathToApexTestResultsFolder = path.join(
+    toolsFolder(),
+    TEST_RESULTS,
+    APEX
+  );
+  return pathToApexTestResultsFolder;
+}
+
+function apexLanguageServerDatabase(): string {
+  if (!hasRootWorkspace()) {
+    throw new Error(nls.localize('cannot_determine_workspace'));
+  }
+  const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
+  return pathToApexLangServerDb;
+}
+
+function debugLogsFolder(): string {
+  const pathToDebugLogsFolder = path.join(toolsFolder(), DEBUG, LOGS);
+  return pathToDebugLogsFolder;
+}
+
+function toolsFolder(): string {
+  const pathToToolsFolder = path.join(stateFolder(), TOOLS);
+  return pathToToolsFolder;
 }
 
 export const projectPaths = {
-  getSfdxDirectoryPath,
-  getMetadataDirectoryPath
+  stateFolder,
+  metadataFolder,
+  apexTestResultsFolder,
+  apexLanguageServerDatabase,
+  debugLogsFolder,
+  toolsFolder
 };
