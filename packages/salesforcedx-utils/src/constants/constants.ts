@@ -12,6 +12,7 @@ export const ENV_SFDX_INSTANCE_URL = 'SFDX_INSTANCE_URL';
 export const BASE_FILE_NAME = 'i18n';
 export const BASE_FILE_EXTENSION = 'js';
 export const DEFAULT_LOCALE = 'en';
+export const LOCALE_JA = 'ja';
 export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 export const SFDX_CONFIG_ISV_DEBUGGER_SID = 'isvDebuggerSid';
 export const SFDX_CONFIG_ISV_DEBUGGER_URL = 'isvDebuggerUrl';
