@@ -9,6 +9,8 @@ import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS,
+  ENV_HTTPS_PROXY,
+  ENV_HTTP_PROXY,
   ENV_SFDX_DEFAULTUSERNAME,
   ENV_SFDX_INSTANCE_URL
 } from '../constants';
@@ -32,12 +34,12 @@ export class RequestService {
   private _proxyAuthorization!: string;
   private _connectionTimeoutMs: number = DEFAULT_CONNECTION_TIMEOUT_MS;
 
-  public getEnvVars(): any {
+  public getEnvVars(): NodeJS.ProcessEnv {
     const envVars = Object.assign({}, process.env);
     const proxyUrl = this.proxyUrl;
     if (proxyUrl) {
-      envVars['HTTP_PROXY'] = proxyUrl;
-      envVars['HTTPS_PROXY'] = proxyUrl;
+      envVars[ENV_HTTP_PROXY] = proxyUrl;
+      envVars[ENV_HTTPS_PROXY] = proxyUrl;
     }
     const instanceUrl = this.instanceUrl;
     if (instanceUrl) {

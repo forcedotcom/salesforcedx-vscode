@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Command unit tests. Should build a command. 1`] = `"iAmACommand immaArg --silent quiet --json --loglevel fatal"`;
+
+exports[`Command unit tests. Should construct string if no description provided. 1`] = `"iAmACommand immaArg --silent quiet --json --loglevel fatal"`;
