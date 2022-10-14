@@ -2,10 +2,11 @@ import { ChildProcess } from 'child_process';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
-import * as kill from 'tree-kill';
 import { CancellationToken, CommandExecution } from '../types';
 import { Command } from './command';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const treeKill = require('tree-kill');
 export class CliCommandExecution implements CommandExecution {
   public readonly command: Command;
   public readonly cancellationToken?: CancellationToken;
@@ -88,7 +89,7 @@ export class CliCommandExecution implements CommandExecution {
  */
 async function killPromise(processId: number, signal: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
-    kill(processId, signal, (err: Error | undefined) => {
+    treeKill(processId, signal, (err: Error | undefined) => {
       err ? reject(err) : resolve();
     });
   });

@@ -35,7 +35,7 @@ async function createServer(
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
-      'out',
+      'dist',
       UBER_JAR_NAME
     );
     const javaExecutable = path.resolve(
@@ -64,11 +64,9 @@ async function createServer(
     if (jvmMaxHeap) {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
-    telemetryService.sendEventData(
-      'apexLSPSettings',
-      undefined,
-      { maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0 }
-    );
+    telemetryService.sendEventData('apexLSPSettings', undefined, {
+      maxHeapSize: jvmMaxHeap != null ? jvmMaxHeap : 0
+    });
 
     if (DEBUG) {
       args.push(

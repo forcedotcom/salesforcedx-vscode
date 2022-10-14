@@ -6,7 +6,6 @@
  */
 
 import { SpawnOptions } from 'child_process';
-import * as cross_spawn from 'cross-spawn';
 import * as os from 'os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
@@ -19,6 +18,8 @@ import { CancellationToken } from '../types';
 import { CommandExecution } from '../types/commandExecution';
 import { CliCommandExecution } from './cliCommandExecution';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cross_spawn = require('cross-spawn');
 export class GlobalCliEnvironment {
   public static readonly environmentVariables = new Map<string, string>();
 }

@@ -22,7 +22,6 @@ import {
   RequestService,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
-import * as AsyncLock from 'async-lock';
 import * as vscode from 'vscode';
 import {
   Event,
@@ -53,6 +52,11 @@ import {
 } from '../index';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+
+// below dependencies must be required for bundling to work properly
+/* tslint:disable */
+const AsyncLock = require('async-lock');
+/* tslint:enable */
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -970,8 +974,8 @@ export async function sfdxToggleCheckpoint() {
   }
   const bpAdd: vscode.Breakpoint[] = [];
   const bpRemove: vscode.Breakpoint[] = [];
-  const uri = exports.fetchActiveEditorUri();
-  const lineNumber = exports.fetchActiveSelectionLineNumber();
+  const uri = fetchActiveEditorUri();
+  const lineNumber = fetchActiveSelectionLineNumber();
 
   if (uri && lineNumber) {
     // While selection could be passed directly into the location instead of creating
@@ -1014,23 +1018,21 @@ export async function sfdxToggleCheckpoint() {
 }
 
 // This methods was broken out of sfdxToggleCheckpoint for testing purposes.
-function fetchActiveEditorUri(): vscode.Uri | undefined {
+export function fetchActiveEditorUri(): vscode.Uri | undefined {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
     return editor.document.uri;
   }
 }
-exports.fetchActiveEditorUri = fetchActiveEditorUri;
 
 // This methods was broken out of sfdxToggleCheckpoint for testing purposes.
-function fetchActiveSelectionLineNumber(): number | undefined {
+export function fetchActiveSelectionLineNumber(): number | undefined {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.selection) {
     return editor.selection.start.line;
   }
   return undefined;
 }
-exports.fetchActiveSelectionLineNumber = fetchActiveSelectionLineNumber;
 
 function fetchExistingBreakpointForUriAndLineNumber(
   uriInput: vscode.Uri,
