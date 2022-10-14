@@ -10,6 +10,7 @@ import * as util from 'util';
 export const BASE_FILE_NAME = 'i18n';
 export const BASE_FILE_EXTENSION = 'js';
 export const DEFAULT_LOCALE = 'en';
+export const LOCALE_JA = 'ja';
 export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 
 export interface Config {
@@ -64,9 +65,7 @@ export class Message implements LocalizationProvider {
       if (args.length !== expectedNumArgs) {
         // just log it, we might want to hide some in some languges on purpose
         console.log(
-          `Arguments do not match for label '${label}', got ${
-            args.length
-          } but want ${expectedNumArgs}`
+          `Arguments do not match for label '${label}', got ${args.length} but want ${expectedNumArgs}`
         );
       }
 
