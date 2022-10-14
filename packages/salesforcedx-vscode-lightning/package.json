@@ -41,7 +41,7 @@
     "@types/node": "12.0.12",
     "@types/open": "6.2.1",
     "@types/sinon": "^7.5.2",
-    "@types/vscode": "1.49.0",
+    "@types/vscode": "1.72.0",
     "@types/which": "^1.3.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
@@ -54,8 +54,9 @@
     "vscode-uri": "1.0.1"
   },
   "scripts": {
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:@salesforce/lightning-lsp-common --external:@salesforce/aura-language-server --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -73,6 +74,30 @@
     "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
+  "packaging": {
+    "assets": [
+      "License.txt",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "OSSREADME.json",
+      "images",
+      "syntaxes",
+      "images",
+      "dist"
+    ],
+    "packageUpdates": {
+      "main": "dist/index.js",
+      "dependencies": {
+        "applicationinsights": "1.0.7",
+        "@salesforce/aura-language-server": "3.11.0",
+        "@salesforce/core": "3.30.9",
+        "@salesforce/lightning-lsp-common": "3.11.0"
+      },
+      "devDependencies": {}
+    }
+  },
   "contributes": {
     "languages": [
       {
