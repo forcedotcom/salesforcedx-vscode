@@ -6,7 +6,7 @@
  */
 
 import { SpawnOptions } from 'child_process';
-import * as cross_spawn from 'cross-spawn';
+import * as os from 'os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 
@@ -14,6 +14,9 @@ import { TELEMETRY_HEADER } from '../constants';
 import { CancellationToken, Command } from '../types';
 import { CliCommandExecution } from './cliCommandExecution';
 import { GlobalCliEnvironment } from './globalCliEnvironment';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cross_spawn = require('cross-spawn');
 
 export class CliCommandExecutor {
   protected static patchEnv(

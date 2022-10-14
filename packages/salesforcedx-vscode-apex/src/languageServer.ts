@@ -36,7 +36,7 @@ async function createServer(
     const requirementsData = await requirements.resolveRequirements();
     const uberJar = path.resolve(
       extensionContext.extensionPath,
-      'out',
+      'dist',
       UBER_JAR_NAME
     );
     const javaExecutable = path.resolve(
