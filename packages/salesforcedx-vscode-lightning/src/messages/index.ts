@@ -6,8 +6,6 @@
  */
 
 import {
-  BASE_FILE_EXTENSION,
-  BASE_FILE_NAME,
   Config,
   DEFAULT_LOCALE,
   LOCALE_JA,
