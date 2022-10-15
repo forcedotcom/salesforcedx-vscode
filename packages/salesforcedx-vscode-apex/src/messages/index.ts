@@ -8,10 +8,10 @@
 import {
   Config,
   DEFAULT_LOCALE,
+  LOCALE_JA,
   Localization,
   Message
 } from '@salesforce/salesforcedx-utils-vscode';
-import { LOCALE_JA } from '@salesforce/salesforcedx-utils-vscode/src/i18n/localization';
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 const supportedLocales = [DEFAULT_LOCALE, LOCALE_JA];
