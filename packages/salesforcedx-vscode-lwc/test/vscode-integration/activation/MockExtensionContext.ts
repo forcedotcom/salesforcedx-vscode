@@ -93,7 +93,13 @@ export class MockExtensionContext implements ExtensionContext {
         return Promise.resolve();
       },
     };
-    this.extension = {} as any;
+    this.extension = {
+      packageJSON: {
+        version: 'v55.5.5',
+        aiKey: 'fakeAIKey',
+        name: 'salesforcedx-vscode-lwc'
+      }
+    } as any;
   }
   secrets: SecretStorage;
   extension: Extension<any>;
