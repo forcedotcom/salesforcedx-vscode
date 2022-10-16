@@ -126,7 +126,7 @@ describe('Force LWC Test Run - Code Action', () => {
             '--json',
             '--outputFile',
             path.join(
-              projectPaths.lwcTestResultsFolder(expectedCwd),
+              projectPaths.lwcTestResultsFolder(),
               `test-result-${mockUuid}.json`
             ),
             '--testLocationInResults',
