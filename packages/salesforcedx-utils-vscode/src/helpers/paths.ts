@@ -117,23 +117,13 @@ function apexLanguageServerDatabase(): string {
   return pathToApexLangServerDb;
 }
 
-function lwcTestResultsFolder(expectedCwd: string): string {
-  // todo: should this use getRootWorkspacePath instead?
-  const pathToLwcTestResultsFolder = path.join(
-    testResultsFolder(expectedCwd),
-    LWC
-  );
+function lwcTestResultsFolder(): string {
+  const pathToLwcTestResultsFolder = path.join(testResultsFolder(), LWC);
   return pathToLwcTestResultsFolder;
 }
 
-function testResultsFolder(vscodePath: string): string {
-  // todo: should this use getRootWorkspacePath instead?
-  const pathToTestResultsFolder = path.join(
-    vscodePath,
-    Global.STATE_FOLDER,
-    TOOLS,
-    TEST_RESULTS
-  );
+function testResultsFolder(): string {
+  const pathToTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS);
   return pathToTestResultsFolder;
 }
 
@@ -150,7 +140,6 @@ function toolsFolder(): string {
 export const projectPaths = {
   stateFolder,
   metadataFolder,
-  testResultsFolder,
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
