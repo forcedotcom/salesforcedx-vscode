@@ -127,8 +127,8 @@ export function unmockActiveTextEditorUri() {
  */
 export function mockTestResultWatcher() {
   getTempFolderStub = stub(pathUtils, 'getTestResultsFolder');
-  getTempFolderStub.callsFake((vscodePath: string, testType: string) => {
-    return path.join(projectPaths.testResultsFolder(vscodePath), testType);
+  getTempFolderStub.callsFake((testType: string) => {
+    return path.join(projectPaths.testResultsFolder(), testType);
   });
   watchTestResultsStub = stub(testResultsWatcher, 'watchTestResults');
   watchTestResultsStub.callsFake(() => {});

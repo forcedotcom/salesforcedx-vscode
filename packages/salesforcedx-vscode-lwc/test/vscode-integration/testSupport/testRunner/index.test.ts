@@ -36,8 +36,8 @@ describe('LWC Test Runner', () => {
       const mockUuid = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
       uuidStub.returns(mockUuid);
       getTempFolderStub = stub(pathUtils, 'getTestResultsFolder');
-      getTempFolderStub.callsFake((vscodePath: string, testType: string) => {
-        return path.join(projectPaths.testResultsFolder(vscodePath), testType);
+      getTempFolderStub.callsFake((testType: string) => {
+        return path.join(projectPaths.testResultsFolder(), testType);
       });
     });
     afterEach(() => {

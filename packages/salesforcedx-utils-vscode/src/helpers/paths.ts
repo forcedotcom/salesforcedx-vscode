@@ -140,6 +140,7 @@ function toolsFolder(): string {
 export const projectPaths = {
   stateFolder,
   metadataFolder,
+  testResultsFolder,
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
