@@ -10,7 +10,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { assert, match, SinonStub, stub } from 'sinon';
-import { window, env } from 'vscode';
+import { env, window } from 'vscode';
 import { SfdxCoreSettings } from '../../../src/settings/sfdxCoreSettings';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
@@ -60,8 +60,8 @@ describe('Telemetry', () => {
       const telemetryReporter = telemetryService.getReporter();
       // Something changed and we are now getting a machineId in circle so
       // adding this switch to verify we have a reporter if machineid is set.
-      const machineId = env.machineId;
-      if (machineId !== 'someValue.machineId') {
+      const machineIdValue = env.machineId;
+      if (machineIdValue !== 'someValue.machineId') {
         expect(typeof telemetryReporter).not.to.eql('undefined');
       } else {
         expect(typeof telemetryReporter).to.be.eql('undefined');
