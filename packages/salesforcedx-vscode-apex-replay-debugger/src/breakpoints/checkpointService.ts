@@ -974,10 +974,10 @@ export async function sfdxToggleCheckpoint() {
   }
   const bpAdd: vscode.Breakpoint[] = [];
   const bpRemove: vscode.Breakpoint[] = [];
-  const uri = fetchActiveEditorUri();
-  const lineNumber = fetchActiveSelectionLineNumber();
+  const uri = checkpointUtils.fetchActiveEditorUri();
+  const lineNumber = checkpointUtils.fetchActiveSelectionLineNumber();
 
-  if (uri && lineNumber) {
+  if (uri && lineNumber !== undefined) {
     // While selection could be passed directly into the location instead of creating
     // a new range, it ends up creating a weird secondary icon on the line with the
     // breakpoint which is due to the start/end characters being non-zero.
@@ -1018,7 +1018,7 @@ export async function sfdxToggleCheckpoint() {
 }
 
 // This methods was broken out of sfdxToggleCheckpoint for testing purposes.
-export function fetchActiveEditorUri(): vscode.Uri | undefined {
+function fetchActiveEditorUri(): vscode.Uri | undefined {
   const editor = vscode.window.activeTextEditor;
   if (editor) {
     return editor.document.uri;
@@ -1026,7 +1026,7 @@ export function fetchActiveEditorUri(): vscode.Uri | undefined {
 }
 
 // This methods was broken out of sfdxToggleCheckpoint for testing purposes.
-export function fetchActiveSelectionLineNumber(): number | undefined {
+function fetchActiveSelectionLineNumber(): number | undefined {
   const editor = vscode.window.activeTextEditor;
   if (editor && editor.selection) {
     return editor.selection.start.line;
@@ -1063,3 +1063,8 @@ function code2ProtocolConverter(value: vscode.Uri) {
     return value.toString();
   }
 }
+
+export const checkpointUtils = {
+  fetchActiveEditorUri,
+  fetchActiveSelectionLineNumber
+};
