@@ -81,6 +81,7 @@
     "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:peer-deps": "check-peer-dependencies",
     "check:typescript-project-references": "workspaces-to-typescript-project-references --includesRoot --check",
+    "vscode:bundle": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
     "vscode:bundle:debugger": "lerna run bundle:debugger",
     "vscode:bundle:extension": "lerna run bundle:extension",
     "vscode:package": "npm run vscode:bundle:debugger && npm run vscode:bundle:extension && lerna run vscode:package --concurrency 1 && npm run reformat",
