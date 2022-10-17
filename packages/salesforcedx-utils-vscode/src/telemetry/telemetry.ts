@@ -100,6 +100,10 @@ export class TelemetryService {
     const machineId = env ? env.machineId : 'someValue.machineId';
     const isDevMode = machineId === 'someValue.machineId';
 
+    console.log('***** GORDON checking machine id', {
+      machineId,
+      isDevMode
+    });
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (
       this.reporter === undefined &&
