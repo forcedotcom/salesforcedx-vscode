@@ -87,6 +87,7 @@
     ],
     "packageUpdates": {
       "main": "dist/index.js",
+      "languageServerDir": "dist",
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.4.0",
@@ -101,7 +102,8 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./dist",
+  "main": "./out/src",
+  "languageServerDir": "out",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
