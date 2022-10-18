@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -100,12 +101,7 @@ export function setupDB(): void {
     vscode.workspace.workspaceFolders &&
     vscode.workspace.workspaceFolders[0]
   ) {
-    const dbPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      '.sfdx',
-      'tools',
-      'apex.db'
-    );
+    const dbPath = projectPaths.apexLanguageServerDatabase();
     if (fs.existsSync(dbPath)) {
       fs.unlinkSync(dbPath);
     }
