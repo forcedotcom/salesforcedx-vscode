@@ -124,11 +124,7 @@
         "@salesforce/soql-language-server": "0.7.1",
         "@salesforce/soql-model": "0.2.3"
       },
-      "devDependencies": {},
-      "serverPath": [
-        "dist",
-        "server.js"
-      ]
+      "devDependencies": {}
     }
   },
   "contributes": {
