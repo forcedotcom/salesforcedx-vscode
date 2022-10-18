@@ -36,6 +36,7 @@ import {
   unmockTestResultWatcher
 } from '../mocks';
 import { InputBuffer } from 'uuid/interfaces';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force LWC Test Debug - Code Action', () => {
   let uuidStub: SinonStub<
@@ -193,11 +194,7 @@ describe('Force LWC Test Debug - Code Action', () => {
           '--json',
           '--outputFile',
           path.join(
-            expectedCwd,
-            '.sfdx',
-            'tools',
-            'testresults',
-            'lwc',
+            projectPaths.lwcTestResultsFolder(),
             `test-result-${mockUuid}.json`
           ),
           '--testLocationInResults',
@@ -243,11 +240,7 @@ describe('Force LWC Test Debug - Code Action', () => {
           '--json',
           '--outputFile',
           path.join(
-            expectedCwd,
-            '.sfdx',
-            'tools',
-            'testresults',
-            'lwc',
+            projectPaths.lwcTestResultsFolder(),
             `test-result-${mockUuid}.json`
           ),
           '--testLocationInResults',

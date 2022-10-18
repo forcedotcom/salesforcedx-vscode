@@ -27,6 +27,7 @@ import {
   unmockTestResultWatcher
 } from '../mocks';
 import { InputBuffer } from 'uuid/interfaces';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Force LWC Test Run - Code Action', () => {
   describe('Telemetry for running tests', () => {
@@ -125,11 +126,7 @@ describe('Force LWC Test Run - Code Action', () => {
             '--json',
             '--outputFile',
             path.join(
-              expectedCwd,
-              '.sfdx',
-              'tools',
-              'testresults',
-              'lwc',
+              projectPaths.lwcTestResultsFolder(),
               `test-result-${mockUuid}.json`
             ),
             '--testLocationInResults',

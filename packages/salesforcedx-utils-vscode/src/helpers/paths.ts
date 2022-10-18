@@ -24,6 +24,7 @@ const APEX = 'apex';
 const DEBUG = 'debug';
 const LOGS = 'logs';
 const APEX_DB = 'apex.db';
+const LWC = 'lwc';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -112,11 +113,18 @@ function apexTestResultsFolder(): string {
 }
 
 function apexLanguageServerDatabase(): string {
-  if (!hasRootWorkspace()) {
-    throw new Error(nls.localize('cannot_determine_workspace'));
-  }
   const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
   return pathToApexLangServerDb;
+}
+
+function lwcTestResultsFolder(): string {
+  const pathToLwcTestResultsFolder = path.join(testResultsFolder(), LWC);
+  return pathToLwcTestResultsFolder;
+}
+
+function testResultsFolder(): string {
+  const pathToTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS);
+  return pathToTestResultsFolder;
 }
 
 function debugLogsFolder(): string {
@@ -132,8 +140,10 @@ function toolsFolder(): string {
 export const projectPaths = {
   stateFolder,
   metadataFolder,
+  testResultsFolder,
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
-  toolsFolder
+  toolsFolder,
+  lwcTestResultsFolder
 };
