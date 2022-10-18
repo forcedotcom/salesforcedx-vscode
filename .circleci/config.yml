@@ -361,11 +361,6 @@ jobs:
     steps:
       - build-win
       - run:
-          name: 'Bundle the extensions'
-          shell: bash.exe
-          command: |
-            npm run vscode:bundle
-      - run:
           name: 'Authenticate to the default DevHub'
           shell: bash.exe
           command: |
