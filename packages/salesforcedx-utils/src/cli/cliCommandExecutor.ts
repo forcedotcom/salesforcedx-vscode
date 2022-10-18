@@ -6,7 +6,6 @@
  */
 
 import { SpawnOptions } from 'child_process';
-import * as os from 'os';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 
