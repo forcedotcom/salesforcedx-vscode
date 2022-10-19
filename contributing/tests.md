@@ -29,7 +29,7 @@ Unit tests priorities are as follows:
 
 1. Unit tests should focus on only the _unit_ of code under test.
    - 1 method/function
-1. All dependancies should be stubbed/mocked.
+1. All dependencies should be stubbed/mocked.
 1. Unit tests should be easy to write and execute
    - If your code is hard to test consider how it could be refactored to make it easier to test.
 1. Use only jest and do not import mochi/sinon/chai.
