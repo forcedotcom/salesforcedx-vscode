@@ -8,16 +8,28 @@ describe('isvContext unit test', () => {
     const fakePath = '/here/is/a/fake/sfdx-config.json';
     let extensionContext: any;
     let sfdxProjectConfigStub: jest.SpyInstance;
-    let createFileSystemWatcherStub: jest.SpyInstance;
-    let extensionContextSpy: jest.SpyInstance;
+    let pushSpy: jest.SpyInstance;
+    let onDidChangeSpy: jest.SpyInstance;
+    let onDidCreateSpy: jest.SpyInstance;
+    let onDidDeleteSpy: jest.SpyInstance;
 
     beforeEach(() => {
+      sfdxProjectConfigStub = jest.spyOn(projectPaths, 'sfdxProjectConfig').mockReturnValue(fakePath);
+      onDidChangeSpy = jest.fn();
+      onDidCreateSpy = jest.fn();
+      onDidDeleteSpy = jest.fn();
+      // explictly set this return value due to the VS Code mock not being reset
+      (vscode.workspace.createFileSystemWatcher as any).mockReturnValue({
+        onDidChange: onDidChangeSpy,
+        onDidCreate: onDidCreateSpy,
+        onDidDelete: onDidDeleteSpy
+      });
+      pushSpy = jest.fn();
       extensionContext = {
         subscriptions: {
-          push: jest.fn()
+          push: pushSpy
         }
       };
-      jest.restoreAllMocks();
     });
 
     it('registerIsvAuthWatcher is defined', () => {
@@ -25,19 +37,18 @@ describe('isvContext unit test', () => {
     });
 
     it('Should not watch files if workspace folders are not present', () => {
-      createFileSystemWatcherStub = jest.spyOn(vscode.workspace, 'createFileSystemWatcher');
       registerIsvAuthWatcher(extensionContext);
       expect(vscode.workspace.createFileSystemWatcher).not.toHaveBeenCalled();
     });
 
     it('Should watch files if workspace folders are present', () => {
       (vscode.workspace.workspaceFolders as any) = ['1'];
-      sfdxProjectConfigStub = jest.spyOn(projectPaths, 'sfdxProjectConfig').mockReturnValue(fakePath);
-      createFileSystemWatcherStub = jest.spyOn(vscode.workspace, 'createFileSystemWatcher');
-      extensionContextSpy = jest.spyOn(extensionContext.subscriptions, 'push');
       registerIsvAuthWatcher(extensionContext);
-      expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalled();
-      expect(extensionContextSpy).toHaveBeenCalled();
+      expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith(fakePath);
+      expect(onDidChangeSpy).toHaveBeenCalledWith(expect.any(Function));
+      expect(onDidCreateSpy).toHaveBeenCalledWith(expect.any(Function));
+      expect(onDidDeleteSpy).toHaveBeenCalledWith(expect.any(Function));
+      expect(pushSpy).toHaveBeenCalled();
     });
   });
 });
