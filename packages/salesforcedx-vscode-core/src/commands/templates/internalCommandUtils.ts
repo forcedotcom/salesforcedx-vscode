@@ -10,7 +10,7 @@ import {
   ContinueResponse,
   ParametersGatherer,
   PreconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { Uri } from 'vscode';
 import { sfdxCoreSettings } from '../../settings';

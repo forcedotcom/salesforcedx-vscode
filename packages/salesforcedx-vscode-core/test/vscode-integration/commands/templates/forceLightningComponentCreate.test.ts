@@ -18,7 +18,7 @@ import {
 } from '../../../../src/commands/templates/forceLightningComponentCreate';
 import { notificationService } from '../../../../src/notifications';
 import { SfdxCoreSettings } from '../../../../src/settings/sfdxCoreSettings';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
 // tslint:disable:no-unused-expression
 describe('Force Lightning Component Create', () => {
@@ -60,18 +60,21 @@ describe('Force Lightning Component Create', () => {
     const fileName = 'testComponent';
     const outputPath = 'force-app/main/default/aura';
     const auraComponentPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testComponent',
       'testComponent.cmp'
     );
     const auraComponentMetaPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testComponent',
       'testComponent.cmp-meta.xml'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([auraComponentPath, auraComponentMetaPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
@@ -94,7 +97,7 @@ describe('Force Lightning Component Create', () => {
     for (const suffix of suffixarray) {
       assert.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           outputPath,
           fileName,
           `${fileName}${suffix}`
@@ -113,7 +116,10 @@ describe('Force Lightning Component Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 
   it('Should create internal Aura Component', async () => {
@@ -122,20 +128,28 @@ describe('Force Lightning Component Create', () => {
     const fileName = 'testComponent';
     const outputPath = 'force-app/main/default/aura';
     const auraComponentPath = path.join(
-      getRootWorkspacePath(),
+      workspaceUtils.getRootWorkspacePath(),
       outputPath,
       'testComponent',
       'testComponent.cmp'
     );
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
     assert.noFile([auraComponentPath]);
     showInputBoxStub.returns(fileName);
     quickPickStub.returns(outputPath);
 
     // act
-    shell.mkdir('-p', path.join(getRootWorkspacePath(), outputPath));
+    shell.mkdir(
+      '-p',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+    );
     await forceInternalLightningComponentCreate(
-      vscode.Uri.file(path.join(getRootWorkspacePath(), outputPath))
+      vscode.Uri.file(
+        path.join(workspaceUtils.getRootWorkspacePath(), outputPath)
+      )
     );
 
     // assert
@@ -152,7 +166,7 @@ describe('Force Lightning Component Create', () => {
     for (const suffix of suffixarray) {
       assert.file(
         path.join(
-          getRootWorkspacePath(),
+          workspaceUtils.getRootWorkspacePath(),
           outputPath,
           fileName,
           `${fileName}${suffix}`
@@ -167,6 +181,9 @@ describe('Force Lightning Component Create', () => {
     sinon.assert.calledWith(openTextDocumentStub, auraComponentPath);
 
     // clean up
-    shell.rm('-rf', path.join(getRootWorkspacePath(), outputPath, fileName));
+    shell.rm(
+      '-rf',
+      path.join(workspaceUtils.getRootWorkspacePath(), outputPath, fileName)
+    );
   });
 });

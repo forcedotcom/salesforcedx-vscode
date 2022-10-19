@@ -5,9 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {
+  getRootWorkspacePath,
+  hasRootWorkspace,
+  WorkspaceContextUtil
+} from '..';
+import { nls } from '../messages';
+
+const ORGS = 'orgs';
+const METADATA = 'metadata';
+const TOOLS = 'tools';
+const TEST_RESULTS = 'testresults';
+const APEX = 'apex';
+const DEBUG = 'debug';
+const LOGS = 'logs';
+const APEX_DB = 'apex.db';
+const LWC = 'lwc';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -18,16 +35,16 @@ export function ensureDirectoryExists(filePath: string): void {
 }
 
 export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const dirPath = path.join(
+  const pathToTestResultsFolder = path.join(
     vscodePath,
-    '.sfdx',
-    'tools',
-    'testresults',
+    Global.STATE_FOLDER,
+    TOOLS,
+    TEST_RESULTS,
     testType
   );
 
-  ensureDirectoryExists(dirPath);
-  return dirPath;
+  ensureDirectoryExists(pathToTestResultsFolder);
+  return pathToTestResultsFolder;
 }
 
 /**
@@ -58,7 +75,75 @@ export function getRelativeProjectPath(
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 }
 
-export function fileExtensionsMatch(sourceUri: vscode.Uri, targetExtension: string): boolean {
-  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
+export function fileExtensionsMatch(
+  sourceUri: vscode.Uri,
+  targetExtension: string
+): boolean {
+  const extension = sourceUri.path
+    .split('.')
+    .pop()
+    ?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 }
+
+function stateFolder(): string {
+  return hasRootWorkspace()
+    ? path.join(getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
+    : '';
+}
+
+function metadataFolder(): string {
+  const username = WorkspaceContextUtil.getInstance().username;
+  const pathToMetadataFolder = path.join(
+    stateFolder(),
+    ORGS,
+    String(username),
+    METADATA
+  );
+  return pathToMetadataFolder;
+}
+
+function apexTestResultsFolder(): string {
+  const pathToApexTestResultsFolder = path.join(
+    toolsFolder(),
+    TEST_RESULTS,
+    APEX
+  );
+  return pathToApexTestResultsFolder;
+}
+
+function apexLanguageServerDatabase(): string {
+  const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
+  return pathToApexLangServerDb;
+}
+
+function lwcTestResultsFolder(): string {
+  const pathToLwcTestResultsFolder = path.join(testResultsFolder(), LWC);
+  return pathToLwcTestResultsFolder;
+}
+
+function testResultsFolder(): string {
+  const pathToTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS);
+  return pathToTestResultsFolder;
+}
+
+function debugLogsFolder(): string {
+  const pathToDebugLogsFolder = path.join(toolsFolder(), DEBUG, LOGS);
+  return pathToDebugLogsFolder;
+}
+
+function toolsFolder(): string {
+  const pathToToolsFolder = path.join(stateFolder(), TOOLS);
+  return pathToToolsFolder;
+}
+
+export const projectPaths = {
+  stateFolder,
+  metadataFolder,
+  testResultsFolder,
+  apexTestResultsFolder,
+  apexLanguageServerDatabase,
+  debugLogsFolder,
+  toolsFolder,
+  lwcTestResultsFolder
+};

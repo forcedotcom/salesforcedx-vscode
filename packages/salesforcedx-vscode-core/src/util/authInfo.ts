@@ -5,26 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
-import { AuthUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import {
+  ConfigSource,
+  ConfigUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import {
-  DEFAULT_DEV_HUB_USERNAME_KEY,
-  DEFAULT_USERNAME_KEY
-} from '../constants';
+import { workspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { ConfigSource, ConfigUtil } from './index';
+
 export class OrgAuthInfo {
   public static async getDefaultUsernameOrAlias(
     enableWarning: boolean
   ): Promise<string | undefined> {
     try {
-      const defaultUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_USERNAME_KEY
-      );
-      if (defaultUserName === undefined) {
+      const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+      if (!defaultUsernameOrAlias) {
         displayMessage(
           nls.localize('error_no_default_username'),
           enableWarning,
@@ -32,10 +30,7 @@ export class OrgAuthInfo {
         );
         return undefined;
       } else {
-        const configSource = await ConfigUtil.getConfigSource(
-          DEFAULT_USERNAME_KEY
-        );
-        if (configSource === ConfigSource.Global) {
+        if (await ConfigUtil.isGlobalDefaultUsername()) {
           displayMessage(
             nls.localize('warning_using_global_username'),
             enableWarning,
@@ -44,7 +39,7 @@ export class OrgAuthInfo {
         }
       }
 
-      return JSON.stringify(defaultUserName).replace(/\"/g, '');
+      return JSON.stringify(defaultUsernameOrAlias).replace(/\"/g, '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {
@@ -62,11 +57,12 @@ export class OrgAuthInfo {
     configSource?: ConfigSource.Global | ConfigSource.Local
   ): Promise<string | undefined> {
     try {
-      const defaultDevHubUserName = await ConfigUtil.getConfigValue(
-        DEFAULT_DEV_HUB_USERNAME_KEY,
-        configSource
-      );
-      if (defaultDevHubUserName === undefined) {
+      const defaultDevHubUserName =
+        configSource === ConfigSource.Global
+          ? await ConfigUtil.getGlobalDefaultDevHubUsernameOrAlias()
+          : await ConfigUtil.getDefaultDevHubUsernameOrAlias();
+
+      if (!defaultDevHubUserName) {
         const showButtonText = nls.localize('notification_make_default_dev');
         const selection = await displayMessage(
           nls.localize('error_no_default_devhubusername'),
@@ -127,21 +123,10 @@ export class OrgAuthInfo {
     });
   }
 
-  public static async getOrgApiVersion() {
-    const defaultUsernameOrAlias = await OrgAuthInfo.getDefaultUsernameOrAlias(
-      false
-    );
-    if (!defaultUsernameOrAlias) {
-      return undefined;
-    }
-    const username = defaultUsernameOrAlias
-      ? await AuthUtil.getInstance().getUsername(defaultUsernameOrAlias)
-      : undefined;
-    const connection = await Connection.create({
-      authInfo: await AuthInfo.create({ username })
-    });
+  public static async getOrgApiVersion(): Promise<string | undefined> {
+    const connection = await workspaceContext.getConnection();
     const apiVersion = connection.getApiVersion();
-    return apiVersion;
+    return apiVersion ? String(apiVersion) : undefined;
   }
 }
 

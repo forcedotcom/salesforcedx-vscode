@@ -6,9 +6,14 @@
  */
 
 import { ConfigFile } from '@salesforce/core';
-import { testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import {
   createAuthDevHubExecutor,
   ForceAuthDevHubContainerExecutor,
@@ -17,7 +22,7 @@ import {
 } from '../../../../src/commands';
 import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
-import { ConfigSource, OrgAuthInfo } from '../../../../src/util';
+import { OrgAuthInfo } from '../../../../src/util';
 
 class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
   public getShowChannelOutput() {
@@ -40,7 +45,7 @@ describe('Force Auth Web Login for Dev Hub', () => {
 });
 
 // Setup the test environment.
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecutor', () => {
   let getDefaultDevHubUsernameStub: SinonStub;
@@ -53,8 +58,9 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   let sb: SinonSandbox;
 
   beforeEach(() => {
+    stubContext($$);
     $$.SANDBOXES.CONFIG.restore();
-    sb = createSandbox();
+    sb = $$.SANDBOX;
     getDefaultDevHubUsernameStub = sb.stub(
       OrgAuthInfo,
       'getDefaultDevHubUsernameOrAlias'
@@ -69,8 +75,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   });
 
   afterEach(() => {
-    $$.SANDBOX.restore();
-    sb.restore();
+    restoreContext($$);
   });
 
   it('Should set global dev hub if there is no global already, but a local has been defined', async () => {

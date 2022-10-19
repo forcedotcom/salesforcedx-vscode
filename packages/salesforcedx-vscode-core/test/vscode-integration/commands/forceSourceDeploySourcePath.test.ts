@@ -5,17 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types/index';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+  ContinueResponse,
+  fileUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver
 } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { LibraryDeploySourcePathExecutor } from '../../../src/commands';
 import * as forceSourceDeploySourcePath from '../../../src/commands/forceSourceDeploySourcePath';
@@ -25,12 +32,16 @@ import {
   SfdxPackageDirectories,
   SfdxProjectConfig
 } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 describe('Force Source Deploy Using Sourcepath Option', () => {
+  afterEach(() => {
+    restoreContext($$);
+  });
+
   describe('Library Executor', () => {
     let mockConnection: Connection;
 
@@ -40,17 +51,12 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
 
     beforeEach(async () => {
       const testData = new MockTestOrgData();
+      stubContext($$);
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
 
-      const authInfo = await AuthInfo.create({
-        username: testData.username
-      });
-
-      mockConnection = await Connection.create({
-        authInfo
-      });
+      mockConnection = await testData.getConnection();
 
       getComponentsFromPathStub = sb
         .stub(MetadataResolver.prototype, 'getComponentsFromPath')
@@ -117,7 +123,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
     it('componentSet should have sourceApiVersion set', async () => {
       const executor = new LibraryDeploySourcePathExecutor();
       const data = path.join(
-        getRootWorkspacePath(),
+        workspaceUtils.getRootWorkspacePath(),
         'force-app/main/default/classes/'
       );
       const continueResponse = {
@@ -151,7 +157,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .returns(true);
 
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([
           path.sep + filePath1,
           path.sep + filePath2,
@@ -190,7 +196,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
@@ -226,7 +232,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
@@ -270,7 +276,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(forceSourceDeploySourcePath, 'getUriFromActiveEditor')
         .returns(filePath1);
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([undefined]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(
@@ -307,7 +313,7 @@ describe('Force Source Deploy Using Sourcepath Option', () => {
         .stub(SfdxPackageDirectories, 'isInPackageDirectory')
         .returns(true);
       const flushFilePathsStub = sb
-        .stub(helpers, 'flushFilePaths')
+        .stub(fileUtils, 'flushFilePaths')
         .returns([path.sep + filePath1]);
 
       await forceSourceDeploySourcePath.forceSourceDeploySourcePaths(

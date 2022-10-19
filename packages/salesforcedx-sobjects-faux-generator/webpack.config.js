@@ -1,42 +1,5 @@
 const path = require('path');
-const glob = require('glob');
 const DIST = path.resolve(__dirname);
-
-const getEntryObject = () => {
-  const entryArray = glob.sync('src/**/*.ts');
-  const srcObj = entryArray.reduce((acc, item) => {
-    const modulePath = item.replace(/\/[\.A-Za-z0-9_-]*\.ts/g, '');
-    const outputModulePath = path.join('out', modulePath, 'index');
-
-    if (!acc.hasOwnProperty(outputModulePath)) {
-      // webpack requires the object to be in this format
-      // { 'out/src/describe/index': './src/describe/index.ts' }
-      acc[outputModulePath] = '.' + path.join(path.sep, modulePath, 'index.ts');
-    }
-
-    return acc;
-  }, {});
-
-  if (getMode() !== 'development') {
-    return srcObj;
-  }
-
-  const entryTestArray = glob.sync('test/**/*.ts');
-  const testObj = entryTestArray.reduce((acc, item) => {
-    const modulePath = item.replace(/\.ts/g, '');
-    const outputModulePath = path.join('out', modulePath);
-
-    if (!acc.hasOwnProperty(outputModulePath)) {
-      // webpack requires the object to be in this format
-      // { 'out/test/unit/fauxClassGenerator.test': './test/unit/fauxClassGenerator.test.ts' }
-      acc[outputModulePath] = '.' + path.join(path.sep, `${modulePath}.ts`);
-    }
-
-    return acc;
-  }, {});
-
-  return Object.assign(testObj, srcObj);
-};
 
 const getMode = () => {
   const webpackMode = process.env.NODE_ENV || 'development';
@@ -45,10 +8,12 @@ const getMode = () => {
 };
 
 module.exports = {
+  // silence the output except for errors
+  stats: 'minimal',
   // extensions run in a node context
   target: 'node',
   mode: getMode(),
-  entry: getEntryObject(),
+  entry: { 'dist/src/index': './src/index.ts' },
   // vsix packaging depends on commonjs2
   output: {
     path: DIST,
@@ -60,29 +25,28 @@ module.exports = {
   devtool: 'source-map',
   // excluding dependencies from getting bundled
   externals: {
-    // vscode: 'commonjs vscode',
     '@salesforce/core': 'commonjs @salesforce/core',
+    '@salesforce/salesforcedx-utils-vscode': 'commonjs @salesforce/salesforcedx-utils-vscode',
+    vscode: 'commonjs vscode',
     'vscode-nls': 'commonjs vscode-nls',
     mocha: 'mocha'
   },
   // Automatically resolve certain extensions.
   resolve: {
-    extensions: ['.ts', '.tsx', '.js']
+    extensions: ['.ts', '.js', '.json']
   },
   // pre-process certain file types using loaders
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        exclude: /node_modules|\.d\.ts$/,
+        test: /\.ts$/,
+        exclude: [
+          /node_modules|\.test.ts$|\.d\.ts$/,
+          path.resolve(__dirname, './test')
+        ],
         use: [
           {
-            loader: 'ts-loader',
-            // tsc build requires non-ts files (e.g. json) to be explicitly included and ts-loader seems to be having an issue processing include directives.
-            // https://github.com/TypeStrong/ts-loader/issues/1402
-            options: {
-              configFile: 'tsconfig.webpack.json'
-            }
+            loader: 'ts-loader'
           }
         ]
       }

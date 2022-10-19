@@ -10,10 +10,14 @@ import * as os from 'os';
 import * as path from 'path';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 import { nls } from '../messages';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { workspaceUtils } from '../util';
 
-const CONFIG_FILE = hasRootWorkspace()
-  ? path.join(getRootWorkspacePath(), '.sfdx', 'sfdx-config.json')
+const CONFIG_FILE = workspaceUtils.hasRootWorkspace()
+  ? path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      '.sfdx',
+      'sfdx-config.json'
+    )
   : path.join(os.homedir(), '.sfdx', 'sfdx-config.json');
 
 let statusBarItem: StatusBarItem;
