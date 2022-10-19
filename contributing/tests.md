@@ -42,7 +42,7 @@ Unit tests priorities are as follows:
 - VSCode extensions are our friend
   - https://marketplace.visualstudio.com/items?itemName=firsttris.vscode-jest-runner
 - Tests can be executed from the IDE, command line, or via npm script.
-  - IDE assuming you are using the above extension use the Run & Debug code lense found in test files.
+  - IDE: assuming you are using the above extension, use the Run & Debug CodeLens found in test files.
   - Command line: `npx jest` will execute all unit tests in a package by default. If the integration tests are configured for jest in the package you may execute those using `npx jest -c jest.integration.config`. There are many options for configuring the test run see the [docs](https://jestjs.io/docs/cli) or `npx jest -h` for further guidance.
   - npm scripts:
     - `npm run test:unit`
