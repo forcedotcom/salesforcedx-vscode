@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -14,7 +14,6 @@ import {
   hasRootWorkspace,
   WorkspaceContextUtil
 } from '..';
-import { nls } from '../messages';
 
 const ORGS = 'orgs';
 const METADATA = 'metadata';
@@ -25,6 +24,7 @@ const DEBUG = 'debug';
 const LOGS = 'logs';
 const APEX_DB = 'apex.db';
 const LWC = 'lwc';
+const SFDX_CONFIG = 'sfdx-config.json';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -132,6 +132,11 @@ function debugLogsFolder(): string {
   return pathToDebugLogsFolder;
 }
 
+function sfdxProjectConfig(): string {
+  const pathToSFDXProjectConfig = path.join(stateFolder(), SFDX_CONFIG);
+  return pathToSFDXProjectConfig;
+}
+
 function toolsFolder(): string {
   const pathToToolsFolder = path.join(stateFolder(), TOOLS);
   return pathToToolsFolder;
@@ -144,6 +149,7 @@ export const projectPaths = {
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
+  sfdxProjectConfig,
   toolsFolder,
   lwcTestResultsFolder
 };

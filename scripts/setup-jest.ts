@@ -62,7 +62,14 @@ const getMockVSCode = () => {
         };
       },
       onDidChangeConfiguration: jest.fn(),
-      createFileSystemWatcher: jest.fn()
+      createFileSystemWatcher: () => {
+        return {
+          onDidChange: jest.fn(),
+          onDidCreate: jest.fn(),
+          onDidDelete: jest.fn()
+        }
+      },
+      workspaceFolders: []
     }
   };
 };
