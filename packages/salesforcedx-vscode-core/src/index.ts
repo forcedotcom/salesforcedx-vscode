@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SfProject } from '@salesforce/core';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
@@ -587,6 +589,18 @@ async function setupOrgBrowser(
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
+  // Set the value of ext.supportedFolders by reading the packages that are
+  // in the sfdx-project-config file.  This property is used by the
+  // Generate Manifest command, which should be available under all dirs
+  // listed as packages in the project config file
+  const project = SfProject.getInstance(getRootWorkspacePath());
+  // const projectDirectories = project.getPackageDirectories();
+  const projectDirectories = project.getUniquePackageNames();
+  vscode.commands.executeCommand(
+    'setContext',
+    'ext.supportedFolders',
+    projectDirectories
+  );
   const extensionHRStart = process.hrtime();
   const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
     './package.json'
