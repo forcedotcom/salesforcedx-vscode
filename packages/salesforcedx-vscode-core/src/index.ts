@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SfProject } from '@salesforce/core';
-import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
@@ -593,8 +592,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // in the sfdx-project.json file.  This property is used by the
   // Generate Manifest File command, which should be available under all dirs
   // listed as packages in the project config file
-  const project = SfProject.getInstance(getRootWorkspacePath());
-  const projectDirectories = project.getUniquePackageNames();
+  const projectDirectories = ConfigUtil.getProjectPackageNames();
   vscode.commands.executeCommand(
     'setContext',
     'ext.supportedFolders',

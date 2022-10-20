@@ -10,9 +10,11 @@ import {
   ConfigAggregator,
   OrgConfigProperties,
   SfConfigProperties,
+  SfProject,
   StateAggregator
 } from '@salesforce/core';
 import { ConfigAggregatorProvider } from '../providers';
+import { getRootWorkspacePath } from '../workspaces';
 
 export enum ConfigSource {
   Local,
@@ -133,5 +135,15 @@ export class ConfigUtil {
       ? info.aliases.getUsername(String(defaultUsernameOrAlias))
       : undefined;
     return username ? String(username) : undefined;
+  }
+
+  /**
+   * @returns a list of the unique package names from within sfdx-project.json.
+   */
+  public static getProjectPackageNames(): string[] {
+    const rootWorkspacePath = getRootWorkspacePath();
+    const project = SfProject.getInstance(rootWorkspacePath);
+    const projectDirectories = project.getUniquePackageNames();
+    return projectDirectories;
   }
 }
