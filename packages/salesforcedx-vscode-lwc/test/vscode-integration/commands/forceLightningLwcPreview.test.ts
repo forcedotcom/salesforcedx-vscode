@@ -148,10 +148,7 @@ describe('forceLightningLwcPreview', () => {
   let openBrowserStub: SinonStub<[string], Thenable<boolean>>;
   let existsSyncStub: sinon.SinonStub<[fs.PathLike], boolean>;
   let lstatSyncStub: sinon.SinonStub<[fs.PathLike], fs.Stats>;
-  let showErrorMessageStub: sinon.SinonStub<
-    [string, ...string[]],
-    Thenable<string | undefined>
-  >;
+  let showErrorMessageStub: sinon.SinonStub;
   const root = /^win32/.test(process.platform) ? 'c:\\' : '/var';
   const mockLwcFileDirectory = path.join(
     root,
@@ -169,21 +166,8 @@ describe('forceLightningLwcPreview', () => {
   const notLwcModulePathUri = URI.file(notLwcModulePath);
   const nonExistentPath = path.join(root, 'foo');
   const nonExistentPathUri = URI.file(nonExistentPath);
-  let showQuickPickStub: sinon.SinonStub<
-    [
-      vscode.QuickPickItem[] | Thenable<vscode.QuickPickItem[]>,
-      (vscode.QuickPickOptions | undefined)?,
-      (vscode.CancellationToken | undefined)?
-    ],
-    Thenable<vscode.QuickPickItem | undefined>
-  >;
-  let showInputBoxStub: sinon.SinonStub<
-    [
-      (vscode.InputBoxOptions | undefined)?,
-      (vscode.CancellationToken | undefined)?
-    ],
-    Thenable<string | undefined>
-  >;
+  let showQuickPickStub: sinon.SinonStub;
+  let showInputBoxStub: sinon.SinonStub;
   let getConfigurationStub: sinon.SinonStub<any, vscode.WorkspaceConfiguration>;
   let getGlobalStoreStub: sinon.SinonStub<any, vscode.Memento | undefined>;
   let cmdWithArgSpy: sinon.SinonSpy<[string], CommandBuilder>;
@@ -206,6 +190,9 @@ describe('forceLightningLwcPreview', () => {
   const rememberediOSDevice = 'rememberediOS';
 
   class MockMemento implements vscode.Memento {
+    keys(): readonly string[] {
+      throw new Error('Method not implemented.');
+    }
     public get<T>(key: string): T | undefined {
       switch (key) {
         case `last${PlatformName.Android}Device`:
