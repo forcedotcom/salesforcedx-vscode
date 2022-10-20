@@ -27,6 +27,7 @@
     "shx": "0.3.4"
   },
   "scripts": {
+    "bundle:debugger": "esbuild ./src/visualforceServer.ts  --bundle --outfile=dist/visualforceServer.js --format=cjs --platform=node --external:vscode-uri --external:vscode-nls --external:vscode-languageserver-types --external:vscode-languageserver-protocol --external:vscode-css-languageservice --external:vscode-languageserver --minify",
     "compile": "tsc -p ./ && npm run copy:files",
     "copy:files": "shx cp -R test/unit/fixtures out/test/unit",
     "lint": "tslint --project .",
