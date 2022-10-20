@@ -591,9 +591,9 @@ async function setupOrgBrowser(
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   // Set the value of ext.supportedFolders by reading the packages that are
-  // in the sfdx-project.json file.  This property is used by the
-  // Generate Manifest File command, which should be available under all dirs
-  // listed as packages in the project config file
+  // in the sfdx config file.  This property is used by the
+  // Generate Manifest File command, which should be available for all
+  // folders listed as packages in the sfdx config file
   const projectDirectories = ConfigUtil.getProjectPackageNames();
   vscode.commands.executeCommand(
     'setContext',
