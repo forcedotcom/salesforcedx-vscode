@@ -15,10 +15,10 @@ The test types from most preferred to least preferred are:
 
 1. Unit Tests - mocha: Found under the test/unit directory. Not under active development.
    - `npm run test:unit`
-1. vscode-integration - Tests that are somewhere between integration and unit tests. These are being phased out and there should be no new additions and minimual effort to
+1. vscode-integration - Tests that are somewhere between integration and unit tests. These are being phased out and there should be no new additions.
    - Close all instances of vscode.
    - `npm run test:integration`
-1. system-tests - These have been disabled for a long time and should be deleted.
+1. system-tests - These have been disabled for a long time and will soon be deleted.
 
 To run all tests, execute `npm run compile && npm run test` from the root
 folder. Note the compile is only necessary for the integration tests.
@@ -29,7 +29,7 @@ Unit tests priorities are as follows:
 
 1. Unit tests should focus on only the _unit_ of code under test.
    - 1 method/function
-1. All dependencies should be stubbed/mocked.
+1. All dependencies should be mocked.
 1. Unit tests should be easy to write and execute
    - If your code is hard to test consider how it could be refactored to make it easier to test.
 1. Use only jest and do not import mochi/sinon/chai.
@@ -58,5 +58,19 @@ Unit tests priorities are as follows:
 - ts-jest enables us to compile on the fly so no need for compilation while writing unit tests.
 - Jest [Docs](https://jestjs.io/docs/getting-started) are very good.
 - There is a shared top level jest config file for [unit](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/config/jest.base.config.js) and [integration](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/config/jest.integration.config.js) tests. The unit test configuration is shared between the exisiting tests in the unit directory and the tests in the jest directory.
-- There is a top level jest setup script [setup-jest.js](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/scripts/setup-jest.ts) where we are stubbing the vscode module.
-  -Jest is automatically injected into the tests so we don’t need to worry about importing jest, expect, etc.
+  - Each module requires a `jest.config.js` configuration file that extends the shared base configuration file. If you add initial jest tests to a package be sure to create one or the jest tests will not execute properly. Any package specific jest configuration can be configured in the package level file. See [Configuring Jest](https://jestjs.io/docs/configuration).
+- There is a top level jest setup script [setup-jest.js](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/scripts/setup-jest.ts) where we are [mocking the vscode module](#virtual-mocked-vscode-module).
+- Jest is automatically injected into the tests so we don’t need to worry about importing jest, expect, etc.
+- Jest is currently configured to [resetAllMocks](https://jestjs.io/docs/configuration#resetmocks-boolean) after each tests. Unit tests should never have dependencies on the execution of other tests. This ensures that we don't have to manage restoring or resetting mocked values in individual test or suites of tests.
+
+#### Virtual Mocked vscode Module
+
+Making use of the ability to have mocked virtural modules in jest enabled us to stub out the vscode module for unit tests. This is required due to vscode extensions only having the `@types/vscode` module installed locally during development. The vscode module is only available when executed on a running instance of vscode.
+
+The mock is defined in [setup-jest.js](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/scripts/setup-jest.ts) and is automatically injected for all tests.
+
+Best Practices around the mocked vscode modules.
+
+- If you find a property that is not currently available in the mock please add it.
+- The mocked module should only mock the high level properties. Resolving/returning values should be left to the individual test suite setup so that we can avoid having to adhere to particular behavior across tests.
+- Be aware that the mock call is only executed once during test execution and then resolves for all imports executed during the test run. Individual mocked properties on the module are reset after each test.
