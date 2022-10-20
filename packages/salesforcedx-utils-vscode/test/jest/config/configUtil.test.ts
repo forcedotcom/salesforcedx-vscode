@@ -1,5 +1,5 @@
 import { SfProject } from '@salesforce/core';
-import { ConfigUtil } from '../../../src';
+import { ConfigUtil, workspaceUtils } from '../../../src';
 
 describe('ConfigUtil', () => {
   describe('getProjectPackageNames', () => {
@@ -7,12 +7,18 @@ describe('ConfigUtil', () => {
       getUniquePackageNames: jest.fn()
     };
     const sfProjectGetInstanceMock = jest.fn();
+    const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
+    let getRootWorkspacePathStub: jest.SpyInstance;
 
     beforeEach(() => {
       SfProject.getInstance = sfProjectGetInstanceMock;
       jest
         .spyOn(SfProject.prototype, 'getUniquePackageNames')
         .mockImplementation(() => ['project1', 'project2']);
+
+      getRootWorkspacePathStub = jest
+        .spyOn(workspaceUtils, 'getRootWorkspacePath')
+        .mockReturnValue(FAKE_WORKSPACE);
     });
 
     it('should return project package directories listed in project config file', () => {
@@ -24,13 +30,12 @@ describe('ConfigUtil', () => {
       // since that is already tested in the core lib here: https://github.com/forcedotcom/sfdx-core/blob/4b6f99b44b77989fc525460391b41da62deb62a8/test/unit/projectTest.ts#L516
 
       sfProjectGetInstanceMock.mockReturnValue(mockSfProject);
-      // sfProjectGetUniquePackageNamesMock.mockReturnValue('test');
 
       const projectPackageNames = ConfigUtil.getProjectPackageNames();
 
-      // expect(getRootWorkspacePath).toHaveBeenCalled();
+      expect(getRootWorkspacePathStub).toHaveBeenCalled();
       expect(sfProjectGetInstanceMock).toHaveBeenCalled();
-      // expect(SfProject.prototype.getUniquePackageNames).toHaveBeenCalled();
+      expect(mockSfProject.getUniquePackageNames).toHaveBeenCalled();
     });
   });
 });

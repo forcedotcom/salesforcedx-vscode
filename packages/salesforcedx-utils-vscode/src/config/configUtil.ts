@@ -14,7 +14,7 @@ import {
   StateAggregator
 } from '@salesforce/core';
 import { ConfigAggregatorProvider } from '../providers';
-import { getRootWorkspacePath } from '../workspaces';
+import { workspaceUtils } from '../workspaces';
 
 export enum ConfigSource {
   Local,
@@ -141,7 +141,7 @@ export class ConfigUtil {
    * @returns a list of the unique package names from within sfdx-project.json.
    */
   public static getProjectPackageNames(): string[] {
-    const rootWorkspacePath = getRootWorkspacePath();
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     const project = SfProject.getInstance(rootWorkspacePath);
     const projectDirectories = project.getUniquePackageNames();
     return projectDirectories;
