@@ -21,6 +21,7 @@ import {
   CheckpointInfoIterationNode,
   CheckpointNode,
   checkpointService,
+  checkpointUtils,
   parseCheckpointInfoFromBreakpoint,
   processBreakpointChangedForCheckpoints,
   sfdxToggleCheckpoint
@@ -682,31 +683,31 @@ describe('Checkpoint parsing from SourceBreakpoint', () => {
 });
 
 describe('Verify SFDX Toggle Checkpoint callback, sfdxToggleCheckpoint', () => {
-  const cpService = require('../../../src/breakpoints/checkpointService');
-
   const breakpointEnabled = true;
   const uriInput = vscode.Uri.parse('file:///bar.cls');
   const lineInput = 5;
 
-  // These need to be stubbed in order to not require an open file in an active editor with a selection.
-  // tslint had to be disabled for these two variables because, being stubs, they're not directly called
-  // in here and it'll cause lint to fail.
-  /* tslint:disable */
-  const fetchActiveEditorUriStub = sinon
-    .stub(cpService, 'fetchActiveEditorUri')
-    .returns(uriInput);
-  const fetchActiveSelectionLineNumberStub = sinon
-    .stub(cpService, 'fetchActiveSelectionLineNumber')
-    .returns(lineInput - 1);
-  /* tslint:enable */
   let addBreakpointsStub: sinon.SinonStub;
   let removeBreakpointsStub: sinon.SinonStub;
+  let fetchActiveEditorUriStub: sinon.SinonStub;
+  let fetchActiveSelectionLineNumberStub: sinon.SinonStub;
   let bpAdd: vscode.Breakpoint[] = [];
   let bpArr: vscode.Breakpoint[] = [];
 
+  beforeEach(() => {
+    // These need to be stubbed in order to not require an open file in an active editor with a selection.
+    fetchActiveEditorUriStub = sinon
+      .stub(checkpointUtils, 'fetchActiveEditorUri')
+      .returns(uriInput);
+    fetchActiveSelectionLineNumberStub = sinon
+      .stub(checkpointUtils, 'fetchActiveSelectionLineNumber')
+      .returns(lineInput - 1);
+  });
   afterEach(async () => {
     addBreakpointsStub.restore();
     removeBreakpointsStub.restore();
+    fetchActiveEditorUriStub.restore();
+    fetchActiveSelectionLineNumberStub.restore();
     bpAdd = [];
     bpArr = [];
     clearOutCheckpoints();

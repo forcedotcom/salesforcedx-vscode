@@ -40,11 +40,7 @@ class MockEnvironmentVariableCollection {
     throw new Error('Method not implemented.');
   }
   public forEach(
-    callback: (
-      variable: string,
-      mutator: any,
-      collection: any
-    ) => any,
+    callback: (variable: string, mutator: any, collection: any) => any,
     thisArg?: any
   ): void {
     throw new Error('Method not implemented.');
@@ -66,6 +62,8 @@ export class MockExtensionContext {
   public subscriptions: Array<{ dispose(): any }> = [];
   public workspaceState!: any;
   public globalState: any;
+  // default to test mode
+  public extensionMode: number = 2;
   public extensionPath: string = 'myExtensionPath';
   public globalStoragePath = 'globalStatePath';
   public logPath = 'logPath';

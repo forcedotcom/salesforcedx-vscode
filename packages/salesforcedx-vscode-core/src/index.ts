@@ -601,9 +601,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     projectDirectories
   );
   const extensionHRStart = process.hrtime();
-  const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
-    './package.json'
-  ));
+  const { name, aiKey, version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     name,
