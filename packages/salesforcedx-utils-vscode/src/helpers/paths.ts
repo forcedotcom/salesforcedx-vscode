@@ -9,11 +9,8 @@ import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  getRootWorkspacePath,
-  hasRootWorkspace,
-  WorkspaceContextUtil
-} from '..';
+import { WorkspaceContextUtil } from '..';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const ORGS = 'orgs';
 const METADATA = 'metadata';
@@ -87,8 +84,8 @@ export function fileExtensionsMatch(
 }
 
 function stateFolder(): string {
-  return hasRootWorkspace()
-    ? path.join(getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
+  return workspaceUtils.hasRootWorkspace()
+    ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
     : '';
 }
 
