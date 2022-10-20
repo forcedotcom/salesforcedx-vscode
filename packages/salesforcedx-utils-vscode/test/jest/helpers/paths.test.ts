@@ -6,12 +6,12 @@ jest.mock('@salesforce/core', () => {
     Global: {
       SFDX_STATE_FOLDER: '.sfdx'
     }
-  }
+  };
 });
 
 describe('test project paths', () => {
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
-  
+
   describe('test stateFolder', () => {
     const FAKE_STATE_FOLDER = '.sfdx';
     let getRootWorkspacePathStub: jest.SpyInstance;
@@ -41,13 +41,14 @@ describe('test project paths', () => {
     const FAKE_CONFIG = path.join(FAKE_WORKSPACE, 'sfdx-config.json');
 
     beforeEach(() => {
-      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE)
+      stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
 
     it('is defined', () => {
       expect(projectPaths.sfdxProjectConfig).toBeDefined();
     });
 
+    // todo: this is failing as it appears stateFolder is not being replaced.
     it('returns path to the config file based on root workspace', () => {
       const sfdxProjectConfig = projectPaths.sfdxProjectConfig();
       expect(sfdxProjectConfig).toEqual(FAKE_CONFIG);
