@@ -26,6 +26,7 @@ export class MockChannel {
   public show(column?: any, preserveFocus?: any) {}
   public hide(): void {}
   public dispose(): void {}
+  public replace(value: string): void {}
 }
 
 export const vscodeStub = {

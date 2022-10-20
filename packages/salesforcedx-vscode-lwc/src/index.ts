@@ -59,12 +59,12 @@ export async function activate(extensionContext: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  const extensionPackage = require(extensionContext.asAbsolutePath('./package.json'));
+  const { aiKey, version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     LWC_EXTENSION_NAME,
-    extensionPackage.aiKey,
-    extensionPackage.version
+    aiKey,
+    version
   );
 
   // if we have no workspace folders, exit

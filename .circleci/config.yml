@@ -584,7 +584,6 @@ workflows:
       - unit-tests
       - integration-tests
       - soql-ui-tests
-
   # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
   # dependabot-automerge:
   #   triggers:

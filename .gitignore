@@ -114,3 +114,6 @@ packages/dbaeumer*
 
 # Vscode History Extension
 .history
+
+# Extension build directory
+packages/**/extension

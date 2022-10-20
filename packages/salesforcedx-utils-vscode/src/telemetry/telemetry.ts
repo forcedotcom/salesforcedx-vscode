@@ -6,7 +6,7 @@
  */
 
 import * as util from 'util';
-import { env, ExtensionContext, workspace } from 'vscode';
+import { env, ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
 import { disableCLITelemetry, isCLITelemetryAllowed } from './cliConfiguration';
 import { TelemetryReporter } from './telemetryReporter';
@@ -98,7 +98,8 @@ export class TelemetryService {
       });
 
     const machineId = env ? env.machineId : 'someValue.machineId';
-    const isDevMode = machineId === 'someValue.machineId';
+    const isDevMode =
+      extensionContext.extensionMode !== ExtensionMode.Production;
 
     // TelemetryReporter is not initialized if user has disabled telemetry setting.
     if (

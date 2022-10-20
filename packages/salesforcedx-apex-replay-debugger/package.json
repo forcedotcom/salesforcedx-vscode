@@ -38,6 +38,7 @@
     "vscode-debugadapter-testsupport": "1.28.0"
   },
   "scripts": {
+    "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts  --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",

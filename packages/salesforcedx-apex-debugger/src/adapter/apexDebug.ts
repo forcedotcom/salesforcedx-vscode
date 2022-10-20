@@ -13,7 +13,6 @@ import {
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
 } from '@salesforce/salesforcedx-utils';
-import * as AsyncLock from 'async-lock';
 import { basename } from 'path';
 import {
   DebugSession,
@@ -84,6 +83,11 @@ import {
 } from '../index';
 import { nls } from '../messages';
 import os = require('os');
+
+// Below import has to be required for bundling
+/* tslint:disable */
+const AsyncLock = require('async-lock');
+/* tslint:enable */
 
 const TRACE_ALL = 'all';
 const TRACE_CATEGORY_VARIABLES = 'variables';

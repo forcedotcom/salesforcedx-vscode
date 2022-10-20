@@ -19,3 +19,4 @@ export const STDOUT_EVENT = 'stdoutEvent';
 export const STDERR_EVENT = 'stderrEvent';
 export const SUCCESS_CODE = 0;
 export const FAILURE_CODE = 1;
+export const LOCALE_JA = 'ja';

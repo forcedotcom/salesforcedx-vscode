@@ -96,5 +96,7 @@ export function sortTestNodeByLabel(node1: TestNode, node2: TestNode) {
   if (!label2) {
     return 1;
   }
-  return label1.localeCompare(label2);
+  const label1String = String(label1);
+  const label2String = String(label2);
+  return label1String.localeCompare(label2String);
 }

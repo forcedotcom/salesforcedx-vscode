@@ -55,7 +55,7 @@
     "@types/sanitize-filename": "^1.1.28",
     "@types/shelljs": "^0.7.8",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "1.49.0",
+    "@types/vscode": "1.72.0",
     "@types/yeoman-assert": "^3.1.1",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
@@ -69,9 +69,35 @@
     "typescript": "^4.7.4",
     "yeoman-assert": "^3.1.1"
   },
+  "packaging": {
+    "assets": [
+      "License.txt",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "OSSREADME.json",
+      "resources",
+      "syntaxes",
+      "images",
+      "dist"
+    ],
+    "packageUpdates": {
+      "main": "dist/index.js",
+      "dependencies": {
+        "applicationinsights": "1.0.7",
+        "@salesforce/core": "3.30.9",
+        "@salesforce/templates": "55.1.0",
+        "@salesforce/source-deploy-retrieve": "6.0.4",
+        "shelljs": "0.8.5"
+      },
+      "devDependencies": {}
+    }
+  },
   "scripts": {
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "vsce package",
+    "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
