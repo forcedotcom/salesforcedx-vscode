@@ -4,7 +4,9 @@ import { ConfigUtil, workspaceUtils } from '../../../src';
 describe('ConfigUtil', () => {
   describe('getProjectPackageNames', () => {
     const mockSfProject: any = {
-      getUniquePackageNames: jest.fn()
+      getUniquePackageNames: jest
+        .fn()
+        .mockImplementation(() => ['project1', 'project2'])
     };
     const sfProjectGetInstanceMock = jest.fn();
     const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
@@ -12,10 +14,6 @@ describe('ConfigUtil', () => {
 
     beforeEach(() => {
       SfProject.getInstance = sfProjectGetInstanceMock;
-      jest
-        .spyOn(SfProject.prototype, 'getUniquePackageNames')
-        .mockImplementation(() => ['project1', 'project2']);
-
       getRootWorkspacePathStub = jest
         .spyOn(workspaceUtils, 'getRootWorkspacePath')
         .mockReturnValue(FAKE_WORKSPACE);
