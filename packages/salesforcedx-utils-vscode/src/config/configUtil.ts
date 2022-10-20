@@ -138,7 +138,7 @@ export class ConfigUtil {
   }
 
   /**
-   * @returns a list of the unique package names from within sfdx-project.json.
+   * @returns a list of the unique package names listed in the project configuration.
    */
   public static getProjectPackageNames(): string[] {
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
