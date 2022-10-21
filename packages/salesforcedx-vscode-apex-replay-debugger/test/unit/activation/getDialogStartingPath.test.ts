@@ -12,19 +12,18 @@ describe('getDialogStartingPath', () => {
 
   beforeEach(() => {
     hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
-    getLastOpenedLogFolderMock = jest
-      .spyOn(dialogStartingPath, 'getLastOpenedLogFolder')
-      .mockReturnValue(testPath);
-    folderExistsMock = jest
-      .spyOn(dialogStartingPath, 'folderExists')
-      .mockReturnValue(true);
-    getUriForMock = jest
-      .spyOn(dialogStartingPath, 'getUriFor')
-      .mockReturnValue({ path: testPath } as vscode.Uri);
+    getLastOpenedLogFolderMock = jest.spyOn(
+      dialogStartingPath,
+      'getLastOpenedLogFolder'
+    );
+    folderExistsMock = jest.spyOn(dialogStartingPath, 'folderExists');
+    getUriForMock = jest.spyOn(dialogStartingPath, 'getUriFor');
   });
 
   it('Should return last opened log folder', () => {
     hasRootWorkspaceStub.mockReturnValue(true);
+    folderExistsMock.mockReturnValue(true);
+    getUriForMock.mockReturnValue({ path: testPath } as vscode.Uri);
     const mockGet = jest.fn().mockReturnValue(testPath);
     const mockExtensionContext: any = { workspaceState: { get: mockGet } };
 
