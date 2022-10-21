@@ -157,7 +157,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 
   private getLogFilePath(): string {
-    const outputDir = 
+    const outputDir = WorkspaceContextUtil.getLogDirPath();
     const now = new Date();
     const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
     const logFilePath = path.join(outputDir, `${localDateFormatted}.log`);
