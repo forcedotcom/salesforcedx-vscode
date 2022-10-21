@@ -1,7 +1,6 @@
 import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import {
   projectPaths,
-  WorkspaceContextUtil,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as pathExists from 'path-exists';
@@ -21,7 +20,7 @@ function getDialogStartingPathUri(
     // If lastOpenedLogFolder isn't defined or doesn't exist then use the
     // same directory that the SFDX download logs command would download to
     // if it exists.
-    const pathToWorkspaceLogsFolder = WorkspaceContextUtil.getLogDirPath();
+    const pathToWorkspaceLogsFolder = projectPaths.debugLogsFolder();
     if (folderExists(pathToWorkspaceLogsFolder)) {
       const workspaceLogsFolderUri = getUriFor(pathToWorkspaceLogsFolder);
       return workspaceLogsFolderUri;
