@@ -46,10 +46,10 @@ export class ConflictOutlineProvider
 
   public getTreeItem(element: ConflictNode): vscode.TreeItem {
     if (element) {
-      return element;
+      return element as vscode.TreeItem;
     }
     if (this.root) {
-      return this.root;
+      return this.root as vscode.TreeItem;
     }
     return { label: 'EMPTY' };
   }
