@@ -7,7 +7,7 @@ import {
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
 
-export function getDialogStartingPath(
+function getDialogStartingPathUri(
   extContext: vscode.ExtensionContext
 ): vscode.Uri | undefined {
   if (workspaceUtils.hasRootWorkspace()) {
@@ -33,7 +33,7 @@ export function getDialogStartingPath(
   }
 }
 
-export function getLastOpenedLogFolder(
+function getLastOpenedLogFolder(
   extContext: vscode.ExtensionContext
 ): string | undefined {
   const pathToLastOpenedLogFolder = extContext.workspaceState.get<string>(
@@ -42,10 +42,17 @@ export function getLastOpenedLogFolder(
   return pathToLastOpenedLogFolder;
 }
 
-export function folderExists(path: string): boolean {
+function folderExists(path: string): boolean {
   return pathExists.sync(path);
 }
 
-export function getUriFor(path: string): vscode.Uri {
+function getUriFor(path: string): vscode.Uri {
   return vscode.Uri.file(path);
 }
+
+export const dialogStartingPath = {
+  getDialogStartingPathUri,
+  getLastOpenedLogFolder,
+  folderExists,
+  getUriFor
+};
