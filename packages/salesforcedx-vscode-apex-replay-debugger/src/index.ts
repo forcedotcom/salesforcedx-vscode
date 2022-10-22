@@ -21,7 +21,7 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { dialogStartingPath } from './activation/getDialogStartingPath';
+import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
   CheckpointService,
@@ -49,9 +49,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 );
 
 function registerCommands(): vscode.Disposable {
-  const dialogStartingPathUri = dialogStartingPath.getDialogStartingPathUri(
-    extContext
-  );
+  const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
     async config => {

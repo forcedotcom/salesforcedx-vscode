@@ -5,7 +5,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
-import { dialogStartingPath } from '../../../src/activation/getDialogStartingPath';
+import { getDialogStartingPath } from '../../../src/activation/getDialogStartingPath';
 
 describe('getDialogStartingPath', () => {
   const testPath = '/here/is/a/fake/path/to/';
@@ -30,9 +30,7 @@ describe('getDialogStartingPath', () => {
     vsCodeUriMock.mockReturnValue({ path: testPath } as vscode.Uri);
 
     // Act
-    const dialogStartingPathUri = dialogStartingPath.getDialogStartingPathUri(
-      mockExtensionContext
-    );
+    const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
 
     expect(hasRootWorkspaceStub).toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
@@ -52,9 +50,7 @@ describe('getDialogStartingPath', () => {
     } as vscode.Uri);
 
     // Act
-    const dialogStartingPathUri = dialogStartingPath.getDialogStartingPathUri(
-      mockExtensionContext
-    );
+    const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
 
     expect(hasRootWorkspaceStub).toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
@@ -79,9 +75,7 @@ describe('getDialogStartingPath', () => {
     } as vscode.Uri);
 
     // Act
-    const dialogStartingPathUri = dialogStartingPath.getDialogStartingPathUri(
-      mockExtensionContext
-    );
+    const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
 
     expect(hasRootWorkspaceStub).toHaveBeenCalled();
     expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
@@ -98,9 +92,7 @@ describe('getDialogStartingPath', () => {
     const mockExtensionContext: any = { workspaceState: { get: mockGet } };
 
     // Act
-    const dialogStartingPathUri = dialogStartingPath.getDialogStartingPathUri(
-      mockExtensionContext
-    );
+    const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
 
     expect(dialogStartingPathUri as vscode.Uri).toEqual(undefined);
   });
