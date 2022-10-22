@@ -1,5 +1,8 @@
 import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger/src';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  projectPaths,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
 import { dialogStartingPath } from '../../../src/activation/getDialogStartingPath';
@@ -9,19 +12,19 @@ describe('getDialogStartingPath', () => {
   let hasRootWorkspaceStub: jest.SpyInstance;
   let pathExistsMock: jest.SpyInstance;
   let vsCodeUriMock: jest.SpyInstance;
+  let debugLogsFolderMock: jest.SpyInstance;
 
   beforeEach(() => {
     hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
     pathExistsMock = jest.spyOn(pathExists, 'sync').mockReturnValue(true);
-    vsCodeUriMock = jest
-      .spyOn(vscode.Uri, 'file')
-      .mockReturnValue({ path: testPath } as vscode.Uri);
+    vsCodeUriMock = jest.spyOn(vscode.Uri, 'file');
   });
 
-  it('Should return last opened log folder', () => {
+  it('Should return last opened log folder if present', () => {
     hasRootWorkspaceStub.mockReturnValue(true);
     const mockGet = jest.fn().mockReturnValue(testPath);
     const mockExtensionContext: any = { workspaceState: { get: mockGet } };
+    vsCodeUriMock.mockReturnValue({ path: testPath } as vscode.Uri);
 
     // Act
     const dialogStartingPathUri = dialogStartingPath.getDialogStartingPathUri(
@@ -35,11 +38,33 @@ describe('getDialogStartingPath', () => {
     expect((dialogStartingPathUri as vscode.Uri).path).toEqual(testPath);
   });
 
-  it('Should return log folder', async () => {
+  it('Should return project log folder when last opened log folder not present', async () => {
     hasRootWorkspaceStub.mockReturnValue(true);
+    const mockGet = jest.fn().mockReturnValue(undefined);
+    const mockExtensionContext: any = { workspaceState: { get: mockGet } };
+    const fakePathToDebugLogsFolder = 'path/to/debug/logs';
+    debugLogsFolderMock = jest
+      .spyOn(projectPaths, 'debugLogsFolder')
+      .mockReturnValue(fakePathToDebugLogsFolder);
+    vsCodeUriMock.mockReturnValue({
+      path: fakePathToDebugLogsFolder
+    } as vscode.Uri);
+
+    // Act
+    const dialogStartingPathUri = dialogStartingPath.getDialogStartingPathUri(
+      mockExtensionContext
+    );
+
+    expect(hasRootWorkspaceStub).toHaveBeenCalled();
+    expect(mockGet).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY);
+    expect(pathExistsMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
+    expect(vsCodeUriMock).toHaveBeenCalledWith(fakePathToDebugLogsFolder);
+    expect((dialogStartingPathUri as vscode.Uri).path).toEqual(
+      fakePathToDebugLogsFolder
+    );
   });
 
-  it('Should return state folder', async () => {
+  it('Should return state folder as fallback when project log folder not present', async () => {
     hasRootWorkspaceStub.mockReturnValue(true);
   });
 
