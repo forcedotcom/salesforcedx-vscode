@@ -15,23 +15,23 @@ describe('test project paths', () => {
   describe('test stateFolder', () => {
     const FAKE_STATE_FOLDER = '.sfdx';
     let getRootWorkspacePathStub: jest.SpyInstance;
-    let hasRootWorkspaceStub: jest.SpyInstance;
+    const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
 
     beforeEach(() => {
       getRootWorkspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(FAKE_WORKSPACE);
     });
 
-    it('is defined', () => {
+    it('should be defined', () => {
       expect(projectPaths.stateFolder).toBeDefined();
     });
 
-    it('returns path to the state folder if the project has a root workspace', () => {
-      hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace').mockReturnValue(true);
+    it('should return a path to the state folder if the project has a root workspace', () => {
+      hasRootWorkspaceStub.mockReturnValue(true);
       expect(projectPaths.stateFolder()).toEqual(path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER));
     });
 
-    it('returns path to the state folder if the project does not have a root workspace', () => {
-      hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace').mockReturnValue(false);
+    it('should return a path to the state folder if the project does not have a root workspace', () => {
+      hasRootWorkspaceStub.mockReturnValue(false);
       expect(projectPaths.stateFolder()).toEqual('');
     });
 
@@ -44,12 +44,11 @@ describe('test project paths', () => {
       stateFolderStub = jest.spyOn(projectPaths, 'stateFolder').mockReturnValue(FAKE_WORKSPACE);
     });
 
-    it('is defined', () => {
+    it('should be defined', () => {
       expect(projectPaths.sfdxProjectConfig).toBeDefined();
     });
 
-    // todo: this is failing as it appears stateFolder is not being replaced.
-    it('returns path to the config file based on root workspace', () => {
+    it('should return a path to the config file based on root workspace', () => {
       const sfdxProjectConfig = projectPaths.sfdxProjectConfig();
       expect(sfdxProjectConfig).toEqual(FAKE_CONFIG);
     });

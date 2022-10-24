@@ -32,16 +32,16 @@ describe('isvContext unit test', () => {
       };
     });
 
-    it('registerIsvAuthWatcher is defined', () => {
+    it('should be defined', () => {
       expect(registerIsvAuthWatcher).toBeDefined();
     });
 
-    it('Should not watch files if workspace folders are not present', () => {
+    it('should not watch files if workspace folders are not present', () => {
       registerIsvAuthWatcher(extensionContext);
       expect(vscode.workspace.createFileSystemWatcher).not.toHaveBeenCalled();
     });
 
-    it('Should watch files if workspace folders are present', () => {
+    it('should watch files if workspace folders are present', () => {
       (vscode.workspace.workspaceFolders as any) = ['1'];
       registerIsvAuthWatcher(extensionContext);
       expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith(fakePath);

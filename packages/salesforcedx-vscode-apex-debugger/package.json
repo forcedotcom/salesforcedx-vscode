@@ -60,8 +60,7 @@
     "test": "npm run test:vscode-integration",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
     "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "coverage": "jest --coverage"
+    "test:unit": "jest --coverage"
   },
   "activationEvents": [
     "onDebugResolve:apex",

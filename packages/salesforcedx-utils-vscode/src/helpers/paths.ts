@@ -21,7 +21,7 @@ const DEBUG = 'debug';
 const LOGS = 'logs';
 const APEX_DB = 'apex.db';
 const LWC = 'lwc';
-const SFDX_CONFIG = 'sfdx-config.json';
+const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -92,7 +92,7 @@ function stateFolder(): string {
 function metadataFolder(): string {
   const username = WorkspaceContextUtil.getInstance().username;
   const pathToMetadataFolder = path.join(
-    stateFolder(),
+    projectPaths.stateFolder(),
     ORGS,
     String(username),
     METADATA
@@ -130,12 +130,12 @@ function debugLogsFolder(): string {
 }
 
 function sfdxProjectConfig(): string {
-  const pathToSFDXProjectConfig = path.join(stateFolder(), SFDX_CONFIG);
+  const pathToSFDXProjectConfig = path.join(projectPaths.stateFolder(), SFDX_CONFIG_FILE);
   return pathToSFDXProjectConfig;
 }
 
 function toolsFolder(): string {
-  const pathToToolsFolder = path.join(stateFolder(), TOOLS);
+  const pathToToolsFolder = path.join(projectPaths.stateFolder(), TOOLS);
   return pathToToolsFolder;
 }
 
