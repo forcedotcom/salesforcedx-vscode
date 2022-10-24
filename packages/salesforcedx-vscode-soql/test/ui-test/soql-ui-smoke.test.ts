@@ -82,7 +82,6 @@ describe('In project folder, SOQL files should', function() {
     expect(toggle).is.not.undefined;
     await toggle?.click();
 
-    console.log('**** GORDON toggle clicked.');
     await pause(10000);
   };
 
