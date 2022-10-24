@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -9,12 +9,8 @@ import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  getRootWorkspacePath,
-  hasRootWorkspace,
-  WorkspaceContextUtil
-} from '..';
-import { nls } from '../messages';
+import { WorkspaceContextUtil } from '..';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const ORGS = 'orgs';
 const METADATA = 'metadata';
@@ -25,6 +21,7 @@ const DEBUG = 'debug';
 const LOGS = 'logs';
 const APEX_DB = 'apex.db';
 const LWC = 'lwc';
+const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -87,15 +84,15 @@ export function fileExtensionsMatch(
 }
 
 function stateFolder(): string {
-  return hasRootWorkspace()
-    ? path.join(getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
+  return workspaceUtils.hasRootWorkspace()
+    ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
     : '';
 }
 
 function metadataFolder(): string {
   const username = WorkspaceContextUtil.getInstance().username;
   const pathToMetadataFolder = path.join(
-    stateFolder(),
+    projectPaths.stateFolder(),
     ORGS,
     String(username),
     METADATA
@@ -132,8 +129,13 @@ function debugLogsFolder(): string {
   return pathToDebugLogsFolder;
 }
 
+function sfdxProjectConfig(): string {
+  const pathToSFDXProjectConfig = path.join(projectPaths.stateFolder(), SFDX_CONFIG_FILE);
+  return pathToSFDXProjectConfig;
+}
+
 function toolsFolder(): string {
-  const pathToToolsFolder = path.join(stateFolder(), TOOLS);
+  const pathToToolsFolder = path.join(projectPaths.stateFolder(), TOOLS);
   return pathToToolsFolder;
 }
 
@@ -144,6 +146,7 @@ export const projectPaths = {
   apexTestResultsFolder,
   apexLanguageServerDatabase,
   debugLogsFolder,
+  sfdxProjectConfig,
   toolsFolder,
   lwcTestResultsFolder
 };
