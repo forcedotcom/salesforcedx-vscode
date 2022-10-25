@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, SfdxPropertyKeys } from '@salesforce/core';
+import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil, ConfigAggregatorProvider } from '..';
@@ -17,6 +17,7 @@ const SFDX_FOLDER = projectPaths.stateFolder();
 const SFDX_CONFIG_FILE = projectPaths.sfdxProjectConfig();
 const TOOLS_DIR = projectPaths.toolsFolder();
 const DEBUG_LOGS = projectPaths.debugLogsFolder();
+
 export interface OrgUserInfo {
   username?: string;
   alias?: string;
