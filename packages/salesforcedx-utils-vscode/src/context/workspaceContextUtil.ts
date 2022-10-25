@@ -5,14 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
+import { AuthInfo, Connection, SfdxPropertyKeys } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil, ConfigAggregatorProvider } from '..';
+import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 
+const SFDX_FOLDER = projectPaths.stateFolder();
+const SFDX_CONFIG_FILE = projectPaths.sfdxProjectConfig();
+const TOOLS_DIR = projectPaths.toolsFolder();
+const DEBUG_LOGS = projectPaths.debugLogsFolder();
 export interface OrgUserInfo {
   username?: string;
   alias?: string;
@@ -52,7 +56,7 @@ export class WorkspaceContextUtil {
   }
 
   public static getLogDirPath(): string {
-    return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
+    return join(getRootWorkspacePath(), SFDX_FOLDER, TOOLS_DIR, DEBUG_LOGS);
   }
 
   public getAuthUtil(): AuthUtil {
