@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { Global } from '@salesforce/core';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -13,13 +12,16 @@ import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 import { nls } from '../messages';
 import { workspaceUtils } from '../util';
 
+const STATE_FOLDER = projectPaths.stateFolder();
+const SFDX_PROJECT_CONFIG = projectPaths.sfdxProjectConfig();
+
 const CONFIG_FILE = workspaceUtils.hasRootWorkspace()
   ? path.join(
       workspaceUtils.getRootWorkspacePath(),
-      Global.STATE_FOLDER,
-      'sfdx-config.json'
+      STATE_FOLDER,
+      SFDX_PROJECT_CONFIG
     )
-  : path.join(os.homedir(), Global.STATE_FOLDER, 'sfdx-config.json');
+  : path.join(os.homedir(), STATE_FOLDER, SFDX_PROJECT_CONFIG);
 
 let statusBarItem: StatusBarItem;
 
