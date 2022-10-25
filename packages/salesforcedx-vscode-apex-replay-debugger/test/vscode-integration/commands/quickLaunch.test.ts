@@ -362,9 +362,14 @@ describe('Quick launch apex tests', () => {
 
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
-    expect(notificationArgs[0]).to.equal(
-      "Cannot read properties of undefined (reading 'length')"
+    // Seems that there are two different error msgs:
+    // On Windows: "Cannot read property 'length' of undefined"
+    // On Mac: "Cannot read properties of undefined (reading 'length')"
+    expect(notificationArgs[0].startsWith('Cannot read propert')).to.equal(
+      true
     );
+    expect(notificationArgs[0]).to.contain('undefined');
+    expect(notificationArgs[0]).to.contain('length');
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({});
