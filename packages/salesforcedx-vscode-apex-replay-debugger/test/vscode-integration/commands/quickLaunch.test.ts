@@ -15,6 +15,7 @@ import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   notificationService,
+  projectPaths,
   SFDX_CORE_CONFIGURATION_NAME,
   TraceFlags,
   WorkspaceContextUtil
@@ -99,7 +100,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(WorkspaceContextUtil, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -163,7 +164,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(WorkspaceContextUtil, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -257,7 +258,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(WorkspaceContextUtil, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -324,7 +325,7 @@ describe('Quick launch apex tests', () => {
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     testServiceStub.resolves({} as TestResult);
-    sb.stub(WorkspaceContextUtil, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -362,7 +363,7 @@ describe('Quick launch apex tests', () => {
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
     expect(notificationArgs[0]).to.equal(
-      "Cannot read property 'length' of undefined"
+      "Cannot read properties of undefined (reading 'length')"
     );
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
