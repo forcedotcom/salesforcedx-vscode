@@ -17,6 +17,8 @@ import { getDialogStartingPath } from '../../../src/activation/getDialogStarting
 describe('getDialogStartingPath', () => {
   const testPath = '/here/is/a/fake/path/to/';
   let hasRootWorkspaceStub: jest.SpyInstance;
+  let mockGet: jest.SpyInstance;
+  let mockExtensionContext: any;
   let pathExistsMock: jest.SpyInstance;
   let vsCodeUriMock: jest.SpyInstance;
   let debugLogsFolderMock: jest.SpyInstance;
@@ -24,6 +26,10 @@ describe('getDialogStartingPath', () => {
 
   beforeEach(() => {
     hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
+    mockGet = jest.fn();
+    mockExtensionContext = {
+      workspaceState: { get: mockGet }
+    };
     pathExistsMock = jest.spyOn(pathExists, 'sync').mockReturnValue(true);
     vsCodeUriMock = jest.spyOn(vscode.Uri, 'file');
     debugLogsFolderMock = jest.spyOn(projectPaths, 'debugLogsFolder');
@@ -32,8 +38,7 @@ describe('getDialogStartingPath', () => {
 
   it('Should return last opened log folder if present', () => {
     hasRootWorkspaceStub.mockReturnValue(true);
-    const mockGet = jest.fn().mockReturnValue(testPath);
-    const mockExtensionContext: any = { workspaceState: { get: mockGet } };
+    mockGet.mockReturnValue(testPath);
     vsCodeUriMock.mockReturnValue({ path: testPath } as vscode.Uri);
 
     // Act
@@ -48,8 +53,7 @@ describe('getDialogStartingPath', () => {
 
   it('Should return project log folder when last opened log folder not present', async () => {
     hasRootWorkspaceStub.mockReturnValue(true);
-    const mockGet = jest.fn().mockReturnValue(undefined);
-    const mockExtensionContext: any = { workspaceState: { get: mockGet } };
+    mockGet.mockReturnValue(undefined);
     const fakePathToDebugLogsFolder = 'path/to/debug/logs';
     debugLogsFolderMock.mockReturnValue(fakePathToDebugLogsFolder);
     vsCodeUriMock.mockReturnValue({
@@ -70,8 +74,7 @@ describe('getDialogStartingPath', () => {
 
   it('Should return state folder as fallback when project log folder not present', async () => {
     hasRootWorkspaceStub.mockReturnValue(true);
-    const mockGet = jest.fn().mockReturnValue(undefined);
-    const mockExtensionContext: any = { workspaceState: { get: mockGet } };
+    mockGet.mockReturnValue(undefined);
     const fakePathToDebugLogsFolder = 'path/to/debug/logs';
     debugLogsFolderMock.mockReturnValue(fakePathToDebugLogsFolder);
     pathExistsMock.mockReturnValueOnce(false);
@@ -95,8 +98,7 @@ describe('getDialogStartingPath', () => {
 
   it('Should return undefined when not in a project workspace', async () => {
     hasRootWorkspaceStub.mockReturnValue(false);
-    const mockGet = jest.fn().mockReturnValue(testPath);
-    const mockExtensionContext: any = { workspaceState: { get: mockGet } };
+    mockGet.mockReturnValue(testPath);
 
     // Act
     const dialogStartingPathUri = getDialogStartingPath(mockExtensionContext);
