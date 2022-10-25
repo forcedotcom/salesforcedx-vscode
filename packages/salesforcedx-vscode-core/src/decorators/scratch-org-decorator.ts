@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -15,10 +16,10 @@ import { workspaceUtils } from '../util';
 const CONFIG_FILE = workspaceUtils.hasRootWorkspace()
   ? path.join(
       workspaceUtils.getRootWorkspacePath(),
-      '.sfdx',
+      Global.STATE_FOLDER,
       'sfdx-config.json'
     )
-  : path.join(os.homedir(), '.sfdx', 'sfdx-config.json');
+  : path.join(os.homedir(), Global.STATE_FOLDER, 'sfdx-config.json');
 
 let statusBarItem: StatusBarItem;
 
