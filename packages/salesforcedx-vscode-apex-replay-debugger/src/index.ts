@@ -19,10 +19,9 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import * as pathExists from 'path-exists';
 import * as vscode from 'vscode';
+import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
   CheckpointService,
@@ -50,6 +49,7 @@ const sfdxCoreExtension = vscode.extensions.getExtension(
 );
 
 function registerCommands(): vscode.Disposable {
+  const dialogStartingPathUri = getDialogStartingPath(extContext);
   const promptForLogCmd = vscode.commands.registerCommand(
     'extension.replay-debugger.getLogFileName',
     async config => {
@@ -59,7 +59,7 @@ function registerCommands(): vscode.Disposable {
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: getDialogStartingPath()
+        defaultUri: dialogStartingPathUri
       });
       if (fileUris && fileUris.length === 1) {
         updateLastOpened(extContext, fileUris[0].fsPath);
@@ -231,33 +231,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   }
 
   telemetryService.sendExtensionActivationEvent(extensionHRStart);
-}
-
-function getDialogStartingPath(): vscode.Uri | undefined {
-  if (
-    vscode.workspace.workspaceFolders &&
-    vscode.workspace.workspaceFolders[0]
-  ) {
-    // If the user has already selected a document through getLogFileName then
-    // use that path if it still exists.
-    const lastOpenedLogFolder = extContext.workspaceState.get<string>(
-      LAST_OPENED_LOG_FOLDER_KEY
-    );
-    if (lastOpenedLogFolder && pathExists.sync(lastOpenedLogFolder)) {
-      return vscode.Uri.file(lastOpenedLogFolder);
-    }
-    // If lastOpenedLogFolder isn't defined or doesn't exist then use the
-    // same directory that the SFDX download logs command would download to
-    // if it exists.
-    const sfdxCommandLogDir = WorkspaceContextUtil.getLogDirPath();
-    if (pathExists.sync(sfdxCommandLogDir)) {
-      return vscode.Uri.file(sfdxCommandLogDir);
-    }
-    // If all else fails, fallback to the .sfdx directory in the workspace
-    return vscode.Uri.file(
-      path.join(vscode.workspace.workspaceFolders[0].uri.fsPath, '.sfdx')
-    );
-  }
 }
 
 export async function retrieveLineBreakpointInfo(): Promise<boolean> {
