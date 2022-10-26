@@ -11,6 +11,7 @@ import { join } from 'path';
 import { createSandbox, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { getRootWorkspacePath, WorkspaceContextUtil } from '../../../src';
+import { projectPaths } from '../../../src/helpers';
 
 export class MockFileWatcher {
   private watchUri: any;

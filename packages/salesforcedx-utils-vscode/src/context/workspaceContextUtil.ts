@@ -11,12 +11,15 @@ import * as vscode from 'vscode';
 import { AuthUtil, ConfigAggregatorProvider } from '..';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from '../workspaces';
+// import { getRootWorkspacePath } from '../workspaces';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const SFDX_FOLDER = projectPaths.stateFolder();
+console.log('sfdx folder:', SFDX_FOLDER);
 const SFDX_CONFIG_FILE = projectPaths.sfdxProjectConfig();
-const TOOLS_DIR = projectPaths.toolsFolder();
+console.log('sfdx config:', SFDX_CONFIG_FILE);
 const DEBUG_LOGS = projectPaths.debugLogsFolder();
+console.log('debug logs:', DEBUG_LOGS);
 
 export interface OrgUserInfo {
   username?: string;
@@ -44,8 +47,7 @@ export class WorkspaceContextUtil {
 
     const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = join(
-      getRootWorkspacePath(),
-      SFDX_FOLDER,
+      workspaceUtils.getRootWorkspacePath(),
       SFDX_CONFIG_FILE
     );
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
@@ -57,7 +59,7 @@ export class WorkspaceContextUtil {
   }
 
   public static getLogDirPath(): string {
-    return join(getRootWorkspacePath(), SFDX_FOLDER, TOOLS_DIR, DEBUG_LOGS);
+    return join(workspaceUtils.getRootWorkspacePath(), DEBUG_LOGS);
   }
 
   public getAuthUtil(): AuthUtil {
