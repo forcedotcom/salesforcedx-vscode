@@ -14,7 +14,7 @@ import { nls } from '../messages';
 // import { getRootWorkspacePath } from '../workspaces';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
 
-const SFDX_FOLDER = projectPaths.stateFolder();
+const SFDX_FOLDER = projectPaths.relativeStateFolder();
 console.log('sfdx folder:', SFDX_FOLDER);
 const SFDX_CONFIG_FILE = projectPaths.sfdxProjectConfig();
 console.log('sfdx config:', SFDX_CONFIG_FILE);
@@ -48,6 +48,7 @@ export class WorkspaceContextUtil {
     const bindedHandler = () => this.handleCliConfigChange();
     const cliConfigPath = join(
       workspaceUtils.getRootWorkspacePath(),
+      SFDX_FOLDER,
       SFDX_CONFIG_FILE
     );
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
@@ -59,7 +60,7 @@ export class WorkspaceContextUtil {
   }
 
   public static getLogDirPath(): string {
-    return join(workspaceUtils.getRootWorkspacePath(), DEBUG_LOGS);
+    return join(workspaceUtils.getRootWorkspacePath(), SFDX_FOLDER, DEBUG_LOGS);
   }
 
   public getAuthUtil(): AuthUtil {
