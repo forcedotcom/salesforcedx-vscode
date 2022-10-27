@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { AuthUtil, ConfigAggregatorProvider } from '..';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-// import { getRootWorkspacePath } from '../workspaces';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const SFDX_FOLDER = projectPaths.relativeStateFolder();
