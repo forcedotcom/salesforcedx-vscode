@@ -40,8 +40,6 @@ We made lots of under the hood updates in this release that involved:
 - We fixed an issue with double logging from lwc language server on error. ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
 
 
-# 56.3.0 - October 26, 2022
-
 # 55.8.0 - August 4, 2022
 
 ## Added
