@@ -130,13 +130,20 @@ function debugLogsFolder(): string {
 }
 
 function sfdxProjectConfig(): string {
-  const pathToSFDXProjectConfig = path.join(projectPaths.stateFolder(), SFDX_CONFIG_FILE);
+  const pathToSFDXProjectConfig = path.join(
+    projectPaths.stateFolder(),
+    SFDX_CONFIG_FILE
+  );
   return pathToSFDXProjectConfig;
 }
 
 function toolsFolder(): string {
   const pathToToolsFolder = path.join(projectPaths.stateFolder(), TOOLS);
   return pathToToolsFolder;
+}
+
+function relativeStateFolder(): string {
+  return Global.STATE_FOLDER;
 }
 
 export const projectPaths = {
@@ -148,5 +155,6 @@ export const projectPaths = {
   debugLogsFolder,
   sfdxProjectConfig,
   toolsFolder,
-  lwcTestResultsFolder
+  lwcTestResultsFolder,
+  relativeStateFolder
 };
