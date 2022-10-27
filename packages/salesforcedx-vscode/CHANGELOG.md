@@ -1,3 +1,45 @@
+# 56.3.1 - October 29, 2022
+
+We made lots of under the hood updates in this release that involved:
+  - Addition of new jest unit tests for test infrastructure hardening.
+  - A major upgrade to the version of the `@salesforce/core` library to reach parity with CLI dependencies. 
+  - A new way of bundling extensions that resulted in a smaller increase in the size of the Extension Pack.
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- We added support for renaming aura event bundles. ([PR #4441](https://github.com/forcedotcom/salesforcedx-vscode/pull/4441))
+
+- You can now run the new `SFDX: Open Documentation` command from an open file to access in context documentation. ([PR #4414](https://github.com/forcedotcom/salesforcedx-vscode/pull/4414))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We made some updates under the hood. ([PR #4408](https://github.com/forcedotcom/salesforcedx-vscode/pull/4408))
+
+#### salesforcedx-utils
+
+- We made some updates under the hood. ([PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
+
+#### salesforcedx-utils-vscode
+
+- We made some updates under the hood.([PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517), [PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
+
+#### salesforcedx-vscode-core
+
+- We made some updates under the hood. ([PR #4502](https://github.com/forcedotcom/salesforcedx-vscode/pull/4502), [PR #4449](https://github.com/forcedotcom/salesforcedx-vscode/pull/4449), [PR #4426](https://github.com/forcedotcom/salesforcedx-vscode/pull/4426), [PR #4411](https://github.com/forcedotcom/salesforcedx-vscode/pull/4411), [PR #4388](https://github.com/forcedotcom/salesforcedx-vscode/pull/4388), [PR #4353](https://github.com/forcedotcom/salesforcedx-vscode/pull/4353), [PR #4362](https://github.com/forcedotcom/salesforcedx-vscode/pull/4362))
+
+- We fixed an issue that caused SOQL and Anonymous Apex files to deploy on save. ([PR #4410](https://github.com/forcedotcom/salesforcedx-vscode/pull/4410))
+
+
+#### salesforcedx-vscode-lightning
+#### salesforcedx-vscode-lwc
+
+- We fixed an issue that caused double logging from lwc language server on error. ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
+
+
 # 55.8.0 - August 4, 2022
 
 ## Added
