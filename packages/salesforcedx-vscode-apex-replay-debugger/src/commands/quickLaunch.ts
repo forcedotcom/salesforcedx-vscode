@@ -16,15 +16,13 @@ import {
 import { Connection } from '@salesforce/core';
 import {
   ContinueResponse,
-  getRootWorkspacePath,
-  getTestResultsFolder,
   LibraryCommandletExecutor,
   notificationService,
+  projectPaths,
   TraceFlags,
-  WorkspaceContextUtil
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import { workspace } from 'vscode';
 import {
   checkpointService,
   CheckpointService
@@ -102,11 +100,8 @@ export class QuickLaunch {
         payload,
         true
       )) as TestResult;
-      if (workspace && workspace.workspaceFolders) {
-        const apexTestResultsPath = getTestResultsFolder(
-          getRootWorkspacePath(),
-          'apex'
-        );
+      if (workspaceUtils.hasRootWorkspace()) {
+        const apexTestResultsPath = projectPaths.apexTestResultsFolder();
         await testService.writeResultFiles(
           result,
           { dirPath: apexTestResultsPath, resultFormats: [ResultFormat.json] },
@@ -138,7 +133,7 @@ export class QuickLaunch {
     logId: string
   ): Promise<LogFileRetrieveResult> {
     const logService = new LogService(connection);
-    const outputDir = WorkspaceContextUtil.getLogDirPath();
+    const outputDir = projectPaths.debugLogsFolder();
 
     await logService.getLogs({ logId, outputDir });
     const logPath = path.join(outputDir, `${logId}.log`);
