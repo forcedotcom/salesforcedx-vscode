@@ -1,52 +1,44 @@
 # 56.3.1 - October 29, 2022
 
+We made lots of under the hood updates in this release that involved:
+  - Addition of a new jest unit test.
+  - Major updates to core v3 resulting in <add some desc here> 
+  - Addition of bundling that substantially reduced the size of the Extension. 
+
 ## Added
 
 #### salesforcedx-vscode-core
 
-- Call core lib to get the sfdx state folder name in Org Browser ([PR #4408](https://github.com/forcedotcom/salesforcedx-vscode/pull/4408))
+- We added support for renaming aura event bundles. ([PR #4441](https://github.com/forcedotcom/salesforcedx-vscode/pull/4441))
+
+- You can now run the new "SFDX: Open Documentation" command from an open file to access in context documentation. ([PR #4414](https://github.com/forcedotcom/salesforcedx-vscode/pull/4414))
 
 ## Fixed
 
+#### salesforcedx-vscode-core
+
+- We made some updates under the hood. ([PR #4408](https://github.com/forcedotcom/salesforcedx-vscode/pull/4408))
+
 #### salesforcedx-utils
 
-- Add jest unit test for salesforcedx-utils package ([PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
+- We made some updates under the hood. ([PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
 
 #### salesforcedx-utils-vscode
 
-- Update to verify path exists before chdir in configAggProvider ([PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517))
-
-- Add jest unit test for salesforcedx-utils package ([PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
+- We made some updates under the hood.([PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517), [PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
 
 #### salesforcedx-vscode-core
 
-- Add bundling for all extensions to reduce size ([PR #4502](https://github.com/forcedotcom/salesforcedx-vscode/pull/4502))
+- We made some updates under the hood. ([PR #4502](https://github.com/forcedotcom/salesforcedx-vscode/pull/4502), [PR #4449](https://github.com/forcedotcom/salesforcedx-vscode/pull/4449), [PR #4426](https://github.com/forcedotcom/salesforcedx-vscode/pull/4426), [PR #4411](https://github.com/forcedotcom/salesforcedx-vscode/pull/4411), [PR #4388](https://github.com/forcedotcom/salesforcedx-vscode/pull/4388), [PR #4353](https://github.com/forcedotcom/salesforcedx-vscode/pull/4353), [PR #4362](https://github.com/forcedotcom/salesforcedx-vscode/pull/4362))
 
-- Support for renaming aura event bundles ([PR #4441](https://github.com/forcedotcom/salesforcedx-vscode/pull/4441))
+- We fixed an issue that caused soql and anon apex files to deploy on save ([PR #4410](https://github.com/forcedotcom/salesforcedx-vscode/pull/4410))
 
-- Move the configAggregator to the utils package. ([PR #4449](https://github.com/forcedotcom/salesforcedx-vscode/pull/4449))
-
-- Allow import of vscode-util from other modules. ([PR #4426](https://github.com/forcedotcom/salesforcedx-vscode/pull/4426))
-
-- "SFDX: Open Documentation" (on web) ([PR #4414](https://github.com/forcedotcom/salesforcedx-vscode/pull/4414))
-
-- Revert to previous state ([PR #4411](https://github.com/forcedotcom/salesforcedx-vscode/pull/4411))
-
-- Prevent soql and anon apex files from deploying on save ([PR #4410](https://github.com/forcedotcom/salesforcedx-vscode/pull/4410))
-
-- Dependabot-library-updates ([PR #4388](https://github.com/forcedotcom/salesforcedx-vscode/pull/4388))
-
-- FlushFilePath() with fix for Windows ([PR #4362](https://github.com/forcedotcom/salesforcedx-vscode/pull/4362))
-
-- Move localization to correct file ([PR #4353](https://github.com/forcedotcom/salesforcedx-vscode/pull/4353))
 
 #### salesforcedx-vscode-lightning
-
-- Remove double logging from lwc language server on error ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
-
 #### salesforcedx-vscode-lwc
 
-- Remove double logging from lwc language server on error ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
+- We fixed an issue with double logging from lwc language server on error ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
+
 
 # 56.3.0 - October 26, 2022
 
