@@ -1,3 +1,53 @@
+# 56.3.1 - October 29, 2022
+
+## Added
+
+#### salesforcedx-vscode-core
+
+- Call core lib to get the sfdx state folder name in Org Browser ([PR #4408](https://github.com/forcedotcom/salesforcedx-vscode/pull/4408))
+
+## Fixed
+
+#### salesforcedx-utils
+
+- Add jest unit test for salesforcedx-utils package ([PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
+
+#### salesforcedx-utils-vscode
+
+- Update to verify path exists before chdir in configAggProvider ([PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517))
+
+- Add jest unit test for salesforcedx-utils package ([PR #4470](https://github.com/forcedotcom/salesforcedx-vscode/pull/4470))
+
+#### salesforcedx-vscode-core
+
+- Add bundling for all extensions to reduce size ([PR #4502](https://github.com/forcedotcom/salesforcedx-vscode/pull/4502))
+
+- Support for renaming aura event bundles ([PR #4441](https://github.com/forcedotcom/salesforcedx-vscode/pull/4441))
+
+- Move the configAggregator to the utils package. ([PR #4449](https://github.com/forcedotcom/salesforcedx-vscode/pull/4449))
+
+- Allow import of vscode-util from other modules. ([PR #4426](https://github.com/forcedotcom/salesforcedx-vscode/pull/4426))
+
+- "SFDX: Open Documentation" (on web) ([PR #4414](https://github.com/forcedotcom/salesforcedx-vscode/pull/4414))
+
+- Revert to previous state ([PR #4411](https://github.com/forcedotcom/salesforcedx-vscode/pull/4411))
+
+- Prevent soql and anon apex files from deploying on save ([PR #4410](https://github.com/forcedotcom/salesforcedx-vscode/pull/4410))
+
+- Dependabot-library-updates ([PR #4388](https://github.com/forcedotcom/salesforcedx-vscode/pull/4388))
+
+- FlushFilePath() with fix for Windows ([PR #4362](https://github.com/forcedotcom/salesforcedx-vscode/pull/4362))
+
+- Move localization to correct file ([PR #4353](https://github.com/forcedotcom/salesforcedx-vscode/pull/4353))
+
+#### salesforcedx-vscode-lightning
+
+- Remove double logging from lwc language server on error ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
+
+#### salesforcedx-vscode-lwc
+
+- Remove double logging from lwc language server on error ([PR #4473](https://github.com/forcedotcom/salesforcedx-vscode/pull/4473))
+
 # 56.3.0 - October 26, 2022
 
 # 55.8.0 - August 4, 2022
