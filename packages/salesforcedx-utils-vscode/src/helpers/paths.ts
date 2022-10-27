@@ -139,9 +139,7 @@ function sfdxProjectConfig(): string {
 }
 
 function sfdxGlobalConfig(): string {
-  const pathToSFDXGlobalConfig = path.join(
-    os.homedir(),
-    relativeStateFolder(), SFDX_CONFIG_FILE);
+  const pathToSFDXGlobalConfig = path.join(os.homedir(), relativeStateFolder(), SFDX_CONFIG_FILE);
   return pathToSFDXGlobalConfig;
 }
 
