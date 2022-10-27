@@ -15,11 +15,8 @@ import { nls } from '../messages';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const SFDX_FOLDER = projectPaths.relativeStateFolder();
-console.log('sfdx folder:', SFDX_FOLDER);
 const SFDX_CONFIG_FILE = projectPaths.sfdxProjectConfig();
-console.log('sfdx config:', SFDX_CONFIG_FILE);
 const DEBUG_LOGS = projectPaths.debugLogsFolder();
-console.log('debug logs:', DEBUG_LOGS);
 
 export interface OrgUserInfo {
   username?: string;
