@@ -7,6 +7,7 @@
 
 import { Global } from '@salesforce/core';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { WorkspaceContextUtil } from '..';
@@ -137,6 +138,19 @@ function sfdxProjectConfig(): string {
   return pathToSFDXProjectConfig;
 }
 
+function sfdxGlobalConfig(): string {
+  const pathToSFDXGlobalConfig = path.join(
+    os.homedir(),
+    relativeStateFolder(), SFDX_CONFIG_FILE);
+  return pathToSFDXGlobalConfig;
+}
+
+function sfdxConfig(): string {
+  const pathToSFDXConfig = workspaceUtils.hasRootWorkspace()
+  ? sfdxProjectConfig() : sfdxGlobalConfig();
+  return pathToSFDXConfig;
+}
+
 function toolsFolder(): string {
   const pathToToolsFolder = path.join(projectPaths.stateFolder(), TOOLS);
   return pathToToolsFolder;
@@ -154,6 +168,8 @@ export const projectPaths = {
   apexLanguageServerDatabase,
   debugLogsFolder,
   sfdxProjectConfig,
+  sfdxGlobalConfig,
+  sfdxConfig,
   toolsFolder,
   lwcTestResultsFolder,
   relativeStateFolder

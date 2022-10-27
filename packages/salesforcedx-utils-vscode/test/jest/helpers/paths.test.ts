@@ -1,3 +1,4 @@
+import * as os from 'os';
 import * as path from 'path';
 import { projectPaths, workspaceUtils } from '../../../src/';
 
@@ -68,6 +69,41 @@ describe('test project paths', () => {
     it('should return a path to the relative state folder', () => {
       const relativeStateFolder = projectPaths.relativeStateFolder();
       expect(relativeStateFolder).toEqual(FAKE_STATE_FOLDER);
+    });
+  });
+
+  describe('test SFDXGlobalConfigPath', () => {
+    it('should return the global config path', () => {
+      const result = projectPaths.sfdxGlobalConfig();
+      expect(result).toEqual(path.join(os.homedir(), '.sfdx', 'sfdx-config.json')
+      );
+    });
+  });
+
+  describe('test SFDXConfigPath', () => {
+    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, 'sfdx-config.json');
+    const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
+
+    it('should be defined', () => {
+      expect(projectPaths.sfdxConfig()).toBeDefined();
+    });
+
+    it('should return a path to the project config file', () => {
+      let stateFolderStub: jest.SpyInstance;
+      stateFolderStub = jest
+        .spyOn(projectPaths, 'stateFolder')
+        .mockReturnValue(FAKE_WORKSPACE);
+      hasRootWorkspaceStub.mockReturnValue(true);
+
+      const sfdxConfig = projectPaths.sfdxConfig();
+      expect(sfdxConfig).toEqual(FAKE_CONFIG);
+    });
+
+    it('should return a path to the global config file', () => {
+      hasRootWorkspaceStub.mockReturnValue(false);
+
+      const sfdxConfig = projectPaths.sfdxConfig();
+      expect(sfdxConfig).toEqual(path.join(os.homedir(), '.sfdx', 'sfdx-config.json'));
     });
   });
 });
