@@ -23,12 +23,12 @@ Code Builder is a browser-based version of the desktop experience, with everythi
 
 ## Additional Resources
 
-- Trailhead: [Build Apps Together with Package Development](https://trailhead.salesforce.com/trails/sfdx_get_started)
+Trailhead:
+- [Build Apps Together with Package Development](https://trailhead.salesforce.com/trails/sfdx_get_started)
 - [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup)
 - [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev)
 
-## Videos
-
+Videos:
 - [Quick Tour of the Extensions](https://www.youtube.com/watch?v=njKzjOTzEjo&list=PLgIMQe2PKPSIVPDsaiYIMGnFxtcrUus6M&index=6&t=0s)
 - [Language Support](https://youtu.be/s5X4yGBRWTM)
 - [Accessing Orgs and Source](https://youtu.be/pi5Zho9ft3s)

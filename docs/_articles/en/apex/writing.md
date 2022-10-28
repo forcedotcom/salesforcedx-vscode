@@ -1,5 +1,5 @@
 ---
-title: Write Apex Code
+title: Tools for Writing Apex Code
 lang: en
 ---
 
@@ -21,13 +21,17 @@ If you want to change how suggestions are pre-selected, see [IntelliSense - Sugg
 
 Code snippets are available for scaffolding class and interface definitions, and a variety of statements such as loops and conditional statements, and so on. When you’re working in an Apex class or trigger, run `Insert Snippet` from the Command Palette to view the available snippets. You can also view these code snippets as code completion suggestions.
 
+Out of the box snippets for Salesforce development are available in these repositories:
+- [Apex Code Snippets](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-apex/snippets/apex.json)
+- [Code Snippets for LWC development](https://github.com/forcedotcom/salesforcedx-vscode/blob/develop/packages/salesforcedx-vscode-lwc/snippets/lwc.json) 
+
 If you want to define your own code snippets, read [Snippets in Visual Studio Code](https://code.visualstudio.com/docs/editor/userdefinedsnippets).
 
-## Code Smartness for SObjects
+## Intellisense for SObjects
 
-To ensure that the code smartness feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette.
+To ensure that the intellisense feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette.
 
-You can preview, view, or go to definitions of:
+You can now preview, view, or go to definitions of:
 
 - User-defined Apex
   - Classes (from definitions of extending classes)
@@ -61,7 +65,7 @@ Apex extension provides go to definition support for user-defined Apex such as c
 
 ## Find All References
 
-You can find all references to user-defined Apex such as Classes, Class variables, Enums, Interfaces, Methods, and Properties. To find references, select an item and press Shift+F12; Or right-click the item and select **Find All References**. The reference results are displayed in the left pane of the editor window.
+You can find all references to user-defined Apex such as Classes, Class variables, Enums, Interfaces, Methods, and Properties. To find references, right-click the item and select **Go To References** or press Shift+F12; Or right-click the item and select **Find All References**. The reference results are displayed in the left pane of the editor window.
 
 ## Outline View
 
@@ -76,7 +80,7 @@ The Explorer in the Side Bar also provides an Outline view to assist you while w
 
 ## Syntax Errors
 
-Any syntax errors such as a missing semi-colon or a bracket are marked with a red squiggly line in the editor. The Problems panel also lists the syntax errors. To go to the source file with the syntax error, double-click the error.
+Any syntax errors such as a missing semicolon or a bracket are marked with a red squiggly line in the editor. The Problems panel also lists the syntax errors. To go to the source file with the syntax error, double-click the error.
 
 ![Problems view, showing a missing semicolon in an Apex class](./images/apex_problems.png)
 
@@ -97,8 +101,13 @@ Declare Missing Methods quick fix can be invoked in the following ways:
 > Note: Keyboard shortcut for the Quick Fix widget is Cmd+. in macOS and Ctrl+. in Windows and Linux.
 
 ## Anonymous Apex
+It’s common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/`apex that contains an example `hello.apex` file. We recommend that you use this folder to create your anonymous Apex files using the `.apex` file extension.
 
-You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways. First, just select any Apex code and run the command `SFDX: Execute Anonymous Apex with Currently Selected Text`. Additionally, if you want to execute the entire context of a file, you can run the command `SFDX: Execute Anonymous Apex with Editor Contents`. In either case, the result of the executed code is printed to the output pane.
+You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways:
+ 1. Select any Apex code and run the command `SFDX: Execute Anonymous Apex with Currently Selected Text`.
+ 2. Run the command `SFDX: Execute Anonymous Apex with Editor Contents`to execute the entire context of a file.
+
+In both cases, the result of the executed code is printed to the output pane.
 
 ![SFDX: Execute Anonymous Apex with Currently Selected Text](./images/apex_execute_selected.png)
 
