@@ -1,0 +1,7 @@
+{
+  "configuration_title": "Salesforce SOQL Configuration",
+  "soqlCustom_soql": "SOQL ビルダー",
+  "soql_builder_open_new": "SFDX: SOQL ビルダーでクエリを作成",
+  "soql_builder_toggle": "SOQL ビルダーとテキストエディタを切り替える",
+  "soql_validation_flag": "REST API を使用して SOQL クエリを検証しエラーを特定する"
+}

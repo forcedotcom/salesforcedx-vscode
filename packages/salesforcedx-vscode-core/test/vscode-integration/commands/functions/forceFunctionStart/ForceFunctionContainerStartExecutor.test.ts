@@ -135,7 +135,7 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
     };
 
     ({ ContinueResponse } = proxyquireStrict(
-      '@salesforce/salesforcedx-utils-vscode/out/src/types',
+      '@salesforce/salesforcedx-utils-vscode',
       {
         vscode: vscodeStub
       }
@@ -147,10 +147,8 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
         '@heroku/functions-core': {
           getProjectDescriptor: getProjectDescriptorStub
         },
-        '@salesforce/salesforcedx-utils-vscode/out/src': {
-          LibraryCommandletExecutor
-        },
-        '@salesforce/salesforcedx-utils-vscode/out/src/types': {
+        '@salesforce/salesforcedx-utils-vscode': {
+          LibraryCommandletExecutor,
           ContinueResponse: {
             ContinueResponse
           }
@@ -314,10 +312,6 @@ describe('ForceFunctionContainerStartExecutor unit tests', () => {
 
       assert.calledOnce(fakeDisposible.dispose);
       assert.calledTwice(localizeStub);
-      console.log('what are the args', {
-        args0: sendExceptionStub.getCalls()[0].args[0],
-        args1: sendExceptionStub.getCalls()[0].args[1]
-      });
       assert.calledWith(
         sendExceptionStub,
         'force_function_start_docker_plugin_not_installed_or_started',

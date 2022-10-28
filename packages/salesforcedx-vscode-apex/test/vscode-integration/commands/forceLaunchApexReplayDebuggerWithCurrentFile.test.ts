@@ -5,10 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { testSetup } from '@salesforce/core/lib/testSetup';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import {
+  fileUtils,
+  notificationService,
+  SfdxCommandlet
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { forceLaunchApexReplayDebuggerWithCurrentFile } from '../../../src/commands/forceLaunchApexReplayDebuggerWithCurrentFile';
 import { nls } from '../../../src/messages';
@@ -17,10 +20,10 @@ import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider'
 const $$ = testSetup();
 
 describe('Force Launch Replay Debugger', () => {
-  let sb: SinonSandbox;
-
+  const sb = createSandbox();
+  let flushFilePathStub: SinonStub;
   beforeEach(async () => {
-    sb = createSandbox();
+    flushFilePathStub = sb.stub(fileUtils, 'flushFilePath');
   });
 
   afterEach(() => {
@@ -28,8 +31,7 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should return an error when the editor is not found', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => undefined);
+    sb.stub(vscode.window, 'activeTextEditor').get(() => undefined);
 
     const showErrorMessageStub = sb.stub(
       notificationService,
@@ -44,13 +46,12 @@ describe('Force Launch Replay Debugger', () => {
     ).to.equal(true);
   });
 
-  it('should return an error when the document\'s URI is not found', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: undefined
-        }
-      }));
+  it("should return an error when the document's URI is not found", async () => {
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: undefined
+      }
+    }));
 
     const showErrorMessageStub = sb.stub(
       notificationService,
@@ -66,41 +67,45 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should return an error when not a log file, not an anon apex file, and not an apex test class', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.txt')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.txt')
+      }
+    }));
 
     const showErrorMessageStub = sb.stub(
       notificationService,
       'showErrorMessage'
     );
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'refresh')
-      .returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName')
-      .returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
+      undefined
+    );
+
+    flushFilePathStub.returns(undefined);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
     expect(showErrorMessageStub.called).to.equal(true);
     expect(
-      showErrorMessageStub.calledWith(nls.localize('launch_apex_replay_debugger_unsupported_file'))
+      showErrorMessageStub.calledWith(
+        nls.localize('launch_apex_replay_debugger_unsupported_file')
+      )
     ).to.equal(true);
   });
 
   it('should call executeCommand() if file is a log file', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.log')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.log')
+      }
+    }));
 
-    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    const executeCommandSpy = sb
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
@@ -111,15 +116,13 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should call SfdxCommandlet.run() if file is an anon apex file', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.apex')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.apex')
+      }
+    }));
 
-    const runStub = sb.stub(SfdxCommandlet.prototype, 'run')
-      .returns(undefined);
+    const runStub = sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
@@ -127,23 +130,25 @@ describe('Force Launch Replay Debugger', () => {
   });
 
   it('should call executeCommand if file is an apex test class', async () => {
-    sb.stub(vscode.window, 'activeTextEditor')
-      .get(() => ({
-        document: {
-          uri: vscode.Uri.file('foo.cls')
-        }
-      }));
+    sb.stub(vscode.window, 'activeTextEditor').get(() => ({
+      document: {
+        uri: vscode.Uri.file('foo.cls')
+      }
+    }));
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'refresh')
-      .returns(undefined);
+    sb.stub(ApexTestOutlineProvider.prototype, 'refresh').returns(undefined);
 
-    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName')
-      .returns('foo.cls');
+    sb.stub(ApexTestOutlineProvider.prototype, 'getTestClassName').returns(
+      'foo.cls'
+    );
 
-    sb.stub(SfdxCommandlet.prototype, 'run')
-      .returns(undefined);
+    sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
 
-    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    flushFilePathStub.returns('foo.cls');
+
+    const executeCommandSpy = sb
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 

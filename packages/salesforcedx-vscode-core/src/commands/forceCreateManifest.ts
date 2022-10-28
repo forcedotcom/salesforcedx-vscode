@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as fs from 'fs';
 import { join, parse } from 'path';
@@ -14,7 +14,7 @@ import { format } from 'util';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { FilePathGatherer, SfdxCommandlet, SfdxWorkspaceChecker } from './util';
 
 const CREATE_MANIFEST_EXECUTOR = 'force_create_manifest';
@@ -34,16 +34,23 @@ export class ManifestCreateExecutor extends LibraryCommandletExecutor<string> {
     this.sourcePaths = sourcePaths;
     this.responseText = responseText;
   }
-  public async run(response: ContinueResponse<string>,
-                   progress?: vscode.Progress<{ message?: string | undefined; increment?: number | undefined; }>,
-                   token?: vscode.CancellationToken): Promise<boolean> {
+  public async run(
+    response: ContinueResponse<string>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
     if (this.sourcePaths) {
-      const componentSet = ComponentSet.fromSource(this.sourcePaths);
+      const packageXML = await ComponentSet.fromSource(
+        this.sourcePaths
+      ).getPackageXml();
       if (this.responseText === undefined) {
         // Canceled and declined to name the document
-        openUntitledDocument(componentSet);
+        await openUntitledDocument(packageXML);
       } else {
-        saveDocument(this.responseText, componentSet);
+        saveDocument(this.responseText, packageXML);
       }
       return true;
     }
@@ -75,35 +82,39 @@ export async function forceCreateManifest(
   }
 }
 
-function openUntitledDocument(componentSet: ComponentSet) {
-  vscode.workspace.openTextDocument({
-    content: componentSet.getPackageXml(),
+async function openUntitledDocument(packageXML: string) {
+  const newManifest = await vscode.workspace.openTextDocument({
+    content: packageXML,
     language: 'xml'
-  }).then(newManifest => {
-    vscode.window.showTextDocument(newManifest);
   });
+
+  vscode.window.showTextDocument(newManifest);
 }
 
-function saveDocument(response: string, componentSet: ComponentSet) {
+function saveDocument(response: string, packageXML: string) {
   const fileName = response ? appendExtension(response) : DEFAULT_MANIFEST;
 
-  const manifestPath = join(getRootWorkspacePath(), 'manifest');
+  const manifestPath = join(workspaceUtils.getRootWorkspacePath(), 'manifest');
   if (!fs.existsSync(manifestPath)) {
     fs.mkdirSync(manifestPath);
   }
   const saveLocation = join(manifestPath, fileName);
   checkForDuplicateManifest(saveLocation, fileName);
 
-  fs.writeFileSync(saveLocation, componentSet.getPackageXml());
-  vscode.workspace.openTextDocument(saveLocation).then(newManifest => {
+  fs.writeFileSync(saveLocation, packageXML);
+  vscode.workspace.openTextDocument(saveLocation).then((newManifest: any) => {
     vscode.window.showTextDocument(newManifest);
   });
 }
 
 function checkForDuplicateManifest(saveLocation: string, fileName: string) {
   if (fs.existsSync(saveLocation)) {
-    vscode.window.showErrorMessage(format(nls.localize('manifest_input_dupe_error'), fileName));
-    throw new Error(format(nls.localize('manifest_input_dupe_error'), fileName));
+    vscode.window.showErrorMessage(
+      format(nls.localize('manifest_input_dupe_error'), fileName)
+    );
+    throw new Error(
+      format(nls.localize('manifest_input_dupe_error'), fileName)
+    );
   }
 }
 

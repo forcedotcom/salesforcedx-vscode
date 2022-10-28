@@ -1,11 +1,11 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-markup-language-server",
   "description": "Language service for Visualforce Markup",
-  "version": "54.13.0",
+  "version": "56.3.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.49.3"
+    "vscode": "^1.61.2"
   },
   "activationEvents": [
     "onView:never"
@@ -13,7 +13,7 @@
   "main": "./out/src/htmlLanguageService.js",
   "typings": "./out/src/htmlLanguageService",
   "devDependencies": {
-    "@types/chai": "4.3.0",
+    "@types/chai": "4.3.3",
     "@types/mocha": "^2.2.38",
     "@types/node": "12.0.12",
     "chai": "^4.0.2",
@@ -22,7 +22,7 @@
     "mocha-multi-reporters": "^1.1.7",
     "nyc": "^15",
     "shx": "0.3.4",
-    "typescript": "3.8.3"
+    "typescript": "^4.7.4"
   },
   "dependencies": {
     "vscode-languageserver-types": "3.4.0",

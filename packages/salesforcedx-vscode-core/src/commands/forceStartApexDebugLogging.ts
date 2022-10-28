@@ -13,13 +13,13 @@ import {
   CommandOutput,
   CompositeCliCommandExecutor,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { APEX_CODE_DEBUG_LEVEL, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { nls } from '../messages';
-import { getRootWorkspacePath, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
@@ -28,7 +28,7 @@ import {
 } from './util';
 
 import { isNullOrUndefined } from 'util';
-import { getDefaultUsernameOrAlias } from '../context';
+import { workspaceContextUtils } from '../context';
 import { telemetryService } from '../telemetry';
 import { developerLogTraceFlag } from './';
 
@@ -63,7 +63,7 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 
     try {
       // query traceflag
-      const userId = await getUserId(getRootWorkspacePath());
+      const userId = await getUserId(workspaceUtils.getRootWorkspacePath());
 
       let resultJson = await this.subExecute(
         new ForceQueryTraceFlag().build(userId)
@@ -101,14 +101,14 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
       developerLogTraceFlag.turnOnLogging();
       executionWrapper.successfulExit();
     } catch (e) {
-      executionWrapper.failureExit(e);
+      executionWrapper.failureExit(e as Error);
     }
   }
 
   private async subExecute(command: Command) {
     if (!this.cancellationToken.isCancellationRequested) {
       const execution = new CliCommandExecutor(command, {
-        cwd: getRootWorkspacePath()
+        cwd: workspaceUtils.getRootWorkspacePath()
       }).execute(this.cancellationToken);
       this.attachSubExecution(execution);
       const resultPromise = new CommandOutput().getCmdResult(execution);
@@ -119,15 +119,15 @@ export class ForceStartApexDebugLoggingExecutor extends SfdxCommandletExecutor<{
 }
 
 export async function getUserId(projectPath: string): Promise<string> {
-  const defaultUsernameOrAlias = await getDefaultUsernameOrAlias();
-  if (isNullOrUndefined(defaultUsernameOrAlias)) {
+  const defaultUsernameOrAlias = await workspaceContextUtils.getDefaultUsernameOrAlias();
+  if (!defaultUsernameOrAlias) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendException('replay_debugger_undefined_username', err);
     throw new Error(err);
   }
 
   const username = await OrgAuthInfo.getUsername(defaultUsernameOrAlias);
-  if (isNullOrUndefined(username)) {
+  if (!username) {
     const err = nls.localize('error_no_default_username');
     telemetryService.sendException('replay_debugger_undefined_username', err);
     throw new Error(err);

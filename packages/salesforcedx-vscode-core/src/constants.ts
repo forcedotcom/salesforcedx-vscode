@@ -30,9 +30,9 @@ export const BETA_DEPLOY_RETRIEVE = 'experimental.deployRetrieve';
 export const CONFLICT_DETECTION_ENABLED = 'detectConflictsAtSync';
 export const INTERNAL_DEVELOPMENT_FLAG = 'internal-development';
 export const PUSH_OR_DEPLOY_ON_SAVE_ENABLED = 'push-or-deploy-on-save.enabled';
-export const PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS = 'push-or-deploy-on-save.overrideConflictsOnPush';
+export const PUSH_OR_DEPLOY_ON_SAVE_OVERRIDE_CONFLICTS =
+  'push-or-deploy-on-save.overrideConflictsOnPush';
 export const RETRIEVE_TEST_CODE_COVERAGE = 'retrieve-test-code-coverage';
-export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SHOW_CLI_SUCCESS_INFO_MSG = 'show-cli-success-msg';
 export const TELEMETRY_ENABLED = 'telemetry.enabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP =
@@ -43,3 +43,9 @@ export const CLI = {
   AUTH_DEVICE_LOGIN: 'force:auth:device:login',
   AUTH_WEB_LOGIN: 'force:auth:web:login'
 };
+export const APEX_FILE_NAME_EXTENSION = '.apex';
+export const SOQL_FILE_NAME_EXTENSION = '.soql';
+export const AURA_PATH = '/force-app/main/default/aura/';
+export const APEX_CLASSES_PATH = '/force-app/main/default/classes/';
+export const LWC_PATH = '/force-app/main/default/lwc/';
+export const FUNCTIONS_PATH = '/functions/';

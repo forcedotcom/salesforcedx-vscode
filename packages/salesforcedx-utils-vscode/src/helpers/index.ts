@@ -5,19 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { isNullOrUndefined, extractJsonObject } from './utils';
-export {
-  isAlphaNumString,
-  isInteger,
-  isIntegerInRange,
-  isAlphaNumSpaceString,
-  isRecordIdFormat
-} from './validations';
 export {
   ensureDirectoryExists,
+  fileExtensionsMatch,
   getTestResultsFolder,
   getRelativeProjectPath,
-  fileExtensionsMatch
+  projectPaths
 } from './paths';
 export { TraceFlags } from './traceFlags';
 export { TraceFlagsRemover } from './traceFlagsRemover';
+export {
+  asyncFilter,
+  extractJsonObject,
+  isNullOrUndefined,
+  fileUtils
+} from './utils';
+export {
+  isAlphaNumSpaceString,
+  isAlphaNumString,
+  isInteger,
+  isIntegerInRange,
+  isRecordIdFormat
+} from './validations';

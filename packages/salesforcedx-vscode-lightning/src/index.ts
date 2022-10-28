@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   ExtensionContext,
@@ -22,8 +22,6 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { nls } from './messages';
-
-const EXTENSION_NAME = 'salesforcedx-vscode-lightning';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri): string {
@@ -45,7 +43,7 @@ function getActivationMode(): string {
   return config.get('activationMode') || 'autodetect'; // default to autodetect
 }
 
-export async function activate(context: ExtensionContext) {
+export async function activate(extensionContext: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -86,18 +84,19 @@ export async function activate(context: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Initialize telemetry service
-  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  const { name, aiKey, version } = extensionContext.extension.packageJSON;
+
   await TelemetryService.getInstance().initializeService(
-    context,
-    EXTENSION_NAME,
-    extensionPackage.aiKey,
-    extensionPackage.version
+    extensionContext,
+    name,
+    aiKey,
+    version
   );
 
   // Start the Aura Language Server
 
   // Setup the language server
-  const serverModule = context.asAbsolutePath(
+  const serverModule = extensionContext.asAbsolutePath(
     path.join(
       'node_modules',
       '@salesforce',
@@ -188,7 +187,7 @@ export async function activate(context: ExtensionContext) {
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
-  context.subscriptions.push(disp);
+  extensionContext.subscriptions.push(disp);
 
   // Notify telemetry that our extension is now active
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionHRStart);

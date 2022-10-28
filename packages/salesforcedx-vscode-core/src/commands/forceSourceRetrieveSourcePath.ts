@@ -4,14 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { PostconditionChecker } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { SfdxCommandBuilder } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
-  ContinueResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  ContinueResponse,
+  PostconditionChecker
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -25,9 +23,7 @@ import {
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
-import {
-  ConflictDetectionMessages
-} from './util/postconditionCheckers';
+import { ConflictDetectionMessages } from './util/postconditionCheckers';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   string[]
@@ -42,8 +38,11 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<
   public async getComponents(
     response: ContinueResponse<string[]>
   ): Promise<ComponentSet> {
-    const sourceApiVersion = (await SfdxProjectConfig.getValue('sourceApiVersion')) as string;
-    const paths = typeof response.data === 'string' ? [response.data] : response.data;
+    const sourceApiVersion = (await SfdxProjectConfig.getValue(
+      'sourceApiVersion'
+    )) as string;
+    const paths =
+      typeof response.data === 'string' ? [response.data] : response.data;
     const componentSet = ComponentSet.fromSource(paths);
     componentSet.sourceApiVersion = sourceApiVersion;
     return componentSet;

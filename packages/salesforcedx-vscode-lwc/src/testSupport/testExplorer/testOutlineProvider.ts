@@ -125,16 +125,16 @@ export class SfdxTestOutlineProvider
 
 /**
  * Register test explorer with extension context
- * @param context extension context
+ * @param extensionContext extension context
  */
 export function registerLwcTestExplorerTreeView(
-  context: vscode.ExtensionContext
+  extensionContext: vscode.ExtensionContext
 ) {
   const testOutlineProvider = new SfdxTestOutlineProvider();
   const testProvider = vscode.window.registerTreeDataProvider(
     'sfdx.force.lightning.lwc.test.view',
     testOutlineProvider
   );
-  context.subscriptions.push(testOutlineProvider);
-  context.subscriptions.push(testProvider);
+  extensionContext.subscriptions.push(testOutlineProvider);
+  extensionContext.subscriptions.push(testProvider);
 }

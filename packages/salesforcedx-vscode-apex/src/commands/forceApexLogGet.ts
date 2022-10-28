@@ -7,31 +7,21 @@
 
 import { LogRecord, LogService } from '@salesforce/apex-node';
 import {
-  getRootWorkspaceSfdxPath,
-  LibraryCommandletExecutor,
-  SfdxCommandlet,
-  SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
-  optionYYYYMMddHHmmss
-} from '@salesforce/salesforcedx-utils-vscode/out/src/date';
-import {
   CancelResponse,
   ContinueResponse,
-  ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as path from 'path';
+  LibraryCommandletExecutor,
+  optionYYYYMMddHHmmss,
+  ParametersGatherer,
+  projectPaths,
+  SfdxCommandlet,
+  SfdxWorkspaceChecker
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
 
-const LOG_DIRECTORY = path.join(
-  getRootWorkspaceSfdxPath(),
-  'tools',
-  'debug',
-  'logs'
-);
+const LOG_DIRECTORY = projectPaths.debugLogsFolder();
 
 interface ApexDebugLogItem extends vscode.QuickPickItem {
   id: string;
@@ -130,7 +120,10 @@ export class ApexLibraryGetLogsExecutor extends LibraryCommandletExecutor<{
     const logService = new LogService(connection);
     const { id: logId } = response.data;
 
-    const logResults = await logService.getLogs({ logId, outputDir: LOG_DIRECTORY });
+    const logResults = await logService.getLogs({
+      logId,
+      outputDir: LOG_DIRECTORY
+    });
     logResults.forEach(logResult => OUTPUT_CHANNEL.appendLine(logResult.log));
 
     const logPath = logResults[0].logPath;

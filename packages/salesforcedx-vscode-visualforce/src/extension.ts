@@ -19,7 +19,6 @@ import {
   TextDocument
 } from 'vscode';
 import {
-  BaseLanguageClient,
   LanguageClient,
   LanguageClientOptions,
   RequestType,
@@ -55,14 +54,7 @@ export async function activate(context: ExtensionContext) {
 
   // The server is implemented in node
   const serverModule = context.asAbsolutePath(
-    path.join(
-      'node_modules',
-      '@salesforce',
-      'salesforcedx-visualforce-language-server',
-      'out',
-      'src',
-      'visualforceServer.js'
-    )
+    path.join(...context.extension.packageJSON.serverPath)
   );
   // The debug options for the server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6004'] };

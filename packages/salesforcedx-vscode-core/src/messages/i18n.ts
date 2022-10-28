@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
@@ -629,6 +629,8 @@ export const messages = {
   sobject_refresh_all: 'All SObjects',
   sobject_refresh_custom: 'Custom SObjects',
   sobject_refresh_standard: 'Standard SObjects',
+  force_sobjects_no_refresh_if_already_active_error_text:
+    'A refresh of your sObject definitions is already underway. If you need to restart the process, cancel the running task.',
   force_rename_lightning_component: 'SFDX: Rename Component',
   rename_component_input_dup_error:
     'Component name is already in use in LWC or Aura',
@@ -639,7 +641,22 @@ export const messages = {
     'Press Enter to confirm your input or Escape to cancel',
   rename_component_warning:
     'Warning: References to the old name will not be updated. Update manually and redeploy once all changes have been made.',
+  rename_component_error:
+    'Unable to rename the component. Try renaming the component manually and then redeploying your changes.',
   error_function_type: 'Unable to determine type of executing function.',
   error_unable_to_get_started_function:
-    'Unable to access the function in "{0}".'
+    'Unable to access the function in "{0}".',
+  pending_org_expiration_expires_on_message: '%s\n(expires on %s)',
+  pending_org_expiration_notification_message:
+    'Warning: One or more of your orgs expire in the next %s days. For more details, review the Output panel.',
+  pending_org_expiration_output_channel_message:
+    'Warning: The following orgs expire in the next %s days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
+  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
+  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
+  soql_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
+  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
+  functions_doc_url:
+    'https://developer.salesforce.com/tools/vscode/en/functions/overview',
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode'
 };

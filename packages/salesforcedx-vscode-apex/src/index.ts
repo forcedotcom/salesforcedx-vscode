@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
@@ -44,7 +44,7 @@ import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 let languageClient: LanguageClient | undefined;
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
   if (vscode.workspace && vscode.workspace.workspaceFolders) {
     const apexDirPath = getTestResultsFolder(
@@ -63,18 +63,18 @@ export async function activate(context: vscode.ExtensionContext) {
       testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath)
     );
 
-    context.subscriptions.push(testResultFileWatcher);
+    extensionContext.subscriptions.push(testResultFileWatcher);
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
 
   // Workspace Context
-  await workspaceContext.initialize(context);
+  await workspaceContext.initialize(extensionContext);
 
   // Telemetry
-  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  const extensionPackage = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
-    context,
+    extensionContext,
     APEX_EXTENSION_NAME,
     extensionPackage.aiKey,
     extensionPackage.version
@@ -83,11 +83,13 @@ export async function activate(context: vscode.ExtensionContext) {
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
-    languageClient = await languageServer.createLanguageServer(context);
+    languageClient = await languageServer.createLanguageServer(
+      extensionContext
+    );
     languageClientUtils.setClientInstance(languageClient);
     const handle = languageClient.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
-    context.subscriptions.push(handle);
+    extensionContext.subscriptions.push(handle);
 
     languageClient
       .onReady()
@@ -122,10 +124,10 @@ export async function activate(context: vscode.ExtensionContext) {
   enableJavaDocSymbols();
 
   // Commands
-  const commands = registerCommands(context);
-  context.subscriptions.push(commands);
+  const commands = registerCommands();
+  extensionContext.subscriptions.push(commands);
 
-  context.subscriptions.push(await registerTestView());
+  extensionContext.subscriptions.push(await registerTestView());
 
   const exportedApi = {
     getLineBreakpointInfo,
@@ -138,9 +140,7 @@ export async function activate(context: vscode.ExtensionContext) {
   return exportedApi;
 }
 
-function registerCommands(
-  extensionContext: vscode.ExtensionContext
-): vscode.Disposable {
+function registerCommands(): vscode.Disposable {
   // Colorize code coverage
   const statusBarToggle = new StatusBarToggle();
   const colorizer = new CodeCoverage(statusBarToggle);
@@ -259,8 +259,7 @@ function registerCommands(
   );
 }
 
-async function registerTestView(
-): Promise<vscode.Disposable> {
+async function registerTestView(): Promise<vscode.Disposable> {
   // Create TestRunner
   const testRunner = new ApexTestRunner(testOutlineProvider);
 

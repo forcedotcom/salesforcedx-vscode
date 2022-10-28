@@ -48,7 +48,7 @@ function protocol2CodeConverter(value: string) {
   return Uri.parse(value);
 }
 
-export async function activate(context: ExtensionContext) {
+export async function activate(extensionContext: ExtensionContext) {
   const extensionHRStart = process.hrtime();
   console.log('Activation Mode: ' + getActivationMode());
   // Run our auto detection routine before we activate
@@ -59,12 +59,12 @@ export async function activate(context: ExtensionContext) {
   }
 
   // Initialize telemetry service
-  const extensionPackage = require(context.asAbsolutePath('./package.json'));
+  const { aiKey, version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
-    context,
+    extensionContext,
     LWC_EXTENSION_NAME,
-    extensionPackage.aiKey,
-    extensionPackage.version
+    aiKey,
+    version
   );
 
   // if we have no workspace folders, exit
@@ -94,8 +94,8 @@ export async function activate(context: ExtensionContext) {
   // If activationMode === always, ignore workspace type and continue activating
 
   // register commands
-  const ourCommands = registerCommands(context);
-  context.subscriptions.push(ourCommands);
+  const ourCommands = registerCommands(extensionContext);
+  extensionContext.subscriptions.push(ourCommands);
 
   // If we get here, we either passed autodetect validation or activationMode == always
   console.log('Lightning Web Components Extension Activated');
@@ -103,7 +103,7 @@ export async function activate(context: ExtensionContext) {
 
   // Start the LWC Language Server
   const client = createLanguageClient(
-    context.asAbsolutePath(
+    extensionContext.asAbsolutePath(
       path.join(
         'node_modules',
         '@salesforce',
@@ -113,7 +113,7 @@ export async function activate(context: ExtensionContext) {
       )
     )
   );
-  context.subscriptions.push(client.start());
+  extensionContext.subscriptions.push(client.start());
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
@@ -144,11 +144,11 @@ export async function activate(context: ExtensionContext) {
 
   // Activate Test support
   if (shouldActivateLwcTestSupport(workspaceType)) {
-    activateLwcTestSupport(context, workspaceType);
+    activateLwcTestSupport(extensionContext, workspaceType);
   }
 
   // Initialize utils for user settings
-  WorkspaceUtils.instance.init(context);
+  WorkspaceUtils.instance.init(extensionContext);
 
   // Notify telemetry that our extension is now active
   telemetryService.sendExtensionActivationEvent(extensionHRStart);

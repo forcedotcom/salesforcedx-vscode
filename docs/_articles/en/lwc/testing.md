@@ -17,7 +17,23 @@ To jump to a test file, or a test case, click the test name in the sidebar.
 
 To clear your test results, click the refresh icon at the top of the sidebar (hover text: SFDX: Refresh Lightning Web Component Test Explorer).
 
-## Run, Debug or Watch Jest Tests from Within a File
+## Add Debug Configuration for Jest Tests
+
+Add the Jest Tests debug configuration to automatically update `launch.json`.  As a prerequisite, you must have [node.js](https://nodejs.org/) and [npm](https://www.npmjs.com/get-npm) installed.
+
+
+> **_NOTE:_** If you started from an empty project, first install [sfdx-lwc-jest](https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.unit_testing_using_jest_installation) and then add the test configuration using the steps described.
+
+To quickly add the Jest Tests configuration to your standard project:
+
+1. Go to  **Run and Debug** in your Activity Bar.
+2. From the dropdown select **Add Configuration**.
+3. Select **Debug: LWC Jest Tests**.
+4. Save the updated `launch.json`.
+5. Select the **Debug: LWC Jest Tests** configuration from the **Configuration dropdown** in the Run view and start debugging.
+
+
+## Run, Debug, or Watch Jest Tests from Within a File
 
 You can run or debug Jest unit tests in contextual actions within the file, or by clicking buttons from the menu bar in the top right corner of the editor window. View test results in the Terminal panel.
 

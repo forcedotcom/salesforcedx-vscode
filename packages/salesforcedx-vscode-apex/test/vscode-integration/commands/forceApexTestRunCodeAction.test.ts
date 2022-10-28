@@ -12,8 +12,8 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { SfdxProject } from '@salesforce/core';
-import * as pathUtils from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { SfProject } from '@salesforce/core';
+import * as pathUtils from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import { join } from 'path';
@@ -252,7 +252,7 @@ describe('Force Apex Test Run - Code Action', () => {
       buildPayloadStub = sb.stub(TestService.prototype, 'buildAsyncPayload');
       sb.stub(HumanReporter.prototype, 'format');
       writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
-      sb.stub(SfdxProject, 'resolve').returns({
+      sb.stub(SfProject, 'resolve').returns({
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };
         }
@@ -523,7 +523,7 @@ describe('Force Apex Test Run - Code Action', () => {
     beforeEach(() => {
       sb.stub(TestService.prototype, 'writeResultFiles');
       sb.stub(workspaceContext, 'getConnection');
-      sb.stub(SfdxProject, 'resolve').returns({
+      sb.stub(SfProject, 'resolve').returns({
         getDefaultPackage: () => {
           return { fullPath: 'default/package/dir' };
         }

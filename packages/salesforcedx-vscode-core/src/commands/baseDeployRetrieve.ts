@@ -6,21 +6,18 @@
  */
 import {
   ConfigUtil,
+  ContinueResponse,
   getRelativeProjectPath,
   getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import {
+  LibraryCommandletExecutor,
   Row,
   Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   DeployResult,
   MetadataApiDeploy,
   MetadataApiRetrieve,
-  registry,
   RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import {
@@ -38,6 +35,7 @@ import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
+import { OrgAuthInfo } from '../util';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;
@@ -64,16 +62,7 @@ export abstract class DeployRetrieveExecutor<
 
     try {
       const components = await this.getComponents(response);
-
-      // concrete classes may have purposefully changed the api version.
-      // if there's an indication they didn't, check the SFDX configuration to see
-      // if there is an overridden api version.
-      if (components.apiVersion === registry.apiVersion) {
-        const apiVersion = (await ConfigUtil.getConfigValue('apiVersion')) as
-          | string
-          | undefined;
-        components.apiVersion = apiVersion ?? components.apiVersion;
-      }
+      await this.setApiVersionOn(components);
 
       this.telemetry.addProperty(
         TELEMETRY_METADATA_COUNT,
@@ -93,6 +82,23 @@ export abstract class DeployRetrieveExecutor<
     } finally {
       await this.postOperation(result);
     }
+  }
+
+  private async setApiVersionOn(components: ComponentSet) {
+    // Check the SFDX configuration to see if there is an overridden api version.
+    // Project level local sfdx-config takes precedence over global sfdx-config at system level.
+    const userConfiguredApiVersion:
+      | string
+      | undefined = await ConfigUtil.getUserConfiguredApiVersion();
+
+    if (userConfiguredApiVersion) {
+      components.apiVersion = userConfiguredApiVersion;
+      return;
+    }
+
+    // If no user-configured Api Version is present, then get the version from the Org.
+    const orgApiVersion = await OrgAuthInfo.getOrgApiVersion();
+    components.apiVersion = orgApiVersion ?? components.apiVersion;
   }
 
   protected setupCancellation(
@@ -231,7 +237,9 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
       const relativePackageDirs = await SfdxPackageDirectories.getPackageDirectoryPaths();
       const output = this.createOutput(result, relativePackageDirs);
       channelService.appendLine(output);
-      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
+      PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(
+        result.response.fileProperties
+      );
     }
   }
 
