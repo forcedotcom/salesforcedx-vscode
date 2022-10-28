@@ -1,3 +1,4 @@
+import * as os from 'os';
 import * as path from 'path';
 import { projectPaths, workspaceUtils } from '../../../src/';
 
@@ -17,7 +18,11 @@ describe('test project paths', () => {
   const FAKE_STATE_FOLDER = '.sfdx';
   const FAKE_CONFIG_FILE = 'sfdx-config.json';
   const FAKE_PATH = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
+  let homeDirStub: jest.SpyInstance;
 
+  beforeEach(() => {
+    homeDirStub = jest.spyOn(os, 'homedir').mockReturnValue(FAKE_HOME_DIR);
+  });
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
 
@@ -76,12 +81,9 @@ describe('test project paths', () => {
 
   describe('test SFDXGlobalConfigPath', () => {
     it('should return the global config path', () => {
-      const mockOS = jest.requireActual('os');
-      mockOS.homedir = jest.fn().mockReturnValue(FAKE_HOME_DIR);
-      jest.mock('os', () => mockOS);
       const result = projectPaths.sfdxGlobalConfig();
-      expect(result).toEqual(path.join(FAKE_HOME_DIR, FAKE_STATE_FOLDER, FAKE_CONFIG_FILE)
-      );
+      expect(result).toEqual(path.join(FAKE_HOME_DIR, FAKE_STATE_FOLDER, FAKE_CONFIG_FILE));
+      expect(homeDirStub).toHaveBeenCalled();
     });
   });
 
@@ -104,12 +106,10 @@ describe('test project paths', () => {
     });
 
     it('should return a path to the global config file when not in a project workspace', () => {
-      const mockOS = jest.requireActual('os');
-      mockOS.homedir = jest.fn().mockReturnValue(FAKE_HOME_DIR);
-      jest.mock('os', () => mockOS);
 
       const sfdxConfig = projectPaths.sfdxConfig();
       expect(sfdxConfig).toEqual(path.join(FAKE_HOME_DIR, FAKE_STATE_FOLDER, FAKE_CONFIG_FILE));
+      expect(homeDirStub).toHaveBeenCalled();
     });
   });
 });
