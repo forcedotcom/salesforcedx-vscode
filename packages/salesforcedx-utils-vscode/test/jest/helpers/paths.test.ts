@@ -91,7 +91,7 @@ describe('test project paths', () => {
       expect(projectPaths.sfdxConfig).toBeDefined();
     });
 
-    it('should return a path to the project config file', () => {
+    it('should return a path to the project config file when in a project workspace', () => {
       const FAKE_CONFIG = path.join(FAKE_PATH, FAKE_CONFIG_FILE);
       hasRootWorkspaceStub.mockReturnValue(true);
       let stateFolderStub: jest.SpyInstance;
@@ -103,7 +103,7 @@ describe('test project paths', () => {
       expect(sfdxConfig).toEqual(FAKE_CONFIG);
     });
 
-    it('should return a path to the global config file', () => {
+    it('should return a path to the global config file when not in a project workspace', () => {
       const mockOS = jest.requireActual('os');
       mockOS.homedir = jest.fn().mockReturnValue(FAKE_HOME_DIR);
       jest.mock('os', () => mockOS);
