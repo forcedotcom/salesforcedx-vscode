@@ -15,7 +15,6 @@ import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const SFDX_FOLDER = projectPaths.relativeStateFolder();
 const SFDX_CONFIG_FILE = projectPaths.sfdxProjectConfig();
-const DEBUG_LOGS = projectPaths.debugLogsFolder();
 
 export interface OrgUserInfo {
   username?: string;
