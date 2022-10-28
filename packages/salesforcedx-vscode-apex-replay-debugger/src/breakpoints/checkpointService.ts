@@ -22,7 +22,6 @@ import {
   RequestService,
   RestHttpMethodEnum
 } from '@salesforce/salesforcedx-utils';
-import * as AsyncLock from 'async-lock';
 import * as vscode from 'vscode';
 import {
   Event,
@@ -53,6 +52,11 @@ import {
 } from '../index';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
+
+// below dependencies must be required for bundling to work properly
+/* tslint:disable */
+const AsyncLock = require('async-lock');
+/* tslint:enable */
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -970,10 +974,10 @@ export async function sfdxToggleCheckpoint() {
   }
   const bpAdd: vscode.Breakpoint[] = [];
   const bpRemove: vscode.Breakpoint[] = [];
-  const uri = exports.fetchActiveEditorUri();
-  const lineNumber = exports.fetchActiveSelectionLineNumber();
+  const uri = checkpointUtils.fetchActiveEditorUri();
+  const lineNumber = checkpointUtils.fetchActiveSelectionLineNumber();
 
-  if (uri && lineNumber) {
+  if (uri && lineNumber !== undefined) {
     // While selection could be passed directly into the location instead of creating
     // a new range, it ends up creating a weird secondary icon on the line with the
     // breakpoint which is due to the start/end characters being non-zero.
@@ -1020,7 +1024,6 @@ function fetchActiveEditorUri(): vscode.Uri | undefined {
     return editor.document.uri;
   }
 }
-exports.fetchActiveEditorUri = fetchActiveEditorUri;
 
 // This methods was broken out of sfdxToggleCheckpoint for testing purposes.
 function fetchActiveSelectionLineNumber(): number | undefined {
@@ -1030,7 +1033,6 @@ function fetchActiveSelectionLineNumber(): number | undefined {
   }
   return undefined;
 }
-exports.fetchActiveSelectionLineNumber = fetchActiveSelectionLineNumber;
 
 function fetchExistingBreakpointForUriAndLineNumber(
   uriInput: vscode.Uri,
@@ -1061,3 +1063,8 @@ function code2ProtocolConverter(value: vscode.Uri) {
     return value.toString();
   }
 }
+
+export const checkpointUtils = {
+  fetchActiveEditorUri,
+  fetchActiveSelectionLineNumber
+};

@@ -8,19 +8,16 @@
 import { CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/protocolCompletionItem';
 
-import { Middleware } from 'vscode-languageclient';
 import { SoqlItemContext } from '@salesforce/soql-language-server';
-import { nls } from '../messages';
-import { channelService } from '../sfdx';
+import { Middleware } from 'vscode-languageclient';
 import { telemetryService } from '../telemetry';
 import {
   FileSystemOrgDataSource,
   JsforceOrgDataSource,
-  SObjectField,
+  OrgDataSource,
   SObject,
-  OrgDataSource
+  SObjectField
 } from './orgMetadata';
-import { Org } from '@salesforce/core';
 
 const EXPANDABLE_ITEM_PATTERN = /__([A-Z_]+)/;
 
@@ -55,8 +52,9 @@ async function filterByContext(
   const filteredItems: ProtocolCompletionItem[] = [];
 
   for (const item of items) {
+    const labelString = isString(item.label) ? item.label : item.label.label;
     if (
-      !EXPANDABLE_ITEM_PATTERN.test(item.label) &&
+      !EXPANDABLE_ITEM_PATTERN.test(labelString) &&
       item?.data?.soqlContext?.sobjectName &&
       item?.data?.soqlContext?.fieldName
     ) {
@@ -83,6 +81,11 @@ async function filterByContext(
   return filteredItems;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isString(x: any): x is string {
+  return typeof x === 'string';
+}
+
 async function expandPlaceholders(
   items: ProtocolCompletionItem[],
   dataSource: OrgDataSource
@@ -90,7 +93,8 @@ async function expandPlaceholders(
   const expandedItems = [...items];
 
   for (const [index, item] of items.entries()) {
-    const parsedCommand = item.label.match(EXPANDABLE_ITEM_PATTERN);
+    const labelString = isString(item.label) ? item.label : item.label.label;
+    const parsedCommand = labelString.match(EXPANDABLE_ITEM_PATTERN);
     if (parsedCommand) {
       const commandName = parsedCommand[1];
 

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -11,7 +12,6 @@ import {
   RetrieveResult,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { RecompositionState } from '@salesforce/source-deploy-retrieve/lib/src/convert/convertContext';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -55,8 +55,10 @@ interface RecomposedComponent {
   children: Map<string, SourceComponent>;
 }
 
+const STATE_FOLDER = projectPaths.relativeStateFolder();
+
 export class MetadataCacheService {
-  private static CACHE_FOLDER = ['.sfdx', 'diff'];
+  private static CACHE_FOLDER = [STATE_FOLDER, 'diff'];
   private static PROPERTIES_FOLDER = ['prop'];
   private static PROPERTIES_FILE = 'file-props.json';
 
