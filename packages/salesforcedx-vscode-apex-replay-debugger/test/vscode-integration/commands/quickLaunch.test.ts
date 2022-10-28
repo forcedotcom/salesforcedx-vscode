@@ -17,8 +17,7 @@ import {
   notificationService,
   projectPaths,
   SFDX_CORE_CONFIGURATION_NAME,
-  TraceFlags,
-  WorkspaceContextUtil
+  TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
