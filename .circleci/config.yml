@@ -342,6 +342,7 @@ jobs:
       - NODE_VERSION: << pipeline.parameters.node-version >>
     steps:
       - build-win
+      - package-extensions
       - run:
           name: 'Run SOQL UI Tests if Needed'
           shell: bash.exe
