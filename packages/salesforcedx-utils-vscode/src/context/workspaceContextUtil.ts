@@ -55,10 +55,6 @@ export class WorkspaceContextUtil {
     this.cliConfigWatcher.onDidDelete(bindedHandler);
   }
 
-  public static getLogDirPath(): string {
-    return join(workspaceUtils.getRootWorkspacePath(), SFDX_FOLDER, DEBUG_LOGS);
-  }
-
   public getAuthUtil(): AuthUtil {
     return AuthUtil.getInstance();
   }

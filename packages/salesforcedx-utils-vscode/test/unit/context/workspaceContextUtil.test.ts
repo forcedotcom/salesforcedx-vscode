@@ -168,11 +168,3 @@ describe('WorkspaceContext', () => {
     });
   });
 });
-
-describe('getLogDirPath', () => {
-  it('should return a path to debug log folder', () => {
-    const dirPath = getRootWorkspacePath();
-    const result = WorkspaceContextUtil.getLogDirPath();
-    expect(result).to.equal(join(dirPath, '.sfdx', 'tools', 'debug', 'logs'));
-  });
-});
