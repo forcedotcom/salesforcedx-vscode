@@ -12,19 +12,14 @@ import { join } from 'path';
 import { rm } from 'shelljs';
 import { SOBJECTS_DIR } from '../../src';
 import { CUSTOMOBJECTS_DIR, STANDARDOBJECTS_DIR } from '../../src/constants';
-import { SObjectShortDescription } from '../../src/describe';
 import { DeclarationGenerator } from '../../src/generator/declarationGenerator';
 import {
   FauxClassGenerator,
   INDENT
 } from '../../src/generator/fauxClassGenerator';
 import { nls } from '../../src/messages';
-import {
-  SObject,
-  SObjectCategory,
-  SObjectRefreshOutput
-} from '../../src/types';
-import { apiCustomSObject, minimalCustomSObject } from './sObjectMockData';
+import { SObjectCategory, SObjectRefreshOutput } from '../../src/types';
+import { minimalCustomSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 

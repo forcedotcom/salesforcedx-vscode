@@ -6,34 +6,31 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { expect } from 'chai';
 import * as path from 'path';
 import { createSandbox, SinonStub } from 'sinon';
-import { ForceSourceDeployManifestExecutor } from '../../../src/commands';
 import { LibrarySourceDeployManifestExecutor } from '../../../src/commands/forceSourceDeployManifest';
 import { workspaceContext } from '../../../src/context';
-import { nls } from '../../../src/messages';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../src/util';
+import { workspaceUtils } from '../../../src/util';
 
-const env = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const env = $$.SANDBOX;
 
 describe('Force Source Deploy Using Manifest Option', () => {
-  describe('CLI Executor', () => {
-    it('Should build the source deploy command', () => {
-      const manifestPath = path.join('path', 'to', 'manifest', 'package.xml');
-      const sourceDeploy = new ForceSourceDeployManifestExecutor();
-      const sourceDeployCommand = sourceDeploy.build(manifestPath);
-      expect(sourceDeployCommand.toCommand()).to.equal(
-        `sfdx force:source:deploy --manifest ${manifestPath} --json --loglevel fatal`
-      );
-      expect(sourceDeployCommand.description).to.equal(
-        nls.localize('force_source_deploy_text')
-      );
-    });
+  beforeEach(() => {
+    stubContext($$);
+  });
+
+  afterEach(() => {
+    restoreContext($$);
   });
 
   describe('Library Executor', () => {
@@ -55,11 +52,7 @@ describe('Force Source Deploy Using Manifest Option', () => {
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
+      mockConnection = await testData.getConnection();
       env.stub(workspaceContext, 'getConnection').resolves(mockConnection);
 
       env
@@ -69,7 +62,9 @@ describe('Force Source Deploy Using Manifest Option', () => {
         .stub(ComponentSet, 'fromManifest')
         .withArgs({
           manifestPath,
-          resolveSourcePaths: packageDirs.map(p => path.join(getRootWorkspacePath(), p))
+          resolveSourcePaths: packageDirs.map(p =>
+            path.join(workspaceUtils.getRootWorkspacePath(), p)
+          )
         })
         .returns(mockComponents);
       pollStatusStub = env.stub();
@@ -80,7 +75,6 @@ describe('Force Source Deploy Using Manifest Option', () => {
 
     afterEach(() => {
       env.restore();
-      $$.SANDBOX.restore();
     });
 
     it('should deploy components in a manifest', async () => {

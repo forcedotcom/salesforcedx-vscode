@@ -10,7 +10,7 @@ import { MetadataApiDeployStatus, RequestStatus} from '@salesforce/source-deploy
 import { expect } from 'chai';
 import { basename, dirname, join} from 'path';
 import { PersistentStorageService } from '../../../src/conflict/persistentStorageService';
-import { MockContext } from '../telemetry/MockContext';
+import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
 describe('Persistent Storage Service', () => {
   const props: FileProperties[] = [
@@ -77,8 +77,8 @@ describe('Persistent Storage Service', () => {
   );
 
   beforeEach(() => {
-    const mockContext = new MockContext(false);
-    PersistentStorageService.initialize(mockContext);
+    const mockExtensionContext = new MockExtensionContext(false);
+    PersistentStorageService.initialize(mockExtensionContext);
   });
 
   it('Should store and retrieve file properties in Memento cache for Retrieve', () => {
@@ -91,16 +91,4 @@ describe('Persistent Storage Service', () => {
     expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
     expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
   });
-
-  it('Should set and get ConflictFileProperties in Memento cache for Deploy', () => {
-    const cache = PersistentStorageService.getInstance();
-    cache.setPropertiesForFilesDeploy(mockDeployResult.components, mockDeployResult.response);
-    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.deep.equal({lastModifiedDate: 'Yesterday'});
-    cache.setPropertiesForFile(cache.makeKey('ApexClass', 'One'), undefined);
-    cache.setPropertiesForFile(cache.makeKey('CustomObject', 'Two'), undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey('ApexClass', 'One'))).to.equal(undefined);
-    expect(cache.getPropertiesForFile(cache.makeKey('CustomObject', 'Two'))).to.equal(undefined);
-  });
-
 });

@@ -101,7 +101,7 @@ packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/.eslintrc.js
 packages/system-tests/assets/lwc-recipes/force-app/main/default/lwc/jsconfig.json
 
 # Node lock files (actually causes issues with the symlinking that lerna does, so ignore)
-package-lock.json
+# package-lock.json
 
 # External extension dependencies
 packages/dbaeumer*
@@ -114,3 +114,6 @@ packages/dbaeumer*
 
 # Vscode History Extension
 .history
+
+# Extension build directory
+packages/**/extension

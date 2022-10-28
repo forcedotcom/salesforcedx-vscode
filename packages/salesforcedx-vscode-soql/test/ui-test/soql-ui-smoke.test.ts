@@ -72,7 +72,7 @@ describe('In project folder, SOQL files should', function() {
 
     for (const action of actions) {
       if (
-        (await action.getAttribute('title')) ===
+        (await action.getAttribute('aria-label')) ===
         'Switch Between SOQL Builder and Text Editor'
       ) {
         toggle = action;
@@ -96,8 +96,6 @@ describe('In project folder, SOQL files should', function() {
     await openFolder(folderPath);
   });
 
-  after(async () => {});
-
   beforeEach(async () => {
     const editorView = new EditorView();
     await editorView.closeAllEditors();
@@ -114,11 +112,9 @@ describe('In project folder, SOQL files should', function() {
 
     // toggle editor should open in SOQL Builder
     await toggleEditor(filename);
-    const webviewEditor = await new EditorView().openEditor(filename);
-    expect(webviewEditor.constructor === WebView).to.be.true;
 
     // UI should render
-    const webview = webviewEditor as WebView;
+    const webview = new WebView();
     await webview.switchToFrame();
     const qbApp = await webview.findWebElement(By.css('querybuilder-app'));
     expect(qbApp).is.not.undefined;

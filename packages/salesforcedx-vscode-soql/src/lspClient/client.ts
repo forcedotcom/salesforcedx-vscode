@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'path';
-import { DiagnosticCollection, ExtensionContext, workspace } from 'vscode';
-import * as queryValidation from './queryValidation';
+import { ExtensionContext, workspace } from 'vscode';
 import * as codeCompletion from './codeCompletion';
+import * as queryValidation from './queryValidation';
 
 import {
   LanguageClient,
@@ -26,14 +26,9 @@ export async function startLanguageClient(
   extensionContext: ExtensionContext
 ): Promise<void> {
   // path to language server module
+  const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(
-    path.join(
-      'node_modules',
-      '@salesforce',
-      'soql-language-server',
-      'lib',
-      'server.js'
-    )
+    path.join(...serverPath)
   );
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 

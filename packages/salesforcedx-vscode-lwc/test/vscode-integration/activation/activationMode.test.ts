@@ -4,24 +4,26 @@ import * as vscode from 'vscode';
 import sinon, { stubInterface, stubObject } from 'ts-sinon';
 import * as sinonChai from 'sinon-chai';
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { MockContext } from './MockContext';
+import { MockExtensionContext } from './MockExtensionContext';
+import { expect, assert } from 'chai';
 
 chai.use(sinonChai);
-const { expect, assert } = chai;
 
 describe('activation modes', () => {
   let sandbox: sinon.SinonSandbox;
-  let mockContext: vscode.ExtensionContext;
+  let mockExtensionContext: vscode.ExtensionContext;
 
   beforeEach(function() {
     sandbox = sinon.createSandbox();
     sandbox.spy(console, 'log');
 
-    mockContext = stubInterface<vscode.ExtensionContext>();
+    mockExtensionContext = stubInterface<vscode.ExtensionContext>();
+
     // @ts-ignore
-    mockContext.subscriptions = [];
+    mockExtensionContext.subscriptions = [];
+
     // @ts-ignore
-    mockContext.asAbsolutePath = path => {
+    mockExtensionContext.asAbsolutePath = path => {
       return path;
     };
   });
@@ -33,7 +35,7 @@ describe('activation modes', () => {
   it('activates every time when activationMode is set to always', async function() {
     const EXPECTED = 'always';
     // create vscode extensionContext
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {
@@ -46,7 +48,7 @@ describe('activation modes', () => {
 
     const stub = sandbox.stub(vscode.commands, 'registerCommand');
 
-    await activate(mockContext);
+    await activate(mockExtensionContext);
 
     assert(stub.called);
   });
@@ -54,7 +56,7 @@ describe('activation modes', () => {
   it('activates every time when activationMode is set to always for non LWC projects', async function() {
     const EXPECTED = 'always';
     // create vscode extensionContext
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {
@@ -67,7 +69,7 @@ describe('activation modes', () => {
     sandbox.stub(lspCommon, 'isLWC').returns(false);
     const stub = sandbox.stub(vscode.commands, 'registerCommand');
 
-    await activate(mockContext);
+    await activate(mockExtensionContext);
 
     assert(stub.called);
   });
@@ -92,7 +94,7 @@ describe('activation modes', () => {
       .expects('registerCommand')
       .never();
 
-    await activate(mockContext);
+    await activate(mockExtensionContext);
 
     // Verify that we do not call vscode.commands.registerCommand at all
     // We can also verify that we console.log the message
@@ -102,7 +104,7 @@ describe('activation modes', () => {
   it('conditionally activates when activationMode is set to autodetect for LWC projects', async function() {
     const EXPECTED = 'autodetect';
     // create vscode extensionContext
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {
@@ -118,7 +120,7 @@ describe('activation modes', () => {
 
     const stub = sandbox.stub(vscode.commands, 'registerCommand');
 
-    await activate(mockContext);
+    await activate(mockExtensionContext);
 
     assert(stub.called);
   });
@@ -126,7 +128,7 @@ describe('activation modes', () => {
   it('does not activate when activationMode is set to autodetect for non-LWC projects', async function() {
     const EXPECTED = 'autodetect';
     // create vscode extensionContext
-    mockContext = new MockContext(true);
+    mockExtensionContext = new MockExtensionContext(true);
     const mockConfiguration = stubObject<vscode.WorkspaceConfiguration>(
       vscode.workspace.getConfiguration('salesforcedx-vscode-lightning'),
       {
@@ -146,6 +148,6 @@ describe('activation modes', () => {
       .expects('registerCommand')
       .never();
 
-    await activate(mockContext);
+    await activate(mockExtensionContext);
   });
 });

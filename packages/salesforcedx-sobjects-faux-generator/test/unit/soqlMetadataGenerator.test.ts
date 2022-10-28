@@ -7,10 +7,9 @@
 
 import * as chai from 'chai';
 import * as fs from 'fs';
-import { EOL } from 'os';
+import { userInfo } from 'os';
 import { join } from 'path';
 import { rm } from 'shelljs';
-import { SOBJECTS_DIR } from '../../src';
 import {
   CUSTOMOBJECTS_DIR,
   SOQLMETADATA_DIR,
@@ -18,14 +17,12 @@ import {
 } from '../../src/constants';
 import { SObjectShortDescription } from '../../src/describe';
 import { SOQLMetadataGenerator } from '../../src/generator/soqlMetadataGenerator';
-import { nls } from '../../src/messages';
 import { MinObjectRetriever } from '../../src/retriever';
 import {
   SObject,
   SObjectCategory,
   SObjectRefreshOutput
 } from '../../src/types';
-import { apiCustomSObject, minimalCustomSObject } from './sObjectMockData';
 
 const expect = chai.expect;
 
@@ -35,14 +32,26 @@ describe('SOQL metadata files generator', () => {
   const standardFolder = join(soqlMetadataFolder, STANDARDOBJECTS_DIR);
   const customFolder = join(soqlMetadataFolder, CUSTOMOBJECTS_DIR);
 
-  beforeEach(() => {
+  function cleanupMetadata() {
     if (fs.existsSync(soqlMetadataFolder)) {
       rm('-rf', soqlMetadataFolder);
     }
+  }
 
-    fs.mkdirSync(soqlMetadataFolder);
+  const username = userInfo().username;
+  const soqlMetadataFolderExists = fs.existsSync(soqlMetadataFolder);
+  const standardFolderExists = fs.existsSync(standardFolder);
+  const customFolderExists = fs.existsSync(standardFolder);
+
+  beforeEach(() => {
+    cleanupMetadata();
+    fs.mkdirSync(soqlMetadataFolder, { recursive: true });
     fs.mkdirSync(standardFolder);
     fs.mkdirSync(customFolder);
+  });
+
+  afterAll(() => {
+    cleanupMetadata();
   });
 
   it('Should generate metadata files from "minimal" object set', async () => {

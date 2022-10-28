@@ -12,6 +12,7 @@ import {
   Progress,
   ResultFormat,
   TestLevel,
+  TestResult,
   TestService
 } from '@salesforce/apex-node';
 import {
@@ -20,13 +21,13 @@ import {
   LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -175,12 +176,13 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<
         }
       }
     };
-    const result = await testService.runTestAsynchronous(
+    const result = (await testService.runTestAsynchronous(
       payload,
       codeCoverage,
+      false,
       progressReporter,
       token
-    );
+    )) as TestResult;
 
     if (token?.isCancellationRequested) {
       return false;

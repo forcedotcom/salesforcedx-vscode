@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   channel_name: 'Salesforce CLI',
@@ -154,9 +154,9 @@ export const messages = {
   force_data_soql_query_selection_text:
     'SFDX: 現在選択されているテキストで SOQL クエリを実行',
   parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
-  force_apex_execute_document_text:
+  force_anon_apex_execute_document_text:
     'SFDX: エディタの内容で匿名 Apex コードを実行',
-  force_apex_execute_selection_text:
+  force_anon_apex_execute_selection_text:
     'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   force_project_create_text: 'SFDX: プロジェクトを作成',
   force_project_create_open_dialog_create_label: 'プロジェクトを作成',
@@ -516,5 +516,13 @@ export const messages = {
   force_source_diff_title: '%s//%s ↔ ローカル //%s',
   package_id_validation_error:
     'Package ID should be a 15 or 18 character Id that starts with 04t',
-  package_id_gatherer_placeholder: '04t...'
+  package_id_gatherer_placeholder: '04t...',
+  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
+  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
+  soql_doc_url:
+    'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
+  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
+  functions_doc_url:
+    'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja'
 };

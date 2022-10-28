@@ -3,16 +3,17 @@
 #
 # The following environment variables are required in the 'vscode-test' context
 # when running tests for Windows:
-#     SFDX_CI_DEVHUB_CLIENTID  -- connected app client ID for the dev hub
+#       SFDX_CI_DEVHUB_CLIENTID  -- connected app client ID for the dev hub
 #     SFDX_CI_DEVHUB_JWT_KEY   -- private key for the connected app (base64 encoded)
 #     SFDX_CI_DEVHUB_USERNAME  -- username of an authorized user of the dev hub
 #
 version: 2.1
 
 orbs:
-  win: circleci/windows@2.4.0
+  win: circleci/windows@4.1.0
   release-management: salesforce/npm-release-management@4
   slack: circleci/slack@3.4.2
+  github-cli: circleci/github-cli@2.1.0
 
 parameters:
   # Configurable Versions
@@ -24,7 +25,9 @@ parameters:
     default: '3.13.1'
   node-version:
     type: string
-    default: '12.4.0'
+    # node > 16.13 doesn't exist on legacy CircleCI image https://hub.docker.com/r/circleci/node/tags
+    # Need to migrate from legacy CircleCI image (W-11027467)
+    default: '16.13.0'
   # Constants
   cache-version:
     type: string
@@ -37,9 +40,6 @@ parameters:
     type: string
     default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
   # Workflow Triggers
-  create-release:
-    type: boolean
-    default: false
   publish:
     type: boolean
     default: false
@@ -135,7 +135,7 @@ commands:
   install:
     description: 'Installing dependencies'
     steps:
-      - run: npm install
+      - run: npm ci
       - run: npm --version
       - run: node --version
 
@@ -298,7 +298,9 @@ jobs:
 
   unit-tests:
     description: 'Run tests on Windows'
-    executor: win/default
+    executor:
+      name: win/default
+      size: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
@@ -331,21 +333,28 @@ jobs:
 
   soql-ui-tests:
     description: 'Run E2E SOQL UI Tests'
-    executor: win/default
+    executor:
+      name: win/default
+      size: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
       - NODE_VERSION: << pipeline.parameters.node-version >>
     steps:
       - build-win
+      - package-extensions
       - run:
           name: 'Run SOQL UI Tests if Needed'
           shell: bash.exe
-          command: npm run test:ui
+          command: |
+            set -e
+            npm run test:ui
 
   integration-tests:
     description: 'Run tests on Windows'
-    executor: win/default
+    executor:
+      name: win/default
+      size: xlarge
     environment:
       - SFDX_AUTOUPDATE_DISABLE: true
       - SFDX_DOMAIN_RETRY: << pipeline.parameters.domain-retry >>
@@ -379,7 +388,7 @@ jobs:
           command: |
             [xml]$results = Get-Content junit-aggregate.xml
             $failure = $results.SelectSingleNode("//failure")
-            if ($failure -ne $null) { 
+            if ($failure -ne $null) {
               Write-Host "Forcing build failure due to test failure(s) :'("
               $host.SetShouldExit(1)
             }
@@ -449,6 +458,11 @@ jobs:
             git tag v${RELEASE_VERSION}
             git push origin v${RELEASE_VERSION}
             git push origin main
+      - github-cli/setup
+      - run:
+          name: 'Create release on git tag'
+          command: |
+            gh release create v${RELEASE_VERSION} ./packages/**/*.vsix --title "Release v${RELEASE_VERSION}" --notes-file ./packages/salesforcedx-vscode/CHANGELOG.md
       - slack/notify:
           channel: 'pdt_releases'
           color: '#9bcd9b'
@@ -490,37 +504,6 @@ jobs:
                 sfchangecase close --location "https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
             fi
 
-  create-release-branch:
-    parameters:
-      e:
-        type: executor
-    executor: << parameters.e >>
-    steps:
-      - slack/notify:
-          channel: 'pdt_releases'
-          color: '#FFDEAD'
-          message: 'Starting creation of release branch for VSCode Extensions'
-      - ssh-config
-      - checkout
-      - restore_dependency_cache
-      - gh-config
-      - install
-      - run:
-          name: Install Lerna
-          command: sudo npm install -g lerna@<< pipeline.parameters.lerna-version >>
-      - run:
-          name: Create release branch
-          command: |
-            git branch
-            scripts/create-release-branch.js -r << pipeline.parameters.publish-type >>
-      - slack/notify:
-          channel: 'pdt_releases'
-          color: '#d8bfd8'
-          message: 'VSCode Extensions release branch has been cut'
-      - slack/status:
-          channel: 'pdt_releases'
-          fail_only: true
-
 workflows:
   version: 2.1
 
@@ -528,7 +511,6 @@ workflows:
   commit-workflow:
     when:
       and:
-        - not: << pipeline.parameters.create-release >>
         - not: << pipeline.parameters.publish >>
         - not: << pipeline.parameters.pre-publish >>
     jobs:
@@ -540,6 +522,8 @@ workflows:
     when: << pipeline.parameters.pre-publish >>
     jobs:
       - slack/approval-notification:
+          context:
+            - salesforce-ide
           message: Pending Approval for merge of release branch into main
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -547,7 +531,8 @@ workflows:
           type: approval
       - merge-release-branch:
           e: default-executor
-          context: pdt-publish-restricted-context
+          context:
+            - salesforce-ide
           requires:
             - hold
           filters:
@@ -559,6 +544,8 @@ workflows:
     when: << pipeline.parameters.publish >>
     jobs:
       - slack/approval-notification:
+          context:
+            - salesforce-ide
           message: Pending Approval for Publish
           channel: 'pdt_releases'
           color: '#0E1111'
@@ -570,7 +557,8 @@ workflows:
       - publish:
           e: default-executor
           context:
-            - pdt-publish-restricted-context
+            - salesforce-ide
+            - NPM_Salesforce-Releases
             - CLI_CTC
           requires:
             - build-all
@@ -581,25 +569,6 @@ workflows:
             branches:
               only:
                 - main
-
-  create-release-branch-workflow:
-    when: << pipeline.parameters.create-release >>
-    jobs:
-      - slack/approval-notification:
-          message: Pending Approval for Creation of Release Branch
-          channel: 'pdt_releases'
-          color: '#0E1111'
-      - hold: # Requires manual approval in Circle Ci
-          type: approval
-      - create-release-branch:
-          e: default-executor
-          context: pdt-publish-restricted-context
-          requires:
-            - hold
-          filters:
-            branches:
-              only:
-                - develop
 
   # run a build/test every mid-night
   scheduled-workflow:
@@ -616,15 +585,20 @@ workflows:
       - unit-tests
       - integration-tests
       - soql-ui-tests
-
-  cut-release:
-    triggers:
-      - schedule:
-          cron: '0 4 * * 2'
-          filters:
-            branches:
-              only:
-                - develop
-    jobs:
-      - create-release-branch:
-          e: default-executor
+  # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
+  # dependabot-automerge:
+  #   triggers:
+  #     - schedule:
+  #         # Every hour after regular working hours (8pm-4am) specified in UTC
+  #         # on Thu to Fri, giving time before and after release cutoff for changes to get tested
+  #         # Ref: https://circleci.com/docs/2.0/workflows/#scheduling-a-workflow
+  #         cron: '0 4,6,8,10,12 * * 4,5'
+  #         filters:
+  #           branches:
+  #             only:
+  #               - develop
+  #   jobs:
+  #     # Merges 1 mergeable PR created by dependabot containing minor, patch updates
+  #     # Requires "repository" property in package.json to be a string of 'owner/repo'
+  #     - release-management/dependabot-automerge:
+  #         merge-method: squash

@@ -5,11 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { ForceSourceDeployErrorResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
 import { DiagnosticCollection, languages, Uri } from 'vscode';
-import { getRange, handleDiagnosticErrors } from '../../../src/diagnostics';
+import {
+  getAbsoluteFilePath,
+  getFileUri,
+  getRange,
+  handleDiagnosticErrors
+} from '../../../src/diagnostics';
 
 describe('Diagnostics', () => {
   let deployErrorResult: ForceSourceDeployErrorResponse;
@@ -226,5 +231,38 @@ describe('Diagnostics', () => {
     expect(testDiagnostics[1].range).to.be.an('object');
     const testRange1 = getRange('1', '1');
     expect(testDiagnostics[1].range).to.deep.equal(testRange1);
+  });
+
+  it('Should not duplicate the workspace path when constructing the fileUri', () => {
+    const absoluteFilePath = `${workspacePath}/src/classes/Testing.cls`;
+    const fileUri = getFileUri(workspacePath, absoluteFilePath, '');
+    const regEx = new RegExp(workspacePath, 'g');
+    const count = (fileUri.match(regEx) || []).length;
+    expect(count).to.equal(1);
+  });
+
+  it('Should use the default error path as fileUri when N/A is returned as filePath', () => {
+    const defaultErrorPath = 'default/error/path';
+    const filePath = 'N/A';
+    const fileUri = getFileUri(workspacePath, filePath, defaultErrorPath);
+    expect(fileUri).to.equal(defaultErrorPath);
+  });
+
+  it('Should build the absolute file path when constructing the fileUri', () => {
+    const filePath = 'src/classes/Testing.cls';
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(workspacePath + '/' + filePath);
+  });
+
+  it('Should not duplicate the workspace path when filePath is already absolute', () => {
+    const filePath = `${workspacePath}/src/classes/Testing.cls`;
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(filePath);
+  });
+
+  it('Should use the workspace path as fileUri when filePath is undefined', () => {
+    const filePath = undefined;
+    const asoluteFilePath = getAbsoluteFilePath(filePath, workspacePath);
+    expect(asoluteFilePath).to.equal(workspacePath);
   });
 });

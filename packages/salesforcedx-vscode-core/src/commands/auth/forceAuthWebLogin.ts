@@ -8,13 +8,16 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
+import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
+import * as vscode from 'vscode';
 import { CancellationTokenSource } from 'vscode';
 import { channelService } from '../../channels/index';
+import { CLI } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode, isProdOrg } from '../../modes/demo-mode';
 import {
@@ -22,39 +25,142 @@ import {
   ProgressNotification
 } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
-import { getRootWorkspacePath, isSFDXContainerMode } from '../../util';
+import { telemetryService } from '../../telemetry';
+import { isSFDXContainerMode, workspaceUtils } from '../../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
+import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 import { ForceAuthLogoutAll } from './forceAuthLogout';
 
-import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
+export interface DeviceCodeResponse {
+  user_code: string;
+  device_code: string;
+  interval: number;
+  verification_uri: string;
+}
 
-export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
+export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
   AuthParams
 > {
-  protected showChannelOutput = isSFDXContainerMode();
+  protected showChannelOutput = false;
+  protected deviceCodeReceived = false;
+  protected stdOut = '';
 
   public build(data: AuthParams): Command {
     const command = new SfdxCommandBuilder().withDescription(
       nls.localize('force_auth_web_login_authorize_org_text')
     );
-    if (isSFDXContainerMode()) {
-      command
-        .withArg('force:auth:device:login')
-        .withLogName('force_auth_device_login');
-    } else {
-      command
-        .withArg('force:auth:web:login')
-        .withLogName('force_auth_web_login');
-    }
+
     command
+      .withArg(CLI.AUTH_DEVICE_LOGIN)
+      .withLogName('force_auth_device_login')
+      .withFlag('--setalias', data.alias)
+      .withFlag('--instanceurl', data.loginUrl)
+      .withArg('--setdefaultusername')
+      .withJson();
+
+    return command.build();
+  }
+
+  public execute(response: ContinueResponse<AuthParams>): void {
+    const startTime = process.hrtime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: workspaceUtils.getRootWorkspacePath(),
+      env: { SFDX_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    channelService.streamCommandStartStop(execution);
+
+    execution.stdoutSubject.subscribe(cliResponse => {
+      const responseStr = cliResponse.toString();
+      this.handleCliResponse(responseStr);
+    });
+
+    execution.processExitSubject.subscribe(() => {
+      this.logMetric(execution.command.logName, startTime);
+    });
+
+    notificationService.reportCommandExecutionStatus(
+      execution,
+      cancellationToken
+    );
+
+    ProgressNotification.show(execution, cancellationTokenSource);
+    taskViewService.addCommandExecution(execution, cancellationTokenSource);
+  }
+
+  protected handleCliResponse(response: string) {
+    // response may not be complete data, so we accumulate data as it comes in.
+    this.stdOut += response;
+
+    if (!this.deviceCodeReceived) {
+      const authUrl = this.parseAuthUrlFromStdOut(this.stdOut);
+
+      if (authUrl) {
+        this.deviceCodeReceived = true;
+        // open the default browser
+        vscode.env.openExternal(vscode.Uri.parse(authUrl, true));
+      }
+    }
+  }
+
+  private parseAuthUrlFromStdOut(stdOut: string): string | undefined {
+    let authUrl;
+    try {
+      const response = JSON.parse(stdOut) as DeviceCodeResponse;
+      const verificationUrl = response.verification_uri;
+      const userCode = response.user_code;
+
+      if (verificationUrl && userCode) {
+        authUrl = `${verificationUrl}?user_code=${userCode}&prompt=login`;
+        this.logToOutputChannel(userCode, verificationUrl);
+      }
+    } catch (error) {
+      channelService.appendLine(
+        nls.localize('force_auth_web_login_device_code_parse_error')
+      );
+      telemetryService.sendException(
+        'force_auth_web_container',
+        `There was an error when parsing the cli response ${error}`
+      );
+    }
+
+    return authUrl;
+  }
+
+  private logToOutputChannel(code: string, url: string) {
+    channelService.appendLine(`${EOL}`);
+    channelService.appendLine(nls.localize('action_required'));
+    channelService.appendLine(
+      nls.localize('force_auth_device_login_enter_code', code, url)
+    );
+    channelService.appendLine(`${EOL}`);
+  }
+}
+
+export class ForceAuthWebLoginExecutor extends SfdxCommandletExecutor<
+  AuthParams
+> {
+  protected showChannelOutput = false;
+
+  public build(data: AuthParams): Command {
+    const command = new SfdxCommandBuilder().withDescription(
+      nls.localize('force_auth_web_login_authorize_org_text')
+    );
+
+    command
+      .withArg(CLI.AUTH_WEB_LOGIN)
+      .withLogName('force_auth_web_login')
       .withFlag('--setalias', data.alias)
       .withFlag('--instanceurl', data.loginUrl)
       .withArg('--setdefaultusername');
+
     return command.build();
   }
 }
@@ -68,7 +174,7 @@ export abstract class ForceAuthDemoModeExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(() => {
@@ -106,7 +212,7 @@ export class ForceAuthWebLoginDemoModeExecutor extends ForceAuthDemoModeExecutor
   public build(data: AuthParams): Command {
     return new SfdxCommandBuilder()
       .withDescription(nls.localize('force_auth_web_login_authorize_org_text'))
-      .withArg('force:auth:web:login')
+      .withArg(CLI.AUTH_WEB_LOGIN)
       .withFlag('--setalias', data.alias)
       .withFlag('--instanceurl', data.loginUrl)
       .withArg('--setdefaultusername')
@@ -129,9 +235,14 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new AuthParamsGatherer();
 
 export function createAuthWebLoginExecutor(): SfdxCommandletExecutor<{}> {
-  return isDemoMode()
-    ? new ForceAuthWebLoginDemoModeExecutor()
-    : new ForceAuthWebLoginExecutor();
+  switch (true) {
+    case isSFDXContainerMode():
+      return new ForceAuthWebLoginContainerExecutor();
+    case isDemoMode():
+      return new ForceAuthWebLoginDemoModeExecutor();
+    default:
+      return new ForceAuthWebLoginExecutor();
+  }
 }
 
 export async function forceAuthWebLogin() {

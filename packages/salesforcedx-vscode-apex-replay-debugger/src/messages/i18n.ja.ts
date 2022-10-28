@@ -13,7 +13,7 @@
  * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
  * be localized
  *
- * If ommitted, we will assume _message.
+ * If omitted, we will assume _message.
  */
 export const messages = {
   config_name_text: 'Apex Replay Debugger を起動',
@@ -21,6 +21,8 @@ export const messages = {
     'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
   up_to_five_checkpoints:
     '最大 5 つのうち、%s つのチェックポイントを設定しています。5 つ以下になるようチェックポイントを削除または無効化してください。',
+  no_enabled_checkpoints:
+    'チェックポイントが 1 つも設定されていません。チェックポイントを設定し、再実行してください。',
   checkpoints_can_only_be_on_valid_apex_source:
     'チェックポイントApex ソースの有効な行に設定できます。無効なチェックポイントの位置 : URI=%s, 行=%s',
   local_source_is_out_of_sync_with_the_server:
@@ -62,5 +64,12 @@ export const messages = {
     '言語サーバからブレークポイントの行を取得しました。',
   language_client_not_ready:
     '言語サーバからブレークポイントの情報を取得できませんでした。言語サーバが起動していません。',
-  unable_to_retrieve_org_info: 'OrgInfo を取得できませんでした。'
+  unable_to_retrieve_org_info: 'OrgInfo を取得できませんでした。',
+  error_no_default_username:
+    'デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行し、デフォルトの組織を設定してください。',
+  debug_test_exec_name: 'テストをデバッグ',
+  debug_test_no_results_found: 'テスト結果が見つかりませんでした',
+  debug_test_no_debug_log:
+    'テスト結果に関連するデバッグログが見つかりませんでした',
+  channel_name: 'Apex Replay デバッガ'
 };

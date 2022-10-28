@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   FileProperties,
@@ -27,9 +28,9 @@ import {
   MetadataCacheService,
   PathType
 } from '../../../src/conflict/metadataCacheService';
+import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 import { stubRootWorkspace } from '../util/rootWorkspace.test-util';
 import sinon = require('sinon');
-import { SfdxPackageDirectories } from '../../../src/sfdxProject';
 
 describe('Metadata Cache', () => {
   describe('Metadata Cache Executor', () => {
@@ -92,6 +93,7 @@ describe('Metadata Cache', () => {
       pollStatusStub.callsFake(() => {});
       operationStub.resolves(mockOperation);
       processStub.resolves(undefined);
+      sinon.stub(ConfigUtil, 'getUserConfiguredApiVersion').resolves('55.0');
 
       await executor.run({ data: PROJECT_DIR, type: 'CONTINUE' });
 
@@ -322,16 +324,32 @@ describe('Metadata Cache', () => {
         name: 'CustomField'
       }
     };
-    const fileProperties = [{
-      fullName: 'HandlerCostCenter',
-      lastModifiedDate: 'Today',
-      type: 'ApexClass'
-    },
-    {
-      fullName: 'Account',
-      lastModifiedDate: 'Yesterday',
-      type: 'CustomObject'
-    }] as FileProperties[];
+    const fileProperties: FileProperties[] = [
+      {
+        fullName: 'HandlerCostCenter',
+        lastModifiedDate: 'Today',
+        type: 'ApexClass',
+        id: '1',
+        createdById: '2',
+        createdByName: 'Me',
+        createdDate: 'Today',
+        fileName: 'One.cls',
+        lastModifiedById: '3',
+        lastModifiedByName: 'You'
+      },
+      {
+        fullName: 'Account',
+        lastModifiedDate: 'Yesterday',
+        type: 'CustomObject',
+        id: '2',
+        createdById: '2',
+        createdByName: 'Me',
+        createdDate: 'Today',
+        fileName: 'Two.cls',
+        lastModifiedById: '3',
+        lastModifiedByName: 'You'
+      }
+    ];
 
     it('Should correlate results correctly', () => {
       const cacheResults = {
@@ -351,16 +369,18 @@ describe('Metadata Cache', () => {
       const components = MetadataCacheService.correlateResults(cacheResults);
 
       expect(components.length).to.equal(2);
-      expect(components).to.have.deep.members([{
-        cacheComponent: compOne,
-        projectComponent: compOne,
-        lastModifiedDate: 'Today'
-      },
-      {
-        cacheComponent: compTwo,
-        projectComponent: compTwo,
-        lastModifiedDate: 'Yesterday'
-      }]);
+      expect(components).to.have.deep.members([
+        {
+          cacheComponent: compOne,
+          projectComponent: compOne,
+          lastModifiedDate: 'Today'
+        },
+        {
+          cacheComponent: compTwo,
+          projectComponent: compTwo,
+          lastModifiedDate: 'Yesterday'
+        }
+      ]);
     });
 
     it('Should correlate results for just a child component', () => {
@@ -381,16 +401,18 @@ describe('Metadata Cache', () => {
       const components = MetadataCacheService.correlateResults(cacheResults);
 
       expect(components.length).to.equal(2);
-      expect(components).to.have.deep.members([{
-        cacheComponent: compOne,
-        projectComponent: compOne,
-        lastModifiedDate: 'Today'
-      },
-      {
-        cacheComponent: childComp,
-        projectComponent: childComp,
-        lastModifiedDate: 'Yesterday'
-      }]);
+      expect(components).to.have.deep.members([
+        {
+          cacheComponent: compOne,
+          projectComponent: compOne,
+          lastModifiedDate: 'Today'
+        },
+        {
+          cacheComponent: childComp,
+          projectComponent: childComp,
+          lastModifiedDate: 'Yesterday'
+        }
+      ]);
     });
   });
 });

@@ -6,13 +6,13 @@
  */
 
 import { AuthRemover } from '@salesforce/core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   Command,
+  notificationService,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { CancellationToken, Progress } from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
@@ -130,7 +130,7 @@ async function resolveDefaultUsername(): Promise<{
     try {
       isScratch = await OrgAuthInfo.isAScratchOrg(username);
     } catch (err) {
-      return { error: err, isScratch: false };
+      return { error: err as Error, isScratch: false };
     }
     return { username, isScratch, alias };
   }

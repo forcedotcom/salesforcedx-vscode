@@ -6,11 +6,11 @@
  */
 
 // tslint:disable:no-unused-expression
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub, spy, stub } from 'sinon';
+import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { APEX_GROUP_RANGE } from '../../../src/constants';
 import {
@@ -149,6 +149,9 @@ describe('TestView', () => {
           apexTestInfo[0].definingType + '.' + apexTestInfo[0].methodName;
         expect(testChild.name).to.deep.equal(fullName);
         expect(testChild.location).to.deep.equal(apexTestInfo[0].location);
+        expect(
+          testOutline.getTestClassName(apexTestInfo[0].location.uri)
+        ).to.equal(apexTestInfo[0].definingType);
       }
     });
 
@@ -178,8 +181,61 @@ describe('TestView', () => {
           expect(test1.location).to.deep.equal(testInfo1.location);
           expect(test2.location).to.deep.equal(testInfo2.location);
           i++;
+
+          expect(testOutline.getTestClassName(testInfo1.location.uri)).to.equal(
+            testInfo1.definingType
+          );
+          expect(testOutline.getTestClassName(testInfo2.location.uri)).to.equal(
+            testInfo2.definingType
+          );
         }
       }
+    });
+
+    it('Should index test classes', () => {
+      const pos = new vscode.Position(0, 0);
+      testOutline = new ApexTestOutlineProvider([
+        {
+          definingType: 'Test1',
+          methodName: 'validate1',
+          location: {
+            uri: vscode.Uri.file('/force-app/test/Test1.cls'),
+            range: new vscode.Range(pos, pos)
+          }
+        },
+        {
+          definingType: 'Test1',
+          methodName: 'validate2',
+          location: {
+            uri: vscode.Uri.file('/force-app/test/Test1.cls'),
+            range: new vscode.Range(pos, pos)
+          }
+        },
+        {
+          definingType: 'Test2',
+          methodName: 'verify',
+          location: {
+            uri: vscode.Uri.file('/force-app/test/Test2.cls'),
+            range: new vscode.Range(pos, pos)
+          }
+        }
+      ]);
+
+      expect(
+        testOutline.getTestClassName(
+          vscode.Uri.file('/force-app/test/Test1.cls')
+        )
+      ).to.equal('Test1');
+      expect(
+        testOutline.getTestClassName(
+          vscode.Uri.file('/force-app/test/Test2.cls')
+        )
+      ).to.equal('Test2');
+      expect(
+        testOutline.getTestClassName(
+          vscode.Uri.file('/force-app/test/Test3.cls')
+        )
+      ).to.be.undefined;
     });
   });
 

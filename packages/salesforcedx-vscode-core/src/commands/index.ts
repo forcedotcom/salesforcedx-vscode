@@ -19,15 +19,19 @@ export {
   forceAuthWebLogin,
   createAuthWebLoginExecutor,
   ForceAuthWebLoginDemoModeExecutor,
-  ForceAuthWebLoginExecutor
+  ForceAuthWebLoginExecutor,
+  ForceAuthWebLoginContainerExecutor,
+  DeviceCodeResponse
 } from './auth/forceAuthWebLogin';
 export {
   forceAuthDevHub,
   createAuthDevHubExecutor,
   ForceAuthDevHubDemoModeExecutor,
-  ForceAuthDevHubExecutor
+  ForceAuthDevHubExecutor,
+  ForceAuthDevHubContainerExecutor
 } from './auth/forceAuthDevHub';
 export { forceDataSoqlQuery } from './forceDataSoqlQuery';
+export { forceOpenDocumentation } from './forceOpenDocumentation';
 export {
   forceOrgCreate,
   AliasGatherer,
@@ -45,28 +49,19 @@ export {
   ForceSourceDeleteExecutor,
   ManifestChecker
 } from './forceSourceDelete';
+export { forceSourceDeployManifest } from './forceSourceDeployManifest';
 export {
-  forceSourceDeployManifest,
-  ForceSourceDeployManifestExecutor
-} from './forceSourceDeployManifest';
-export {
-  forceSourceDeployMultipleSourcePaths,
-  forceSourceDeploySourcePath,
-  ForceSourceDeploySourcePathExecutor,
+  forceSourceDeploySourcePaths,
   LibraryDeploySourcePathExecutor
 } from './forceSourceDeploySourcePath';
 export { forceSourcePull, ForceSourcePullExecutor } from './forceSourcePull';
 export { forceSourcePush, ForceSourcePushExecutor } from './forceSourcePush';
 export {
-  forceSourceRetrieveSourcePath,
-  ForceSourceRetrieveSourcePathExecutor,
+  forceSourceRetrieveSourcePaths,
   LibraryRetrieveSourcePathExecutor,
   SourcePathChecker
 } from './forceSourceRetrieveSourcePath';
-export {
-  forceSourceRetrieveManifest,
-  ForceSourceRetrieveManifestExecutor
-} from './forceSourceRetrieveManifest';
+export { forceSourceRetrieveManifest } from './forceSourceRetrieveManifest';
 export {
   forceSourceStatus,
   ForceSourceStatusExecutor,
@@ -155,12 +150,14 @@ export {
   forceSourceFolderDiff,
   handleCacheResults
 } from './forceSourceDiff';
+export { forceCreateManifest } from './forceCreateManifest';
 export { forceOrgList } from './forceOrgList';
 export { forceOrgDelete } from './forceOrgDelete';
 export { BaseDeployExecutor } from './baseDeployCommand';
 export { forceFunctionCreate } from './templates/forceFunctionCreate';
 export {
-  forceFunctionStart,
+  forceFunctionContainerStartCommand,
+  forceFunctionContainerlessStartCommand,
   forceFunctionStop,
   forceFunctionDebugInvoke,
   forceFunctionInvoke,
@@ -171,3 +168,4 @@ export {
   forceRefreshSObjects,
   initSObjectDefinitions
 } from './forceRefreshSObjects';
+export { forceRenameLightningComponent } from './forceRenameLightningComponent';

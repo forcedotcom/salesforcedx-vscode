@@ -7,7 +7,7 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
   EmptyParametersGatherer,
@@ -22,7 +22,7 @@ export class ForceConfigSetExecutor extends SfdxCommandletExecutor<{}> {
 
   public constructor(usernameOrAlias: string) {
     super();
-    this.usernameOrAlias = usernameOrAlias;
+    this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
   public build(data: {}): Command {

@@ -6,17 +6,23 @@
  */
 
 import { ConfigFile } from '@salesforce/core';
-import { testSetup } from '@salesforce/core/lib/testSetup';
+import {
+  instantiateContext,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import { ConfigSource } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox, SinonSpy, SinonStub } from 'sinon';
+import { SinonSandbox, SinonSpy, SinonStub } from 'sinon';
 import {
   createAuthDevHubExecutor,
+  ForceAuthDevHubContainerExecutor,
   ForceAuthDevHubDemoModeExecutor,
   ForceAuthDevHubExecutor
 } from '../../../../src/commands';
 import { DEFAULT_DEV_HUB_USERNAME_KEY } from '../../../../src/constants';
 import { nls } from '../../../../src/messages';
-import { ConfigSource, OrgAuthInfo } from '../../../../src/util';
+import { OrgAuthInfo } from '../../../../src/util';
 
 class TestForceAuthDevHubExecutor extends ForceAuthDevHubExecutor {
   public getShowChannelOutput() {
@@ -39,7 +45,7 @@ describe('Force Auth Web Login for Dev Hub', () => {
 });
 
 // Setup the test environment.
-const $$ = testSetup();
+const $$ = instantiateContext();
 
 describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecutor', () => {
   let getDefaultDevHubUsernameStub: SinonStub;
@@ -52,8 +58,9 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   let sb: SinonSandbox;
 
   beforeEach(() => {
+    stubContext($$);
     $$.SANDBOXES.CONFIG.restore();
-    sb = createSandbox();
+    sb = $$.SANDBOX;
     getDefaultDevHubUsernameStub = sb.stub(
       OrgAuthInfo,
       'getDefaultDevHubUsernameOrAlias'
@@ -68,8 +75,7 @@ describe('configureDefaultDevHubLocation on processExit of ForceAuthDevHubExecut
   });
 
   afterEach(() => {
-    $$.SANDBOX.restore();
-    sb.restore();
+    restoreContext($$);
   });
 
   it('Should set global dev hub if there is no global already, but a local has been defined', async () => {
@@ -161,35 +167,33 @@ describe('Force Auth Dev Hub is based on environment variables', () => {
     afterEach(() => {
       delete process.env.SFDX_CONTAINER_MODE;
     });
-    it('Should expose the output channel when in container mode', () => {
-      const notContainerMode = new TestForceAuthDevHubExecutor();
-      expect(notContainerMode.getShowChannelOutput()).to.be.false;
-      process.env.SFDX_CONTAINER_MODE = 'true';
-      const containerMode = new TestForceAuthDevHubExecutor();
-      expect(containerMode.getShowChannelOutput()).to.be.true;
-    });
-    it('Should use force:auth:web:login when container mode is not defined', () => {
-      const authWebLogin = new ForceAuthDevHubExecutor();
-      const authWebLoginCommand = authWebLogin.build({});
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setdefaultdevhubusername'
-      );
-    });
-    it('Should use force:auth:web:login when container mode is empty', () => {
-      process.env.SFDX_CONTAINER_MODE = '';
-      const authWebLogin = new ForceAuthDevHubExecutor();
-      const authWebLoginCommand = authWebLogin.build({});
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:web:login --setdefaultdevhubusername'
-      );
+
+    it('Should use ForceAuthDevHubExecutor when container mode is not defined', () => {
+      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+        .be.true;
     });
 
-    it('Should use force:auth:device:login when container mode is defined', () => {
-      process.env.SFDX_CONTAINER_MODE = 'pickles';
-      const authWebLogin = new ForceAuthDevHubExecutor();
-      const authWebLoginCommand = authWebLogin.build({});
-      expect(authWebLoginCommand.toCommand()).to.equal(
-        'sfdx force:auth:device:login --setdefaultdevhubusername'
+    it('Should use ForceAuthDevHubExecutor when container mode is empty', () => {
+      process.env.SFDX_CONTAINER_MODE = '';
+      expect(createAuthDevHubExecutor() instanceof ForceAuthDevHubExecutor).to
+        .be.true;
+    });
+
+    it('Should use ForceAuthDevHubContainerExecutor when container mode is defined', () => {
+      process.env.SFDX_CONTAINER_MODE = 'true';
+      expect(
+        createAuthDevHubExecutor() instanceof ForceAuthDevHubContainerExecutor
+      ).to.be.true;
+    });
+
+    it('should build the force:auth:device:login command', () => {
+      const authDevHubLogin = new ForceAuthDevHubContainerExecutor();
+      const authDevhubLoginCommand = authDevHubLogin.build({});
+      expect(authDevhubLoginCommand.toCommand()).to.equal(
+        `sfdx force:auth:device:login --setdefaultdevhubusername --json --loglevel fatal`
+      );
+      expect(authDevhubLoginCommand.description).to.equal(
+        nls.localize('force_auth_web_login_authorize_dev_hub_text')
       );
     });
   });

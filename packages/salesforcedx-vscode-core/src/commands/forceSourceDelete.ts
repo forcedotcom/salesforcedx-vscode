@@ -9,21 +9,21 @@ import * as path from 'path';
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { fileUtils } from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer,
   PreconditionChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
-
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace } from '../util';
+import { workspaceUtils } from '../util';
+import { SfdxCommandlet, SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export class ForceSourceDeleteExecutor extends SfdxCommandletExecutor<{
   filePath: string;
@@ -43,12 +43,12 @@ export class ManifestChecker implements PreconditionChecker {
   private explorerPath: string;
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = uri.fsPath;
+    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
   public check(): boolean {
-    if (hasRootWorkspace()) {
-      const workspaceRootPath = getRootWorkspacePath();
+    if (workspaceUtils.hasRootWorkspace()) {
+      const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
       const manifestPath = path.join(workspaceRootPath, 'manifest');
       const isManifestFile = this.explorerPath.includes(manifestPath);
       if (isManifestFile) {
@@ -70,7 +70,7 @@ export class ConfirmationAndSourcePathGatherer
   private readonly CANCEL = nls.localize('cancel_delete_source_button_text');
 
   public constructor(uri: vscode.Uri) {
-    this.explorerPath = uri.fsPath;
+    this.explorerPath = fileUtils.flushFilePath(uri.fsPath);
   }
 
   public async gather(): Promise<

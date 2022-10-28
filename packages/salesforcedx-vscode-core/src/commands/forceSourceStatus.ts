@@ -8,9 +8,11 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import {
+  CommandParams,
+  CommandVersion,
   EmptyParametersGatherer,
   FlagParameter,
   SfdxCommandlet,
@@ -23,27 +25,50 @@ export enum SourceStatusFlags {
   Remote = '--remote'
 }
 
+export const statusCommand: CommandParams = {
+  command: 'force:source:status',
+  description: {
+    default: 'force_source_status_text',
+    local: 'force_source_status_local_text',
+    remote: 'force_source_status_remote_text'
+  },
+  logName: {
+    default: 'force_source_status',
+    local: 'force_source_status_local',
+    remote: 'force_source_status_remote'
+  }
+};
+
+export const statusCommandLegacy: CommandParams = {
+  command: 'force:source:legacy:status',
+  description: { default: 'force_source_legacy_status_text' },
+  logName: { default: 'force_source_legacy_status' }
+};
+
 export class ForceSourceStatusExecutor extends SfdxCommandletExecutor<{}> {
   private flag: SourceStatusFlags | undefined;
 
-  public constructor(flag?: SourceStatusFlags) {
+  public constructor(
+    flag?: SourceStatusFlags,
+    public params: CommandParams = statusCommand
+  ) {
     super();
     this.flag = flag;
   }
 
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_status_text'))
-      .withArg('force:source:status')
-      .withLogName('force_source_status');
+      .withDescription(nls.localize(this.params.description.default))
+      .withArg(this.params.command)
+      .withLogName(this.params.logName.default);
     if (this.flag === SourceStatusFlags.Local) {
       builder.withArg(this.flag);
-      builder.withDescription(nls.localize('force_source_status_local_text'));
-      builder.withLogName('force_source_status_local');
+      builder.withDescription(nls.localize(this.params.description.local));
+      builder.withLogName(this.params.logName.local);
     } else if (this.flag === SourceStatusFlags.Remote) {
       builder.withArg(this.flag);
-      builder.withDescription(nls.localize('force_source_status_remote_text'));
-      builder.withLogName('force_source_status_remote');
+      builder.withDescription(nls.localize(this.params.description.remote));
+      builder.withLogName(this.params.logName.remote);
     }
     return builder.build();
   }
@@ -55,9 +80,12 @@ const parameterGatherer = new EmptyParametersGatherer();
 export async function forceSourceStatus(
   this: FlagParameter<SourceStatusFlags>
 ) {
-  // tslint:disable-next-line:no-invalid-this
-  const flag = this ? this.flag : undefined;
-  const executor = new ForceSourceStatusExecutor(flag);
+  const { flag, commandVersion } = this || {};
+  const command =
+    commandVersion === CommandVersion.Legacy
+      ? statusCommandLegacy
+      : statusCommand;
+  const executor = new ForceSourceStatusExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,
     parameterGatherer,

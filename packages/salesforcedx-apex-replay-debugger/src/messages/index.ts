@@ -12,7 +12,9 @@ import {
   DEFAULT_LOCALE,
   Localization,
   Message
-} from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
+} from '@salesforce/salesforcedx-utils';
+import { messages } from './i18n';
+import { messages as jaMessages } from './i18n.ja';
 
 function loadMessageBundle(config?: Config): Message {
   function resolveFileName(locale: string): string {
@@ -21,24 +23,18 @@ function loadMessageBundle(config?: Config): Message {
       : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
   }
 
-  const base = new Message(
-    require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-  );
+  const base = new Message(messages);
 
   if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-    try {
-      const layer = new Message(
-        require(`./${resolveFileName(config.locale)}`).messages,
-        base
-      );
+    if (config.locale === 'ja') {
+      const layer = new Message(jaMessages, base);
       return layer;
-    } catch (e) {
-      console.error(`Cannot find ${config.locale}, defaulting to en`);
-      return base;
     }
-  } else {
-    return base;
+
+    console.error(`Cannot find ${config.locale}, defaulting to en`);
   }
+
+  return base;
 }
 
 export const nls = new Localization(

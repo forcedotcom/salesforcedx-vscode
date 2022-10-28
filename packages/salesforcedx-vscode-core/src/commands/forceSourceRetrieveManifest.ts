@@ -7,8 +7,8 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'path';
 import * as vscode from 'vscode';
@@ -18,7 +18,7 @@ import { notificationService } from '../notifications';
 import { sfdxCoreSettings } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { RetrieveExecutor } from './baseDeployRetrieve';
 import {
   FilePathGatherer,
@@ -26,19 +26,6 @@ import {
   SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from './util';
-
-export class ForceSourceRetrieveManifestExecutor extends SfdxCommandletExecutor<
-  string
-> {
-  public build(manifestPath: string): Command {
-    return new SfdxCommandBuilder()
-      .withDescription(nls.localize('force_source_retrieve_text'))
-      .withArg('force:source:retrieve')
-      .withFlag('--manifest', manifestPath)
-      .withLogName('force_source_retrieve_with_manifest')
-      .build();
-  }
-}
 
 export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
   string
@@ -58,7 +45,7 @@ export class LibrarySourceRetrieveManifestExecutor extends RetrieveExecutor<
     return ComponentSet.fromManifest({
       manifestPath: response.data,
       resolveSourcePaths: packageDirs.map(relativeDir =>
-        join(getRootWorkspacePath(), relativeDir)
+        join(workspaceUtils.getRootWorkspacePath(), relativeDir)
       ),
       forceAddWildcards: true
     });
@@ -88,9 +75,7 @@ export async function forceSourceRetrieveManifest(explorerPath: vscode.Uri) {
   const commandlet = new SfdxCommandlet(
     new SfdxWorkspaceChecker(),
     new FilePathGatherer(explorerPath),
-    sfdxCoreSettings.getBetaDeployRetrieve()
-      ? new LibrarySourceRetrieveManifestExecutor()
-      : new ForceSourceRetrieveManifestExecutor()
+    new LibrarySourceRetrieveManifestExecutor()
   );
   await commandlet.run();
 }

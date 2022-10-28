@@ -10,6 +10,7 @@ export {
   BASE_FILE_NAME,
   Config,
   DEFAULT_LOCALE,
+  LOCALE_JA,
   Localization,
   Message,
   MessageBundle,

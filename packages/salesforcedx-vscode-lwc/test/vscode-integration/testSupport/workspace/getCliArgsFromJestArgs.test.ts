@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { expect } from 'chai';
-import { getCliArgsFromJestArgs } from '../../../../src/testSupport/workspace';
+import { workspace } from '../../../../src/testSupport/workspace';
 import { TestRunType } from '../../../../src/testSupport/testRunner/testRunner';
 import {
   mockPreviewJavaScriptDebugger,
@@ -28,28 +28,50 @@ describe('getCliArgsFromJestArgs Unit Tests', () => {
 
   it('Should return Cli args for run mode', () => {
     mockPreviewJavaScriptDebugger(true);
-    const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.RUN);
+    const cliArgs = workspace.getCliArgsFromJestArgs(
+      mockJestArgs,
+      TestRunType.RUN
+    );
     const expectedCliArgs = ['--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);
   });
 
   it('Should return Cli args for watch mode', () => {
     mockPreviewJavaScriptDebugger(true);
-    const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.WATCH);
+    const cliArgs = workspace.getCliArgsFromJestArgs(
+      mockJestArgs,
+      TestRunType.WATCH
+    );
     const expectedCliArgs = ['--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);
   });
 
   it('Should return Cli args for debug mode if not using preview JavaScript debugger', () => {
     mockPreviewJavaScriptDebugger(false);
-    const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
+    const cliArgs = workspace.getCliArgsFromJestArgs(
+      mockJestArgs,
+      TestRunType.DEBUG
+    );
     const expectedCliArgs = ['--debug', '--', ...mockJestArgs];
+    expect(cliArgs).to.eql(expectedCliArgs);
+  });
+
+  it('Should return Cli args for debug mode if preview JavaScript debugger setting is not available', () => {
+    mockPreviewJavaScriptDebugger(undefined);
+    const cliArgs = workspace.getCliArgsFromJestArgs(
+      mockJestArgs,
+      TestRunType.DEBUG
+    );
+    const expectedCliArgs = ['--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);
   });
 
   it('Should return Cli args for debug mode if using preview JavaScript debugger', () => {
     mockPreviewJavaScriptDebugger(true);
-    const cliArgs = getCliArgsFromJestArgs(mockJestArgs, TestRunType.DEBUG);
+    const cliArgs = workspace.getCliArgsFromJestArgs(
+      mockJestArgs,
+      TestRunType.DEBUG
+    );
     const expectedCliArgs = ['--', ...mockJestArgs];
     expect(cliArgs).to.eql(expectedCliArgs);
   });

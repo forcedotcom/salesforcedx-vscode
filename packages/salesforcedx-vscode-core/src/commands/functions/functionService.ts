@@ -4,11 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { TraceFlagsRemover } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { Disposable } from 'vscode';
-import { getRootWorkspace, getRootWorkspacePath } from '../../util';
+import { workspaceContext } from '../../context';
+import { nls } from '../../messages';
+import { workspaceUtils } from '../../util';
+
+/**
+ * An enum for the different types of functions.
+ */
+export enum functionType {
+  JAVASCRIPT = 'javascript',
+  TYPESCRIPT = 'typescript',
+  JAVA = 'java'
+}
 
 /**
  * A running task that can be terminated
@@ -41,6 +53,10 @@ export interface FunctionExecution extends Terminable {
    * Active debug session attached
    */
   debugSession?: vscode.DebugSession;
+  /**
+   * Flag to determine whether running in a container
+   */
+  isContainerLess: boolean;
 }
 
 export class FunctionService {
@@ -51,6 +67,8 @@ export class FunctionService {
     }
     return FunctionService._instance;
   }
+
+  private constructor() {}
 
   /**
    * Locate the directory that has project.toml.
@@ -64,7 +82,7 @@ export class FunctionService {
       ? sourceFsPath
       : path.dirname(sourceFsPath);
     const { root } = path.parse(sourceFsPath);
-    const rootWorkspacePath = getRootWorkspacePath();
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     while (current !== rootWorkspacePath && current !== root) {
       const tomlPath = path.join(current, 'project.toml');
       if (fs.existsSync(tomlPath)) {
@@ -94,7 +112,11 @@ export class FunctionService {
     };
   }
 
-  public updateFunction(rootDir: string, debugType: string): void {
+  public updateFunction(
+    rootDir: string,
+    debugType: string,
+    isContainerLess: boolean
+  ): void {
     const functionExecution = this.getStartedFunction(rootDir);
     if (functionExecution) {
       const type = debugType.toLowerCase();
@@ -103,6 +125,8 @@ export class FunctionService {
       } else if (type.startsWith('java') || type.startsWith('jvm')) {
         functionExecution.debugType = 'java';
       }
+
+      functionExecution.isContainerLess = isContainerLess;
     }
   }
 
@@ -118,10 +142,29 @@ export class FunctionService {
   public getFunctionLanguage() {
     const functionIterator = this.startedExecutions.values();
     if (functionIterator) {
-      const firstFoundLanguage = functionIterator.next().value?.debugType;
-      return firstFoundLanguage;
+      return functionIterator.next().value?.debugType;
     }
     return undefined;
+  }
+
+  /**
+   * Get the type of function that is current running.
+   * @returns FunctionType
+   */
+  public getFunctionType(): functionType {
+    if (this.startedExecutions.size > 0) {
+      const [rootDir] = this.startedExecutions.keys();
+
+      if (fs.existsSync(`${rootDir}/tsconfig.json`)) {
+        return functionType.TYPESCRIPT;
+      } else if (fs.existsSync(`${rootDir}/package.json`)) {
+        return functionType.JAVASCRIPT;
+      }
+
+      return functionType.JAVA;
+    }
+
+    throw new Error(nls.localize('error_function_type'));
   }
 
   /**
@@ -147,27 +190,53 @@ export class FunctionService {
    */
   public async debugFunction(rootDir: string) {
     const functionExecution = this.getStartedFunction(rootDir);
-    if (functionExecution) {
-      const { debugPort, debugType } = functionExecution;
-      const debugConfiguration: vscode.DebugConfiguration = {
-        type: debugType,
-        request: 'attach',
-        name: 'Debug Invoke', // This name doesn't surface in UI
-        resolveSourceMapLocations: ['**', '!**/node_modules/**'],
-        console: 'integratedTerminal',
-        internalConsoleOptions: 'openOnSessionStart',
-        localRoot: rootDir,
-        remoteRoot: '/workspace',
-        hostName: '127.0.0.1',
-        port: debugPort
-      };
-      if (!functionExecution.debugSession) {
-        await vscode.debug.startDebugging(
-          getRootWorkspace(),
-          debugConfiguration
-        );
-      }
+    if (!functionExecution) {
+      throw new Error(
+        nls
+          .localize('error_unable_to_get_started_function')
+          .replace('{0}', rootDir)
+      );
     }
+
+    if (!functionExecution.debugSession) {
+      const debugConfiguration = this.getDebugConfiguration(
+        functionExecution,
+        rootDir
+      );
+
+      await vscode.debug.startDebugging(
+        workspaceUtils.getRootWorkspace(),
+        debugConfiguration
+      );
+    }
+  }
+
+  /***
+   * Create a DebugConfiguration object
+   */
+  public getDebugConfiguration(
+    functionExecution: FunctionExecution,
+    rootDir: string
+  ): vscode.DebugConfiguration {
+    const { debugPort, debugType } = functionExecution;
+    const debugConfiguration: vscode.DebugConfiguration = {
+      type: debugType,
+      request: 'attach',
+      name: 'Debug Invoke', // This name doesn't surface in UI
+      resolveSourceMapLocations: ['**', '!**/node_modules/**'],
+      console: 'integratedTerminal',
+      internalConsoleOptions: 'openOnSessionStart',
+      localRoot: rootDir,
+      remoteRoot: '/workspace',
+      hostName: '127.0.0.1',
+      port: debugPort
+    };
+
+    if (functionExecution.isContainerLess) {
+      delete debugConfiguration.remoteRoot;
+    }
+
+    return debugConfiguration;
   }
 
   /**
@@ -184,10 +253,10 @@ export class FunctionService {
 
   /**
    * Register listeners for debug session start/stop events and keep track of active debug sessions
-   * @param context extension context
+   * @param extensionContext extension context
    */
   public handleDidStartTerminateDebugSessions(
-    context: vscode.ExtensionContext
+    extensionContext: vscode.ExtensionContext
   ) {
     const handleDidStartDebugSession = vscode.debug.onDidStartDebugSession(
       session => {
@@ -207,9 +276,16 @@ export class FunctionService {
         if (functionExecution) {
           functionExecution.debugSession = undefined;
         }
+
+        (async () => {
+          const connection = await workspaceContext.getConnection();
+          await TraceFlagsRemover.getInstance(connection).removeNewTraceFlags();
+        })().catch(err => {
+          throw err;
+        });
       }
     );
-    context.subscriptions.push(
+    extensionContext.subscriptions.push(
       handleDidStartDebugSession,
       handleDidTerminateDebugSession
     );

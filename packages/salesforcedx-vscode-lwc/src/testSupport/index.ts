@@ -29,15 +29,15 @@ export function shouldActivateLwcTestSupport(
 }
 
 export function activateLwcTestSupport(
-  context: ExtensionContext,
+  extensionContext: ExtensionContext,
   workspaceType: lspCommon.WorkspaceType
 ) {
-  workspaceService.register(context, workspaceType);
-  registerCommands(context);
-  registerLwcTestCodeLensProvider(context);
-  registerLwcTestExplorerTreeView(context);
-  startWatchingEditorFocusChange(context);
-  taskService.registerTaskService(context);
-  testResultsWatcher.register(context);
-  lwcTestIndexer.register(context);
+  workspaceService.register(extensionContext, workspaceType);
+  registerCommands(extensionContext);
+  registerLwcTestCodeLensProvider(extensionContext);
+  registerLwcTestExplorerTreeView(extensionContext);
+  startWatchingEditorFocusChange(extensionContext);
+  taskService.registerTaskService(extensionContext);
+  testResultsWatcher.register(extensionContext);
+  lwcTestIndexer.register(extensionContext);
 }

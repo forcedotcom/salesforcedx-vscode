@@ -1,6 +1,4 @@
 ---
-
----
 title: SOQL Builder
 lang: en
 ---
@@ -19,9 +17,10 @@ Use SOQL Builder to build simple query statements that include:
 
   To dig deeper regarding SOQL syntax or to build more complex queries in the text editor, see the [SOQL and SOSL Reference guide](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_sosl_intro.htm).
   
-**Note**
-- You can run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
-- WHERE clauses can be quite complex. SOQL Builder supports simple WHERE expressions. You can combine conditions using AND or OR, but not both.
+  
+> **_NOTE:_** 
+> - You can run complex queries in SOQL Builder even if you see the Unsupported Syntax informational message.
+> - WHERE clauses can be quite complex. SOQL Builder supports simple WHERE expressions. You can combine conditions using AND or OR, but not both.
 
 
 ### Set Up
@@ -83,6 +82,7 @@ Because COUNT() is an aggregate function, all other selected fields are removed.
 - SOQL Builder currently supports interactively building simple queries. However, you can still open a more complex `.soql` file and run the query from within SOQL Builder, but you must use a text editor to update it.
 - When selecting fields, you can select (click) only one at a time.
 - Every time you click Run Query, a SOQL Query Results tab appears. There’s no way to associate the results with the specific query statements. The SOQL Builder editor reflects your most-recent updates.
+- You can retrieve a maximum of 2000 records in a single SOQL query.
 
 **Next:**
 

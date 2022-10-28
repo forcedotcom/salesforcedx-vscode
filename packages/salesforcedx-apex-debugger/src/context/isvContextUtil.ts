@@ -6,15 +6,13 @@
  */
 
 import {
-  ForceConfigGet,
-  GlobalCliEnvironment
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
   ENV_SFDX_DEFAULTUSERNAME,
   ENV_SFDX_INSTANCE_URL,
+  ForceConfigGet,
+  GlobalCliEnvironment,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils';
 
 export class IsvContextUtil {
   public async setIsvDebuggerContext(projectWorkspacePath: string) {
