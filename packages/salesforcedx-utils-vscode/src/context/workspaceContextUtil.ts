@@ -12,10 +12,6 @@ import { AuthUtil, ConfigAggregatorProvider } from '..';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
-
-const SFDX_FOLDER = projectPaths.relativeStateFolder();
-const SFDX_CONFIG_FILE = projectPaths.sfdxProjectConfig();
-
 export interface OrgUserInfo {
   username?: string;
   alias?: string;
@@ -41,11 +37,7 @@ export class WorkspaceContextUtil {
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(
-      workspaceUtils.getRootWorkspacePath(),
-      SFDX_FOLDER,
-      SFDX_CONFIG_FILE
-    );
+    const cliConfigPath = join(projectPaths.sfdxProjectConfig());
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
       cliConfigPath
     );

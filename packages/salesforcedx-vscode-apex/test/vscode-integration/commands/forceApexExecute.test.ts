@@ -184,9 +184,7 @@ describe('Force Apex Execute', () => {
       debugLogsfolder = sb.stub(
         projectPaths,
         'debugLogsFolder'
-      ).get(() => {
-        return '.sfdx/tools/debug/logs';
-      });
+      ).returns('.sfdx/tools/debug/logs');
     });
 
     it('should format result correctly for a successful execution', async () => {
