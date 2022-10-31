@@ -330,7 +330,7 @@
         },
         {
           "command": "sfdx.create.manifest",
-          "when": "sfdx:project_opened && resourceFilename in ext.supportedFolders"
+          "when": "sfdx:project_opened && resourceFilename in ext.supportedPackages"
         },
         {
           "command": "sfdx.lightning.rename",
