@@ -9,45 +9,34 @@ import { ConfigUtil, projectPaths } from '@salesforce/salesforcedx-utils-vscode'
 // import * as fs from 'fs';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 
 const CONFIG_FILE = projectPaths.sfdxProjectConfig();
 
 let statusBarItem: StatusBarItem;
 
-export function showOrg() {
+export async function showOrg() {
   if (!statusBarItem) {
     statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
     statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
     statusBarItem.command = 'sfdx.force.org.open';
     statusBarItem.show();
   }
-  displayDefaultUserName();
+  await displayDefaultUserName();
 }
 
-export function monitorOrgConfigChanges() {
+export async function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  watcher.onDidChange(uri => {
-    displayDefaultUserName();
+  await watcher.onDidChange(uri => {
+    displayDefaultUserName().catch(err => console.error(err));
   });
-  watcher.onDidCreate(uri => {
-    displayDefaultUserName();
+  await watcher.onDidCreate(uri => {
+    displayDefaultUserName().catch(err => console.error(err));
   });
 }
 
 async function displayDefaultUserName() {
-  try {
-    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
-    if (defaultUsernameOrAlias) {
-      statusBarItem.text = `$(browser)`;
-    }
-  } catch (err) {
-    console.error(err);
-    if (err instanceof Error) {
-      telemetryService.sendException(
-        'get_default_username_alias',
-        err.message
-      );
-    }
+  const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+  if (defaultUsernameOrAlias) {
+    statusBarItem.text = `$(browser)`;
   }
 }
