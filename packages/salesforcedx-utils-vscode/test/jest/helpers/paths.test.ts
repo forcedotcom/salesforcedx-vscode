@@ -13,7 +13,6 @@ jest.mock('@salesforce/core', () => {
 describe('test project paths', () => {
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_STATE_FOLDER = '.sfdx';
-  const FAKE_TOOLS_FOLDER = 'tools';
 
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
@@ -79,7 +78,7 @@ describe('test project paths', () => {
 
     it('should return a path to the relative tools folder', () => {
       const relativeToolsFolder = projectPaths.relativeToolsFolder();
-      expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, FAKE_TOOLS_FOLDER));
+      expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, projectPaths.TOOLS));
     });
   });
 });

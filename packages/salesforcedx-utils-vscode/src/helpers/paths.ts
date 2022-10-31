@@ -162,5 +162,6 @@ export const projectPaths = {
   toolsFolder,
   lwcTestResultsFolder,
   relativeStateFolder,
-  relativeToolsFolder
+  relativeToolsFolder,
+  TOOLS
 };
