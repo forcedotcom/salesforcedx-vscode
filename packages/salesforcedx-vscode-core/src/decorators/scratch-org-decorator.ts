@@ -9,6 +9,7 @@ import { ConfigUtil, projectPaths } from '@salesforce/salesforcedx-utils-vscode'
 // import * as fs from 'fs';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 
 const CONFIG_FILE = projectPaths.sfdxProjectConfig();
 
@@ -34,10 +35,19 @@ export function monitorOrgConfigChanges() {
   });
 }
 
-function displayDefaultUserName() {
-  ConfigUtil.getDefaultUsernameOrAlias().then(data => {
-  if (data) {
-    statusBarItem.text = `$(browser)`;
+async function displayDefaultUserName() {
+  try {
+    const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
+    if (defaultUsernameOrAlias) {
+      statusBarItem.text = `$(browser)`;
+    }
+  } catch (err) {
+    console.error(err);
+    if (err instanceof Error) {
+      telemetryService.sendException(
+        'get_default_username_alias',
+        err.message
+      );
+    }
   }
-  });
 }
