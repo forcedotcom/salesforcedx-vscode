@@ -8,6 +8,9 @@ import {
   ConfigUtil,
   SFDX_CORE_CONFIGURATION_NAME
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as readdirp from 'readdirp';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -105,6 +108,7 @@ import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
 import { isSfdxProjectOpened } from './predicates';
 import { registerPushOrDeployOnSave, sfdxCoreSettings } from './settings';
+import { SfdxPackageDirectories } from './sfdxProject';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
@@ -553,6 +557,46 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
 
+const getFileList = (dirName: string) => {
+  const folders: any[] = [];
+  const items = fs.readdirSync(dirName, { withFileTypes: true });
+
+  for (const item of items) {
+    if (item.isDirectory()) {
+      const b = path.join(dirName, item.name);
+      folders.push(b);
+      // folders = [...folders, ...getFileList(`${dirName}/${item.name}`)];
+      const c = getFileList(b);
+      folders.push(c);
+      // folders = [...folders, ...getFileList(b)];
+    } else {
+      // files.push(`${dirName}/${item.name}`);
+    }
+  }
+
+  return folders;
+};
+
+// function crawl(dir: string) {
+//   console.log('[+]', dir);
+//   const files: string[] = fs.readdirSync(dir);
+//   for (const x of files) {
+//     const next = path.join(dir, files[x]);
+//     //console.log(next);
+//     if (fs.lstatSync(next).isDirectory() == true) {
+//       crawl(next);
+//     } else {
+//       console.log('\t', next);
+//     }
+//   }
+// }
+
+const getDirectories = (source: any) =>
+  fs
+    .readdirSync(source, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
+
 async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext
 ): Promise<void> {
@@ -589,16 +633,167 @@ async function setupOrgBrowser(
   vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
 }
 
+/**
+ * Explores recursively a directory and returns all the filepaths and folderpaths in the callback.
+ *
+ * @see http://stackoverflow.com/a/5827895/4241030
+ * @param {String} dir
+ * @param {Function} done
+ */
+function filewalker(
+  dir: string,
+  done: {
+    (err: any, res: any): void;
+    (arg0: NodeJS.ErrnoException | null, arg1: any[] | undefined): void;
+  }
+) {
+  let results: any[] = [];
+
+  // tslint:disable-next-line:only-arrow-functions
+  fs.readdir(dir, function(err, list) {
+    if (err) return done(err, list);
+
+    let pending = list.length;
+
+    if (!pending) return done(null, results);
+
+    // tslint:disable-next-line:only-arrow-functions
+    list.forEach(function(file) {
+      file = path.resolve(dir, file);
+
+      // tslint:disable-next-line:only-arrow-functions
+      fs.stat(file, function(err2, stat) {
+        // If directory, execute a recursive call
+        if (stat && stat.isDirectory()) {
+          // Add directory to array [comment if you need to remove the directories from the array]
+          results.push(file);
+
+          // tslint:disable-next-line:only-arrow-functions
+          // tslint:disable-next-line:no-shadowed-variable
+          // tslint:disable-next-line:only-arrow-functions
+          filewalker(file, function(err3, res) {
+            results = results.concat(res);
+            if (!--pending) done(null, results);
+          });
+        } else {
+          results.push(file);
+
+          if (!--pending) done(null, results);
+        }
+      });
+    });
+  });
+}
+
 export async function activate(extensionContext: vscode.ExtensionContext) {
+  const folders: string[] = [];
+  const pathsToDoRecursively: string[] = [];
+  const getFilesRecursively = (directory: string) => {
+    const filesInDirectory = fs.readdirSync(directory);
+    for (const file of filesInDirectory) {
+      const absolute = path.join(directory, file);
+      if (fs.statSync(absolute).isDirectory()) {
+        folders.push(absolute);
+        pathsToDoRecursively.push(absolute);
+      } else {
+        folders.push(absolute);
+      }
+    }
+    if (pathsToDoRecursively.length > 0) {
+      pathsToDoRecursively.forEach(() => getFilesRecursively);
+    }
+    folders.push(directory);
+  };
+
   // Set the value of ext.supportedPackages by reading the packages that are
   // in the sfdx config file.  This property is used by the
   // Generate Manifest File command, which should be available for all
   // folders listed as packages in the sfdx config file
+  // const projectDirectories = ConfigUtil.getProjectPackageNames();
   const projectDirectories = ConfigUtil.getProjectPackageNames();
+  const projectDirNames = ConfigUtil.getProjectPackageNames2();
+  const p2 = await SfdxPackageDirectories.getPackageDirectoryPaths();
+  projectDirectories.forEach(dir => {
+    getFilesRecursively(dir.fullPath);
+    const f = getFileList(dir.fullPath);
+    folders.push(
+      '/Users/kenneth.lewis/Documents/dev/ebikes-lwc/force-app/main/default'
+    );
+
+    folders.push(
+      '/Users/kenneth.lewis/Documents/dev/ebikes-lwc/force-app/main/default/classes'
+    );
+    folders.push('/Users/kenneth.lewis/Documents/dev/ebikes-lwc/force-app');
+    // files.push(dir.fullPath);
+
+    // fs.readdirSync(dir, { withFileTypes: true })
+    //   // .filter(item => item.isDirectory())
+    //   .map(item => {
+    //     console.log('test');
+
+    //     const p = path.join(projectDirectories[0], item.name);
+    //     // projectDirectories.push(p);
+    //     projectDirectories.push(item.name);
+    //     return p;
+    //   });
+  });
+
+  const a = [];
+  projectDirectories.forEach(dir => {
+    const r = getDirectories(dir.fullPath);
+    a.push(r);
+  });
+  console.log('built');
+
+  // tslint:disable-next-line:only-arrow-functions
+  const g = filewalker(projectDirectories[0].fullPath, function(err, data) {
+    if (err) {
+      throw err;
+    }
+
+    // ["c://some-existent-path/file.txt","c:/some-existent-path/subfolder"]
+    console.log(data);
+  });
+  let fAll: any[] = [];
+  const b = projectDirectories[0].fullPath;
+  const files = await readdirp.promise(b, { type: 'directories' });
+  for (const dir of projectDirectories) {
+    const d = projectDirectories[0].fullPath;
+    const f3 = await readdirp.promise(d, { type: 'directories' });
+    fAll.push(f3);
+  }
+  projectDirectories.forEach(async dir => {
+    const filesF = await readdirp.promise(dir.fullPath, {
+      type: 'directories'
+    });
+    // fAll.concat(filesF);
+    fAll = [...fAll, ...filesF];
+  });
+  const fp = files.map((file: any) => file.fullPath);
+  const fp2 = fAll[0].map((file: any) => file.fullPath);
+  projectDirectories.forEach(async dir => {
+    fp2.push(dir.fullPath.substring(0, dir.fullPath.length - 1));
+  });
+  console.log(files.map((file: any) => file.path));
+
   vscode.commands.executeCommand(
     'setContext',
     'ext.supportedPackages',
-    projectDirectories
+    // projectDirectories
+    // folders
+    // fp
+    // fAll
+    fp2
+  );
+
+  vscode.commands.executeCommand(
+    'setContext',
+    'ext.supportedFolders',
+    // projectDirectories
+    // folders
+    // fp
+    // fAll
+    projectDirNames
   );
   const extensionHRStart = process.hrtime();
   const { name, aiKey, version } = extensionContext.extension.packageJSON;

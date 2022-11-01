@@ -8,6 +8,7 @@
 import {
   Config,
   ConfigAggregator,
+  NamedPackageDir,
   OrgConfigProperties,
   SfConfigProperties,
   SfProject,
@@ -15,7 +16,6 @@ import {
 } from '@salesforce/core';
 import { ConfigAggregatorProvider } from '../providers';
 import { workspaceUtils } from '../workspaces';
-
 export enum ConfigSource {
   Local,
   Global,
@@ -140,10 +140,22 @@ export class ConfigUtil {
   /**
    * @returns a list of the unique package names listed in the project configuration.
    */
-  public static getProjectPackageNames(): string[] {
+  public static getProjectPackageNames(): NamedPackageDir[] {
+    const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
+    const project = SfProject.getInstance(rootWorkspacePath);
+    const projectDirectories = project.getUniquePackageDirectories();
+    // todo: only return paths?
+    return projectDirectories;
+  }
+
+  /**
+   * @returns a list of the unique package names listed in the project configuration.
+   */
+  public static getProjectPackageNames2(): string[] {
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     const project = SfProject.getInstance(rootWorkspacePath);
     const projectDirectories = project.getUniquePackageNames();
+    // todo: only return paths?
     return projectDirectories;
   }
 }
