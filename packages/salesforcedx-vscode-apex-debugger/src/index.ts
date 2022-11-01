@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -19,11 +19,10 @@ import {
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger/out/src';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { setupGlobalDefaultUserIsvAuth } from './context';
+import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
 import { nls } from './messages';
 import { telemetryService } from './telemetry';
 
@@ -237,24 +236,6 @@ function notifyDebuggerSessionFileChanged(): void {
   }
 }
 
-function registerIsvAuthWatcher(extensionContext: vscode.ExtensionContext) {
-  if (
-    vscode.workspace.workspaceFolders instanceof Array &&
-    vscode.workspace.workspaceFolders.length > 0
-  ) {
-    const configPath = path.join(
-      vscode.workspace.workspaceFolders[0].uri.fsPath,
-      '.sfdx',
-      'sfdx-config.json'
-    );
-    const isvAuthWatcher = vscode.workspace.createFileSystemWatcher(configPath);
-    isvAuthWatcher.onDidChange(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidCreate(uri => setupGlobalDefaultUserIsvAuth());
-    isvAuthWatcher.onDidDelete(uri => setupGlobalDefaultUserIsvAuth());
-    extensionContext.subscriptions.push(isvAuthWatcher);
-  }
-}
-
 export async function activate(extensionContext: vscode.ExtensionContext) {
   console.log('Apex Debugger Extension Activated');
   const extensionHRStart = process.hrtime();
@@ -276,7 +257,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
       // (VS Code does not seem to allow sharing npm modules between extensions)
       try {
         registerIsvAuthWatcher(extensionContext);
-        console.log('Configured file watcher for .sfdx/sfdx-config.json');
         await setupGlobalDefaultUserIsvAuth();
       } catch (e) {
         console.error(e);

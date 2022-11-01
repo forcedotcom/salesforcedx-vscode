@@ -102,11 +102,11 @@
     ja: Apex
   baseUrl: /apex/
   children:
-    -title:
+    - title:
         en: Overview
         ja: 概要
       url: /apex/apex-overview
-    -title:
+    - title:
         en: Apex Development Quick Start
         ja: 始めましょう
       url: /apex/apex-get-started

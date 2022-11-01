@@ -34,6 +34,7 @@ const getMockVSCode = () => {
       machineId: '12345534'
     },
     EventEmitter: EventEmitter,
+    ExtensionMode: { Production: 1, Development: 2, Test: 3 },
     Uri: {
       parse: jest.fn(),
       file: jest.fn()
@@ -62,7 +63,8 @@ const getMockVSCode = () => {
         };
       },
       onDidChangeConfiguration: jest.fn(),
-      createFileSystemWatcher: jest.fn()
+      createFileSystemWatcher: jest.fn(),
+      workspaceFolders: []
     }
   };
 };

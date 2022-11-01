@@ -342,6 +342,7 @@ jobs:
       - NODE_VERSION: << pipeline.parameters.node-version >>
     steps:
       - build-win
+      - package-extensions
       - run:
           name: 'Run SOQL UI Tests if Needed'
           shell: bash.exe
@@ -584,7 +585,6 @@ workflows:
       - unit-tests
       - integration-tests
       - soql-ui-tests
-
   # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
   # dependabot-automerge:
   #   triggers:

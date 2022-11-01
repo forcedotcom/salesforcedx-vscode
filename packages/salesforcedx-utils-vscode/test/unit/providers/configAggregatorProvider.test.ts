@@ -66,8 +66,8 @@ describe('ConfigAggregatorProvider', () => {
       // createConfigAggregator should change the process to the
       // root project workspace path to create the ConfigAggregator,
       // then change back to the original directory.
-      expect(changeCurrentDirectoryToStub.callCount).to.equal(2);
-      expect(changeCurrentDirectoryToStub.getCall(1).args[0]).to.equal(
+      expect(changeCurrentDirectoryToStub.callCount).to.equal(1);
+      expect(changeCurrentDirectoryToStub.getCall(0).args[0]).to.equal(
         ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE
       );
       expect(configAggregatorCreateStub.callCount).to.equal(1);
