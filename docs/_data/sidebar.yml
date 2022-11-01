@@ -127,18 +127,18 @@
         ja: Apex のデバッグ
       url: /apex/apex-debugging
       children:
-    - title:
-        en: Replay Debugger
-        ja: Replay デバッガ
-      url: /apex/replay-debugger
-    - title:
-        en: Interactive Debugger
-        ja: 対話型デバッガ
-      url: /apex/interactive-debugger
-    - title:
-        en: ISV Debugger
-        ja: ISV デバッガ
-      url: /apex/isv-debugger
+        - title:
+            en: Replay Debugger
+            ja: Replay デバッガ
+          url: /apex/replay-debugger
+        - title:
+            en: Interactive Debugger
+            ja: 対話型デバッガ
+          url: /apex/interactive-debugger
+        - title:
+            en: ISV Debugger
+            ja: ISV デバッガ
+          url: /apex/isv-debugger
 - title:
     en: Aura
     ja: Aura

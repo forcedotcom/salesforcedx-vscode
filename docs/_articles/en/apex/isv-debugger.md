@@ -2,10 +2,7 @@
 title: ISV Customer Debugger
 lang: en
 ---
-
-ISV Customer Debugger covers a gap in what you can do with Apex Debugger. As an ISV, you can debug your own code. As a subscriber, you can debug your own code. However, because of the protections against seeing managed code, subscribers can’t debug ISV code in their orgs. With ISV Customer Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org.
-
-An ISV can reproduce issues in the specific environment, so problems can be diagnosed more quickly. You can debug only sandbox orgs.
+Use the ISV Customer debugger, also knowns as ISV debugger if you’re an ISV who needs to work with a subscriber to debug issues specific to the subscriber’s org. The ISV debugger lets an ISV reproduce issues in the subscriber’s environment in a sandbox org for convenient debugging. With the ISV Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org.
 
 ## Configure ISV Customer Debugger
 
