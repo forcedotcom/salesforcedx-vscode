@@ -54,6 +54,10 @@ export interface InstalledPackageInfo {
   versionNumber: string;
 }
 
+export const ISVDEBUGGER = 'isvdebuggermdapitmp';
+export const INSTALLED_PACKAGES = 'installed-packages';
+export const PACKAGE_XML = 'package.xml';
+
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
     projectPaths.relativeToolsFolder(),
