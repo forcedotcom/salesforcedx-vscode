@@ -557,46 +557,6 @@ function registerOrgPickerCommands(orgList: OrgList): vscode.Disposable {
   return vscode.Disposable.from(forceSetDefaultOrgCmd);
 }
 
-const getFileList = (dirName: string) => {
-  const folders: any[] = [];
-  const items = fs.readdirSync(dirName, { withFileTypes: true });
-
-  for (const item of items) {
-    if (item.isDirectory()) {
-      const b = path.join(dirName, item.name);
-      folders.push(b);
-      // folders = [...folders, ...getFileList(`${dirName}/${item.name}`)];
-      const c = getFileList(b);
-      folders.push(c);
-      // folders = [...folders, ...getFileList(b)];
-    } else {
-      // files.push(`${dirName}/${item.name}`);
-    }
-  }
-
-  return folders;
-};
-
-// function crawl(dir: string) {
-//   console.log('[+]', dir);
-//   const files: string[] = fs.readdirSync(dir);
-//   for (const x of files) {
-//     const next = path.join(dir, files[x]);
-//     //console.log(next);
-//     if (fs.lstatSync(next).isDirectory() == true) {
-//       crawl(next);
-//     } else {
-//       console.log('\t', next);
-//     }
-//   }
-// }
-
-const getDirectories = (source: any) =>
-  fs
-    .readdirSync(source, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
-
 async function setupOrgBrowser(
   extensionContext: vscode.ExtensionContext
 ): Promise<void> {
@@ -661,13 +621,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   const projectDirectories = ConfigUtil.getProjectPackageNames();
   const projectDirNames = ConfigUtil.getProjectPackageNames2();
 
-  const a = [];
-  projectDirectories.forEach(dir => {
-    const r = getDirectories(dir.fullPath);
-    a.push(r);
-  });
-  console.log('built');
-
   let fAll: any[] = [];
   const b = projectDirectories[0].fullPath;
   const files = await readdirp.promise(b, { type: 'directories' });
@@ -680,33 +633,20 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     const filesF = await readdirp.promise(dir.fullPath, {
       type: 'directories'
     });
-    // fAll.concat(filesF);
     fAll = [...fAll, ...filesF];
   });
-  const fp = files.map((file: any) => file.fullPath);
+  // const fp = files.map((file: any) => file.fullPath);
   const fp2 = fAll[0].map((file: any) => file.fullPath);
   projectDirectories.forEach(async dir => {
     fp2.push(dir.fullPath.substring(0, dir.fullPath.length - 1));
   });
   console.log(files.map((file: any) => file.path));
 
-  vscode.commands.executeCommand(
-    'setContext',
-    'ext.supportedPackages',
-    // projectDirectories
-    // folders
-    // fp
-    // fAll
-    fp2
-  );
+  vscode.commands.executeCommand('setContext', 'ext.supportedPackages', fp2);
 
   vscode.commands.executeCommand(
     'setContext',
     'ext.supportedFolders',
-    // projectDirectories
-    // folders
-    // fp
-    // fAll
     projectDirNames
   );
   const extensionHRStart = process.hrtime();
