@@ -9,9 +9,7 @@ Complete this Quick Start to create, test and debug a workflow that is created u
 We’ll create a custom object called `Book`, and add a custom field called `Price` to that custom object. We’ll update and test the updated Price field using Apex and learn how to work with Apex Code using the Salesforce Extensions.
 
 
-:::note
 Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-desktop/install.md) or [Set Up Code Builder](./en/../../codebuilder/cb-setup.md)
-:::
 
 
 ### Create a Custom Object
