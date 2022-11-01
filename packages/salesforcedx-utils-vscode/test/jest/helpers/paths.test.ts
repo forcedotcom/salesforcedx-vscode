@@ -1,4 +1,3 @@
-import * as os from 'os';
 import * as path from 'path';
 import { projectPaths, workspaceUtils } from '../../../src/';
 
@@ -13,16 +12,11 @@ jest.mock('@salesforce/core', () => {
 
 describe('test project paths', () => {
   const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
-  const FAKE_HOME_DIR = '/fake/home/dir/';
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_STATE_FOLDER = '.sfdx';
   const FAKE_CONFIG_FILE = 'sfdx-config.json';
   const FAKE_PATH = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
-  let homeDirStub: jest.SpyInstance;
 
-  beforeEach(() => {
-    homeDirStub = jest.spyOn(os, 'homedir').mockReturnValue(FAKE_HOME_DIR);
-  });
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
 
