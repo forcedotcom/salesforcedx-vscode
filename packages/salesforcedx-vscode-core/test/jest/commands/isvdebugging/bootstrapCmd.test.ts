@@ -3,7 +3,7 @@ import * as path from 'path';
 import { IsvDebugBootstrapExecutor, ISVDEBUGGER } from '../../../../src/commands/isvdebugging/bootstrapCmd';
 
 describe('isvdebugging unit test', () => {
-  
+
   const TOOLS_FOLDER = 'tools';
   let relativeToolsFolderStub: jest.SpyInstance;
 
@@ -18,9 +18,9 @@ describe('isvdebugging unit test', () => {
   it('should be defined', () => {
     expect(isvDebugBootstrapExecutorInst).toBeDefined();
   });
-  
+
   it('should test readonly relativeMetdataTempPath property', () => {
-    expect(isvDebugBootstrapExecutorInst.relativeMetdataTempPath).toEqual(path.join(TOOLS_FOLDER,ISVDEBUGGER));
+    expect(isvDebugBootstrapExecutorInst.relativeMetdataTempPath).toEqual(path.join(TOOLS_FOLDER, ISVDEBUGGER));
 
   });
 });
