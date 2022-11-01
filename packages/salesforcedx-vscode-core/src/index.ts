@@ -633,58 +633,6 @@ async function setupOrgBrowser(
   vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
 }
 
-/**
- * Explores recursively a directory and returns all the filepaths and folderpaths in the callback.
- *
- * @see http://stackoverflow.com/a/5827895/4241030
- * @param {String} dir
- * @param {Function} done
- */
-function filewalker(
-  dir: string,
-  done: {
-    (err: any, res: any): void;
-    (arg0: NodeJS.ErrnoException | null, arg1: any[] | undefined): void;
-  }
-) {
-  let results: any[] = [];
-
-  // tslint:disable-next-line:only-arrow-functions
-  fs.readdir(dir, function(err, list) {
-    if (err) return done(err, list);
-
-    let pending = list.length;
-
-    if (!pending) return done(null, results);
-
-    // tslint:disable-next-line:only-arrow-functions
-    list.forEach(function(file) {
-      file = path.resolve(dir, file);
-
-      // tslint:disable-next-line:only-arrow-functions
-      fs.stat(file, function(err2, stat) {
-        // If directory, execute a recursive call
-        if (stat && stat.isDirectory()) {
-          // Add directory to array [comment if you need to remove the directories from the array]
-          results.push(file);
-
-          // tslint:disable-next-line:only-arrow-functions
-          // tslint:disable-next-line:no-shadowed-variable
-          // tslint:disable-next-line:only-arrow-functions
-          filewalker(file, function(err3, res) {
-            results = results.concat(res);
-            if (!--pending) done(null, results);
-          });
-        } else {
-          results.push(file);
-
-          if (!--pending) done(null, results);
-        }
-      });
-    });
-  });
-}
-
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const folders: string[] = [];
   const pathsToDoRecursively: string[] = [];
@@ -712,31 +660,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // const projectDirectories = ConfigUtil.getProjectPackageNames();
   const projectDirectories = ConfigUtil.getProjectPackageNames();
   const projectDirNames = ConfigUtil.getProjectPackageNames2();
-  const p2 = await SfdxPackageDirectories.getPackageDirectoryPaths();
-  projectDirectories.forEach(dir => {
-    getFilesRecursively(dir.fullPath);
-    const f = getFileList(dir.fullPath);
-    folders.push(
-      '/Users/kenneth.lewis/Documents/dev/ebikes-lwc/force-app/main/default'
-    );
-
-    folders.push(
-      '/Users/kenneth.lewis/Documents/dev/ebikes-lwc/force-app/main/default/classes'
-    );
-    folders.push('/Users/kenneth.lewis/Documents/dev/ebikes-lwc/force-app');
-    // files.push(dir.fullPath);
-
-    // fs.readdirSync(dir, { withFileTypes: true })
-    //   // .filter(item => item.isDirectory())
-    //   .map(item => {
-    //     console.log('test');
-
-    //     const p = path.join(projectDirectories[0], item.name);
-    //     // projectDirectories.push(p);
-    //     projectDirectories.push(item.name);
-    //     return p;
-    //   });
-  });
 
   const a = [];
   projectDirectories.forEach(dir => {
@@ -745,15 +668,6 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   });
   console.log('built');
 
-  // tslint:disable-next-line:only-arrow-functions
-  const g = filewalker(projectDirectories[0].fullPath, function(err, data) {
-    if (err) {
-      throw err;
-    }
-
-    // ["c://some-existent-path/file.txt","c:/some-existent-path/subfolder"]
-    console.log(data);
-  });
   let fAll: any[] = [];
   const b = projectDirectories[0].fullPath;
   const files = await readdirp.promise(b, { type: 'directories' });
