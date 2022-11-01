@@ -22,7 +22,7 @@ describe('ConfigUtil', () => {
     });
 
     it('should return project package directories listed in project config file', () => {
-      const projectPackageNames = ConfigUtil.getProjectPackageNames();
+      const projectPackageNames = ConfigUtil.getProjectPackageNames2();
 
       expect(getRootWorkspacePathStub).toHaveBeenCalled();
       expect(getInstanceMock).toHaveBeenCalledWith(FAKE_WORKSPACE);
