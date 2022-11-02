@@ -3,7 +3,7 @@ title: Apex Interactive Debugger
 lang: en
 ---
 
-Apex Interactive Debugger, also called Apex Debugger is a traditional debugger that allows customers to debug their Apex code in sandboxes and scratch orgs, in real time, using VS Code as the client. You can use it to:
+Apex Interactive Debugger, also called the Apex Debugger, is a traditional debugger that allows customers to debug their Apex code in sandboxes and scratch orgs, in real time, using VS Code as the client. You can use it to:
 
 - Set breakpoints in Apex classes and triggers.
 - View variables, including sObject types, collections, and Apex System types.
