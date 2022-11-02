@@ -3,7 +3,7 @@ title: Debugging Apex
 lang: en
 ---
 
-The Salesforce Extension pack comes with rich debugging options for all levels of developer experiences. Use this information to figure out which Apex debugger is right for you:
+The Salesforce Extension pack comes with rich debugging options for every developer, regardless of where you land on the low- to pro-code continuum. Use this information to figure out which Apex debugger is right for you:
 
 - [Replay Debugger](replay-debugger.md): Free and easy to use.
 - [Interactive Debugger](interactive-debugger.md): Traditional, licensed debugger that lets you view and pause events in real time.
