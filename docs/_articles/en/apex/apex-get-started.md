@@ -73,7 +73,7 @@ Now we'll add a test class with one test method. We’ll also run the test and v
 For our example, we’ll create a test class that inserts a new book object which sets off the Apex trigger we wrote earlier. 
 To create the test class:
 
-1. From the Command Palette run SFDX:Create Apex Class and create a class called MyBooksTestClass. 
+1. From the Command Palette, run **SFDX:Create Apex Class** and create a class called `MyBooksTestClass`. 
 2. Paste the following code in the MyBooksTestClass.cls file:
 
 ```
