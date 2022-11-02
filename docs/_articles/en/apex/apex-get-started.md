@@ -105,6 +105,6 @@ With your code deployed in the org, you’re ready to use the Apex Replay Debugg
  The log file opens.
 2. Open the `MyBooksTestClass.cls` file and set a breakpoint on Decimal `b_price = b.Price__c;`.
 3. Set another breakpoint on `Book__c[] books = Trigger.new;` in the `MyBooksTrigger.trigger` file. 
-4. Open `MyBooksTestClass.cls` file and run `SFDX: Launch Apex Replay Debugger with Current File` from the Command Palette to generate and load the debug log file and launch the replay debugger.
+4. Open `MyBooksTestClass.cls` file and run **SFDX: Launch Apex Replay Debugger with Current File** from the Command Palette to generate and load the debug log file and launch the replay debugger.
 5. Step through the code and check variable values.
 6. Your debugging session automatically ends when the test is complete.
