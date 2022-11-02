@@ -34,7 +34,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 5. From the Command Palette run **SFDX:Create Apex Class** and create a class called `MyBooks`. 
 6. Add a method called `applyDiscount` to this class. 
    
-We’ll make this method both public and static. Because it’s a static method, you don't need to create an instance of the class to access the method — you can just use the name of the class followed by a dot (.) and the name of the method.
+Make this method both public and static. Because it’s a static method, you don't need to create an instance of the class to access the method — you can just use the name of the class followed by a dot (.) and the name of the method.
 
 This method takes one parameter, a list of Book records, which is assigned to the variable books. The method iterates through a list of books and applies a 10% discount to the current book price:
 
@@ -50,7 +50,7 @@ public with sharing class MyBooks {
      }
 }
 ```
-Next we’ll add a trigger that calls this `applyDiscount` method. 
+Next add a trigger that calls this `applyDiscount` method. 
 
 ### Add an Apex Trigger
 An Apex trigger is a piece of code that executes before or after records of a particular type are inserted, updated, or deleted from the database. Every trigger runs with a set of context variables that provide access to the records that caused the trigger to fire.
@@ -69,8 +69,8 @@ trigger MyBooksTrigger on Book__c (before insert) {
 We now have the code that is needed to update the price of all books that get inserted. Next, let’s add a test class and add a unit test. Unit tests are an important part of writing code and are required. In addition to ensuring the quality of your code, unit tests enable you to meet the code coverage requirements for deploying or packaging Apex. To deploy Apex or package it for the Salesforce AppExchange, unit tests must cover at least 75% of your Apex code, and those tests must pass.
 
 ### Write a Unit Test
-Now we'll add a test class with one test method. We’ll also run the test and verify code coverage. The test method exercises and validates the code in the trigger and class. Also, it enables you to reach 100% code coverage for the trigger and class.
-For our example, we’ll create a test class that inserts a new book object which sets off the Apex trigger we wrote earlier. 
+Now add a test class with one test method. Then run the test and verify code coverage. The test method exercises and validates the code in the trigger and class. Also, it enables you to reach 100% code coverage for the trigger and class.
+For our example, create a test class that inserts a new book object which sets off the Apex trigger we wrote earlier. 
 To create the test class:
 
 1. From the Command Palette, run **SFDX:Create Apex Class** and create a class called `MyBooksTestClass`. 
