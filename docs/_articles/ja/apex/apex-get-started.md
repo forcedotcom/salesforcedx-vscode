@@ -22,7 +22,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 7. Select `Number` for the data type and click **Next**.
 8. Enter `Price` for the field label.
 9. Enter `16` in the length text box.
-10. Enter `2` in the decimal places text box, and click Next.
+10. Enter `2` in the decimal places text box, and click **Next**.
 11. Click **Next** to accept the default values for field-level security.
 12. Click **Save**.
 
