@@ -24,12 +24,12 @@ export async function showOrg() {
   await displayDefaultUserName();
 }
 
-export async function monitorOrgConfigChanges() {
+export function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  await watcher.onDidChange(uri => {
+  watcher.onDidChange(uri => {
     displayDefaultUserName().catch(err => console.error(err));
   });
-  await watcher.onDidCreate(uri => {
+  watcher.onDidCreate(uri => {
     displayDefaultUserName().catch(err => console.error(err));
   });
 }

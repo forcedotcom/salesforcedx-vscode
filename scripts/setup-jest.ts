@@ -28,13 +28,18 @@ const getMockVSCode = () => {
       };
       public dispose = () => {};
     },
+    TreeItem: jest.fn(),
     commands: jest.fn(),
     Disposable: jest.fn(),
     env: {
       machineId: '12345534'
     },
+    // tslint:disable-next-line:object-literal-shorthand
     EventEmitter: EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
+    languages: {
+      createDiagnosticCollection: jest.fn()
+    },
     Uri: {
       parse: jest.fn(),
       file: jest.fn()
@@ -53,7 +58,8 @@ const getMockVSCode = () => {
       createOutputChannel: jest.fn(),
       OutputChannel: {
         show: jest.fn()
-      }
+      },
+      createStatusBarItem: jest.fn()
     },
     workspace: {
       getConfiguration: () => {
@@ -63,8 +69,16 @@ const getMockVSCode = () => {
         };
       },
       onDidChangeConfiguration: jest.fn(),
-      createFileSystemWatcher: jest.fn(),
+      createFileSystemWatcher: jest.fn().mockReturnValue({
+        onDidChange: jest.fn(),
+        onDidCreate: jest.fn(),
+        onDidDelete: jest.fn()
+      }),
       workspaceFolders: []
+    },
+    StatusBarAlignment: {
+      Left: 1,
+      Right: 2
     }
   };
 };
