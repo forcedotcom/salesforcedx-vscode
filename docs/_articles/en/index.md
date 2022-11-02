@@ -36,3 +36,5 @@ Videos:
 - [LWC Local Development](https://www.youtube.com/watch?v=8eRFE4t2VyU&list=PLgIMQe2PKPSJdFGHjGpjd1FbCsOqq5H8t&index=4)
 - [Best Practices for Building with VS Code](https://www.youtube.com/watch?v=jn91h69qC-o)
 - [Unlock Productivity with Modern, Open Tooling](https://play.vidyard.com/MaE5b4ZXZ9PBzWFp3ATWoy?chapter=9)
+- [Everything You Need To Know About the Apex Debuggers](https://www.youtube.com/watch?v=YnyTHDnDw38)
+- [Debugging Apex with Replay Debugger](https://www.youtube.com/watch?v=dNBsYLfI1nk)

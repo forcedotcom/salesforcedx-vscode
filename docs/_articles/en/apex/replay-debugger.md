@@ -9,7 +9,7 @@ The Apex Replay Debugger can be used with all unmanaged code in all orgs. It wor
 
 ## Set Breakpoints and Checkpoints
 
-Before you generate a debug log for replay debugging, set breakpoints and checkpoints. Breakpoints can be set on the fly and don’t require a deploy. Checkpoints are a snapshot of all objects in an org at a certain point in time, Checkpoints have to be redeployed every time they’re set.
+Before you generate a debug log for replay debugging, set breakpoints and checkpoints. Breakpoints can be set on the fly and don’t require a deploy. Checkpoints are a snapshot of all objects in an org at a certain point in time. Checkpoints have to be redeployed every time they’re set.
 
 1.  To set line breakpoints, open a `.cls` or `.trigger` file and click the column to the left of the line numbers.
 2.  For more information than line breakpoints provide, add checkpoints. You can set up to five checkpoints to get heap dumps when lines of code run. All local variables, static variables, and trigger context variables have better information at checkpoints. Trigger context variables don’t exist in logs and are available only at checkpoint locations.  
