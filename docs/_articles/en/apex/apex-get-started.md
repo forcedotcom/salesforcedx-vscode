@@ -101,7 +101,7 @@ This test class is defined using the `@isTest` annotation. We recommend that cla
 
 ### Debug Your Code Using Apex Replay Debugger
 With your code deployed in the org, you’re ready to use the Apex Replay Debugger to debug your code. The Replay Debugger uses debug logs generated in your org to replay a test scenario. 
-1. Run `SFDX: Get Apex Debug Logs` and select the topmost file from the list to get the most recent debug log.
+1. Run **SFDX: Get Apex Debug Logs** and select the first file from the list to get the most recent debug log.
  The log file opens.
 2. Open the `MyBooksTestClass.cls` file and set a breakpoint on Decimal `b_price = b.Price__c;`.
 3. Set another breakpoint on `Book__c[] books = Trigger.new;` in the `MyBooksTrigger.trigger` file. 
