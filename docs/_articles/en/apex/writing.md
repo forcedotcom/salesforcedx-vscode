@@ -29,7 +29,7 @@ If you want to define your own code snippets, read [Snippets in Visual Studio Co
 
 ## Intellisense for SObjects
 
-To ensure that the intellisense feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the **SFDX: Refresh SObject Definitions** command from the Command Palette.
+To ensure that the Intellisense feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the **SFDX: Refresh SObject Definitions** command from the Command Palette.
 
 You can now preview, view, or go to definitions of:
 
@@ -58,20 +58,20 @@ When you launch the Salesforce CLI Integration extension (which is part of the S
 Apex extension provides go to definition support for user-defined Apex such as classes and methods, standard objects, and custom objects.
 
 - To preview a definition, press and hold Ctrl (Windows or Linux) or Cmd (macOS) and hover over the item whose definition you want to see.
-- To view a definition, right-click the item and select **Peek Definition**, or press Alt+F12.
-- To jump to the location of a definition, right-click the item and select **Go to Definition**, or press F12.
+- To view a definition, right-click the item and select **Peek Definition**, or press <kbd>Alt+F12</kbd>.
+- To jump to the location of a definition, right-click the item and select **Go to Definition**, or press <kbd>F12</kbd>.
 
 ![Previewing, viewing, and jumping to a definition](./images/apex_go_to_definition.gif)
 
 ## Find All References
 
-You can find all references to user-defined Apex such as Classes, Class variables, Enums, Interfaces, Methods, and Properties. To find references, right-click the item and select **Go To References** or press Shift+F12; Or right-click the item and select **Find All References**. The reference results are displayed in the left pane of the editor window.
+You can find all references to user-defined Apex such as classes, class variables, enums, interfaces, methods, and properties. To find references, right-click the item and select **Go To References** or press <kbd>Shift+F12</kbd>; Or right-click the item and select **Find All References**. The reference results are displayed in the left pane of the editor window.
 
 ## Outline View
 
 The Apex outline view shows the structure of the Apex class or trigger that’s open in the editor.
 
-- To view the list of the symbols in the file, press Ctrl+Shift+O (Windows or Linux) or Cmd+Shift+O (macOS).
+- To view the list of the symbols in the file, press <kbd>Ctrl+Shift+O</kbd> (Windows or Linux) or Cmd+Shift+O (macOS).
 - To go to one of the symbols, select it from the list.
 
 ![Outline view, showing the symbols in an Apex class](./images/apex_outline.png)
@@ -98,10 +98,10 @@ Declare Missing Methods quick fix can be invoked in the following ways:
 
 ![GIF showing declare missing methods quick fix invocation via window popup](./images/declare-missing-methods-2.gif)
 
-> Note: Keyboard shortcut for the Quick Fix widget is Cmd+. in macOS and Ctrl+. in Windows and Linux.
+> Note: Keyboard shortcut for the Quick Fix widget is <kbd>Cmd+</kbd>. in macOS and <kbd>Ctrl+</kbd> in Windows and Linux.
 
 ## Anonymous Apex
-It’s common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/`apex that contains an example `hello.apex` file. We recommend that you use this folder to create your anonymous Apex files using the `.apex` file extension.
+It’s common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/`apex that contains an example `hello.apex` file. We recommend that you use this folder to create your Anonymous Apex files using the `.apex` file extension.
 
 You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways:
  1. Select any Apex code and run the command **SFDX: Execute Anonymous Apex with Currently Selected Text**.
