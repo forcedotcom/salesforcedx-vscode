@@ -6,7 +6,7 @@ lang: en
 ## Overview
 
 Apex is a strongly typed, object-oriented programming language that, in conjunction with calls to the Salesforce API, allows Salesforce developers to add business logic to manipulate data in their orgs. 
-The Salesforce Extension Pack comes with a large set of tools for writing, testing, refactoring and debugging your Apex code. In app assistance makes it easy for even low code developers and admins to write, test, and debug Apex code such as triggers activated from events that they create using tools such as Flow Builder. 
+The Salesforce Extension Pack comes with a large set of tools for writing, testing, refactoring and debugging your Apex code. In-app assistance makes it easy for even low code developers and admins to write, test, and debug Apex code, for example, triggers activated from events that they create using tools such as Flow Builder. 
 
 You can use Salesforce Extensions to:
 -  Quickly create Apex classes, test classes and triggers.
