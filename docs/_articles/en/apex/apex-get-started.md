@@ -27,10 +27,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 12. Click **Save**.
 
 ### Add an Apex Class
-1. Connect to the org that you added the custom object to in VS Code.
-   
-See [Change or Open Your Default Org](../user-guide/default-org.md) for information on connecting to an org.
-
+1. In VS Code, connect to the org that you added the custom object to using [Org Picker or Command Palette](../user-guide/default-org.md).
 2. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette to get code completion suggestions for your SObjects related code.
 3. Click the Cloud icon in the Activity Bar to open the Org Browser.
 4. Scroll down to Custom Object and locate the `Book_c` object. Click the retrieve icon to run `SFDX: Retrieve Source from Org`.
