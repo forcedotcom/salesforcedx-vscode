@@ -54,7 +54,7 @@ Next we’ll add a trigger that calls this `applyDiscount` method.
 
 ### Add an Apex Trigger
 An Apex trigger is a piece of code that executes before or after records of a particular type are inserted, updated, or deleted from the Lightning Platform database. Every trigger runs with a set of context variables that provide access to the records that caused the trigger to fire.
-1. From the Command Palette run SFDX: Create Apex Trigger and create a new class called MyBooksTrigger. 
+1. From the Command Palette, run **SFDX: Create Apex Trigger** and create a new class called `MyBooksTrigger`. 
 2. Update the default template to this trigger definition:
 
 ```
