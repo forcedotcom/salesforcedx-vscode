@@ -57,7 +57,7 @@ Note: You can use the default license provided to License Management orgs only w
    1. Save your `launch.json` file. Each project needs only one `launch.json` file, even if you work with multiple scratch orgs. This file lives in the project’s `.vscode` directory.
 
 :::note
-An unofficial debugger extension called [Salesforce Apex Debug](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug) is available in the Visual Studio Marketplace. It conflicts with our  official extension. Make sure you disable that extension while using ours.
+An unofficial debugger extension called [Salesforce Apex Debug](https://marketplace.visualstudio.com/items?itemName=chuckjonas.apex-debug) is available in the Visual Studio Marketplace. It conflicts with our official extension. Make sure you disable that extension while using ours.
 :::
 
 ## Debug Your Code
