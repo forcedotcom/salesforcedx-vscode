@@ -85,7 +85,7 @@ private class MyBooksTestClass {
        insert b;    
        // Retrieve the new book
        b = [SELECT Price__c FROM Book__c WHERE Id =:b.Id];
-//Confirm that the price has been updated correctly
+      //Confirm that the price has been updated correctly
        System.assertEquals(90, b.Price__c);
       }
 }
