@@ -5,7 +5,7 @@ lang: en
 
 ## Overview
 
-The Apex Replay Debugger can be used with all unmanaged code in all orgs. It works with apex classes, triggers, anonymous apex, and log files. This is an easy-to-use debugger that fits the majority of debugging use cases. It’s a good gateway into your debugging journey – scale up to other debuggers as needed.
+The Apex Replay Debugger can be used with all unmanaged code in all orgs. It works with Apex classes, triggers, anonymous Apex, and log files. This is an easy-to-use debugger that fits the majority of debugging use cases. It’s a good gateway into your debugging journey – scale up to other debuggers as needed.
 
 ## Set Breakpoints and Checkpoints
 
