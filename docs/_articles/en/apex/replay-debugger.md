@@ -28,7 +28,7 @@ Before you generate a debug log for replay debugging, set breakpoints and checkp
 Quickly debug your Apex development work without explicitly setting trace flags:
 
 1. Open your Apex test class or Anonymous Apex class with checkpoints or breakpoints set up.
-2. Run **SFDX: Launch Apex Replay Debugger with Current File** from the command palette (or select the command by right-clicking inside an open file). You can invoke this command on an Apex test file, Anonymous Apex file or an Apex log file.
+2. Run **SFDX: Launch Apex Replay Debugger with Current File** from the Command Palette (or select the command by right-clicking inside an open file). You can invoke this command on an Apex test file, Anonymous Apex file or an Apex log file.
 
 The command updates checkpoints in your org, sets (and deletes upon completion) trace flags, and generates a new debug log. For an Anonymous Apex file, a new log file opens in a window.
 
