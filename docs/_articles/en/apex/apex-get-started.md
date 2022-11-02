@@ -96,7 +96,7 @@ This test class is defined using the `@isTest` annotation. We recommend that cla
 :::
 
 3. To run the test you wrote, you must deploy your code to your org. Right-click within the file and run Run `SFDX: Deploy This Source to Org` to deploy your code. 
-4. Run `SFDX: Turn On Apex Debug Log for Replay Debugger` to turn on debug logs.
+4. Run **SFDX: Turn On Apex Debug Log for Replay Debugger** to turn on debug logs.
 5.  Click `“Run All Tests”` in the `MyBooksTestClass` file to run your test.  
 
 ### Debug Your Code Using Apex Replay Debugger
