@@ -34,7 +34,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 5. From the Command Palette run `SFDX:Create Apex Class` and create a class called `MyBooks`. 
 6. Add a method called `applyDiscount` to this class. 
    
-We’ll make this method both public and static. Because it’s a static method, you don't need to create an instance of the class to access the method—you can just use the name of the class followed by a dot (.) and the name of the method.
+We’ll make this method both public and static. Because it’s a static method, you don't need to create an instance of the class to access the method — you can just use the name of the class followed by a dot (.) and the name of the method.
 
 This method takes one parameter, a list of Book records, which is assigned to the variable books. The method iterates through a list of books and applies a 10% discount to the current book price:
 
