@@ -1,5 +1,5 @@
 ---
-title: Quick Start Apex Development with Salesforce Extensions
+title: Quick Start Apex Development
 lang: en
 ---
   
