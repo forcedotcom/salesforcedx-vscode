@@ -2,7 +2,7 @@
 title: ISV Customer Debugger
 lang: en
 ---
-Salesforce ISVs(Independent Software Vendors) are developers who create managed packages on the Salesforce platform that are available on Salesforce AppExchange. A package subscriber doesn't have access to managed code, which can make debugging challenging. The ISV debugger lets an ISV reproduce issues in the subscriber’s environment in a sandbox org for convenient debugging. With the ISV Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org.
+Salesforce ISVs (Independent Software Vendors) are developers who create managed packages on the Salesforce Platform that are available on Salesforce AppExchange. A package subscriber doesn't have access to managed code, which can make debugging challenging. The ISV Debugger lets an ISV reproduce issues in the subscriber’s environment in a sandbox org for convenient debugging. With the ISV Debugger, an ISV can work with a subscriber to debug issues specific to the subscriber’s org.
 
 ## Configure ISV Customer Debugger
 
