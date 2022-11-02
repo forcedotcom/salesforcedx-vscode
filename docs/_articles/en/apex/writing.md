@@ -29,7 +29,7 @@ If you want to define your own code snippets, read [Snippets in Visual Studio Co
 
 ## Intellisense for SObjects
 
-To ensure that the intellisense feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette.
+To ensure that the intellisense feature correctly prompts completion suggestions, you must refresh the SObject definitions. Run the **SFDX: Refresh SObject Definitions** command from the Command Palette.
 
 You can now preview, view, or go to definitions of:
 
