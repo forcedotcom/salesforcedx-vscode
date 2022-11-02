@@ -53,7 +53,8 @@ const getMockVSCode = () => {
       createOutputChannel: jest.fn(),
       OutputChannel: {
         show: jest.fn()
-      }
+      },
+      createStatusBarItem: jest.fn()
     },
     workspace: {
       getConfiguration: () => {
@@ -65,6 +66,10 @@ const getMockVSCode = () => {
       onDidChangeConfiguration: jest.fn(),
       createFileSystemWatcher: jest.fn(),
       workspaceFolders: []
+    },
+    StatusBarAlignment: {
+      Left: 1,
+      Right: 2
     }
   };
 };
