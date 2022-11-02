@@ -19,7 +19,7 @@ let statusBarItem: StatusBarItem;
 
 export async function showOrg() {
   if (!statusBarItem) {
-    statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 500);
+    statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
     statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
     statusBarItem.command = 'sfdx.force.org.open';
     statusBarItem.show();
