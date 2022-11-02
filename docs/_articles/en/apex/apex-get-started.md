@@ -6,7 +6,7 @@ lang: en
 ## Overview
 Complete this Quick Start to create, test and debug a workflow that is created using an Apex class, and sets off a Apex trigger.
 
-We’ll create a custom object called `Book`, and add a custom field called `Price` to that custom object. We’ll update and test the updated Price field using Apex and learn how to work with Apex Code using the Salesforce Extensions.
+You’ll create a custom object called `Book`, and add a custom field called `Price` to that custom object. You’ll update and test the updated Price field using Apex and learn how to work with Apex Code using the Salesforce Extensions.
 
 
 Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-desktop/install.md) or [Set Up Code Builder](./en/../../codebuilder/cb-setup.md)
@@ -22,7 +22,7 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 7. Select `Number` for the data type and click **Next**.
 8. Enter `Price` for the field label.
 9. Enter `16` in the length text box.
-10. Enter `2` in the decimal places text box, and click Next.
+10. Enter `2` in the decimal places text box, and click **Next**.
 11. Click **Next** to accept the default values for field-level security.
 12. Click **Save**.
 
