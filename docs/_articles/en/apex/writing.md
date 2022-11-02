@@ -105,7 +105,7 @@ It’s common to keep Apex code in your project for executing certain tasks. By 
 
 You can execute [Anonymous Apex](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_anonymous_block.htm) in Visual Studio code in two ways:
  1. Select any Apex code and run the command **SFDX: Execute Anonymous Apex with Currently Selected Text**.
- 2. Run the command `SFDX: Execute Anonymous Apex with Editor Contents`to execute the entire context of a file.
+ 2. Run the command **SFDX: Execute Anonymous Apex with Editor Contents** to execute the entire context of a file.
 
 In both cases, the result of the executed code is printed to the output pane.
 
