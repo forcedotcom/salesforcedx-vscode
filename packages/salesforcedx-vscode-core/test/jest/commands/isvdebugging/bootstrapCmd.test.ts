@@ -11,16 +11,15 @@ describe('isvdebugging unit test', () => {
 
   beforeEach(() => {
     relativeToolsFolderStub = jest.spyOn(projectPaths, 'relativeToolsFolder').mockReturnValue(TOOLS_FOLDER);
-    isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
-
   });
 
   it('should be defined', () => {
+    isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
     expect(isvDebugBootstrapExecutorInst).toBeDefined();
   });
 
   it('should test readonly relativeMetdataTempPath property', () => {
+    isvDebugBootstrapExecutorInst = new IsvDebugBootstrapExecutor();
     expect(isvDebugBootstrapExecutorInst.relativeMetdataTempPath).toEqual(path.join(TOOLS_FOLDER, ISVDEBUGGER));
-
   });
 });
