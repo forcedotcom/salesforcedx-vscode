@@ -28,10 +28,10 @@ Before you start, install [Salesforce Extensions for Desktop](./en/../../vscode-
 
 ### Add an Apex Class
 1. In VS Code, connect to the org that you added the custom object to using [Org Picker or Command Palette](../user-guide/default-org.md).
-2. Run the `SFDX: Refresh SObject Definitions` command from the Command Palette to get code completion suggestions for your SObjects related code.
+2. Run the **SFDX: Refresh SObject Definitions** command from the Command Palette to get code completion suggestions for your SObjects related code.
 3. Click the Cloud icon in the Activity Bar to open the Org Browser.
-4. Scroll down to Custom Object and locate the `Book_c` object. Click the retrieve icon to run `SFDX: Retrieve Source from Org`.
-5. From the Command Palette run `SFDX:Create Apex Class` and create a class called `MyBooks`. 
+4. Scroll down to Custom Object and locate the `Book_c` object. Click the retrieve icon to run **SFDX: Retrieve Source from Org**.
+5. From the Command Palette run **SFDX:Create Apex Class** and create a class called `MyBooks`. 
 6. Add a method called `applyDiscount` to this class. 
    
 We’ll make this method both public and static. Because it’s a static method, you don't need to create an instance of the class to access the method — you can just use the name of the class followed by a dot (.) and the name of the method.
@@ -92,7 +92,7 @@ private class MyBooksTestClass {
 ```
 **Note:** This test class is defined using the `@isTest` annotation. We recommend that classes defined this way only contain test methods and any methods required to support those test methods. One advantage to creating a separate class for testing is that classes defined with `@isTest` don’t count against your org’s limit of 6 MB of Apex code. You can also add the `@isTest` annotation to individual methods. For more information, see [isTest Annotation](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_annotation_isTest.htm) and [Execution Governors and Limits](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_gov_limits.htm).
 
-3. To run the test you wrote, you must deploy your code to your org. Right-click within the file and run Run `SFDX: Deploy This Source to Org` to deploy your code. 
+3. To run the test you wrote, you must deploy your code to your org. Right-click within the file and run Run **SFDX: Deploy This Source to Org** to deploy your code. 
 4. Run **SFDX: Turn On Apex Debug Log for Replay Debugger** to turn on debug logs.
 5.  Click **Run All Tests** in the `MyBooksTestClass` file.  
 
