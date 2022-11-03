@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { nls } from '../../messages';
 
 export class MaxLengthValidator {
   private maxLength: number;
@@ -9,7 +10,9 @@ export class MaxLengthValidator {
 
   public validate(text: string): string | null {
     return text.length > this.maxLength
-      ? `Input can not exceed ${this.maxLength} characters`
+      ? nls
+          .localize('input_validation_max_length_error_message')
+          .replace('{0}', this.maxLength.toString())
       : null;
   }
 }

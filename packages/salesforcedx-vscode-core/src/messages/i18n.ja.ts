@@ -524,5 +524,6 @@ export const messages = {
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
   functions_doc_url:
     'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
-  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja'
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja',
+  input_validation_max_length_error_message: '{0} 文字を超えることはできません'
 };

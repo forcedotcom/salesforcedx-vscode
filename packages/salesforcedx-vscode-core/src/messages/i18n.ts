@@ -658,5 +658,6 @@ export const messages = {
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
   functions_doc_url:
     'https://developer.salesforce.com/tools/vscode/en/functions/overview',
-  default_doc_url: 'https://developer.salesforce.com/tools/vscode'
+  default_doc_url: 'https://developer.salesforce.com/tools/vscode',
+  input_validation_max_length_error_message: 'Can not exceed {0} characters'
 };
