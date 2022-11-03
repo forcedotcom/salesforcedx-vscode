@@ -1,8 +1,8 @@
 # 56.4.1 - November 3, 2022
 
-- We continued some under the hood work on the @salesforce/core library. ([PR #4509](https://github.com/forcedotcom/salesforcedx-vscode/pull/4509), [PR #4510](https://github.com/forcedotcom/salesforcedx-vscode/pull/4510), [PR #4516](https://github.com/forcedotcom/salesforcedx-vscode/pull/4516), [PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517))
+- We continued some under the hood work on the `@salesforce/core` library. ([PR #4509](https://github.com/forcedotcom/salesforcedx-vscode/pull/4509), [PR #4510](https://github.com/forcedotcom/salesforcedx-vscode/pull/4510), [PR #4516](https://github.com/forcedotcom/salesforcedx-vscode/pull/4516), [PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517))
 - We updated contributing docs for the jest unit updates we made last week. ([PR #4503](https://github.com/forcedotcom/salesforcedx-vscode/pull/4503))
-- We updated our bundling of the core extension to exclude functions-core. ([PR #4532](https://github.com/forcedotcom/salesforcedx-vscode/pull/4532))
+- We updated our bundling of the core extension to exclude `functions-core`. ([PR #4532](https://github.com/forcedotcom/salesforcedx-vscode/pull/4532))
  
 
 # 56.3.1 - October 29, 2022
