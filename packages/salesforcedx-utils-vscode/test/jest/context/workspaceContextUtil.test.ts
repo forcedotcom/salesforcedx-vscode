@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { create } from 'domain';
+// import { when } from 'jest-when';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import {  WorkspaceContextUtil } from '../../../src';
@@ -44,26 +44,26 @@ describe('WorkspaceContext', () => {
       .spyOn(authUtil, 'getDefaultUsernameOrAlias')
       .mockReturnValue(testAlias);
     getUsernameStub = jest
-      .spyOn(authUtil, 'getUsername');
+      .spyOn(authUtil, 'getUsername').mockReturnValue(testUser);
+    // when(getUsernameStub).calledWith(testUser2).mockReturnValue(testUser2);
 
     await workspaceContextUtil.initialize(context);
   });
+
+  afterEach(() => jest.clearAllMocks());
+
   it('test for the constructor', () => {
     expect(workspaceContextUtil).toHaveProperty('sessionConnections');
     expect(workspaceContextUtil).toHaveProperty('onOrgChangeEmitter');
     expect(workspaceContextUtil).toHaveProperty('cliConfigWatcher', mockWatcher);
   });
   it('should load the default username and alias upon initialization', () => {
-    getUsernameStub.mockReturnValue(testUser);
-    expect(getUsernameStub).toHaveBeenCalledWith(testAlias);
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
   });
 
   it('should update default username and alias upon config change', async () => {
     getUsernameOrAliasStub.mockReturnValue(testUser2);
-    getUsernameStub.mockReturnValue(testUser2);
-    expect(getUsernameStub).toHaveBeenCalledWith(testUser2);
 
     await mockWatcher.onDidChange();
 
@@ -88,9 +88,9 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await mockWatcher.onDidChange();
-    await mockWatcher.onDidCreate();
-    await mockWatcher.onDidDelete();
+    await mockWatcher.onDidChange;
+    await mockWatcher.onDidCreate;
+    await mockWatcher.onDidDelete;
 
     expect(someLogic).toHaveBeenCalledTimes(3);
   });
@@ -105,10 +105,8 @@ describe('WorkspaceContext', () => {
     beforeEach(() => {
       createAuthStub = jest
         .spyOn(AuthInfo, 'create');
-        // .mockResolvedValue(mockAuthInfo);
       createConnectionStub = jest
         .spyOn(Connection, 'create');
-        // .mockResolvedValue(mockConnection);
     });
 
     it('should return connection for the default org', async () => {
