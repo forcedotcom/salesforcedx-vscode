@@ -93,15 +93,4 @@ private class MyBooksTestClass {
 **Note:** This test class is defined using the `@isTest` annotation. We recommend that classes defined this way only contain test methods and any methods required to support those test methods. One advantage to creating a separate class for testing is that classes defined with `@isTest` don’t count against your org’s limit of 6 MB of Apex code. You can also add the `@isTest` annotation to individual methods. For more information, see [isTest Annotation](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_classes_annotation_isTest.htm) and [Execution Governors and Limits](https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/apex_gov_limits.htm).
 
 3. To run the test you wrote, you must deploy your code to your org. Right-click within the file and run Run **SFDX: Deploy This Source to Org** to deploy your code. 
-4. Run **SFDX: Turn On Apex Debug Log for Replay Debugger** to turn on debug logs.
-5.  Click **Run All Tests** in the `MyBooksTestClass` file.  
-
-### Debug Your Code Using Apex Replay Debugger
-With your code deployed in the org, you’re ready to use the Apex Replay Debugger to debug your code. The Replay Debugger uses debug logs generated in your org to replay a test scenario. 
-1. Run **SFDX: Get Apex Debug Logs** and select the first file from the list to get the most recent debug log.
- The log file opens.
-2. Open the `MyBooksTestClass.cls` file and set a breakpoint on Decimal `b_price = b.Price__c;`.
-3. Set another breakpoint on `Book__c[] books = Trigger.new;` in the `MyBooksTrigger.trigger` file. 
-4. Open `MyBooksTestClass.cls` file and run **SFDX: Launch Apex Replay Debugger with Current File** from the Command Palette to generate and load the debug log file and launch the replay debugger.
-5. Step through the code and check variable values.
-6. Your debugging session automatically ends when the test is complete.
+4.  Click **Run All Tests** in the `MyBooksTestClass` file to test your code.
