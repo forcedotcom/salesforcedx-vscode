@@ -4,7 +4,6 @@
 - We updated contributing docs for the jest unit updates we made last week. ([PR #4503](https://github.com/forcedotcom/salesforcedx-vscode/pull/4503))
 - We updated our bundling of the core extension to exclude `functions-core`. ([PR #4532](https://github.com/forcedotcom/salesforcedx-vscode/pull/4532))
  
-
 # 56.3.1 - October 29, 2022
 
 We made lots of under the hood updates in this release that involved:
