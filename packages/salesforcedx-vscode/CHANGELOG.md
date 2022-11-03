@@ -1,4 +1,4 @@
-# 56.4.0 - November 2, 2022
+# 56.4.1 - November 3, 2022
 
 - We continued some under the hood work on the @salesforce/core library. (4509, 4510, 4516, 4517)
 - We updated contributing docs for the jest unit updates we made last week. (4503)
