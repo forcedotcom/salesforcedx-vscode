@@ -1,5 +1,10 @@
 # 56.4.0 - November 2, 2022
 
+- We continued some under the hood work on the @salesforce/core library. (4509, 4510, 4516, 4517)
+- We updated contributing docs for the jest unit updates we made last week. (4503)
+- We updated our bundling of the core extension to exclude functions-core. (4532)
+ 
+
 # 56.3.1 - October 29, 2022
 
 We made lots of under the hood updates in this release that involved:
