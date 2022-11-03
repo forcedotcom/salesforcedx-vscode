@@ -13,6 +13,7 @@ import { ApexTriggerOptions, TemplateType } from '@salesforce/templates';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
+  MaxLengthValidator,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
@@ -23,8 +24,11 @@ import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import {
   APEX_TRIGGER_DIRECTORY,
+  APEX_TRIGGER_NAME_MAX_LENGTH,
   APEX_TRIGGER_TYPE
 } from './metadataTypeConstants';
+
+import * as vscode from 'vscode';
 
 export class LibraryForceApexTriggerCreateExecutor extends LibraryBaseTemplateCommand<
   DirFileNameSelection
@@ -48,7 +52,9 @@ export class LibraryForceApexTriggerCreateExecutor extends LibraryBaseTemplateCo
   }
 }
 
-const fileNameGatherer = new SelectFileName();
+const fileNameGatherer = new SelectFileName(
+  new MaxLengthValidator(APEX_TRIGGER_NAME_MAX_LENGTH)
+);
 const outputDirGatherer = new SelectOutputDir(APEX_TRIGGER_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(APEX_TRIGGER_TYPE);
 

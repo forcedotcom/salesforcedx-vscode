@@ -13,6 +13,7 @@ import { ApexClassOptions, TemplateType } from '@salesforce/templates';
 import { nls } from '../../messages';
 import {
   CompositeParametersGatherer,
+  MaxLengthValidator,
   MetadataTypeGatherer,
   SelectFileName,
   SelectOutputDir,
@@ -21,7 +22,11 @@ import {
 } from '../util';
 import { OverwriteComponentPrompt } from '../util/postconditionCheckers';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
-import { APEX_CLASS_DIRECTORY, APEX_CLASS_TYPE } from './metadataTypeConstants';
+import {
+  APEX_CLASS_DIRECTORY,
+  APEX_CLASS_NAME_MAX_LENGTH,
+  APEX_CLASS_TYPE
+} from './metadataTypeConstants';
 
 export class LibraryForceApexClassCreateExecutor extends LibraryBaseTemplateCommand<
   DirFileNameSelection
@@ -43,7 +48,9 @@ export class LibraryForceApexClassCreateExecutor extends LibraryBaseTemplateComm
   }
 }
 
-const fileNameGatherer = new SelectFileName();
+const fileNameGatherer = new SelectFileName(
+  new MaxLengthValidator(APEX_CLASS_NAME_MAX_LENGTH)
+);
 const outputDirGatherer = new SelectOutputDir(APEX_CLASS_DIRECTORY);
 const metadataTypeGatherer = new MetadataTypeGatherer(APEX_CLASS_TYPE);
 
