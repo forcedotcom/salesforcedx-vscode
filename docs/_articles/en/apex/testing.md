@@ -17,7 +17,7 @@ Use the Apex Tests feature to run one test method, test methods in one class, or
 - Run tests for all the methods in a class: Hover over the name of a test class and click the play icon (hover text: Run Tests).
 - Run all tests: Hover over the Apex Tests view and click the play icon ({% octicon play %}).
 
-After you run Apex tests, `SFDX: Re-Run Last Invoked Apex Test Class` and `SFDX: Re-Run Last Invoked Apex Test Method` commands are available in the Command Palette.
+After you run Apex tests, **SFDX: Re-Run Last Invoked Apex Test Class** and **SFDX: Re-Run Last Invoked Apex Test Method** commands are available in the Command Palette.
 
 ### View Test Results
 
