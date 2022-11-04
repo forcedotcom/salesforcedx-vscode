@@ -26,7 +26,6 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { BaseDeployExecutor } from '.';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
@@ -36,6 +35,7 @@ import { nls } from '../messages';
 import { DeployQueue } from '../settings';
 import { SfdxPackageDirectories } from '../sfdxProject';
 import { OrgAuthInfo } from '../util';
+import { BaseDeployExecutor } from './baseDeployCommand';
 import { createComponentCount, formatException } from './util';
 
 type DeployRetrieveResult = DeployResult | RetrieveResult;

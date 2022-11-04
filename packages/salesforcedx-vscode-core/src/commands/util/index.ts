@@ -24,9 +24,9 @@ export {
   SelectUsername
 } from './parameterGatherers';
 export {
-  ConflictDetectionMessages,
-  EmptyPostChecker
-} from './postconditionCheckers';
+  ConflictDetectionMessages
+} from './conflictDetectionMessages';
+export {EmptyPostChecker} from './emptyPostChecker';
 export {
   CommandletExecutor,
   CommandParams,
