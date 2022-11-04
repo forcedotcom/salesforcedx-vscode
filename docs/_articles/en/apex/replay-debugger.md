@@ -17,11 +17,11 @@ Before you generate a debug log for replay debugging, set breakpoints and checkp
 
     1.  Set checkpoints on up to five lines in Apex classes or triggers.
     2.  Click the line of code where you want to set the checkpoint.
-    3.  Open the command palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
+    3.  Open the Command Palette (press Ctrl+Shift+P on Windows or Linux, or Cmd+Shift+P on macOS).
     4.  Run **SFDX: Toggle Checkpoint**.
         - Or, right-click in the gutter to the left of the line numbers, select **Add Conditional Breakpoint** \| **Expression**, and set the expression to `Checkpoint`.
         - Or, to convert an existing breakpoint into a checkpoint, right-click the breakpoint, and select **Edit Breakpoint** \| **Expression**. Set the expression to `Checkpoint`.
-    5.  To upload your checkpoints to your org to collect heap dump information, open the command palette, and run **SFDX: Update Checkpoints in Org**.
+    5.  To upload your checkpoints to your org to collect heap dump information, open the Command Palette, and run **SFDX: Update Checkpoints in Org**.
 
 ## Easy Debugging
 
@@ -36,7 +36,7 @@ The command updates checkpoints in your org, sets (and deletes upon completion) 
 
 Set up Apex Replay Debugger for debugging more complicated issues such as Queuable Apex or Apex trigger issues in your org:
 
-1. Open the command palette, and run **SFDX: Update Checkpoints in Org** to upload your checkpoints to your org to collect heap dump information. 
+1. Open the Command Palette, and run **SFDX: Update Checkpoints in Org** to upload your checkpoints to your org to collect heap dump information. 
 **Note**:  If you modify your Apex code or toggle checkpoints, run this command again to stay in sync.
 2.  Run **SFDX: Turn On Apex Debug Log for Replay Debugger**.
 3.  In your org, reproduce the issue that you’re debugging. 
