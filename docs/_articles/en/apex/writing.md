@@ -111,4 +111,4 @@ In both cases, the result of the executed code is printed to the output pane.
 
 ![SFDX: Execute Anonymous Apex with Currently Selected Text](./images/apex_execute_selected.png)
 
-It is common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/apex` that contains an example `hello.apex` file. It's recommended that you use this folder to create your anonymous Apex files using the `.apex` file extension.
+It is common to keep Apex code in your project for executing certain tasks. By default, a new project has a folder `scripts/apex` that contains an example `hello.apex` file. It's recommended that you use this folder to create your Anonymous Apex files using the `.apex` file extension.
