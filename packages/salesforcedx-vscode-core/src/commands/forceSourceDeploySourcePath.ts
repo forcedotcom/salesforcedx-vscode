@@ -16,13 +16,13 @@ import { telemetryService } from '../telemetry';
 import { DeployExecutor } from './baseDeployRetrieve';
 import { SourcePathChecker } from './forceSourceRetrieveSourcePath';
 import {
+  ConflictDetectionMessages,
   LibraryPathsGatherer,
   SfdxCommandlet,
   SfdxWorkspaceChecker
 } from './util';
 import {
   CompositePostconditionChecker,
-  ConflictDetectionMessages,
   TimestampConflictChecker
 } from './util/postconditionCheckers';
 
