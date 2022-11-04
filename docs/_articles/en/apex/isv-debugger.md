@@ -13,7 +13,7 @@ ISV Customer Debugger is part of the Apex Interactive Debugger (`salesforcedx-vs
 1. In your subscriber’s org, from Setup, enter **Apex Debugger** in the Quick Find box, then click **Apex Debugger**.
 1. Click **Start Partner Debugging Session**.
 1. In the Using Salesforce Extensions for VS Code section, to copy the `forceide://` URL, click **Copy to Clipboard**.
-1. In VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the command palette, then run **SFDX: Create and Set Up Project for ISV Debugging**.
+1. In VS Code, press Ctrl+Shift+P (Windows or Linux) or Cmd+Shift+P (macOS) to open the Command Palette, then run **SFDX: Create and Set Up Project for ISV Debugging**.
 1. When directed, paste the `forceide://` URL into the prompt, and press Enter.
 1. When directed, either accept the default project name or enter a name for your debugging project, and press Enter.
 1. Choose a location to store the project, and click **Create Project**.
