@@ -15,7 +15,7 @@
     "theme": "light"
   },
   "aiKey": "ec3632a4-df47-47a4-98dc-8134cacbaf7e",
-  "version": "56.4.0",
+  "version": "56.4.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,11 +25,11 @@
     "Other"
   ],
   "dependencies": {
-    "@heroku/functions-core": "^0.4.0",
+    "@heroku/functions-core": "0.4.2",
     "@octokit/plugin-paginate-rest": "2.21.3",
     "@salesforce/core": "^3.23.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "56.4.0",
-    "@salesforce/salesforcedx-utils-vscode": "56.4.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "56.4.1",
+    "@salesforce/salesforcedx-utils-vscode": "56.4.1",
     "@salesforce/schemas": "^1",
     "@salesforce/source-deploy-retrieve": "6.0.4",
     "@salesforce/templates": "^55.1.0",
@@ -43,7 +43,7 @@
     "shelljs": "0.8.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "56.4.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "56.4.1",
     "@salesforce/ts-sinon": "^1.0.0",
     "@types/adm-zip": "^0.4.31",
     "@types/chai": "4.3.3",
@@ -86,6 +86,7 @@
       "main": "dist/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
+        "@heroku/functions-core": "0.4.2",
         "@salesforce/core": "3.30.9",
         "@salesforce/templates": "55.1.0",
         "@salesforce/source-deploy-retrieve": "6.0.4",
@@ -95,7 +96,7 @@
     }
   },
   "scripts": {
-    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --minify",
+    "bundle:extension": "esbuild ./src/index.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode  --external:@salesforce/core --external:applicationinsights --external:shelljs --external:@salesforce/templates --external:@salesforce/source-deploy-retrieve --external:@heroku/functions-core --minify",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node -P ./tsconfig.json ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
