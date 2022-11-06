@@ -18,7 +18,7 @@ import { nls } from '../../messages';
 import { SfdxPackageDirectories } from '../../sfdxProject';
 import { workspaceUtils } from '../../util';
 import { RetrieveDescriber } from '../forceSourceRetrieveMetadata';
-import { MaxLengthValidator } from './inputValidators';
+
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: Array<ParametersGatherer<any>>;
   public constructor(...gatherers: Array<ParametersGatherer<any>>) {
@@ -116,25 +116,31 @@ export class FileSelector implements ParametersGatherer<FileSelection> {
 
 export class SelectFileName
   implements ParametersGatherer<{ fileName: string }> {
-  private validator?: MaxLengthValidator;
+  private maxFileNameLength: number;
 
-  constructor(validator?: MaxLengthValidator) {
-    this.validator = validator;
+  constructor(maxFileNameLength?: number) {
+    this.maxFileNameLength = maxFileNameLength || Infinity;
   }
 
   public async gather(): Promise<
     CancelResponse | ContinueResponse<{ fileName: string }>
   > {
-    const fileNameInputOptions = {
+    const fileNameInputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_file_name'),
-      ...(this.validator && {
-        validateInput: text => {
-          return this.validator?.validate(text);
+      ...(this.maxFileNameLength !== Infinity && {
+        validateInput: value => {
+          return value.length > this.maxFileNameLength
+            ? nls
+                .localize(
+                  'parameter_gathere_file_name_max_length_validation_error_message'
+                )
+                .replace('{0}', this.maxFileNameLength.toString())
+            : null;
         }
       })
     } as vscode.InputBoxOptions;
 
-    const fileName = await vscode.window.showInputBox(fileNameInputOptions);
+    const fileName = await vscode.window.showInputBox(fileNameInputBoxOptions);
     return fileName
       ? { type: 'CONTINUE', data: { fileName } }
       : { type: 'CANCEL' };

@@ -659,5 +659,6 @@ export const messages = {
   functions_doc_url:
     'https://developer.salesforce.com/tools/vscode/en/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode',
-  input_validation_max_length_error_message: 'Can not exceed {0} characters'
+  parameter_gathere_file_name_max_length_validation_error_message:
+    'Filename cannot exceed {0} characters'
 };
