@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo } from '@salesforce/core';
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode/src';
+import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
 import { expect } from 'chai';
 import { EventEmitter } from 'events';

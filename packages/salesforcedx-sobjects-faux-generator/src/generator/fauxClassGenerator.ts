@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { projectPaths } from '@salesforce/salesforcedx-utils-vscode/src';
+import { TOOLS } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import { EOL } from 'os';
 import * as path from 'path';
@@ -22,7 +22,7 @@ import { DeclarationGenerator, MODIFIER } from './declarationGenerator';
 
 export const INDENT = '    ';
 export const APEX_CLASS_EXTENSION = '.cls';
-const REL_BASE_FOLDER = [projectPaths.relativeToolsFolder(), SOBJECTS_DIR];
+const REL_BASE_FOLDER = [TOOLS, SOBJECTS_DIR];
 
 export class FauxClassGenerator implements SObjectGenerator {
   private sobjectSelector: SObjectCategory;
