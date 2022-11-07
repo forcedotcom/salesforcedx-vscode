@@ -62,7 +62,10 @@ describe('WorkspaceContext', () => {
     getUsernameOrAliasStub.mockReturnValue(testUser2);
     getUsernameStub.mockReturnValue(testUser2);
 
-    await mockWatcher.onDidChange();
+    expect(mockWatcher.onDidChange).toHaveBeenCalled();
+    const handler = mockWatcher.onDidChange.mock.calls[0][0];
+    expect(handler).toBeInstanceOf(Function);
+    await handler();
 
     expect(workspaceContextUtil.username).toEqual(testUser2);
     expect(workspaceContextUtil.alias).toEqual(undefined);
@@ -72,7 +75,10 @@ describe('WorkspaceContext', () => {
     getUsernameOrAliasStub.mockReturnValue(undefined);
     getUsernameStub.mockReturnValue(undefined);
 
-    await mockWatcher.onDidChange();
+    expect(mockWatcher.onDidChange).toHaveBeenCalled();
+    const handler = mockWatcher.onDidChange.mock.calls[0][0];
+    expect(handler).toBeInstanceOf(Function);
+    await handler();
 
     expect(workspaceContextUtil.username).toEqual(undefined);
     expect(workspaceContextUtil.alias).toEqual(undefined);
@@ -85,9 +91,9 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await mockWatcher.onDidChange();
-    await mockWatcher.onDidCreate();
-    await mockWatcher.onDidDelete();
+    await mockWatcher.onDidChange.mock.calls[0][0]();
+    await mockWatcher.onDidCreate.mock.calls[0][0]();
+    await mockWatcher.onDidDelete.mock.calls[0][0]();
 
     expect(someLogic).toHaveBeenCalledTimes(3);
   });
