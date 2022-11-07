@@ -57,7 +57,6 @@ describe('SObject faux class generator', () => {
     );
   });
 
-
   it('Should generate a faux class with field inline comments', async () => {
     const gen = getGenerator();
     const customDef = declGenerator.generateSObjectDefinition(
