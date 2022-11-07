@@ -6,8 +6,6 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-// import { when } from 'jest-when';
-import { join } from 'path';
 import * as vscode from 'vscode';
 import {  WorkspaceContextUtil } from '../../../src';
 
@@ -15,7 +13,6 @@ describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
   const testAlias = 'TestOrg';
   const testUser2 = 'test2@test.com';
-  const cliConfigPath = join('/user/dev', '.sfdx', 'sfdx-config.json');
 
   let getUsernameStub: jest.SpyInstance;
   let getUsernameOrAliasStub: jest.SpyInstance;
@@ -45,7 +42,6 @@ describe('WorkspaceContext', () => {
       .mockReturnValue(testAlias);
     getUsernameStub = jest
       .spyOn(authUtil, 'getUsername').mockReturnValue(testUser);
-    // when(getUsernameStub).calledWith(testUser2).mockReturnValue(testUser2);
 
     await workspaceContextUtil.initialize(context);
   });
@@ -64,6 +60,7 @@ describe('WorkspaceContext', () => {
 
   it('should update default username and alias upon config change', async () => {
     getUsernameOrAliasStub.mockReturnValue(testUser2);
+    getUsernameStub.mockReturnValue(testUser2);
 
     await mockWatcher.onDidChange();
 
@@ -88,9 +85,9 @@ describe('WorkspaceContext', () => {
     });
 
     // awaiting to ensure subscribers run their logic
-    await mockWatcher.onDidChange;
-    await mockWatcher.onDidCreate;
-    await mockWatcher.onDidDelete;
+    await mockWatcher.onDidChange();
+    await mockWatcher.onDidCreate();
+    await mockWatcher.onDidDelete();
 
     expect(someLogic).toHaveBeenCalledTimes(3);
   });
@@ -118,6 +115,8 @@ describe('WorkspaceContext', () => {
     });
 
     it('should return a cached connection for the default org if there is one', async () => {
+      createAuthStub.mockReturnValue(mockAuthInfo);
+      createConnectionStub.mockReturnValue(mockConnection);
       await workspaceContextUtil.getConnection();
       await workspaceContextUtil.getConnection();
 
