@@ -6,10 +6,8 @@
  */
 
 import {
-  SFDX_DIR,
   SOBJECTS_DIR,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
+  STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import { SObjectTransformerFactory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
@@ -19,6 +17,7 @@ import {
 import {
   Command,
   LocalCommandExecution,
+  projectPaths,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -140,7 +139,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
       progressLocation
     );
 
-    const projectPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
     const commandName = execution.command.logName;
     try {
       let result;
@@ -160,7 +158,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
           response.data.source
         );
       }
-      result = await transformer.transform(projectPath);
+      result = await transformer.transform();
 
       console.log('Generate success ' + result.data);
       this.logMetric(
@@ -230,14 +228,12 @@ export async function initSObjectDefinitions(projectPath: string) {
 }
 
 function getSObjectsDirectory(projectPath: string) {
-  return path.join(projectPath, SFDX_DIR, TOOLS_DIR, SOBJECTS_DIR);
+  return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
 }
 
 function getStandardSObjectsDirectory(projectPath: string) {
   return path.join(
-    projectPath,
-    SFDX_DIR,
-    TOOLS_DIR,
+    projectPaths.toolsFolder(),
     SOBJECTS_DIR,
     STANDARDOBJECTS_DIR
   );

@@ -61,15 +61,15 @@ export const PACKAGE_XML = 'package.xml';
 export class IsvDebugBootstrapExecutor extends SfdxCommandletExecutor<{}> {
   public readonly relativeMetdataTempPath = path.join(
     projectPaths.relativeToolsFolder(),
-    'isvdebuggermdapitmp'
+    ISVDEBUGGER
   );
   public readonly relativeApexPackageXmlPath = path.join(
     this.relativeMetdataTempPath,
-    'package.xml'
+    PACKAGE_XML
   );
   public readonly relativeInstalledPackagesPath = path.join(
     projectPaths.relativeToolsFolder(),
-    'installed-packages'
+    INSTALLED_PACKAGES
   );
 
   public build(data: {}): Command {

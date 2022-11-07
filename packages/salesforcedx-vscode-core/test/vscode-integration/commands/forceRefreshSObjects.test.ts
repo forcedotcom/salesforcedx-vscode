@@ -6,12 +6,10 @@
  */
 /* tslint:disable:no-unused-expression */
 import {
-  SFDX_DIR,
   SOBJECTS_DIR,
   SObjectTransformer,
   SObjectTransformerFactory,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
+  STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   SObjectCategory,
@@ -21,6 +19,7 @@ import {
   ContinueResponse,
   notificationService,
   ProgressNotification,
+  projectPaths,
   SfdxCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
@@ -52,8 +51,7 @@ describe('ForceGenerateFauxClasses', () => {
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
       projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
+      projectPaths.relativeToolsFolder(),
       SOBJECTS_DIR
     );
 
@@ -118,8 +116,7 @@ describe('ForceGenerateFauxClasses', () => {
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
       projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
+      projectPaths.relativeToolsFolder(),
       SOBJECTS_DIR,
       STANDARDOBJECTS_DIR
     );

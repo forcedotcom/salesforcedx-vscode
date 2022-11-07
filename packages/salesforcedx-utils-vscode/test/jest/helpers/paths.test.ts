@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { projectPaths, workspaceUtils } from '../../../src/';
+import { TOOLS } from '../../../src/helpers/paths';
 
 jest.mock('@salesforce/core', () => {
   return {
@@ -76,9 +77,9 @@ describe('test project paths', () => {
       expect(projectPaths.relativeToolsFolder).toBeDefined();
     });
 
-    it('should return a path to the relative tools folder', () => {
+    it('should return a path to the relative state folder', () => {
       const relativeToolsFolder = projectPaths.relativeToolsFolder();
-      expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, projectPaths.TOOLS));
+      expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, TOOLS));
     });
   });
 });
