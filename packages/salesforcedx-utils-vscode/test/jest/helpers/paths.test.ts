@@ -70,4 +70,15 @@ describe('test project paths', () => {
       expect(relativeStateFolder).toEqual(FAKE_STATE_FOLDER);
     });
   });
+
+  describe('test relativeToolsFolder', () => {
+    it('should be defined', () => {
+      expect(projectPaths.relativeToolsFolder).toBeDefined();
+    });
+
+    it('should return a path to the relative tools folder', () => {
+      const relativeToolsFolder = projectPaths.relativeToolsFolder();
+      expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, projectPaths.TOOLS));
+    });
+  });
 });

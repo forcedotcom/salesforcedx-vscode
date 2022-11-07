@@ -6,15 +6,9 @@
  */
 
 import {
-  Command,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
-import {
   CancelResponse,
   ContinueResponse,
-  FunctionInfo,
-  ParametersGatherer
+  FunctionInfo, LibraryCommandletExecutor, ParametersGatherer
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
