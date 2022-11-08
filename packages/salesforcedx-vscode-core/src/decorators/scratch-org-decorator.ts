@@ -6,7 +6,6 @@
  */
 
 import { ConfigUtil, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-// import * as fs from 'fs';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
 import { nls } from '../messages';
 
@@ -15,28 +14,28 @@ const CONFIG_FILE = projectPaths.sfdxProjectConfig();
 let statusBarItem: StatusBarItem;
 
 export async function showOrg() {
-  if (!statusBarItem) {
-    statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
-    statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
-    statusBarItem.command = 'sfdx.force.org.open';
-    statusBarItem.show();
-  }
-  await displayDefaultUserName();
+  await displayBrowserIcon();
 }
 
 export function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  watcher.onDidChange(uri => {
-    displayDefaultUserName().catch(err => console.error(err));
+  watcher.onDidChange(async () => {
+    await displayBrowserIcon();
   });
-  watcher.onDidCreate(uri => {
-    displayDefaultUserName().catch(err => console.error(err));
+  watcher.onDidCreate(async () => {
+    await displayBrowserIcon();
   });
 }
 
-async function displayDefaultUserName() {
+async function displayBrowserIcon() {
   const defaultUsernameOrAlias = await ConfigUtil.getDefaultUsernameOrAlias();
   if (defaultUsernameOrAlias) {
+    if (!statusBarItem) {
+      statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
+      statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
+      statusBarItem.command = 'sfdx.force.org.open';
+      statusBarItem.show();
+    }
     statusBarItem.text = `$(browser)`;
   }
 }

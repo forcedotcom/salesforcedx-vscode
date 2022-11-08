@@ -34,8 +34,7 @@ const getMockVSCode = () => {
     env: {
       machineId: '12345534'
     },
-    // tslint:disable-next-line:object-literal-shorthand
-    EventEmitter: EventEmitter,
+    EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
     languages: {
       createDiagnosticCollection: jest.fn()
@@ -48,6 +47,10 @@ const getMockVSCode = () => {
       SourceControl: 1,
       Window: 10,
       Notification: 15
+    },
+    StatusBarAlignment: {
+      Left: 1,
+      Right: 2
     },
     window: {
       showInformationMessage: jest.fn(),
@@ -75,10 +78,6 @@ const getMockVSCode = () => {
         onDidDelete: jest.fn()
       }),
       workspaceFolders: []
-    },
-    StatusBarAlignment: {
-      Left: 1,
-      Right: 2
     }
   };
 };

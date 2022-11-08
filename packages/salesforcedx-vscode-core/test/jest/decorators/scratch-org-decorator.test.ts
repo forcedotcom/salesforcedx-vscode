@@ -1,80 +1,101 @@
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
-import { mock } from 'sinon';
 import * as vscode from 'vscode';
-import URI from 'vscode-uri';
+import { ORG_OPEN_COMMAND } from '../../../src';
 import { monitorOrgConfigChanges, showOrg } from '../../../src/decorators';
 import { nls } from '../../../src/messages';
 
 describe('scratch org decorator', () => {
   const testUser = 'test@username.com';
   const browserIcon = `$(browser)`;
-  const openOrgCommand = 'sfdx.force.org.open';
-  const fakePathURI = URI.file('/Users/tester/mockNewFile.test.js');
-  const mockStatusBarItem = {
-    tooltip: '',
-    command: '',
-    show: jest.fn(),
-    text: ''
-  };
-  let onDidCreateEventEmitter: vscode.EventEmitter<vscode.Uri>;
-  let onDidChangeEventEmitter: vscode.EventEmitter<vscode.Uri>;
-  onDidCreateEventEmitter = new vscode.EventEmitter<vscode.Uri>();
-  onDidChangeEventEmitter = new vscode.EventEmitter<vscode.Uri>();
-  const mockWatcher = {
-    // onDidChange: onDidChangeEventEmitter.event,
-    // onDidCreate: onDidCreateEventEmitter.event
-    onDidChange: jest.fn(),
-    onDidCreate: jest.fn()
-  };
-  let mockFileSystemWatcher: jest.SpyInstance;
-  let mockGetDefaultUsername: jest.SpyInstance;
-  let mockCreateStatusBar: jest.SpyInstance;
+  const openOrgCommand = ORG_OPEN_COMMAND;
+  let createFileSystemWatcherMock: jest.SpyInstance;
+  let getDefaultUsernameOrAliasMock: jest.SpyInstance;
+  let createStatusBarItemMock: jest.SpyInstance;
+  const mockStatusBarItem: any = {};
+  let mockWatcher: any;
 
   beforeEach(() => {
-    mockCreateStatusBar = (vscode.window.createStatusBarItem as any).mockReturnValue(
+    mockStatusBarItem.tooltip = '';
+    mockStatusBarItem.command = '';
+    mockStatusBarItem.text = '';
+    mockStatusBarItem.show = jest.fn();
+    mockWatcher = {
+      onDidChange: jest.fn(),
+      onDidCreate: jest.fn()
+    };
+    createStatusBarItemMock = (vscode.window.createStatusBarItem as any).mockReturnValue(
       mockStatusBarItem
     );
-    mockFileSystemWatcher = (vscode.workspace
+    createFileSystemWatcherMock = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
-    mockGetDefaultUsername = jest
+    getDefaultUsernameOrAliasMock = jest
       .spyOn(ConfigUtil, 'getDefaultUsernameOrAlias');
   });
 
   describe('show Org', () => {
-    it('should not show the browser icon in the status bar when a default username is not set', async () => {
+    it('should show the browser icon in the status bar when a default username is set', async () => {
+      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
       await showOrg();
-      expect(mockCreateStatusBar).toHaveBeenCalled();
-      expect(mockStatusBarItem.text).toEqual('');
+      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
+      expect(createStatusBarItemMock).toHaveBeenCalled();
       expect(mockStatusBarItem.tooltip).toEqual(nls.localize('status_bar_open_org_tooltip'));
       expect(mockStatusBarItem.command).toEqual(openOrgCommand);
       expect(mockStatusBarItem.show).toHaveBeenCalled();
-      expect(mockGetDefaultUsername).toHaveBeenCalled();
-    });
-    it('should show the browser icon in the status bar when a default username is set', async () => {
-      mockGetDefaultUsername.mockResolvedValue(testUser);
-      await showOrg();
       expect(mockStatusBarItem.text).toEqual(browserIcon);
-      expect(mockStatusBarItem.show).toHaveBeenCalledTimes(0);
-      expect(mockGetDefaultUsername).toHaveBeenCalled();
+    });
+    it('should not show the browser icon in the status bar when a default username is not set', async () => {
+      await showOrg();
+      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
+      expect(createStatusBarItemMock).not.toHaveBeenCalled();
+      expect(mockStatusBarItem.tooltip).toEqual('');
+      expect(mockStatusBarItem.command).toEqual('');
+      expect(mockStatusBarItem.show).not.toHaveBeenCalled();
+      expect(mockStatusBarItem.text).toEqual('');
     });
 
   });
 
   describe('monitor org changes', () => {
-    it('should show the browser icon when the config file changes', () => {
-      onDidChangeEventEmitter.fire(fakePathURI);
+    it('should show the browser icon when the config file changes', async () => {
+      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
+
       // Act
       monitorOrgConfigChanges();
-      expect(mockFileSystemWatcher).toHaveBeenCalled();
+      // Expect a file system watcher was created
+      expect(createFileSystemWatcherMock).toHaveBeenCalled();
+      // Expect a callback was supplied for its onDidChange fn
       expect(mockWatcher.onDidChange).toHaveBeenCalledWith(expect.any(Function));
-      // expect(mockGetDefaultUsername).toHaveBeenCalled();
+
+      // Act again and call the onDidChange callback fn
+      mockWatcher.onDidChange.mock.calls[0][0]();
+      // Resolve the promise, since it is not awaited in the module itself
+      await new Promise(process.nextTick);
+
+      // The module should check if there is a default username or alias
+      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
+      // Browser icon should be displayed
+      expect(mockStatusBarItem.text).toEqual(browserIcon);
     });
 
-    it('should show the browser icon when the config file is created', () => {
+    it('should show the browser icon when the config file is created', async () => {
+      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
+
+      // Act
       monitorOrgConfigChanges();
-      expect(mockFileSystemWatcher).toHaveBeenCalled();
+      // Expect a file system watcher was created
+      expect(createFileSystemWatcherMock).toHaveBeenCalled();
+      // Expect a callback was supplied for its onDidCreate fn
       expect(mockWatcher.onDidCreate).toHaveBeenCalledWith(expect.any(Function));
-      // expect(mockGetDefaultUsername).toHaveBeenCalled();
+
+      // Act again and call the onDidCreate callback fn
+      mockWatcher.onDidCreate.mock.calls[0][0]();
+      // Resolve the promise, since it is not awaited in the module itself
+      await new Promise(process.nextTick);
+
+      // The module should check if there is a default username or alias
+      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
+      // Browser icon should be displayed
+      expect(mockStatusBarItem.text).toEqual(browserIcon);
     });
   });
 });

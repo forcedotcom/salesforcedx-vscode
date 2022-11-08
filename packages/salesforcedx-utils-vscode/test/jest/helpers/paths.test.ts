@@ -15,7 +15,7 @@ describe('test project paths', () => {
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_STATE_FOLDER = '.sfdx';
   const FAKE_CONFIG_FILE = 'sfdx-config.json';
-  const FAKE_PATH = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
+  const FAKE_PATH_TO_STATE_FOLDER = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
 
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
@@ -26,15 +26,9 @@ describe('test project paths', () => {
         .mockReturnValue(FAKE_WORKSPACE);
     });
 
-    it('should be defined', () => {
-      expect(projectPaths.stateFolder).toBeDefined();
-    });
-
     it('should return a path to the state folder if the project has a root workspace', () => {
       hasRootWorkspaceStub.mockReturnValue(true);
-      expect(projectPaths.stateFolder()).toEqual(
-        path.join(FAKE_PATH)
-      );
+      expect(projectPaths.stateFolder()).toEqual(FAKE_PATH_TO_STATE_FOLDER);
     });
 
     it('should return a path to the state folder if the project does not have a root workspace', () => {

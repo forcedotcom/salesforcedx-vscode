@@ -107,6 +107,8 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
 
+export const ORG_OPEN_COMMAND = 'sfdx.force.org.open';
+
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
 };
@@ -157,7 +159,7 @@ function registerCommands(
     forceOrgCreate
   );
   const forceOrgOpenCmd = vscode.commands.registerCommand(
-    'sfdx.force.org.open',
+    ORG_OPEN_COMMAND,
     forceOrgOpen
   );
   const forceSourceDeleteCmd = vscode.commands.registerCommand(
