@@ -50,9 +50,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
-      projectPath,
-      projectPaths.relativeToolsFolder(),
-      SOBJECTS_DIR
+      projectPaths.toolsFolder(), SOBJECTS_DIR
     );
 
     beforeEach(() => {
@@ -115,8 +113,7 @@ describe('ForceGenerateFauxClasses', () => {
 
     const projectPath = path.join('sample', 'path');
     const sobjectsPath = path.join(
-      projectPath,
-      projectPaths.relativeToolsFolder(),
+      projectPaths.toolsFolder(),
       SOBJECTS_DIR,
       STANDARDOBJECTS_DIR
     );
@@ -137,13 +134,11 @@ describe('ForceGenerateFauxClasses', () => {
       await checkSObjectsAndRefresh(projectPath);
 
       expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-      expect(
-        telemetryEventStub.calledWith(
-          'sObjectRefreshNotification',
-          { type: SObjectRefreshSource.StartupMin },
-          undefined
-        )
-      ).to.be.true;
+      expect(telemetryEventStub.callCount).to.equal(1);
+      const telemetryCallArgs = telemetryEventStub.getCall(0).args;
+      expect(telemetryCallArgs[0]).to.equal('sObjectRefreshNotification');
+      expect(telemetryCallArgs[1]).to.deep.equal({ type: SObjectRefreshSource.StartupMin });
+      expect(telemetryCallArgs[2]).to.equal(undefined);
     });
 
     it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {

@@ -213,7 +213,7 @@ export async function verifyUsernameAndInitSObjectDefinitions(
 
 export async function initSObjectDefinitions(projectPath: string) {
   if (projectPath) {
-    const sobjectFolder = getSObjectsDirectory(projectPath);
+    const sobjectFolder = getSObjectsDirectory();
     if (!fs.existsSync(sobjectFolder)) {
       telemetryService.sendEventData(
         'sObjectRefreshNotification',
@@ -227,11 +227,11 @@ export async function initSObjectDefinitions(projectPath: string) {
   }
 }
 
-function getSObjectsDirectory(projectPath: string) {
+function getSObjectsDirectory() {
   return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
 }
 
-function getStandardSObjectsDirectory(projectPath: string) {
+function getStandardSObjectsDirectory() {
   return path.join(
     projectPaths.toolsFolder(),
     SOBJECTS_DIR,
@@ -242,7 +242,7 @@ function getStandardSObjectsDirectory(projectPath: string) {
 export async function checkSObjectsAndRefresh(projectPath: string) {
   if (
     projectPath &&
-    !fs.existsSync(getStandardSObjectsDirectory(projectPath))
+    !fs.existsSync(getStandardSObjectsDirectory())
   ) {
     telemetryService.sendEventData(
       'sObjectRefreshNotification',
