@@ -7,6 +7,7 @@
 
 import { ConfigUtil, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
+import { ORG_OPEN_COMMAND } from '../../';
 import { nls } from '../messages';
 
 const CONFIG_FILE = projectPaths.sfdxProjectConfig();
@@ -20,10 +21,10 @@ export async function showOrg() {
 export function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
   watcher.onDidChange(() => {
-    displayBrowserIcon();
+    displayBrowserIcon().catch(err => console.error(err));
   });
   watcher.onDidCreate(() => {
-    displayBrowserIcon();
+    displayBrowserIcon().catch(err => console.error(err));
   });
 }
 
@@ -33,7 +34,7 @@ async function displayBrowserIcon() {
     if (!statusBarItem) {
       statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
       statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
-      statusBarItem.command = 'sfdx.force.org.open';
+      statusBarItem.command = ORG_OPEN_COMMAND;
       statusBarItem.show();
     }
     statusBarItem.text = `$(browser)`;
