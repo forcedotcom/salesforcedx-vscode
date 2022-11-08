@@ -7,7 +7,7 @@
 
 import { ConfigUtil, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
-import { ORG_OPEN_COMMAND } from '../../';
+import { ORG_OPEN_COMMAND } from '../../src';
 import { nls } from '../messages';
 
 const CONFIG_FILE = projectPaths.sfdxProjectConfig();
