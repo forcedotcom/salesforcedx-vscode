@@ -8,7 +8,8 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { join } from 'path';
 import * as vscode from 'vscode';
-import { AuthUtil, ConfigAggregatorProvider } from '..';
+import { ConfigAggregatorProvider } from '..';
+import { AuthUtil } from '../auth/authUtil';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
 import { workspaceUtils } from '../workspaces/workspaceUtils';
