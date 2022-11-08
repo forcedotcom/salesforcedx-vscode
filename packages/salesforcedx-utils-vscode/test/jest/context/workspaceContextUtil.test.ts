@@ -7,7 +7,14 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
-import {  WorkspaceContextUtil } from '../../../src';
+import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
+import { AuthUtil } from '../../../src/auth/authUtil';
+jest.mock('@salesforce/core');
+jest.mock('../../../src/auth/authUtil');
+
+const authInfoMock = jest.mocked(AuthInfo);
+const connectionMock = jest.mocked(Connection);
+const authUtilMock = jest.mocked(AuthUtil);
 
 describe('WorkspaceContext', () => {
   const testUser = 'test@test.com';
@@ -17,10 +24,10 @@ describe('WorkspaceContext', () => {
   let getUsernameStub: jest.SpyInstance;
   let getUsernameOrAliasStub: jest.SpyInstance;
   let workspaceContextUtil: any; // TODO find a better way
-  let authUtil: any;
 
-  let mockWatcher: any;
+  let mockWatcher: { onDidChange: any; onDidCreate: any; onDidDelete: any; };
   let mockFileSystemWatcher: jest.SpyInstance;
+  let reloadConfigAggregatorsMock: jest.SpyInstance;
 
   beforeEach(async () => {
     mockWatcher = {
@@ -28,23 +35,19 @@ describe('WorkspaceContext', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn()
     };
+    reloadConfigAggregatorsMock = jest.spyOn(ConfigAggregatorProvider.prototype, 'reloadConfigAggregators');
+
     mockFileSystemWatcher = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
 
     const context = {
       subscriptions: []
     };
+    getUsernameOrAliasStub = (authUtilMock.prototype.getDefaultUsernameOrAlias as any).mockReturnValue(testAlias);
+    getUsernameStub = (authUtilMock.prototype.getUsername as any).mockReturnValue(testUser);
+    authUtilMock.getInstance.mockReturnValue(new AuthUtil());
 
     workspaceContextUtil = WorkspaceContextUtil.getInstance(true);
-
-    authUtil = workspaceContextUtil.getAuthUtil();
-    getUsernameOrAliasStub = jest
-      .spyOn(authUtil, 'getDefaultUsernameOrAlias')
-      .mockReturnValue(testAlias);
-    getUsernameStub = jest
-      .spyOn(authUtil, 'getUsername')
-      .mockReturnValue(testUser);
-
     await workspaceContextUtil.initialize(context);
   });
 
@@ -56,6 +59,7 @@ describe('WorkspaceContext', () => {
   it('should load the default username and alias upon initialization', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
+    expect(reloadConfigAggregatorsMock).toHaveBeenCalled();
   });
 
   it('should update default username and alias upon config change', async () => {
@@ -130,20 +134,21 @@ describe('WorkspaceContext', () => {
     });
 
     it('should return connection for the default org', async () => {
-      createAuthStub.mockResolvedValue(mockAuthInfo);
-      createConnectionStub.mockResolvedValue(mockConnection);
+      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
+      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
+      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
       const connection = await workspaceContextUtil.getConnection();
-      expect(createConnectionStub).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
+      expect(connectionMock.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
       expect(connection).toEqual(mockConnection);
     });
 
     it('should return a cached connection for the default org if there is one', async () => {
-      createAuthStub.mockReturnValue(mockAuthInfo);
-      createConnectionStub.mockReturnValue(mockConnection);
+      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
+      connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
       await workspaceContextUtil.getConnection();
       await workspaceContextUtil.getConnection();
 
-      expect(createConnectionStub).toHaveBeenCalledTimes(1);
+      expect(connectionMock.create).toHaveBeenCalledTimes(1);
     });
   });
 });
