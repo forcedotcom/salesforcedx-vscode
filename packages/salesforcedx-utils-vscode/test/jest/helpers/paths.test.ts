@@ -77,7 +77,7 @@ describe('test project paths', () => {
       expect(projectPaths.relativeToolsFolder).toBeDefined();
     });
 
-    it('should return a path to the relative state folder', () => {
+    it('should return a path to the relative tools folder', () => {
       const relativeToolsFolder = projectPaths.relativeToolsFolder();
       expect(relativeToolsFolder).toEqual(path.join(FAKE_STATE_FOLDER, TOOLS));
     });
