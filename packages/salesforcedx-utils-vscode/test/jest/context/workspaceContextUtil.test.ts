@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
 import { AuthUtil } from '../../../src/auth/authUtil';
 jest.mock('@salesforce/core');
-jest.mock('../../../src/auth/authUtil')
+jest.mock('../../../src/auth/authUtil');
 
 const authInfoMock = jest.mocked(AuthInfo);
 const connectionMock = jest.mocked(Connection);
@@ -36,7 +36,6 @@ describe('WorkspaceContext', () => {
       onDidDelete: jest.fn()
     };
     reloadConfigAggregatorsMock = jest.spyOn(ConfigAggregatorProvider.prototype, 'reloadConfigAggregators');
-
 
     mockFileSystemWatcher = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
