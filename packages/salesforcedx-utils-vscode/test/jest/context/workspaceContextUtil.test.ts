@@ -19,14 +19,15 @@ describe('WorkspaceContext', () => {
   let workspaceContextUtil: any; // TODO find a better way
   let authUtil: any;
 
-  const mockWatcher = {
-    onDidChange: jest.fn(),
-    onDidCreate: jest.fn(),
-    onDidDelete: jest.fn()
-  };
+  let mockWatcher: any;
   let mockFileSystemWatcher: jest.SpyInstance;
 
   beforeEach(async () => {
+    mockWatcher = {
+      onDidChange: jest.fn(),
+      onDidCreate: jest.fn(),
+      onDidDelete: jest.fn()
+    };
     mockFileSystemWatcher = (vscode.workspace
       .createFileSystemWatcher as any).mockReturnValue(mockWatcher);
 
@@ -41,12 +42,11 @@ describe('WorkspaceContext', () => {
       .spyOn(authUtil, 'getDefaultUsernameOrAlias')
       .mockReturnValue(testAlias);
     getUsernameStub = jest
-      .spyOn(authUtil, 'getUsername').mockReturnValue(testUser);
+      .spyOn(authUtil, 'getUsername')
+      .mockReturnValue(testUser);
 
     await workspaceContextUtil.initialize(context);
   });
-
-  afterEach(() => jest.clearAllMocks());
 
   it('test for the constructor', () => {
     expect(workspaceContextUtil).toHaveProperty('sessionConnections');
@@ -71,9 +71,26 @@ describe('WorkspaceContext', () => {
     expect(workspaceContextUtil.alias).toEqual(undefined);
   });
 
-  it('should update default username and alias to undefined if one is not set', async () => {
-    getUsernameOrAliasStub.mockReturnValue(undefined);
+  it('should update default username to undefined if username is not set', async () => {
+    expect(workspaceContextUtil.username).toEqual(testUser);
+    expect(workspaceContextUtil.alias).toEqual(testAlias);
+
     getUsernameStub.mockReturnValue(undefined);
+
+    expect(mockWatcher.onDidChange).toHaveBeenCalled();
+    const handler = mockWatcher.onDidChange.mock.calls[0][0];
+    expect(handler).toBeInstanceOf(Function);
+    await handler();
+
+    expect(workspaceContextUtil.username).toEqual(undefined);
+    expect(workspaceContextUtil.alias).toEqual(testAlias);
+  });
+
+  it('should update default username and alias to undefined if alias is not set', async () => {
+    expect(workspaceContextUtil.username).toEqual(testUser);
+    expect(workspaceContextUtil.alias).toEqual(testAlias);
+
+    getUsernameOrAliasStub.mockReturnValue(undefined);
 
     expect(mockWatcher.onDidChange).toHaveBeenCalled();
     const handler = mockWatcher.onDidChange.mock.calls[0][0];

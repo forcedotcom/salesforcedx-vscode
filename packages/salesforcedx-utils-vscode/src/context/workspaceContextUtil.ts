@@ -6,12 +6,10 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { join } from 'path';
 import * as vscode from 'vscode';
 import { AuthUtil, ConfigAggregatorProvider } from '..';
 import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-import { workspaceUtils } from '../workspaces/workspaceUtils';
 export interface OrgUserInfo {
   username?: string;
   alias?: string;
@@ -37,7 +35,7 @@ export class WorkspaceContextUtil {
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(projectPaths.sfdxProjectConfig());
+    const cliConfigPath = projectPaths.sfdxProjectConfig();
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
       cliConfigPath
     );
