@@ -19,11 +19,11 @@ export async function showOrg() {
 
 export function monitorOrgConfigChanges() {
   const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  watcher.onDidChange(async () => {
-    await displayBrowserIcon();
+  watcher.onDidChange(() => {
+    displayBrowserIcon();
   });
-  watcher.onDidCreate(async () => {
-    await displayBrowserIcon();
+  watcher.onDidCreate(() => {
+    displayBrowserIcon();
   });
 }
 
