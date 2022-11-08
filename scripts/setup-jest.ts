@@ -34,8 +34,7 @@ const getMockVSCode = () => {
     env: {
       machineId: '12345534'
     },
-    // tslint:disable-next-line:object-literal-shorthand
-    EventEmitter: EventEmitter,
+    EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
     languages: {
       createDiagnosticCollection: jest.fn()
