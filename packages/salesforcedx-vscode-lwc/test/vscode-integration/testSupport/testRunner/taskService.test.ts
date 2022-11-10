@@ -9,7 +9,7 @@ import { assert, SinonStub, stub } from 'sinon';
 import * as vscode from 'vscode';
 import { taskService } from '../../../../src/testSupport/testRunner/taskService';
 import { nls } from '../../../../src/messages';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
+import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 
 describe('Task Service Unit Tests', () => {
   let executeTaskStub: SinonStub<
@@ -68,7 +68,8 @@ describe('Task Service Unit Tests', () => {
     runOptions: {},
     definition: {
       type: 'sfdxLwcTest'
-    }
+    },
+    scope: undefined
   };
 
   describe('Create Tasks', () => {

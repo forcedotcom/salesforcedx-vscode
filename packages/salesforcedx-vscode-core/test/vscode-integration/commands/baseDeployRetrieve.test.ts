@@ -4,10 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
+import {
+  ConfigUtil,
+  ContinueResponse,
+  Table
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   ComponentStatus,
@@ -26,9 +34,8 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { fail } from 'assert';
 import { expect } from 'chai';
-import { Test } from 'mocha';
 import { basename, dirname, join, sep } from 'path';
-import { createSandbox, SinonSpy, SinonStub, spy } from 'sinon';
+import { SinonSpy, SinonStub, spy } from 'sinon';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { BaseDeployExecutor } from '../../../src/commands';
@@ -43,15 +50,11 @@ import { getAbsoluteFilePath } from '../../../src/diagnostics';
 import { nls } from '../../../src/messages';
 import { DeployQueue } from '../../../src/settings';
 import { SfdxPackageDirectories } from '../../../src/sfdxProject';
-import {
-  ConfigUtil,
-  getRootWorkspacePath,
-  OrgAuthInfo
-} from '../../../src/util';
+import { OrgAuthInfo, workspaceUtils } from '../../../src/util';
 import { MockExtensionContext } from '../telemetry/MockExtensionContext';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
 
@@ -62,21 +65,20 @@ describe('Base Deploy Retrieve Commands', () => {
 
   beforeEach(async () => {
     const testData = new MockTestOrgData();
+    stubContext($$);
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
-    mockConnection = await Connection.create({
-      authInfo: await AuthInfo.create({
-        username: testData.username
-      })
-    });
+    mockConnection = await testData.getConnection();
     sb.stub(workspaceContext, 'getConnection').resolves(mockConnection);
     getOrgApiVersionStub = sb
       .stub(OrgAuthInfo, 'getOrgApiVersion')
       .resolves(dummyOrgApiVersion);
   });
 
-  afterEach(() => sb.restore());
+  afterEach(() => {
+    restoreContext($$);
+  });
 
   describe('DeployRetrieveCommand', () => {
     class TestDeployRetrieve extends DeployRetrieveExecutor<{}> {
@@ -184,7 +186,7 @@ describe('Base Deploy Retrieve Commands', () => {
         'classes',
         'someclass.xyz'
       );
-      const fullPath = join(getRootWorkspacePath(), projectPath);
+      const fullPath = join(workspaceUtils.getRootWorkspacePath(), projectPath);
       const error = new Error(`Problem with ${fullPath}`);
       executor.lifecycle.getComponentsStub.throws(error);
 
@@ -233,9 +235,9 @@ describe('Base Deploy Retrieve Commands', () => {
       executor.lifecycle.getComponentsStub.returns(getComponentsResult);
 
       const configApiVersion = '45.0';
-      sb.stub(ConfigUtil, 'getConfigValue')
-        .withArgs('apiVersion')
-        .returns(configApiVersion);
+      sb.stub(ConfigUtil, 'getUserConfiguredApiVersion').returns(
+        configApiVersion
+      );
 
       await executor.run({ data: {}, type: 'CONTINUE' });
       const components = executor.lifecycle.doOperationStub.firstCall.args[0];
@@ -468,7 +470,10 @@ describe('Base Deploy Retrieve Commands', () => {
         failedRows.forEach((row, index) => {
           const [fileUri, diagnostics] = setDiagnosticsStub.getCall(index).args;
           const expectedFileUri = vscode.Uri.file(
-            getAbsoluteFilePath(row.filePath, getRootWorkspacePath())
+            getAbsoluteFilePath(
+              row.filePath,
+              workspaceUtils.getRootWorkspacePath()
+            )
           );
           expect(fileUri).to.deep.equal(expectedFileUri);
           expect(diagnostics).to.deep.equal([

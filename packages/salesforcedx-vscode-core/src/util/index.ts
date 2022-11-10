@@ -13,12 +13,7 @@ export {
   isSFDXContainerMode,
   showCLINotInstalledMessage
 } from './cliConfiguration';
-export { ConfigSource, ConfigUtil } from './configUtil';
-export {
-  getRootWorkspace,
-  getRootWorkspacePath,
-  hasRootWorkspace
-} from './rootWorkspace';
+export { workspaceUtils } from './rootWorkspace';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
 export {
   checkForExpiredOrgs,

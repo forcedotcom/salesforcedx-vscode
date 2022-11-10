@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import {
@@ -40,6 +40,7 @@ import {
   forceLightningInterfaceCreate,
   forceLightningLwcCreate,
   forceLightningLwcTestCreate,
+  forceOpenDocumentation,
   forceOrgCreate,
   forceOrgDelete,
   forceOrgDisplay,
@@ -91,10 +92,8 @@ import {
   registerConflictView,
   setupConflictView
 } from './conflict';
-import {
-  ENABLE_SOBJECT_REFRESH_ON_STARTUP
-} from './constants';
-import { getDefaultUsernameOrAlias } from './context';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
+import { workspaceContextUtils } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
 import { isDemoMode } from './modes/demo-mode';
@@ -148,6 +147,10 @@ function registerCommands(
   const forceAuthLogoutDefaultCmd = vscode.commands.registerCommand(
     'sfdx.force.auth.logout.default',
     forceAuthLogoutDefault
+  );
+  const forceOpenDocumentationCmd = vscode.commands.registerCommand(
+    'sfdx.force.open.documentation',
+    forceOpenDocumentation
   );
   const forceOrgCreateCmd = vscode.commands.registerCommand(
     'sfdx.force.org.create',
@@ -447,6 +450,7 @@ function registerCommands(
     forceFunctionStartCmd,
     forceFunctionContainerStartCmd,
     forceFunctionStopCmd,
+    forceOpenDocumentationCmd,
     forceOrgCreateCmd,
     forceOrgOpenCmd,
     forceOrgDeleteDefaultCmd,
@@ -579,17 +583,12 @@ async function setupOrgBrowser(
     }
   );
 
-  vscode.commands.registerCommand(
-    'sfdx.create.manifest',
-    forceCreateManifest
-  );
+  vscode.commands.registerCommand('sfdx.create.manifest', forceCreateManifest);
 }
 
 export async function activate(extensionContext: vscode.ExtensionContext) {
   const extensionHRStart = process.hrtime();
-  const { name, aiKey, version } = require(extensionContext.asAbsolutePath(
-    './package.json'
-  ));
+  const { name, aiKey, version } = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     name,
@@ -680,7 +679,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
     channelService,
     CompositeParametersGatherer,
     EmptyParametersGatherer,
-    getDefaultUsernameOrAlias,
+    getDefaultUsernameOrAlias: workspaceContextUtils.getDefaultUsernameOrAlias,
     getUserId,
     isCLIInstalled,
     notificationService,

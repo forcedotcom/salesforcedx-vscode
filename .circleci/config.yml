@@ -40,9 +40,6 @@ parameters:
     type: string
     default: '3b:68:69:7d:19:a4:50:69:ad:b8:db:57:f9:9c:f0:3f'
   # Workflow Triggers
-  create-release:
-    type: boolean
-    default: false
   publish:
     type: boolean
     default: false
@@ -59,6 +56,7 @@ commands:
     steps:
       - checkout
       - restore_dependency_cache
+      - run: sudo npm install -g npm@8.12.1
       - install
       - compile
       - package-extensions
@@ -345,6 +343,7 @@ jobs:
       - NODE_VERSION: << pipeline.parameters.node-version >>
     steps:
       - build-win
+      - package-extensions
       - run:
           name: 'Run SOQL UI Tests if Needed'
           shell: bash.exe
@@ -506,40 +505,6 @@ jobs:
                 sfchangecase close --location "https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME"
             fi
 
-  create-release-branch:
-    parameters:
-      e:
-        type: executor
-    executor: << parameters.e >>
-    steps:
-      - slack/notify:
-          channel: 'pdt_releases'
-          color: '#FFDEAD'
-          message: 'Starting creation of release branch for VSCode Extensions'
-      - ssh-config
-      - checkout
-      - restore_dependency_cache
-      - gh-config
-      - run:
-          name: 'Install npm 8.12'
-          command: sudo npm install -g npm@8.12.1
-      - install
-      - run:
-          name: Install Lerna
-          command: sudo npm install -g lerna@<< pipeline.parameters.lerna-version >>
-      - run:
-          name: Create release branch
-          command: |
-            git branch
-            scripts/create-release-branch.js -r << pipeline.parameters.publish-type >>
-      - slack/notify:
-          channel: 'pdt_releases'
-          color: '#d8bfd8'
-          message: 'VSCode Extensions release branch has been cut'
-      - slack/status:
-          channel: 'pdt_releases'
-          fail_only: true
-
 workflows:
   version: 2.1
 
@@ -547,7 +512,6 @@ workflows:
   commit-workflow:
     when:
       and:
-        - not: << pipeline.parameters.create-release >>
         - not: << pipeline.parameters.publish >>
         - not: << pipeline.parameters.pre-publish >>
     jobs:
@@ -607,28 +571,6 @@ workflows:
               only:
                 - main
 
-  create-release-branch-workflow:
-    when: << pipeline.parameters.create-release >>
-    jobs:
-      - slack/approval-notification:
-          context:
-            - salesforce-ide
-          message: Pending Approval for Creation of Release Branch
-          channel: 'pdt_releases'
-          color: '#0E1111'
-      - hold: # Requires manual approval in Circle Ci
-          type: approval
-      - create-release-branch:
-          e: default-executor
-          context:
-            - salesforce-ide
-          requires:
-            - hold
-          filters:
-            branches:
-              only:
-                - develop
-
   # run a build/test every mid-night
   scheduled-workflow:
     triggers:
@@ -644,18 +586,6 @@ workflows:
       - unit-tests
       - integration-tests
       - soql-ui-tests
-
-  cut-release:
-    triggers:
-      - schedule:
-          cron: '0 13 * * 1'
-          filters:
-            branches:
-              only:
-                - develop
-    jobs:
-      - create-release-branch:
-          e: default-executor
   # TODO: Re-enable after issue with dependabot automerge ignoring failed  status checks is fixed.
   # dependabot-automerge:
   #   triggers:

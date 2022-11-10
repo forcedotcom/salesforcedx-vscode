@@ -5,11 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { testSetup } from '@salesforce/core/lib/testSetup';
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import * as helpers from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import {
+  fileUtils,
+  notificationService,
+  SfdxCommandlet
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
-import { createSandbox, SinonSandbox } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { forceLaunchApexReplayDebuggerWithCurrentFile } from '../../../src/commands/forceLaunchApexReplayDebuggerWithCurrentFile';
 import { nls } from '../../../src/messages';
@@ -18,10 +20,10 @@ import { ApexTestOutlineProvider } from '../../../src/views/testOutlineProvider'
 const $$ = testSetup();
 
 describe('Force Launch Replay Debugger', () => {
-  let sb: SinonSandbox;
-
+  const sb = createSandbox();
+  let flushFilePathStub: SinonStub;
   beforeEach(async () => {
-    sb = createSandbox();
+    flushFilePathStub = sb.stub(fileUtils, 'flushFilePath');
   });
 
   afterEach(() => {
@@ -82,7 +84,7 @@ describe('Force Launch Replay Debugger', () => {
       undefined
     );
 
-    sb.stub(helpers, 'flushFilePath').returns(undefined);
+    flushFilePathStub.returns(undefined);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
@@ -101,7 +103,9 @@ describe('Force Launch Replay Debugger', () => {
       }
     }));
 
-    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    const executeCommandSpy = sb
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 
@@ -140,9 +144,11 @@ describe('Force Launch Replay Debugger', () => {
 
     sb.stub(SfdxCommandlet.prototype, 'run').returns(undefined);
 
-    sb.stub(helpers, 'flushFilePath').returns('foo.cls');
+    flushFilePathStub.returns('foo.cls');
 
-    const executeCommandSpy = sb.spy(vscode.commands, 'executeCommand');
+    const executeCommandSpy = sb
+      .stub(vscode.commands, 'executeCommand')
+      .resolves(true);
 
     await forceLaunchApexReplayDebuggerWithCurrentFile();
 

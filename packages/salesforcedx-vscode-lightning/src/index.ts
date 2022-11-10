@@ -6,7 +6,7 @@
  */
 
 import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import {
   ExtensionContext,
@@ -22,8 +22,6 @@ import {
   TransportKind
 } from 'vscode-languageclient';
 import { nls } from './messages';
-
-const EXTENSION_NAME = 'salesforcedx-vscode-lightning';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export function code2ProtocolConverter(value: Uri): string {
@@ -86,12 +84,13 @@ export async function activate(extensionContext: ExtensionContext) {
   console.log('WorkspaceType detected: ' + workspaceType);
 
   // Initialize telemetry service
-  const extensionPackage = require(extensionContext.asAbsolutePath('./package.json'));
+  const { name, aiKey, version } = extensionContext.extension.packageJSON;
+
   await TelemetryService.getInstance().initializeService(
     extensionContext,
-    EXTENSION_NAME,
-    extensionPackage.aiKey,
-    extensionPackage.version
+    name,
+    aiKey,
+    version
   );
 
   // Start the Aura Language Server

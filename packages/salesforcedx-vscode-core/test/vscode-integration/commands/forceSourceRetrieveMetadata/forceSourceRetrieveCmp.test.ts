@@ -5,12 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core';
-import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
+import { Connection } from '@salesforce/core';
+import {
+  instantiateContext,
+  MockTestOrgData,
+  restoreContext,
+  stubContext
+} from '@salesforce/core/lib/testSetup';
 import {
   ContinueResponse,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
   MetadataResolver,
@@ -24,18 +29,16 @@ import {
 } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonStub } from 'sinon';
+import { SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { RetrieveDescriber } from '../../../../src/commands/forceSourceRetrieveMetadata';
-import {
-  LibraryRetrieveSourcePathExecutor
-} from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
+import { LibraryRetrieveSourcePathExecutor } from '../../../../src/commands/forceSourceRetrieveMetadata/forceSourceRetrieveCmp';
 import { workspaceContext } from '../../../../src/context';
 import { SfdxPackageDirectories } from '../../../../src/sfdxProject';
-import { getRootWorkspacePath } from '../../../../src/util';
+import { workspaceUtils } from '../../../../src/util';
 
-const sb = createSandbox();
-const $$ = testSetup();
+const $$ = instantiateContext();
+const sb = $$.SANDBOX;
 
 class TestDescriber implements RetrieveDescriber {
   public buildMetadataArg(data?: LocalComponent[]): string {
@@ -60,21 +63,18 @@ describe('Force Source Retrieve Component(s)', () => {
     let retrieveStub: SinonStub;
 
     beforeEach(async () => {
+      stubContext($$);
       $$.setConfigStubContents('AuthInfoConfig', {
         contents: await testData.getConfig()
       });
-      mockConnection = await Connection.create({
-        authInfo: await AuthInfo.create({
-          username: testData.username
-        })
-      });
+      mockConnection = await testData.getConnection();
       sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
 
       sb.stub(SfdxPackageDirectories, 'getDefaultPackageDir').returns(
         defaultPackageDir
       );
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryFullPaths').resolves([
-        path.join(getRootWorkspacePath(), defaultPackageDir)
+        path.join(workspaceUtils.getRootWorkspacePath(), defaultPackageDir)
       ]);
       sb.stub(SfdxPackageDirectories, 'getPackageDirectoryPaths').resolves([
         defaultPackageDir
@@ -90,8 +90,7 @@ describe('Force Source Retrieve Component(s)', () => {
     });
 
     afterEach(() => {
-      $$.SANDBOX.restore();
-      sb.restore();
+      restoreContext($$);
     });
 
     it('should retrieve with given components', async () => {
@@ -117,7 +116,7 @@ describe('Force Source Retrieve Component(s)', () => {
       expect(retrieveStub.calledOnce).to.equal(true);
       expect(retrieveStub.firstCall.args[0]).to.deep.equal({
         usernameOrConnection: mockConnection,
-        output: path.join(getRootWorkspacePath(), 'test-app'),
+        output: path.join(workspaceUtils.getRootWorkspacePath(), 'test-app'),
         merge: true
       });
 

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
+import { getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient/lib/main';
@@ -72,7 +72,7 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   await workspaceContext.initialize(extensionContext);
 
   // Telemetry
-  const extensionPackage = require(extensionContext.asAbsolutePath('./package.json'));
+  const extensionPackage = extensionContext.extension.packageJSON;
   await telemetryService.initializeService(
     extensionContext,
     APEX_EXTENSION_NAME,
@@ -83,7 +83,9 @@ export async function activate(extensionContext: vscode.ExtensionContext) {
   // Initialize Apex language server
   try {
     const langClientHRStart = process.hrtime();
-    languageClient = await languageServer.createLanguageServer(extensionContext);
+    languageClient = await languageServer.createLanguageServer(
+      extensionContext
+    );
     languageClientUtils.setClientInstance(languageClient);
     const handle = languageClient.start();
     languageClientUtils.setStatus(ClientStatus.Indexing, '');
@@ -257,8 +259,7 @@ function registerCommands(): vscode.Disposable {
   );
 }
 
-async function registerTestView(
-): Promise<vscode.Disposable> {
+async function registerTestView(): Promise<vscode.Disposable> {
   // Create TestRunner
   const testRunner = new ApexTestRunner(testOutlineProvider);
 

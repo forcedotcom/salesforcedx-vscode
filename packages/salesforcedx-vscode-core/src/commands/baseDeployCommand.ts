@@ -5,16 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryBuilder } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import {
   CliCommandExecutor,
-  ForceDeployResultParser
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
+  ContinueResponse,
+  ForceDeployResultParser,
   Row,
-  Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  Table,
+  TelemetryBuilder
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { handleDiagnosticErrors } from '../diagnostics';
@@ -23,7 +21,7 @@ import { notificationService, ProgressNotification } from '../notifications';
 import { DeployQueue } from '../settings/pushOrDeployOnSave';
 import { taskViewService } from '../statuses';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath } from '../util';
+import { workspaceUtils } from '../util';
 import { SfdxCommandletExecutor } from './util/sfdxCommandlet';
 
 export enum DeployType {
@@ -42,7 +40,7 @@ export abstract class BaseDeployExecutor extends SfdxCommandletExecutor<
     const startTime = process.hrtime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
-    const workspacePath = getRootWorkspacePath() || '';
+    const workspacePath = workspaceUtils.getRootWorkspacePath() || '';
     const execFilePathOrPaths =
       this.getDeployType() === DeployType.Deploy ? response.data : '';
     const execution = new CliCommandExecutor(this.build(response.data), {

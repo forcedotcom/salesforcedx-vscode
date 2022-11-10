@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Config, Org } from '@salesforce/core';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
 import { Row, Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
 import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/src/types';
@@ -18,7 +19,6 @@ import {
   TABLE_VAL_COL
 } from '../constants';
 import { nls } from '../messages';
-import { getRootWorkspacePath } from '../util/rootWorkspace';
 import {
   EmptyParametersGatherer,
   SfdxCommandlet,
