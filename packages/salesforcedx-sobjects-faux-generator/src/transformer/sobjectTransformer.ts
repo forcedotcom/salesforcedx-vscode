@@ -7,7 +7,6 @@
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
-import * as path from 'path';
 import {
   ERROR_EVENT,
   EXIT_EVENT,
@@ -20,7 +19,6 @@ import { SObjectShortDescription } from '../describe';
 import { nls } from '../messages';
 import {
   SObject,
-  SObjectDefinition,
   SObjectDefinitionRetriever,
   SObjectGenerator,
   SObjectRefreshOutput as SObjectRefreshData,
@@ -59,11 +57,11 @@ export class SObjectTransformer {
   }
 
   public async transform(): Promise<SObjectRefreshResult> {
-    const projectFile = projectPaths.stateFolder();
+    const pathToStateFolder = projectPaths.stateFolder();
 
-    if (!fs.existsSync(projectFile)) {
+    if (!fs.existsSync(pathToStateFolder)) {
       return this.errorExit(
-        nls.localize('no_generate_if_not_in_project', projectFile)
+        nls.localize('no_generate_if_not_in_project', pathToStateFolder)
       );
     }
 
