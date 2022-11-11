@@ -12,6 +12,7 @@ import { Connection } from '@salesforce/core';
 import {
   hasRootWorkspace,
   LibraryCommandletExecutor,
+  projectPaths,
   SfdxCommandlet,
   SfdxWorkspaceChecker,
   WorkspaceContextUtil
@@ -157,7 +158,7 @@ export class AnonApexLibraryExecuteExecutor extends LibraryCommandletExecutor<
   }
 
   private getLogFilePath(): string {
-    const outputDir = WorkspaceContextUtil.getLogDirPath();
+    const outputDir = projectPaths.debugLogsFolder();
     const now = new Date();
     const localDateFormatted = getYYYYMMddHHmmssDateFormat(now);
     const logFilePath = path.join(outputDir, `${localDateFormatted}.log`);

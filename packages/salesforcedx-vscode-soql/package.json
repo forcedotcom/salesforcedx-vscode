@@ -84,7 +84,7 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:vscode-integration",
     "test:ui:prepare": "extest get-vscode -s ~/.vscode-test-resources && extest get-chromedriver -s ~/.vscode-test-resources ",
-    "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-56.2.0.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
+    "test:ui:install": "extest install-vsix -f ./salesforcedx-vscode-soql-*.vsix -s ~/.vscode-test-resources -e test/ui-test/resources/extensions ",
     "test:ui:run": "extest run-tests -s ~/.vscode-test-resources -o test/ui-test/resources/settings.json -e test/ui-test/resources/extensions out/test/ui-test/*.test.js",
     "test:ui": "npm run test:ui:prepare && npm run test:ui:install && npm run test:ui:run",
     "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
