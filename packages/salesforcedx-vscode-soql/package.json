@@ -33,7 +33,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.6.0",
-    "@salesforce/core": "^3.23.2",
+    "@salesforce/core": "^3.31.18",
     "@salesforce/soql-builder-ui": "0.2.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
@@ -120,7 +120,7 @@
       "dependencies": {
         "applicationinsights": "1.0.7",
         "@salesforce/apex-tmlanguage": "1.6.0",
-        "@salesforce/core": "3.30.9",
+        "@salesforce/core": "3.31.18",
         "shelljs": "0.8.5",
         "@salesforce/soql-builder-ui": "0.2.0",
         "@salesforce/soql-data-view": "0.1.0",
