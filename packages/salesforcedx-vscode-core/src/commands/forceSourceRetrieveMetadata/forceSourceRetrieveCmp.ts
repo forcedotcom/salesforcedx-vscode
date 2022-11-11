@@ -5,36 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CliCommandExecutor,
-  Command,
-  CommandOutput,
-  SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode';
-import { TelemetryData } from '@salesforce/salesforcedx-utils-vscode';
-import {
   ContinueResponse,
   LocalComponent
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ComponentSet,
-  RetrieveResult,
-  SourceComponent
-} from '@salesforce/source-deploy-retrieve';
-import { SourceRetrieveResult } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
+  RetrieveResult} from '@salesforce/source-deploy-retrieve';
 import { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { RetrieveDescriber, RetrieveMetadataTrigger } from '.';
-import { channelService } from '../../channels';
+import { RetrieveMetadataTrigger } from '.';
 import { nls } from '../../messages';
-import { sfdxCoreSettings } from '../../settings';
 import { SfdxPackageDirectories } from '../../sfdxProject';
-import { telemetryService } from '../../telemetry';
-import { MetadataDictionary, workspaceUtils } from '../../util';
+import { workspaceUtils } from '../../util';
 import { RetrieveExecutor } from '../baseDeployRetrieve';
 import {
   SfdxCommandlet,
-  SfdxCommandletExecutor,
   SfdxWorkspaceChecker
 } from '../util';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
