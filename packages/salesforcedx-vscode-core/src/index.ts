@@ -736,7 +736,6 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
   // Register file watcher for push or deploy on save
   await registerPushOrDeployOnSave();
   await decorators.showOrg();
-  decorators.monitorOrgConfigChanges();
 
   await setUpOrgExpirationWatcher(orgList);
 

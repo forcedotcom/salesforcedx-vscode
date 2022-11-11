@@ -5,27 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil, projectPaths } from '@salesforce/salesforcedx-utils-vscode';
-import { StatusBarAlignment, StatusBarItem, window, workspace } from 'vscode';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { ORG_OPEN_COMMAND } from '../../src';
 import { nls } from '../messages';
 
-const CONFIG_FILE = projectPaths.sfdxProjectConfig();
-
-let statusBarItem: StatusBarItem;
+let statusBarItem: StatusBarItem | undefined;
 
 export async function showOrg() {
   await displayBrowserIcon();
-}
-
-export function monitorOrgConfigChanges() {
-  const watcher = workspace.createFileSystemWatcher(CONFIG_FILE);
-  watcher.onDidChange(() => {
-    displayBrowserIcon().catch(err => console.error(err));
-  });
-  watcher.onDidCreate(() => {
-    displayBrowserIcon().catch(err => console.error(err));
-  });
 }
 
 async function displayBrowserIcon() {
@@ -38,5 +26,8 @@ async function displayBrowserIcon() {
       statusBarItem.show();
     }
     statusBarItem.text = `$(browser)`;
+  } else if (!defaultUsernameOrAlias && statusBarItem) {
+    statusBarItem.dispose();
+    statusBarItem = undefined;
   }
 }

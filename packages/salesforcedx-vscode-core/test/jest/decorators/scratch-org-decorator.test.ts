@@ -1,7 +1,7 @@
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../../../src';
-import { monitorOrgConfigChanges, showOrg } from '../../../src/decorators';
+import { showOrg } from '../../../src/decorators';
 import { nls } from '../../../src/messages';
 
 describe('scratch org decorator', () => {
@@ -19,6 +19,7 @@ describe('scratch org decorator', () => {
     mockStatusBarItem.command = '';
     mockStatusBarItem.text = '';
     mockStatusBarItem.show = jest.fn();
+    mockStatusBarItem.dispose = jest.fn();
     mockWatcher = {
       onDidChange: jest.fn(),
       onDidCreate: jest.fn()
@@ -52,50 +53,14 @@ describe('scratch org decorator', () => {
       expect(mockStatusBarItem.show).not.toHaveBeenCalled();
       expect(mockStatusBarItem.text).toEqual('');
     });
-
-  });
-
-  describe('monitor org changes', () => {
-    it('should show the browser icon when the config file changes', async () => {
-      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
-
-      // Act
-      monitorOrgConfigChanges();
-      // Expect a file system watcher was created
-      expect(createFileSystemWatcherMock).toHaveBeenCalled();
-      // Expect a callback was supplied for its onDidChange fn
-      expect(mockWatcher.onDidChange).toHaveBeenCalledWith(expect.any(Function));
-
-      // Act again and call the onDidChange callback fn
-      mockWatcher.onDidChange.mock.calls[0][0]();
-      // Resolve the promise, since it is not awaited in the module itself
-      await new Promise(process.nextTick);
-
-      // The module should check if there is a default username or alias
+    it('should dispose and set to undefined the status bar when a default username is not set and the status bar exists', async () => {
+      mockStatusBarItem.text = 'text';
+      getDefaultUsernameOrAliasMock.mockResolvedValue(undefined);
+      await showOrg();
       expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
-      // Browser icon should be displayed
-      expect(mockStatusBarItem.text).toEqual(browserIcon);
-    });
-
-    it('should show the browser icon when the config file is created', async () => {
-      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
-
-      // Act
-      monitorOrgConfigChanges();
-      // Expect a file system watcher was created
-      expect(createFileSystemWatcherMock).toHaveBeenCalled();
-      // Expect a callback was supplied for its onDidCreate fn
-      expect(mockWatcher.onDidCreate).toHaveBeenCalledWith(expect.any(Function));
-
-      // Act again and call the onDidCreate callback fn
-      mockWatcher.onDidCreate.mock.calls[0][0]();
-      // Resolve the promise, since it is not awaited in the module itself
-      await new Promise(process.nextTick);
-
-      // The module should check if there is a default username or alias
-      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
-      // Browser icon should be displayed
-      expect(mockStatusBarItem.text).toEqual(browserIcon);
+      expect(createStatusBarItemMock).not.toHaveBeenCalled();
+      expect(mockStatusBarItem.dispose).toHaveBeenCalled();
+      expect(mockStatusBarItem).toEqual(undefined);
     });
   });
 });
