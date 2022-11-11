@@ -6,13 +6,11 @@
  */
 
 import { AuthInfo, Connection } from '@salesforce/core';
-import { join } from 'path';
 import * as vscode from 'vscode';
-import { AuthUtil, ConfigAggregatorProvider } from '..';
+import { ConfigAggregatorProvider } from '..';
+import { AuthUtil } from '../auth/authUtil';
+import { projectPaths } from '../helpers';
 import { nls } from '../messages';
-import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../types';
-import { getRootWorkspacePath } from '../workspaces';
-
 export interface OrgUserInfo {
   username?: string;
   alias?: string;
@@ -38,21 +36,13 @@ export class WorkspaceContextUtil {
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
     const bindedHandler = () => this.handleCliConfigChange();
-    const cliConfigPath = join(
-      getRootWorkspacePath(),
-      SFDX_FOLDER,
-      SFDX_CONFIG_FILE
-    );
+    const cliConfigPath = projectPaths.sfdxProjectConfig();
     this.cliConfigWatcher = vscode.workspace.createFileSystemWatcher(
       cliConfigPath
     );
     this.cliConfigWatcher.onDidChange(bindedHandler);
     this.cliConfigWatcher.onDidCreate(bindedHandler);
     this.cliConfigWatcher.onDidDelete(bindedHandler);
-  }
-
-  public static getLogDirPath(): string {
-    return join(getRootWorkspacePath(), '.sfdx', 'tools', 'debug', 'logs');
   }
 
   public getAuthUtil(): AuthUtil {

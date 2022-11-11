@@ -17,8 +17,7 @@ import {
   notificationService,
   projectPaths,
   SFDX_CORE_CONFIGURATION_NAME,
-  TraceFlags,
-  WorkspaceContextUtil
+  TraceFlags
 } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
@@ -228,7 +227,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(WorkspaceContextUtil, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
