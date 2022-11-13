@@ -54,13 +54,16 @@ describe('scratch org decorator', () => {
       expect(mockStatusBarItem.text).toEqual('');
     });
     it('should dispose and set to undefined the status bar when a default username is not set and the status bar exists', async () => {
-      mockStatusBarItem.text = 'text';
-      getDefaultUsernameOrAliasMock.mockResolvedValue(undefined);
+      getDefaultUsernameOrAliasMock.mockResolvedValue(testUser);
       await showOrg();
       expect(getDefaultUsernameOrAliasMock).toHaveBeenCalled();
-      expect(createStatusBarItemMock).not.toHaveBeenCalled();
+      expect(createStatusBarItemMock).toHaveBeenCalled();
+
+      getDefaultUsernameOrAliasMock.mockResolvedValue(undefined);
+      await showOrg();
+      expect(getDefaultUsernameOrAliasMock).toHaveBeenCalledTimes(2);
+      expect(createStatusBarItemMock).toHaveBeenCalledTimes(1);
       expect(mockStatusBarItem.dispose).toHaveBeenCalled();
-      expect(mockStatusBarItem).toEqual(undefined);
     });
   });
 });
