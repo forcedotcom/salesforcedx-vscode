@@ -87,7 +87,7 @@ jobs:
               "result": "${{ github.event.workflow_run.conclusion }}"
             }
         env:
-          SLACK_WEBHOOK_URL: https://hooks.slack.com/workflows/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
+          SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
   notification_on_failure:
     if: failure()
     runs-on: ubuntu-latest
