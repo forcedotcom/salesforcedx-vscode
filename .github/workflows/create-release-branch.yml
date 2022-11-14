@@ -84,18 +84,3 @@ jobs:
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
-# For future Slack Integration
-#     - name: Update Slack - Failure
-#       if: failure()
-#       run: |
-#         curl -H 'Content-Type: application/json' \
-#         -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' \
-#         -X POST -d "${{ github.event.client_payload.on_failure }}" \
-#         https://slack.com/api/chat.update
-#     - name: Update Slack - Success
-#       if: success()
-#       run: |
-#         curl -H 'Content-Type: application/json' \
-#         -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' \
-#         -X POST -d "${{ github.event.client_payload.on_success }}" \
-#         https://slack.com/api/chat.update
