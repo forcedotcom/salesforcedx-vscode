@@ -6,12 +6,10 @@
  */
 /* tslint:disable:no-unused-expression */
 import {
-  SFDX_DIR,
   SOBJECTS_DIR,
   SObjectTransformer,
   SObjectTransformerFactory,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
+  STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
   SObjectCategory,
@@ -21,6 +19,7 @@ import {
   ContinueResponse,
   notificationService,
   ProgressNotification,
+  projectPaths,
   SfdxCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'assert';
@@ -42,6 +41,7 @@ import { nls } from '../../../src/messages';
 import { telemetryService } from '../../../src/telemetry';
 
 describe('ForceGenerateFauxClasses', () => {
+  const sobjectsPath = path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
   describe('initSObjectDefinitions', () => {
     let sandboxStub: SinonSandbox;
     let existsSyncStub: SinonStub;
@@ -50,12 +50,6 @@ describe('ForceGenerateFauxClasses', () => {
     let notificationStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
-    const sobjectsPath = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR
-    );
 
     beforeEach(() => {
       sandboxStub = createSandbox();
@@ -116,13 +110,7 @@ describe('ForceGenerateFauxClasses', () => {
     let telemetryEventStub: SinonStub;
 
     const projectPath = path.join('sample', 'path');
-    const sobjectsPath = path.join(
-      projectPath,
-      SFDX_DIR,
-      TOOLS_DIR,
-      SOBJECTS_DIR,
-      STANDARDOBJECTS_DIR
-    );
+    const standardSobjectsPath = path.join(sobjectsPath, STANDARDOBJECTS_DIR);
 
     beforeEach(() => {
       sandboxStub = createSandbox();
@@ -139,14 +127,14 @@ describe('ForceGenerateFauxClasses', () => {
 
       await checkSObjectsAndRefresh(projectPath);
 
-      expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
-      expect(
-        telemetryEventStub.calledWith(
-          'sObjectRefreshNotification',
-          { type: SObjectRefreshSource.StartupMin },
-          undefined
-        )
-      ).to.be.true;
+      expect(existsSyncStub.calledWith(standardSobjectsPath)).to.be.true;
+      expect(telemetryEventStub.callCount).to.equal(1);
+      const telemetryCallArgs = telemetryEventStub.getCall(0).args;
+      expect(telemetryCallArgs[0]).to.equal('sObjectRefreshNotification');
+      expect(telemetryCallArgs[1]).to.deep.equal({
+        type: SObjectRefreshSource.StartupMin
+      });
+      expect(telemetryCallArgs[2]).to.equal(undefined);
     });
 
     it('Should not call forceRefreshSObjects service when sobjects already exist', async () => {
@@ -154,7 +142,7 @@ describe('ForceGenerateFauxClasses', () => {
 
       await checkSObjectsAndRefresh(projectPath);
 
-      expect(existsSyncStub.calledWith(sobjectsPath)).to.be.true;
+      expect(existsSyncStub.calledWith(standardSobjectsPath)).to.be.true;
       expect(telemetryEventStub.notCalled).to.be.true;
     });
   });
