@@ -2,6 +2,11 @@ name: Publish Beta Release to Github Only
 
 on:
   workflow_dispatch:
+  workflow_call:
+    outputs:
+      version:
+        description: 'Version'
+        value: ${{ env.VERSION }}
 
 jobs:
   save_artifacts:
@@ -71,37 +76,3 @@ jobs:
         working-directory: tmp/saved-extensions
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  notification_on_success:
-    if: success()
-    runs-on: ubuntu-latest
-    needs: [create_git_tag]
-    steps:
-      - name: Announce success
-        uses: slackapi/slack-github-action@v1.22.0
-        with:
-          payload: |
-            {
-              "text": "Beta release v${{ env.VERSION }} successfully published",
-              "event": "${{ github.event.workflow_run.repository.html_url }}/releases/v${{ env.VERSION }}",
-              "repo": "${{ github.event.workflow_run.repository.name }}",
-              "result": "${{ github.event.workflow_run.conclusion }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
-  notification_on_failure:
-    if: failure()
-    runs-on: ubuntu-latest
-    needs: [create_git_tag]
-    steps:
-      - name: Announce failure
-        uses: slackapi/slack-github-action@v1.22.0
-        with:
-          payload: |
-            {
-              "text": "Beta release v${{ env.VERSION }} unsuccessfully published",
-              "event": "${{ github.event.workflow_run.name }}, run: ${{ github.event.workflow_run.html_url }}",
-              "repo": "${{ github.event.workflow_run.repository.name }}",
-              "result": "${{ github.event.workflow_run.conclusion }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
