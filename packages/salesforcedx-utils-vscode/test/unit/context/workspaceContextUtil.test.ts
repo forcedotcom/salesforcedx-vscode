@@ -8,9 +8,9 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { expect } from 'chai';
 import { join } from 'path';
-import { createSandbox, SinonStub, stub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import { getRootWorkspacePath, WorkspaceContextUtil } from '../../../src';
+import {  WorkspaceContextUtil } from '../../../src';
 
 export class MockFileWatcher {
   private watchUri: any;
@@ -166,13 +166,5 @@ describe('WorkspaceContext', () => {
 
       expect(createConnectionStub.callCount).to.equal(1);
     });
-  });
-});
-
-describe('getLogDirPath', () => {
-  it('should return a path to debug log folder', () => {
-    const dirPath = getRootWorkspacePath();
-    const result = WorkspaceContextUtil.getLogDirPath();
-    expect(result).to.equal(join(dirPath, '.sfdx', 'tools', 'debug', 'logs'));
   });
 });
