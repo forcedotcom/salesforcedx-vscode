@@ -26,7 +26,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       release_type: ${{ github.event.inputs.releaseType || 'minor' }}
-      branch: ${{ steps.version.outputs.branch }}
+      branch: ${{ steps.branch.outputs.branch }}
     env:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
@@ -51,7 +51,7 @@ jobs:
     - name: Create and Push the Release Branch
       id: create_step
       run: |
-        echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v${{ github.event.inputs.version }}"
+        echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
         node scripts/create-release-branch.js
     - id: version
       run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
@@ -71,8 +71,8 @@ jobs:
         with:
           payload: |
             {
-              "text": "Release branch v${{ needs.create_branch.outputs.version }} type ${{ needs.create_branch.outputs.release_type }} successfully created",
-              "event": "${{ github.event.repository.html_url }}/branches/${{ needs.create_branch.outputs.branch }}",
+              "text": "Release branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }}) successfully created",
+              "event": "${{ github.event.repository.html_url }}/tree/${{ needs.create_branch.outputs.branch }}",
               "repo": "${{ github.event.repository.name }}",
               "result": "Success"
             }
@@ -89,11 +89,11 @@ jobs:
         with:
           payload: |
             {
-              "text": "Release branch v${{ needs.create_branch.outputs.version }} unsuccessfully created",
-              "event": "Create Release Branch, run: ${{ github.event.workflow_run.html_url }}",
+              "text": "Release branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }}) unsuccessfully created",
+              "event": "Create Release Branch, run: ${{ github.event.repository.html_url }}/actions/workflows/create-release-branch.yml",
               "repo": "${{ github.event.repository.name }}",
               "result": "Failure"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
 
