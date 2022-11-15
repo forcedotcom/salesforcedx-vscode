@@ -65,7 +65,7 @@ export class SObjectTransformer {
       );
     }
 
-    const output: SObjectRefreshData = this.initializeData();
+    const output: SObjectRefreshData = this.initializeData(pathToStateFolder);
 
     for (const retriever of this.retrievers) {
       if (this.didCancel()) {
@@ -105,7 +105,7 @@ export class SObjectTransformer {
     return this.successExit();
   }
 
-  private initializeData(): SObjectRefreshData {
+  private initializeData(pathToStateFolder: string): SObjectRefreshData {
     const output: SObjectRefreshTransformData = {
       addTypeNames: names => {
         output.typeNames = output.typeNames.concat(names);
@@ -130,7 +130,7 @@ export class SObjectTransformer {
         this.result.error = { message, stack };
       },
 
-      sfdxPath: projectPaths.stateFolder(),
+      sfdxPath: pathToStateFolder,
 
       typeNames: [],
       custom: [],
