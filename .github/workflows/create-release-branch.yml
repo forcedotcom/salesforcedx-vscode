@@ -17,7 +17,6 @@ on:
           - major
           - patch
           - beta
-  workflow_call:
 
 jobs:
 
@@ -25,9 +24,9 @@ jobs:
     name: 'Create Branch'
     runs-on: ubuntu-latest
     outputs:
-      version: ${nextVersion}
-      release_type: ${RELEASE_TYPE}
-      branch: ${{ github.event.ref }}
+      version: ${{ steps.output1.outputs.version }}
+      release_type: ${{ steps.output2.outputs.releaseType }}
+      branch: ${{ steps.output3.outputs.branch }}
     env:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
@@ -53,6 +52,13 @@ jobs:
       run: |
         echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
         node scripts/create-release-branch.js
+    - id: output1
+      run: echo "releaseType=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
+    - id: output2
+      run: echo "version=${SALESFORCEDX_VSCODE_VERSION}" >> $GITHUB_OUTPUT
+    - id: output3
+      run: echo "branch=${{ github.event.ref }}" >> $GITHUB_OUTPUT
+
   slack_notify:
     uses: ./.github/workflows/slack-notify-release-branch.yml
     needs: create_branch
