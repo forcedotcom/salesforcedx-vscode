@@ -50,14 +50,14 @@ jobs:
     - run: npm install -g shelljs && npm install -g lerna
     - name: Create and Push the Release Branch
       run: |
-        echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
+        echo `Creating a ${RELEASE_TYPE} release from branch ${releaseBranchName}`
         node scripts/create-release-branch.js
     - id: output1
-      run: echo "releaseType=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
+      run: echo `releaseType=${{ github.event.inputs.releaseType || 'minor' }}` >> $GITHUB_OUTPUT
     - id: output2
-      run: echo "version=${SALESFORCEDX_VSCODE_VERSION}" >> $GITHUB_OUTPUT
+      run: echo `version=${nextversion}` >> $GITHUB_OUTPUT
     - id: output3
-      run: echo "branch=${{ github.event.ref }}" >> $GITHUB_OUTPUT
+      run: echo `branch=${releaseBranchName}` >> $GITHUB_OUTPUT
 
   notification_on_success:
     needs: create_branch
