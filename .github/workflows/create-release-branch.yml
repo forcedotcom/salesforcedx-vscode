@@ -18,22 +18,16 @@ on:
           - patch
           - beta
   workflow_call:
-    outputs:
-      version:
-        description: 'Version'
-        value: ${nextVersion}
-      release_type:
-        description: 'Release type'
-        value: ${RELEASE_TYPE}
-      branch:
-        description: 'Head branch'
-        value: ${{ github.event.ref }}
 
 jobs:
 
   create_branch:
     name: 'Create Branch'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${nextVersion}
+      release_type: ${RELEASE_TYPE}
+      branch: ${{ github.event.ref }}
     env:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
@@ -59,3 +53,11 @@ jobs:
       run: |
         echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
         node scripts/create-release-branch.js
+  slack_notify:
+    uses: ./.github/workflows/slack-notify-release-branch.yml
+    needs: create_branch
+    with:
+      version: ${{ needs.create_branch.outputs.version }}
+      release_type: ${{ needs.create_branch.outputs.release_type }}
+      branch: ${{ needs.create_branch.outputs.branch }}
+
