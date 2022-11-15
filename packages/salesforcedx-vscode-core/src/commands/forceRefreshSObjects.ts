@@ -6,10 +6,8 @@
  */
 
 import {
-  SFDX_DIR,
   SOBJECTS_DIR,
-  STANDARDOBJECTS_DIR,
-  TOOLS_DIR
+  STANDARDOBJECTS_DIR
 } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import { SObjectTransformerFactory } from '@salesforce/salesforcedx-sobjects-faux-generator/out/src';
 import {
@@ -19,6 +17,7 @@ import {
 import {
   Command,
   LocalCommandExecution,
+  projectPaths,
   SfdxCommandBuilder
 } from '@salesforce/salesforcedx-utils-vscode';
 import {
@@ -140,7 +139,6 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
       progressLocation
     );
 
-    const projectPath = vscode.workspace.workspaceFolders![0].uri.fsPath;
     const commandName = execution.command.logName;
     try {
       let result;
@@ -160,7 +158,7 @@ export class ForceRefreshSObjectsExecutor extends SfdxCommandletExecutor<{}> {
           response.data.source
         );
       }
-      result = await transformer.transform(projectPath);
+      result = await transformer.transform();
 
       console.log('Generate success ' + result.data);
       this.logMetric(
@@ -215,7 +213,7 @@ export async function verifyUsernameAndInitSObjectDefinitions(
 
 export async function initSObjectDefinitions(projectPath: string) {
   if (projectPath) {
-    const sobjectFolder = getSObjectsDirectory(projectPath);
+    const sobjectFolder = getSObjectsDirectory();
     if (!fs.existsSync(sobjectFolder)) {
       telemetryService.sendEventData(
         'sObjectRefreshNotification',
@@ -229,15 +227,13 @@ export async function initSObjectDefinitions(projectPath: string) {
   }
 }
 
-function getSObjectsDirectory(projectPath: string) {
-  return path.join(projectPath, SFDX_DIR, TOOLS_DIR, SOBJECTS_DIR);
+function getSObjectsDirectory() {
+  return path.join(projectPaths.toolsFolder(), SOBJECTS_DIR);
 }
 
-function getStandardSObjectsDirectory(projectPath: string) {
+function getStandardSObjectsDirectory() {
   return path.join(
-    projectPath,
-    SFDX_DIR,
-    TOOLS_DIR,
+    projectPaths.toolsFolder(),
     SOBJECTS_DIR,
     STANDARDOBJECTS_DIR
   );
@@ -246,7 +242,7 @@ function getStandardSObjectsDirectory(projectPath: string) {
 export async function checkSObjectsAndRefresh(projectPath: string) {
   if (
     projectPath &&
-    !fs.existsSync(getStandardSObjectsDirectory(projectPath))
+    !fs.existsSync(getStandardSObjectsDirectory())
   ) {
     telemetryService.sendEventData(
       'sObjectRefreshNotification',

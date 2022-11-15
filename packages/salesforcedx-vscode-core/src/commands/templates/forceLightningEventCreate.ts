@@ -8,7 +8,7 @@
 import {
   DirFileNameSelection,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { LightningEventOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
