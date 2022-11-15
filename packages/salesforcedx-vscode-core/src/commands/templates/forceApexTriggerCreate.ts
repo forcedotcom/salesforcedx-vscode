@@ -8,7 +8,7 @@
 import {
   DirFileNameSelection,
   LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { ApexTriggerOptions, TemplateType } from '@salesforce/templates';
 import { nls } from '../../messages';
 import {

@@ -14,7 +14,7 @@ import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 const ORGS = 'orgs';
 const METADATA = 'metadata';
-const TOOLS = 'tools';
+export const TOOLS = 'tools';
 const TEST_RESULTS = 'testresults';
 const APEX = 'apex';
 const DEBUG = 'debug';
@@ -162,6 +162,5 @@ export const projectPaths = {
   toolsFolder,
   lwcTestResultsFolder,
   relativeStateFolder,
-  relativeToolsFolder,
-  TOOLS
+  relativeToolsFolder
 };
