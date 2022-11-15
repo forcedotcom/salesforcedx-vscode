@@ -3,7 +3,7 @@
     "docs",
     "packages/*"
   ],
-  "version": "56.6.3",
+  "version": "56.6.4",
   "command": {
     "version": {
       "allowBranch": [
