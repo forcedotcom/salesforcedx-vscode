@@ -59,11 +59,39 @@ jobs:
     - id: output3
       run: echo "branch=${{ github.event.ref }}" >> $GITHUB_OUTPUT
 
-  slack_notify:
-    uses: ./.github/workflows/slack-notify-release-branch.yml
+  notification_on_success:
     needs: create_branch
-    with:
-      version: ${{ needs.create_branch.outputs.version }}
-      release_type: ${{ needs.create_branch.outputs.release_type }}
-      branch: ${{ needs.create_branch.outputs.branch }}
+    runs-on: ubuntu-latest
+    if: ${{ success() }}
+    steps:
+      - name: Announce success
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          payload: |
+            {
+              "text": "Release branch v${{ needs.create_branch.outputs.version }} type ${{ needs.create_branch.outputs.release_type }} successfully created",
+              "event": "${{ github.event.repository.html_url }}/branches/${{ needs.create_branch.outputs.branch }}",
+              "repo": "${{ github.event.repository.name }}",
+              "result": "Success"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
+
+  notification_on_failure:
+    needs: create_branch
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+      - name: Announce failure
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          payload: |
+            {
+              "text": "Release branch v${{ needs.create_branch.outputs.version }} unsuccessfully created",
+              "event": "Create Release Branch, run: ${{ github.event.workflow_run.html_url }}",
+              "repo": "${{ github.event.repository.name }}",
+              "result": "Failure"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
 
