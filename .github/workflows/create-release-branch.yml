@@ -25,8 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.create_step.outputs.version }}
-      release_type: ${{ steps.create_step.outputs.releaseType }}
-      branch: ${{ steps.output.outputs.branch }}
+      release_type: ${{ github.event.inputs.releaseType || 'minor' }}
+      branch: ${{ steps.create_step.outputs.branch }}
     env:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
@@ -51,12 +51,12 @@ jobs:
     - name: Create and Push the Release Branch
       id: create_step
       run: |
-        echo `Creating a ${RELEASE_TYPE} release from branch ${releaseBranchName}`
+        echo `Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch ${releaseBranchName}`
         node scripts/create-release-branch.js
-        echo `version=${nextversion}` >> $GITHUB_OUTPUT
-        echo `branch=${releaseBranchName}` >> $GITHUB_OUTPUT
-    - id: output
-      run: echo `releaseType=${{ github.event.inputs.releaseType || 'minor' }}` >> $GITHUB_OUTPUT
+        echo `version=nextversion` >> $GITHUB_OUTPUT
+        echo `branch=rama` >> $GITHUB_OUTPUT
+    # - id: output
+    #   run: echo `releaseType=${{ github.event.inputs.releaseType || 'minor' }}` >> $GITHUB_OUTPUT
   notification_on_success:
     needs: create_branch
     runs-on: ubuntu-latest
