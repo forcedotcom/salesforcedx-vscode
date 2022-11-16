@@ -61,39 +61,11 @@ jobs:
     - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
     - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
 
-  notification_on_success:
+  slack_notification:
+    if: ${{ always() }}
     needs: create_branch
-    runs-on: ubuntu-latest
-    if: ${{ success() }}
-    steps:
-      - name: Announce success
-        uses: slackapi/slack-github-action@v1.22.0
-        with:
-          payload: |
-            {
-              "text": "Release branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }}) successfully created",
-              "event": "${{ github.event.repository.html_url }}/tree/${{ needs.create_branch.outputs.branch }}",
-              "repo": "${{ github.event.repository.name }}",
-              "result": "Success"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
-
-  notification_on_failure:
-    needs: create_branch
-    runs-on: ubuntu-latest
-    if: ${{ failure() }}
-    steps:
-      - name: Announce failure
-        uses: slackapi/slack-github-action@v1.22.0
-        with:
-          payload: |
-            {
-              "text": "Release branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }}) unsuccessfully created",
-              "event": "Create Release Branch, run: ${{ github.event.repository.html_url }}/actions/workflows/create-release-branch.yml",
-              "repo": "${{ github.event.repository.name }}",
-              "result": "Failure"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
-
+    uses: ./.github/workflows/slack-notification.yml
+    with:
+      version: ${{ needs.create_branch.outputs.version }}
+      branch: ${{ needs.create_branch.outputs.branch }}
+      releaseType: ${{ needs.create_branch.outputs.release_type }}
