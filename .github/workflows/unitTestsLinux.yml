@@ -23,7 +23,7 @@ jobs:
           path: "**/node_modules"
           key: ${{ runner.os }}-build-${{ matrix.node_version }}-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
 
-      - run: npm install --network-timeout 600000
+      - run: npm install
         if: ${{ steps.cache-nodemodules.outputs.cache-hit != 'true' }}
       - run: npm run compile
       - run: npm run test:unit
