@@ -26,7 +26,7 @@ jobs:
               "text": "Release branch v${{ inputs.version }} (${{ inputs.releaseType }}) successfully created",
               "event": "${{ github.event.repository.html_url }}/tree/${{ inputs.branch }}",
               "repo": "${{ github.event.repository.name }}",
-              "result": "${{ github.event.workflow_run.conclusion }}"
+              "result": "Success"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
@@ -41,9 +41,9 @@ jobs:
           payload: |
             {
               "text": "Release branch v${{ inputs.version }} (${{ inputs.releaseType }}) unsuccessfully created",
-              "event": "Create Release Branch, run: ${{ github.event.workflow_run.html_url }}",
+              "event": "Create Release Branch, run: ${{ ${{ github.event.repository.html_url }}/actions/workflows/create-release-branch.yml }}",
               "repo": "${{ github.event.repository.name }}",
-              "result": "${{ github.event.workflow_run.conclusion }}"
+              "result": "Failure"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
