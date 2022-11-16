@@ -1,0 +1,30 @@
+on:
+  workflow_call:
+
+jobs:
+  windows-unit-tests:
+    strategy:
+      matrix:
+        node_version: [lts/-1, lts/*]
+      fail-fast: false
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: salesforcecli/github-workflows/.github/actions/windowsCachePerf@main
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: npm
+      - name: Cache node modules
+        id: cache-nodemodules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: "**/node_modules"
+          key: ${{ runner.os }}-build-${{ matrix.node_version }}-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+
+      - run: npm install --network-timeout 600000
+        if: ${{ steps.cache-nodemodules.outputs.cache-hit != 'true' }}
+      - run: npm run compile
+      - run: npm run test:unit

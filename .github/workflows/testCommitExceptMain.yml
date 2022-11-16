@@ -1,0 +1,8 @@
+name: unit tests
+on:
+  push:
+    branches-ignore: [main]
+
+jobs:
+  unit-tests:
+    uses: .github/workflows/unitTest.yml
