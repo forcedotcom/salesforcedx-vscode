@@ -1,6 +1,6 @@
 {
-  "include": ["lib/src/**/*.js"],
-  "extension": [".js"],
+  "include": ["src/**/*.ts"],
+  "extension": [".ts"],
   "reporter": ["text", "text-summary"],
   "sourceMap": true,
   "exclude-after-remap": false,

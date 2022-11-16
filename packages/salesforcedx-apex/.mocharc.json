@@ -1,0 +1,10 @@
+{
+    "require": [
+        "ts-node/register",
+        "source-map-support/register"
+    ],
+    "reporter": "./test/combinedTestReporter.js",
+    "reporter-options": "mochaFile=./test-results/test-results.xml",
+    "colors": true,
+    "exit": true
+}

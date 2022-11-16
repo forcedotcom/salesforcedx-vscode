@@ -7,7 +7,7 @@
     "type:feedback": "",
     "type:duplicate": ""
   },
-  "defaultBuild": "offcore.tooling.51",
+  "defaultBuild": "offcore.tooling.56",
   "hideWorkItemUrl": "true",
   "statusWhenClosed": "CLOSED"
 }

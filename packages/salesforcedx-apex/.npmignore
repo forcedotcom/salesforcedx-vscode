@@ -1,5 +1,4 @@
 # Dev config folders
-/.circleci
 /.vscode
 /src
 /test
