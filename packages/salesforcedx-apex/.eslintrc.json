@@ -6,7 +6,10 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint", "jsdoc", "eslint-plugin-header"],
-  "extends": ["plugin:@typescript-eslint/recommended", "plugin:prettier/recommended"],
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
   "rules": {
     "ban-ts-ignore": "off",
     "@typescript-eslint/ban-ts-ignore": "off",

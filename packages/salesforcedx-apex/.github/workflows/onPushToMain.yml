@@ -1,0 +1,11 @@
+name: version, tag and github release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    uses: salesforcecli/github-workflows/.github/workflows/githubRelease.yml@gbockus/updateReleaseToIncludeTokenInput
+    secrets: 
+      ALT_GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}

@@ -1,0 +1,25 @@
+name: Slack notification for Github Actions
+on:
+  workflow_run:
+    workflows:
+      - Push to main
+      - release
+    types:
+      - completed
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Announce result
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          payload: |
+            {
+              "text": "GitHub Actions Notification",
+              "event": "${{ github.event.workflow_run.name }}, run: ${{ github.event.workflow_run.html_url }}",
+              "repo": "${{ github.event.workflow_run.repository.name }}",
+              "result": "${{ github.event.workflow_run.conclusion }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}

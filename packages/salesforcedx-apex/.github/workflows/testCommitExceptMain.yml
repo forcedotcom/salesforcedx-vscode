@@ -1,0 +1,8 @@
+name: unit tests
+on:
+  push:
+    branches-ignore: [main]
+
+jobs:
+  unit-tests:
+    uses: salesforcecli/github-workflows/.github/workflows/unitTest.yml@main

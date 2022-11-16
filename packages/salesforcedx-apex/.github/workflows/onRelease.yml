@@ -1,0 +1,18 @@
+# when a github release happens, publish an npm package,
+on:
+  release:
+    types: [released]
+  # support manual release
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: tag that needs to publish
+        type: string
+        required: true
+jobs:
+  npm:
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
+    with:
+      ctc: false
+      githubTag: ${{ github.event.release.tag_name || inputs.tag }}
+    secrets: inherit

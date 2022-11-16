@@ -1,0 +1,16 @@
+name: validate pr
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  pr-validation:
+    uses: salesforcecli/github-workflows/.github/workflows/validatePR.yml@main
+  format-check: 
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install modules
+      run: yarn
+    - name: Check Format
+      run: yarn format:check

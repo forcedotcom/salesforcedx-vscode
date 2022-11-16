@@ -1,0 +1,36 @@
+name: manual release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.IDEE_GH_TOKEN }}
+      - name: Conventional Changelog Action
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@ed98b658f3015c5afb96a13caf9bb81f69df49e6
+        # overriding some of the basic behaviors to just get the changelog
+        with:
+          git-user-name: Release Bot
+          git-user-email: ${{ secrets.IDEE_GH_EMAIL }}
+          github-token: ${{ secrets.IDEE_GH_TOKEN }}
+          output-file: false
+          # always do the release, even if there are no semantic commits
+          skip-on-empty: false
+          tag-prefix: ''
+      - uses: notiz-dev/github-action-json-property@2192e246737701f108a4571462b76c75e7376216
+        id: packageVersion
+        with:
+          path: 'package.json'
+          prop_path: 'version'
+      - name: Create Github Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+        with:
+          tag_name: ${{ steps.packageVersion.outputs.prop }}
+          release_name: ${{ steps.packageVersion.outputs.prop }}
