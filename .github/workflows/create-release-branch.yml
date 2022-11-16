@@ -64,7 +64,7 @@ jobs:
   slack_notification:
     if: ${{ always() }}
     needs: create_branch
-    uses: forcedotcom/salesforcedx-vscode/.github/workflows/slack-notification.yml@cristi/slack
+    uses: forcedotcom/salesforcedx-vscode/.github/workflows/slack-notification.yml@0e0fc1c20148e48f05e3689de8a2645ecc226b60
     with:
       version: ${{ needs.create_branch.outputs.version }}
       branch: ${{ needs.create_branch.outputs.branch }}
