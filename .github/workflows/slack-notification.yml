@@ -41,7 +41,7 @@ jobs:
           payload: |
             {
               "text": "Release branch v${{ inputs.version }} (${{ inputs.releaseType }}) unsuccessfully created",
-              "event": "Create Release Branch, run: ${{ ${{ github.event.repository.html_url }}/actions/workflows/create-release-branch.yml }}",
+              "event": "Create Release Branch, run: ${{ github.event.repository.html_url }}/actions/workflows/create-release-branch.yml",
               "repo": "${{ github.event.repository.name }}",
               "result": "Failure"
             }
