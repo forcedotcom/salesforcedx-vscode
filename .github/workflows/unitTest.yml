@@ -3,6 +3,6 @@ on:
 
 jobs:
   linux-unit-tests:
-    uses: .github/workflows/unitTestsLinux.yml
+    uses: ./.github/workflows/unitTestsLinux.yml
   windows-unit-tests:
-    uses: .github/workflows/unitTestsWindows.yml
+    uses: ./.github/workflows/unitTestsWindows.yml
