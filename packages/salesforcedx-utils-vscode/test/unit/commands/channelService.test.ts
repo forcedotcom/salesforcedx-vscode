@@ -61,7 +61,7 @@ describe('Channel Service', () => {
     expect(chan1).equals(chan2);
   });
 
-  it('Should pipe stdout on successful command execution', async () => {
+  it.skip('Should pipe stdout on successful command execution', async () => {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
         .withArg('force')
