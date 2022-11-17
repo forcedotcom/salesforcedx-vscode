@@ -15,6 +15,8 @@ on:
       result:
         description: Result of the previous workflow
         type: string
+        required: true
+        default: 'success'
 
 
 jobs:

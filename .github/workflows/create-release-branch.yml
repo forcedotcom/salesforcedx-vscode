@@ -62,7 +62,7 @@ jobs:
     - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
     - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
     - id: result
-      run: echo "result=${{ steps.create_step.conclusion }}" >> $GITHUB_OUTPUT
+      run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
 
 
   slack_notification:
