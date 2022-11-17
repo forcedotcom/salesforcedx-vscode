@@ -69,7 +69,7 @@ jobs:
     needs: create_branch
     uses: forcedotcom/salesforcedx-vscode/.github/workflows/slack-notification.yml@cristi/slack_notify
     with:
-      title: "Release Branch ${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }})"
+      title: "Release Branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }})"
       failedEvent: "Create Release Branch"
       successfulEvent: "${{ github.event.repository.html_url }}/tree/${{ needs.create_branch.outputs.branch }}"
       type: "created"
