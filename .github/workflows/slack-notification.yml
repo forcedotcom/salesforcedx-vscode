@@ -3,23 +3,24 @@ name: Create Release Branch
 on:
   workflow_call:
     inputs:
-      version:
-        description: Version of the release branch
-        type: string
-      branch:
-        description: Name of the release branch
-        type: string
-        required: false
-        default: ${{ github.event.ref }}
-      releaseType:
-        description: Release type
-        type: string
       result:
         description: Result of the previous workflow
         type: string
-        required: true
-        default: 'failure'
-
+      title:
+        description: Title for the slack message
+        type: string
+      failedEvent:
+        description: Name of the failed event
+        type: string
+      successfulEvent:
+        description: URL for the successful event
+        type: string
+      type:
+        description: Action type
+        type: string
+      workflow:
+        description: Caller workflow
+        type: string
 
 jobs:
   notification_on_success:
@@ -31,8 +32,8 @@ jobs:
         with:
           payload: |
             {
-              "text": "Release branch v${{ inputs.version }} (${{ inputs.releaseType }}) successfully created",
-              "event": "${{ github.event.repository.html_url }}/tree/${{ inputs.branch }}",
+              "text": "${{ inputs.title }} successfully ${{ inputs.type }}",
+              "event": "${{ inputs.successfulEvent }}",
               "repo": "${{ github.event.repository.name }}",
               "result": "Success"
             }
@@ -48,8 +49,8 @@ jobs:
         with:
           payload: |
             {
-              "text": "Release branch v${{ inputs.version }} (${{ inputs.releaseType }}) unsuccessfully created",
-              "event": "Create Release Branch, run: ${{ github.event.repository.html_url }}/actions/workflows/create-release-branch.yml",
+              "text": "${{ inputs.title }} unsuccessfully ${{ inputs.type }}",
+              "event": "${{ inputs.failedEvent }}, run: ${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}",
               "repo": "${{ github.event.repository.name }}",
               "result": "Failure"
             }

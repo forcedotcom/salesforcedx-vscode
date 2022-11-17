@@ -75,7 +75,7 @@ jobs:
         working-directory: tmp/saved-extensions
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - id: output1
+      - id: version
         run: echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
 
   slack_notification:
@@ -83,24 +83,9 @@ jobs:
     needs: create_git_tag
     uses: forcedotcom/salesforcedx-vscode/.github/workflows/slack-notification.yml@cristi/slack_notify
     with:
-      version: ${{ needs.create_branch.outputs.version }}
-      releaseType: ${{ needs.create_branch.outputs.release_type }}
-      result: ${{ needs.create_branch.outputs.result }}
-
-  # notification_on_success:
-  #           {
-  #             "text": "Beta release v${{ needs.create_git_tag.outputs.version }} successfully created",
-  #             "event": "${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}",
-  #             "repo": "${{ github.event.repository.name }}",
-  #             "result": "Success"
-  #           }
-
-  # notification_on_failure:
-  #           {
-  #             "text": "Beta release v${{ needs.create_git_tag.outputs.version }} unsuccessfully created",
-  #             "event": "Beta release publish, run: ${{ github.event.workflow_run.html_url }}",
-  #             "repo": "${{ github.event.repository.name }}",
-  #             "result": "Failure"
-  #           }
-
-
+      title: "Beta release v${{ needs.create_git_tag.outputs.version }}"
+      failedEvent: "Beta Release Publish"
+      successfulEvent: "${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}"
+      type: "published"
+      result: ${{ needs.create_git_tag.outputs.result }}
+      workflow: "publish-beta-release.yml"
