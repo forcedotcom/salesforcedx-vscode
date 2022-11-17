@@ -7,7 +7,8 @@
 
 import {
   isNullOrUndefined,
-  MISSING_LABEL_MSG
+  MISSING_LABEL_MSG,
+  projectPaths
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -39,21 +40,13 @@ export class TypeUtils {
     'Scontrol'
   ]);
 
-  public async getTypesFolder(usernameOrAlias: string): Promise<string> {
+  public async getTypesFolder(): Promise<string> {
     if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
-    const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
-    const username = await OrgAuthInfo.getUsername(usernameOrAlias);
-    const metadataTypesPath = path.join(
-      workspaceRootPath,
-      '.sfdx',
-      'orgs',
-      username,
-      'metadata'
-    );
+    const metadataTypesPath = projectPaths.metadataFolder();
     return metadataTypesPath;
   }
 
@@ -97,10 +90,9 @@ export class TypeUtils {
   }
 
   public async loadTypes(
-    defaultOrg: string,
     forceRefresh?: boolean
   ): Promise<MetadataObject[]> {
-    const typesFolder = await this.getTypesFolder(defaultOrg);
+    const typesFolder = await this.getTypesFolder();
     const typesPath = path.join(typesFolder, 'metadataTypes.json');
 
     let typesList: MetadataObject[];
