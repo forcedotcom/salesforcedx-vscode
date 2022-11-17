@@ -47,7 +47,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [save_artifacts, get_release_variables]
     outputs:
-      version: ${{ steps.output1.outputs.version }}
+      version: ${{ steps.version.outputs.version }}
+      release_type: ${{ github.event.inputs.releaseType || 'minor' }}
+      result: ${{ steps.result.outputs.result }}
     env:
       VERSION: ${{ needs.get_release_variables.outputs.RELEASE_VERSION }}
 
@@ -75,40 +77,30 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: output1
         run: echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
-  notification_on_success:
-    needs: create_git_tag
-    runs-on: ubuntu-latest
-    if: ${{ success() }}
-    steps:
-      - name: Announce success
-        uses: slackapi/slack-github-action@v1.22.0
-        with:
-          payload: |
-            {
-              "text": "Beta release v${{ needs.create_git_tag.outputs.version }} successfully created",
-              "event": "${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}",
-              "repo": "${{ github.event.repository.name }}",
-              "result": "Success"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
 
-  notification_on_failure:
+  slack_notification:
+    if: ${{ always() }}
     needs: create_git_tag
-    runs-on: ubuntu-latest
-    if: ${{ failure() }}
-    steps:
-      - name: Announce failure
-        uses: slackapi/slack-github-action@v1.22.0
-        with:
-          payload: |
-            {
-              "text": "Beta release v${{ needs.create_git_tag.outputs.version }} unsuccessfully created",
-              "event": "Beta release publish, run: ${{ github.event.workflow_run.html_url }}",
-              "repo": "${{ github.event.repository.name }}",
-              "result": "Failure"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
+    uses: forcedotcom/salesforcedx-vscode/.github/workflows/slack-notification.yml@cristi/slack_notify
+    with:
+      version: ${{ needs.create_branch.outputs.version }}
+      releaseType: ${{ needs.create_branch.outputs.release_type }}
+      result: ${{ needs.create_branch.outputs.result }}
+
+  # notification_on_success:
+  #           {
+  #             "text": "Beta release v${{ needs.create_git_tag.outputs.version }} successfully created",
+  #             "event": "${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}",
+  #             "repo": "${{ github.event.repository.name }}",
+  #             "result": "Success"
+  #           }
+
+  # notification_on_failure:
+  #           {
+  #             "text": "Beta release v${{ needs.create_git_tag.outputs.version }} unsuccessfully created",
+  #             "event": "Beta release publish, run: ${{ github.event.workflow_run.html_url }}",
+  #             "repo": "${{ github.event.repository.name }}",
+  #             "result": "Failure"
+  #           }
 
 

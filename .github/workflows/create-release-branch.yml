@@ -64,7 +64,6 @@ jobs:
     - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
     - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
 
-
   slack_notification:
     if: ${{ always() }}
     needs: create_branch

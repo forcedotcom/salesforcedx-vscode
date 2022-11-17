@@ -9,6 +9,8 @@ on:
       branch:
         description: Name of the release branch
         type: string
+        required: false
+        default: ${{ github.event.ref }}
       releaseType:
         description: Release type
         type: string
