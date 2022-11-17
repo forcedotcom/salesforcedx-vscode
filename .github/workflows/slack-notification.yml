@@ -16,7 +16,7 @@ on:
         description: Result of the previous workflow
         type: string
         required: true
-        default: 'success'
+        default: 'failure'
 
 
 jobs:
