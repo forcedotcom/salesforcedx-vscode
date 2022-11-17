@@ -55,8 +55,7 @@ jobs:
         echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
         node scripts/create-release-branch.js
     - id: result
-      if: ${{ success() }}
-      run: echo "result=success" >> $GITHUB_OUTPUT
+      run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
     - id: version
       run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
     - id: branch
@@ -69,7 +68,7 @@ jobs:
   slack_notification:
     if: ${{ always() }}
     needs: create_branch
-    uses: forcedotcom/salesforcedx-vscode/.github/workflows/slack-notification.yml@7ced7e67ad3dbf1c44612dc645ec538ded76fc81
+    uses: forcedotcom/salesforcedx-vscode/.github/workflows/slack-notification.yml
     with:
       version: ${{ needs.create_branch.outputs.version }}
       branch: ${{ needs.create_branch.outputs.branch }}
