@@ -12,11 +12,15 @@ on:
       releaseType:
         description: Release type
         type: string
+      result:
+        description: Result of the previous workflow
+        type: string
+
 
 jobs:
   notification_on_success:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ inputs.result == 'success' }}
     steps:
       - name: Announce success
         uses: slackapi/slack-github-action@v1.22.0
@@ -33,7 +37,7 @@ jobs:
 
   notification_on_failure:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ inputs.result == 'failure' }}
     steps:
       - name: Announce failure
         uses: slackapi/slack-github-action@v1.22.0

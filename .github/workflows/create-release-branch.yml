@@ -69,3 +69,4 @@ jobs:
       version: ${{ needs.create_branch.outputs.version }}
       branch: ${{ needs.create_branch.outputs.branch }}
       releaseType: ${{ needs.create_branch.outputs.release_type }}
+      result: ${{ needs.create_branch.result }}
