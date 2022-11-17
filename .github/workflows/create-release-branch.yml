@@ -27,6 +27,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       release_type: ${{ github.event.inputs.releaseType || 'minor' }}
       branch: ${{ steps.branch.outputs.branch }}
+      result: ${{ steps.result.outputs.result }}
     env:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
@@ -60,6 +61,9 @@ jobs:
     - run: echo "Release Version is ${{ steps.version.outputs.version }}"
     - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
     - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
+    - id: result
+      run: echo "result=${{ steps.create_step.conclusion}}" >> $GITHUB_OUTPUT
+
 
   slack_notification:
     if: ${{ always() }}
@@ -69,4 +73,4 @@ jobs:
       version: ${{ needs.create_branch.outputs.version }}
       branch: ${{ needs.create_branch.outputs.branch }}
       releaseType: ${{ needs.create_branch.outputs.release_type }}
-      result: ${{ needs.create_branch.result }}
+      result: ${{ needs.create_branch.outputs.result }}
