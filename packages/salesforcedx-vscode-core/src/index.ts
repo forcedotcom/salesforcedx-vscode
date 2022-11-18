@@ -92,7 +92,10 @@ import {
   registerConflictView,
   setupConflictView
 } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
+import {
+  ENABLE_SOBJECT_REFRESH_ON_STARTUP,
+  ORG_OPEN_COMMAND
+} from './constants';
 import { workspaceContextUtils } from './context';
 import { workspaceContext } from './context';
 import * as decorators from './decorators';
@@ -106,8 +109,6 @@ import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { isCLIInstalled, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
-
-export const ORG_OPEN_COMMAND = 'sfdx.force.org.open';
 
 const flagOverwrite: FlagParameter<string> = {
   flag: '--forceoverwrite'
