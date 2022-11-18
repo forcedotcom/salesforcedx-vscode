@@ -11,21 +11,10 @@ jobs:
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v3
-      - uses: salesforcecli/github-workflows/.github/actions/windowsCachePerf@main
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node_version }}
           cache: npm
-      - name: Cache node modules
-        id: cache-nodemodules
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-build-${{ matrix.node_version }}-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
-
-      - run: npm install
-        if: ${{ steps.cache-nodemodules.outputs.cache-hit != 'true' }}
+      - run: npm ci
       - run: npm run compile
       - run: npm run test:unit
