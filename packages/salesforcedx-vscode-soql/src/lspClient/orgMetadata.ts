@@ -14,8 +14,7 @@ import {
   SObjectShortDescription,
   SOQLMETADATA_DIR,
   STANDARDOBJECTS_DIR,
-  toMinimalSObject,
-  TOOLS_DIR
+  toMinimalSObject
 } from '@salesforce/salesforcedx-sobjects-faux-generator';
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
@@ -38,7 +37,7 @@ export class FileSystemOrgDataSource implements OrgDataSource {
       channelService.appendLine(message);
       return undefined;
     }
-    return path.join(stateFolder, TOOLS_DIR, SOQLMETADATA_DIR);
+    return path.join(projectPaths.toolsFolder(), SOQLMETADATA_DIR);
   }
 
   public async retrieveSObjectsList(): Promise<string[]> {

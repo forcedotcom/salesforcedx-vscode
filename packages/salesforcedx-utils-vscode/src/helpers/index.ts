@@ -6,6 +6,7 @@
  */
 
 export {
+  TOOLS,
   ensureDirectoryExists,
   fileExtensionsMatch,
   getTestResultsFolder,
