@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: ${{ matrix.node_version }}
           cache: npm
+      - run: npm config set scripts-prepend-node-path true
       - run: npm install -g sfdx-cli
       - run: npm install -g junit-merge
       - run: npm ci
