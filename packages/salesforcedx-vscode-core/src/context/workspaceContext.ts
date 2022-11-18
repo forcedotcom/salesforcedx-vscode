@@ -47,7 +47,7 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-    decorators.addAProperty = 'abcd';
+
     await decorators.showOrg();
   }
 
