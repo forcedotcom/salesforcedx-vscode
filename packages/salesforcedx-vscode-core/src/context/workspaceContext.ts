@@ -12,7 +12,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
-import { showOrg } from '../decorators';
+import { decorators } from '../decorators';
 
 /**
  * Manages the context of a workspace during a session with an open SFDX project.
@@ -47,7 +47,8 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-    await showOrg();
+    decorators.addAProperty = 'abcd';
+    await decorators.showOrg();
   }
 
   get username(): string | undefined {

@@ -6,9 +6,13 @@
  */
 
 export { showDemoMode } from './demo-mode-decorator';
-export { showOrg } from './scratch-org-decorator';
 export {
   disposeTraceFlagExpiration,
   hideTraceFlagExpiration,
   showTraceFlagExpiration
 } from './traceflag-time-decorator';
+import { showOrg } from './scratch-org-decorator';
+
+export const decorators = {
+  showOrg
+} as const;

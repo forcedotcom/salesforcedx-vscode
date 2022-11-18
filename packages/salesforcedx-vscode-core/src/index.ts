@@ -96,9 +96,12 @@ import {
   ENABLE_SOBJECT_REFRESH_ON_STARTUP,
   ORG_OPEN_COMMAND
 } from './constants';
-import { workspaceContextUtils } from './context';
-import { workspaceContext } from './context';
-import * as decorators from './decorators';
+import { workspaceContext, workspaceContextUtils } from './context';
+import {
+  decorators,
+  disposeTraceFlagExpiration,
+  showDemoMode
+} from './decorators';
 import { isDemoMode } from './modes/demo-mode';
 import { notificationService, ProgressNotification } from './notifications';
 import { orgBrowser } from './orgBrowser';
@@ -742,7 +745,7 @@ async function initializeProject(extensionContext: vscode.ExtensionContext) {
 
   // Demo mode decorator
   if (isDemoMode()) {
-    decorators.showDemoMode();
+    showDemoMode();
   }
 }
 
@@ -753,6 +756,6 @@ export function deactivate(): Promise<void> {
   telemetryService.sendExtensionDeactivationEvent();
   telemetryService.dispose();
 
-  decorators.disposeTraceFlagExpiration();
+  disposeTraceFlagExpiration();
   return turnOffLogging();
 }
