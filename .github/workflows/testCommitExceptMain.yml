@@ -5,4 +5,6 @@ on:
 
 jobs:
   unit-tests:
-    uses: ./.github/workflows/unitTest.yml
+    uses: ./.github/workflows/unitTests.yml
+  integration-tests:
+    uses: ./.github/workflows/integrationTests.yml
