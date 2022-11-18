@@ -9,6 +9,7 @@ jobs:
       fail-fast: false
     runs-on: windows-latest
     steps:
+      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v3
       - uses: salesforcecli/github-workflows/.github/actions/windowsCachePerf@main
       - uses: actions/setup-node@v3
