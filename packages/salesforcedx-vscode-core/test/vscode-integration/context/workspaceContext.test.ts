@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import { SFDX_CONFIG_FILE, SFDX_FOLDER } from '../../../src/constants';
 import { workspaceContextUtils } from '../../../src/context';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
-import { showOrg } from '../../../src/decorators';
+import { decorators } from '../../../src/decorators';
 import { workspaceUtils } from '../../../src/util';
 
 const env = createSandbox();
@@ -118,7 +118,7 @@ describe('WorkspaceContext', () => {
       .stub(workspaceContextUtil, 'username')
       .get(() => testUser);
     aliasStub = env.stub(workspaceContextUtil, 'alias').get(() => testAlias);
-    showOrgStub = env.stub(showOrg).resolves();
+    showOrgStub = env.stub(decorators, 'showOrg').resolves();
 
     const extensionContext = ({
       subscriptions: []
