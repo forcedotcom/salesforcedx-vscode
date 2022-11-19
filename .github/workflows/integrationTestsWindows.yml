@@ -5,7 +5,7 @@ jobs:
   windows-integration-tests:
     strategy:
       matrix:
-        node_version: [lts/-1, lts/*]
+        node_version: [lts/*]
       fail-fast: false
     runs-on: windows-latest
     steps:

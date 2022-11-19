@@ -2,7 +2,5 @@ on:
   workflow_call:
 
 jobs:
-  linux-integration-tests:
-    uses: ./.github/workflows/integrationTestsLinux.yml
   windows-integration-tests:
     uses: ./.github/workflows/integrationTestsWindows.yml
