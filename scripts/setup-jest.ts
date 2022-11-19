@@ -48,6 +48,10 @@ const getMockVSCode = () => {
       Window: 10,
       Notification: 15
     },
+    StatusBarAlignment: {
+      Left: 1,
+      Right: 2
+    },
     window: {
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
@@ -57,7 +61,8 @@ const getMockVSCode = () => {
       createOutputChannel: jest.fn(),
       OutputChannel: {
         show: jest.fn()
-      }
+      },
+      createStatusBarItem: jest.fn()
     },
     workspace: {
       getConfiguration: () => {
