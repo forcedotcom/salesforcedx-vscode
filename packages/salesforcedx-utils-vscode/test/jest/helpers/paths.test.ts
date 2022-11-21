@@ -12,12 +12,14 @@ jest.mock('@salesforce/core', () => {
 });
 
 describe('test project paths', () => {
+  const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_STATE_FOLDER = '.sfdx';
+  const FAKE_CONFIG_FILE = 'sfdx-config.json';
+  const FAKE_PATH_TO_STATE_FOLDER = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
 
   describe('test stateFolder', () => {
     let getRootWorkspacePathStub: jest.SpyInstance;
-    const hasRootWorkspaceStub = jest.spyOn(workspaceUtils, 'hasRootWorkspace');
 
     beforeEach(() => {
       getRootWorkspacePathStub = jest
@@ -25,15 +27,9 @@ describe('test project paths', () => {
         .mockReturnValue(FAKE_WORKSPACE);
     });
 
-    it('should be defined', () => {
-      expect(projectPaths.stateFolder).toBeDefined();
-    });
-
     it('should return a path to the state folder if the project has a root workspace', () => {
       hasRootWorkspaceStub.mockReturnValue(true);
-      expect(projectPaths.stateFolder()).toEqual(
-        path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER)
-      );
+      expect(projectPaths.stateFolder()).toEqual(FAKE_PATH_TO_STATE_FOLDER);
     });
 
     it('should return a path to the state folder if the project does not have a root workspace', () => {
@@ -43,7 +39,7 @@ describe('test project paths', () => {
   });
   describe('test sfdxProjectConfig', () => {
     let stateFolderStub: jest.SpyInstance;
-    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, 'sfdx-config.json');
+    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, FAKE_CONFIG_FILE);
 
     beforeEach(() => {
       stateFolderStub = jest
