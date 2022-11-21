@@ -8,6 +8,7 @@ jobs:
         node_version: [lts/-1, lts/*]
       fail-fast: false
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v3
