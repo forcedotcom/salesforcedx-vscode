@@ -1,0 +1,22 @@
+name: Nightly Build
+on:
+  workflow_call:
+    inputs:
+      branch:
+        type: string
+        required: true
+        default: 'ubuntu-latest'
+
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/unitTests.yml
+    with:
+      ref: ${{ inputs.branch }}
+  integration-tests:
+    uses: ./.github/workflows/integrationTests.yml
+    with:
+      ref: ${{ inputs.branch }}
+  build-all:
+    uses: ./.github/workflows/buildAll.yml
+    with:
+      ref: ${{ inputs.branch }}
