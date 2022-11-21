@@ -1,7 +1,7 @@
-import { CliCommandExecutor } from '../../../src/cli/commandExecutor';
+import { ForceConfigGet } from '../../../src';
 import { SfdxCommandBuilder } from '../../../src/cli/commandBuilder';
+import { CliCommandExecutor } from '../../../src/cli/commandExecutor';
 import { CommandOutput } from '../../../src/cli/commandOutput';
-import { ForceConfigGet, ForceOrgDisplay } from '../../../src';
 import { FORCE_CONFIG_GET_COMMAND } from '../../../src/cli/forceConfigGet';
 
 jest.mock('../../../src/cli/commandExecutor');
