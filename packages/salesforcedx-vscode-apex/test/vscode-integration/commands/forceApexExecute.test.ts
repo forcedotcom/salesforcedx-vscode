@@ -168,6 +168,7 @@ describe('Force Apex Execute', () => {
     let outputStub: SinonStub;
     let showChannelOutputStub: SinonSpy;
     let setDiagnosticStub: SinonStub;
+    let debugLogsfolder: SinonStub;
     const file = '/test';
 
     beforeEach(() => {
@@ -180,6 +181,10 @@ describe('Force Apex Execute', () => {
         AnonApexLibraryExecuteExecutor.diagnostics,
         'set'
       );
+      debugLogsfolder = sb.stub(
+        projectPaths,
+        'debugLogsFolder'
+      ).returns('.sfdx/tools/debug/logs');
     });
 
     it('should format result correctly for a successful execution', async () => {

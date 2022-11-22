@@ -34,7 +34,7 @@ const getMockVSCode = () => {
     env: {
       machineId: '12345534'
     },
-    EventEmitter: EventEmitter,
+    EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
     languages: {
       createDiagnosticCollection: jest.fn()
@@ -48,6 +48,10 @@ const getMockVSCode = () => {
       Window: 10,
       Notification: 15
     },
+    StatusBarAlignment: {
+      Left: 1,
+      Right: 2
+    },
     window: {
       showInformationMessage: jest.fn(),
       showWarningMessage: jest.fn(),
@@ -57,7 +61,8 @@ const getMockVSCode = () => {
       createOutputChannel: jest.fn(),
       OutputChannel: {
         show: jest.fn()
-      }
+      },
+      createStatusBarItem: jest.fn()
     },
     workspace: {
       getConfiguration: () => {

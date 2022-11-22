@@ -19,10 +19,15 @@ on:
           - beta
 
 jobs:
-  
+
   create_branch:
     name: 'Create Branch'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release_type: ${{ github.event.inputs.releaseType || 'minor' }}
+      branch: ${{ steps.branch.outputs.branch }}
+      result: ${{ steps.result.outputs.result }}
     env:
       RELEASE_TYPE: ${{ github.event.inputs.releaseType || 'minor' }}
 
@@ -45,21 +50,28 @@ jobs:
     - run: npm ci
     - run: npm install -g shelljs && npm install -g lerna
     - name: Create and Push the Release Branch
+      id: create_step
       run: |
-        echo "Creating a ${RELEASE_TYPE} release from branch ${{ github.event.ref }}"
+        echo "Creating a ${{ github.event.inputs.releaseType || 'minor' }} release from branch release/v$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"
         node scripts/create-release-branch.js
-# For future Slack Integration
-#     - name: Update Slack - Failure
-#       if: failure()
-#       run: |
-#         curl -H 'Content-Type: application/json' \
-#         -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' \
-#         -X POST -d "${{ github.event.client_payload.on_failure }}" \
-#         https://slack.com/api/chat.update
-#     - name: Update Slack - Success
-#       if: success()
-#       run: |
-#         curl -H 'Content-Type: application/json' \
-#         -H 'Authorization: Bearer ${{ secrets.SLACK_BOT_TOKEN }}' \
-#         -X POST -d "${{ github.event.client_payload.on_success }}" \
-#         https://slack.com/api/chat.update
+    - id: result
+      run: echo "result=${{ job.status }}" >> $GITHUB_OUTPUT
+    - id: version
+      run: echo "version="$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")"" >> $GITHUB_OUTPUT
+    - id: branch
+      run: echo "branch=release/v${{ steps.version.outputs.version }}" >> $GITHUB_OUTPUT
+    - run: echo "Release Version is ${{ steps.version.outputs.version }}"
+    - run: echo “Release Type is ${{ github.event.inputs.releaseType || 'minor' }}”
+    - run: echo “Release Branch is ${{ steps.branch.outputs.branch }}”
+
+  slack_notification:
+    if: ${{ always() }}
+    needs: create_branch
+    uses: ./.github/workflows/slack-notification.yml
+    with:
+      title: "Release Branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }})"
+      failedEvent: "Create Release Branch"
+      successfulEvent: "${{ github.event.repository.html_url }}/tree/${{ needs.create_branch.outputs.branch }}"
+      type: "created"
+      result: ${{ needs.create_branch.outputs.result }}
+      workflow: "create-release-branch.yml"

@@ -1,3 +1,14 @@
+# 56.5.1 - November 9, 2022
+
+- We made some large updates to the Quick Start and Overviews section of our Apex Documentation. ([PR #4522](https://github.com/forcedotcom/salesforcedx-vscode/pull/4522))
+- We continue some under the hood work on the `@salesforce/core` library. ([PR #4521](https://github.com/forcedotcom/salesforcedx-vscode/pull/4521))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-replay-debugger
+
+- We fixed an issue where the interactive debugger was not loading for Windows users. ([PR #4536](https://github.com/forcedotcom/salesforcedx-vscode/issues/4536))
+
 # 56.4.1 - November 3, 2022
 
 - We continued some under the hood work on the `@salesforce/core` library. ([PR #4509](https://github.com/forcedotcom/salesforcedx-vscode/pull/4509), [PR #4510](https://github.com/forcedotcom/salesforcedx-vscode/pull/4510), [PR #4516](https://github.com/forcedotcom/salesforcedx-vscode/pull/4516), [PR #4517](https://github.com/forcedotcom/salesforcedx-vscode/pull/4517))
