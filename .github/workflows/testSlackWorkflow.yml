@@ -5,13 +5,12 @@ on:
   
 jobs: 
   slack_notification:
-    uses: ./.github/workflows/slack-notification.yml
-    secrets: 
-      SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
     with:
       title: "Test: Release Branch v56.7.1 (patch) successfully created"
       failedEvent: "Create Release Branch"
       successfulEvent: "https://github.com/forcedotcom/salesforcedx-vscode/tree/release/v56.7.1"
       type: "created"
-      result: "Success"
+      result: "failure"
       workflow: "create-release-branch.yml"
