@@ -10,7 +10,7 @@ This is a repository of sample tasks using SOQL that you can complete in Code Bu
 
 1. From the command palette, run **SFDX: Create Query in SOQL Builder** to open SOQL Query Builder.
 2. Click **File > Save** to save the query. Make sure to retain the .soql file extension.
-3. Click the Switch Between SOQL Builder and Text Editors icon ({% octicon go-to-file %}) to reopen the SOQL Query Builder.
+3. Click the Switch Between SOQL Builder and Text Editors icon ({% octicon file %}) to reopen the SOQL Query Builder.
 4. In the `From` field, search object, and select the `Account` object.
 5. In `Fields`, select `Name`, `BillingState`, and `BillingCountry`.
 6. In the `Filter` field, select `AND`, and set:
