@@ -1,4 +1,4 @@
-name: Create Release Branch
+name: Send Slack Notification
 
 on:
   workflow_call:
