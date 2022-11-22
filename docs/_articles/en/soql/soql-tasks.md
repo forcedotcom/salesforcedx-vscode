@@ -1,5 +1,5 @@
 ---
-title: SOQL Task
+title: SOQL Tasks
 lang: en
 ---
 
