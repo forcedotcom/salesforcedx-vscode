@@ -82,9 +82,7 @@ jobs:
     if: ${{ always() }}
     needs: create_git_tag
     uses: ./.github/workflows/slackNotification.yml
-    secrets: 
-      SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
-      IDEE_RELEASE_ALERT_SLACK_WEBHOOK: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
+    secrets: inherit
     with:
       title: "Beta release v${{ needs.create_git_tag.outputs.version }}"
       failedEvent: "Beta Release Publish"
