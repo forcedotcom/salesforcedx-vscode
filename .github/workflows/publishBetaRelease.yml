@@ -81,7 +81,8 @@ jobs:
   slack_notification:
     if: ${{ always() }}
     needs: create_git_tag
-    uses: ./.github/workflows/slack-notification.yml
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
     with:
       title: "Beta release v${{ needs.create_git_tag.outputs.version }}"
       failedEvent: "Beta Release Publish"
