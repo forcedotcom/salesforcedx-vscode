@@ -138,6 +138,10 @@
         en: ISV Debugger
         ja: ISV デバッガ
       url: /apex/isv-debugger
+    - title:
+        en: Example Apex Task
+        ja: Example Apex Task
+      url: apex/tasks/
 - title:
     en: Aura
     ja: Aura
@@ -212,6 +216,10 @@
         en: Writing
         ja: 作成
       url: /soql/writing
+    - title:
+        en: Example SOQL Task
+        ja: Example SOQL Task
+      url: soql/tasks/
 - title:
     en: FAQ
     ja: FAQ
