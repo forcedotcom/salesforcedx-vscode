@@ -1,0 +1,15 @@
+name: Test Slack
+
+on: 
+  workflow_dispatch:
+  
+jobs: 
+  slack_notification:
+    uses: ./.github/workflows/slack-notification.yml
+    with:
+      title: "Test: Release Branch v56.7.1 (patch) successfully created"
+      failedEvent: "Create Release Branch"
+      successfulEvent: "https://github.com/forcedotcom/salesforcedx-vscode/tree/release/v56.7.1"
+      type: "created"
+      result: "Success"
+      workflow: "create-release-branch.yml"
