@@ -29,8 +29,9 @@ Paste the code into the file:
       ```
 
 2. Click **Execute Anonymous Apex** to execute your code.
+
 The `DEBUG CONSOLE` lists accounts and their updated ratings. 
 
 ## Resources
 
-- [Introducing Apex Recipes | Salesforce Developers Blog](https://developer.salesforce.com/blogs/2020/10/introducing-apex-recipes)
+- [Introducing Apex Recipes](https://developer.salesforce.com/blogs/2020/10/introducing-apex-recipes)
