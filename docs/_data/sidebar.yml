@@ -141,7 +141,7 @@
     - title:
         en: Example Apex Task
         ja: Example Apex Task
-      url: apex/tasks/
+      url: apex/apex-tasks/
 - title:
     en: Aura
     ja: Aura
@@ -219,7 +219,7 @@
     - title:
         en: Example SOQL Task
         ja: Example SOQL Task
-      url: soql/tasks/
+      url: soql/soql-tasks/
 - title:
     en: FAQ
     ja: FAQ
