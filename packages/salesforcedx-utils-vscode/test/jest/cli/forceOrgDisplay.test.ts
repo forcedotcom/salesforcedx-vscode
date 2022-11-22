@@ -9,7 +9,7 @@ import {
 
 jest.mock('../../../src/cli/commandExecutor');
 jest.mock('../../../src/cli/commandBuilder');
-jest.mock('../../../src/cli/CommandOutput');
+jest.mock('../../../src/cli/commandOutput');
 
 const sfdxCommandBuilderMock = jest.mocked(SfdxCommandBuilder);
 const commandOutputMock = jest.mocked(CommandOutput);
