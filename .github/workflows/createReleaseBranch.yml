@@ -67,7 +67,10 @@ jobs:
   slack_notification:
     if: ${{ always() }}
     needs: create_branch
-    uses: ./.github/workflows/slack-notification.yml
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: 
+      SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
+      IDEE_RELEASE_ALERT_SLACK_WEBHOOK: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
     with:
       title: "Release Branch v${{ needs.create_branch.outputs.version }} (${{ needs.create_branch.outputs.release_type }})"
       failedEvent: "Create Release Branch"

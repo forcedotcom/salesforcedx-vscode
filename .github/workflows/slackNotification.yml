@@ -24,6 +24,8 @@ on:
     secrets:
       SLACK_WEBHOOK_URL:
         required: true
+      IDEE_RELEASE_ALERT_SLACK_WEBHOOK: 
+        required: true
 
 jobs:
   notification_on_success:
@@ -58,5 +60,5 @@ jobs:
               "result": "Failure"
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
 
