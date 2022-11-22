@@ -18,13 +18,14 @@ This is a repository of sample tasks using SOQL that you can complete in Code Bu
     `AND`
     `BillingState = NY`
 7.   Click **Run Query**.
+
 A Query Result tab pops up. You can then save the result in `csv` or `json` formats.
 
 
 ## Resources
 
-- [Example SELECT Clauses | SOQL and SOSL Reference | Salesforce Developers](https://developer.salesforce.com/docs/atlas.en-us.236.0.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_examples.htm)
-- [Salesforce Object Query Language (SOQL) | SOQL and SOSL Reference](https://developer.salesforce.com/docs/atlas.en-us.236.0.soql_sosl.meta/soql_sosl/sforce_api_calls_soql.htm)
+- [Example SELECT Clauses](https://developer.salesforce.com/docs/atlas.en-us.236.0.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_examples.htm)
+- [Salesforce Object Query Language (SOQL)](https://developer.salesforce.com/docs/atlas.en-us.236.0.soql_sosl.meta/soql_sosl/sforce_api_calls_soql.htm)
 
 Trailhead
  – [Write SOQL Queries](https://trailhead.salesforce.com/content/learn/modules/apex_database/apex_database_soql)
