@@ -6,6 +6,8 @@ on:
 jobs: 
   slack_notification:
     uses: ./.github/workflows/slack-notification.yml
+    secrets: 
+      SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
     with:
       title: "Test: Release Branch v56.7.1 (patch) successfully created"
       failedEvent: "Create Release Branch"
