@@ -9,6 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, WorkspaceContextUtil } from '../../../src';
 import { AuthUtil } from '../../../src/auth/authUtil';
+import { nls } from '../../../src/messages';
 jest.mock('@salesforce/core');
 jest.mock('../../../src/auth/authUtil');
 
@@ -135,7 +136,6 @@ describe('WorkspaceContext', () => {
 
     it('should return connection for the default org', async () => {
       authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
-      authInfoMock.create.mockResolvedValue(mockAuthInfo as any);
       connectionMock.create.mockResolvedValue(mockConnection as unknown as Promise<Connection<any>>);
       const connection = await workspaceContextUtil.getConnection();
       expect(connectionMock.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
@@ -149,6 +149,18 @@ describe('WorkspaceContext', () => {
       await workspaceContextUtil.getConnection();
 
       expect(connectionMock.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not throw error if there is a username set', async () => {
+      const connection = await workspaceContextUtil.getConnection();
+      expect(() => connection).not.toThrowError(nls.localize('error_no_default_username'));
+    });
+
+    it('shouldthrow error if there is no username set', async () => {
+      getUsernameOrAliasStub.mockReturnValue(undefined);
+      // await mockWatcher.onDidChange.mock.calls[0][0];
+      const connection = await workspaceContextUtil.getConnection();
+      expect(() => connection).not.toThrowError(nls.localize('error_no_default_username'));
     });
   });
 });

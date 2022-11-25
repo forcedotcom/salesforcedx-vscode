@@ -1,7 +1,8 @@
 
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { WorkspaceContextUtil } from '../../../src';
-import { projectPaths, workspaceUtils } from '../../../src/';
+import { fileExtensionsMatch, projectPaths, workspaceUtils } from '../../../src/';
 import { TOOLS } from '../../../src/helpers/paths';
 
 jest.mock('@salesforce/core', () => {
@@ -221,6 +222,30 @@ describe('test project paths', () => {
     it('should return a path to the debug Logs folder based on root workspace', () => {
       const debugLogsFolder = projectPaths.debugLogsFolder();
       expect(debugLogsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, FAKE_DEBUG, FAKE_LOGS));
+    });
+  });
+
+  describe('test fileExtensionsMatch IN PROGRESS', () => {
+    let activeTextEditorStub: jest.SpyInstance;
+    const mockEditor: any = {
+      document: {
+        uri: vscode.Uri.file('foo.log')
+      }
+    };
+
+    beforeEach(() => {
+      activeTextEditorStub = (vscode.window.activeTextEditor as any)
+      .mockReturnValue(mockEditor);
+    });
+
+    it('should return true if the extension of the uri given is the same as the target extension', () => {
+      const extensionsMatching = fileExtensionsMatch(mockEditor.document.uri, 'log');
+      expect(extensionsMatching).toBeTruthy();
+    });
+
+    it('should return false if the extension of the uri given is not the same as the target extension', () => {
+      const extensionsMatching = fileExtensionsMatch(mockEditor.document.uri, 'txt');
+      expect(extensionsMatching).toBeFalsy();
     });
   });
 });
