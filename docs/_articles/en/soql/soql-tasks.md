@@ -6,7 +6,7 @@ lang: en
 This is a repository of sample tasks using SOQL that you can complete in Code Builder or VS Code Extensions for desktop. We’ll keep adding to this list, so make sure you visit this topic often. 
 
 
-## Use the SOQL Query Editor Create a Query That Lists Accounts with a New York State Address
+## Use the SOQL Query Editor Create a Query To List Accounts with a New York State Address
 
 1. From the command palette, run **SFDX: Create Query in SOQL Builder** to open SOQL Query Builder.
 2. Click **File > Save** to save the query. Make sure to retain the .soql file extension.
