@@ -8,7 +8,7 @@ This repository contains sample Apex tasks that you can complete in Code Builder
 
 ## Use Anonymous Apex to Mass Update Account Ratings
 
-Say you have accounts with `Rating` set to `Cold` because of unfavorable business conditions. You now want to make mass updates to these accounts and change their rating to `Warm`.  Say you want to limit this update to mid-sized accounts with more than a certain amount of revenue. 
+Say you have accounts with `Rating` set to `Cold` because of unfavorable business conditions. You now want to make mass updates to these accounts and change their rating to `Warm`.  You want to limit this update to mid-sized accounts with more than a certain amount of revenue. 
 
 This Anonymous Apex code updates ratings of accounts that have an annual revenue greater than `$10,000,000` and have more than `1000` employees:
 
