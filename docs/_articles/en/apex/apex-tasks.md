@@ -13,7 +13,7 @@ Say you have accounts with `Rating` set to `Cold` because of unfavorable busines
 This anonymous Apex code updates ratings of accounts that have an annual revenue greater than `$10,000,000` and have more than `1000` employees:
 
 
-1. In the `scripts/apex` folder create a new Anonymous Apex file using the `.apex` file extension.
+1. In the `scripts/apex` folder, create an anonymous Apex file using the `.apex` file extension.
 Paste this code into the file:
 
       ```
