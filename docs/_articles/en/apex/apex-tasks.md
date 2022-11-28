@@ -14,7 +14,7 @@ This anonymous Apex code updates ratings of accounts that have an annual revenue
 
 
 1. In the `scripts/apex` folder create a new Anonymous Apex file using the `.apex` file extension.
-Paste the code into the file:
+Paste this code into the file:
 
       ```
       List<Account> acctList =[SELECT Name, Rating FROM Account
