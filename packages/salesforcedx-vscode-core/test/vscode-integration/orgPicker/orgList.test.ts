@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, OrgAuthorization, StateAggregator } from '@salesforce/core';
-import { AliasAccessor } from '@salesforce/core/lib/stateAggregator';
+import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { OrgList } from '../../../src/orgPicker';
 import * as util from '../../../src/util';
-import { ConfigUtil } from '../../../src/util';
 
 const sandbox = createSandbox();
 
@@ -190,7 +189,7 @@ describe('orgList Tests', () => {
         expect(authList[0]).to.equal(dummyScratchOrgAuth1.username);
       });
 
-      it.only('should display alias with username when alias is available', async () => {
+      it('should display alias with username when alias is available', async () => {
         // Arrange
         defaultDevHubStub.resolves(null);
         const authInfoObjects: OrgAuthorization[] = [

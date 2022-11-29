@@ -6,18 +6,23 @@
  */
 
 import { LogService, TestService } from '@salesforce/apex-node';
-import { TestLevel, TestResult } from '@salesforce/apex-node/lib/src/tests/types';
+import {
+  TestLevel,
+  TestResult
+} from '@salesforce/apex-node/lib/src/tests/types';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, testSetup } from '@salesforce/core/lib/testSetup';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import * as utils from '@salesforce/salesforcedx-utils-vscode/out/src/index';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ContinueResponse,
+  notificationService,
+  projectPaths,
+  SFDX_CORE_CONFIGURATION_NAME,
+  TraceFlags
+} from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as path from 'path';
-import { createSandbox, SinonSandbox, SinonStub } from 'sinon';
+import { createSandbox, SinonStub } from 'sinon';
 import * as vscode from 'vscode';
-import * as breakpoints from '../../../src/breakpoints';
 import { CheckpointService } from '../../../src/breakpoints/checkpointService';
 import * as launcher from '../../../src/commands/launchFromLogFile';
 import { TestDebuggerExecutor } from '../../../src/commands/quickLaunch';
@@ -29,12 +34,12 @@ const $$ = testSetup();
 // tslint:disable:no-unused-expression
 describe('Quick launch apex tests', () => {
   const testData = new MockTestOrgData();
-  const testDebuggerExec = new TestDebuggerExecutor();
+  let testDebuggerExec: TestDebuggerExecutor;
   const APEX_LOG_ID = 'abcd';
   const LOG_DIR = 'logs';
+  const sb = createSandbox();
 
   let mockConnection: Connection;
-  let sb: SinonSandbox;
   let notificationServiceStub: SinonStub;
   let traceFlagsStub: SinonStub;
   let testServiceStub: SinonStub;
@@ -47,13 +52,12 @@ describe('Quick launch apex tests', () => {
   let oneOrMoreActiveCheckpointsStub: SinonStub;
 
   beforeEach(async () => {
-    sb = createSandbox();
     settingStub = sb.stub();
     sb.stub(vscode.workspace, 'getConfiguration')
-      .withArgs(utils.SFDX_CORE_CONFIGURATION_NAME)
+      .withArgs(SFDX_CORE_CONFIGURATION_NAME)
       .returns({
         get: settingStub
-    });
+      });
     $$.setConfigStubContents('AuthInfoConfig', {
       contents: await testData.getConfig()
     });
@@ -66,15 +70,18 @@ describe('Quick launch apex tests', () => {
       .withArgs('defaultusername')
       .returns(testData.username);
     notificationServiceStub = sb.stub(notificationService, 'showErrorMessage');
-    sb.stub(workspaceContext, 'getConnection')
-      .returns(mockConnection);
+    sb.stub(workspaceContext, 'getConnection').returns(mockConnection);
     testServiceStub = sb
       .stub(TestService.prototype, 'runTestSynchronous')
-      .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] } as TestResult);
+      .resolves({ tests: [{ apexLogId: APEX_LOG_ID }] });
     buildPayloadStub = sb.stub(TestService.prototype, 'buildSyncPayload');
     writeResultFilesStub = sb.stub(TestService.prototype, 'writeResultFiles');
-    createCheckpointStub = sb.stub(breakpoints, 'sfdxCreateCheckpoints');
-    oneOrMoreActiveCheckpointsStub = sb.stub(CheckpointService.prototype, 'hasOneOrMoreActiveCheckpoints');
+    createCheckpointStub = sb.stub(CheckpointService, 'sfdxCreateCheckpoints');
+    oneOrMoreActiveCheckpointsStub = sb.stub(
+      CheckpointService.prototype,
+      'hasOneOrMoreActiveCheckpoints'
+    );
+    testDebuggerExec = new TestDebuggerExecutor();
   });
 
   afterEach(() => {
@@ -92,7 +99,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -136,9 +143,11 @@ describe('Quick launch apex tests', () => {
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({
-      tests: [{
-        apexLogId: APEX_LOG_ID
-      }]
+      tests: [
+        {
+          apexLogId: APEX_LOG_ID
+        }
+      ]
     });
     expect(writeResultFilesArgs[2]).to.equal(true);
   });
@@ -154,7 +163,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -198,9 +207,11 @@ describe('Quick launch apex tests', () => {
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({
-      tests: [{
-        apexLogId: APEX_LOG_ID
-      }]
+      tests: [
+        {
+          apexLogId: APEX_LOG_ID
+        }
+      ]
     });
     expect(writeResultFilesArgs[2]).to.equal(true);
   });
@@ -216,7 +227,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -224,7 +235,6 @@ describe('Quick launch apex tests', () => {
       type: 'CONTINUE',
       data: ['MyClass']
     };
-
     await testDebuggerExec.execute(response);
 
     expect(traceFlagsStub.called).to.equal(true);
@@ -247,7 +257,7 @@ describe('Quick launch apex tests', () => {
     traceFlagsStub = sb
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -293,9 +303,11 @@ describe('Quick launch apex tests', () => {
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({
-      tests: [{
-        apexLogId: APEX_LOG_ID
-      }]
+      tests: [
+        {
+          apexLogId: APEX_LOG_ID
+        }
+      ]
     });
     expect(writeResultFilesArgs[2]).to.equal(true);
   });
@@ -312,7 +324,7 @@ describe('Quick launch apex tests', () => {
       .stub(TraceFlags.prototype, 'ensureTraceFlags')
       .returns(true);
     testServiceStub.resolves({} as TestResult);
-    sb.stub(utils, 'getLogDirPath').returns(LOG_DIR);
+    sb.stub(projectPaths, 'debugLogsFolder').returns(LOG_DIR);
     logServiceStub = sb.stub(LogService.prototype, 'getLogs').resolves([]);
     launcherStub = sb.stub(launcher, 'launchFromLogFile');
 
@@ -349,9 +361,14 @@ describe('Quick launch apex tests', () => {
 
     expect(notificationServiceStub.called).to.equal(true);
     const notificationArgs = notificationServiceStub.getCall(0).args;
-    expect(notificationArgs[0]).to.equal(
-      "Cannot read property 'length' of undefined"
+    // Seems that there are two different error msgs:
+    // On Windows: "Cannot read property 'length' of undefined"
+    // On Mac: "Cannot read properties of undefined (reading 'length')"
+    expect(notificationArgs[0].startsWith('Cannot read propert')).to.equal(
+      true
     );
+    expect(notificationArgs[0]).to.contain('undefined');
+    expect(notificationArgs[0]).to.contain('length');
     expect(writeResultFilesStub.called).to.equal(true);
     const writeResultFilesArgs = writeResultFilesStub.getCall(0).args;
     expect(writeResultFilesArgs[0]).to.eql({});

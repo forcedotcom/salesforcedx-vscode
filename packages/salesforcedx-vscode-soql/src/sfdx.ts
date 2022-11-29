@@ -6,13 +6,16 @@
  */
 
 import { Connection } from '@salesforce/core';
-import { WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import * as debounce from 'debounce';
+import {
+  ChannelService,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { nls } from './messages';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const debounce = require('debounce');
 export const channelService = ChannelService.getInstance(
   nls.localize('soql_channel_name')
 );

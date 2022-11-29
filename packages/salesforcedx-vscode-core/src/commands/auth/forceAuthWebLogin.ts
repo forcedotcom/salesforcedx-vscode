@@ -8,10 +8,10 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { CommandOutput } from '@salesforce/salesforcedx-utils-vscode';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { EOL } from 'os';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
@@ -26,7 +26,7 @@ import {
 } from '../../notifications/index';
 import { taskViewService } from '../../statuses/index';
 import { telemetryService } from '../../telemetry';
-import { getRootWorkspacePath, isSFDXContainerMode } from '../../util';
+import { isSFDXContainerMode, workspaceUtils } from '../../util';
 import {
   DemoModePromptGatherer,
   SfdxCommandlet,
@@ -71,7 +71,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath(),
+      cwd: workspaceUtils.getRootWorkspacePath(),
       env: { SFDX_JSON_TO_STDOUT: 'true' }
     }).execute(cancellationToken);
 
@@ -118,7 +118,7 @@ export class ForceAuthWebLoginContainerExecutor extends SfdxCommandletExecutor<
       const userCode = response.user_code;
 
       if (verificationUrl && userCode) {
-        authUrl = `${verificationUrl}?user_code=${userCode}`;
+        authUrl = `${verificationUrl}?user_code=${userCode}&prompt=login`;
         this.logToOutputChannel(userCode, verificationUrl);
       }
     } catch (error) {
@@ -174,7 +174,7 @@ export abstract class ForceAuthDemoModeExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(() => {

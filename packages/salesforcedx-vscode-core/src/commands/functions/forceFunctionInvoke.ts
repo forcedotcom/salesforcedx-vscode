@@ -22,8 +22,8 @@ import {
 import { FunctionService } from './functionService';
 
 import { runFunction } from '@heroku/functions-core';
-import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import { LibraryCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 
 export class ForceFunctionInvoke extends LibraryCommandletExecutor<string> {

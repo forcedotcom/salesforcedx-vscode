@@ -8,7 +8,7 @@
 import {
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
 import { BaseDeployExecutor, DeployType } from './baseDeployCommand';
 import {
@@ -26,7 +26,7 @@ export const pushCommand: CommandParams = {
     default: 'force_source_push_default_scratch_org_text',
     forceoverwrite: 'force_source_push_force_default_scratch_org_text'
   },
-  logName: {default: 'force_source_push_default_scratch_org'}
+  logName: { default: 'force_source_push_default_scratch_org' }
 };
 
 export const pushCommandLegacy: CommandParams = {
@@ -35,22 +35,23 @@ export const pushCommandLegacy: CommandParams = {
     default: 'force_source_legacy_push_default_scratch_org_text',
     forceoverwrite: 'force_source_legacy_push_force_default_scratch_org_text'
   },
-  logName: {default: 'force_source_legacy_push_default_scratch_org'}
+  logName: { default: 'force_source_legacy_push_default_scratch_org' }
 };
 
 export class ForceSourcePushExecutor extends BaseDeployExecutor {
   private flag: string | undefined;
 
-  public constructor(flag?: string, public params: CommandParams = pushCommand) {
+  public constructor(
+    flag?: string,
+    public params: CommandParams = pushCommand
+  ) {
     super();
     this.flag = flag;
   }
 
   public build(data: {}): Command {
     const builder = new SfdxCommandBuilder()
-      .withDescription(
-        nls.localize(this.params.description.default)
-      )
+      .withDescription(nls.localize(this.params.description.default))
       .withArg(this.params.command)
       .withJson()
       .withLogName(this.params.logName.default);
@@ -72,8 +73,9 @@ const workspaceChecker = new SfdxWorkspaceChecker();
 const parameterGatherer = new EmptyParametersGatherer();
 
 export async function forceSourcePush(this: FlagParameter<string>) {
-  const {flag, commandVersion} = this || {};
-  const command = commandVersion === CommandVersion.Legacy ? pushCommandLegacy : pushCommand;
+  const { flag, commandVersion } = this || {};
+  const command =
+    commandVersion === CommandVersion.Legacy ? pushCommandLegacy : pushCommand;
   const executor = new ForceSourcePushExecutor(flag, command);
   const commandlet = new SfdxCommandlet(
     workspaceChecker,

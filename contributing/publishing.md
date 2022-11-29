@@ -72,6 +72,23 @@ After the pre-publish steps have run and main has been rebased off of the releas
 
 ---
 
+# Publishing a Beta Pre-Release
+
+If there is a release with high-risk or large-scale changes, we can publish a pre-release to allow advanced users to test early. VSIX artifacts are uploaded to a github release as with our usual release but there is no publish to NPM or the VS Code Marketplace (yet).
+
+## Steps
+
+1. Create a release branch, and increment the version using Lerna, as shown in the `create-release-branch.js` file, starting at the creation of the release branch.
+2. For the version number, keep the minor version the same and set the patch to use the following format: year month day hour minute. For example, v55.11.202208260522.
+3. Push the branch to remote.
+4. From the Actions tab in Github select the workflow 'Publish Beta Release to Github Only'.
+5. Select 'Run Workflow', and run the workflow from the beta branch. The workflow can only be run someone with write privileges of this repo.
+6. The workflow will create the git tag, the release, and attach the individual VSIX files to the release where they can be downloaded and tested.
+
+Note that the beta branch, because of the unique versioning, should not be merged back to develop. When the code is ready for a standard release, the regular release branching process should be followed.
+
+---
+
 # Manual Publish
 
 In the event that CircleCI is not a viable option for publishing, see the following...

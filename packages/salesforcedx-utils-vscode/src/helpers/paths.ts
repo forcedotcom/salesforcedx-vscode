@@ -1,13 +1,27 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
+ * Copyright (c) 2022, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Global } from '@salesforce/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { WorkspaceContextUtil } from '..';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
+
+const ORGS = 'orgs';
+const METADATA = 'metadata';
+export const TOOLS = 'tools';
+const TEST_RESULTS = 'testresults';
+const APEX = 'apex';
+const DEBUG = 'debug';
+const LOGS = 'logs';
+const APEX_DB = 'apex.db';
+const LWC = 'lwc';
+const SFDX_CONFIG_FILE = 'sfdx-config.json';
 
 export function ensureDirectoryExists(filePath: string): void {
   if (fs.existsSync(filePath)) {
@@ -18,16 +32,16 @@ export function ensureDirectoryExists(filePath: string): void {
 }
 
 export function getTestResultsFolder(vscodePath: string, testType: string) {
-  const dirPath = path.join(
+  const pathToTestResultsFolder = path.join(
     vscodePath,
-    '.sfdx',
-    'tools',
-    'testresults',
+    Global.STATE_FOLDER,
+    TOOLS,
+    TEST_RESULTS,
     testType
   );
 
-  ensureDirectoryExists(dirPath);
-  return dirPath;
+  ensureDirectoryExists(pathToTestResultsFolder);
+  return pathToTestResultsFolder;
 }
 
 /**
@@ -58,7 +72,95 @@ export function getRelativeProjectPath(
   return packageDirIndex !== -1 ? fsPath.slice(packageDirIndex) : fsPath;
 }
 
-export function fileExtensionsMatch(sourceUri: vscode.Uri, targetExtension: string): boolean {
-  const extension = sourceUri.path.split('.').pop()?.toLowerCase();
+export function fileExtensionsMatch(
+  sourceUri: vscode.Uri,
+  targetExtension: string
+): boolean {
+  const extension = sourceUri.path
+    .split('.')
+    .pop()
+    ?.toLowerCase();
   return extension === targetExtension.toLowerCase();
 }
+
+function stateFolder(): string {
+  return workspaceUtils.hasRootWorkspace()
+    ? path.join(workspaceUtils.getRootWorkspacePath(), Global.SFDX_STATE_FOLDER)
+    : '';
+}
+
+function metadataFolder(): string {
+  const username = WorkspaceContextUtil.getInstance().username;
+  const pathToMetadataFolder = path.join(
+    projectPaths.stateFolder(),
+    ORGS,
+    String(username),
+    METADATA
+  );
+  return pathToMetadataFolder;
+}
+
+function apexTestResultsFolder(): string {
+  const pathToApexTestResultsFolder = path.join(
+    toolsFolder(),
+    TEST_RESULTS,
+    APEX
+  );
+  return pathToApexTestResultsFolder;
+}
+
+function apexLanguageServerDatabase(): string {
+  const pathToApexLangServerDb = path.join(toolsFolder(), APEX_DB);
+  return pathToApexLangServerDb;
+}
+
+function lwcTestResultsFolder(): string {
+  const pathToLwcTestResultsFolder = path.join(testResultsFolder(), LWC);
+  return pathToLwcTestResultsFolder;
+}
+
+function testResultsFolder(): string {
+  const pathToTestResultsFolder = path.join(toolsFolder(), TEST_RESULTS);
+  return pathToTestResultsFolder;
+}
+
+function debugLogsFolder(): string {
+  const pathToDebugLogsFolder = path.join(toolsFolder(), DEBUG, LOGS);
+  return pathToDebugLogsFolder;
+}
+
+function sfdxProjectConfig(): string {
+  const pathToSFDXProjectConfig = path.join(
+    projectPaths.stateFolder(),
+    SFDX_CONFIG_FILE
+  );
+  return pathToSFDXProjectConfig;
+}
+
+function toolsFolder(): string {
+  const pathToToolsFolder = path.join(projectPaths.stateFolder(), TOOLS);
+  return pathToToolsFolder;
+}
+
+function relativeStateFolder(): string {
+  return Global.STATE_FOLDER;
+}
+
+function relativeToolsFolder(): string {
+  const relativePathToToolsFolder = path.join(projectPaths.relativeStateFolder(), TOOLS);
+  return relativePathToToolsFolder;
+}
+
+export const projectPaths = {
+  stateFolder,
+  metadataFolder,
+  testResultsFolder,
+  apexTestResultsFolder,
+  apexLanguageServerDatabase,
+  debugLogsFolder,
+  sfdxProjectConfig,
+  toolsFolder,
+  lwcTestResultsFolder,
+  relativeStateFolder,
+  relativeToolsFolder
+};

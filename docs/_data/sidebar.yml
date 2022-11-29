@@ -103,17 +103,29 @@
   baseUrl: /apex/
   children:
     - title:
-        en: Writing
+        en: Overview
+        ja: 概要
+      url: /apex/apex-overview
+    - title:
+        en: Apex Development Quick Start
+        ja: 始めましょう
+      url: /apex/apex-get-started
+    - title:
+        en: Tools for Writing Apex Code
         ja: 作成
       url: /apex/writing
     - title:
-        en: Testing
+        en: Testing Apex
         ja: テスト
       url: /apex/testing
     - title:
         en: Refactoring
         ja: リファクタリング
       url: /apex/refactoring
+    - title:
+        en: Debugging Apex
+        ja: Apex のデバッグ
+      url: /apex/apex-debugging
     - title:
         en: Replay Debugger
         ja: Replay デバッガ

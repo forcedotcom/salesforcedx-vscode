@@ -219,9 +219,11 @@ export abstract class LibraryCommandletExecutor<T>
         measurements
       );
     } catch (e) {
-      telemetryService.sendException(e.name, e.message);
-      notificationService.showFailedExecution(this.executionName);
-      channelService.appendLine(e.message);
+      if (e instanceof Error) {
+        telemetryService.sendException(e.name, e.message);
+        notificationService.showFailedExecution(this.executionName);
+        channelService.appendLine(e.message);
+      }
       channelService.showChannelOutput();
     }
   }

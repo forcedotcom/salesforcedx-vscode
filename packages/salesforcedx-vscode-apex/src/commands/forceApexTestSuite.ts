@@ -10,12 +10,12 @@ import {
   LibraryCommandletExecutor,
   SfdxCommandlet,
   SfdxWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
+} from '@salesforce/salesforcedx-utils-vscode';
 import {
   CancelResponse,
   ContinueResponse,
   ParametersGatherer
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import { readFileSync } from 'fs';
 import { basename } from 'path';
 import * as vscode from 'vscode';

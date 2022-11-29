@@ -30,29 +30,32 @@ let mocha = new Mocha({
   reporter: 'mocha-multi-reporters'
 });
 
-function configure(mochaOpts: any): void {
+function configure(mochaOpts: any, xmlOutputDirectory: string): void {
   if (mochaOpts.reporter == null) {
     // default to 'mocha-multi-reporters' (to get xunit.xml result)
     mochaOpts.reporter = 'mocha-multi-reporters';
   }
   if (!mochaOpts.reporterOptions) {
-    let xmlPath = '';
-    // There were some oddities on Windows where the mocha execution would be inside the downloaded version of vscode and store the test result file there
-    // This will fix the pathing for windows. This behavior is not seen in the system-tests, appears to be only when we use vscode's test bin to run tests
-    if (process.platform === 'win32') {
-      xmlPath = paths.normalize(paths.join(process.cwd(), '..', '..'));
-    }
+    const junitOutputFileLocation = paths.join(
+      xmlOutputDirectory,
+      'junit-custom-vscodeIntegrationTests.xml'
+    );
+    const xunitOutputFileLocation = paths.join(
+      xmlOutputDirectory,
+      'xunit-vscodeIntegrationTests.xml'
+    );
+
+    console.log('Output locations for reporters: ', {
+      junitOutputFileLocation,
+      xunitOutputFileLocation
+    });
     mochaOpts.reporterOptions = {
       reporterEnabled: 'mocha-junit-reporter, xunit, spec',
       mochaJunitReporterReporterOptions: {
-        mochaFile: xmlPath
-          ? paths.join(xmlPath, 'junit-custom-vscodeIntegrationTests.xml')
-          : 'junit-custom-vscodeIntegrationTests.xml'
+        mochaFile: junitOutputFileLocation
       },
       xunitReporterOptions: {
-        output: xmlPath
-          ? paths.join(xmlPath, 'xunit-vscodeIntegrationTests.xml')
-          : 'xunit-vscodeIntegrationTests.xml'
+        output: xunitOutputFileLocation
       }
     };
   }
@@ -146,23 +149,17 @@ function run(testsRoot: any, clb: any): any {
               process.exit(failures); // exit with non-zero status if there were failures
             });
           })
-          .on(
-            'fail',
-            (test: any, err: any): void => {
-              console.log(`Failure in test '${test}': ${err}`);
-              failureCount++;
+          .on('fail', (test: any, err: any): void => {
+            console.log(`Failure in test '${test}': ${err}`);
+            failureCount++;
+          })
+          .on('end', (): void => {
+            console.log(`Tests ended with ${failureCount} failure(s)`);
+            clb(undefined, failureCount);
+            if (!isNullOrUndefined(coverageRunner)) {
+              coverageRunner.reportCoverage();
             }
-          )
-          .on(
-            'end',
-            (): void => {
-              console.log(`Tests ended with ${failureCount} failure(s)`);
-              clb(undefined, failureCount);
-              if (!isNullOrUndefined(coverageRunner)) {
-                coverageRunner.reportCoverage();
-              }
-            }
-          );
+          });
       } catch (error) {
         console.error('An error occured: ' + error);
         return clb(error);

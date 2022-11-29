@@ -11,11 +11,8 @@ import {
   ForceDeployResultParser,
   ForceSourceDeployErrorResponse,
   ForceSourceDeploySuccessResponse
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import {
-  Row,
-  Table
-} from '@salesforce/salesforcedx-utils-vscode/out/src/output';
+} from '@salesforce/salesforcedx-utils-vscode';
+import { Row, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { channelService } from '../../../src/channels';

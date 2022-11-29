@@ -6,16 +6,13 @@
  */
 
 import {
+  extractJsonObject,
   ForceConfigGet,
-  ForceOrgDisplay
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
-import { extractJsonObject } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { RequestService } from '@salesforce/salesforcedx-utils-vscode/out/src/requestService';
-import {
+  ForceOrgDisplay,
+  RequestService,
   SFDX_CONFIG_ISV_DEBUGGER_SID,
   SFDX_CONFIG_ISV_DEBUGGER_URL
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
-import * as AsyncLock from 'async-lock';
+} from '@salesforce/salesforcedx-utils';
 import { basename } from 'path';
 import {
   DebugSession,
@@ -86,6 +83,11 @@ import {
 } from '../index';
 import { nls } from '../messages';
 import os = require('os');
+
+// Below import has to be required for bundling
+/* tslint:disable */
+const AsyncLock = require('async-lock');
+/* tslint:enable */
 
 const TRACE_ALL = 'all';
 const TRACE_CATEGORY_VARIABLES = 'variables';
@@ -548,7 +550,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
-  protected idleTimers: NodeJS.Timer[] = [];
+  protected idleTimers: Array<ReturnType<typeof setTimeout>> = [];
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -590,8 +592,8 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  private getSessionIdleTimer(): NodeJS.Timer[] {
-    const timers: NodeJS.Timer[] = [];
+  private getSessionIdleTimer(): Array<ReturnType<typeof setTimeout>> {
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
     timers.push(
       setTimeout(() => {
         this.warnToDebugConsole(
@@ -637,7 +639,7 @@ export class ApexDebug extends LoggingDebugSession {
     }
   }
 
-  public resetIdleTimer(): NodeJS.Timer[] {
+  public resetIdleTimer(): Array<ReturnType<typeof setTimeout>> {
     this.clearIdleTimers();
     this.idleTimers = this.getSessionIdleTimer();
     return this.idleTimers;
@@ -883,7 +885,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new RunCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        response.message = error.message;
       }
     }
     this.resetIdleTimer();
@@ -901,7 +903,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepOverCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        response.message = error.message;
       }
     }
     this.sendResponse(response);
@@ -918,7 +920,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepIntoCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        response.message = error.message;
       }
     }
     this.sendResponse(response);
@@ -935,7 +937,7 @@ export class ApexDebug extends LoggingDebugSession {
         await this.myRequestService.execute(new StepOutCommand(requestId));
         response.success = true;
       } catch (error) {
-        response.message = error;
+        response.message = error.message;
       }
     }
     this.sendResponse(response);
@@ -1053,7 +1055,7 @@ export class ApexDebug extends LoggingDebugSession {
       response.body = { stackFrames: clientFrames };
       response.success = true;
     } catch (error) {
-      response.message = error;
+      response.message = error.message;
     }
     this.sendResponse(response);
   }

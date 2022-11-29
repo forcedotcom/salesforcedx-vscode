@@ -5,23 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+import { CliCommandExecutor } from '@salesforce/salesforcedx-utils-vscode';
 import {
   ContinueResponse,
   DirFileNameSelection
-} from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { notificationService, ProgressNotification } from '../../notifications';
 import { taskViewService } from '../../statuses';
-import {
-  getRootWorkspacePath,
-  hasRootWorkspace,
-  MetadataDictionary,
-  MetadataInfo
-} from '../../util';
+import { MetadataDictionary, MetadataInfo, workspaceUtils } from '../../util';
 import {
   SelectOutputDir,
   SfdxCommandletExecutor,
@@ -39,18 +34,19 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(async data => {
       this.logMetric(execution.command.logName, startTime, {
         dirType: this.identifyDirType(response.data.outputdir)
       });
-      if (data !== undefined && String(data) === '0' && hasRootWorkspace()) {
-        const outputFile = this.getPathToSource(response.data.outputdir, response.data.fileName);
-        const document = await vscode.workspace.openTextDocument(
-          outputFile
+      if (data && String(data) === '0' && workspaceUtils.hasRootWorkspace()) {
+        const outputFile = this.getPathToSource(
+          response.data.outputdir,
+          response.data.fileName
         );
+        const document = await vscode.workspace.openTextDocument(outputFile);
         vscode.window.showTextDocument(document);
         this.runPostCommandTasks(response.data);
       }
@@ -82,7 +78,10 @@ export abstract class BaseTemplateCommand extends SfdxCommandletExecutor<
   }
 
   protected getPathToSource(outputDir: string, fileName: string): string {
-    const sourceDirectory = path.join(getRootWorkspacePath(), outputDir);
+    const sourceDirectory = path.join(
+      workspaceUtils.getRootWorkspacePath(),
+      outputDir
+    );
     return this.getSourcePathStrategy().getPathToSource(
       sourceDirectory,
       fileName,

@@ -15,17 +15,18 @@ import {
 } from '@salesforce/apex-node';
 import { Connection } from '@salesforce/core';
 import {
-  getLogDirPath,
-  getRootWorkspacePath,
-  LibraryCommandletExecutor
-} from '@salesforce/salesforcedx-utils-vscode/out/src';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode/out/src/commands';
-import { getTestResultsFolder, TraceFlags } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+  ContinueResponse,
+  LibraryCommandletExecutor,
+  notificationService,
+  projectPaths,
+  TraceFlags,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'path';
-import { workspace } from 'vscode';
-import { sfdxCreateCheckpoints } from '../breakpoints';
-import { checkpointService } from '../breakpoints/checkpointService';
+import {
+  checkpointService,
+  CheckpointService
+} from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { workspaceContext } from '../context';
 import { nls } from '../messages';
@@ -59,17 +60,13 @@ export class QuickLaunch {
       true
     );
     if (oneOrMoreCheckpoints) {
-      const createCheckpointsResult = await sfdxCreateCheckpoints();
+      const createCheckpointsResult = await CheckpointService.sfdxCreateCheckpoints();
       if (!createCheckpointsResult) {
         return false;
       }
     }
 
-    const testResult = await this.runTests(
-      connection,
-      testClass,
-      testName
-    );
+    const testResult = await this.runTests(connection, testClass, testName);
 
     if (testResult.success && testResult.logFileId) {
       const logFileRetrieve = await this.retrieveLogFile(
@@ -103,11 +100,8 @@ export class QuickLaunch {
         payload,
         true
       )) as TestResult;
-      if (workspace && workspace.workspaceFolders) {
-        const apexTestResultsPath = getTestResultsFolder(
-          getRootWorkspacePath(),
-          'apex'
-        );
+      if (workspaceUtils.hasRootWorkspace()) {
+        const apexTestResultsPath = projectPaths.apexTestResultsFolder();
         await testService.writeResultFiles(
           result,
           { dirPath: apexTestResultsPath, resultFormats: [ResultFormat.json] },
@@ -139,7 +133,7 @@ export class QuickLaunch {
     logId: string
   ): Promise<LogFileRetrieveResult> {
     const logService = new LogService(connection);
-    const outputDir = getLogDirPath();
+    const outputDir = projectPaths.debugLogsFolder();
 
     await logService.getLogs({ logId, outputDir });
     const logPath = path.join(outputDir, `${logId}.log`);

@@ -9,7 +9,7 @@ import {
   CliCommandExecutor,
   Command,
   SfdxCommandBuilder
-} from '@salesforce/salesforcedx-utils-vscode/out/src/cli';
+} from '@salesforce/salesforcedx-utils-vscode';
 
 import {
   EmptyParametersGatherer,
@@ -18,24 +18,29 @@ import {
   SfdxWorkspaceChecker
 } from '../util';
 
-import { getRootWorkspacePath } from '../../util';
+import { workspaceUtils } from '../../util';
 
 import { ConfigFile } from '@salesforce/core';
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { ContinueResponse } from '@salesforce/salesforcedx-utils-vscode/out/src/types';
+import {
+  ConfigSource,
+  ContinueResponse,
+  isNullOrUndefined
+} from '@salesforce/salesforcedx-utils-vscode';
 import { homedir } from 'os';
 import * as vscode from 'vscode';
-import { CLI } from '../../constants';
 import {
+  CLI,
   DEFAULT_DEV_HUB_USERNAME_KEY,
   SFDX_CONFIG_FILE
 } from '../../constants';
 import { nls } from '../../messages';
 import { isDemoMode } from '../../modes/demo-mode';
 import { isSFDXContainerMode } from '../../util';
-import { ConfigSource, OrgAuthInfo } from '../../util/index';
-import { ForceAuthDemoModeExecutor } from './forceAuthWebLogin';
-import { ForceAuthWebLoginContainerExecutor } from './forceAuthWebLogin';
+import { OrgAuthInfo } from '../../util/index';
+import {
+  ForceAuthDemoModeExecutor,
+  ForceAuthWebLoginContainerExecutor
+} from './forceAuthWebLogin';
 
 export class ForceAuthDevHubContainerExecutor extends ForceAuthWebLoginContainerExecutor {
   public build(data: {}): Command {
@@ -73,7 +78,7 @@ export class ForceAuthDevHubExecutor extends SfdxCommandletExecutor<{}> {
     const cancellationToken = cancellationTokenSource.token;
 
     const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: getRootWorkspacePath()
+      cwd: workspaceUtils.getRootWorkspacePath()
     }).execute(cancellationToken);
 
     execution.processExitSubject.subscribe(() =>

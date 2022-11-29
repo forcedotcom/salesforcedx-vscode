@@ -5,14 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isNullOrUndefined } from '@salesforce/salesforcedx-utils-vscode/out/src/helpers';
-import { MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils-vscode/out/src/i18n';
+import {
+  isNullOrUndefined,
+  MISSING_LABEL_MSG
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { forceDescribeMetadata } from '../commands';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
-import { getRootWorkspacePath, hasRootWorkspace, OrgAuthInfo } from '../util';
+import { OrgAuthInfo, workspaceUtils } from '../util';
 
 export type MetadataObject = {
   directoryName: string;
@@ -38,12 +40,12 @@ export class TypeUtils {
   ]);
 
   public async getTypesFolder(usernameOrAlias: string): Promise<string> {
-    if (!hasRootWorkspace()) {
+    if (!workspaceUtils.hasRootWorkspace()) {
       const err = nls.localize('cannot_determine_workspace');
       telemetryService.sendException('metadata_type_workspace', err);
       throw new Error(err);
     }
-    const workspaceRootPath = getRootWorkspacePath();
+    const workspaceRootPath = workspaceUtils.getRootWorkspacePath();
     const username = await OrgAuthInfo.getUsername(usernameOrAlias);
     const metadataTypesPath = path.join(
       workspaceRootPath,

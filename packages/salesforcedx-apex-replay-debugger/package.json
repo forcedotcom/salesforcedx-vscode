@@ -2,47 +2,51 @@
   "name": "@salesforce/salesforcedx-apex-replay-debugger",
   "displayName": "Apex Replay Debug Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
-  "version": "55.10.0",
+  "version": "56.8.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.49.3"
+    "vscode": "^1.61.2"
   },
   "categories": [
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "55.10.0",
+    "@salesforce/salesforcedx-utils": "56.8.0",
     "vscode-debugadapter": "1.28.0",
     "vscode-debugprotocol": "1.28.0",
     "vscode-uri": "1.0.1"
   },
   "devDependencies": {
     "@types/chai": "4.3.3",
+    "@types/jest": "28.1.8",
     "@types/mocha": "^5",
     "@types/node": "12.0.12",
     "@types/sinon": "^2.3.7",
     "chai": "^4.0.2",
     "cross-env": "5.2.0",
+    "jest": "28.1.3",
     "mocha": "^10",
     "mocha-junit-reporter": "^1.23.3",
     "mocha-multi-reporters": "^1.1.7",
     "nyc": "^15",
     "request-light": "0.2.4",
     "sinon": "^13.0.1",
-    "typescript": "3.8.3",
+    "ts-jest": "28.0.8",
+    "typescript": "^4.7.4",
     "vscode-debugadapter-testsupport": "1.28.0"
   },
   "scripts": {
+    "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts  --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "tslint --project .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "node ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/unit --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaUnitTestsConfig.json",
-    "test:integration": "node ./node_modules/cross-env/dist/bin/cross-env.js VSCODE_NLS_CONFIG={} ./node_modules/nyc/bin/nyc.js ./node_modules/mocha/bin/_mocha --recursive out/test/integration --reporter mocha-multi-reporters --reporter-options configFile=../../config/mochaIntegrationTestsConfig.json"
+    "test:unit": "jest --coverage",
+    "test:integration": "jest --coverage -c ./jest.integration.config.js"
   },
   "nyc": {
     "reporter": [

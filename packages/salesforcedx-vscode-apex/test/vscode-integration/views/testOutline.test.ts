@@ -6,7 +6,7 @@
  */
 
 // tslint:disable:no-unused-expression
-import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode/out/src';
+import { SfdxCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as events from 'events';
 import * as fs from 'fs';
