@@ -1,0 +1,64 @@
+name: Send Slack Notification
+
+on:
+  workflow_call:
+    inputs:
+      result:
+        description: Result of the previous workflow
+        type: string
+      title:
+        description: Title for the slack message
+        type: string
+      failedEvent:
+        description: Name of the failed event
+        type: string
+      successfulEvent:
+        description: URL for the successful event
+        type: string
+      type:
+        description: Action type
+        type: string
+      workflow:
+        description: Caller workflow
+        type: string
+    secrets:
+      VSCODE_SLACK_WEBHOOK:
+        required: true
+      IDEE_RELEASE_ALERT_SLACK_WEBHOOK: 
+        required: true
+
+jobs:
+  notification_on_success:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.result == 'success' }}
+    steps:
+      - name: Announce success
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          payload: |
+            {
+              "text": "${{ inputs.title }} successfully ${{ inputs.type }}",
+              "event": "${{ inputs.successfulEvent }}",
+              "repo": "${{ github.event.repository.name }}",
+              "result": "Success"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.VSCODE_SLACK_WEBHOOK }}
+
+  notification_on_failure:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.result == 'failure' }}
+    steps:
+      - name: Announce failure
+        uses: slackapi/slack-github-action@v1.22.0
+        with:
+          payload: |
+            {
+              "text": "${{ inputs.title }} unsuccessfully ${{ inputs.type }}",
+              "event": "${{ inputs.failedEvent }}, run: ${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}",
+              "repo": "${{ github.event.repository.name }}",
+              "result": "Failure"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_ALERT_SLACK_WEBHOOK }}
+
