@@ -3,7 +3,7 @@ title: SOQL Tasks
 lang: en
 ---
 
-This is a repository of sample tasks using SOQL that you can complete in Code Builder or VS Code Extensions for desktop. We’ll keep adding to this list, so make sure you visit this topic often. 
+This is a repository of sample tasks using SOQL that you can complete in Code Builder or VS Code using the Salesforce Extensions. We’ll keep adding to this list, so make sure you visit this topic often. 
 
 
 ## Use the SOQL Query Editor Create a Query To List Accounts with a New York State Address
