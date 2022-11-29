@@ -3,7 +3,7 @@ title: Apex Tasks
 lang: en
 ---
 
-This repository contains sample Apex tasks that you can complete in Code Builder or VS Code Extensions for desktop. We constantly add to this list, so make sure you visit this topic often. 
+This repository contains sample Apex tasks that you can complete in Code Builder or VS Code using the Salesforce Extensions. We constantly add to this list, so make sure you visit this topic often. 
 
 
 ## Use Anonymous Apex to Mass Update Account Ratings
