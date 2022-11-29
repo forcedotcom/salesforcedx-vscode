@@ -24,7 +24,7 @@ A Query Result tab pops up. You can then save the result in `csv` or `json` form
 
 ## Resources
 
-- [Example SELECT Clauses](https://developer.salesforce.com/docs/atlas.en-us.236.0.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_examples.htm)
+- [Example SELECT Clauses](https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_select_examples.htm)
 - [Salesforce Object Query Language (SOQL)](https://developer.salesforce.com/docs/atlas.en-us.236.0.soql_sosl.meta/soql_sosl/sforce_api_calls_soql.htm)
 
 Trailhead
