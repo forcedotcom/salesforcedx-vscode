@@ -20,7 +20,7 @@ If conflicts aren’t detected, the deploy operation is completed.
 You must enable the conflict detection feature to use it:
 
 1. Select **File** > **Preferences** > **Settings** (Windows or Linux) or **Code** > **Preferences** > **Settings** (macOS).
-2. Under Salesforce Feature Previews, select **Detect Conflicts At Sync**.
+2. Under Salesforce Core Configuration, select **Detect Conflicts At Sync**.
 
 You can also enter conflict detection in the search box to find the feature and then enable it.
 
