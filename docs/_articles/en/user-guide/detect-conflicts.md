@@ -30,6 +30,6 @@ When enabled, conflict detection will check for potential conflicts for all Depl
 
 You can either select to override conflicts or cancel the operation and view the conflicts in the Org Differences view.
 
-You can use [Source Diff](./en/user-guide/source-diff.md)  if you are interested in detecting conflicts in advance of any retrieve operation. 
+You can use [Source Diff](./en/user-guide/source-diff) if you are interested in detecting conflicts in advance of any retrieve operation. 
 
 ![Retrieve metadata flow](../../../images/RetrieveMetadataFlow.gif)
