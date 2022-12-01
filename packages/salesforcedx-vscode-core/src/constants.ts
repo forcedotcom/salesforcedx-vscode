@@ -49,3 +49,6 @@ export const AURA_PATH = '/force-app/main/default/aura/';
 export const APEX_CLASSES_PATH = '/force-app/main/default/classes/';
 export const LWC_PATH = '/force-app/main/default/lwc/';
 export const FUNCTIONS_PATH = '/functions/';
+
+// Commands
+export const ORG_OPEN_COMMAND = 'sfdx.force.org.open';
