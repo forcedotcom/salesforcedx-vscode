@@ -1,6 +1,6 @@
 name: Publish Beta Release to Github Only
 
-on: 
+on:
   workflow_dispatch:
 
 jobs:
@@ -29,14 +29,14 @@ jobs:
         with:
           name: VS Code Extensions
           path: ./extensions/
-  
+
   get_release_variables:
     # store the RELEASE_VERSION from the parent package as an output that we can reference elsewhere
     name: 'Get Release Environment Variables'
     runs-on: ubuntu-latest
     outputs:
       RELEASE_VERSION: ${{ steps.getVersion.outputs.version }}
-    steps: 
+    steps:
       - uses: actions/checkout@v3
       - id: getVersion
         run: echo "::set-output name=version::"$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")""
@@ -46,6 +46,10 @@ jobs:
     name: 'Create and Tag Beta Release'
     runs-on: ubuntu-latest
     needs: [save_artifacts, get_release_variables]
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release_type: ${{ github.event.inputs.releaseType || 'minor' }}
+      result: ${{ steps.result.outputs.result }}
     env:
       VERSION: ${{ needs.get_release_variables.outputs.RELEASE_VERSION }}
 
@@ -71,3 +75,18 @@ jobs:
         working-directory: tmp/saved-extensions
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: version
+        run: echo "version=${{ env.VERSION }}" >> $GITHUB_OUTPUT
+
+  slack_notification:
+    if: ${{ always() }}
+    needs: create_git_tag
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      title: "Beta release v${{ needs.create_git_tag.outputs.version }}"
+      failedEvent: "Beta Release Publish"
+      successfulEvent: "${{ github.event.repository.html_url }}/releases/${{ needs.create_git_tag.outputs.version }}"
+      type: "published"
+      result: ${{ needs.create_git_tag.outputs.result }}
+      workflow: "publish-beta-release.yml"
