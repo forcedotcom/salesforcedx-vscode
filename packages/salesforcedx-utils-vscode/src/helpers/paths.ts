@@ -89,8 +89,8 @@ function stateFolder(): string {
     : '';
 }
 
-function metadataFolder(): string {
-  const username = WorkspaceContextUtil.getInstance().username;
+function metadataFolder(usernameOrAlias?: string): string {
+  const username = usernameOrAlias ?? WorkspaceContextUtil.getInstance().username;
   const pathToMetadataFolder = path.join(
     projectPaths.stateFolder(),
     ORGS,
