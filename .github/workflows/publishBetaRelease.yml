@@ -62,7 +62,7 @@ jobs:
           path: tmp/saved-extensions
       - uses: ./.github/actions/gitConfig
         with:
-          email: ${{ secrets.GH_EMAIL }}
+          email: ${{ secrets.IDEE_GH_EMAIL }}
       - name: 'Create git tag to map to the Release Version'
         run: |
           git tag v${{ env.VERSION }}
