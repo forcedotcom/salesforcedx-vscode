@@ -11,6 +11,5 @@
         "release/*"
       ]
     }
-  },
-  "useNx": true
+  }
 }
