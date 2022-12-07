@@ -9,6 +9,7 @@ import { SfdxCommandBuilder } from './commandBuilder';
 import { CliCommandExecutor } from './commandExecutor';
 import { CommandOutput } from './commandOutput';
 
+export const FORCE_ORG_DISPLAY_COMMAND = 'force:org:display';
 export interface OrgInfo {
   username: string;
   devHubId: string;
@@ -28,7 +29,7 @@ export class ForceOrgDisplay {
   public async getOrgInfo(projectPath: string): Promise<OrgInfo> {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
-        .withArg('force:org:display')
+        .withArg(FORCE_ORG_DISPLAY_COMMAND)
         .withJson()
         .build(),
       { cwd: projectPath }

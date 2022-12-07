@@ -1,0 +1,12 @@
+name: Nightly Build Main
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 40 20 * * *
+
+jobs:
+  nightly-build-main:
+    uses: ./.github/workflows/buildAll.yml
+    with:
+      branch: main
