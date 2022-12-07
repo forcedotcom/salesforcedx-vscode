@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { WorkspaceContextUtil } from '../../../src';
 import { fileExtensionsMatch, projectPaths, workspaceUtils } from '../../../src/';
-import { TOOLS } from '../../../src/helpers/paths';
+import { APEX, APEX_DB, DEBUG, LOGS, LWC, METADATA, ORGS, SFDX_CONFIG_FILE, TEST_RESULTS, TOOLS } from '../../../src/helpers/paths';
 
 jest.mock('@salesforce/core', () => {
   return {
@@ -19,15 +19,6 @@ describe('test project paths', () => {
   const FAKE_WORKSPACE = '/here/is/a/fake/path/to/';
   const FAKE_WORKSPACE_INSTANCE: any = {};
   const FAKE_STATE_FOLDER = '.sfdx';
-  const FAKE_METADATA = 'metadata';
-  const FAKE_ORGS = 'orgs';
-  const FAKE_TEST_RESULTS = 'testresults';
-  const FAKE_APEX = 'apex';
-  const FAKE_APEX_DB = 'apex.db';
-  const FAKE_DEBUG = 'debug';
-  const FAKE_LOGS = 'logs';
-  const FAKE_LWC = 'lwc';
-  const FAKE_CONFIG_FILE = 'sfdx-config.json';
   const FAKE_PATH_TO_STATE_FOLDER = path.join(FAKE_WORKSPACE, FAKE_STATE_FOLDER);
 
   describe('test stateFolder', () => {
@@ -51,7 +42,7 @@ describe('test project paths', () => {
   });
   describe('test sfdxProjectConfig', () => {
     let stateFolderStub: jest.SpyInstance;
-    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, FAKE_CONFIG_FILE);
+    const FAKE_CONFIG = path.join(FAKE_WORKSPACE, SFDX_CONFIG_FILE);
 
     beforeEach(() => {
       stateFolderStub = jest
@@ -131,7 +122,7 @@ describe('test project paths', () => {
       // expect(usernameStub).toHaveBeenCalled();
       const metadataFolder = projectPaths.metadataFolder();
       const username = FAKE_WORKSPACE_INSTANCE.username;
-      expect(metadataFolder).toEqual(path.join(FAKE_WORKSPACE, FAKE_ORGS, username, FAKE_METADATA));
+      expect(metadataFolder).toEqual(path.join(FAKE_WORKSPACE, ORGS, username, METADATA));
     });
   });
 
@@ -149,7 +140,7 @@ describe('test project paths', () => {
 
     it('should return a path to the apex test results folder based on root workspace', () => {
       const apexTestResultsFolder = projectPaths.apexTestResultsFolder();
-      expect(apexTestResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, FAKE_TEST_RESULTS, FAKE_APEX));
+      expect(apexTestResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS, APEX));
     });
   });
 
@@ -167,7 +158,7 @@ describe('test project paths', () => {
 
     it('should return a path to the apex Language Server Database folder based on root workspace', () => {
       const apexLanguageServerDatabase = projectPaths.apexLanguageServerDatabase();
-      expect(apexLanguageServerDatabase).toEqual(path.join(FAKE_WORKSPACE, TOOLS, FAKE_APEX_DB));
+      expect(apexLanguageServerDatabase).toEqual(path.join(FAKE_WORKSPACE, TOOLS, APEX_DB));
     });
   });
 
@@ -185,7 +176,7 @@ describe('test project paths', () => {
 
     it('should return a path to the lwc Test Results Folder based on root workspace', () => {
       const lwcTestResultsFolder = projectPaths.lwcTestResultsFolder();
-      expect(lwcTestResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, FAKE_TEST_RESULTS, FAKE_LWC));
+      expect(lwcTestResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS, LWC));
     });
   });
 
@@ -203,7 +194,7 @@ describe('test project paths', () => {
 
     it('should return a path to the  Test Results Folder based on root workspace', () => {
       const testResultsFolder = projectPaths.testResultsFolder();
-      expect(testResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, FAKE_TEST_RESULTS));
+      expect(testResultsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, TEST_RESULTS));
     });
   });
 
@@ -221,7 +212,7 @@ describe('test project paths', () => {
 
     it('should return a path to the debug Logs folder based on root workspace', () => {
       const debugLogsFolder = projectPaths.debugLogsFolder();
-      expect(debugLogsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, FAKE_DEBUG, FAKE_LOGS));
+      expect(debugLogsFolder).toEqual(path.join(FAKE_WORKSPACE, TOOLS, DEBUG, LOGS));
     });
   });
 
