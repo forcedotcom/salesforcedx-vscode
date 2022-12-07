@@ -101,7 +101,6 @@ describe('test project paths', () => {
   });
 
   describe('test metadataFolder', () => {
-    jest.setTimeout(10000);
     let stateFolderStub: jest.SpyInstance;
     let usernameStub: jest.SpyInstance;
     beforeEach(() => {
@@ -119,7 +118,6 @@ describe('test project paths', () => {
     });
 
     it('should return a path to the metadata folder based on root workspace', () => {
-      // expect(usernameStub).toHaveBeenCalled();
       const metadataFolder = projectPaths.metadataFolder();
       const username = FAKE_WORKSPACE_INSTANCE.username;
       expect(metadataFolder).toEqual(path.join(FAKE_WORKSPACE, ORGS, username, METADATA));
