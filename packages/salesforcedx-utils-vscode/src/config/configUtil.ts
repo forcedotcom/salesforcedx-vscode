@@ -140,12 +140,14 @@ export class ConfigUtil {
   public static async setDefaultUsernameOrAlias(usernameOrAlias: string): Promise<void> {
     const originalDirectory = process.cwd();
     // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-    const path = getRootWorkspacePath(); // Get current workspace path
-    process.chdir(path); // Set process directory
+    const workspacePath = getRootWorkspacePath(); // Get current workspace path
+    process.chdir(workspacePath); // Set process directory
+
     const config = await Config.create(Config.getDefaultOptions());
-      // should only set if username is valid or an empty string (unset)
+
+    // should only set if username is valid or an empty string (unset)
     if (usernameOrAlias) { // check if username is an empty string
-      await Org.create({ aliasOrUsername: usernameOrAlias }); // check username is valid
+      await Org.create({ aliasOrUsername: usernameOrAlias }); // check if username is valid
     }
     config.set(DEFAULT_USERNAME_KEY, usernameOrAlias);
     await config.write();

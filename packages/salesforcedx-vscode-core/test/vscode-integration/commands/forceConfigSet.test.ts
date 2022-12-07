@@ -6,8 +6,7 @@
  */
 
 import { Config, Org } from '@salesforce/core';
-import { Table } from '@salesforce/salesforcedx-utils-vscode/out/src/output';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode/src';
+import { ConfigUtil, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { channelService } from '../../../src/channels';
@@ -18,9 +17,7 @@ import { nls } from '../../../src/messages';
 const sandbox = sinon.createSandbox();
 let channelSpy: sinon.SinonSpy;
 let setDefaultUsernameOrAliasStub: sinon.SinonStub;
-let configWriteSpy: sinon.SinonSpy;
 let tableSpy: sinon.SinonSpy;
-let orgStub: sinon.SinonStub;
 
 describe('Force Config Set', () => {
   const errorMessage = 'An error occurred.';
@@ -28,10 +25,8 @@ describe('Force Config Set', () => {
 
   beforeEach(() => {
     channelSpy = sandbox.spy(channelService, 'appendLine');
-    setDefaultUsernameOrAliasStub = sandbox.stub(ConfigUtil, 'setDefaultUsernameOrAlias').resolves();
-    configWriteSpy = sandbox.spy(Config.prototype, 'write');
+    setDefaultUsernameOrAliasStub = sandbox.stub(ConfigUtil, 'setDefaultUsernameOrAlias');
     tableSpy = sandbox.spy(Table.prototype, 'createTable');
-    orgStub = sandbox.stub(Org, 'create');
   });
 
   afterEach(() => {
@@ -39,17 +34,14 @@ describe('Force Config Set', () => {
   });
 
   it('should set config with the given username or alias', async () => {
-    orgStub.resolves();
     await forceConfigSet(usernameOrAlias);
     expect(setDefaultUsernameOrAliasStub.callCount).to.equal(1);
     expect(setDefaultUsernameOrAliasStub.calledWith(usernameOrAlias)).to.equal(true);
-    // expect(configWriteSpy.callCount).to.equal(1);
   });
 
   it('should set config with first alias', async () => {
     const aliases = ['alias1', 'alias2'];
     const expectedAlias = aliases[0];
-    orgStub.resolves();
     await forceConfigSet(aliases.join(','));
     expect(setDefaultUsernameOrAliasStub.callCount).to.equal(1);
     expect(setDefaultUsernameOrAliasStub.calledWith(expectedAlias)).to.equal(true);
@@ -73,17 +65,16 @@ describe('Force Config Set', () => {
   });
 
   it('should not set config with an invalid username or alias', async () => {
-    orgStub.throwsException();
+    setDefaultUsernameOrAliasStub.throwsException();
     await forceConfigSet(usernameOrAlias);
-    expect(setDefaultUsernameOrAliasStub.callCount).to.equal(0);
-    expect(configWriteSpy.callCount).to.equal(0);
+    expect(channelSpy.callCount).to.equal(2);
   });
 
   it('should display error message in output channel', async () => {
-    orgStub.throws(new Error(errorMessage));
+    setDefaultUsernameOrAliasStub.throws(new Error(errorMessage));
     await forceConfigSet(usernameOrAlias);
     expect(channelSpy.callCount).to.equal(2);
     expect(channelSpy.lastCall.args.length).to.equal(1);
     expect(channelSpy.lastCall.args[0]).to.contain(errorMessage);
-  });
+  }).timeout(10000);
 });
