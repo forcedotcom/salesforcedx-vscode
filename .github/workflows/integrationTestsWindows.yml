@@ -1,0 +1,24 @@
+on:
+  workflow_call:
+
+jobs:
+  windows-integration-tests:
+    strategy:
+      matrix:
+        node_version: [lts/*]
+      fail-fast: false
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node_version }}
+          cache: npm
+      - run: npm config set scripts-prepend-node-path true
+      - run: npm install -g sfdx-cli
+      - run: npm install -g junit-merge
+      - run: npm ci
+      - run: npm run compile
+      - run: npm run test:integration-tests-without-system-tests

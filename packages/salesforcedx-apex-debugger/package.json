@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "56.8.0",
+  "version": "56.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -12,7 +12,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "56.8.0",
+    "@salesforce/salesforcedx-utils": "56.9.0",
     "async-lock": "1.0.0",
     "faye": "1.1.2",
     "request-light": "0.2.4",
@@ -20,7 +20,7 @@
     "vscode-debugprotocol": "1.28.0"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-test-utils-vscode": "56.8.0",
+    "@salesforce/salesforcedx-test-utils-vscode": "56.9.0",
     "@types/async-lock": "0.0.20",
     "@types/chai": "4.3.3",
     "@types/jest": "28.1.7",
@@ -52,8 +52,8 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "jest --coverage",
-    "test:integration": "jest --coverage -c ./jest.integration.config.js"
+    "test:unit": "jest --coverage --forceExit",
+    "test:integration": "jest --coverage --forceExit -c ./jest.integration.config.js"
   },
   "nyc": {
     "reporter": [
