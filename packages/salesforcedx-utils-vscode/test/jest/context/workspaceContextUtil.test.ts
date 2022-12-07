@@ -57,6 +57,11 @@ describe('WorkspaceContext', () => {
     expect(workspaceContextUtil).toHaveProperty('onOrgChangeEmitter');
     expect(workspaceContextUtil).toHaveProperty('cliConfigWatcher', mockWatcher);
   });
+
+  it('should return workspace context util instance', () => {
+    expect(WorkspaceContextUtil.getInstance(false)).toEqual(workspaceContextUtil);
+  });
+
   it('should load the default username and alias upon initialization', () => {
     expect(workspaceContextUtil.username).toEqual(testUser);
     expect(workspaceContextUtil.alias).toEqual(testAlias);
@@ -153,14 +158,19 @@ describe('WorkspaceContext', () => {
 
     it('should not throw error if there is a username set', async () => {
       const connection = await workspaceContextUtil.getConnection();
-      expect(() => connection).not.toThrowError(nls.localize('error_no_default_username'));
+      expect(() => connection).not.toThrow();
     });
 
-    it('shouldthrow error if there is no username set', async () => {
-      getUsernameOrAliasStub.mockReturnValue(undefined);
-      // await mockWatcher.onDidChange.mock.calls[0][0];
-      const connection = await workspaceContextUtil.getConnection();
-      expect(() => connection).not.toThrowError(nls.localize('error_no_default_username'));
+    it('should throw error if there is no username set', async () => {
+      getUsernameStub.mockReturnValue(undefined);
+
+      await mockWatcher.onDidChange.mock.calls[0][0]();
+
+      try {
+        await workspaceContextUtil.getConnection();
+      } catch (error) {
+        expect(error).toEqual(new Error(nls.localize('error_no_default_username')));
+      }
     });
   });
 });
