@@ -61,6 +61,8 @@ describe('Channel Service', () => {
     expect(chan1).equals(chan2);
   });
 
+  // Fails locally and on GHA
+  // https://github.com/forcedotcom/easywriter/issues/96
   it.skip('Should pipe stdout on successful command execution', async () => {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
@@ -84,6 +86,7 @@ describe('Channel Service', () => {
   });
 
   // Fails locally and on GHA
+  // https://github.com/forcedotcom/easywriter/issues/96
   it.skip('Should pipe stderr on unsuccessful command execution', async () => {
     const execution = new CliCommandExecutor(
       new SfdxCommandBuilder()
