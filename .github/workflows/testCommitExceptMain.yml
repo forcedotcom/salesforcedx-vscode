@@ -1,0 +1,12 @@
+name: commit workflow
+on:
+  push:
+    branches-ignore: [main, develop]
+
+jobs:
+  unit-tests:
+    uses: ./.github/workflows/unitTests.yml
+  integration-tests:
+    uses: ./.github/workflows/integrationTests.yml
+  build-all:
+    uses: ./.github/workflows/buildAll.yml
